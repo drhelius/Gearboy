@@ -1,21 +1,27 @@
-/* 
- * File:   EightBitRegister.cpp
- * Author: nacho
- * 
- * Created on 2 de agosto de 2012, 2:28
- */
-
 #include "EightBitRegister.h"
 
 EightBitRegister::EightBitRegister()
 {
+    m_Value = 0;
 }
 
-EightBitRegister::EightBitRegister(const EightBitRegister& orig)
+void EightBitRegister::SetValue(u8 value)
 {
+    this->m_Value = value;
 }
 
-EightBitRegister::~EightBitRegister()
+u8 EightBitRegister::GetValue() const
 {
+    return m_Value;
+}
+
+void EightBitRegister::Increment()
+{
+    m_Value++;
+}
+    
+void EightBitRegister::Decrement()
+{
+    m_Value--;
 }
 

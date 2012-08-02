@@ -7,10 +7,13 @@ class EightBitRegister
 {
 public:
     EightBitRegister();
-    EightBitRegister(const EightBitRegister& orig);
-    virtual ~EightBitRegister();
+    void SetValue(u8 value);
+    u8 GetValue() const;
+    void Increment();
+    void Decrement();
 private:
-
+    u8 m_Value;
+    
 };
 
 #endif	/* EIGHTBITREGISTER_H */
