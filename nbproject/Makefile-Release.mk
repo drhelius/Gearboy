@@ -35,7 +35,17 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/main.o
+	${OBJECTDIR}/src/EightBitRegister.o \
+	${OBJECTDIR}/src/main.o \
+	${OBJECTDIR}/src/MemoryRule.o \
+	${OBJECTDIR}/src/MemoryCell.o \
+	${OBJECTDIR}/src/Cartridge.o \
+	${OBJECTDIR}/src/Core.o \
+	${OBJECTDIR}/src/Memory.o \
+	${OBJECTDIR}/src/Audio.o \
+	${OBJECTDIR}/src/Video.o \
+	${OBJECTDIR}/src/Processor.o \
+	${OBJECTDIR}/src/SixteenBitRegister.o
 
 
 # C Compiler Flags
@@ -62,10 +72,60 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/gearboy: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/gearboy ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/main.o: main.cpp 
-	${MKDIR} -p ${OBJECTDIR}
+${OBJECTDIR}/src/EightBitRegister.o: src/EightBitRegister.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/EightBitRegister.o src/EightBitRegister.cpp
+
+${OBJECTDIR}/src/main.o: src/main.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/main.o src/main.cpp
+
+${OBJECTDIR}/src/MemoryRule.o: src/MemoryRule.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MemoryRule.o src/MemoryRule.cpp
+
+${OBJECTDIR}/src/MemoryCell.o: src/MemoryCell.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MemoryCell.o src/MemoryCell.cpp
+
+${OBJECTDIR}/src/Cartridge.o: src/Cartridge.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Cartridge.o src/Cartridge.cpp
+
+${OBJECTDIR}/src/Core.o: src/Core.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Core.o src/Core.cpp
+
+${OBJECTDIR}/src/Memory.o: src/Memory.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Memory.o src/Memory.cpp
+
+${OBJECTDIR}/src/Audio.o: src/Audio.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Audio.o src/Audio.cpp
+
+${OBJECTDIR}/src/Video.o: src/Video.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Video.o src/Video.cpp
+
+${OBJECTDIR}/src/Processor.o: src/Processor.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Processor.o src/Processor.cpp
+
+${OBJECTDIR}/src/SixteenBitRegister.o: src/SixteenBitRegister.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SixteenBitRegister.o src/SixteenBitRegister.cpp
 
 # Subprojects
 .build-subprojects:

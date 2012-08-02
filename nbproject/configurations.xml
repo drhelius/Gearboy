@@ -1,18 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="84">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
-    <logicalFolder name="HeaderFiles"
-                   displayName="Header Files"
-                   projectFiles="true">
-    </logicalFolder>
-    <logicalFolder name="ResourceFiles"
-                   displayName="Resource Files"
-                   projectFiles="true">
-    </logicalFolder>
-    <logicalFolder name="SourceFiles"
-                   displayName="Source Files"
-                   projectFiles="true">
-      <itemPath>main.cpp</itemPath>
+    <logicalFolder name="src" displayName="src" projectFiles="true">
+      <itemPath>src/Audio.cpp</itemPath>
+      <itemPath>src/Audio.h</itemPath>
+      <itemPath>src/Cartridge.cpp</itemPath>
+      <itemPath>src/Cartridge.h</itemPath>
+      <itemPath>src/Core.cpp</itemPath>
+      <itemPath>src/Core.h</itemPath>
+      <itemPath>src/EightBitRegister.cpp</itemPath>
+      <itemPath>src/EightBitRegister.h</itemPath>
+      <itemPath>src/Memory.cpp</itemPath>
+      <itemPath>src/Memory.h</itemPath>
+      <itemPath>src/MemoryCell.cpp</itemPath>
+      <itemPath>src/MemoryCell.h</itemPath>
+      <itemPath>src/MemoryRule.cpp</itemPath>
+      <itemPath>src/MemoryRule.h</itemPath>
+      <itemPath>src/Processor.cpp</itemPath>
+      <itemPath>src/Processor.h</itemPath>
+      <itemPath>src/SixteenBitRegister.cpp</itemPath>
+      <itemPath>src/SixteenBitRegister.h</itemPath>
+      <itemPath>src/Video.cpp</itemPath>
+      <itemPath>src/Video.h</itemPath>
+      <itemPath>src/definitions.h</itemPath>
+      <itemPath>src/gearboy.h</itemPath>
+      <itemPath>src/main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -26,6 +38,9 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>src</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="1">
