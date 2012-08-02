@@ -10,5 +10,8 @@
 *.lai
 *.la
 *.a
+
+# Netbeans files
 /dist/
 /build/
+nbproject/private/
