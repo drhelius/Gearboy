@@ -27,7 +27,7 @@ u8 SixteenBitRegister::GetHigh() const
 void SixteenBitRegister::SetValue(u16 value)
 {
     m_Low.SetValue((u8) (value & BIT_MASK_8));
-    m_High.SetValue((u8) ((value >> 8) & BIT_MASK_8))
+    m_High.SetValue((u8) ((value >> 8) & BIT_MASK_8));
 }
 
 u16 SixteenBitRegister::GetValue() const
