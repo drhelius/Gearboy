@@ -18,3 +18,8 @@ nbproject/private/
 
 # Mac files
 .DS_Store
+
+# Visual Studio files
+/Debug
+/Release
+/ipch
