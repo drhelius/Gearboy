@@ -3,6 +3,7 @@
 
 #include "EightBitRegister.h"
 #include "SixteenBitRegister.h"
+#include "MemoryCell.h"
 
 
 #endif	/* GEARBOY_H */
