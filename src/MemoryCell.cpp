@@ -1,4 +1,3 @@
-#include <string.h>
 #include "MemoryCell.h"
 
 MemoryCell::MemoryCell()
