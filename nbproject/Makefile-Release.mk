@@ -37,7 +37,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/src/main.o \
 	${OBJECTDIR}/src/EightBitRegister.o \
-	${OBJECTDIR}/src/MemoryRule.o \
 	${OBJECTDIR}/src/MemoryCell.o \
 	${OBJECTDIR}/src/Cartridge.o \
 	${OBJECTDIR}/src/Core.o \
@@ -81,11 +80,6 @@ ${OBJECTDIR}/src/EightBitRegister.o: src/EightBitRegister.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/EightBitRegister.o src/EightBitRegister.cpp
-
-${OBJECTDIR}/src/MemoryRule.o: src/MemoryRule.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MemoryRule.o src/MemoryRule.cpp
 
 ${OBJECTDIR}/src/MemoryCell.o: src/MemoryCell.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
