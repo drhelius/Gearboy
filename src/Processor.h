@@ -2,14 +2,20 @@
 #define	PROCESSOR_H
 
 #include "definitions.h"
+#include "SixteenBitRegister.h"
 
 class Processor
 {
 public:
     Processor();
-    Processor(const Processor& orig);
-    virtual ~Processor();
+    ~Processor();
 private:
+    SixteenBitRegister AF;
+    SixteenBitRegister BC;
+    SixteenBitRegister DE;
+    SixteenBitRegister HL;
+    SixteenBitRegister SP;
+    SixteenBitRegister PC;
 
 };
 
