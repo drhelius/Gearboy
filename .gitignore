@@ -15,3 +15,6 @@
 /dist/
 /build/
 nbproject/private/
+
+# Mac files
+.DS_Store
