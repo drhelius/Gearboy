@@ -17,9 +17,42 @@
 nbproject/private/
 
 # Mac files
-.DS_Store
+*.DS_Store
 
 # Visual Studio files
-/Debug
-/Release
-/ipch
+vc/Debug/
+vc/Release/
+vc/ipch/
+[Oo]bj
+[Bb]in
+*.[Cc]ache
+*.obj
+*.exe
+*.exp
+*.pdb
+*.dll
+*.user
+*.aps
+*.pch
+*.sdf
+*.opensdf
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.ilk
+*.log
+*.zip
+[Dd]ebug*/
+*.lib
+*.sbr
+Thumbs.db
+[Ll]ib/
+[Rr]elease*/
+[Tt]est[Rr]esults/
+_UpgradeReport_Files/
+_ReSharper.*/
