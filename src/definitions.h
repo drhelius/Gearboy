@@ -32,6 +32,7 @@ typedef int16_t s16;
 #define FLAG_SUB 0x40
 #define FLAG_HALF 0x20
 #define FLAG_CARRY 0x10
+#define FLAG_NONE 0
 
 #define MAX_STRING_SIZE 256
 
