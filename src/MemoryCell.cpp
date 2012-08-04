@@ -37,12 +37,12 @@ char* MemoryCell::GetDisassembledString()
     return m_szDisassembled;
 }
 
-int MemoryCell::GetReadCount() const
+unsigned int MemoryCell::GetReadCount() const
 {
     return m_iReadCount;
 }
 
-int MemoryCell::GetWriteCount() const
+unsigned int MemoryCell::GetWriteCount() const
 {
     return m_iWriteCount;
 }
