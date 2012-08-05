@@ -43,6 +43,11 @@ bool Processor::IsSetFlag(u8 flag)
     return (AF.GetLow() & flag);
 }
 
+void Processor::InvalidOPCode()
+{
+    
+}
+
 void Processor::OPCodes_LD(EightBitRegister* reg1, u8 reg2)
 {
     reg1->SetValue(reg2);
