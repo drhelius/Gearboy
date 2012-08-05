@@ -12,6 +12,8 @@ public:
     u8 GetLow() const;
     void SetHigh(u8 high);
     u8 GetHigh() const;
+    EightBitRegister* GetHighRegister();
+    EightBitRegister* GetLowRegister();
     void SetValue(u16 value);
     u16 GetValue() const;
     void Increment();

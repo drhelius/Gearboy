@@ -13,6 +13,8 @@ public:
     Memory();
     ~Memory();
     void AddRule(MemoryRule* pRule);
+    u8 Read(u16 address);
+    void Write(u16 address, u8 value);
     
 private:
     MemoryCell* m_pMap;
