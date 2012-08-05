@@ -49,282 +49,170 @@ void Processor::OPCode0x06()
 void Processor::OPCode0x07()
 {
     // RLCA
-    if ((A.Value & 0x80) != 0)
-    {
-        F.Value = FLAG_CARRY;
-        A.Value <<= 1;
-        A.Value |= 0x1;
-    }
-    else
-    {
-        F.Value = 0;
-        A.Value <<= 1;
-    }
-
-    if (A.Value == 0)
-    {
-        F.Value |= FLAG_ZERO;
-    }
-
-
+    OPCodes_RLC(AF.GetHighRegister());
 }
 
 void Processor::OPCode0x08()
 {
     // LD (nn),SP
-    byte l = GameBoyMemory.Read(PC);
-    PC++;
-    byte h = GameBoyMemory.Read(PC);
-    PC++;
-    ushort addr = (ushort) ((h << 8) + l);
-    GameBoyMemory.Write(addr, (byte) (SP & 0xFF));
-    addr++;
-    GameBoyMemory.Write(addr, (byte) ((SP >> 8) & 0xFF));
-
-
+    u8 l = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    u8 h = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    u16 address = ((h << 8) + l);
+    m_pMemory->Write(address, SP.GetLow());
+    m_pMemory->Write(address + 1, SP.GetHigh());
 }
 
 void Processor::OPCode0x09()
 {
     // ADD HL,BC
-    OPCodes_ADD_HL((ushort) ((B.Value << 8) + C.Value));
-
+    OPCodes_ADD_HL(BC.GetValue());
 }
 
 void Processor::OPCode0x0A()
 {
     // LD A,(BC)
-    OPCodes_LD(A, (ushort) ((B.Value << 8) + C.Value));
-
+    OPCodes_LD(AF.GetHighRegister(), BC.GetValue());
 }
 
 void Processor::OPCode0x0B()
 {
     // DEC BC
-    ushort temp = (ushort) ((B.Value << 8) + C.Value);
-
-    temp--;
-
-    B.Value = (byte) ((temp >> 8) & 0xFF);
-    C.Value = (byte) (temp & 0xFF);
-
-
+    BC.Decrement();
 }
 
 void Processor::OPCode0x0C()
 {
     // INC C
-    OPCodes_INC(C);
-
+    OPCodes_INC(BC.GetLowRegister());
 }
 
 void Processor::OPCode0x0D()
 {
     // DEC C
-    OPCodes_DEC(C);
-
+    OPCodes_DEC(BC.GetLowRegister());
 }
 
 void Processor::OPCode0x0E()
 {
     // LD C,n
-    OPCodes_LD(C, PC);
-    PC++;
-
+    OPCodes_LD(BC.GetLowRegister(), PC.GetValue());
+    PC.Increment();
 }
 
 void Processor::OPCode0x0F()
 {
     // RRCA
-    if ((A.Value & 0x01) != 0)
-    {
-        F.Value = FLAG_CARRY;
-        A.Value >>= 1;
-        A.Value |= 0x80;
-    }
-    else
-    {
-        F.Value = 0;
-        A.Value >>= 1;
-    }
-
-    if (A.Value == 0)
-    {
-        F.Value |= FLAG_ZERO;
-    }
-
-
+    OPCodes_RRC(AF.GetHighRegister());
 }
 
 void Processor::OPCode0x10()
 {
+    // NOT IMPLEMENTED
     // STOP
+    /*
     if (GameBoyMemory.Read(PC) != 0)
     {
         InvalidOPCode();
     }
-
-    PC++;
-
-
+     */
+    PC.Increment();
 }
 
 void Processor::OPCode0x11()
 {
     // LD DE,nn
-    OPCodes_LD(E, PC);
-    PC++;
-    OPCodes_LD(D, PC);
-    PC++;
-
+    OPCodes_LD(DE.GetLowRegister(), PC.GetValue());
+    PC.Increment();
+    OPCodes_LD(DE.GetHighRegister(), PC.GetValue());
+    PC.Increment();
 }
 
 void Processor::OPCode0x12()
 {
     // LD (DE),A
-    OPCodes_LD((ushort) ((D.Value << 8) + E.Value), A);
-
+    OPCodes_LD(DE.GetValue(), AF.GetHigh());
 }
 
 void Processor::OPCode0x13()
 {
     // INC DE
-    ushort temp = (ushort) ((D.Value << 8) + E.Value);
-
-    temp++;
-
-    D.Value = (byte) ((temp >> 8) & 0xFF);
-    E.Value = (byte) (temp & 0xFF);
-
-
+    DE.Increment();
 }
 
 void Processor::OPCode0x14()
 {
     // INC D
-    OPCodes_INC(D);
-
+    OPCodes_INC(DE.GetHighRegister());
 }
 
 void Processor::OPCode0x15()
 {
     // DEC D
-    OPCodes_DEC(D);
-
+    OPCodes_DEC(DE.GetHighRegister());
 }
 
 void Processor::OPCode0x16()
 {
     // LD D,n
-    OPCodes_LD(D, PC);
-    PC++;
-
+    OPCodes_LD(DE.GetHighRegister(), PC.GetValue());
+    PC.Increment();
 }
 
 void Processor::OPCode0x17()
 {
     // RLA
-    byte carry = ((F.Value & FLAG_CARRY) != 0) ? (byte) 0x01 : (byte) 0x00;
-
-    if ((A.Value & 0x80) != 0)
-    {
-        F.Value = FLAG_CARRY;
-    }
-    else
-    {
-        F.Value = 0;
-    }
-
-    A.Value <<= 1;
-    A.Value |= carry;
-
-    if (A.Value == 0)
-    {
-        F.Value |= FLAG_ZERO;
-    }
-
-
+    OPCodes_RL(AF.GetHighRegister());
 }
 
 void Processor::OPCode0x18()
 {
     // JR n
-    PC = (ushort) (PC + 1 + (sbyte) GameBoyMemory.Read(PC));
-
+    PC.SetValue(PC.GetValue() + 1 + (static_cast<s8>(m_pMemory->Read(PC.GetValue()))));
 }
 
 void Processor::OPCode0x19()
 {
     // ADD HL,DE
-    OPCodes_ADD_HL((ushort) ((D.Value << 8) + E.Value));
-
+    OPCodes_ADD_HL(DE.GetValue());
 }
 
 void Processor::OPCode0x1A()
 {
     // LD A,(DE)
-    OPCodes_LD(A, (ushort) ((D.Value << 8) + E.Value));
-
+    OPCodes_LD(AF.GetHighRegister(), DE.GetValue());
 }
 
 void Processor::OPCode0x1B()
 {
     // DEC DE
-    ushort temp = (ushort) ((D.Value << 8) + E.Value);
-
-    temp--;
-
-    D.Value = (byte) ((temp >> 8) & 0xFF);
-    E.Value = (byte) (temp & 0xFF);
-
-
+    DE.Decrement();
 }
 
 void Processor::OPCode0x1C()
 {
     // INC E
-    OPCodes_INC(E);
-
+    OPCodes_INC(DE.GetLowRegister());
 }
 
 void Processor::OPCode0x1D()
 {
     // DEC E
-    OPCodes_DEC(E);
-
+    OPCodes_DEC(DE.GetLowRegister());
 }
 
 void Processor::OPCode0x1E()
 {
     // LD E,n
-    OPCodes_LD(E, PC);
-    PC++;
-
+    OPCodes_LD(DE.GetLowRegister(), PC.GetValue());
+    PC.Increment();
 }
 
 void Processor::OPCode0x1F()
 {
     // RRA
-    byte carry = ((F.Value & FLAG_CARRY) != 0) ? (byte) 0x80 : (byte) 0x00;
-
-    if ((A.Value & 0x01) != 0)
-    {
-        F.Value = FLAG_CARRY;
-    }
-    else
-    {
-        F.Value = 0;
-    }
-
-    A.Value >>= 1;
-    A.Value |= carry;
-
-    if (A.Value == 0)
-    {
-        F.Value |= FLAG_ZERO;
-    }
-
-
+    OPCodes_RR(AF.GetHighRegister());
 }
 
 void Processor::OPCode0x20()
