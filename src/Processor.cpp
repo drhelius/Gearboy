@@ -28,6 +28,11 @@ void Processor::SetFlag(u8 flag)
     AF.SetLow(flag);
 }
 
+void Processor::FlipFlag(u8 flag)
+{
+    AF.SetLow(AF.GetLow() ^ flag);
+}
+
 void Processor::ToggleFlag(u8 flag)
 {
     AF.SetLow(AF.GetLow() | flag);
