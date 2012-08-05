@@ -43,9 +43,9 @@ bool Processor::IsSetFlag(u8 flag)
     return (AF.GetLow() & flag);
 }
 
-void Processor::OPCodes_LD(EightBitRegister* reg1, EightBitRegister reg2)
+void Processor::OPCodes_LD(EightBitRegister* reg1, u8 reg2)
 {
-    reg1->SetValue(reg2.GetValue());
+    reg1->SetValue(reg2);
 }
 
 void Processor::OPCodes_LD(EightBitRegister* reg, u16 address)
@@ -53,9 +53,9 @@ void Processor::OPCodes_LD(EightBitRegister* reg, u16 address)
     reg->SetValue(m_pMemory->Read(address));
 }
 
-void Processor::OPCodes_LD(u16 address, EightBitRegister reg)
+void Processor::OPCodes_LD(u16 address, u8 reg)
 {
-    m_pMemory->Write(address, reg.GetValue());
+    m_pMemory->Write(address, reg);
 }
 
 void Processor::OPCodes_OR(u8 number)

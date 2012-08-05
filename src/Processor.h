@@ -19,9 +19,9 @@ private:
     void ToggleFlag(u8 flag);
     void UntoggleFlag(u8 flag);
     bool IsSetFlag(u8 flag);
-    void OPCodes_LD(EightBitRegister* reg1, EightBitRegister reg2);
+    void OPCodes_LD(EightBitRegister* reg1, u8 reg2);
     void OPCodes_LD(EightBitRegister* reg, u16 address);
-    void OPCodes_LD(u16 address, EightBitRegister reg);
+    void OPCodes_LD(u16 address, u8 reg);
     void OPCodes_OR(u8 number);
     void OPCodes_XOR(u8 number);
     void OPCodes_AND(u8 number);
