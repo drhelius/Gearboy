@@ -58,6 +58,9 @@ private:
     void OPCodes_SET_HL(int bit);
     void OPCodes_RES(EightBitRegister* reg, int bit);
     void OPCodes_RES_HL(int bit);
+    
+#include "opcodes.h"
+#include "opcodes_cb.h"
 
 private:
     Memory* m_pMemory;

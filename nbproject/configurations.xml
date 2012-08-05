@@ -24,6 +24,10 @@
       <itemPath>src/definitions.h</itemPath>
       <itemPath>src/gearboy.h</itemPath>
       <itemPath>src/main.cpp</itemPath>
+      <itemPath>src/opcodes.cpp</itemPath>
+      <itemPath>src/opcodes.h</itemPath>
+      <itemPath>src/opcodes_cb.cpp</itemPath>
+      <itemPath>src/opcodes_cb.h</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"

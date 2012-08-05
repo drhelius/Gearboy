@@ -37,11 +37,13 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/src/main.o \
 	${OBJECTDIR}/src/EightBitRegister.o \
-	${OBJECTDIR}/src/MemoryCell.o \
 	${OBJECTDIR}/src/Cartridge.o \
 	${OBJECTDIR}/src/Core.o \
+	${OBJECTDIR}/src/opcodes.o \
+	${OBJECTDIR}/src/MemoryCell.o \
 	${OBJECTDIR}/src/Memory.o \
 	${OBJECTDIR}/src/Audio.o \
+	${OBJECTDIR}/src/opcodes_cb.o \
 	${OBJECTDIR}/src/Video.o \
 	${OBJECTDIR}/src/Processor.o \
 	${OBJECTDIR}/src/SixteenBitRegister.o
@@ -81,11 +83,6 @@ ${OBJECTDIR}/src/EightBitRegister.o: src/EightBitRegister.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/EightBitRegister.o src/EightBitRegister.cpp
 
-${OBJECTDIR}/src/MemoryCell.o: src/MemoryCell.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MemoryCell.o src/MemoryCell.cpp
-
 ${OBJECTDIR}/src/Cartridge.o: src/Cartridge.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -96,6 +93,16 @@ ${OBJECTDIR}/src/Core.o: src/Core.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Core.o src/Core.cpp
 
+${OBJECTDIR}/src/opcodes.o: src/opcodes.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/opcodes.o src/opcodes.cpp
+
+${OBJECTDIR}/src/MemoryCell.o: src/MemoryCell.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MemoryCell.o src/MemoryCell.cpp
+
 ${OBJECTDIR}/src/Memory.o: src/Memory.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -105,6 +112,11 @@ ${OBJECTDIR}/src/Audio.o: src/Audio.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Audio.o src/Audio.cpp
+
+${OBJECTDIR}/src/opcodes_cb.o: src/opcodes_cb.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/opcodes_cb.o src/opcodes_cb.cpp
 
 ${OBJECTDIR}/src/Video.o: src/Video.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
