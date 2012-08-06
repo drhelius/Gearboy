@@ -786,561 +786,484 @@ void Processor::OPCode0x6F()
 void Processor::OPCode0x70()
 {
     // LD (HL),B
-    OPCodes_LD((ushort) ((H.Value << 8) + L.Value), B);
-
+    OPCodes_LD(HL.GetValue(), BC.GetHigh());
 }
 
 void Processor::OPCode0x71()
 {
     // LD (HL),C
-    OPCodes_LD((ushort) ((H.Value << 8) + L.Value), C);
-
+    OPCodes_LD(HL.GetValue(), BC.GetLow());
 }
 
 void Processor::OPCode0x72()
 {
     // LD (HL),D
-    OPCodes_LD((ushort) ((H.Value << 8) + L.Value), D);
-
+    OPCodes_LD(HL.GetValue(), DE.GetHigh());
 }
 
 void Processor::OPCode0x73()
 {
     // LD (HL),E
-    OPCodes_LD((ushort) ((H.Value << 8) + L.Value), E);
-
+    OPCodes_LD(HL.GetValue(), DE.GetLow());
 }
 
 void Processor::OPCode0x74()
 {
     // LD (HL),H
-    OPCodes_LD((ushort) ((H.Value << 8) + L.Value), H);
-
+    OPCodes_LD(HL.GetValue(), HL.GetHigh());
 }
 
 void Processor::OPCode0x75()
 {
     // LD (HL),L
-    OPCodes_LD((ushort) ((H.Value << 8) + L.Value), L);
-
+    OPCodes_LD(HL.GetValue(), HL.GetLow());
 }
 
 void Processor::OPCode0x76()
 {
+    // NOT IMPLEMENTED
     // HALT
-    HALT = true;
-
+    //HALT = true;
 }
 
 void Processor::OPCode0x77()
 {
     // LD (HL),A
-    OPCodes_LD((ushort) ((H.Value << 8) + L.Value), A);
-
+    OPCodes_LD(HL.GetValue(), AF.GetHigh());
 }
 
 void Processor::OPCode0x78()
 {
     // LD A,B
-    OPCodes_LD(A, B);
-
+    OPCodes_LD(AF.GetHighRegister(), BC.GetHigh());
 }
 
 void Processor::OPCode0x79()
 {
     // LD A,C
-    OPCodes_LD(A, C);
-
+    OPCodes_LD(AF.GetHighRegister(), BC.GetLow());
 }
 
 void Processor::OPCode0x7A()
 {
     // LD A,D
-    OPCodes_LD(A, D);
-
+    OPCodes_LD(AF.GetHighRegister(), DE.GetHigh());
 }
 
 void Processor::OPCode0x7B()
 {
     // LD A,E
-    OPCodes_LD(A, E);
+    OPCodes_LD(AF.GetHighRegister(), DE.GetLow());
 
 }
 
 void Processor::OPCode0x7C()
 {
     // LD A,H
-    OPCodes_LD(A, H);
-
+    OPCodes_LD(AF.GetHighRegister(), HL.GetHigh());
 }
 
 void Processor::OPCode0x7D()
 {
     // LD A,L
-    OPCodes_LD(A, L);
-
+    OPCodes_LD(AF.GetHighRegister(), HL.GetLow());
 }
 
 void Processor::OPCode0x7E()
 {
     // LD A,(HL)
-    OPCodes_LD(A, (ushort) ((H.Value << 8) + L.Value));
-
+    OPCodes_LD(AF.GetHighRegister(), HL.GetValue());
 }
 
 void Processor::OPCode0x7F()
 {
     // LD A,A
-    OPCodes_LD(A, A);
-
+    OPCodes_LD(AF.GetHighRegister(), AF.GetHigh());
 }
 
 void Processor::OPCode0x80()
 {
     // ADD A,B
-    OPCodes_ADD(B.Value);
-
+    OPCodes_ADD(BC.GetHigh());
 }
 
 void Processor::OPCode0x81()
 {
     // ADD A,C
-    OPCodes_ADD(C.Value);
-
+    OPCodes_ADD(BC.GetLow());
 }
 
 void Processor::OPCode0x82()
 {
     // ADD A,D
-    OPCodes_ADD(D.Value);
-
+    OPCodes_ADD(DE.GetHigh());
 }
 
 void Processor::OPCode0x83()
 {
     // ADD A,E
-    OPCodes_ADD(E.Value);
-
+    OPCodes_ADD(DE.GetLow());
 }
 
 void Processor::OPCode0x84()
 {
     // ADD A,H
-    OPCodes_ADD(H.Value);
-
+    OPCodes_ADD(HL.GetHigh());
 }
 
 void Processor::OPCode0x85()
 {
     // ADD A,L
-    OPCodes_ADD(L.Value);
-
+    OPCodes_ADD(HL.GetLow());
 }
 
 void Processor::OPCode0x86()
 {
     // ADD A,(HL)
-    OPCodes_ADD(GameBoyMemory.Read((ushort) ((H.Value << 8) + L.Value)));
-
+    OPCodes_ADD(m_pMemory->Read(HL.GetValue()));
 }
 
 void Processor::OPCode0x87()
 {
     // ADD A,A
-    OPCodes_ADD(A.Value);
-
+    OPCodes_ADD(AF.GetHigh());
 }
 
 void Processor::OPCode0x88()
 {
     // ADC A,B
-    OPCodes_ADC(B.Value);
-
+    OPCodes_ADC(BC.GetHigh());
 }
 
 void Processor::OPCode0x89()
 {
     // ADC A,C
-    OPCodes_ADC(C.Value);
-
+    OPCodes_ADC(BC.GetLow());
 }
 
 void Processor::OPCode0x8A()
 {
     // ADC A,D
-    OPCodes_ADC(D.Value);
-
+    OPCodes_ADC(DE.GetHigh());
 }
 
 void Processor::OPCode0x8B()
 {
     // ADC A,E
-    OPCodes_ADC(E.Value);
-
+    OPCodes_ADC(DE.GetLow());
 }
 
 void Processor::OPCode0x8C()
 {
     // ADC A,H
-    OPCodes_ADC(H.Value);
-
+    OPCodes_ADC(HL.GetHigh());
 }
 
 void Processor::OPCode0x8D()
 {
     // ADC A,L
-    OPCodes_ADC(L.Value);
-
+    OPCodes_ADC(HL.GetLow());
 }
 
 void Processor::OPCode0x8E()
 {
     // ADC A,(HL)
-    OPCodes_ADC(GameBoyMemory.Read((ushort) ((H.Value << 8) + L.Value)));
-
+    OPCodes_ADC(m_pMemory->Read(HL.GetValue()));
 }
 
 void Processor::OPCode0x8F()
 {
     // ADC A,A
-    OPCodes_ADC(A.Value);
-
+    OPCodes_ADC(AF.GetHigh());
 }
 
 void Processor::OPCode0x90()
 {
     // SUB B
-    OPCodes_SUB(B.Value);
-
+    OPCodes_SUB(BC.GetHigh());
 }
 
 void Processor::OPCode0x91()
 {
     // SUB C
-    OPCodes_SUB(C.Value);
-
+    OPCodes_SUB(BC.GetLow());
 }
 
 void Processor::OPCode0x92()
 {
     // SUB D
-    OPCodes_SUB(D.Value);
-
+    OPCodes_SUB(DE.GetHigh());
 }
 
 void Processor::OPCode0x93()
 {
     // SUB E
-    OPCodes_SUB(E.Value);
-
+    OPCodes_SUB(DE.GetLow());
 }
 
 void Processor::OPCode0x94()
 {
     // SUB H
-    OPCodes_SUB(H.Value);
-
+    OPCodes_SUB(HL.GetHigh());
 }
 
 void Processor::OPCode0x95()
 {
     // SUB L
-    OPCodes_SUB(L.Value);
-
+    OPCodes_SUB(HL.GetLow());
 }
 
 void Processor::OPCode0x96()
 {
     // SUB (HL)
-    OPCodes_SUB(GameBoyMemory.Read((ushort) ((H.Value << 8) + L.Value)));
-
+    OPCodes_SUB(m_pMemory->Read(HL.GetValue()));
 }
 
 void Processor::OPCode0x97()
 {
     // SUB A
-    OPCodes_SUB(A.Value);
-
+    OPCodes_SUB(AF.GetHigh());
 }
 
 void Processor::OPCode0x98()
 {
     // SBC B
-    OPCodes_SBC(B.Value);
-
+    OPCodes_SBC(BC.GetHigh());
 }
 
 void Processor::OPCode0x99()
 {
     // SBC C
-    OPCodes_SBC(C.Value);
-
+    OPCodes_SBC(BC.GetLow());
 }
 
 void Processor::OPCode0x9A()
 {
     // SBC D
-    OPCodes_SBC(D.Value);
-
+    OPCodes_SBC(DE.GetHigh());
 }
 
 void Processor::OPCode0x9B()
 {
     // SBC E
-    OPCodes_SBC(E.Value);
-
+    OPCodes_SBC(DE.GetLow());
 }
 
 void Processor::OPCode0x9C()
 {
     // SBC H
-    OPCodes_SBC(H.Value);
-
+    OPCodes_SBC(HL.GetHigh());
 }
 
 void Processor::OPCode0x9D()
 {
     // SBC L
-    OPCodes_SBC(L.Value);
-
+    OPCodes_SBC(HL.GetLow());
 }
 
 void Processor::OPCode0x9E()
 {
     // SBC (HL)
-    OPCodes_SBC(GameBoyMemory.Read((ushort) ((H.Value << 8) + L.Value)));
-
+    OPCodes_SBC(m_pMemory->Read(HL.GetValue()));
 }
 
 void Processor::OPCode0x9F()
 {
     // SBC A
-    OPCodes_SBC(A.Value);
-
+    OPCodes_SBC(AF.GetHigh());
 }
 
 void Processor::OPCode0xA0()
 {
     // AND B
-    OPCodes_AND(B.Value);
-
+    OPCodes_AND(BC.GetHigh());
 }
 
 void Processor::OPCode0xA1()
 {
     // AND C
-    OPCodes_AND(C.Value);
-
+    OPCodes_AND(BC.GetLow());
 }
 
 void Processor::OPCode0xA2()
 {
     // AND D
-    OPCodes_AND(D.Value);
-
+    OPCodes_AND(DE.GetHigh());
 }
 
 void Processor::OPCode0xA3()
 {
     // AND E
-    OPCodes_AND(E.Value);
-
+    OPCodes_AND(DE.GetLow());
 }
 
 void Processor::OPCode0xA4()
 {
     // AND H
-    OPCodes_AND(H.Value);
-
+    OPCodes_AND(HL.GetHigh());
 }
 
 void Processor::OPCode0xA5()
 {
     // AND L
-    OPCodes_AND(L.Value);
-
+    OPCodes_AND(HL.GetLow());
 }
 
 void Processor::OPCode0xA6()
 {
     // AND (HL)
-    OPCodes_AND(GameBoyMemory.Read((ushort) ((H.Value << 8) + L.Value)));
-
+    OPCodes_AND(m_pMemory->Read(HL.GetValue()));
 }
 
 void Processor::OPCode0xA7()
 {
     // AND A
-    OPCodes_AND(A.Value);
-
+    OPCodes_AND(AF.GetHigh());
 }
 
 void Processor::OPCode0xA8()
 {
     // XOR B
-    OPCodes_XOR(B.Value);
-
+    OPCodes_XOR(BC.GetHigh());
 }
 
 void Processor::OPCode0xA9()
 {
     // XOR C
-    OPCodes_XOR(C.Value);
-
+    OPCodes_XOR(BC.GetLow());
 }
 
 void Processor::OPCode0xAA()
 {
     // XOR D
-    OPCodes_XOR(D.Value);
-
+    OPCodes_XOR(DE.GetHigh());
 }
 
 void Processor::OPCode0xAB()
 {
     // XOR E
-    OPCodes_XOR(E.Value);
-
+    OPCodes_XOR(DE.GetLow());
 }
 
 void Processor::OPCode0xAC()
 {
     // XOR H
-    OPCodes_XOR(H.Value);
-
+    OPCodes_XOR(HL.GetHigh());
 }
 
 void Processor::OPCode0xAD()
 {
     // XOR L
-    OPCodes_XOR(L.Value);
-
+    OPCodes_XOR(HL.GetLow());
 }
 
 void Processor::OPCode0xAE()
 {
     // XOR (HL)
-    OPCodes_XOR(GameBoyMemory.Read((ushort) ((H.Value << 8) + L.Value)));
-
+    OPCodes_XOR(m_pMemory->Read(HL.GetValue()));
 }
 
 void Processor::OPCode0xAF()
 {
     // XOR A
-    OPCodes_XOR(A.Value);
-
+    OPCodes_XOR(AF.GetHigh());
 }
 
 void Processor::OPCode0xB0()
 {
     // OR B
-    OPCodes_OR(B.Value);
-
+    OPCodes_OR(BC.GetHigh());
 }
 
 void Processor::OPCode0xB1()
 {
     // OR C
-    OPCodes_OR(C.Value);
-
+    OPCodes_OR(BC.GetLow());
 }
 
 void Processor::OPCode0xB2()
 {
     // OR D
-    OPCodes_OR(D.Value);
-
+    OPCodes_OR(DE.GetHigh());
 }
 
 void Processor::OPCode0xB3()
 {
     // OR E
-    OPCodes_OR(E.Value);
+    OPCodes_OR(DE.GetLow());
 
 }
 
 void Processor::OPCode0xB4()
 {
     // OR H
-    OPCodes_OR(H.Value);
-
+    OPCodes_OR(HL.GetHigh());
 }
 
 void Processor::OPCode0xB5()
 {
     // OR L
-    OPCodes_OR(L.Value);
-
+    OPCodes_OR(HL.GetLow());
 }
 
 void Processor::OPCode0xB6()
 {
     // OR (HL)
-    OPCodes_OR(GameBoyMemory.Read((ushort) ((H.Value << 8) + L.Value)));
-
+    OPCodes_OR(m_pMemory->Read(HL.GetValue()));
 }
 
 void Processor::OPCode0xB7()
 {
     // OR A
-    OPCodes_OR(A.Value);
-
+    OPCodes_OR(AF.GetHigh());
 }
 
 void Processor::OPCode0xB8()
 {
     // CP B
-    OPCodes_CP(B.Value);
-
+    OPCodes_CP(BC.GetHigh());
 }
 
 void Processor::OPCode0xB9()
 {
     // CP C
-    OPCodes_CP(C.Value);
-
+    OPCodes_CP(BC.GetLow());
 }
 
 void Processor::OPCode0xBA()
 {
     // CP D
-    OPCodes_CP(D.Value);
-
+    OPCodes_CP(DE.GetHigh());
 }
 
 void Processor::OPCode0xBB()
 {
     // CP E
-    OPCodes_CP(E.Value);
-
+    OPCodes_CP(DE.GetLow());
 }
 
 void Processor::OPCode0xBC()
 {
     // CP H
-    OPCodes_CP(H.Value);
-
+    OPCodes_CP(HL.GetHigh());
 }
 
 void Processor::OPCode0xBD()
 {
     // CP L
-    OPCodes_CP(L.Value);
-
+    OPCodes_CP(HL.GetLow());
 }
 
 void Processor::OPCode0xBE()
 {
     // CP (HL)
-    OPCodes_CP(GameBoyMemory.Read((ushort) ((H.Value << 8) + L.Value)));
-
+    OPCodes_CP(m_pMemory->Read(HL.GetValue()));
 }
 
 void Processor::OPCode0xBF()
 {
     // CP A
-    OPCodes_CP(A.Value);
-
+    OPCodes_CP(AF.GetHigh());
 }
 
 void Processor::OPCode0xC0()
