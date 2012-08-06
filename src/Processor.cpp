@@ -48,9 +48,25 @@ bool Processor::IsSetFlag(u8 flag)
     return (AF.GetLow() & flag);
 }
 
+void Processor::StackPush(SixteenBitRegister* reg)
+{
+    SP.Decrement();
+    m_pMemory->Write(SP.GetValue(), reg->GetHigh());
+    SP.Decrement();
+    m_pMemory->Write(SP.GetValue(), reg->GetLow());
+}
+
+void Processor::StackPop(SixteenBitRegister* reg)
+{
+    reg->SetLow(m_pMemory->Read(SP.GetValue()));
+    SP.Increment();
+    reg->SetHigh(m_pMemory->Read(SP.GetValue()));
+    SP.Increment();
+}
+
 void Processor::InvalidOPCode()
 {
-    
+
 }
 
 void Processor::OPCodes_LD(EightBitRegister* reg1, u8 reg2)

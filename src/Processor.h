@@ -20,6 +20,8 @@ private:
     void ToggleFlag(u8 flag);
     void UntoggleFlag(u8 flag);
     bool IsSetFlag(u8 flag);
+    void StackPush(SixteenBitRegister* reg);
+    void StackPop(SixteenBitRegister* reg);
     void InvalidOPCode();
     void OPCodes_LD(EightBitRegister* reg1, u8 reg2);
     void OPCodes_LD(EightBitRegister* reg, u16 address);
