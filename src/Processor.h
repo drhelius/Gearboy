@@ -12,7 +12,11 @@ public:
     Processor(Memory* pMemory);
     ~Processor();
     void Reset();
+    void RunToVBlank();
 private:
+    void Fetch();
+    void ExecuteOPCode(u8 opcode);
+    void ExecuteOPCodeCB(u8 opcode);
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);
     void SetFlag(u8 flag);

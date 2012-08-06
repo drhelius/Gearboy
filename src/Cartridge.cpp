@@ -8,3 +8,7 @@ Cartridge::~Cartridge()
 {
 }
 
+void Cartridge::Reset()
+{
+}
+

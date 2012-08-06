@@ -15,7 +15,11 @@ public:
     void Reset();
     void AddRule(MemoryRule* pRule);
     u8 Read(u16 address);
-    void Write(u16 address, u8 value);  
+    void Write(u16 address, u8 value);
+    u8 Retrieve(u16 address);
+    void Load(u16 address, u8 value);
+    void Disassemble(u16 address, const char* szDisassembled);
+    bool IsDisassembled(u16 address);
 private:
     MemoryCell* m_pMap;
     std::vector<MemoryRule*> m_Rules;

@@ -23,9 +23,12 @@ Core::~Core()
     SafeDelete(m_pMemory);
 }
 
- void Core::Reset()
- {
-     m_pMemory->Reset();
-     m_pProcessor->Reset();
- }
+void Core::Reset()
+{
+    m_pMemory->Reset();
+    m_pProcessor->Reset();
+    m_pVideo->Reset();
+    m_pAudio->Reset();
+    m_pCartridge->Reset();
+}
 

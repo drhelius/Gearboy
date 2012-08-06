@@ -17,6 +17,7 @@ public:
     Core();
     ~Core();
     void Reset();
+    void RunToVBlank();
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;

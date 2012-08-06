@@ -8,6 +8,7 @@ class Audio
 public:
     Audio();
     ~Audio();
+    void Reset();
 private:
 
 };

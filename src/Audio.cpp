@@ -8,3 +8,7 @@ Audio::~Audio()
 {
 }
 
+void Audio::Reset()
+{
+}
+

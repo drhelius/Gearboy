@@ -4,11 +4,11 @@ Video::Video()
 {
 }
 
-Video::Video(const Video& orig)
+Video::~Video()
 {
 }
 
-Video::~Video()
+void Video::Reset()
 {
 }
 

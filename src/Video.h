@@ -7,8 +7,8 @@ class Video
 {
 public:
     Video();
-    Video(const Video& orig);
-    virtual ~Video();
+    ~Video();
+    void Reset();
 private:
 };
 

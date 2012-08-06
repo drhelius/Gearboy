@@ -2,13 +2,11 @@
 
 void testfunc()
 {
-    Memory* mem = new Memory();
-    Processor* cpu = new Processor(mem);
+    Core* gb = new Core();
+            
+    //gb->m_pProcessor->PC.SetValue(10);
     
-    cpu->PC.SetValue(10);
-    
-    SafeDelete(cpu);
-    SafeDelete(mem);
+    SafeDelete(gb);
 }
 
 int main(int argc, char** argv)

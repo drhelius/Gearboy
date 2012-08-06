@@ -29,12 +29,31 @@ void Memory::AddRule(MemoryRule* pRule)
 
 u8 Memory::Read(u16 address)
 {
-    return m_pMap[address].Read();
+    return Retrieve(address);
 }
-
 
 void Memory::Write(u16 address, u8 value)
 {
+    Load(address, value);
+}
+
+u8 Memory::Retrieve(u16 address)
+{
+    return m_pMap[address].Read();
+}
+
+void Memory::Load(u16 address, u8 value)
+{
     m_pMap[address].Write(value);
+}
+
+void Memory::Disassemble(u16 address, const char* szDisassembled)
+{
+    m_pMap[address].SetDisassembledString(szDisassembled);
+}
+
+bool Memory::IsDisassembled(u16 address)
+{
+    return strlen(m_pMap[address].GetDisassembledString());
 }
 

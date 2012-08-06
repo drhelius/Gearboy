@@ -8,6 +8,7 @@ class Cartridge
 public:
     Cartridge();
     ~Cartridge();
+    void Reset();
 private:
 
 };
