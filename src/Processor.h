@@ -8,14 +8,10 @@ class Memory;
 
 class Processor
 {
-    // for testing purposes
-    friend void testfunc();
-
 public:
     Processor(Memory* pMemory);
     ~Processor();
     void Reset();
-
 private:
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);

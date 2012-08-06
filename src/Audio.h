@@ -7,8 +7,7 @@ class Audio
 {
 public:
     Audio();
-    Audio(const Audio& orig);
-    virtual ~Audio();
+    ~Audio();
 private:
 
 };

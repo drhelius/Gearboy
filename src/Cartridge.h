@@ -7,8 +7,7 @@ class Cartridge
 {
 public:
     Cartridge();
-    Cartridge(const Cartridge& orig);
-    virtual ~Cartridge();
+    ~Cartridge();
 private:
 
 };

@@ -21,7 +21,6 @@ public:
 private:
     EightBitRegister m_High;
     EightBitRegister m_Low;
-
 };
 
 #endif	/* SIXTEENBITREGISTER_H */

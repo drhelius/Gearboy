@@ -18,7 +18,6 @@ void Processor::Reset()
     BC.SetValue(0x0013);
     DE.SetValue(0x00D8);
     HL.SetValue(0x014D);
-    m_pMemory->Reset();
 }
 
 void Processor::ClearAllFlags()

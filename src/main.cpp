@@ -1,7 +1,4 @@
 #include "gearboy.h"
-#include "Memory.h"
-#include "Processor.h"
-
 
 void testfunc()
 {

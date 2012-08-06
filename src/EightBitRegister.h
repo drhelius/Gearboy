@@ -13,7 +13,6 @@ public:
     void Decrement();
 private:
     u8 m_Value;
-    
 };
 
 #endif	/* EIGHTBITREGISTER_H */

@@ -11,6 +11,8 @@ class Cartridge;
 
 class Core
 {
+    // for testing purposes
+    friend void testfunc();
 public:
     Core();
     ~Core();

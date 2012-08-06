@@ -10,7 +10,6 @@ public:
     Video(const Video& orig);
     virtual ~Video();
 private:
-
 };
 
 #endif	/* VIDEO_H */
