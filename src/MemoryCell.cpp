@@ -57,3 +57,8 @@ u8 MemoryCell::GetValue() const
     return m_Register.GetValue();
 }
 
+void MemoryCell::SetValue(u8 value)
+{
+    m_Register.SetValue(value);
+}
+

@@ -3,14 +3,24 @@
 
 #include "definitions.h"
 
+class Memory;
+class Processor;
+class Video;
+class Audio;
+class Cartridge;
+
 class Core
 {
 public:
     Core();
-    Core(const Core& orig);
-    virtual ~Core();
+    ~Core();
+    void Reset();
 private:
-
+    Memory* m_pMemory;
+    Processor* m_pProcessor;
+    Video* m_pVideo;
+    Audio* m_pAudio;
+    Cartridge* m_pCartridge;
 };
 
 #endif	/* CORE_H */

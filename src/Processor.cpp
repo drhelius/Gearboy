@@ -10,6 +10,17 @@ Processor::~Processor()
 {
 }
 
+void Processor::Reset()
+{
+    PC.SetValue(0x100);
+    SP.SetValue(0xFFFE);
+    AF.SetValue(0x01B0);
+    BC.SetValue(0x0013);
+    DE.SetValue(0x00D8);
+    HL.SetValue(0x014D);
+    m_pMemory->Reset();
+}
+
 void Processor::ClearAllFlags()
 {
     SetFlag(FLAG_NONE);

@@ -17,6 +17,7 @@ public:
     unsigned int GetWriteCount() const;
     u8 GetOldValue() const;
     u8 GetValue() const;
+    void SetValue(u8 value);
 private:
     EightBitRegister m_Register;
     EightBitRegister m_OldRegister;
