@@ -498,337 +498,289 @@ void Processor::OPCode0x3F()
 void Processor::OPCode0x40()
 {
     // LD B,B
-    OPCodes_LD(B, B);
-
+    OPCodes_LD(BC.GetHighRegister(), BC.GetHigh());
 }
 
 void Processor::OPCode0x41()
 {
     // LD B,C
-    OPCodes_LD(B, C);
-
+    OPCodes_LD(BC.GetHighRegister(), BC.GetLow());
 }
 
 void Processor::OPCode0x42()
 {
     // LD B,D
-    OPCodes_LD(B, D);
-
+    OPCodes_LD(BC.GetHighRegister(), DE.GetHigh());
 }
 
 void Processor::OPCode0x43()
 {
     // LD B,E
-    OPCodes_LD(B, E);
-
+    OPCodes_LD(BC.GetHighRegister(), DE.GetLow());
 }
 
 void Processor::OPCode0x44()
 {
     // LD B,H
-    OPCodes_LD(B, H);
-
+    OPCodes_LD(BC.GetHighRegister(), HL.GetHigh());
 }
 
 void Processor::OPCode0x45()
 {
     // LD B,L
-    OPCodes_LD(B, L);
-
+    OPCodes_LD(BC.GetHighRegister(), HL.GetLow());
 }
 
 void Processor::OPCode0x46()
 {
     // LD B,(HL)
-    OPCodes_LD(B, (ushort) ((H.Value << 8) + L.Value));
-
+    OPCodes_LD(BC.GetHighRegister(), HL.GetValue());
 }
 
 void Processor::OPCode0x47()
 {
     // LD B,A
-    OPCodes_LD(B, A);
-
+    OPCodes_LD(BC.GetHighRegister(), AF.GetHigh());
 }
 
 void Processor::OPCode0x48()
 {
     // LD C,B
-    OPCodes_LD(C, B);
-
+    OPCodes_LD(BC.GetLowRegister(), BC.GetHigh());
 }
 
 void Processor::OPCode0x49()
 {
     // LD C,C
-    OPCodes_LD(C, C);
-
+    OPCodes_LD(BC.GetLowRegister(), BC.GetLow());
 }
 
 void Processor::OPCode0x4A()
 {
     // LD C,D
-    OPCodes_LD(C, D);
-
+    OPCodes_LD(BC.GetLowRegister(), DE.GetHigh());
 }
 
 void Processor::OPCode0x4B()
 {
     // LD C,E
-    OPCodes_LD(C, E);
-
+    OPCodes_LD(BC.GetLowRegister(), DE.GetLow());
 }
 
 void Processor::OPCode0x4C()
 {
     // LD C,H
-    OPCodes_LD(C, H);
-
+    OPCodes_LD(BC.GetLowRegister(), HL.GetHigh());
 }
 
 void Processor::OPCode0x4D()
 {
     // LD C,L
-    OPCodes_LD(C, L);
-
+    OPCodes_LD(BC.GetLowRegister(), HL.GetLow());
 }
 
 void Processor::OPCode0x4E()
 {
     // LD C,(HL)
-    OPCodes_LD(C, (ushort) ((H.Value << 8) + L.Value));
-
+    OPCodes_LD(BC.GetLowRegister(), HL.GetValue());
 }
 
 void Processor::OPCode0x4F()
 {
     // LD C,A
-    OPCodes_LD(C, A);
-
+    OPCodes_LD(BC.GetLowRegister(), AF.GetHigh());
 }
 
 void Processor::OPCode0x50()
 {
     // LD D,B
-    OPCodes_LD(D, B);
-
+    OPCodes_LD(DE.GetHighRegister(), BC.GetHigh());
 }
 
 void Processor::OPCode0x51()
 {
     // LD D,C
-    OPCodes_LD(D, C);
-
+    OPCodes_LD(DE.GetHighRegister(), BC.GetLow());
 }
 
 void Processor::OPCode0x52()
 {
     // LD D,D
-    OPCodes_LD(D, D);
-
+    OPCodes_LD(DE.GetHighRegister(), DE.GetHigh());
 }
 
 void Processor::OPCode0x53()
 {
     // LD D,E
-    OPCodes_LD(D, E);
-
+    OPCodes_LD(DE.GetHighRegister(), DE.GetLow());
 }
 
 void Processor::OPCode0x54()
 {
     // LD D,H
-    OPCodes_LD(D, H);
-
+    OPCodes_LD(DE.GetHighRegister(), HL.GetHigh());
 }
 
 void Processor::OPCode0x55()
 {
     // LD D,L
-    OPCodes_LD(D, L);
-
+    OPCodes_LD(DE.GetHighRegister(), HL.GetLow());
 }
 
 void Processor::OPCode0x56()
 {
     // LD D,(HL)
-    OPCodes_LD(D, (ushort) ((H.Value << 8) + L.Value));
-
+    OPCodes_LD(DE.GetHighRegister(), HL.GetValue());
 }
 
 void Processor::OPCode0x57()
 {
     // LD D,A
-    OPCodes_LD(D, A);
-
+    OPCodes_LD(DE.GetHighRegister(), AF.GetHigh());
 }
 
 void Processor::OPCode0x58()
 {
     // LD E,B
-    OPCodes_LD(E, B);
-
+    OPCodes_LD(DE.GetLowRegister(), BC.GetHigh());
 }
 
 void Processor::OPCode0x59()
 {
     // LD E,C
-    OPCodes_LD(E, C);
-
+    OPCodes_LD(DE.GetLowRegister(), BC.GetLow());
 }
 
 void Processor::OPCode0x5A()
 {
     // LD E,D
-    OPCodes_LD(E, D);
-
+    OPCodes_LD(DE.GetLowRegister(), DE.GetHigh());
 }
 
 void Processor::OPCode0x5B()
 {
     // LD E,E
-    OPCodes_LD(E, E);
-
+    OPCodes_LD(DE.GetLowRegister(), DE.GetLow());
 }
 
 void Processor::OPCode0x5C()
 {
     // LD E,H
-    OPCodes_LD(E, H);
-
+    OPCodes_LD(DE.GetLowRegister(), HL.GetHigh());
 }
 
 void Processor::OPCode0x5D()
 {
     // LD E,L
-    OPCodes_LD(E, L);
-
+    OPCodes_LD(DE.GetLowRegister(), HL.GetLow());
 }
 
 void Processor::OPCode0x5E()
 {
     // LD E,(HL)
-    OPCodes_LD(E, (ushort) ((H.Value << 8) + L.Value));
-
+    OPCodes_LD(DE.GetLowRegister(), HL.GetValue());
 }
 
 void Processor::OPCode0x5F()
 {
     // LD E,A
-    OPCodes_LD(E, A);
-
+    OPCodes_LD(DE.GetLowRegister(), AF.GetHigh());
 }
 
 void Processor::OPCode0x60()
 {
     // LD H,B
-    OPCodes_LD(H, B);
-
+    OPCodes_LD(HL.GetHighRegister(), BC.GetHigh());
 }
 
 void Processor::OPCode0x61()
 {
     // LD H,C
-    OPCodes_LD(H, C);
-
+    OPCodes_LD(HL.GetHighRegister(), BC.GetLow());
 }
 
 void Processor::OPCode0x62()
 {
     // LD H,D
-    OPCodes_LD(H, D);
-
+    OPCodes_LD(HL.GetHighRegister(), DE.GetHigh());
 }
 
 void Processor::OPCode0x63()
 {
     // LD H,E
-    OPCodes_LD(H, E);
-
+    OPCodes_LD(HL.GetHighRegister(), DE.GetLow());
 }
 
 void Processor::OPCode0x64()
 {
     // LD H,H
-    OPCodes_LD(H, H);
-
+    OPCodes_LD(HL.GetHighRegister(), HL.GetHigh());
 }
 
 void Processor::OPCode0x65()
 {
     // LD H,L
-    OPCodes_LD(H, L);
-
+    OPCodes_LD(HL.GetHighRegister(), HL.GetLow());
 }
 
 void Processor::OPCode0x66()
 {
     // LD H,(HL)
-    OPCodes_LD(H, (ushort) ((H.Value << 8) + L.Value));
-
+    OPCodes_LD(HL.GetHighRegister(), HL.GetValue());
 }
 
 void Processor::OPCode0x67()
 {
     // LD H,A
-    OPCodes_LD(H, A);
-
+    OPCodes_LD(HL.GetHighRegister(), AF.GetHigh());
 }
 
 void Processor::OPCode0x68()
 {
     // LD L,B
-    OPCodes_LD(L, B);
-
+    OPCodes_LD(HL.GetLowRegister(), BC.GetHigh());
 }
 
 void Processor::OPCode0x69()
 {
     // LD L,C
-    OPCodes_LD(L, C);
-
+    OPCodes_LD(HL.GetLowRegister(), BC.GetLow());
 }
 
 void Processor::OPCode0x6A()
 {
     // LD L,D
-    OPCodes_LD(L, D);
-
+    OPCodes_LD(HL.GetLowRegister(), DE.GetHigh());
 }
 
 void Processor::OPCode0x6B()
 {
     // LD L,E
-    OPCodes_LD(L, E);
-
+    OPCodes_LD(HL.GetLowRegister(), DE.GetLow());
 }
 
 void Processor::OPCode0x6C()
 {
     // LD L,H
-    OPCodes_LD(L, H);
-
+    OPCodes_LD(HL.GetLowRegister(), HL.GetHigh());
 }
 
 void Processor::OPCode0x6D()
 {
     // LD L,L
-    OPCodes_LD(L, L);
-
+    OPCodes_LD(HL.GetLowRegister(), HL.GetLow());
 }
 
 void Processor::OPCode0x6E()
 {
     // LD L,(HL)
-    OPCodes_LD(L, (ushort) ((H.Value << 8) + L.Value));
-
+    OPCodes_LD(HL.GetLowRegister(), HL.GetValue());
 }
 
 void Processor::OPCode0x6F()
 {
     // LD L,A
-    OPCodes_LD(L, A);
-
+    OPCodes_LD(HL.GetLowRegister(), AF.GetHigh());
 }
 
 void Processor::OPCode0x70()
