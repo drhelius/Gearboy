@@ -54,6 +54,6 @@ void Memory::Disassemble(u16 address, const char* szDisassembled)
 
 bool Memory::IsDisassembled(u16 address)
 {
-    return strlen(m_pMap[address].GetDisassembledString());
+    return m_pMap[address].GetDisassembledString()[0] != 0;
 }
 
