@@ -1,6 +1,9 @@
 #ifndef OPCODE_CYCLES_H
 #define	OPCODE_CYCLES_H
 
+// This values are from the tests written by Shay Green
+// (http://blargg.parodius.com/gb-tests/)
+
 const u8 kOPCodeLengths[256] = {
     1, 3, 1, 1, 1, 1, 2, 1, 3, 1, 1, 1, 1, 1, 2, 1,
     0, 3, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 2, 1,
@@ -59,7 +62,6 @@ const u8 kOPCodeConditionalsMachineCycles[256] = {
 
 };
 
-// From GameBoy-Online emulator
 const u8 kOPCodeCBMachineCycles[256] = {
     2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
     2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
