@@ -22,13 +22,14 @@
       <itemPath>src/SixteenBitRegister.h</itemPath>
       <itemPath>src/Video.cpp</itemPath>
       <itemPath>src/Video.h</itemPath>
+      <itemPath>src/boot_roms.h</itemPath>
       <itemPath>src/definitions.h</itemPath>
       <itemPath>src/gearboy.h</itemPath>
       <itemPath>src/main.cpp</itemPath>
+      <itemPath>src/opcode_cycles.h</itemPath>
+      <itemPath>src/opcode_names.h</itemPath>
       <itemPath>src/opcodes.cpp</itemPath>
-      <itemPath>src/opcodes.h</itemPath>
       <itemPath>src/opcodes_cb.cpp</itemPath>
-      <itemPath>src/opcodes_cb.h</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"

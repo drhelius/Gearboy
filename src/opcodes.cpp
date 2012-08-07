@@ -1382,6 +1382,11 @@ void Processor::OPCode0xCA()
     }
 }
 
+void Processor::OPCode0xCB()
+{
+    
+}
+
 void Processor::OPCode0xCC()
 {
     // CALL Z,nn
