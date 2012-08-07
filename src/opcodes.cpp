@@ -1384,7 +1384,7 @@ void Processor::OPCode0xCA()
 
 void Processor::OPCode0xCB()
 {
-    
+    // CB prefixed instruction
 }
 
 void Processor::OPCode0xCC()

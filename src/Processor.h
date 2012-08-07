@@ -14,9 +14,9 @@ public:
     Processor(Memory* pMemory);
     ~Processor();
     void Reset();
-    void RunToVBlank();
+    void Iteration();
 private:
-    typedef  void (Processor::*OPCptr) ();
+    typedef void (Processor::*OPCptr) (void);
     OPCptr m_OPCodes[256];
     OPCptr m_OPCodesCB[256];
     Memory* m_pMemory;
@@ -26,6 +26,11 @@ private:
     SixteenBitRegister HL;
     SixteenBitRegister SP;
     SixteenBitRegister PC;
+    bool m_bIME;
+    bool m_bConditionalTaken;
+    u8 m_CurrentOPCode;
+    u8 m_CurrentClockCycles;
+    unsigned int m_iExecutedClockCycles;
 private:
     void Fetch();
     void ExecuteOPCode(u8 opcode);
