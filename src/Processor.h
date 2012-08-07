@@ -32,7 +32,7 @@ private:
     u8 m_CurrentClockCycles;
     unsigned int m_iExecutedClockCycles;
 private:
-    void Fetch();
+    void FetchOPCode();
     void ExecuteOPCode(u8 opcode);
     void ExecuteOPCodeCB(u8 opcode);
     void ClearAllFlags();

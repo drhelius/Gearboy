@@ -28,11 +28,11 @@ void Processor::Reset()
 
 void Processor::Iteration()
 {
-    Fetch();
+    FetchOPCode();
     ExecuteOPCode(m_CurrentOPCode);
 }
 
-void Processor::Fetch()
+void Processor::FetchOPCode()
 {
     m_CurrentOPCode = m_pMemory->Read(PC.GetValue());
     PC.Increment();
@@ -42,7 +42,7 @@ void Processor::ExecuteOPCode(u8 opcode)
 {
     if (opcode == 0xCB)
     {
-        Fetch();
+        FetchOPCode();
         ExecuteOPCodeCB(m_CurrentOPCode);
     }
     else
