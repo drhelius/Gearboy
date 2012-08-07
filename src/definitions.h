@@ -6,6 +6,8 @@
 #include <cstdio>
 #include <cstring>
 #include <stdint.h>
+#include <iostream>
+#include <fstream>
 
 #define DEBUG_GEARBOY 1
 
