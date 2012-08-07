@@ -26,8 +26,8 @@
       <itemPath>src/definitions.h</itemPath>
       <itemPath>src/gearboy.h</itemPath>
       <itemPath>src/main.cpp</itemPath>
-      <itemPath>src/opcode_cycles.h</itemPath>
       <itemPath>src/opcode_names.h</itemPath>
+      <itemPath>src/opcode_timing.h</itemPath>
       <itemPath>src/opcodes.cpp</itemPath>
       <itemPath>src/opcodes_cb.cpp</itemPath>
     </logicalFolder>
