@@ -28,7 +28,7 @@ private:
     SixteenBitRegister SP;
     SixteenBitRegister PC;
     bool m_bIME;
-    bool m_bConditionalTaken;
+    bool m_bBranchTaken;
     u8 m_CurrentOPCode;
     u8 m_CurrentClockCycles;
     unsigned int m_iExecutedClockCycles;

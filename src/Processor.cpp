@@ -6,7 +6,7 @@ Processor::Processor(Memory* pMemory)
     m_pMemory = pMemory;
     InitOPCodeFunctors();
     m_bIME = false;
-    m_bConditionalTaken = false;
+    m_bBranchTaken = false;
     m_CurrentOPCode = 0;
     m_CurrentClockCycles = 0;
     m_iExecutedClockCycles = 0;
