@@ -54,6 +54,9 @@
         <compilerSet>CLang|CLang</compilerSet>
       </toolsSet>
       <compileType>
+        <linkerTool>
+          <commandLine>-framework GLUT -framework OpenGL</commandLine>
+        </linkerTool>
       </compileType>
     </conf>
     <conf name="Release" type="1">
