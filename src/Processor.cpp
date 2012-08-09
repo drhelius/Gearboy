@@ -26,7 +26,7 @@ void Processor::Reset()
     HL.SetValue(0x014D);
 }
 
-void Processor::Iteration()
+void Processor::Tick()
 {
     FetchOPCode();
     ExecuteOPCode(m_CurrentOPCode);
