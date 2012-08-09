@@ -1,5 +1,6 @@
 #include "Processor.h"
 #include "Memory.h"
+#include "opcode_timing.h"
 
 Processor::Processor(Memory* pMemory)
 {
@@ -9,7 +10,6 @@ Processor::Processor(Memory* pMemory)
     m_bBranchTaken = false;
     m_CurrentOPCode = 0;
     m_CurrentClockCycles = 0;
-    m_iExecutedClockCycles = 0;
 }
 
 Processor::~Processor()
@@ -23,6 +23,10 @@ void Processor::Init()
 
 void Processor::Reset()
 {
+    m_bIME = false;
+    m_bBranchTaken = false;
+    m_CurrentOPCode = 0;
+    m_CurrentClockCycles = 0;
     PC.SetValue(0x100);
     SP.SetValue(0xFFFE);
     AF.SetValue(0x01B0);
@@ -31,10 +35,12 @@ void Processor::Reset()
     HL.SetValue(0x014D);
 }
 
-void Processor::Tick()
+u8 Processor::Tick()
 {
     FetchOPCode();
     ExecuteOPCode(m_CurrentOPCode);
+    
+    return m_CurrentClockCycles;
 }
 
 void Processor::FetchOPCode()
@@ -58,6 +64,14 @@ void Processor::ExecuteOPCode(u8 opcode)
         }
 
         (this->*m_OPCodes[opcode])();
+        
+        if (m_bBranchTaken)
+        {
+            m_bBranchTaken = false;
+            m_CurrentClockCycles = kOPCodeConditionalsMachineCycles[opcode] * 4;
+        }
+        else
+            m_CurrentClockCycles = kOPCodeMachineCycles[opcode] * 4;
     }
 }
 
@@ -69,6 +83,8 @@ void Processor::ExecuteOPCodeCB(u8 opcode)
     }
 
     (this->*m_OPCodesCB[opcode])();
+    
+    m_CurrentClockCycles = kOPCodeCBMachineCycles[opcode] * 4;
 }
 
 void Processor::ClearAllFlags()

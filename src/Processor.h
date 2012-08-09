@@ -15,7 +15,7 @@ public:
     ~Processor();
     void Init();
     void Reset();
-    void Tick();
+    u8 Tick();
 private:
     typedef void (Processor::*OPCptr) (void);
     OPCptr m_OPCodes[256];
@@ -31,7 +31,6 @@ private:
     bool m_bBranchTaken;
     u8 m_CurrentOPCode;
     u8 m_CurrentClockCycles;
-    unsigned int m_iExecutedClockCycles;
 private:
     void FetchOPCode();
     void ExecuteOPCode(u8 opcode);
