@@ -43,8 +43,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/MemoryCell.o \
 	${OBJECTDIR}/src/Memory.o \
 	${OBJECTDIR}/src/Audio.o \
-	${OBJECTDIR}/src/Video.o \
 	${OBJECTDIR}/src/opcodes_cb.o \
+	${OBJECTDIR}/src/Video.o \
 	${OBJECTDIR}/src/Processor.o \
 	${OBJECTDIR}/src/GearboyCore.o \
 	${OBJECTDIR}/src/SixteenBitRegister.o
@@ -114,15 +114,15 @@ ${OBJECTDIR}/src/Audio.o: src/Audio.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Audio.o src/Audio.cpp
 
-${OBJECTDIR}/src/Video.o: src/Video.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Video.o src/Video.cpp
-
 ${OBJECTDIR}/src/opcodes_cb.o: src/opcodes_cb.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/opcodes_cb.o src/opcodes_cb.cpp
+
+${OBJECTDIR}/src/Video.o: src/Video.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Video.o src/Video.cpp
 
 ${OBJECTDIR}/src/Processor.o: src/Processor.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
