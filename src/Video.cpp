@@ -2,7 +2,7 @@
 
 Video::Video()
 {
-    m_pFrameBuffer = new u8[256 * 256]
+    m_pFrameBuffer = new u8[256 * 256];
 }
 
 Video::~Video()
@@ -16,7 +16,7 @@ void Video::Reset()
         m_pFrameBuffer[i] = 0;
 }
 
-const u8* Video::GetFrameBuffer()
+const u8* Video::GetFrameBuffer() const
 {
     return m_pFrameBuffer;
 }
