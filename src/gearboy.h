@@ -2,7 +2,7 @@
 #define	GEARBOY_H
 
 #include "definitions.h"
-#include "Core.h"
+#include "GearboyCore.h"
 #include "Memory.h"
 #include "Processor.h"
 #include "Cartridge.h"

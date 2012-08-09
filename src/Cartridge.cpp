@@ -1,5 +1,4 @@
 #include "Cartridge.h"
-#include "definitions.h"
 
 Cartridge::Cartridge()
 {

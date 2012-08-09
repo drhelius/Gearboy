@@ -1,11 +1,11 @@
-#include "Core.h"
+#include "GearboyCore.h"
 #include "Memory.h"
 #include "Processor.h"
 #include "Video.h"
 #include "Audio.h"
 #include "Cartridge.h"
 
-Core::Core()
+GearboyCore::GearboyCore()
 {
     InitPointer(m_pMemory);
     InitPointer(m_pProcessor);
@@ -14,7 +14,7 @@ Core::Core()
     InitPointer(m_pCartridge);
 }
 
-Core::~Core()
+GearboyCore::~GearboyCore()
 {
     SafeDelete(m_pCartridge);
     SafeDelete(m_pAudio);
@@ -23,7 +23,7 @@ Core::~Core()
     SafeDelete(m_pMemory);
 }
 
-void Core::Init()
+void GearboyCore::Init()
 {
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
@@ -38,7 +38,7 @@ void Core::Init()
     m_pCartridge->Init();
 }
 
-void Core::Reset()
+void GearboyCore::Reset()
 {
     m_pMemory->Reset();
     m_pProcessor->Reset();
@@ -47,7 +47,7 @@ void Core::Reset()
     m_pCartridge->Reset();
 }
 
-void Core::RunToVBlank(u8* pFrameBuffer)
+void GearboyCore::RunToVBlank(u8* pFrameBuffer)
 {
     m_pProcessor->Tick();
     m_pVideo->Tick();

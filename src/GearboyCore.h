@@ -9,16 +9,17 @@ class Video;
 class Audio;
 class Cartridge;
 
-class Core
+class GearboyCore
 {
     // for testing purposes
     friend void testfunc();
 public:
-    Core();
-    ~Core();
+    GearboyCore();
+    ~GearboyCore();
     void Init();
     void Reset();
     void RunToVBlank(u8* pFrameBuffer);
+    void LoadROM(const char* szFilePath);
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
