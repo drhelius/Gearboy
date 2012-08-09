@@ -2,12 +2,23 @@
 
 Cartridge::Cartridge()
 {
-    Reset();
+    InitPointer(m_pTheROM);
+    m_iTotalSize = 0;
+    m_szName[0] = 0;
+    m_iROMSize = 0;
+    m_iRAMSize = 0;
+    m_iType = 0;
+    m_bValidROM = false;
 }
 
 Cartridge::~Cartridge()
 {
     SafeDeleteArray(m_pTheROM);
+}
+
+void Cartridge::Init()
+{
+    Reset();
 }
 
 void Cartridge::Reset()
@@ -99,13 +110,13 @@ void Cartridge::GatherMetadata()
     for (int i = 0; i < 16; i++)
     {
         name[i] = m_pTheROM[0x0134 + i];
-        
+
         if (name[i] == 0)
         {
             break;
         }
     }
-    
+
     strcpy(m_szName, name);
 
     m_iType = m_pTheROM[0x147];

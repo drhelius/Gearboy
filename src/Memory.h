@@ -12,6 +12,7 @@ class Memory
 public:
     Memory();
     ~Memory();
+    void Init();
     void Reset();
     void AddRule(MemoryRule* pRule);
     u8 Read(u16 address);
@@ -20,6 +21,7 @@ public:
     void Load(u16 address, u8 value);
     void Disassemble(u16 address, const char* szDisassembled);
     bool IsDisassembled(u16 address);
+    void LoadBank0FromROM(u8* pTheROM);
 private:
     MemoryCell* m_pMap;
     std::vector<MemoryRule*> m_Rules;

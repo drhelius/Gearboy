@@ -21,7 +21,7 @@ int display_width = SCREEN_WIDTH * modifier;
 int display_height = SCREEN_HEIGHT * modifier;
 u8 screenData[SCREEN_HEIGHT][SCREEN_WIDTH][3];
 u8* frameBuffer;
-Core* gb;
+GearboyCore* gb;
 
 void setupTexture()
 {
@@ -93,7 +93,7 @@ void reshape_window(GLsizei w, GLsizei h)
 
 int main(int argc, char** argv)
 {
-    gb = new Core();
+    gb = new GearboyCore();
 
     frameBuffer = new u8[SCREEN_WIDTH * SCREEN_HEIGHT];
 

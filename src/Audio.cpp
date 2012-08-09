@@ -8,6 +8,11 @@ Audio::~Audio()
 {
 }
 
+void Audio::Init()
+{
+    Reset();
+}
+
 void Audio::Reset()
 {
 }

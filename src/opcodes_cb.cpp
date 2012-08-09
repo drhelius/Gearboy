@@ -1,5 +1,4 @@
 #include "Processor.h"
-#include "Memory.h"
 
 void Processor::OPCodeCB0x00()
 {

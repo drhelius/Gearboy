@@ -2,12 +2,19 @@
 
 Video::Video()
 {
-    m_pFrameBuffer = new u8[256 * 256];
+    InitPointer(m_pFrameBuffer);
 }
 
 Video::~Video()
 {
     SafeDeleteArray(m_pFrameBuffer);
+}
+
+void Video::Init()
+{
+    m_pFrameBuffer = new u8[256 * 256];
+    
+    Reset();
 }
 
 void Video::Reset()
@@ -23,6 +30,6 @@ const u8* Video::GetFrameBuffer() const
 
 void Video::Tick()
 {
-    
+
 }
 

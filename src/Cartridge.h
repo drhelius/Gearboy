@@ -8,6 +8,7 @@ class Cartridge
 public:
     Cartridge();
     ~Cartridge();
+    void Init();
     void Reset();
     bool IsValidROM() const;
     int GetType() const;

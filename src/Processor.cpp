@@ -16,6 +16,11 @@ Processor::~Processor()
 {
 }
 
+void Processor::Init()
+{
+    Reset();
+}
+
 void Processor::Reset()
 {
     PC.SetValue(0x100);
@@ -51,7 +56,7 @@ void Processor::ExecuteOPCode(u8 opcode)
         {
             m_pMemory->Disassemble(PC.GetValue() - 1, kOPCodeNames[opcode]);
         }
-        
+
         (this->*m_OPCodes[opcode])();
     }
 }
@@ -62,7 +67,7 @@ void Processor::ExecuteOPCodeCB(u8 opcode)
     {
         m_pMemory->Disassemble(PC.GetValue() - 1, kOPCodeCBNames[opcode]);
     }
-    
+
     (this->*m_OPCodesCB[opcode])();
 }
 
