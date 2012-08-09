@@ -32,3 +32,11 @@ void Core::Reset()
     m_pCartridge->Reset();
 }
 
+void Core::RunToVBlank(u8* pFrameBuffer)
+{
+    m_pProcessor->Tick();
+    m_pVideo->Tick();
+    
+    memcpy(pFrameBuffer, m_pVideo->GetFrameBuffer(), 256 * 256);
+}
+

@@ -17,7 +17,7 @@ public:
     Core();
     ~Core();
     void Reset();
-    void RunToVBlank();
+    void RunToVBlank(u8* pFrameBuffer);
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;

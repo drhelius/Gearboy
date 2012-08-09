@@ -14,7 +14,7 @@ public:
     Processor(Memory* pMemory);
     ~Processor();
     void Reset();
-    void Iteration();
+    void Tick();
 private:
     typedef void (Processor::*OPCptr) (void);
     OPCptr m_OPCodes[256];
