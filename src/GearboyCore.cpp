@@ -27,7 +27,7 @@ void GearboyCore::Init()
 {
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
-    m_pVideo = new Video();
+    m_pVideo = new Video(m_pMemory);
     m_pAudio = new Audio();
     m_pCartridge = new Cartridge();
     
@@ -49,8 +49,12 @@ void GearboyCore::Reset()
 
 void GearboyCore::RunToVBlank(u8* pFrameBuffer)
 {
-    m_pProcessor->Tick();
-    m_pVideo->Tick();
+    bool vblank = false;
+    while (!vblank)
+    {
+        u8 clockCycles = m_pProcessor->Tick();
+        vblank = m_pVideo->Tick(clockCycles);
+    }
 
     memcpy(pFrameBuffer, m_pVideo->GetFrameBuffer(), 256 * 256);
 }
