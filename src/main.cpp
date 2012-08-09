@@ -94,7 +94,9 @@ void reshape_window(GLsizei w, GLsizei h)
 int main(int argc, char** argv)
 {
     gb = new GearboyCore();
-
+    gb->Init();
+    gb->LoadROM("/Users/nacho/Desktop/roms/drmario.gb");
+    
     frameBuffer = new u8[SCREEN_WIDTH * SCREEN_HEIGHT];
 
     glutInit(&argc, argv);
