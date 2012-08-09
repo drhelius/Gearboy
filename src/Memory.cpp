@@ -12,12 +12,19 @@ Memory::~Memory()
     SafeDeleteArray(m_pMap);
 }
 
+void Memory::Init()
+{
+    m_pMap = new MemoryCell[65536];
+    
+    Reset();
+}
+
 void Memory::Reset()
 {
-    for (int i=0; i<65536; i++)
+    for (int i = 0; i < 65536; i++)
     {
         m_pMap[i].Reset();
-        if (i>=0xFF00)
+        if (i >= 0xFF00)
             m_pMap[i].SetValue(kInitialValuesForFFXX[i - 0xFF00]);
     }
 }

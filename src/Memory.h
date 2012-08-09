@@ -12,6 +12,7 @@ class Memory
 public:
     Memory();
     ~Memory();
+    void Init();
     void Reset();
     void AddRule(MemoryRule* pRule);
     u8 Read(u16 address);

@@ -8,6 +8,7 @@ class Video
 public:
     Video();
     ~Video();
+    void Init();
     void Reset();
     const u8* GetFrameBuffer() const;
     void Tick();

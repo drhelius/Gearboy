@@ -16,6 +16,7 @@ class Core
 public:
     Core();
     ~Core();
+    void Init();
     void Reset();
     void RunToVBlank(u8* pFrameBuffer);
 private:

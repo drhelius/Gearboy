@@ -13,6 +13,7 @@ class Processor
 public:
     Processor(Memory* pMemory);
     ~Processor();
+    void Init();
     void Reset();
     void Tick();
 private:
