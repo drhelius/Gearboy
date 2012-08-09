@@ -15,7 +15,7 @@ Memory::~Memory()
 void Memory::Init()
 {
     m_pMap = new MemoryCell[65536];
-    
+
     Reset();
 }
 
@@ -62,5 +62,15 @@ void Memory::Disassemble(u16 address, const char* szDisassembled)
 bool Memory::IsDisassembled(u16 address)
 {
     return m_pMap[address].GetDisassembledString()[0] != 0;
+}
+
+void Memory::LoadBank0FromROM(u8* pTheROM)
+{
+    // loads the first 32KB only (bank 0)
+    
+    for (int i = 0; i < 0x8000; i++)
+    {
+        m_pMap[i].SetValue(pTheROM[i]);
+    }
 }
 

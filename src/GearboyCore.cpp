@@ -55,3 +55,10 @@ void GearboyCore::RunToVBlank(u8* pFrameBuffer)
     memcpy(pFrameBuffer, m_pVideo->GetFrameBuffer(), 256 * 256);
 }
 
+void GearboyCore::LoadROM(const char* szFilePath)
+{
+    Reset();
+    m_pCartridge->LoadFromFile(szFilePath);
+    m_pMemory->LoadBank0FromROM(m_pCartridge->GetTheROM());
+}
+
