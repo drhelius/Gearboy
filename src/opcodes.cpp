@@ -273,34 +273,35 @@ void Processor::OPCode0x26()
 void Processor::OPCode0x27()
 {
     // DAA
+    int a = AF.GetHigh();
+
     if (!IsSetFlag(FLAG_SUB))
     {
-        if (IsSetFlag(FLAG_CARRY) || (AF.GetHigh() > 0x99))
-        {
-            AF.SetHigh(AF.GetHigh() + 0x60);
-            ToggleFlag(FLAG_CARRY);
-        }
-        if (IsSetFlag(FLAG_HALF) || (AF.GetHigh() & 0xF) > 0x9)
-        {
-            AF.SetHigh(AF.GetHigh() + 0x06);
-            UntoggleFlag(FLAG_HALF);
-        }
+        if (IsSetFlag(FLAG_HALF) || (a & 0xF) > 9)
+            a += 0x06;
+
+        if (IsSetFlag(FLAG_CARRY) || a > 0x9F)
+            a += 0x60;
     }
-    else if (IsSetFlag(FLAG_CARRY) && IsSetFlag(FLAG_HALF))
+    else
     {
-        AF.SetHigh(AF.GetHigh() + 0x9A);
-        UntoggleFlag(FLAG_HALF);
+        if (IsSetFlag(FLAG_HALF))
+            a = (a - 6) & 0xFF;
+
+        if (IsSetFlag(FLAG_CARRY))
+            a -= 0x60;
     }
-    else if (IsSetFlag(FLAG_CARRY))
-    {
-        AF.SetHigh(AF.GetHigh() + 0xA0);
-    }
-    else if (IsSetFlag(FLAG_HALF))
-    {
-        AF.SetHigh(AF.GetHigh() + 0xFA);
-        UntoggleFlag(FLAG_HALF);
-    }
-    ToggleZeroFlagFromResult(AF.GetHigh());
+
+    UntoggleFlag(FLAG_HALF);
+
+    if ((a & 0x100) == 0x100)
+        ToggleFlag(FLAG_CARRY);
+
+    a &= 0xFF;
+
+    ToggleZeroFlagFromResult(a);
+
+    AF.SetHigh(a);
 }
 
 void Processor::OPCode0x28()
@@ -1709,6 +1710,7 @@ void Processor::OPCode0xF1()
 {
     // POP AF
     StackPop(&AF);
+    AF.SetLow(AF.GetLow() & 0xF0);
 }
 
 void Processor::OPCode0xF2()
