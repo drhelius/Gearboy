@@ -42,7 +42,7 @@ const u8* Video::GetFrameBuffer() const
 bool Video::Tick(u8 clockCycles)
 {
     bool vblank = false;
-    
+
     m_iStatusModeCounter += clockCycles;
 
     switch (m_iStatusMode)
@@ -53,7 +53,7 @@ bool Video::Tick(u8 clockCycles)
             {
                 m_iStatusModeCounter -= 204;
                 m_iStatusMode = 2;
-                
+
                 ScanLine(m_byStatusModeLYCounter);
                 m_byStatusModeLYCounter++;
 
@@ -66,7 +66,7 @@ bool Video::Tick(u8 clockCycles)
 
                     // Enable V-Blank interrupt flag
                     m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | 0x01);
-                    
+
                     vblank = true;
                 }
 
@@ -133,6 +133,48 @@ bool Video::Tick(u8 clockCycles)
 
 void Video::ScanLine(int line)
 {
+
+    u8 lcdc = m_pMemory->Retrieve(0xFF40);
+    int tiles = (lcdc & 0x10) ? 0x8000 : 0x8800;
+    int map = (lcdc & 0x8) ? 0x9C00 : 0x9800;
+
+    int y = line / 8;
+
+    for (int x = 0; x < 32; x++)
+    {
+        int tile = 0;
+
+        if (tiles == 0x8800)
+        {
+            tile = static_cast<s8> (m_pMemory->Retrieve(map + ((y * 32) + x)));
+            tile += 128;
+        }
+        else
+        {
+            tile = m_pMemory->Retrieve(map + ((y * 32) + x));
+        }
+
+        int offsetX = x * 8;
+        int offsetY = y * 8;
+
+        int h = line % 8;
+        
+        u8 byte1 = m_pMemory->Retrieve(tiles + (tile * 16) + (2 * h));
+        u8 byte2 = m_pMemory->Retrieve(tiles + (tile * 16) + (2 * h) + 1);
+
+        for (int w = 0; w < 8; w++)
+        {
+            int pixel = (byte1 & (0x1 << (7 - w))) ? 1 : 0;
+
+            pixel |= (byte2 & (0x1 << (7 - w))) ? 2 : 0;
+            
+            int bufferX = (w + offsetX + m_pMemory->Retrieve(0xFF43)) % 256;
+            int bufferY = (h + offsetY +  m_pMemory->Retrieve(0xFF42)) % 256;
+
+            m_pFrameBuffer[(bufferY * 256) + bufferX] = pixel;
+        }
+
+    }
 
 }
 
