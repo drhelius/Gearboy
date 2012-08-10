@@ -30,7 +30,7 @@ void GearboyCore::Init()
     m_pVideo = new Video(m_pMemory);
     m_pAudio = new Audio();
     m_pCartridge = new Cartridge();
-    
+
     m_pMemory->Init();
     m_pProcessor->Init();
     m_pVideo->Init();
@@ -64,5 +64,10 @@ void GearboyCore::LoadROM(const char* szFilePath)
     Reset();
     m_pCartridge->LoadFromFile(szFilePath);
     m_pMemory->LoadBank0FromROM(m_pCartridge->GetTheROM());
+}
+
+Memory* GearboyCore::GetMemory()
+{
+    return m_pMemory;
 }
 

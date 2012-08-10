@@ -22,6 +22,7 @@ public:
     void Disassemble(u16 address, const char* szDisassembled);
     bool IsDisassembled(u16 address);
     void LoadBank0FromROM(u8* pTheROM);
+    void MemoryDump(const char* szFilePath);
 private:
     MemoryCell* m_pMap;
     std::vector<MemoryRule*> m_Rules;

@@ -11,8 +11,6 @@ class Cartridge;
 
 class GearboyCore
 {
-    // for testing purposes
-    friend void testfunc();
 public:
     GearboyCore();
     ~GearboyCore();
@@ -20,6 +18,7 @@ public:
     void Reset();
     void RunToVBlank(u8* pFrameBuffer);
     void LoadROM(const char* szFilePath);
+    Memory* GetMemory();
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;

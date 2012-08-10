@@ -1,3 +1,5 @@
+#include <iostream>
+#include <fstream>
 #include "Memory.h"
 #include "MemoryRule.h"
 #include "MemoryCell.h"
@@ -67,10 +69,36 @@ bool Memory::IsDisassembled(u16 address)
 void Memory::LoadBank0FromROM(u8* pTheROM)
 {
     // loads the first 32KB only (bank 0)
-    
+
     for (int i = 0; i < 0x8000; i++)
     {
         m_pMap[i].SetValue(pTheROM[i]);
+    }
+}
+
+void Memory::MemoryDump(const char* szFilePath)
+{
+    using namespace std;
+
+    ofstream myfile(szFilePath, ios::out | ios::trunc);
+
+    if (myfile.is_open())
+    {
+        for (int i = 0; i < 65536; i++)
+        {
+            if (IsDisassembled(i))
+            {
+                myfile << "0x" << hex << i << "\t " << m_pMap[i].GetDisassembledString() << "\n";
+            }
+            else
+            {
+                myfile << "0x" << hex << i << "\t [0x" << hex << (int)m_pMap[i].GetValue() << "]\n";
+            }
+        }
+
+        myfile << "This is a line.\n";
+        myfile << "This is another line.\n";
+        myfile.close();
     }
 }
 

@@ -95,6 +95,16 @@ void display()
     glutSwapBuffers();
 }
 
+static void keyboard(unsigned char key, int x, int y)
+{
+    // Escape key
+    if (key == 27)
+    {
+        gb->GetMemory()->MemoryDump("output.txt");
+        exit(0);
+    }
+}
+
 void reshape_window(GLsizei w, GLsizei h)
 {
     glClearColor(0.0f, 0.0f, 0.5f, 0.0f);
@@ -113,7 +123,7 @@ int main(int argc, char** argv)
 {
     gb = new GearboyCore();
     gb->Init();
-    gb->LoadROM("/Users/nacho/Desktop/roms/tests/cpu/11.gb");
+    gb->LoadROM("/Users/nacho/Desktop/roms/kwirk.gb");
 
     frameBuffer = new u8[SCREEN_WIDTH * SCREEN_HEIGHT];
 
@@ -127,6 +137,7 @@ int main(int argc, char** argv)
     glutDisplayFunc(display);
     glutIdleFunc(display);
     glutReshapeFunc(reshape_window);
+    glutKeyboardFunc(keyboard);
 
     setupTexture();
 
