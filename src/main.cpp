@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 {
     gb = new GearboyCore();
     gb->Init();
-    gb->LoadROM("/Users/nacho/Desktop/roms/tests/cpu/03-op sp,hl.gb");
+    gb->LoadROM("/Users/nacho/Desktop/roms/tests/cpu/11.gb");
 
     frameBuffer = new u8[SCREEN_WIDTH * SCREEN_HEIGHT];
 
