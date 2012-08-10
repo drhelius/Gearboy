@@ -109,7 +109,6 @@ void Processor::OPCode0x0F()
 
 void Processor::OPCode0x10()
 {
-    // NOT IMPLEMENTED
     // STOP
     /*
     if (GameBoyMemory.Read(PC) != 0)
@@ -117,6 +116,7 @@ void Processor::OPCode0x10()
         InvalidOPCode();
     }
      */
+    m_bStop = true;
     PC.Increment();
 }
 
@@ -816,9 +816,8 @@ void Processor::OPCode0x75()
 
 void Processor::OPCode0x76()
 {
-    // NOT IMPLEMENTED
     // HALT
-    //HALT = true;
+    m_bHalt = true;
 }
 
 void Processor::OPCode0x77()
@@ -1527,10 +1526,9 @@ void Processor::OPCode0xD8()
 
 void Processor::OPCode0xD9()
 {
-    // NOT IMPLEMENTED
     // RETI
     StackPop(&PC);
-    //IME = true;
+    m_bIME = true;
 }
 
 void Processor::OPCode0xDA()
@@ -1723,8 +1721,7 @@ void Processor::OPCode0xF2()
 void Processor::OPCode0xF3()
 {
     // DI
-    // NOT IMPLEMENTED
-    //IME = false;
+    m_bIME = false;
 }
 
 void Processor::OPCode0xF4()
@@ -1786,8 +1783,7 @@ void Processor::OPCode0xFA()
 void Processor::OPCode0xFB()
 {
     // EI
-    // NOT IMPLEMENTED
-    //IME = true;
+    m_bIME = true;
 }
 
 void Processor::OPCode0xFC()

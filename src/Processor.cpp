@@ -7,6 +7,8 @@ Processor::Processor(Memory* pMemory)
     m_pMemory = pMemory;
     InitOPCodeFunctors();
     m_bIME = false;
+    m_bHalt = false;
+    m_bStop = false;
     m_bBranchTaken = false;
     m_CurrentOPCode = 0;
     m_CurrentClockCycles = 0;
@@ -24,6 +26,8 @@ void Processor::Init()
 void Processor::Reset()
 {
     m_bIME = false;
+    m_bHalt = false;
+    m_bStop = false;
     m_bBranchTaken = false;
     m_CurrentOPCode = 0;
     m_CurrentClockCycles = 0;
