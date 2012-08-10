@@ -49,7 +49,7 @@ void Processor::OPCode0x06()
 void Processor::OPCode0x07()
 {
     // RLCA
-    OPCodes_RLC(AF.GetHighRegister());
+    OPCodes_RLC(AF.GetHighRegister(), true);
 }
 
 void Processor::OPCode0x08()
@@ -104,7 +104,7 @@ void Processor::OPCode0x0E()
 void Processor::OPCode0x0F()
 {
     // RRCA
-    OPCodes_RRC(AF.GetHighRegister());
+    OPCodes_RRC(AF.GetHighRegister(), true);
 }
 
 void Processor::OPCode0x10()
@@ -163,7 +163,7 @@ void Processor::OPCode0x16()
 void Processor::OPCode0x17()
 {
     // RLA
-    OPCodes_RL(AF.GetHighRegister());
+    OPCodes_RL(AF.GetHighRegister(), true);
 }
 
 void Processor::OPCode0x18()
@@ -212,7 +212,7 @@ void Processor::OPCode0x1E()
 void Processor::OPCode0x1F()
 {
     // RRA
-    OPCodes_RR(AF.GetHighRegister());
+    OPCodes_RR(AF.GetHighRegister(), true);
 }
 
 void Processor::OPCode0x20()
