@@ -1666,7 +1666,7 @@ void Processor::OPCode0xE7()
 void Processor::OPCode0xE8()
 {
     // ADD SP,n
-    OPCodes_ADD_SP(m_pMemory->Read(PC.GetValue()));
+    OPCodes_ADD_SP(static_cast<u8>(m_pMemory->Read(PC.GetValue())));
     PC.Increment();
 }
 
@@ -1719,7 +1719,7 @@ void Processor::OPCode0xEF()
 void Processor::OPCode0xF0()
 {
     // LD A,(0xFF00+n)
-    OPCodes_LD(AF.GetHighRegister(), 
+    OPCodes_LD(AF.GetHighRegister(),
             static_cast<u16> (0xFF00 + m_pMemory->Read(PC.GetValue())));
     PC.Increment();
 }
@@ -1770,42 +1770,16 @@ void Processor::OPCode0xF7()
 
 void Processor::OPCode0xF8()
 {
-    // MUST CHECK
     // LD HL,SP+n
     s8 n = m_pMemory->Read(PC.GetValue());
     u16 result = SP.GetValue() + n;
-    
     ClearAllFlags();
-    
-    if (result > 0xFF)
+    if (((SP.GetValue() ^ n ^ result) & 0x100) == 0x100)
         ToggleFlag(FLAG_CARRY);
-    
-    if ((((SP.GetValue() & 0x0F) + (n & 0x0F)) & 0xF0) != 0)
+    if (((SP.GetValue() ^ n ^ result) & 0x10) == 0x10)
         ToggleFlag(FLAG_HALF);
-    
     HL.SetValue(result);
     PC.Increment();
-
-    /*
-                unsigned char temp=mem_read8(regPC);
-
-        if((temp&0x80)==0)
-        {
-            regF=(((regSP&0x0F)+(temp&0x0F)) & 0x10) << 1;
-            regF|=((regSP+temp) & 0x100) >> 4;
-
-            regHL=regSP+temp;
-        }
-        else
-        {
-            regF=(((regSP&0x0F)+(((signed char)temp)&0x0F)) & 0x10) << 1;
-            regF|=(((regSP&0xFF)+((signed char)temp)) & 0x100) >> 4;
-
-            regHL=regSP+(signed char)temp;
-
-        }
-
-        regPC++;*/
 }
 
 void Processor::OPCode0xF9()

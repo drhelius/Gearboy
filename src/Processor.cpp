@@ -340,20 +340,10 @@ void Processor::OPCodes_ADD_SP(s8 number)
 {
     int result = SP.GetValue() + number;
     ClearAllFlags();
-    if (number >= 0)
-    {
-        if (SP.GetValue() > result)
-            ToggleFlag(FLAG_CARRY);
-        if (((SP.GetValue() ^ number ^ result) & 0x1000) != 0)
-            ToggleFlag(FLAG_HALF);
-    }
-    else
-    {
-        if (SP.GetValue() < result)
-            ToggleFlag(FLAG_CARRY);
-        if (((SP.GetValue() ^ number ^ result) & 0x1000) != 0)
-            ToggleFlag(FLAG_HALF);
-    }
+    if (((SP.GetValue() ^ number ^ (result & 0xFFFF)) & 0x100) == 0x100)
+        ToggleFlag(FLAG_CARRY);
+    if (((SP.GetValue() ^ number ^ (result & 0xFFFF)) & 0x10) == 0x10)
+        ToggleFlag(FLAG_HALF);
     SP.SetValue(static_cast<u16> (result));
 }
 
