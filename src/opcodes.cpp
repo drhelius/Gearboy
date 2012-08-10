@@ -273,45 +273,34 @@ void Processor::OPCode0x26()
 void Processor::OPCode0x27()
 {
     // DAA
-    u8 result = AF.GetHigh();
-    u8 flags = AF.GetLow();
-
-    if ((flags & FLAG_SUB) != 0)
+    if (!IsSetFlag(FLAG_SUB))
     {
-        if ((result & 0x0F) > 0x09 || ((flags & 0x20) != 0))
+        if (IsSetFlag(FLAG_CARRY) || (AF.GetHigh() > 0x99))
         {
-            result -= 0x06;
-
-            if ((result & 0xF0) == 0xF0)
-                flags |= 0x10;
-            else
-                flags &= 0xEF;
+            AF.SetHigh(AF.GetHigh() + 0x60);
+            ToggleFlag(FLAG_CARRY);
         }
-
-        if ((result & 0xF0) > 0x90 || ((flags & 0x10) != 0))
-            result -= 0x60;
+        if (IsSetFlag(FLAG_HALF) || (AF.GetHigh() & 0xF) > 0x9)
+        {
+            AF.SetHigh(AF.GetHigh() + 0x06);
+            UntoggleFlag(FLAG_HALF);
+        }
     }
-    else
+    else if (IsSetFlag(FLAG_CARRY) && IsSetFlag(FLAG_HALF))
     {
-        if ((result & 0x0F) > 0x09 || ((flags & 0x20) != 0))
-        {
-            result += 0x06;
-
-            if ((result & 0xF0) == 0xF0)
-                flags |= 0x10;
-            else
-                flags &= 0xEF;
-        }
-
-        if ((result & 0xF0) > 0x90 || ((flags & 0x10) != 0))
-            result += 0x60;
-
+        AF.SetHigh(AF.GetHigh() + 0x9A);
+        UntoggleFlag(FLAG_HALF);
     }
-
-    if (result == 0)
-        flags |= 0x80;
-    else
-        flags &= 0x7F;
+    else if (IsSetFlag(FLAG_CARRY))
+    {
+        AF.SetHigh(AF.GetHigh() + 0xA0);
+    }
+    else if (IsSetFlag(FLAG_HALF))
+    {
+        AF.SetHigh(AF.GetHigh() + 0xFA);
+        UntoggleFlag(FLAG_HALF);
+    }
+    ToggleZeroFlagFromResult(AF.GetHigh());
 }
 
 void Processor::OPCode0x28()
@@ -1658,7 +1647,7 @@ void Processor::OPCode0xE7()
 void Processor::OPCode0xE8()
 {
     // ADD SP,n
-    OPCodes_ADD_SP(static_cast<u8>(m_pMemory->Read(PC.GetValue())));
+    OPCodes_ADD_SP(static_cast<u8> (m_pMemory->Read(PC.GetValue())));
     PC.Increment();
 }
 
