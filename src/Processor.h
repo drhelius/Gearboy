@@ -70,13 +70,13 @@ private:
     void OPCodes_SRA_HL();
     void OPCodes_SRL(EightBitRegister* reg);
     void OPCodes_SRL_HL();
-    void OPCodes_RLC(EightBitRegister* reg);
+    void OPCodes_RLC(EightBitRegister* reg, bool isRegisterA = false);
     void OPCodes_RLC_HL();
-    void OPCodes_RL(EightBitRegister* reg);
+    void OPCodes_RL(EightBitRegister* reg, bool isRegisterA = false);
     void OPCodes_RL_HL();
-    void OPCodes_RRC(EightBitRegister* reg);
+    void OPCodes_RRC(EightBitRegister* reg, bool isRegisterA = false);
     void OPCodes_RRC_HL();
-    void OPCodes_RR(EightBitRegister* reg);
+    void OPCodes_RR(EightBitRegister* reg, bool isRegisterA = false);
     void OPCodes_RR_HL();
     void OPCodes_BIT(EightBitRegister* reg, int bit);
     void OPCodes_BIT_HL(int bit);

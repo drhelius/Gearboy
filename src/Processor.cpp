@@ -427,7 +427,7 @@ void Processor::OPCodes_SRL_HL()
     ToggleZeroFlagFromResult(result);
 }
 
-void Processor::OPCodes_RLC(EightBitRegister* reg)
+void Processor::OPCodes_RLC(EightBitRegister* reg, bool isRegisterA)
 {
     u8 result = reg->GetValue();
     if ((result & 0x80) != 0)
@@ -442,7 +442,8 @@ void Processor::OPCodes_RLC(EightBitRegister* reg)
         result <<= 1;
     }
     reg->SetValue(result);
-    ToggleZeroFlagFromResult(result);
+    if (!isRegisterA)
+        ToggleZeroFlagFromResult(result);
 }
 
 void Processor::OPCodes_RLC_HL()
@@ -463,7 +464,7 @@ void Processor::OPCodes_RLC_HL()
     ToggleZeroFlagFromResult(result);
 }
 
-void Processor::OPCodes_RL(EightBitRegister* reg)
+void Processor::OPCodes_RL(EightBitRegister* reg, bool isRegisterA)
 {
     u8 carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
     u8 result = reg->GetValue();
@@ -471,7 +472,8 @@ void Processor::OPCodes_RL(EightBitRegister* reg)
     result <<= 1;
     result |= carry;
     reg->SetValue(result);
-    ToggleZeroFlagFromResult(result);
+    if (!isRegisterA)
+        ToggleZeroFlagFromResult(result);
 }
 
 void Processor::OPCodes_RL_HL()
@@ -485,7 +487,7 @@ void Processor::OPCodes_RL_HL()
     ToggleZeroFlagFromResult(result);
 }
 
-void Processor::OPCodes_RRC(EightBitRegister* reg)
+void Processor::OPCodes_RRC(EightBitRegister* reg, bool isRegisterA)
 {
     u8 result = reg->GetValue();
     if ((result & 0x01) != 0)
@@ -500,7 +502,8 @@ void Processor::OPCodes_RRC(EightBitRegister* reg)
         result >>= 1;
     }
     reg->SetValue(result);
-    ToggleZeroFlagFromResult(result);
+    if (!isRegisterA)
+        ToggleZeroFlagFromResult(result);
 }
 
 void Processor::OPCodes_RRC_HL()
@@ -521,7 +524,7 @@ void Processor::OPCodes_RRC_HL()
     ToggleZeroFlagFromResult(result);
 }
 
-void Processor::OPCodes_RR(EightBitRegister* reg)
+void Processor::OPCodes_RR(EightBitRegister* reg, bool isRegisterA)
 {
     u8 carry = IsSetFlag(FLAG_CARRY) ? 0x80 : 0x00;
     u8 result = reg->GetValue();
@@ -529,7 +532,8 @@ void Processor::OPCodes_RR(EightBitRegister* reg)
     result >>= 1;
     result |= carry;
     reg->SetValue(result);
-    ToggleZeroFlagFromResult(result);
+    if (!isRegisterA)
+        ToggleZeroFlagFromResult(result);
 }
 
 void Processor::OPCodes_RR_HL()
