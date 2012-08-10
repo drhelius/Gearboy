@@ -16,7 +16,7 @@ static const char* kOPCodeNames[256] = {
     "DEC BC",
     "INC C",
     "DEC C",
-    "LD C,(nn)",
+    "LD C,n",
     "RRCA",
 
     "STOP",
