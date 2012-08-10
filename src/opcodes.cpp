@@ -1278,8 +1278,6 @@ void Processor::OPCode0xC0()
         StackPop(&PC);
         m_bBranchTaken = true;
     }
-    else
-        PC.Increment();
 }
 
 void Processor::OPCode0xC1()
@@ -1366,8 +1364,6 @@ void Processor::OPCode0xC8()
         StackPop(&PC);
         m_bBranchTaken = true;
     }
-    else
-        PC.Increment();
 }
 
 void Processor::OPCode0xC9()
@@ -1455,8 +1451,6 @@ void Processor::OPCode0xD0()
         StackPop(&PC);
         m_bBranchTaken = true;
     }
-    else
-        PC.Increment();
 }
 
 void Processor::OPCode0xD1()
@@ -1538,8 +1532,6 @@ void Processor::OPCode0xD8()
         StackPop(&PC);
         m_bBranchTaken = true;
     }
-    else
-        PC.Increment();
 }
 
 void Processor::OPCode0xD9()
