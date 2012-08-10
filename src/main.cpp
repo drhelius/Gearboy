@@ -47,11 +47,29 @@ void updateTexture()
 {
     // Update pixels
     for (int y = 0; y < SCREEN_HEIGHT; ++y)
+    {
         for (int x = 0; x < SCREEN_WIDTH; ++x)
-            if (frameBuffer[(y * 64) + x] == 0)
-                screenData[y][x][0] = screenData[y][x][1] = screenData[y][x][2] = 0; // Disabled
-            else
-                screenData[y][x][0] = screenData[y][x][1] = screenData[y][x][2] = 255; // Enabled
+        {
+            int color = 0;
+            switch (frameBuffer[(y * 256) + x])
+            {
+                case 3:
+                    color = 0;
+                    break;
+                case 2:
+                    color = 80;
+                    break;
+                case 1:
+                    color = 160;
+                    break;
+                case 0:
+                    color = 255;
+                    break;
+            }
+            screenData[y][x][0] = screenData[y][x][1] = screenData[y][x][2] = color;
+        }
+    }
+
 
     // Update Texture
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) screenData);
@@ -95,8 +113,8 @@ int main(int argc, char** argv)
 {
     gb = new GearboyCore();
     gb->Init();
-    gb->LoadROM("/Users/nacho/Desktop/roms/drmario.gb");
-    
+    gb->LoadROM("/Users/nacho/Desktop/roms/tests/cpu/03-op sp,hl.gb");
+
     frameBuffer = new u8[SCREEN_WIDTH * SCREEN_HEIGHT];
 
     glutInit(&argc, argv);
