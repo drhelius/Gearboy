@@ -39,7 +39,7 @@ u8 Processor::Tick()
 {
     FetchOPCode();
     ExecuteOPCode(m_CurrentOPCode);
-    
+
     return m_CurrentClockCycles;
 }
 
@@ -64,7 +64,7 @@ void Processor::ExecuteOPCode(u8 opcode)
         }
 
         (this->*m_OPCodes[opcode])();
-        
+
         if (m_bBranchTaken)
         {
             m_bBranchTaken = false;
@@ -83,7 +83,7 @@ void Processor::ExecuteOPCodeCB(u8 opcode)
     }
 
     (this->*m_OPCodesCB[opcode])();
-    
+
     m_CurrentClockCycles = kOPCodeCBMachineCycles[opcode] * 4;
 }
 
@@ -188,18 +188,15 @@ void Processor::OPCodes_AND(u8 number)
 void Processor::OPCodes_CP(u8 number)
 {
     SetFlag(FLAG_SUB);
-
     if (AF.GetHigh() < number)
     {
         ToggleFlag(FLAG_CARRY);
     }
-
     if (AF.GetHigh() == number)
     {
         ToggleFlag(FLAG_ZERO);
     }
-
-    if (((AF.GetHigh() & 0x1F) - (number & 0x1F)) < 0x1F)
+    if (((AF.GetHigh() - number) & 0xF) > (AF.GetHigh() & 0xF))
     {
         ToggleFlag(FLAG_HALF);
     }
@@ -276,18 +273,17 @@ void Processor::OPCodes_ADC(u8 number)
 {
     int carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
     int result = AF.GetHigh() + number + carry;
-    int carrybits = AF.GetHigh() ^ (number + carry) ^ result;
-    AF.SetHigh(static_cast<u8> (result));
     ClearAllFlags();
     ToggleZeroFlagFromResult(static_cast<u8> (result));
-    if ((carrybits & 0x100) != 0)
+    if (result > 0xFF)
     {
         ToggleFlag(FLAG_CARRY);
     }
-    if ((carrybits & 0x10) != 0)
+    if (((AF.GetHigh()& 0x0F) + (number & 0x0F) + carry) > 0x0F)
     {
         ToggleFlag(FLAG_HALF);
     }
+    AF.SetHigh(static_cast<u8> (result));
 }
 
 void Processor::OPCodes_SUB(u8 number)
@@ -310,19 +306,14 @@ void Processor::OPCodes_SUB(u8 number)
 void Processor::OPCodes_SBC(u8 number)
 {
     int carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
-    int result = AF.GetHigh() - (number + carry);
-    int carrybits = AF.GetHigh() ^ (number + carry) ^ result;
-    AF.SetHigh(static_cast<u8> (result));
+    int result = AF.GetHigh() - number - carry;
     SetFlag(FLAG_SUB);
     ToggleZeroFlagFromResult(static_cast<u8> (result));
-    if ((carrybits & 0x100) != 0)
-    {
+    if (result < 0)
         ToggleFlag(FLAG_CARRY);
-    }
-    if ((carrybits & 0x10) != 0)
-    {
+    if (((AF.GetHigh() & 0x0F) - (number & 0x0F) - carry) < 0)
         ToggleFlag(FLAG_HALF);
-    }
+    AF.SetHigh(static_cast<u8> (result));
 }
 
 void Processor::OPCodes_ADD_HL(u16 number)
