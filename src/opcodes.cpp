@@ -277,10 +277,10 @@ void Processor::OPCode0x27()
 
     if (!IsSetFlag(FLAG_SUB))
     {
-        if (IsSetFlag(FLAG_HALF) || (a & 0xF) > 9)
+        if (IsSetFlag(FLAG_HALF) || ((a & 0xF) > 9))
             a += 0x06;
 
-        if (IsSetFlag(FLAG_CARRY) || a > 0x9F)
+        if (IsSetFlag(FLAG_CARRY) || (a > 0x9F))
             a += 0x60;
     }
     else
@@ -293,6 +293,7 @@ void Processor::OPCode0x27()
     }
 
     UntoggleFlag(FLAG_HALF);
+    UntoggleFlag(FLAG_ZERO);
 
     if ((a & 0x100) == 0x100)
         ToggleFlag(FLAG_CARRY);
