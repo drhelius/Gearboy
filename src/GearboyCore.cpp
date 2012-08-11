@@ -27,7 +27,7 @@ void GearboyCore::Init()
 {
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
-    m_pVideo = new Video(m_pMemory);
+    m_pVideo = new Video(m_pMemory, m_pProcessor);
     m_pAudio = new Audio();
     m_pCartridge = new Cartridge();
 

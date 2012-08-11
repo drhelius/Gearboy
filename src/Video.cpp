@@ -1,9 +1,11 @@
 #include "Video.h"
 #include "Memory.h"
+#include "Processor.h"
 
-Video::Video(Memory* pMemory)
+Video::Video(Memory* pMemory, Processor* pProcessor)
 {
     m_pMemory = pMemory;
+    m_pProcessor = pProcessor;
     InitPointer(m_pFrameBuffer);
     m_iStatusMode = 0;
     m_iStatusModeCounter = 0;
@@ -64,17 +66,24 @@ bool Video::Tick(u8 clockCycles)
                     m_iStatusModeCounter = 0;
                     m_iStatusMode = 1;
 
-                    // Enable V-Blank interrupt flag
-                    m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | 0x01);
+                    m_pProcessor->RequestInterrupt(Processor::VBlank_Interrupt);
+                    u8 stat = m_pMemory->Retrieve(0xFF41);
+                    if (IsSetBit(stat, 4))
+                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
 
                     vblank = true;
+                }
+                else
+                {
+                    u8 stat = m_pMemory->Retrieve(0xFF41);
+                    if (IsSetBit(stat, 5))
+                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
                 }
 
                 UpdateStatRegister();
             }
             break;
         }
-
         case 1:
         {
             m_iStatusModeCounterAux += clockCycles;
@@ -83,7 +92,6 @@ bool Video::Tick(u8 clockCycles)
             {
                 m_byStatusModeLYCounter++;
                 m_iStatusModeCounterAux = 0;
-
                 UpdateLYRegister();
             }
 
@@ -92,26 +100,25 @@ bool Video::Tick(u8 clockCycles)
                 m_iStatusModeCounter = 0;
                 m_iStatusModeCounterAux = 0;
                 m_iStatusMode = 2;
+                u8 stat = m_pMemory->Retrieve(0xFF41);
+                if (IsSetBit(stat, 5))
+                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
                 m_byStatusModeLYCounter = 0;
-
                 UpdateStatRegister();
                 UpdateLYRegister();
             }
             break;
         }
-
         case 2:
         {
             if (m_iStatusModeCounter >= 80)
             {
                 m_iStatusModeCounter -= 80;
                 m_iStatusMode = 3;
-
                 UpdateStatRegister();
             }
             break;
         }
-
         case 3:
         {
             if (m_iStatusModeCounter >= 172)
@@ -119,15 +126,15 @@ bool Video::Tick(u8 clockCycles)
                 m_iStatusModeCounter -= 172;
                 m_iStatusMode = 0;
 
-                // Enable LCDC interrupt flag
-                m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | 0x2);
+                u8 stat = m_pMemory->Retrieve(0xFF41);
+                if (IsSetBit(stat, 3))
+                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
 
                 UpdateStatRegister();
             }
             break;
         }
     }
-
     return vblank;
 }
 
@@ -158,7 +165,7 @@ void Video::ScanLine(int line)
         int offsetY = y * 8;
 
         int h = line % 8;
-        
+
         u8 byte1 = m_pMemory->Retrieve(tiles + (tile * 16) + (2 * h));
         u8 byte2 = m_pMemory->Retrieve(tiles + (tile * 16) + (2 * h) + 1);
 
@@ -167,9 +174,9 @@ void Video::ScanLine(int line)
             int pixel = (byte1 & (0x1 << (7 - w))) ? 1 : 0;
 
             pixel |= (byte2 & (0x1 << (7 - w))) ? 2 : 0;
-            
+
             int bufferX = (w + offsetX + m_pMemory->Retrieve(0xFF43)) % 256;
-            int bufferY = (h + offsetY +  m_pMemory->Retrieve(0xFF42)) % 256;
+            int bufferY = (h + offsetY + m_pMemory->Retrieve(0xFF42)) % 256;
 
             m_pFrameBuffer[(bufferY * 256) + bufferX] = pixel;
         }
@@ -181,8 +188,8 @@ void Video::ScanLine(int line)
 void Video::UpdateStatRegister()
 {
     // Updates the STAT register with current mode
-    m_pMemory->Load(0xFF41, m_pMemory->Retrieve(0xFF41) & 0xFC);
-    m_pMemory->Load(0xFF41, m_pMemory->Retrieve(0xFF41) | (m_iStatusMode & 0x3));
+    u8 stat = m_pMemory->Retrieve(0xFF41);
+    m_pMemory->Load(0xFF41, (stat & 0xFC) | (m_iStatusMode & 0x3));
 }
 
 void Video::UpdateLYRegister()
