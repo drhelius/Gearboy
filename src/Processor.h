@@ -11,11 +11,21 @@ class Memory;
 class Processor
 {
 public:
+    enum Interrupts
+    {
+        VBlank_Interrupt = 0x01,
+        LCDSTAT_Interrupt = 0x02,
+        Timer_Interrupt = 0x04,
+        Serial_Interrupt = 0x08,
+        Joypad_Interrupt = 0x10  
+    };
+public:
     Processor(Memory* pMemory);
     ~Processor();
     void Init();
     void Reset();
     u8 Tick();
+    void RequestInterrupt(Interrupts interrupt);
 private:
     typedef void (Processor::*OPCptr) (void);
     OPCptr m_OPCodes[256];

@@ -71,6 +71,11 @@ u8 Processor::Tick()
     return m_CurrentClockCycles;
 }
 
+void Processor::RequestInterrupt(Interrupts interrupt)
+{
+     m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | interrupt);
+}
+
 void Processor::FetchOPCode()
 {
     m_CurrentOPCode = m_pMemory->Read(PC.GetValue());
@@ -128,42 +133,42 @@ void Processor::ServeInterrupts()
 
     if (if_reg != 0)
     {
-        if (m_bIME && ((if_reg & 0x01) != 0) && ((ie_reg & 0x01) != 0))
+        if (m_bIME && (if_reg & ie_reg & 0x01))
         {
-            // VBLANK INTERRUPT REQUEST
+            // VBLANK INTERRUPT EXECUTION
             m_pMemory->Load(0xFF0F, if_reg & 0xFE);
             m_bIME = false;
             StackPush(&PC);
 
             PC.SetValue(0x0040);
         }
-        else if (m_bIME && ((if_reg & 0x02) != 0) && ((ie_reg & 0x02) != 0))
+        else if (m_bIME && (if_reg & ie_reg & 0x02))
         {
-            // HBLANK INTERRUPT REQUEST
+            // LCDC STAT INTERRUPT EXECUTION
             m_pMemory->Load(0xFF0F, if_reg & 0xFD);
             m_bIME = false;
             StackPush(&PC);
             PC.SetValue(0x0048);
         }
-        else if (m_bIME && ((if_reg & 0x04) != 0) && ((ie_reg & 0x04) != 0))
+        else if (m_bIME && (if_reg & ie_reg & 0x04))
         {
-            // TIMER INTERRUPT REQUEST
+            // TIMER INTERRUPT EXECUTION
             m_pMemory->Load(0xFF0F, if_reg & 0xFB);
             m_bIME = false;
             StackPush(&PC);
             PC.SetValue(0x0050);
         }
-        else if (m_bIME && ((if_reg & 0x08) != 0) && ((ie_reg & 0x08) != 0))
+        else if (m_bIME && (if_reg & ie_reg & 0x08))
         {
-            // SERIAL INTERRUPT REQUEST
+            // SERIAL INTERRUPT EXECUTION
             m_pMemory->Load(0xFF0F, if_reg & 0xF7);
             m_bIME = false;
             StackPush(&PC);
             PC.SetValue(0x0058);
         }
-        else if (m_bIME && ((if_reg & 0x10) != 0) && ((ie_reg & 0x10) != 0))
+        else if (m_bIME && (if_reg & ie_reg & 0x10))
         {
-            // JOYPAD INTERRUPT REQUEST
+            // JOYPAD INTERRUPT EXECUTION
             m_pMemory->Load(0xFF0F, if_reg & 0xEF);
             m_bIME = false;
             StackPush(&PC);
@@ -287,7 +292,7 @@ void Processor::StackPop(SixteenBitRegister* reg)
 
 void Processor::InvalidOPCode()
 {
-
+    Log("--> ** INVALID OP Code");
 }
 
 void Processor::OPCodes_LD(EightBitRegister* reg1, u8 reg2)
