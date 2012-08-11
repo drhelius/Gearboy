@@ -817,7 +817,13 @@ void Processor::OPCode0x75()
 void Processor::OPCode0x76()
 {
     // HALT
-    m_bHalt = true;
+    u8 if_reg = m_pMemory->Retrieve(0xFF0F);
+    u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
+    
+    if (!m_bIME && (if_reg & ie_reg & 0x1F))
+        m_bSkipPCBug = true;
+    else
+        m_bHalt = true;
 }
 
 void Processor::OPCode0x77()

@@ -31,12 +31,17 @@ private:
     bool m_bHalt;
     bool m_bStop;
     bool m_bBranchTaken;
+    bool m_bSkipPCBug;
     u8 m_CurrentOPCode;
     u8 m_CurrentClockCycles;
+    unsigned int m_iDIVCycles;
+    unsigned int m_iTIMACycles;
 private:
     void FetchOPCode();
     void ExecuteOPCode(u8 opcode);
     void ExecuteOPCodeCB(u8 opcode);
+    void ServeInterrupts();
+    void UpdateTimers();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);
     void SetFlag(u8 flag);
