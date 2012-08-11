@@ -55,5 +55,20 @@ inline void Log(const char* const msg, ...)
 #endif
 }
 
+inline u8 SetBit(const u8 value, const u8 bit)
+{
+    return value | (0x01 << bit);
+}
+
+inline u8 UnsetBit(const u8 value, const u8 bit)
+{
+    return value & (~(0x01 << bit));
+}
+
+inline bool IsSetBit(const u8 value, const u8 bit)
+{
+    return value & (0x01 << bit);
+}
+
 #endif	/* DEFINITIONS_H */
 
