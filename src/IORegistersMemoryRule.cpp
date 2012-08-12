@@ -28,8 +28,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     if (address == 0xFF00)
     {
         // P1
-        value &= 0x30;
-        m_pMemory->Load(address, value);
+        m_pMemory->Load(address, value & 0x30);
     }
     else if (address == 0xFF04)
     {
@@ -47,10 +46,26 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         }
         m_pMemory->Load(address, value);
     }
+    else if (address == 0xFF0F)
+    {
+        // IF
+        m_pMemory->Load(address, value & 0x1F);
+    }
+    else if (address == 0xFF41)
+    {
+        // STAT
+        u8 current_stat_mode = m_pMemory->Retrieve(0xFF41) & 0x03;
+        m_pMemory->Load(address, (value & 0x7C) | current_stat_mode);
+    }
     else if (address == 0xFF46)
     {
         // DMA
         m_pMemory->DoDMATransfer(value);
+    }
+    else if (address == 0xFFFF)
+    {
+        // IE
+        m_pMemory->Load(address, value & 0x1F);
     }
     else
     {
