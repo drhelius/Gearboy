@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/src/IORegistersMemoryRule.o \
 	${OBJECTDIR}/src/main.o \
 	${OBJECTDIR}/src/EightBitRegister.o \
 	${OBJECTDIR}/src/MemoryRule.o \
@@ -73,6 +74,11 @@ LDLIBSOPTIONS=
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/gearboy: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -framework GLUT -framework OpenGL -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/gearboy ${OBJECTFILES} ${LDLIBSOPTIONS} 
+
+${OBJECTDIR}/src/IORegistersMemoryRule.o: src/IORegistersMemoryRule.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/IORegistersMemoryRule.o src/IORegistersMemoryRule.cpp
 
 ${OBJECTDIR}/src/main.o: src/main.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

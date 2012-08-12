@@ -11,7 +11,6 @@ Processor::Processor(Memory* pMemory)
     m_bStop = false;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
-    m_CurrentOPCode = 0;
     m_CurrentClockCycles = 0;
     m_iDIVCycles = 0;
     m_iTIMACycles = 0;
@@ -33,7 +32,6 @@ void Processor::Reset()
     m_bStop = false;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
-    m_CurrentOPCode = 0;
     m_CurrentClockCycles = 0;
     m_iDIVCycles = 0;
     m_iTIMACycles = 0;
@@ -47,6 +45,8 @@ void Processor::Reset()
 
 u8 Processor::Tick()
 {
+    m_CurrentClockCycles = 0;
+
     if (m_bHalt)
     {
         u8 if_reg = m_pMemory->Retrieve(0xFF0F);
@@ -62,8 +62,8 @@ u8 Processor::Tick()
     if (!m_bHalt)
     {
         ServeInterrupts();
-        FetchOPCode();
-        ExecuteOPCode(m_CurrentOPCode);
+        u8 opcode = FetchOPCode();
+        ExecuteOPCode(opcode);
     }
 
     UpdateTimers();
@@ -73,12 +73,17 @@ u8 Processor::Tick()
 
 void Processor::RequestInterrupt(Interrupts interrupt)
 {
-     m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | interrupt);
+    m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | interrupt);
 }
 
-void Processor::FetchOPCode()
+void Processor::ResetTIMACycles()
 {
-    m_CurrentOPCode = m_pMemory->Read(PC.GetValue());
+    m_iTIMACycles = 0;
+}
+
+u8 Processor::FetchOPCode()
+{
+    u8 opcode = m_pMemory->Read(PC.GetValue());
     PC.Increment();
 
     if (m_bSkipPCBug)
@@ -86,14 +91,15 @@ void Processor::FetchOPCode()
         m_bSkipPCBug = false;
         PC.Decrement();
     }
+    return opcode;
 }
 
 void Processor::ExecuteOPCode(u8 opcode)
 {
     if (opcode == 0xCB)
     {
-        FetchOPCode();
-        ExecuteOPCodeCB(m_CurrentOPCode);
+        opcode = FetchOPCode();
+        ExecuteOPCodeCB(opcode);
     }
     else
     {
@@ -131,7 +137,7 @@ void Processor::ServeInterrupts()
     u8 if_reg = m_pMemory->Retrieve(0xFF0F);
     u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
 
-    if (if_reg != 0)
+    if (if_reg)
     {
         if (m_bIME && (if_reg & ie_reg & 0x01))
         {
@@ -139,8 +145,8 @@ void Processor::ServeInterrupts()
             m_pMemory->Load(0xFF0F, if_reg & 0xFE);
             m_bIME = false;
             StackPush(&PC);
-
             PC.SetValue(0x0040);
+            m_CurrentClockCycles += 20;
         }
         else if (m_bIME && (if_reg & ie_reg & 0x02))
         {
@@ -149,6 +155,7 @@ void Processor::ServeInterrupts()
             m_bIME = false;
             StackPush(&PC);
             PC.SetValue(0x0048);
+            m_CurrentClockCycles += 20;
         }
         else if (m_bIME && (if_reg & ie_reg & 0x04))
         {
@@ -157,6 +164,7 @@ void Processor::ServeInterrupts()
             m_bIME = false;
             StackPush(&PC);
             PC.SetValue(0x0050);
+            m_CurrentClockCycles += 20;
         }
         else if (m_bIME && (if_reg & ie_reg & 0x08))
         {
@@ -165,6 +173,7 @@ void Processor::ServeInterrupts()
             m_bIME = false;
             StackPush(&PC);
             PC.SetValue(0x0058);
+            m_CurrentClockCycles += 20;
         }
         else if (m_bIME && (if_reg & ie_reg & 0x10))
         {
@@ -173,6 +182,7 @@ void Processor::ServeInterrupts()
             m_bIME = false;
             StackPush(&PC);
             PC.SetValue(0x0060);
+            m_CurrentClockCycles += 20;
         }
     }
 }
@@ -181,14 +191,13 @@ void Processor::UpdateTimers()
 {
     m_iDIVCycles += m_CurrentClockCycles;
 
-    if (m_iDIVCycles >= 256)
+    while (m_iDIVCycles >= 256)
     {
         m_iDIVCycles -= 256;
         u8 div = m_pMemory->Retrieve(0xFF04);
         div++;
         m_pMemory->Load(0xFF04, div);
     }
-
 
     u8 tac = m_pMemory->Retrieve(0xFF07);
 
@@ -215,18 +224,15 @@ void Processor::UpdateTimers()
                 break;
         }
 
-        if (m_iTIMACycles >= freq)
+        while (m_iTIMACycles >= freq)
         {
             m_iTIMACycles -= freq;
             u8 tima = m_pMemory->Retrieve(0xFF05);
 
-            // if is going to overflow
             if (tima == 0xFF)
             {
-                // load tima with tma
                 tima = m_pMemory->Retrieve(0xFF06);
-                // request timer interrupt
-                m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | 0x04);
+                RequestInterrupt(Timer_Interrupt); 
             }
             else
                 tima++;

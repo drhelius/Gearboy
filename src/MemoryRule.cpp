@@ -1,7 +1,10 @@
 #include "MemoryRule.h"
 
-MemoryRule::MemoryRule()
+MemoryRule::MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo)
 {
+    m_pProcessor = pProcessor;
+    m_pMemory = pMemory;
+    m_pVideo = pVideo;
     m_bEnabled = false;
     m_MaxAddress = 0;
     m_MinAddress = 0;
@@ -40,4 +43,9 @@ void MemoryRule::Enable()
 void MemoryRule::Disable()
 {
     m_bEnabled = false;
+}
+
+bool MemoryRule::IsAddressInRange(u16 address)
+{
+    return (address >= m_MinAddress) && (address <= m_MaxAddress);
 }

@@ -123,7 +123,7 @@ int main(int argc, char** argv)
 {
     gb = new GearboyCore();
     gb->Init();
-    gb->LoadROM("/Users/nacho/Desktop/roms/kwirk.gb");
+    gb->LoadROM("/Users/nacho/Desktop/roms/tests/instr_timing.gb");
 
     frameBuffer = new u8[SCREEN_WIDTH * SCREEN_HEIGHT];
 

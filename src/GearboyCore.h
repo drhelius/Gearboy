@@ -8,6 +8,7 @@ class Processor;
 class Video;
 class Audio;
 class Cartridge;
+class IORegistersMemoryRule;
 
 class GearboyCore
 {
@@ -20,11 +21,14 @@ public:
     void LoadROM(const char* szFilePath);
     Memory* GetMemory();
 private:
+    void InitMemoryRules();
+private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
     Video* m_pVideo;
     Audio* m_pAudio;
     Cartridge* m_pCartridge;
+    IORegistersMemoryRule* m_pIORegistersMemoryRule;
 };
 
 #endif	/* CORE_H */

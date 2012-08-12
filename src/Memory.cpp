@@ -38,12 +38,39 @@ void Memory::AddRule(MemoryRule* pRule)
 
 u8 Memory::Read(u16 address)
 {
+    RulesVectorIterator it;
+
+    for (it = m_Rules.begin(); it < m_Rules.end(); it++)
+    {
+        MemoryRule* pRule = *it;
+        if (pRule->IsEnabled() && pRule->IsAddressInRange(address))
+        {
+            return pRule->PerformRead(address);
+        }
+    }
+
     return Retrieve(address);
 }
 
 void Memory::Write(u16 address, u8 value)
 {
-    Load(address, value);
+    RulesVectorIterator it;
+
+    bool ruleExecuted = false;
+
+    for (it = m_Rules.begin(); it < m_Rules.end(); it++)
+    {
+        MemoryRule* pRule = *it;
+        if (pRule->IsEnabled() && pRule->IsAddressInRange(address))
+        {
+            pRule->PerformWrite(address, value);
+            ruleExecuted = true;
+            break;
+        }
+    }
+
+    if (!ruleExecuted)
+        Load(address, value);
 }
 
 u8 Memory::Retrieve(u16 address)
@@ -92,13 +119,18 @@ void Memory::MemoryDump(const char* szFilePath)
             }
             else
             {
-                myfile << "0x" << hex << i << "\t [0x" << hex << (int)m_pMap[i].GetValue() << "]\n";
+                myfile << "0x" << hex << i << "\t [0x" << hex << (int) m_pMap[i].GetValue() << "]\n";
             }
         }
 
-        myfile << "This is a line.\n";
-        myfile << "This is another line.\n";
         myfile.close();
     }
+}
+
+void Memory::DoDMATransfer(u8 value)
+{
+    u16 address = value << 8;
+    for (int i = 0; i < 0xA0; i++)
+        Load(0xFE00 + i, Retrieve(address + i));
 }
 

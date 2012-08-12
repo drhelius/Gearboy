@@ -26,6 +26,7 @@ public:
     void Reset();
     u8 Tick();
     void RequestInterrupt(Interrupts interrupt);
+    void ResetTIMACycles();
 private:
     typedef void (Processor::*OPCptr) (void);
     OPCptr m_OPCodes[256];
@@ -42,12 +43,11 @@ private:
     bool m_bStop;
     bool m_bBranchTaken;
     bool m_bSkipPCBug;
-    u8 m_CurrentOPCode;
     u8 m_CurrentClockCycles;
     unsigned int m_iDIVCycles;
     unsigned int m_iTIMACycles;
 private:
-    void FetchOPCode();
+    u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);
     void ExecuteOPCodeCB(u8 opcode);
     void ServeInterrupts();

@@ -10,6 +10,8 @@
       <itemPath>src/EightBitRegister.h</itemPath>
       <itemPath>src/GearboyCore.cpp</itemPath>
       <itemPath>src/GearboyCore.h</itemPath>
+      <itemPath>src/IORegistersMemoryRule.cpp</itemPath>
+      <itemPath>src/IORegistersMemoryRule.h</itemPath>
       <itemPath>src/Memory.cpp</itemPath>
       <itemPath>src/Memory.h</itemPath>
       <itemPath>src/MemoryCell.cpp</itemPath>

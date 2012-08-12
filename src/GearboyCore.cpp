@@ -4,6 +4,7 @@
 #include "Video.h"
 #include "Audio.h"
 #include "Cartridge.h"
+#include "IORegistersMemoryRule.h"
 
 GearboyCore::GearboyCore()
 {
@@ -12,10 +13,12 @@ GearboyCore::GearboyCore()
     InitPointer(m_pVideo);
     InitPointer(m_pAudio);
     InitPointer(m_pCartridge);
+    InitPointer(m_pIORegistersMemoryRule);
 }
 
 GearboyCore::~GearboyCore()
 {
+    SafeDelete(m_pIORegistersMemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pAudio);
     SafeDelete(m_pVideo);
@@ -36,6 +39,8 @@ void GearboyCore::Init()
     m_pVideo->Init();
     m_pAudio->Init();
     m_pCartridge->Init();
+    
+    InitMemoryRules();
 }
 
 void GearboyCore::Reset()
@@ -69,5 +74,14 @@ void GearboyCore::LoadROM(const char* szFilePath)
 Memory* GearboyCore::GetMemory()
 {
     return m_pMemory;
+}
+
+void GearboyCore::InitMemoryRules()
+{
+    m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor, m_pMemory, m_pVideo);
+    m_pIORegistersMemoryRule->SetMinAddress(0xFF00);
+    m_pIORegistersMemoryRule->SetMaxAddress(0xFFFF);
+    m_pIORegistersMemoryRule->Enable();
+    m_pMemory->AddRule(m_pIORegistersMemoryRule);
 }
 

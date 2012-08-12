@@ -23,9 +23,11 @@ public:
     bool IsDisassembled(u16 address);
     void LoadBank0FromROM(u8* pTheROM);
     void MemoryDump(const char* szFilePath);
+    void DoDMATransfer(u8 value);
 private:
     MemoryCell* m_pMap;
     std::vector<MemoryRule*> m_Rules;
+    typedef std::vector<MemoryRule*>::iterator RulesVectorIterator;
 };
 
 
