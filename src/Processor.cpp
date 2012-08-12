@@ -56,7 +56,7 @@ u8 Processor::Tick()
                 || (if_reg & ie_reg & 0x10))
             m_bHalt = false;
         else
-            m_CurrentClockCycles = 10;
+            m_CurrentClockCycles += 10;
     }
 
     if (!m_bHalt)
@@ -113,10 +113,10 @@ void Processor::ExecuteOPCode(u8 opcode)
         if (m_bBranchTaken)
         {
             m_bBranchTaken = false;
-            m_CurrentClockCycles = kOPCodeConditionalsMachineCycles[opcode] * 4;
+            m_CurrentClockCycles += kOPCodeConditionalsMachineCycles[opcode] * 4;
         }
         else
-            m_CurrentClockCycles = kOPCodeMachineCycles[opcode] * 4;
+            m_CurrentClockCycles += kOPCodeMachineCycles[opcode] * 4;
     }
 }
 
@@ -129,7 +129,7 @@ void Processor::ExecuteOPCodeCB(u8 opcode)
 
     (this->*m_OPCodesCB[opcode])();
 
-    m_CurrentClockCycles = kOPCodeCBMachineCycles[opcode] * 4;
+    m_CurrentClockCycles += kOPCodeCBMachineCycles[opcode] * 4;
 }
 
 void Processor::ServeInterrupts()
