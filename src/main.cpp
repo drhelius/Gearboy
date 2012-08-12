@@ -22,6 +22,7 @@ int display_height = SCREEN_HEIGHT * modifier;
 u8 screenData[SCREEN_HEIGHT][SCREEN_WIDTH][3];
 u8* frameBuffer;
 GearboyCore* gb;
+bool keys[256];
 
 void setupTexture()
 {
@@ -103,6 +104,46 @@ static void keyboard(unsigned char key, int x, int y)
         gb->GetMemory()->MemoryDump("output.txt");
         exit(0);
     }
+    else if (key == 'J' || key == 'j') 
+        gb->KeyPressed(A_Key);
+    else if (key == 'K' || key == 'k')
+        gb->KeyPressed(B_Key);
+    else if (key == 'M' || key == 'm') 
+        gb->KeyPressed(Start_Key);
+    else if (key == 'n' || key == 'n')
+        gb->KeyPressed(Select_Key);
+    else if (key == 'A' || key == 'a') 
+        gb->KeyPressed(Left_Key);
+    else if (key == 'S' || key == 's')
+        gb->KeyPressed(Down_Key);
+    else if (key == 'D' || key == 'd') 
+        gb->KeyPressed(Right_Key);
+    else if (key == 'W' || key == 'w')
+        gb->KeyPressed(Up_Key);
+        
+    keys[key] = true;
+}
+
+static void keyboardUP(unsigned char key, int x, int y)
+{
+    if (key == 'J' || key == 'j') 
+        gb->KeyReleased(A_Key);
+    else if (key == 'K' || key == 'k')
+        gb->KeyReleased(B_Key);
+    else if (key == 'M' || key == 'm') 
+        gb->KeyReleased(Start_Key);
+    else if (key == 'n' || key == 'n')
+        gb->KeyReleased(Select_Key);
+    else if (key == 'A' || key == 'a') 
+        gb->KeyReleased(Left_Key);
+    else if (key == 'S' || key == 's')
+        gb->KeyReleased(Down_Key);
+    else if (key == 'D' || key == 'd') 
+        gb->KeyReleased(Right_Key);
+    else if (key == 'W' || key == 'w')
+        gb->KeyReleased(Up_Key);
+    
+    keys[key] = false;
 }
 
 void reshape_window(GLsizei w, GLsizei h)
@@ -123,7 +164,10 @@ int main(int argc, char** argv)
 {
     gb = new GearboyCore();
     gb->Init();
-    gb->LoadROM("/Users/nacho/Desktop/roms/tests/instr_timing.gb");
+    gb->LoadROM("/Users/nacho/Desktop/roms/tetris.gb");
+
+    for (int i = 0; i < 256; i++)
+        keys[i] = false;
 
     frameBuffer = new u8[SCREEN_WIDTH * SCREEN_HEIGHT];
 
@@ -138,6 +182,8 @@ int main(int argc, char** argv)
     glutIdleFunc(display);
     glutReshapeFunc(reshape_window);
     glutKeyboardFunc(keyboard);
+    glutKeyboardUpFunc(keyboardUP);
+    glutIgnoreKeyRepeat(1);
 
     setupTexture();
 

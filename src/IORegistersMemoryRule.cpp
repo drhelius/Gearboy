@@ -2,20 +2,36 @@
 #include "Video.h"
 #include "Memory.h"
 #include "Processor.h"
+#include "Input.h"
 
 IORegistersMemoryRule::IORegistersMemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo) : MemoryRule(pProcessor, pMemory, pVideo)
+        Memory* pMemory, Video* pVideo, Input* pInput) : MemoryRule(pProcessor, 
+        pMemory, pVideo, pInput)
 {
 }
 
 u8 IORegistersMemoryRule::PerformRead(u16 address)
 {
-    return m_pMemory->Retrieve(address);
+    if (address == 0xFF00)
+    {
+        // P1
+        return m_pInput->GetJoyPadState();
+    }
+    else
+    {
+        return m_pMemory->Retrieve(address);
+    }
 }
 
 void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
 {
-    if (address == 0xFF04)
+    if (address == 0xFF00)
+    {
+        // P1
+        value &= 0x30;
+        m_pMemory->Load(address, value);
+    }
+    else if (address == 0xFF04)
     {
         // DIV
         m_pMemory->Load(address, 0x00);

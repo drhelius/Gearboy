@@ -12,6 +12,8 @@
       <itemPath>src/GearboyCore.h</itemPath>
       <itemPath>src/IORegistersMemoryRule.cpp</itemPath>
       <itemPath>src/IORegistersMemoryRule.h</itemPath>
+      <itemPath>src/Input.cpp</itemPath>
+      <itemPath>src/Input.h</itemPath>
       <itemPath>src/Memory.cpp</itemPath>
       <itemPath>src/Memory.h</itemPath>
       <itemPath>src/MemoryCell.cpp</itemPath>

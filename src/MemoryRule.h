@@ -6,11 +6,12 @@
 class Memory;
 class Video;
 class Processor;
+class Input;
 
 class MemoryRule
 {
 public:
-    MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo);
+    MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput);
     virtual u8 PerformRead(u16 address) = 0;
     virtual void PerformWrite(u16 address, u8 value) = 0;
     void SetMaxAddress(u16 maxAddress);
@@ -25,6 +26,7 @@ protected:
     Processor* m_pProcessor;
     Memory* m_pMemory;
     Video* m_pVideo;
+    Input* m_pInput;
 private:
     bool m_bEnabled;
     u16 m_MinAddress;

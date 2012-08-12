@@ -38,6 +38,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/IORegistersMemoryRule.o \
 	${OBJECTDIR}/src/main.o \
 	${OBJECTDIR}/src/EightBitRegister.o \
+	${OBJECTDIR}/src/Input.o \
 	${OBJECTDIR}/src/MemoryRule.o \
 	${OBJECTDIR}/src/Cartridge.o \
 	${OBJECTDIR}/src/opcodes.o \
@@ -89,6 +90,11 @@ ${OBJECTDIR}/src/EightBitRegister.o: src/EightBitRegister.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/EightBitRegister.o src/EightBitRegister.cpp
+
+${OBJECTDIR}/src/Input.o: src/Input.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Input.o src/Input.cpp
 
 ${OBJECTDIR}/src/MemoryRule.o: src/MemoryRule.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

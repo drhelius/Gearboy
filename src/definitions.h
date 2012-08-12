@@ -38,6 +38,18 @@ typedef int16_t s16;
 
 #define MAX_STRING_SIZE 256
 
+enum Gameboy_Keys
+{
+    A_Key = 4,
+    B_Key = 5,
+    Start_Key = 7,
+    Select_Key = 6,
+    Right_Key = 0,
+    Left_Key = 1,
+    Up_Key = 2,
+    Down_Key = 3
+};
+
 inline void Log(const char* const msg, ...)
 {
 #ifdef DEBUG_GEARBOY
