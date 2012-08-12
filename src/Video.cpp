@@ -196,14 +196,18 @@ void Video::UpdateLYRegister()
 {
     // Establish the LY register
     m_pMemory->Load(0xFF44, m_byStatusModeLYCounter);
-    
+
     u8 lyc = m_pMemory->Retrieve(0xFF45);
     u8 stat = m_pMemory->Retrieve(0xFF41);
-    
+
     if (lyc == m_byStatusModeLYCounter)
+    {
         SetBit(stat, 2);
+        if (IsSetBit(stat, 6))
+            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+    }
     else
         UnsetBit(stat, 2);
-    
+
     m_pMemory->Load(0xFF41, stat);
 }
