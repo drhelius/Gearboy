@@ -17,12 +17,17 @@ public:
     bool Tick(u8 clockCycles);
 private:
     void ScanLine(int line);
+    void RenderToOffscreen(int line);
+    void RenderBG(int line);
+    void RenderWindow(int line);
+    void RenderSprites(int line);
     void UpdateStatRegister();
     void UpdateLYRegister();
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
     u8* m_pFrameBuffer;
+    u8* m_pOffscreenBuffer;
     int m_iStatusMode;
     int m_iStatusModeCounter;
     int m_iStatusModeCounterAux;

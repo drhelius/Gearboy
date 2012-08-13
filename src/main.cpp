@@ -12,8 +12,8 @@
 #endif
 #include "gearboy.h"
 
-#define SCREEN_WIDTH 256
-#define SCREEN_HEIGHT 256
+#define SCREEN_WIDTH GAMEBOY_WIDTH
+#define SCREEN_HEIGHT GAMEBOY_HEIGHT
 
 const int modifier = 4;
 
@@ -52,7 +52,7 @@ void updateTexture()
         for (int x = 0; x < SCREEN_WIDTH; ++x)
         {
             int color = 0;
-            switch (frameBuffer[(y * 256) + x])
+            switch (frameBuffer[(y * SCREEN_WIDTH) + x])
             {
                 case 3:
                     color = 0;
@@ -164,17 +164,20 @@ int main(int argc, char** argv)
 {
     gb = new GearboyCore();
     gb->Init();
-    gb->LoadROM("/Users/nacho/Desktop/roms/tetris.gb");
+    gb->LoadROM("/Users/nacho/Desktop/roms/kwirk.gb");
 
     for (int i = 0; i < 256; i++)
         keys[i] = false;
 
     frameBuffer = new u8[SCREEN_WIDTH * SCREEN_HEIGHT];
+    
+    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++)
+        frameBuffer[i] = 0;
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 
-    glutInitWindowSize(1024, 1024);
+    glutInitWindowSize(display_width, display_height);
     glutInitWindowPosition(320, 320);
     glutCreateWindow("Gearboy");
 

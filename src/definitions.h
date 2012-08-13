@@ -36,6 +36,9 @@ typedef int16_t s16;
 #define FLAG_CARRY 0x10
 #define FLAG_NONE 0
 
+#define GAMEBOY_WIDTH 160
+#define GAMEBOY_HEIGHT 144
+
 #define MAX_STRING_SIZE 256
 
 enum Gameboy_Keys

@@ -67,7 +67,7 @@ void GearboyCore::RunToVBlank(u8* pFrameBuffer)
         vblank = m_pVideo->Tick(clockCycles);
     }
 
-    memcpy(pFrameBuffer, m_pVideo->GetFrameBuffer(), 256 * 256);
+    memcpy(pFrameBuffer, m_pVideo->GetFrameBuffer(), GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
 }
 
 void GearboyCore::LoadROM(const char* szFilePath)
