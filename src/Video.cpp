@@ -275,44 +275,51 @@ void Video::RenderWindow(int line)
         int tiles = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
         int map = IsSetBit(lcdc, 6) ? 0x9C00 : 0x9800;
         u8 wy = m_pMemory->Retrieve(0xFF4A);
-        u8 wx = m_pMemory->Retrieve(0xFF4B);
 
-        u8 lineAdjusted = line - wy;
-
-        int y = lineAdjusted / 8;
-
-        for (int x = 0; x < 32; x++)
+        if (wy <= line)
         {
-            int tile = 0;
+            u8 wx = m_pMemory->Retrieve(0xFF4B);
 
-            if (tiles == 0x8800)
+            u8 lineAdjusted = line - wy;
+
+            int y = lineAdjusted / 8;
+
+            for (int x = 0; x < 32; x++)
             {
-                tile = static_cast<s8> (m_pMemory->Retrieve(map + ((y * 32) + x)));
-                tile += 128;
-            }
-            else
-            {
-                tile = m_pMemory->Retrieve(map + ((y * 32) + x));
-            }
+                int tile = 0;
 
-            int mapOffsetX = x * 8;
-            int mapOffsetY = y * 8;
+                if (tiles == 0x8800)
+                {
+                    tile = static_cast<s8> (m_pMemory->Retrieve(map + ((y * 32) + x)));
+                    tile += 128;
+                }
+                else
+                {
+                    tile = m_pMemory->Retrieve(map + ((y * 32) + x));
+                }
 
-            int pixely = lineAdjusted % 8;
+                int mapOffsetX = x * 8;
+                int mapOffsetY = y * 8;
 
-            u8 byte1 = m_pMemory->Retrieve(tiles + (tile * 16) + (2 * pixely));
-            u8 byte2 = m_pMemory->Retrieve(tiles + (tile * 16) + (2 * pixely) + 1);
+                int pixely = lineAdjusted % 8;
 
-            for (int pixelx = 0; pixelx < 8; pixelx++)
-            {
-                int pixel = (byte1 & (0x1 << (7 - pixelx))) ? 1 : 0;
+                u8 byte1 = m_pMemory->Retrieve(tiles + (tile * 16) + (2 * pixely));
+                u8 byte2 = m_pMemory->Retrieve(tiles + (tile * 16) + (2 * pixely) + 1);
 
-                pixel |= (byte2 & (0x1 << (7 - pixelx))) ? 2 : 0;
+                for (int pixelx = 0; pixelx < 8; pixelx++)
+                {
+                    int pixel = (byte1 & (0x1 << (7 - pixelx))) ? 1 : 0;
 
-                int bufferX = (mapOffsetX + pixelx + wx - 7);
+                    pixel |= (byte2 & (0x1 << (7 - pixelx))) ? 2 : 0;
 
-                if (bufferX >= 0 && bufferX < GAMEBOY_WIDTH)
-                    m_pOffscreenBuffer[(line * 256) + bufferX] = pixel;
+                    //if (pixel)
+                    {
+                        int bufferX = (mapOffsetX + pixelx + wx - 7);
+
+                        if (bufferX >= 0 && bufferX < GAMEBOY_WIDTH)
+                            m_pOffscreenBuffer[(line * 256) + bufferX] = pixel;
+                    }
+                }
             }
         }
     }
@@ -326,7 +333,7 @@ void Video::RenderSprites(int line)
     {
         int sprite_height = IsSetBit(lcdc, 2) ? 16 : 8;
 
-        for (int sprite = 0; sprite < 40; sprite++)
+        for (int sprite = 39; sprite >= 0; sprite--)
         {
             int sprite_y = m_pMemory->Retrieve(0xFE00 + (4 * sprite)) - 16;
 
@@ -334,14 +341,8 @@ void Video::RenderSprites(int line)
             {
                 int sprite_x = m_pMemory->Retrieve(0xFE00 + (4 * sprite) + 1) - 8;
 
-                if (sprite_x >= 0 && sprite_x < GAMEBOY_WIDTH)
+                if (sprite_x >= -7 && sprite_x < GAMEBOY_WIDTH)
                 {
-                    /*     
-       Bit7   OBJ-to-BG Priority (0=OBJ Above BG, 1=OBJ Behind BG color 1-3)
-              (Used for both BG and Window. BG color 0 is always behind OBJ)
-       Bit6   Y flip          (0=Normal, 1=Vertically mirrored)
-       Bit5   X flip          (0=Normal, 1=Horizontally mirrored)
-       Bit4   Palette number  **Non CGB Mode Only** (0=OBP0, 1=OBP1) */
                     u8 sprite_tile = m_pMemory->Retrieve(0xFE00 + (4 * sprite) + 2);
                     u8 sprite_flags = m_pMemory->Retrieve(0xFE00 + (4 * sprite) + 3);
                     int sprite_pallette = IsSetBit(sprite_flags, 4) ? 1 : 0;
@@ -350,19 +351,33 @@ void Video::RenderSprites(int line)
                     bool aboveBG = !IsSetBit(sprite_flags, 7);
                     int tiles = 0x8000;
                     int pixely = line - sprite_y;
+                    if (yflip)
+                        pixely = sprite_height - 1 - pixely;
 
                     u8 byte1 = m_pMemory->Retrieve(tiles + (sprite_tile * 16) + (2 * pixely));
                     u8 byte2 = m_pMemory->Retrieve(tiles + (sprite_tile * 16) + (2 * pixely) + 1);
                     for (int pixelx = 0; pixelx < 8; pixelx++)
                     {
-                        int pixel = (byte1 & (0x1 << (7 - pixelx))) ? 1 : 0;
+                        int pixel = (byte1 & (0x1 << (xflip ? pixelx : 7 - pixelx))) ? 1 : 0;
 
-                        pixel |= (byte2 & (0x1 << (7 - pixelx))) ? 2 : 0;
+                        pixel |= (byte2 & (0x1 << (xflip ? pixelx : 7 - pixelx))) ? 2 : 0;
 
-                        int bufferX = (sprite_x + pixelx);
+                        if (pixel)
+                        {
+                            int bufferX = (sprite_x + pixelx);
 
-                        if (bufferX >= 0 && bufferX < GAMEBOY_WIDTH)
-                            m_pOffscreenBuffer[(line * 256) + bufferX] = pixel;
+                            if (bufferX >= 0 && bufferX < GAMEBOY_WIDTH)
+                            {
+                                if (aboveBG)
+                                {
+                                    m_pOffscreenBuffer[(line * 256) + bufferX] = pixel;
+                                }
+                                else if (m_pOffscreenBuffer[(line * 256) + bufferX] == 0)
+                                {
+                                    m_pOffscreenBuffer[(line * 256) + bufferX] = pixel;
+                                }            
+                            }
+                        }
                     }
                 }
             }
