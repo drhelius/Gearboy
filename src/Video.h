@@ -10,14 +10,11 @@ class Video
 {
 public:
     Video(Memory* pMemory, Processor* pProcessor);
-    ~Video();
     void Init();
     void Reset();
-    const u8* GetFrameBuffer() const;
-    bool Tick(u8 clockCycles);
+    bool Tick(u8 clockCycles, u8* pFrameBuffer);
 private:
     void ScanLine(int line);
-    void RenderToOffscreen(int line);
     void RenderBG(int line);
     void RenderWindow(int line);
     void RenderSprites(int line);
@@ -27,7 +24,6 @@ private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
     u8* m_pFrameBuffer;
-    u8* m_pOffscreenBuffer;
     int m_iStatusMode;
     int m_iStatusModeCounter;
     int m_iStatusModeCounterAux;
