@@ -102,16 +102,6 @@ void Memory::LoadBank0and1FromROM(u8* pTheROM)
     }
 }
 
-void Memory::LoadBankFromROM(u8* pTheROM, int bank)
-{
-    int starting_address = bank * 0x4000;
-    for (int i = 0; i < 0x4000; i++)
-    {
-        // load in bank 1
-        m_pMap[0x4000 + i].SetValue(pTheROM[starting_address + i]);
-    }
-}
-
 void Memory::MemoryDump(const char* szFilePath)
 {
     using namespace std;

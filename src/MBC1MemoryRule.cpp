@@ -12,6 +12,7 @@ pMemory, pVideo, pInput, pCartridge)
 {
     m_iMode = 0;
     m_iCurrentRAMBank = 0;
+    m_iCurrentROMBank = 0;
     m_bRamEnabled = false;
     m_pRAMBanks = new u8[0x8000];
     Reset();
@@ -24,7 +25,12 @@ MBC1MemoryRule::~MBC1MemoryRule()
 
 u8 MBC1MemoryRule::PerformRead(u16 address)
 {
-    if (address >= 0xA000 && address < 0xC000)
+    if (address >= 0x4000 && address < 0x8000)
+    {
+        u8* pROM = m_pCartridge->GetTheROM();
+        return pROM[(address - 0x4000) + (0x4000 * m_iCurrentROMBank)];
+    }
+    else if (address >= 0xA000 && address < 0xC000)
     {
         if (m_iMode == 0)
             return m_pMemory->Retrieve(address);
@@ -43,15 +49,15 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     }
     else if (address >= 0x2000 && address < 0x4000)
     {
-        int bank = value & 0x1F;
+        m_iCurrentROMBank = value & 0x1F;
         if (m_iMode == 0)
         {
-            bank |= m_HigherRomBankBits;
+            m_iCurrentROMBank |= m_HigherRomBankBits;
 
-            if (bank == 0x00 || bank == 0x20 || bank == 0x40 || bank == 0x60)
-                bank++;
+            if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20 
+                    || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
+                m_iCurrentROMBank++;
         }
-        m_pMemory->LoadBankFromROM(m_pCartridge->GetTheROM(), bank);
     }
     else if (address >= 0x4000 && address < 0x6000)
     {
@@ -99,6 +105,10 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
 
 void MBC1MemoryRule::Reset()
 {
+    m_iMode = 0;
+    m_iCurrentRAMBank = 0;
+    m_iCurrentROMBank = 0;
+    m_bRamEnabled = false;
     for (int i = 0; i < 0x8000; i++)
         m_pRAMBanks[i] = 0;
 }
