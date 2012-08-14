@@ -21,7 +21,8 @@ public:
     void Load(u16 address, u8 value);
     void Disassemble(u16 address, const char* szDisassembled);
     bool IsDisassembled(u16 address);
-    void LoadBank0FromROM(u8* pTheROM);
+    void LoadBank0and1FromROM(u8* pTheROM);
+    void LoadBankFromROM(u8* pTheROM, int bank);
     void MemoryDump(const char* szFilePath);
     void DoDMATransfer(u8 value);
 private:

@@ -1,11 +1,13 @@
 #include "MemoryRule.h"
 
-MemoryRule::MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput)
+MemoryRule::MemoryRule(Processor* pProcessor, Memory* pMemory,
+        Video* pVideo, Input* pInput, Cartridge* pCartridge)
 {
     m_pProcessor = pProcessor;
     m_pMemory = pMemory;
     m_pVideo = pVideo;
     m_pInput = pInput;
+    m_pCartridge = pCartridge;
     m_bEnabled = false;
     m_MaxAddress = 0;
     m_MinAddress = 0;

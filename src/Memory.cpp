@@ -93,13 +93,22 @@ bool Memory::IsDisassembled(u16 address)
     return m_pMap[address].GetDisassembledString()[0] != 0;
 }
 
-void Memory::LoadBank0FromROM(u8* pTheROM)
+void Memory::LoadBank0and1FromROM(u8* pTheROM)
 {
-    // loads the first 32KB only (bank 0)
-
+    // loads the first 32KB only (bank 0 and 1)
     for (int i = 0; i < 0x8000; i++)
     {
         m_pMap[i].SetValue(pTheROM[i]);
+    }
+}
+
+void Memory::LoadBankFromROM(u8* pTheROM, int bank)
+{
+    int starting_address = bank * 0x4000;
+    for (int i = 0; i < 0x4000; i++)
+    {
+        // load in bank 1
+        m_pMap[0x4000 + i].SetValue(pTheROM[starting_address + i]);
     }
 }
 

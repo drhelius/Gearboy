@@ -1,17 +1,17 @@
-#ifndef IOREGISTERSMEMORYRULE_H
-#define	IOREGISTERSMEMORYRULE_H
+#ifndef ROMONLYMEMORYRULE_H
+#define	ROMONLYMEMORYRULE_H
 
 #include "MemoryRule.h"
 
-class IORegistersMemoryRule : public MemoryRule
+class RomOnlyMemoryRule : public MemoryRule
 {
 public:
-    IORegistersMemoryRule(Processor* pProcessor, Memory* pMemory,
+    RomOnlyMemoryRule(Processor* pProcessor, Memory* pMemory, 
             Video* pVideo, Input* pInput, Cartridge* pCartridge);
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset();
 };
 
-#endif	/* IOREGISTERSMEMORYRULE_H */
+#endif	/* ROMONLYMEMORYRULE_H */
 

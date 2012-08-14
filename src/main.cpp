@@ -164,7 +164,52 @@ int main(int argc, char** argv)
 {
     gb = new GearboyCore();
     gb->Init();
-    gb->LoadROM("/Users/nacho/Desktop/roms/kwirk.gb");
+    gb->LoadROM("/Users/nacho/Desktop/roms/Super Mario Land (JUE) (V1.0) [!].gb");
+    //gb->LoadROM("/Users/nacho/Desktop/roms/Super Mario Land 2 - 6 Golden Coins (UE) (V1.0) [!].gb");
+    //gb->LoadROM("/Users/nacho/Desktop/roms/Legend of Zelda, The - Link's Awakening (U) (V1.2) [!].gb");
+    //gb->LoadROM("/Users/nacho/Desktop/roms/Kirby's Dream Land (UE) [!].gb");
+    //gb->LoadROM("/Users/nacho/Desktop/roms/Snoopy - Magic Show (U) [!].gb");
+    //gb->LoadROM("/Users/nacho/Desktop/roms/Donkey Kong Land (U) [S][!].sgb");
+    //Elevator Action (U) [!].gb
+            
+    
+    
+     //fullPath = basePath + "MBC1/Amazing Penguin (U).gb";
+        //fullPath = basePath + "MBC1/Amazing Spider-Man, The (UE).gb";
+        //fullPath = basePath + "MBC1/Super Mario Land (JUE) (v1.1).gb";
+        //fullPath = basePath + "MBC1/Castlevania Adventure, The (U).gb";
+        //fullPath = basePath + "MBC1/Pac-Man (U).gb";
+        //fullPath = basePath + "MBC1/Yoshi (U).gb";
+        //fullPath = basePath + "MBC1/Street Fighter II (UE) (v1.1).gb";
+        //fullPath = basePath + "MBC1/Ninja Gaiden Shadow (U).gb";
+        //fullPath = basePath + "MBC1/Mortal Kombat (UE).gb";
+        //fullPath = basePath + "MBC1/Mortal Kombat II (U).gb";
+        //fullPath = basePath + "MBC1/Mortal Kombat I & II (U).gb";
+        //fullPath = basePath + "MBC1/Megaman (U).gb";
+        //fullPath = basePath + "MBC1/Kirby's Dream Land (UE).gb";
+        //fullPath = basePath + "MBC1/King of Fighters '95, The (U).gb";
+        //fullPath = basePath + "MBC1/Killer Instinct (UE).gb";
+        //fullPath = basePath + "MBC1/FIFA International Soccer (U) (M4).gb";
+        //fullPath = basePath + "MBC1/Double Dragon (UE).gb";
+        //fullPath = basePath + "MBC1/Contra - The Alien Wars (U).gb";
+        //fullPath = basePath + "MBC1/Chase H.Q. (UE) (v1.1).gb";
+        //fullPath = basePath + "MBC1/Castlevania Legends (U).gb";
+        //fullPath = basePath + "MBC1/Bionic Commando (U).gb";
+        //fullPath = basePath + "MBC1/Battletoads (UE).gb";
+    //fullPath = basePath + "MBC1/RAM/Legend of Zelda, The - Link's Awakening (UE) (v1.2).gb";
+        //fullPath = basePath + "MBC1/RAM/Donkey Kong Land (UE).gb";
+        //fullPath = basePath + "MBC1/RAM/Donkey Kong (JUE) (v1.1).gb";
+        //fullPath = basePath + "MBC1/RAM/Metroid II - Return of Samus (JUE).gb";
+        //fullPath = basePath + "MBC1/RAM/Super Mario Land 2 - 6 Golden Coins (UE) (v1.2).gb";
+        //fullPath = basePath + "MBC1/RAM/InfoGenius Systems - Personal Organizer (U).gb";
+
+        //fullPath = basePath + "MBC2/Final Fantasy Legend (Sa-Ga) (U) [!].gb";
+        //fullPath = basePath + "MBC2/Lazlos' Leap (U).gb";
+        //fullPath = basePath + "MBC2/Final Fantasy Adventure (U).gb";
+
+        //fullPath = basePath + "MBC3/Wario Land II (UE).gb";
+
+        //fullPath = basePath + "MBC5/Pokemon Azul (Blue) (S) [S].gb";
 
     for (int i = 0; i < 256; i++)
         keys[i] = false;

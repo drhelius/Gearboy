@@ -71,6 +71,8 @@ void Cartridge::LoadFromFile(const char* path)
 {
     using namespace std;
 
+    Log("Loading %s...", path);
+
     ifstream file(path, ios::in | ios::binary | ios::ate);
 
     if (file.is_open())
@@ -123,6 +125,11 @@ void Cartridge::GatherMetadata()
     m_iROMSize = m_pTheROM[0x148];
     m_iRAMSize = m_pTheROM[0x149];
 
+    Log("ROM Name %s", m_szName);
+    Log("ROM Type %d", m_iType);
+    Log("ROM Size %d", m_iROMSize);
+    Log("RAM Size %d", m_iRAMSize);
+
     int checksum = 0;
 
     for (int j = 0x134; j < 0x14E; j++)
@@ -131,6 +138,9 @@ void Cartridge::GatherMetadata()
     }
 
     m_bValidROM = ((checksum + 25) & BIT_MASK_8) == 0;
+
+    if (m_bValidROM)
+        Log("Checksum OK!");
 
     //  only accept 32kb cartridges until mbc code is written
     if ((m_iType != 0) || (m_iROMSize != 0) || (m_iRAMSize != 0))

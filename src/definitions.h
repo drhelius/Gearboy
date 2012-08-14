@@ -53,6 +53,15 @@ enum Gameboy_Keys
     Down_Key = 3
 };
 
+enum Gameboy_MemoryBankControllers
+{
+    MBC_NONE,
+    MBC1,
+    MBC2,
+    MBC3,
+    MBC5
+};
+
 inline void Log(const char* const msg, ...)
 {
 #ifdef DEBUG_GEARBOY

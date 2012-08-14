@@ -10,6 +10,8 @@ class Audio;
 class Input;
 class Cartridge;
 class IORegistersMemoryRule;
+class RomOnlyMemoryRule;
+class MBC1MemoryRule;
 
 class GearboyCore
 {
@@ -25,6 +27,7 @@ public:
     void KeyReleased(Gameboy_Keys key);
 private:
     void InitMemoryRules();
+    void AddMBCMemoryRule();
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
@@ -33,6 +36,10 @@ private:
     Input* m_pInput;
     Cartridge* m_pCartridge;
     IORegistersMemoryRule* m_pIORegistersMemoryRule;
+    RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
+    MBC1MemoryRule* m_pMBC1MemoryRule;
+    Gameboy_MemoryBankControllers m_MBC;
+    bool m_bUsingRAM;
 };
 
 #endif	/* CORE_H */

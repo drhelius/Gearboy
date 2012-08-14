@@ -47,6 +47,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Audio.o \
 	${OBJECTDIR}/src/opcodes_cb.o \
 	${OBJECTDIR}/src/Video.o \
+	${OBJECTDIR}/src/RomOnlyMemoryRule.o \
+	${OBJECTDIR}/src/MBC1MemoryRule.o \
 	${OBJECTDIR}/src/Processor.o \
 	${OBJECTDIR}/src/GearboyCore.o \
 	${OBJECTDIR}/src/SixteenBitRegister.o
@@ -135,6 +137,16 @@ ${OBJECTDIR}/src/Video.o: src/Video.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Video.o src/Video.cpp
+
+${OBJECTDIR}/src/RomOnlyMemoryRule.o: src/RomOnlyMemoryRule.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RomOnlyMemoryRule.o src/RomOnlyMemoryRule.cpp
+
+${OBJECTDIR}/src/MBC1MemoryRule.o: src/MBC1MemoryRule.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MBC1MemoryRule.o src/MBC1MemoryRule.cpp
 
 ${OBJECTDIR}/src/Processor.o: src/Processor.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

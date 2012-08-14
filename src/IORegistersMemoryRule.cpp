@@ -5,8 +5,9 @@
 #include "Input.h"
 
 IORegistersMemoryRule::IORegistersMemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput) : MemoryRule(pProcessor, 
-        pMemory, pVideo, pInput)
+        Memory* pMemory, Video* pVideo, Input* pInput, 
+        Cartridge* pCartridge) : MemoryRule(pProcessor, 
+        pMemory, pVideo, pInput, pCartridge)
 {
 }
 
@@ -71,5 +72,9 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     {
         m_pMemory->Load(address, value);
     }
+}
+
+void IORegistersMemoryRule::Reset()
+{
 }
 
