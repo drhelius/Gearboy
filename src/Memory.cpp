@@ -23,6 +23,8 @@ void Memory::Init()
 
 void Memory::Reset()
 {
+    m_Rules.clear();
+    
     for (int i = 0; i < 65536; i++)
     {
         m_pMap[i].Reset();

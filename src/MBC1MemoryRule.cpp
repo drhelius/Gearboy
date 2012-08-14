@@ -45,7 +45,8 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
 {
     if (address < 0x2000)
     {
-        m_bRamEnabled = (value & 0x0F) == 0x0A;
+        if (m_pCartridge->GetRAMSize() > 0)
+            m_bRamEnabled = (value & 0x0F) == 0x0A;
     }
     else if (address >= 0x2000 && address < 0x4000)
     {
@@ -54,7 +55,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             m_iCurrentROMBank |= m_HigherRomBankBits;
 
-            if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20 
+            if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
                     || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
                 m_iCurrentROMBank++;
         }
@@ -75,10 +76,23 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         if (m_bRamEnabled)
         {
             if (m_iMode == 0)
-                m_pMemory->Load(address, value);
+            {
+                // only 2KB of ram
+                if (m_pCartridge->GetRAMSize() == 1)
+                {
+                    if (address < 0xA800)
+                        m_pMemory->Load(address, value);
+                    else
+                        Log("--> ** Atempting to write on non usable address %X %X", address, value);
+                }
+                else
+                    m_pMemory->Load(address, value);
+            }
             else
                 m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)] = value;
         }
+        else
+            Log("--> ** Atempting to write on RAM when ram is disabled %X %X", address, value);
     }
     else if (address >= 0xC000 && address < 0xDE00)
     {
@@ -95,7 +109,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
         // Empty area
-        //Log("--> ** Atempting to write on non usable address %d", address);
+        Log("--> ** Atempting to write on non usable address %X %X", address, value);
     }
     else
     {

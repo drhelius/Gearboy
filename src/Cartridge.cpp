@@ -126,9 +126,9 @@ void Cartridge::GatherMetadata()
     m_iRAMSize = m_pTheROM[0x149];
 
     Log("ROM Name %s", m_szName);
-    Log("ROM Type %d", m_iType);
-    Log("ROM Size %d", m_iROMSize);
-    Log("RAM Size %d", m_iRAMSize);
+    Log("ROM Type %X", m_iType);
+    Log("ROM Size %X", m_iROMSize);
+    Log("RAM Size %X", m_iRAMSize);
 
     int checksum = 0;
 

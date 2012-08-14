@@ -44,6 +44,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/opcodes.o \
 	${OBJECTDIR}/src/MemoryCell.o \
 	${OBJECTDIR}/src/Memory.o \
+	${OBJECTDIR}/src/MBC2MemoryRule.o \
 	${OBJECTDIR}/src/Audio.o \
 	${OBJECTDIR}/src/opcodes_cb.o \
 	${OBJECTDIR}/src/Video.o \
@@ -122,6 +123,11 @@ ${OBJECTDIR}/src/Memory.o: src/Memory.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Memory.o src/Memory.cpp
+
+${OBJECTDIR}/src/MBC2MemoryRule.o: src/MBC2MemoryRule.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MBC2MemoryRule.o src/MBC2MemoryRule.cpp
 
 ${OBJECTDIR}/src/Audio.o: src/Audio.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

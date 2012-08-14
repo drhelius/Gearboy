@@ -8,6 +8,7 @@
 #include "IORegistersMemoryRule.h"
 #include "RomOnlyMemoryRule.h"
 #include "MBC1MemoryRule.h"
+#include "MBC2MemoryRule.h"
 
 GearboyCore::GearboyCore()
 {
@@ -20,12 +21,14 @@ GearboyCore::GearboyCore()
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
     InitPointer(m_pMBC1MemoryRule);
+    InitPointer(m_pMBC2MemoryRule);
     m_MBC = MBC_NONE;
     m_bUsingRAM = false;
 }
 
 GearboyCore::~GearboyCore()
 {
+    SafeDelete(m_pMBC2MemoryRule);
     SafeDelete(m_pMBC1MemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
@@ -68,6 +71,7 @@ void GearboyCore::Reset()
     m_pCartridge->Reset();
 
     m_pMBC1MemoryRule->Reset();
+    m_pMBC2MemoryRule->Reset();
 }
 
 void GearboyCore::RunToVBlank(u8* pFrameBuffer)
@@ -85,7 +89,7 @@ void GearboyCore::LoadROM(const char* szFilePath)
     Reset();
     m_pCartridge->LoadFromFile(szFilePath);
     m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
-    AddMBCMemoryRule();
+    AddMemoryRules();
 }
 
 Memory* GearboyCore::GetMemory()
@@ -100,7 +104,6 @@ void GearboyCore::InitMemoryRules()
     m_pIORegistersMemoryRule->SetMinAddress(0xFF00);
     m_pIORegistersMemoryRule->SetMaxAddress(0xFFFF);
     m_pIORegistersMemoryRule->Enable();
-    m_pMemory->AddRule(m_pIORegistersMemoryRule);
 
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge);
@@ -113,10 +116,18 @@ void GearboyCore::InitMemoryRules()
     m_pMBC1MemoryRule->Enable();
     m_pMBC1MemoryRule->SetMinAddress(0x0000);
     m_pMBC1MemoryRule->SetMaxAddress(0xFEFF);
+    
+    m_pMBC2MemoryRule = new MBC2MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge);
+    m_pMBC2MemoryRule->Enable();
+    m_pMBC2MemoryRule->SetMinAddress(0x0000);
+    m_pMBC2MemoryRule->SetMaxAddress(0xFEFF);
 }
 
-void GearboyCore::AddMBCMemoryRule()
+void GearboyCore::AddMemoryRules()
 {
+    m_pMemory->AddRule(m_pIORegistersMemoryRule);
+    
     int type = m_pCartridge->GetType();
     m_bUsingRAM = m_pCartridge->GetRAMSize() != 0;
 
@@ -146,10 +157,12 @@ void GearboyCore::AddMBCMemoryRule()
             //            MBCType = "MBC1 + SRAM + BATT";
             break;
         case 0x05:
+            m_pMemory->AddRule(m_pMBC2MemoryRule);
             //            this.cMBC2 = true;
             //            MBCType = "MBC2";
             break;
         case 0x06:
+            m_pMemory->AddRule(m_pMBC2MemoryRule);
             //            this.cMBC2 = true;
             //            this.cBATT = true;
             //            MBCType = "MBC2 + BATT";
