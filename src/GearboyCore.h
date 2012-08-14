@@ -41,7 +41,6 @@ private:
     MBC1MemoryRule* m_pMBC1MemoryRule;
     MBC2MemoryRule* m_pMBC2MemoryRule;
     Gameboy_MemoryBankControllers m_MBC;
-    bool m_bUsingRAM;
 };
 
 #endif	/* CORE_H */
