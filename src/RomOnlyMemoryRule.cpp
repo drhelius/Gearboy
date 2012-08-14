@@ -38,7 +38,7 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
         // Empty area
-        Log("--> ** Atempting to write on non usable address %d", address);
+        //Log("--> ** Atempting to write on non usable address %d", address);
     }
     else
     {
