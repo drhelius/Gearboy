@@ -23,7 +23,6 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC1MemoryRule);
     InitPointer(m_pMBC2MemoryRule);
     m_MBC = MBC_NONE;
-    m_bUsingRAM = false;
 }
 
 GearboyCore::~GearboyCore()
@@ -62,7 +61,6 @@ void GearboyCore::Init()
 void GearboyCore::Reset()
 {
     m_MBC = MBC_NONE;
-    m_bUsingRAM = false;
     m_pMemory->Reset();
     m_pProcessor->Reset();
     m_pVideo->Reset();
@@ -129,13 +127,13 @@ void GearboyCore::AddMemoryRules()
     m_pMemory->AddRule(m_pIORegistersMemoryRule);
     
     int type = m_pCartridge->GetType();
-    m_bUsingRAM = m_pCartridge->GetRAMSize() != 0;
+    if (m_pCartridge->GetROMSize() == 0)
+        type = 0;
 
     switch (type)
     {
         case 0x00:
             // NO MBC
-
             m_pMemory->AddRule(m_pRomOnlyMemoryRule);
             break;
         case 0x01:
