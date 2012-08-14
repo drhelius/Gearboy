@@ -32,10 +32,38 @@ u8 MBC1MemoryRule::PerformRead(u16 address)
     }
     else if (address >= 0xA000 && address < 0xC000)
     {
-        if (m_iMode == 0)
-            return m_pMemory->Retrieve(address);
+        if (m_bRamEnabled)
+        {
+            if (m_iMode == 0)
+            {
+                if (m_pCartridge->GetRAMSize() == 1)
+                {
+                    // only 2KB of ram
+                    if (address < 0xA800)
+                        return m_pMemory->Retrieve(address);
+                    else
+                    {
+                        Log("--> ** Atempting to read from non usable address %X", address);
+                        return 0x00;
+                    }
+                }
+                else
+                    return m_pMemory->Retrieve(address);
+            }
+            else
+                return m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)];
+        }
         else
-            return m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)];
+        {
+            Log("--> ** Atempting to read from disabled ram %X", address);
+            return 0x00;
+        }
+    }
+    else if (address >= 0xFEA0 && address < 0xFF00)
+    {
+        // Empty area
+        Log("--> ** Atempting to read from non usable address %X", address);
+        return 0x00;
     }
     else
         return m_pMemory->Retrieve(address);
@@ -76,10 +104,10 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         if (m_bRamEnabled)
         {
             if (m_iMode == 0)
-            {
-                // only 2KB of ram
+            {     
                 if (m_pCartridge->GetRAMSize() == 1)
                 {
+                    // only 2KB of ram
                     if (address < 0xA800)
                         m_pMemory->Load(address, value);
                     else

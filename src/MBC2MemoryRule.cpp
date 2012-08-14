@@ -22,6 +22,27 @@ u8 MBC2MemoryRule::PerformRead(u16 address)
         u8* pROM = m_pCartridge->GetTheROM();
         return pROM[(address - 0x4000) + (0x4000 * m_iCurrentROMBank)];
     }
+    else if (address >= 0xA000 && address < 0xA200)
+    {
+        if (m_bRamEnabled)
+            return m_pMemory->Retrieve(address);
+        else
+        {
+            Log("--> ** Atempting to read from disabled ram %X", address);
+            return 0x00;
+        }
+    }
+    else if (address >= 0xA200 && address < 0xC000)
+    {
+        Log("--> ** Atempting to read from non usable address %X", address);
+        return 0x00;
+    }
+    else if (address >= 0xFEA0 && address < 0xFF00)
+    {
+        // Empty area
+        Log("--> ** Atempting to read from non usable address %X", address);
+        return 0x00;
+    }
     else
         return m_pMemory->Retrieve(address);
 }
@@ -30,7 +51,8 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
 {
     if (address < 0x1000)
     {
-        m_bRamEnabled = (value & 0x0F) == 0x0A;
+        if (m_pCartridge->GetRAMSize() > 0)
+            m_bRamEnabled = (value & 0x0F) == 0x0A;
     }
     else if (address >= 0x1000 && address < 0x2100)
     {

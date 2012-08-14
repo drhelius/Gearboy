@@ -3,6 +3,7 @@
 #include "Memory.h"
 #include "Processor.h"
 #include "Input.h"
+#include "Cartridge.h"
 
 RomOnlyMemoryRule::RomOnlyMemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
@@ -13,7 +14,24 @@ pMemory, pVideo, pInput, pCartridge)
 
 u8 RomOnlyMemoryRule::PerformRead(u16 address)
 {
-    return m_pMemory->Retrieve(address);
+    if (address >= 0xA000 && address < 0xC000)
+    {
+        if (m_pCartridge->GetRAMSize() > 0)
+            return m_pMemory->Retrieve(address);
+        else
+        {
+            Log("--> ** Atempting to read from non usable address %X", address);
+            return 0x00;
+        }
+    }
+    else if (address >= 0xFEA0 && address < 0xFF00)
+    {
+        // Empty area
+        Log("--> ** Atempting to read from non usable address %X", address);
+        return 0x00;
+    }
+    else
+        return m_pMemory->Retrieve(address);
 }
 
 void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
@@ -22,6 +40,13 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
     {
         // ROM
         Log("--> ** Atempting to write on ROM address %X %X", address, value);
+    }
+    else if (address >= 0xA000 && address < 0xC000)
+    {
+        if (m_pCartridge->GetRAMSize() > 0)
+        {
+            m_pMemory->Load(address, value);
+        }
     }
     else if (address >= 0xC000 && address < 0xDE00)
     {
