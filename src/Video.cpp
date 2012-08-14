@@ -210,7 +210,7 @@ void Video::RenderWindow(int line)
             u8 lineAdjusted = line - wy;
             int y_32 = (lineAdjusted / 8) * 32;
             int pixely_2 = (lineAdjusted % 8) * 2;
-            u8 wx = m_pMemory->Retrieve(0xFF4B) - 7;
+            int wx = m_pMemory->Retrieve(0xFF4B) - 7;
 
             for (int x = 0; x < 32; x++)
             {
