@@ -181,7 +181,9 @@ void Video::RenderBG(int line)
                 {
                     int pixel = (byte1 & (0x1 << (7 - pixelx))) ? 1 : 0;
                     pixel |= (byte2 & (0x1 << (7 - pixelx))) ? 2 : 0;
-                    m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = pixel;
+                    u8 palette = m_pMemory->Retrieve(0xFF47);
+                    u8 color = (palette >> (pixel * 2)) & 0x03;
+                    m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
                 }
             }
         }
@@ -235,7 +237,9 @@ void Video::RenderWindow(int line)
                     {
                         int pixel = (byte1 & (0x1 << (7 - pixelx))) ? 1 : 0;
                         pixel |= (byte2 & (0x1 << (7 - pixelx))) ? 2 : 0;
-                        m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = pixel;
+                        u8 palette = m_pMemory->Retrieve(0xFF47);
+                        u8 color = (palette >> (pixel * 2)) & 0x03;
+                        m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
                     }
                 }
             }
@@ -278,6 +282,9 @@ void Video::RenderSprites(int line)
                     {
                         int pixel = (byte1 & (0x1 << (xflip ? pixelx : 7 - pixelx))) ? 1 : 0;
                         pixel |= (byte2 & (0x1 << (xflip ? pixelx : 7 - pixelx))) ? 2 : 0;
+                        
+                        u8 palette = m_pMemory->Retrieve(sprite_pallette ? 0xFF49 : 0xFF48);
+                        u8 color = (palette >> (pixel * 2)) & 0x03;
 
                         if (pixel)
                         {
@@ -287,11 +294,11 @@ void Video::RenderSprites(int line)
                             {
                                 if (aboveBG)
                                 {
-                                    m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = pixel;
+                                    m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
                                 }
                                 else if (m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] == 0)
                                 {
-                                    m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = pixel;
+                                    m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
                                 }
                             }
                         }

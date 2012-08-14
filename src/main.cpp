@@ -54,23 +54,29 @@ void updateTexture()
             int color = 0;
             switch (frameBuffer[(y * SCREEN_WIDTH) + x])
             {
-                case 3:
-                    color = 0;
-                    break;
-                case 2:
-                    color = 80;
+                case 0:
+                    screenData[y][x][0] = 0xEF;
+                    screenData[y][x][1] = 0xF3;
+                    screenData[y][x][2] = 0xD5;
                     break;
                 case 1:
-                    color = 160;
+                    screenData[y][x][0] = 0xA3;
+                    screenData[y][x][1] = 0xB6;
+                    screenData[y][x][2] = 0x7A;
                     break;
-                case 0:
-                    color = 255;
+                case 2:
+                    screenData[y][x][0] = 0x37;
+                    screenData[y][x][1] = 0x61;
+                    screenData[y][x][2] = 0x3B;
+                    break;
+                case 3:
+                    screenData[y][x][0] = 0x04;
+                    screenData[y][x][1] = 0x1C;
+                    screenData[y][x][2] = 0x16;
                     break;
             }
-            screenData[y][x][0] = screenData[y][x][1] = screenData[y][x][2] = color;
         }
     }
-
 
     // Update Texture
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) screenData);
