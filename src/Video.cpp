@@ -58,6 +58,7 @@ bool Video::Tick(u8 clockCycles, u8* pFrameBuffer)
                         m_iStatusMode = 1;
 
                         m_pProcessor->RequestInterrupt(Processor::VBlank_Interrupt);
+                        
                         u8 stat = m_pMemory->Retrieve(0xFF41);
                         if (IsSetBit(stat, 4))
                             m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
@@ -76,7 +77,7 @@ bool Video::Tick(u8 clockCycles, u8* pFrameBuffer)
                 break;
             }
             case 1:
-            {
+            {              
                 m_iStatusModeCounterAux += clockCycles;
 
                 if (m_iStatusModeCounterAux >= 456)
@@ -148,17 +149,15 @@ void Video::EnableScreen()
 
 void Video::DisableScreen()
 {
-    if (m_bScreenEnabled)
-    {
-        m_bScreenEnabled = false;
-        u8 stat = m_pMemory->Retrieve(0xFF41);
-        stat &= 0x78;
-        m_pMemory->Load(0xFF41, stat);
-        m_iStatusMode = 0;
-        m_iStatusModeCounter = 0;
-        m_iStatusModeCounterAux = 0;
-        m_iStatusModeLYCounter = 0;
-    }
+    m_bScreenEnabled = false;
+    m_pMemory->Load(0xFF44, 0x00);
+    u8 stat = m_pMemory->Retrieve(0xFF41);
+    stat &= 0x78;
+    m_pMemory->Load(0xFF41, stat);
+    m_iStatusMode = 0;
+    m_iStatusModeCounter = 0;
+    m_iStatusModeCounterAux = 0;
+    m_iStatusModeLYCounter = 0;
 }
 
 bool Video::IsScreenEnabled()
@@ -352,33 +351,27 @@ void Video::RenderSprites(int line)
 
 void Video::UpdateStatRegister()
 {
-    //if (m_bScreenEnabled)
-    {
-        // Updates the STAT register with current mode
-        u8 stat = m_pMemory->Retrieve(0xFF41);
-        m_pMemory->Load(0xFF41, (stat & 0xFC) | (m_iStatusMode & 0x3));
-    }
+    // Updates the STAT register with current mode
+    u8 stat = m_pMemory->Retrieve(0xFF41);
+    m_pMemory->Load(0xFF41, (stat & 0xFC) | (m_iStatusMode & 0x3));
 }
 
 void Video::UpdateLYRegister()
 {
-    //if (m_bScreenEnabled)
+    // Establish the LY register
+    m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
+
+    u8 lyc = m_pMemory->Retrieve(0xFF45);
+    u8 stat = m_pMemory->Retrieve(0xFF41);
+
+    if (lyc == m_iStatusModeLYCounter)
     {
-        // Establish the LY register
-        m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
-
-        u8 lyc = m_pMemory->Retrieve(0xFF45);
-        u8 stat = m_pMemory->Retrieve(0xFF41);
-
-        if (lyc == m_iStatusModeLYCounter)
-        {
-            SetBit(stat, 2);
-            if (IsSetBit(stat, 6))
-                m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-        }
-        else
-            UnsetBit(stat, 2);
-
-        m_pMemory->Load(0xFF41, stat);
+        stat = SetBit(stat, 2);
+        if (IsSetBit(stat, 6))
+            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
     }
+    else
+        stat = UnsetBit(stat, 2);
+
+    m_pMemory->Load(0xFF41, stat);
 }
