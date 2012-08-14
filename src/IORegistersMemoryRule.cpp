@@ -5,8 +5,8 @@
 #include "Input.h"
 
 IORegistersMemoryRule::IORegistersMemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput, 
-        Cartridge* pCartridge) : MemoryRule(pProcessor, 
+        Memory* pMemory, Video* pVideo, Input* pInput,
+        Cartridge* pCartridge) : MemoryRule(pProcessor,
         pMemory, pVideo, pInput, pCartridge)
 {
 }
@@ -17,6 +17,13 @@ u8 IORegistersMemoryRule::PerformRead(u16 address)
     {
         // P1
         return m_pInput->GetJoyPadState();
+    }
+    else if (address == 0xFF44)
+    {
+        if (m_pVideo->IsScreenEnabled())
+            return m_pMemory->Retrieve(0xFF44);
+        else
+            return 0x00;
     }
     else
     {
@@ -52,11 +59,33 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         // IF
         m_pMemory->Load(address, value & 0x1F);
     }
+    else if (address == 0xFF40)
+    {
+        // LCDC
+        m_pMemory->Load(address, value);
+
+        if (IsSetBit(value, 7))
+            m_pVideo->EnableScreen();
+        else
+            m_pVideo->DisableScreen();
+    }
     else if (address == 0xFF41)
     {
         // STAT
         u8 current_stat_mode = m_pMemory->Retrieve(0xFF41) & 0x03;
         m_pMemory->Load(address, (value & 0x7C) | current_stat_mode);
+    }
+    else if (address == 0xFF44)
+    {
+        // LY
+        u8 current_ly = m_pMemory->Retrieve(0xFF44);
+        if (current_ly & 0x80)
+        {
+            if ((value & 0x80) == 0)
+            {
+                m_pVideo->DisableScreen();
+            }
+        }
     }
     else if (address == 0xFF46)
     {

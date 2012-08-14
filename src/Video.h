@@ -13,6 +13,9 @@ public:
     void Init();
     void Reset();
     bool Tick(u8 clockCycles, u8* pFrameBuffer);
+    void EnableScreen();
+    void DisableScreen();
+    bool IsScreenEnabled();
 private:
     void ScanLine(int line);
     void RenderBG(int line);
@@ -27,7 +30,8 @@ private:
     int m_iStatusMode;
     int m_iStatusModeCounter;
     int m_iStatusModeCounterAux;
-    u8 m_byStatusModeLYCounter;
+    int m_iStatusModeLYCounter;
+    bool m_bScreenEnabled;
 };
 
 #endif	/* VIDEO_H */
