@@ -93,7 +93,7 @@
           <developmentMode>5</developmentMode>
         </asmTool>
         <linkerTool>
-          <commandLine>-lglut-lGL -lGLU</commandLine>
+          <commandLine>-lfreeglut -lGL -lGLU</commandLine>
         </linkerTool>
       </compileType>
     </conf>
