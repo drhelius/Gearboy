@@ -12,7 +12,7 @@ pMemory, pVideo, pInput, pCartridge)
 {
     m_iMode = 0;
     m_iCurrentRAMBank = 0;
-    m_iCurrentROMBank = 0;
+    m_iCurrentROMBank = 1;
     m_bRamEnabled = false;
     m_pRAMBanks = new u8[0x8000];
     Reset();
@@ -93,7 +93,10 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         if (m_iMode == 1)
             m_iCurrentRAMBank = value & 0x03;
         else
+        {
             m_HigherRomBankBits = value & 0xE0;
+            m_iCurrentROMBank = (m_iCurrentROMBank & 0x1F) | m_HigherRomBankBits;
+        }
     }
     else if (address >= 0x6000 && address < 0x8000)
     {

@@ -10,6 +10,7 @@
 #include "MBC1MemoryRule.h"
 #include "MBC2MemoryRule.h"
 #include "MBC3MemoryRule.h"
+#include "MBC5MemoryRule.h"
 
 GearboyCore::GearboyCore()
 {
@@ -24,11 +25,13 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC1MemoryRule);
     InitPointer(m_pMBC2MemoryRule);
     InitPointer(m_pMBC3MemoryRule);
+    InitPointer(m_pMBC5MemoryRule);
     m_MBC = MBC_NONE;
 }
 
 GearboyCore::~GearboyCore()
 {
+    SafeDelete(m_pMBC5MemoryRule);
     SafeDelete(m_pMBC3MemoryRule);
     SafeDelete(m_pMBC2MemoryRule);
     SafeDelete(m_pMBC1MemoryRule);
@@ -129,6 +132,12 @@ void GearboyCore::InitMemoryRules()
     m_pMBC3MemoryRule->Enable();
     m_pMBC3MemoryRule->SetMinAddress(0x0000);
     m_pMBC3MemoryRule->SetMaxAddress(0xFEFF);
+    
+    m_pMBC5MemoryRule = new MBC5MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge);
+    m_pMBC5MemoryRule->Enable();
+    m_pMBC5MemoryRule->SetMinAddress(0x0000);
+    m_pMBC5MemoryRule->SetMaxAddress(0xFEFF);
 }
 
 void GearboyCore::AddMemoryRules()
@@ -234,30 +243,36 @@ void GearboyCore::AddMemoryRules()
             //            MBCType = "MBC3 + SRAM + BATT";
             break;
         case 0x19:
+            m_pMemory->AddRule(m_pMBC5MemoryRule);
             //            this.cMBC5 = true;
             //            MBCType = "MBC5";
             break;
         case 0x1A:
+            m_pMemory->AddRule(m_pMBC5MemoryRule);
             //            this.cMBC5 = true;
             //            this.cSRAM = true;
             //            MBCType = "MBC5 + SRAM";
             break;
         case 0x1B:
+            m_pMemory->AddRule(m_pMBC5MemoryRule);
             //            this.cMBC5 = true;
             //            this.cSRAM = true;
             //            this.cBATT = true;
             //            MBCType = "MBC5 + SRAM + BATT";
             break;
         case 0x1C:
+            m_pMemory->AddRule(m_pMBC5MemoryRule);
             //            this.cRUMBLE = true;
             //            MBCType = "RUMBLE";
             break;
         case 0x1D:
+            m_pMemory->AddRule(m_pMBC5MemoryRule);
             //            this.cRUMBLE = true;
             //            this.cSRAM = true;
             //            MBCType = "RUMBLE + SRAM";
             break;
         case 0x1E:
+            m_pMemory->AddRule(m_pMBC5MemoryRule);
             //            this.cRUMBLE = true;
             //            this.cSRAM = true;
             //            this.cBATT = true;

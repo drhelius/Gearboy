@@ -53,6 +53,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/MBC1MemoryRule.o \
 	${OBJECTDIR}/src/Processor.o \
 	${OBJECTDIR}/src/GearboyCore.o \
+	${OBJECTDIR}/src/MBC5MemoryRule.o \
 	${OBJECTDIR}/src/SixteenBitRegister.o
 
 
@@ -169,6 +170,11 @@ ${OBJECTDIR}/src/GearboyCore.o: src/GearboyCore.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/GearboyCore.o src/GearboyCore.cpp
+
+${OBJECTDIR}/src/MBC5MemoryRule.o: src/MBC5MemoryRule.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MBC5MemoryRule.o src/MBC5MemoryRule.cpp
 
 ${OBJECTDIR}/src/SixteenBitRegister.o: src/SixteenBitRegister.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

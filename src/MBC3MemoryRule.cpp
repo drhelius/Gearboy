@@ -11,7 +11,7 @@ MBC3MemoryRule::MBC3MemoryRule(Processor* pProcessor,
 pMemory, pVideo, pInput, pCartridge)
 {
     m_iCurrentRAMBank = 0;
-    m_iCurrentROMBank = 0;
+    m_iCurrentROMBank = 1;
     m_bRamEnabled = false;
     m_pRAMBanks = new u8[0x8000];
     Reset();

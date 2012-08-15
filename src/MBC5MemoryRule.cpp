@@ -1,41 +1,46 @@
-#include "MBC2MemoryRule.h"
+#include "MBC5MemoryRule.h"
 #include "Video.h"
 #include "Memory.h"
 #include "Processor.h"
 #include "Input.h"
 #include "Cartridge.h"
 
-MBC2MemoryRule::MBC2MemoryRule(Processor* pProcessor,
+MBC5MemoryRule::MBC5MemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
         Cartridge* pCartridge) : MemoryRule(pProcessor,
 pMemory, pVideo, pInput, pCartridge)
 {
+    m_iCurrentRAMBank = 0;
     m_iCurrentROMBank = 1;
+    m_iCurrentROMBankHi = 0;
     m_bRamEnabled = false;
+    m_pRAMBanks = new u8[0x20000];
     Reset();
 }
 
-u8 MBC2MemoryRule::PerformRead(u16 address)
+MBC5MemoryRule::~MBC5MemoryRule()
+{
+    SafeDeleteArray(m_pRAMBanks);
+}
+
+u8 MBC5MemoryRule::PerformRead(u16 address)
 {
     if (address >= 0x4000 && address < 0x8000)
     {
         u8* pROM = m_pCartridge->GetTheROM();
         return pROM[(address - 0x4000) + (0x4000 * m_iCurrentROMBank)];
     }
-    else if (address >= 0xA000 && address < 0xA200)
+    else if (address >= 0xA000 && address < 0xC000)
     {
         if (m_bRamEnabled)
-            return m_pMemory->Retrieve(address);
+        {
+            return m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)];
+        }
         else
         {
             Log("--> ** Atempting to read from disabled ram %X", address);
             return 0x00;
         }
-    }
-    else if (address >= 0xA200 && address < 0xC000)
-    {
-        Log("--> ** Atempting to read from non usable address %X", address);
-        return 0x00;
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
@@ -47,38 +52,38 @@ u8 MBC2MemoryRule::PerformRead(u16 address)
         return m_pMemory->Retrieve(address);
 }
 
-void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
+void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
 {
-    if (address < 0x1000)
+    if (address < 0x2000)
     {
-        m_bRamEnabled = (value & 0x0F) == 0x0A;
+        if (m_pCartridge->GetRAMSize() > 0)
+            m_bRamEnabled = (value & 0x0F) == 0x0A;
     }
-    else if (address >= 0x1000 && address < 0x2100)
+    else if (address >= 0x2000 && address < 0x3000)
+    {
+        m_iCurrentROMBank = value | (m_iCurrentROMBankHi << 8);
+    }
+    else if (address >= 0x3000 && address < 0x4000)
+    {
+        m_iCurrentROMBankHi = value & 0x01;
+        m_iCurrentROMBank = (m_iCurrentROMBank & 0xFF) | (m_iCurrentROMBankHi << 8);
+    }
+    else if (address >= 0x4000 && address < 0x6000)
+    {
+        m_iCurrentRAMBank = value & 0x0F;
+    }
+    else if (address >= 0x6000 && address < 0x8000)
     {
         Log("--> ** Atempting to write on non usable address %X %X", address, value);
     }
-    else if (address >= 0x2100 && address < 0x2200)
-    {
-        m_iCurrentROMBank = value & 0x0F;
-        if (m_iCurrentROMBank == 0)
-            m_iCurrentROMBank = 1;
-    }
-    else if (address >= 0x2200 && address < 0x8000)
-    {
-        Log("--> ** Atempting to write on non usable address %X %X", address, value);
-    }
-    else if (address >= 0xA000 && address < 0xA200)
+    else if (address >= 0xA000 && address < 0xC000)
     {
         if (m_bRamEnabled)
         {
-            m_pMemory->Load(address, value & 0x0F);
+            m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)] = value;
         }
         else
             Log("--> ** Atempting to write on RAM when ram is disabled %X %X", address, value);
-    }
-    else if (address >= 0xA200 && address < 0xC000)
-    {
-        Log("--> ** Atempting to write on non usable address %X %X", address, value);
     }
     else if (address >= 0xC000 && address < 0xDE00)
     {
@@ -103,11 +108,12 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MBC2MemoryRule::Reset()
+void MBC5MemoryRule::Reset()
 {
+    m_iCurrentRAMBank = 0;
     m_iCurrentROMBank = 0;
     m_bRamEnabled = false;
+    for (int i = 0; i < 0x20000; i++)
+        m_pRAMBanks[i] = 0;
 }
-
-
 

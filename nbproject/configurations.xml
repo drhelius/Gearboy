@@ -20,6 +20,8 @@
       <itemPath>src/MBC2MemoryRule.h</itemPath>
       <itemPath>src/MBC3MemoryRule.cpp</itemPath>
       <itemPath>src/MBC3MemoryRule.h</itemPath>
+      <itemPath>src/MBC5MemoryRule.cpp</itemPath>
+      <itemPath>src/MBC5MemoryRule.h</itemPath>
       <itemPath>src/Memory.cpp</itemPath>
       <itemPath>src/Memory.h</itemPath>
       <itemPath>src/MemoryCell.cpp</itemPath>
