@@ -58,7 +58,7 @@ bool Video::Tick(u8 clockCycles, u8* pFrameBuffer)
                         m_iStatusMode = 1;
 
                         m_pProcessor->RequestInterrupt(Processor::VBlank_Interrupt);
-                        
+
                         u8 stat = m_pMemory->Retrieve(0xFF41);
                         if (IsSetBit(stat, 4))
                             m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
@@ -77,7 +77,7 @@ bool Video::Tick(u8 clockCycles, u8* pFrameBuffer)
                 break;
             }
             case 1:
-            {              
+            {
                 m_iStatusModeCounterAux += clockCycles;
 
                 if (m_iStatusModeCounterAux >= 456)
@@ -306,17 +306,31 @@ void Video::RenderSprites(int line)
 
                 if (sprite_x >= -7 && sprite_x < GAMEBOY_WIDTH)
                 {
-                    int sprite_tile_16 = m_pMemory->Retrieve(0xFE00 + sprite_4 + 2) * 16;
+                    int sprite_tile_16 = (m_pMemory->Retrieve(0xFE00 + sprite_4 + 2)
+                            & ((sprite_height == 16) ? 0xFE : 0xFF)) * 16;
                     u8 sprite_flags = m_pMemory->Retrieve(0xFE00 + sprite_4 + 3);
                     int sprite_pallette = IsSetBit(sprite_flags, 4) ? 1 : 0;
                     bool xflip = IsSetBit(sprite_flags, 5);
                     bool yflip = IsSetBit(sprite_flags, 6);
                     bool aboveBG = !IsSetBit(sprite_flags, 7);
                     int tiles = 0x8000;
-                    int pixely_2 = (yflip ? sprite_height - 1 - (line - sprite_y) : line - sprite_y) * 2;
+                    int pixel_y = yflip ? 7 - (line - sprite_y) : line - sprite_y;
 
-                    u8 byte1 = m_pMemory->Retrieve(tiles + sprite_tile_16 + pixely_2);
-                    u8 byte2 = m_pMemory->Retrieve(tiles + sprite_tile_16 + pixely_2 + 1);
+                    u8 byte1 = 0;
+                    u8 byte2 = 0;
+                    int pixel_y_2 = 0;
+                    int offset = 0;
+
+                    if (sprite_height == 16 && (pixel_y >= 8))
+                    {
+                        pixel_y_2 = (pixel_y - 8) * 2;
+                        offset = 16;
+                    }
+                    else
+                        pixel_y_2 = pixel_y * 2;
+
+                    byte1 = m_pMemory->Retrieve(tiles + sprite_tile_16 + pixel_y_2 + offset);
+                    byte2 = m_pMemory->Retrieve(tiles + sprite_tile_16 + pixel_y_2 + 1 + offset);
 
                     for (int pixelx = 0; pixelx < 8; pixelx++)
                     {
