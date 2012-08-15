@@ -93,7 +93,7 @@
           <developmentMode>5</developmentMode>
         </asmTool>
         <linkerTool>
-          <commandLine>-framework GLUT -framework OpenGL</commandLine>
+          <commandLine>-lglut-lGL -lGLU</commandLine>
         </linkerTool>
       </compileType>
     </conf>
