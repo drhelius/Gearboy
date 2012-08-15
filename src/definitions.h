@@ -91,7 +91,7 @@ inline u8 UnsetBit(const u8 value, const u8 bit)
 
 inline bool IsSetBit(const u8 value, const u8 bit)
 {
-    return value & (0x01 << bit);
+    return (value & (0x01 << bit)) != 0;
 }
 
 #endif	/* DEFINITIONS_H */

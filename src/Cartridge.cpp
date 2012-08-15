@@ -77,7 +77,7 @@ void Cartridge::LoadFromFile(const char* path)
 
     if (file.is_open())
     {
-        ifstream::pos_type size = file.tellg();
+        int size = static_cast<int>(file.tellg());
         char* memblock = new char[size];
         file.seekg(0, ios::beg);
         file.read(memblock, size);
