@@ -206,7 +206,7 @@ void Processor::UpdateTimers()
     {
         m_iTIMACycles += m_CurrentClockCycles;
 
-        int freq = 0;
+        unsigned int freq = 0;
 
         switch (tac & 0x03)
         {
@@ -277,7 +277,7 @@ void Processor::UntoggleFlag(u8 flag)
 
 bool Processor::IsSetFlag(u8 flag)
 {
-    return (AF.GetLow() & flag);
+    return (AF.GetLow() & flag) != 0;
 }
 
 void Processor::StackPush(SixteenBitRegister* reg)
