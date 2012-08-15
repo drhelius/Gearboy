@@ -13,26 +13,46 @@
   <ItemGroup>
     <ClCompile Include="..\src\Audio.cpp" />
     <ClCompile Include="..\src\Cartridge.cpp" />
-    <ClCompile Include="..\src\Core.cpp" />
     <ClCompile Include="..\src\EightBitRegister.cpp" />
+    <ClCompile Include="..\src\GearboyCore.cpp" />
+    <ClCompile Include="..\src\Input.cpp" />
+    <ClCompile Include="..\src\IORegistersMemoryRule.cpp" />
     <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\MBC1MemoryRule.cpp" />
+    <ClCompile Include="..\src\MBC2MemoryRule.cpp" />
+    <ClCompile Include="..\src\MBC3MemoryRule.cpp" />
+    <ClCompile Include="..\src\MBC5MemoryRule.cpp" />
     <ClCompile Include="..\src\Memory.cpp" />
     <ClCompile Include="..\src\MemoryCell.cpp" />
+    <ClCompile Include="..\src\MemoryRule.cpp" />
+    <ClCompile Include="..\src\opcodes.cpp" />
+    <ClCompile Include="..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\src\Processor.cpp" />
+    <ClCompile Include="..\src\RomOnlyMemoryRule.cpp" />
     <ClCompile Include="..\src\SixteenBitRegister.cpp" />
     <ClCompile Include="..\src\Video.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Audio.h" />
+    <ClInclude Include="..\src\boot_roms.h" />
     <ClInclude Include="..\src\Cartridge.h" />
-    <ClInclude Include="..\src\Core.h" />
     <ClInclude Include="..\src\definitions.h" />
     <ClInclude Include="..\src\EightBitRegister.h" />
     <ClInclude Include="..\src\gearboy.h" />
+    <ClInclude Include="..\src\GearboyCore.h" />
+    <ClInclude Include="..\src\Input.h" />
+    <ClInclude Include="..\src\IORegistersMemoryRule.h" />
+    <ClInclude Include="..\src\MBC1MemoryRule.h" />
+    <ClInclude Include="..\src\MBC2MemoryRule.h" />
+    <ClInclude Include="..\src\MBC3MemoryRule.h" />
+    <ClInclude Include="..\src\MBC5MemoryRule.h" />
     <ClInclude Include="..\src\Memory.h" />
     <ClInclude Include="..\src\MemoryCell.h" />
     <ClInclude Include="..\src\MemoryRule.h" />
+    <ClInclude Include="..\src\opcode_names.h" />
+    <ClInclude Include="..\src\opcode_timing.h" />
     <ClInclude Include="..\src\Processor.h" />
+    <ClInclude Include="..\src\RomOnlyMemoryRule.h" />
     <ClInclude Include="..\src\SixteenBitRegister.h" />
     <ClInclude Include="..\src\Video.h" />
   </ItemGroup>
