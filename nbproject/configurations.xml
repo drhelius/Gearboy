@@ -93,7 +93,9 @@
           <developmentMode>5</developmentMode>
         </asmTool>
         <linkerTool>
-          <commandLine>-lfreeglut -lGL -lGLU</commandLine>
+          <linkerLibItems>
+            <linkerOptionItem>-lglut -lGL -lGLU</linkerOptionItem>
+          </linkerLibItems>
         </linkerTool>
       </compileType>
     </conf>
