@@ -62,7 +62,7 @@
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
-    <conf name="Debug" type="1">
+    <conf name="Mac_OS_X" type="1">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>CLang|CLang</compilerSet>
@@ -73,10 +73,10 @@
         </linkerTool>
       </compileType>
     </conf>
-    <conf name="Release" type="1">
+    <conf name="Linux" type="1">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>CLang|CLang</compilerSet>
+        <compilerSet>GNU|GNU</compilerSet>
       </toolsSet>
       <compileType>
         <cTool>
@@ -84,6 +84,7 @@
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
+          <commandlineTool>g++</commandlineTool>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>

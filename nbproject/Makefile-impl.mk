@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=Gearboy
 
 # Active Configuration
-DEFAULTCONF=Debug
+DEFAULTCONF=Mac_OS_X
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Debug Release 
+ALLCONFS=Mac_OS_X Linux 
 
 
 # build

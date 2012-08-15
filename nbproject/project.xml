@@ -14,11 +14,11 @@
             </sourceRootList>
             <confList>
                 <confElem>
-                    <name>Debug</name>
+                    <name>Mac_OS_X</name>
                     <type>1</type>
                 </confElem>
                 <confElem>
-                    <name>Release</name>
+                    <name>Linux</name>
                     <type>1</type>
                 </confElem>
             </confList>
