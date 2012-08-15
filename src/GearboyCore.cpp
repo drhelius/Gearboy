@@ -9,6 +9,7 @@
 #include "RomOnlyMemoryRule.h"
 #include "MBC1MemoryRule.h"
 #include "MBC2MemoryRule.h"
+#include "MBC3MemoryRule.h"
 
 GearboyCore::GearboyCore()
 {
@@ -22,11 +23,13 @@ GearboyCore::GearboyCore()
     InitPointer(m_pRomOnlyMemoryRule);
     InitPointer(m_pMBC1MemoryRule);
     InitPointer(m_pMBC2MemoryRule);
+    InitPointer(m_pMBC3MemoryRule);
     m_MBC = MBC_NONE;
 }
 
 GearboyCore::~GearboyCore()
 {
+    SafeDelete(m_pMBC3MemoryRule);
     SafeDelete(m_pMBC2MemoryRule);
     SafeDelete(m_pMBC1MemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
@@ -120,6 +123,12 @@ void GearboyCore::InitMemoryRules()
     m_pMBC2MemoryRule->Enable();
     m_pMBC2MemoryRule->SetMinAddress(0x0000);
     m_pMBC2MemoryRule->SetMaxAddress(0xFEFF);
+    
+    m_pMBC3MemoryRule = new MBC3MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge);
+    m_pMBC3MemoryRule->Enable();
+    m_pMBC3MemoryRule->SetMinAddress(0x0000);
+    m_pMBC3MemoryRule->SetMaxAddress(0xFEFF);
 }
 
 void GearboyCore::AddMemoryRules()
@@ -192,12 +201,14 @@ void GearboyCore::AddMemoryRules()
             //            MBCType = "MMMO1 + SRAM + BATT";
             break;
         case 0x0F:
+            m_pMemory->AddRule(m_pMBC3MemoryRule);
             //            this.cMBC3 = true;
             //            this.cTIMER = true;
             //            this.cBATT = true;
             //            MBCType = "MBC3 + TIMER + BATT";
             break;
         case 0x10:
+            m_pMemory->AddRule(m_pMBC3MemoryRule);
             //            this.cMBC3 = true;
             //            this.cTIMER = true;
             //            this.cBATT = true;
@@ -205,15 +216,18 @@ void GearboyCore::AddMemoryRules()
             //            MBCType = "MBC3 + TIMER + BATT + SRAM";
             break;
         case 0x11:
+            m_pMemory->AddRule(m_pMBC3MemoryRule);
             //            this.cMBC3 = true;
             //            MBCType = "MBC3";
             break;
         case 0x12:
+            m_pMemory->AddRule(m_pMBC3MemoryRule);
             //            this.cMBC3 = true;
             //            this.cSRAM = true;
             //            MBCType = "MBC3 + SRAM";
             break;
         case 0x13:
+            m_pMemory->AddRule(m_pMBC3MemoryRule);
             //            this.cMBC3 = true;
             //            this.cSRAM = true;
             //            this.cBATT = true;

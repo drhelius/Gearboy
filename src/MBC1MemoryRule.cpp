@@ -154,6 +154,3 @@ void MBC1MemoryRule::Reset()
     for (int i = 0; i < 0x8000; i++)
         m_pRAMBanks[i] = 0;
 }
-
-
-

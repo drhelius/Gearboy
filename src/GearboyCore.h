@@ -13,6 +13,7 @@ class IORegistersMemoryRule;
 class RomOnlyMemoryRule;
 class MBC1MemoryRule;
 class MBC2MemoryRule;
+class MBC3MemoryRule;
 
 class GearboyCore
 {
@@ -40,6 +41,7 @@ private:
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
     MBC1MemoryRule* m_pMBC1MemoryRule;
     MBC2MemoryRule* m_pMBC2MemoryRule;
+    MBC3MemoryRule* m_pMBC3MemoryRule;
     Gameboy_MemoryBankControllers m_MBC;
 };
 

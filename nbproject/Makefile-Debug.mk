@@ -40,6 +40,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/EightBitRegister.o \
 	${OBJECTDIR}/src/Input.o \
 	${OBJECTDIR}/src/MemoryRule.o \
+	${OBJECTDIR}/src/MBC3MemoryRule.o \
 	${OBJECTDIR}/src/Cartridge.o \
 	${OBJECTDIR}/src/opcodes.o \
 	${OBJECTDIR}/src/MemoryCell.o \
@@ -103,6 +104,11 @@ ${OBJECTDIR}/src/MemoryRule.o: src/MemoryRule.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MemoryRule.o src/MemoryRule.cpp
+
+${OBJECTDIR}/src/MBC3MemoryRule.o: src/MBC3MemoryRule.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MBC3MemoryRule.o src/MBC3MemoryRule.cpp
 
 ${OBJECTDIR}/src/Cartridge.o: src/Cartridge.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

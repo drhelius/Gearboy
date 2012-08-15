@@ -177,6 +177,7 @@ int main(int argc, char** argv)
     //gb->LoadROM("/Users/nacho/Desktop/roms/Snoopy - Magic Show (U) [!].gb");
     //gb->LoadROM("/Users/nacho/Desktop/roms/Donkey Kong Land (U) [S][!].sgb");
     //Elevator Action (U) [!].gb
+    gb->LoadROM("/Users/nacho/Desktop/roms/Pokemon - Gold Version (UE) [C][!].gbc");
             
     
     
