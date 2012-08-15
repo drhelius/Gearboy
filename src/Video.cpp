@@ -314,7 +314,7 @@ void Video::RenderSprites(int line)
                     bool yflip = IsSetBit(sprite_flags, 6);
                     bool aboveBG = !IsSetBit(sprite_flags, 7);
                     int tiles = 0x8000;
-                    int pixel_y = yflip ? 7 - (line - sprite_y) : line - sprite_y;
+                    int pixel_y = yflip ? ((sprite_height == 16) ? 15 : 7) - (line - sprite_y) : line - sprite_y;
 
                     u8 byte1 = 0;
                     u8 byte2 = 0;
