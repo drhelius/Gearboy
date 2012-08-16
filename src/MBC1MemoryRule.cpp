@@ -101,14 +101,17 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     }
     else if (address >= 0x6000 && address < 0x8000)
     {
-        m_iMode = value & 0x01;
+        if (m_pCartridge->GetRAMSize() == 3)
+            m_iMode = value & 0x01;
+        else if ((value & 0x01) != 0)
+            Log("--> ** Atempting to change MBC1 to mode 1 with no RAM banks %X %X", address, value);
     }
     else if (address >= 0xA000 && address < 0xC000)
     {
         if (m_bRamEnabled)
         {
             if (m_iMode == 0)
-            {     
+            {
                 if (m_pCartridge->GetRAMSize() == 1)
                 {
                     // only 2KB of ram
