@@ -13,6 +13,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
     m_iStatusModeLYCounter = 0;
+    m_iScreenEnableDelayCycles = 0;
     m_bScreenEnabled = true;
 }
 
@@ -37,6 +38,7 @@ void Video::Reset()
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
     m_iStatusModeLYCounter = 144;
+    m_iScreenEnableDelayCycles = 0;
     m_bScreenEnabled = true;
 }
 
@@ -140,6 +142,26 @@ bool Video::Tick(u8 clockCycles, u8* pFrameBuffer)
             }
         }
     }
+    else
+    {
+        if (m_iScreenEnableDelayCycles > 0)
+        {
+            m_iScreenEnableDelayCycles -= clockCycles;
+
+            if (m_iScreenEnableDelayCycles <= 0)
+            {
+                m_iScreenEnableDelayCycles = 0;
+                m_bScreenEnabled = true;
+
+                m_iStatusMode = 0;
+                m_iStatusModeCounter = 0;
+                m_iStatusModeCounterAux = 0;
+                m_iStatusModeLYCounter = 0;
+                UpdateLYRegister();
+            }
+        }
+
+    }
     return vblank;
 }
 
@@ -147,15 +169,11 @@ void Video::EnableScreen()
 {
     if (!m_bScreenEnabled)
     {
-        m_bScreenEnabled = true;
+        m_pMemory->Load(0xFF44, 0);
         u8 stat = m_pMemory->Retrieve(0xFF41);
         stat &= 0x78;
         m_pMemory->Load(0xFF41, stat);
-        m_iStatusMode = 2;
-        m_iStatusModeCounter = 0;
-        m_iStatusModeCounterAux = 0;
-        m_iStatusModeLYCounter = 0;
-        UpdateLYRegister();
+        m_iScreenEnableDelayCycles = 244;
     }
 }
 
@@ -362,7 +380,7 @@ void Video::RenderSprites(int line)
                             int bufferX = (sprite_x + pixelx);
                             u8 color_cache = m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX];
                             int sprite_x_cache = m_pSpriteXCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX];
-                            
+
                             if ((color_cache & 0x10) != 0)
                             {
                                 if (sprite_x_cache < sprite_x)

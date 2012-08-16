@@ -34,6 +34,7 @@ private:
     int m_iStatusModeCounter;
     int m_iStatusModeCounterAux;
     int m_iStatusModeLYCounter;
+    int m_iScreenEnableDelayCycles;
     bool m_bScreenEnabled;
 };
 
