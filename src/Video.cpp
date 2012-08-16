@@ -7,7 +7,6 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_pMemory = pMemory;
     m_pProcessor = pProcessor;
     InitPointer(m_pFrameBuffer);
-    InitPointer(m_pBackgroundColorBuffer);
     m_iStatusMode = 0;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
@@ -15,29 +14,18 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bScreenEnabled = true;
 }
 
-Video::~Video()
-{
-    SafeDelete(m_pBackgroundColorBuffer);
-}
-
 void Video::Init()
 {
-    m_pBackgroundColorBuffer = new u8[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     Reset();
 }
 
 void Video::Reset()
 {
-    for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
-        m_pBackgroundColorBuffer[i] = 0;
-
     m_iStatusMode = 1;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
     m_iStatusModeLYCounter = 144;
     m_bScreenEnabled = true;
-    m_SortedSpritesVector.clear();
-    m_SortedSpritesVector.reserve(40);
 }
 
 bool Video::Tick(u8 clockCycles, u8* pFrameBuffer)
@@ -235,9 +223,7 @@ void Video::RenderBG(int line)
                     pixel |= (byte2 & (0x1 << (7 - pixelx))) ? 2 : 0;
                     u8 palette = m_pMemory->Retrieve(0xFF47);
                     u8 color = (palette >> (pixel * 2)) & 0x03;
-                    int line_width_bufferX = (line * GAMEBOY_WIDTH) + bufferX;
-                    m_pFrameBuffer[line_width_bufferX] = color;
-                    m_pBackgroundColorBuffer[line_width_bufferX] = pixel;
+                    m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
                 }
             }
         }
@@ -245,11 +231,7 @@ void Video::RenderBG(int line)
     else
     {
         for (int x = 0; x < GAMEBOY_WIDTH; x++)
-        {
-            int line_width_x = (line * GAMEBOY_WIDTH) + x;
-            m_pFrameBuffer[line_width_x] = 0;
-            m_pBackgroundColorBuffer[line_width_x] = 0;
-        }
+            m_pFrameBuffer[(line * GAMEBOY_WIDTH) + x] = 0;
     }
 }
 
@@ -296,10 +278,8 @@ void Video::RenderWindow(int line)
                         int pixel = (byte1 & (0x1 << (7 - pixelx))) ? 1 : 0;
                         pixel |= (byte2 & (0x1 << (7 - pixelx))) ? 2 : 0;
                         u8 palette = m_pMemory->Retrieve(0xFF47);
-                        u8 color = (palette >> (pixel * 2)) & 0x03;      
-                        int line_width_bufferX = (line * GAMEBOY_WIDTH) + bufferX;
-                        m_pFrameBuffer[line_width_bufferX] = color;
-                        m_pBackgroundColorBuffer[line_width_bufferX] = pixel;
+                        u8 color = (palette >> (pixel * 2)) & 0x03;
+                        m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
                     }
                 }
             }
@@ -309,25 +289,20 @@ void Video::RenderWindow(int line)
 
 void Video::RenderSprites(int line)
 {
-    using namespace std;
-
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
 
     if (IsSetBit(lcdc, 1))
     {
-        SortSprites();
-
         int sprite_height = IsSetBit(lcdc, 2) ? 16 : 8;
 
-        for (int i = 0; i < 40; i++)
+        for (int sprite = 39; sprite >= 0; sprite--)
         {
-            int sprite = m_SortedSpritesVector[i].first;
             int sprite_4 = sprite * 4;
             int sprite_y = m_pMemory->Retrieve(0xFE00 + sprite_4) - 16;
 
             if ((sprite_y <= line) && ((sprite_y + sprite_height) > line))
             {
-                int sprite_x = m_SortedSpritesVector[i].second; //m_pMemory->Retrieve(0xFE00 + sprite_4 + 1) - 8;
+                int sprite_x = m_pMemory->Retrieve(0xFE00 + sprite_4 + 1) - 8;
 
                 if (sprite_x >= -7 && sprite_x < GAMEBOY_WIDTH)
                 {
@@ -371,14 +346,13 @@ void Video::RenderSprites(int line)
 
                             if (bufferX >= 0 && bufferX < GAMEBOY_WIDTH)
                             {
-                                int line_width_bufferX = (line * GAMEBOY_WIDTH) + bufferX;
                                 if (aboveBG)
                                 {
-                                    m_pFrameBuffer[line_width_bufferX] = color;
+                                    m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
                                 }
-                                else if (m_pBackgroundColorBuffer[line_width_bufferX] == 0)
+                                else if (m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] == 0)
                                 {
-                                    m_pFrameBuffer[line_width_bufferX] = color;
+                                    m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
                                 }
                             }
                         }
@@ -387,19 +361,6 @@ void Video::RenderSprites(int line)
             }
         }
     }
-}
-
-void Video::SortSprites()
-{
-    m_SortedSpritesVector.clear();
-
-    for (int sprite = 0; sprite < 40; sprite++)
-    {
-        int sprite_x = m_pMemory->Retrieve(0xFE00 + (sprite * 4) + 1) - 8;
-        m_SortedSpritesVector.push_back(std::make_pair(sprite, sprite_x));
-    }
-
-    std::sort(m_SortedSpritesVector.begin(), m_SortedSpritesVector.end(), sprite_sort_oam());
 }
 
 void Video::UpdateStatRegister()
