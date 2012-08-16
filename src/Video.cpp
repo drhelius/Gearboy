@@ -7,6 +7,8 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_pMemory = pMemory;
     m_pProcessor = pProcessor;
     InitPointer(m_pFrameBuffer);
+    InitPointer(m_pSpriteXCacheBuffer);
+    InitPointer(m_pColorCacheBuffer);
     m_iStatusMode = 0;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
@@ -14,13 +16,23 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bScreenEnabled = true;
 }
 
+Video::~Video()
+{
+    SafeDeleteArray(m_pSpriteXCacheBuffer);
+    SafeDeleteArray(m_pColorCacheBuffer);
+}
+
 void Video::Init()
 {
+    m_pSpriteXCacheBuffer = new int[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+    m_pColorCacheBuffer = new u8[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     Reset();
 }
 
 void Video::Reset()
 {
+    for (int i = 0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+        m_pSpriteXCacheBuffer[i] = m_pColorCacheBuffer[i] = 0;
     m_iStatusMode = 1;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
@@ -224,6 +236,7 @@ void Video::RenderBG(int line)
                     u8 palette = m_pMemory->Retrieve(0xFF47);
                     u8 color = (palette >> (pixel * 2)) & 0x03;
                     m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
+                    m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX] = pixel & 0x03;
                 }
             }
         }
@@ -231,7 +244,10 @@ void Video::RenderBG(int line)
     else
     {
         for (int x = 0; x < GAMEBOY_WIDTH; x++)
+        {
             m_pFrameBuffer[(line * GAMEBOY_WIDTH) + x] = 0;
+            m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + x] = 0;
+        }
     }
 }
 
@@ -280,6 +296,7 @@ void Video::RenderWindow(int line)
                         u8 palette = m_pMemory->Retrieve(0xFF47);
                         u8 color = (palette >> (pixel * 2)) & 0x03;
                         m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
+                        m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX] = pixel & 0x03;
                     }
                 }
             }
@@ -343,16 +360,28 @@ void Video::RenderSprites(int line)
                         if (pixel)
                         {
                             int bufferX = (sprite_x + pixelx);
+                            u8 color_cache = m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX];
+                            int sprite_x_cache = m_pSpriteXCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX];
+                            
+                            if ((color_cache & 0x10) != 0)
+                            {
+                                if (sprite_x_cache < sprite_x)
+                                    continue;
+                            }
 
                             if (bufferX >= 0 && bufferX < GAMEBOY_WIDTH)
                             {
                                 if (aboveBG)
                                 {
                                     m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
+                                    m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX] = (color_cache & 0x03) | 0x10;
+                                    m_pSpriteXCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX] = sprite_x;
                                 }
-                                else if (m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] == 0)
+                                else if ((color_cache & 0x03) == 0)
                                 {
                                     m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
+                                    m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX] = (color_cache & 0x03) | 0x10;
+                                    m_pSpriteXCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX] = sprite_x;
                                 }
                             }
                         }

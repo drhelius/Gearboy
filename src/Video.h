@@ -10,6 +10,7 @@ class Video
 {
 public:
     Video(Memory* pMemory, Processor* pProcessor);
+    ~Video();
     void Init();
     void Reset();
     bool Tick(u8 clockCycles, u8* pFrameBuffer);
@@ -27,6 +28,8 @@ private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
     u8* m_pFrameBuffer;
+    int* m_pSpriteXCacheBuffer;
+    u8* m_pColorCacheBuffer;
     int m_iStatusMode;
     int m_iStatusModeCounter;
     int m_iStatusModeCounterAux;
