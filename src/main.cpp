@@ -171,7 +171,7 @@ int main(int argc, char** argv)
     gb = new GearboyCore();
     gb->Init();
     //gb->LoadROM("/Users/nacho/Desktop/roms/Super Mario Land (JUE) (V1.0) [!].gb");
-    gb->LoadROM("/Users/nacho/Desktop/roms/Super Mario Land 2 - 6 Golden Coins (UE) (V1.0) [!].gb");
+    //gb->LoadROM("/Users/nacho/Desktop/roms/Super Mario Land 2 - 6 Golden Coins (UE) (V1.0) [!].gb");
     //gb->LoadROM("/Users/nacho/Desktop/roms/Legend of Zelda, The - Link's Awakening (U) (V1.2) [!].gb");
     //gb->LoadROM("/Users/nacho/Desktop/roms/Kirby's Dream Land (UE) [!].gb");
     //gb->LoadROM("/Users/nacho/Desktop/roms/Snoopy - Magic Show (U) [!].gb");
@@ -180,6 +180,8 @@ int main(int argc, char** argv)
     //gb->LoadROM("/Users/nacho/Desktop/roms/Pokemon - Gold Version (UE) [C][!].gbc");
     //gb->LoadROM("/Users/nacho/Desktop/roms/Pokemon - Edicion Azul (S) [S].sgb");
     //gb->LoadROM("/Users/nacho/Desktop/roms/Prehistorik Man (U).gb");
+    //gb->LoadROM("/Users/nacho/Desktop/roms/Wave Race (UE) [!].gb");
+    gb->LoadROM("/Users/nacho/Desktop/roms/Alleyway (JUE) [!].gb");
     
             
     
