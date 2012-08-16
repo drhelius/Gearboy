@@ -46,6 +46,8 @@ private:
     u8 m_CurrentClockCycles;
     unsigned int m_iDIVCycles;
     unsigned int m_iTIMACycles;
+    int m_iSerialBit;
+    int m_iSerialCycles;
     int m_iIMECycles;
 private:
     u8 FetchOPCode();
@@ -53,6 +55,7 @@ private:
     void ExecuteOPCodeCB(u8 opcode);
     void ServeInterrupts();
     void UpdateTimers();
+    void UpdateSerial();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);
     void SetFlag(u8 flag);

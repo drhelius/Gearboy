@@ -15,6 +15,8 @@ Processor::Processor(Memory* pMemory)
     m_iDIVCycles = 0;
     m_iTIMACycles = 0;
     m_iIMECycles = 0;
+    m_iSerialBit = 0;
+    m_iSerialCycles = 0;
 }
 
 Processor::~Processor()
@@ -37,6 +39,8 @@ void Processor::Reset()
     m_iDIVCycles = 0;
     m_iTIMACycles = 0;
     m_iIMECycles = 0;
+    m_iSerialBit = 0;
+    m_iSerialCycles = 0;
     PC.SetValue(0x100);
     SP.SetValue(0xFFFE);
     AF.SetValue(0x01B0);
@@ -67,11 +71,12 @@ u8 Processor::Tick()
     }
 
     UpdateTimers();
-    
+    UpdateSerial();
+
     if (m_iIMECycles > 0)
     {
         m_iIMECycles -= m_CurrentClockCycles;
-        
+
         if (m_iIMECycles <= 0)
         {
             m_iIMECycles = 0;
@@ -243,12 +248,49 @@ void Processor::UpdateTimers()
             if (tima == 0xFF)
             {
                 tima = m_pMemory->Retrieve(0xFF06);
-                RequestInterrupt(Timer_Interrupt); 
+                RequestInterrupt(Timer_Interrupt);
             }
             else
                 tima++;
 
             m_pMemory->Load(0xFF05, tima);
+        }
+    }
+}
+
+void Processor::UpdateSerial()
+{
+    u8 sc = m_pMemory->Retrieve(0xFF02);
+
+    if (IsSetBit(sc, 7) && IsSetBit(sc, 0))
+    {
+        m_iSerialCycles += m_CurrentClockCycles;
+
+
+        if (m_iSerialBit < 0)
+        {
+            m_iSerialBit = 0;
+            m_iSerialCycles = 0;
+            return;
+        }
+
+        if (m_iSerialCycles >= 512)
+        {
+            if (m_iSerialBit > 7)
+            {
+                m_pMemory->Load(0xFF02, sc & 0x7F);
+                RequestInterrupt(Serial_Interrupt);
+                m_iSerialBit = -1;
+                return;
+            }
+
+            u8 sb = m_pMemory->Retrieve(0xFF01);
+            sb <<= 1;
+            sb |= 0x01;
+            m_pMemory->Load(0xFF01, sb);
+
+            m_iSerialCycles -= 512;
+            m_iSerialBit++;
         }
     }
 }
