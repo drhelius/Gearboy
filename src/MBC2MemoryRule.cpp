@@ -28,19 +28,19 @@ u8 MBC2MemoryRule::PerformRead(u16 address)
             return m_pMemory->Retrieve(address);
         else
         {
-            Log("--> ** Atempting to read from disabled ram %X", address);
+            Log("--> ** Attempting to read from disabled ram %X", address);
             return 0x00;
         }
     }
     else if (address >= 0xA200 && address < 0xC000)
     {
-        Log("--> ** Atempting to read from non usable address %X", address);
+        Log("--> ** Attempting to read from non usable address %X", address);
         return 0x00;
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
         // Empty area
-        Log("--> ** Atempting to read from non usable address %X", address);
+        Log("--> ** Attempting to read from non usable address %X", address);
         return 0x00;
     }
     else
@@ -55,7 +55,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
     }
     else if (address >= 0x1000 && address < 0x2100)
     {
-        Log("--> ** Atempting to write on non usable address %X %X", address, value);
+        Log("--> ** Attempting to write on non usable address %X %X", address, value);
     }
     else if (address >= 0x2100 && address < 0x2200)
     {
@@ -65,7 +65,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
     }
     else if (address >= 0x2200 && address < 0x8000)
     {
-        Log("--> ** Atempting to write on non usable address %X %X", address, value);
+        Log("--> ** Attempting to write on non usable address %X %X", address, value);
     }
     else if (address >= 0xA000 && address < 0xA200)
     {
@@ -74,11 +74,11 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
             m_pMemory->Load(address, value & 0x0F);
         }
         else
-            Log("--> ** Atempting to write on RAM when ram is disabled %X %X", address, value);
+            Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
     }
     else if (address >= 0xA200 && address < 0xC000)
     {
-        Log("--> ** Atempting to write on non usable address %X %X", address, value);
+        Log("--> ** Attempting to write on non usable address %X %X", address, value);
     }
     else if (address >= 0xC000 && address < 0xDE00)
     {
@@ -95,7 +95,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
         // Empty area
-        Log("--> ** Atempting to write on non usable address %X %X", address, value);
+        Log("--> ** Attempting to write on non usable address %X %X", address, value);
     }
     else
     {

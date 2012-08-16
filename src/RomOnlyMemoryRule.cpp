@@ -20,14 +20,14 @@ u8 RomOnlyMemoryRule::PerformRead(u16 address)
             return m_pMemory->Retrieve(address);
         else
         {
-            Log("--> ** Atempting to read from non usable address %X", address);
+            Log("--> ** Attempting to read from non usable address %X", address);
             return 0x00;
         }
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
         // Empty area
-        Log("--> ** Atempting to read from non usable address %X", address);
+        Log("--> ** Attempting to read from non usable address %X", address);
         return 0x00;
     }
     else
@@ -39,7 +39,7 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
     if (address < 0x8000)
     {
         // ROM
-        Log("--> ** Atempting to write on ROM address %X %X", address, value);
+        Log("--> ** Attempting to write on ROM address %X %X", address, value);
     }
     else if (address >= 0xA000 && address < 0xC000)
     {
@@ -63,7 +63,7 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
         // Empty area
-        Log("--> ** Atempting to write on non usable address %X %X", address, value);
+        Log("--> ** Attempting to write on non usable address %X %X", address, value);
     }
     else
     {

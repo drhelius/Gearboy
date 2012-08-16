@@ -44,7 +44,7 @@ u8 MBC1MemoryRule::PerformRead(u16 address)
                         return m_pMemory->Retrieve(address);
                     else
                     {
-                        Log("--> ** Atempting to read from non usable address %X", address);
+                        Log("--> ** Attempting to read from non usable address %X", address);
                         return 0x00;
                     }
                 }
@@ -56,14 +56,14 @@ u8 MBC1MemoryRule::PerformRead(u16 address)
         }
         else
         {
-            Log("--> ** Atempting to read from disabled ram %X", address);
+            Log("--> ** Attempting to read from disabled ram %X", address);
             return 0x00;
         }
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
         // Empty area
-        Log("--> ** Atempting to read from non usable address %X", address);
+        Log("--> ** Attempting to read from non usable address %X", address);
         return 0x00;
     }
     else
@@ -104,7 +104,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         if (m_pCartridge->GetRAMSize() == 3)
             m_iMode = value & 0x01;
         else if ((value & 0x01) != 0)
-            Log("--> ** Atempting to change MBC1 to mode 1 with no RAM banks %X %X", address, value);
+            Log("--> ** Attempting to change MBC1 to mode 1 with no RAM banks %X %X", address, value);
     }
     else if (address >= 0xA000 && address < 0xC000)
     {
@@ -118,7 +118,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
                     if (address < 0xA800)
                         m_pMemory->Load(address, value);
                     else
-                        Log("--> ** Atempting to write on non usable address %X %X", address, value);
+                        Log("--> ** Attempting to write on non usable address %X %X", address, value);
                 }
                 else
                     m_pMemory->Load(address, value);
@@ -127,7 +127,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
                 m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)] = value;
         }
         else
-            Log("--> ** Atempting to write on RAM when ram is disabled %X %X", address, value);
+            Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
     }
     else if (address >= 0xC000 && address < 0xDE00)
     {
@@ -144,7 +144,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
         // Empty area
-        Log("--> ** Atempting to write on non usable address %X %X", address, value);
+        Log("--> ** Attempting to write on non usable address %X %X", address, value);
     }
     else
     {
