@@ -1789,7 +1789,8 @@ void Processor::OPCode0xFA()
 void Processor::OPCode0xFB()
 {
     // EI
-    m_bIME = true;
+    //m_bIME = true;
+    m_iIMECycles = 8;
 }
 
 void Processor::OPCode0xFC()

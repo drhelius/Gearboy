@@ -14,6 +14,7 @@ Processor::Processor(Memory* pMemory)
     m_CurrentClockCycles = 0;
     m_iDIVCycles = 0;
     m_iTIMACycles = 0;
+    m_iIMECycles = 0;
 }
 
 Processor::~Processor()
@@ -35,6 +36,7 @@ void Processor::Reset()
     m_CurrentClockCycles = 0;
     m_iDIVCycles = 0;
     m_iTIMACycles = 0;
+    m_iIMECycles = 0;
     PC.SetValue(0x100);
     SP.SetValue(0xFFFE);
     AF.SetValue(0x01B0);
@@ -67,6 +69,17 @@ u8 Processor::Tick()
     }
 
     UpdateTimers();
+    
+    if (m_iIMECycles > 0)
+    {
+        m_iIMECycles -= m_CurrentClockCycles;
+        
+        if (m_iIMECycles <= 0)
+        {
+            m_iIMECycles = 0;
+            m_bIME = true;
+        }
+    }
 
     return m_CurrentClockCycles;
 }

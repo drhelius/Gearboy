@@ -46,6 +46,7 @@ private:
     u8 m_CurrentClockCycles;
     unsigned int m_iDIVCycles;
     unsigned int m_iTIMACycles;
+    int m_iIMECycles;
 private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);
