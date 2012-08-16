@@ -13,6 +13,7 @@ pMemory, pVideo, pInput, pCartridge)
     m_iMode = 0;
     m_iCurrentRAMBank = 0;
     m_iCurrentROMBank = 1;
+    m_HigherRomBankBits = 0;
     m_bRamEnabled = false;
     m_pRAMBanks = new u8[0x8000];
     Reset();
