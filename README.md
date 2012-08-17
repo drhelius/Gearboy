@@ -1,6 +1,6 @@
 Gearboy
 =======
-<b>Copyright &copy; 2012 Ignacio Sanchez</b>
+<b>Copyright &copy; 2012 by Ignacio Sanchez</b>
 
 ----------
 
