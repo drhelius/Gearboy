@@ -1,18 +1,59 @@
 Gearboy
 =======
+<b>Copyright &copy; 2012 Ignacio Sanchez</b>
 
-Nintendo Gameboy emulator core written in C++.
+----------
 
-Its main focus is readability of source code, but it has good compatibility.
+Gearboy is a Nintendo Gameboy emulator written in C++.
 
-Compiles on Windows (Visual Studio 2010) Linux and on Mac OSX.
+The emulator is focused on readability of source code, but nevertheless it has good compatibility.
 
-Features:
-- Full CPU emulation, passes cpu_instrs.gb from blargg tests.
+A lot of effort has gone in to this in order to follow OOP and keep it and as simple as possible.
+
+----------
+
+Features
+--------
+
+- Full CPU emulation, passes cpu_instrs.gb from blargg's tests.
 - Accurate instruction timing, passes instr_timing.gb from blargg tests.
 - Full support for most common Memory Bank Controllers (ROM, MBC1, MBC2, MBC3, MBC5)
-- Accurate emulation of LCD controller. Full support for backgrounds, window and sprites.
+- Accurate emulation of LCD controller. Full support for backgrounds, window and sprites with correct timings and priorities.
+- Compiles on Windows (Visual Studio 2010) Linux and on Mac OSX.
 
-TODO:
+Things left
+-----------
+
 - Add sound support
-- Improve compatibility
+- Improve timing and compatibility
+
+Passed Tests
+------------
+
+This tests are from blargg's test roms (http://blargg.parodius.com/gb-tests/)
+
+![cpu_instrs.gb](http://www.geardome.com/files/gearboy/12.png) 
+![insrt_timing.gb](http://www.geardome.com/files/gearboy/13.png) 
+![lcd_sync.gb](http://www.geardome.com/files/gearboy/14.png)
+
+Screenshots
+-----------
+
+![Screenshot](http://www.geardome.com/files/gearboy/1.png)
+![Screenshot](http://www.geardome.com/files/gearboy/2.png)
+![Screenshot](http://www.geardome.com/files/gearboy/3.png)
+![Screenshot](http://www.geardome.com/files/gearboy/4.png)
+![Screenshot](http://www.geardome.com/files/gearboy/5.png)
+![Screenshot](http://www.geardome.com/files/gearboy/6.png)
+![Screenshot](http://www.geardome.com/files/gearboy/7.png)
+![Screenshot](http://www.geardome.com/files/gearboy/8.png)
+![Screenshot](http://www.geardome.com/files/gearboy/9.png)
+![Screenshot](http://www.geardome.com/files/gearboy/10.png)
+![Screenshot](http://www.geardome.com/files/gearboy/11.png)
+
+
+
+License
+-------
+
+<i>This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License version 2 as published by the Free Software Foundation. The full license is available at http://www.gnu.org/licenses/gpl.html This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</i>
