@@ -74,9 +74,7 @@ u8 Processor::Tick()
         u8 if_reg = m_pMemory->Retrieve(0xFF0F);
         u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
 
-        if ((if_reg & ie_reg & 0x01) || (if_reg & ie_reg & 0x02)
-                || (if_reg & ie_reg & 0x04) || (if_reg & ie_reg & 0x08)
-                || (if_reg & ie_reg & 0x10))
+        if (if_reg & ie_reg & 0x1F)
             m_bHalt = false;
         else
             m_CurrentClockCycles += 10;
