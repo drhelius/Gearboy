@@ -4,11 +4,11 @@ Gearboy
 
 ----------
 
-Gearboy is a Nintendo Gameboy emulator written in C++.
+Gearboy is a Nintendo Game Boy emulator written in C++.
 
 The emulator is focused on readability of source code, but nevertheless it has good compatibility.
 
-A lot of effort has gone in to this in order to follow OOP and keep it as simple as possible.
+A lot of effort has gone into this in order to follow OOP and keep it as simple as possible.
 
 ----------
 
@@ -18,7 +18,7 @@ Features
 - Full CPU emulation, passes cpu_instrs.gb from blargg's tests.
 - Accurate instruction timing, passes instr_timing.gb from blargg's tests.
 - Full support for most common Memory Bank Controllers (ROM, MBC1, MBC2, MBC3, MBC5)
-- Accurate emulation of LCD controller. Full support for backgrounds, window and sprites with correct timings and priorities.
+- Accurate emulation of LCD controller. Full support for background, window and sprites with correct timings and priorities.
 - Integrated disassembler. It can dump the full disassembled memory to a text file.
 - Compiles on Windows (Visual Studio 2010), Linux and Mac OS X. Netbeans project provided por Linux and Mac.
 
@@ -26,6 +26,7 @@ Things left
 -----------
 
 - Add sound support.
+- Add Game Boy Color support
 - Save battery RAM to disk.
 - Add RTC support.
 - Improve timing and compatibility.
