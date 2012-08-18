@@ -31,14 +31,10 @@ public:
     char* GetDisassembledString();
     unsigned int GetReadCount() const;
     unsigned int GetWriteCount() const;
-    u8 GetOldValue() const;
     u8 GetValue() const;
     void SetValue(u8 value);
 private:
     EightBitRegister m_Register;
-    EightBitRegister m_OldRegister;
-    unsigned int m_iWriteCount;
-    unsigned int m_iReadCount;
     char m_szDisassembled[MAX_STRING_SIZE];
 };
 
