@@ -31,6 +31,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iStatusModeLYCounter = 0;
     m_iScreenEnableDelayCycles = 0;
     m_bScreenEnabled = true;
+    m_bCGB = false;
 }
 
 Video::~Video()
@@ -43,10 +44,10 @@ void Video::Init()
 {
     m_pSpriteXCacheBuffer = new int[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     m_pColorCacheBuffer = new u8[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
-    Reset();
+    Reset(false);
 }
 
-void Video::Reset()
+void Video::Reset(bool bCGB)
 {
     for (int i = 0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
         m_pSpriteXCacheBuffer[i] = m_pColorCacheBuffer[i] = 0;
@@ -56,6 +57,7 @@ void Video::Reset()
     m_iStatusModeLYCounter = 144;
     m_iScreenEnableDelayCycles = 0;
     m_bScreenEnabled = true;
+    m_bCGB = bCGB;
 }
 
 bool Video::Tick(u8 clockCycles, u8* pFrameBuffer)

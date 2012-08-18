@@ -28,7 +28,7 @@ pMemory, pVideo, pInput, pCartridge)
 {
     m_iCurrentROMBank = 1;
     m_bRamEnabled = false;
-    Reset();
+    Reset(false);
 }
 
 u8 MBC2MemoryRule::PerformRead(u16 address)
@@ -119,8 +119,9 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MBC2MemoryRule::Reset()
+void MBC2MemoryRule::Reset(bool bCGB)
 {
+    m_bCGB = bCGB;
     m_iCurrentROMBank = 0;
     m_bRamEnabled = false;
 }

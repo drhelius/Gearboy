@@ -28,7 +28,7 @@ public:
     Video(Memory* pMemory, Processor* pProcessor);
     ~Video();
     void Init();
-    void Reset();
+    void Reset(bool bCGB);
     bool Tick(u8 clockCycles, u8* pFrameBuffer);
     void EnableScreen();
     void DisableScreen();
@@ -52,6 +52,7 @@ private:
     int m_iStatusModeLYCounter;
     int m_iScreenEnableDelayCycles;
     bool m_bScreenEnabled;
+    bool m_bCGB;
 };
 
 #endif	/* VIDEO_H */

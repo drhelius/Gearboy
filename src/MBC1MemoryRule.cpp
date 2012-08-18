@@ -32,7 +32,7 @@ pMemory, pVideo, pInput, pCartridge)
     m_HigherRomBankBits = 0;
     m_bRamEnabled = false;
     m_pRAMBanks = new u8[0x8000];
-    Reset();
+    Reset(false);
 }
 
 MBC1MemoryRule::~MBC1MemoryRule()
@@ -168,8 +168,9 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MBC1MemoryRule::Reset()
+void MBC1MemoryRule::Reset(bool bCGB)
 {
+    m_bCGB = bCGB;
     m_iMode = 0;
     m_iCurrentRAMBank = 0;
     m_iCurrentROMBank = 0;

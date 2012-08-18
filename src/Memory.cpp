@@ -23,6 +23,7 @@
 Memory::Memory()
 {
     InitPointer(m_pMap);
+    m_bCGB = false;
 }
 
 Memory::~Memory()
@@ -34,11 +35,12 @@ void Memory::Init()
 {
     m_pMap = new MemoryCell[65536];
 
-    Reset();
+    Reset(false);
 }
 
-void Memory::Reset()
+void Memory::Reset(bool bCGB)
 {
+    m_bCGB = bCGB;
     m_Rules.clear();
     
     for (int i = 0; i < 65536; i++)

@@ -33,6 +33,7 @@ Processor::Processor(Memory* pMemory)
     m_iIMECycles = 0;
     m_iSerialBit = 0;
     m_iSerialCycles = 0;
+    m_bCGB = false;
 }
 
 Processor::~Processor()
@@ -41,11 +42,12 @@ Processor::~Processor()
 
 void Processor::Init()
 {
-    Reset();
+    Reset(false);
 }
 
-void Processor::Reset()
+void Processor::Reset(bool bCGB)
 {
+    m_bCGB = bCGB;
     m_bIME = false;
     m_bHalt = false;
     m_bStop = false;

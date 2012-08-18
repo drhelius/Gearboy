@@ -87,7 +87,8 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void RomOnlyMemoryRule::Reset()
+void RomOnlyMemoryRule::Reset(bool bCGB)
 {
+    m_bCGB = bCGB;
 }
 

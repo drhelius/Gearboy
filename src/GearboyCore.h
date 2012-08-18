@@ -38,15 +38,15 @@ public:
     GearboyCore();
     ~GearboyCore();
     void Init();
-    void Reset();
     void RunToVBlank(u8* pFrameBuffer);
-    void LoadROM(const char* szFilePath);
+    bool LoadROM(const char* szFilePath);
     Memory* GetMemory();
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
 private:
     void InitMemoryRules();
-    void AddMemoryRules();
+    bool AddMemoryRules();
+    void Reset(bool bCGB);
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;

@@ -39,7 +39,7 @@ public:
     Processor(Memory* pMemory);
     ~Processor();
     void Init();
-    void Reset();
+    void Reset(bool bCGB);
     u8 Tick();
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
@@ -65,6 +65,7 @@ private:
     int m_iSerialBit;
     int m_iSerialCycles;
     int m_iIMECycles;
+    bool m_bCGB;
 private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);

@@ -26,7 +26,7 @@ MemoryRule::MemoryRule(Processor* pProcessor, Memory* pMemory,
     m_pCartridge = pCartridge;
     m_bEnabled = false;
     m_MaxAddress = 0;
-    m_MinAddress = 0;
+    m_bCGB = false; 
 }
 
 void MemoryRule::SetMaxAddress(u16 maxAddress)

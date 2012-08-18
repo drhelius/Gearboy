@@ -29,7 +29,7 @@ public:
     Memory();
     ~Memory();
     void Init();
-    void Reset();
+    void Reset(bool bCGB);
     void AddRule(MemoryRule* pRule);
     u8 Read(u16 address);
     void Write(u16 address, u8 value);
@@ -44,6 +44,7 @@ private:
     MemoryCell* m_pMap;
     std::vector<MemoryRule*> m_Rules;
     typedef std::vector<MemoryRule*>::iterator RulesVectorIterator;
+    bool m_bCGB;
 };
 
 

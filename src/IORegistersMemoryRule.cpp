@@ -119,7 +119,8 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void IORegistersMemoryRule::Reset()
+void IORegistersMemoryRule::Reset(bool bCGB)
 {
+    m_bCGB = bCGB;
 }
 
