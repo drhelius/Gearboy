@@ -314,7 +314,8 @@ void Video::RenderBG(int line)
         u8 scy = m_pMemory->Retrieve(0xFF42);
         u8 lineAdjusted = line + scy;
         int y_32 = (lineAdjusted / 8) * 32;
-        int pixely_2 = (lineAdjusted % 8) * 2;
+        int pixely = lineAdjusted % 8;
+        int pixely_2 = pixely * 2;
 
         for (int x = 0; x < 32; x++)
         {
@@ -350,6 +351,12 @@ void Video::RenderBG(int line)
 
             if (m_bCGB)
             {
+                if (cgb_tile_yflip)
+                {
+                    pixely = 7 - pixely;
+                    pixely_2 = pixely * 2;
+                }
+
                 if (cgb_tile_bank)
                 {
                     byte1 = m_pMemory->ReadCGBLCDRAM(tiles + tile_16 + pixely_2, true);
@@ -373,8 +380,15 @@ void Video::RenderBG(int line)
 
                 if (bufferX < GAMEBOY_WIDTH)
                 {
-                    int pixel = (byte1 & (0x1 << (7 - pixelx))) ? 1 : 0;
-                    pixel |= (byte2 & (0x1 << (7 - pixelx))) ? 2 : 0;
+                    int pixelx_pos = pixelx;
+
+                    if (m_bCGB && cgb_tile_xflip)
+                    {
+                        pixelx_pos = 7 - pixelx_pos;
+                    }
+
+                    int pixel = (byte1 & (0x1 << (7 - pixelx_pos))) ? 1 : 0;
+                    pixel |= (byte2 & (0x1 << (7 - pixelx_pos))) ? 2 : 0;
 
                     int position = (line * GAMEBOY_WIDTH) + bufferX;
                     if (m_bCGB)
@@ -418,7 +432,8 @@ void Video::RenderWindow(int line)
             int map = IsSetBit(lcdc, 6) ? 0x9C00 : 0x9800;
             u8 lineAdjusted = line - wy;
             int y_32 = (lineAdjusted / 8) * 32;
-            int pixely_2 = (lineAdjusted % 8) * 2;
+            int pixely = lineAdjusted % 8;
+            int pixely_2 = pixely * 2;
             int wx = m_pMemory->Retrieve(0xFF4B) - 7;
 
             for (int x = 0; x < 32; x++)
@@ -433,10 +448,51 @@ void Video::RenderWindow(int line)
                 else
                     tile = m_pMemory->Retrieve(map + y_32 + x);
 
+                u8 cgb_tile_attr = 0;
+                u8 cgb_tile_pal = 0;
+                bool cgb_tile_bank = false;
+                bool cgb_tile_yflip = false;
+                bool cgb_tile_xflip = false;
+                bool cgb_tile_priority = false;
+                if (m_bCGB)
+                {
+                    cgb_tile_attr = m_pMemory->ReadCGBLCDRAM(map + y_32 + x, true);
+                    cgb_tile_pal = cgb_tile_attr & 0x07;
+                    cgb_tile_bank = IsSetBit(cgb_tile_attr, 3);
+                    cgb_tile_xflip = IsSetBit(cgb_tile_attr, 5);
+                    cgb_tile_yflip = IsSetBit(cgb_tile_attr, 6);
+                    cgb_tile_priority = IsSetBit(cgb_tile_attr, 7);
+                }
+
                 int mapOffsetX = x * 8;
                 int tile_16 = tile * 16;
-                u8 byte1 = m_pMemory->Retrieve(tiles + tile_16 + pixely_2);
-                u8 byte2 = m_pMemory->Retrieve(tiles + tile_16 + pixely_2 + 1);
+                u8 byte1 = 0;
+                u8 byte2 = 0;
+
+                if (m_bCGB)
+                {
+                    if (cgb_tile_yflip)
+                    {
+                        pixely = 7 - pixely;
+                        pixely_2 = pixely * 2;
+                    }
+
+                    if (cgb_tile_bank)
+                    {
+                        byte1 = m_pMemory->ReadCGBLCDRAM(tiles + tile_16 + pixely_2, true);
+                        byte2 = m_pMemory->ReadCGBLCDRAM(tiles + tile_16 + pixely_2 + 1, true);
+                    }
+                    else
+                    {
+                        byte1 = m_pMemory->Retrieve(tiles + tile_16 + pixely_2);
+                        byte2 = m_pMemory->Retrieve(tiles + tile_16 + pixely_2 + 1);
+                    }
+                }
+                else
+                {
+                    byte1 = m_pMemory->Retrieve(tiles + tile_16 + pixely_2);
+                    byte2 = m_pMemory->Retrieve(tiles + tile_16 + pixely_2 + 1);
+                }
 
                 for (int pixelx = 0; pixelx < 8; pixelx++)
                 {
@@ -444,12 +500,30 @@ void Video::RenderWindow(int line)
 
                     if (bufferX >= 0 && bufferX < GAMEBOY_WIDTH)
                     {
-                        int pixel = (byte1 & (0x1 << (7 - pixelx))) ? 1 : 0;
-                        pixel |= (byte2 & (0x1 << (7 - pixelx))) ? 2 : 0;
-                        u8 palette = m_pMemory->Retrieve(0xFF47);
-                        u8 color = (palette >> (pixel * 2)) & 0x03;
-                        m_pFrameBuffer[(line * GAMEBOY_WIDTH) + bufferX] = color;
-                        m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX] = pixel & 0x03;
+                        int pixelx_pos = pixelx;
+
+                        if (m_bCGB && cgb_tile_xflip)
+                        {
+                            pixelx_pos = 7 - pixelx_pos;
+                        }
+
+                        int pixel = (byte1 & (0x1 << (7 - pixelx_pos))) ? 1 : 0;
+                        pixel |= (byte2 & (0x1 << (7 - pixelx_pos))) ? 2 : 0;
+
+                        int position = (line * GAMEBOY_WIDTH) + bufferX;
+                        if (m_bCGB)
+                        {
+                            GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel];
+                            m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
+                            m_pColorCacheBuffer[position] = pixel & 0x03;
+                        }
+                        else
+                        {
+                            u8 palette = m_pMemory->Retrieve(0xFF47);
+                            u8 color = (palette >> (pixel * 2)) & 0x03;
+                            m_pFrameBuffer[position] = color;
+                            m_pColorCacheBuffer[position] = pixel & 0x03;
+                        }
                     }
                 }
             }
@@ -577,6 +651,6 @@ GB_Color Video::ConvertTo8BitColor(GB_Color color)
     color.red = (color.red * 255) / 31;
     color.green = (color.green * 255) / 31;
     color.blue = (color.blue * 255) / 31;
-    
+
     return color;
 }
