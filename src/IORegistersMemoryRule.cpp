@@ -119,12 +119,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         // DMA CGB
         bool hbdma = false;
         if (!IsSetBit(7, m_pMemory->Retrieve(0xFF55)))
-        {
-            if (!IsSetBit(7, value))
-                hbdma = false;
-            else
-                hbdma = true;
-        }
+            hbdma = IsSetBit(7, value);
         else
             hbdma = true;
 
@@ -165,9 +160,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         m_pMemory->Load(address, value & 0x1F);
     }
     else
-    {
         m_pMemory->Load(address, value);
-    }
 }
 
 void IORegistersMemoryRule::Reset(bool bCGB)

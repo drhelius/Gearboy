@@ -47,6 +47,8 @@ public:
     void MemoryDump(const char* szFilePath);
     void DoDMATransfer(u8 value);
     void DoDMACGBTransfer(u8 value, bool hbdma);
+    void DoHDMACGBTransfer(bool hbdma);
+    bool IsHBDMAEnabled();
 private:
     MemoryCell* m_pMap;
     std::vector<MemoryRule*> m_Rules;
@@ -56,6 +58,7 @@ private:
     int m_iCurrentLCDRAMBank;
     u8* m_pWRAMBanks;
     u8* m_pLCDRAMBank1;
+    bool m_bHBDMAEnabled;
 };
 
 

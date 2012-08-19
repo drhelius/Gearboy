@@ -28,6 +28,7 @@ Memory::Memory()
     m_bCGB = false;
     m_iCurrentWRAMBank = 1;
     m_iCurrentLCDRAMBank = 0;
+    m_bHBDMAEnabled = false;
 }
 
 Memory::~Memory()
@@ -51,6 +52,7 @@ void Memory::Reset(bool bCGB)
     m_Rules.clear();
     m_iCurrentWRAMBank = 1;
     m_iCurrentLCDRAMBank = 0;
+    m_bHBDMAEnabled = false;
 
     for (int i = 0; i < 65536; i++)
     {
@@ -214,7 +216,7 @@ void Memory::DoDMATransfer(u8 value)
             else
             {
                 for (int i = 0; i < 0xA0; i++)
-                    Load(0xFE00 + i, Retrieve(address + i));
+                    Load(0xFE00 + i, Read(address + i));
             }
         }
     }
@@ -224,42 +226,67 @@ void Memory::DoDMATransfer(u8 value)
         if (address >= 0x8000 && address < 0xE000)
         {
             for (int i = 0; i < 0xA0; i++)
-                Load(0xFE00 + i, Retrieve(address + i));
+                Load(0xFE00 + i, Read(address + i));
         }
     }
 }
 
 void Memory::DoDMACGBTransfer(u8 value, bool hbdma)
 {
-    int n = value & 0x7F;
-    int bytes = 16 * (n + 1);
-
     if (hbdma)
     {
         // Horizontal Blanking DMA
-        int a = 0;
-        a++;
+        m_bHBDMAEnabled = IsSetBit(value, 7);
     }
     else
     {
         // General purpose DMA
-        
-        u16 source = (Retrieve(0xFF51) << 8) | Retrieve(0xFF52);
-        u16 destination = (Retrieve(0xFF53) << 8) | Retrieve(0xFF54);
-
-        if (source >= 0xD000 && source < 0xE000)
-        {
-            for (int i = 0; i < bytes; i++)
-                WriteCGBLCDRAM(destination + i, ReadCGBWRAM(source + i));
-        }
-        else
-        {
-            for (int i = 0; i < bytes; i++)
-                WriteCGBLCDRAM(destination + i, Retrieve(source + i));
-        }
-        
+        DoHDMACGBTransfer(false);
         // transfer finished
-        Load(0xFF55, 0xFF);  
+        Load(0xFF51, 0xFF);
+        Load(0xFF52, 0xFF);
+        Load(0xFF53, 0xFF);
+        Load(0xFF54, 0xFF);
+        Load(0xFF55, 0xFF);
     }
+}
+
+void Memory::DoHDMACGBTransfer(bool hbdma)
+{
+    u8 hdma5 = Retrieve(0xFF55);
+
+    int bytes = 16 + (hdma5 & 0x7F) * 16;
+
+    if (hbdma)
+        bytes = 16;
+
+    u8 hdma1 = Retrieve(0xFF51);
+
+    if (hdma1 > 0x7f && hdma1 < 0xa0)
+        hdma1 = 0;
+
+    u8 hdma2 = Retrieve(0xFF52);
+    u8 hdma3 = Retrieve(0xFF53);
+    u8 hdma4 = Retrieve(0xFF54);
+
+    u16 source = (hdma1 << 8) | (hdma2 & 0xF0);
+    u16 destination = ((hdma3 & 0x1F) << 8) | (hdma4 & 0xF0);
+    destination |= 0x8000;
+
+    if (source >= 0xD000 && source < 0xE000)
+    {
+        for (int i = 0; i < bytes; i++)
+            WriteCGBLCDRAM(destination + i, ReadCGBWRAM(source + i));
+    }
+    else
+    {
+        for (int i = 0; i < bytes; i++)
+            WriteCGBLCDRAM(destination + i, Read(source + i));
+    }
+}
+
+bool Memory::IsHBDMAEnabled()
+{
+    return m_bHBDMAEnabled;
 }
 

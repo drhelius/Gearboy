@@ -93,6 +93,9 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                     m_iStatusModeLYCounter++;
 
                     UpdateLYRegister();
+                    
+                    if (m_bCGB && m_pMemory->IsHBDMAEnabled())
+                        m_pMemory->DoHDMACGBTransfer(true);
 
                     if (m_iStatusModeLYCounter == 144)
                     {
