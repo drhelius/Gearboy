@@ -45,7 +45,7 @@ Screenshots
 -----------
 
 ![Screenshot](http://www.geardome.com/files/gearboy/1.png) ![Screenshot](http://www.geardome.com/files/gearboy/2.png)
-![Screenshot](http://www.geardome.com/files/gearboy/3a.png) ![Screenshot](http://www.geardome.com/files/gearboy/4a.png)
+![Screenshot](http://www.geardome.com/files/gearboy/3.png) ![Screenshot](http://www.geardome.com/files/gearboy/4.png)
 ![Screenshot](http://www.geardome.com/files/gearboy/5.png) ![Screenshot](http://www.geardome.com/files/gearboy/6.png)
 ![Screenshot](http://www.geardome.com/files/gearboy/7.png) ![Screenshot](http://www.geardome.com/files/gearboy/8.png)
 ![Screenshot](http://www.geardome.com/files/gearboy/9.png) ![Screenshot](http://www.geardome.com/files/gearboy/10.png)
