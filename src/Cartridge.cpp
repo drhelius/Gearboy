@@ -92,7 +92,7 @@ u8* Cartridge::GetTheROM() const
 bool Cartridge::LoadFromFile(const char* path)
 {
     Reset();
-    
+
     using namespace std;
 
     Log("Loading %s...", path);
@@ -101,21 +101,21 @@ bool Cartridge::LoadFromFile(const char* path)
 
     if (file.is_open())
     {
-        int size = static_cast<int>(file.tellg());
+        int size = static_cast<int> (file.tellg());
         char* memblock = new char[size];
         file.seekg(0, ios::beg);
         file.read(memblock, size);
         file.close();
 
         bool isOK = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
-        
+
         if (isOK)
             Log("ROM loaded", path);
         else
             Log("There was a problem loading the memory for file %s...", path);
 
         SafeDeleteArray(memblock);
-        
+
         return isOK;
     }
     else
@@ -134,7 +134,7 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
         memcpy(m_pTheROM, buffer, m_iTotalSize);
 
         GatherMetadata();
-        
+
         return true;
     }
     else
@@ -169,26 +169,28 @@ void Cartridge::GatherMetadata()
         {
             break;
         }
-    } 
+    }
 
     strcpy(m_szName, name);
-    
+
     m_bCGB = (m_pTheROM[0x143] == 0x80) || (m_pTheROM[0x143] == 0xC0);
     m_bSGB = (m_pTheROM[0x146] == 0x03);
     m_iType = m_pTheROM[0x147];
     m_iROMSize = m_pTheROM[0x148];
     m_iRAMSize = m_pTheROM[0x149];
-    m_iVersion  = m_pTheROM[0x14C];
+    m_iVersion = m_pTheROM[0x14C];
 
     Log("ROM Name %s", m_szName);
     Log("ROM Version %d", m_iVersion);
     Log("ROM Type %X", m_iType);
     Log("ROM Size %X", m_iROMSize);
     Log("RAM Size %X", m_iRAMSize);
-    
-    if (m_bCGB)
+
+    if (m_pTheROM[0x143] == 0xC0)
+        Log("Game Boy Color Only!");
+    else if (m_bCGB)
         Log("Game Boy Color Supported");
-    
+
     if (m_bSGB)
         Log("Super Game Boy Supported");
 
