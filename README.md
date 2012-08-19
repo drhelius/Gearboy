@@ -38,26 +38,18 @@ Passed Tests
 
 This tests are from blargg's test roms (http://blargg.parodius.com/gb-tests/)
 
-![cpu_instrs.gb](http://www.geardome.com/files/gearboy/12.png) 
-![insrt_timing.gb](http://www.geardome.com/files/gearboy/13.png) 
+![cpu_instrs.gb](http://www.geardome.com/files/gearboy/12.png) ![insrt_timing.gb](http://www.geardome.com/files/gearboy/13.png) 
 ![lcd_sync.gb](http://www.geardome.com/files/gearboy/14.png)
 
 Screenshots
 -----------
 
-![Screenshot](http://www.geardome.com/files/gearboy/1.png)
-![Screenshot](http://www.geardome.com/files/gearboy/2.png)
-![Screenshot](http://www.geardome.com/files/gearboy/3.png)
-![Screenshot](http://www.geardome.com/files/gearboy/4.png)
-![Screenshot](http://www.geardome.com/files/gearboy/5.png)
-![Screenshot](http://www.geardome.com/files/gearboy/6.png)
-![Screenshot](http://www.geardome.com/files/gearboy/7.png)
-![Screenshot](http://www.geardome.com/files/gearboy/8.png)
-![Screenshot](http://www.geardome.com/files/gearboy/9.png)
-![Screenshot](http://www.geardome.com/files/gearboy/10.png)
+![Screenshot](http://www.geardome.com/files/gearboy/1.png) ![Screenshot](http://www.geardome.com/files/gearboy/2.png)
+![Screenshot](http://www.geardome.com/files/gearboy/3a.png) ![Screenshot](http://www.geardome.com/files/gearboy/4a.png)
+![Screenshot](http://www.geardome.com/files/gearboy/5.png) ![Screenshot](http://www.geardome.com/files/gearboy/6.png)
+![Screenshot](http://www.geardome.com/files/gearboy/7.png) ![Screenshot](http://www.geardome.com/files/gearboy/8.png)
+![Screenshot](http://www.geardome.com/files/gearboy/9.png) ![Screenshot](http://www.geardome.com/files/gearboy/10.png)
 ![Screenshot](http://www.geardome.com/files/gearboy/11.png)
-
-
 
 License
 -------
