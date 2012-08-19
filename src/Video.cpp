@@ -77,9 +77,7 @@ bool Video::Tick(u8 clockCycles, u8* pFrameBuffer)
                     m_iStatusModeCounter -= 204;
                     m_iStatusMode = 2;
 
-                    ScanLine(m_iStatusModeLYCounter);
                     m_iStatusModeLYCounter++;
-
                     UpdateLYRegister();
 
                     if (m_iStatusModeLYCounter == 144)
@@ -145,9 +143,11 @@ bool Video::Tick(u8 clockCycles, u8* pFrameBuffer)
             {
                 if (m_iStatusModeCounter >= 172)
                 {
+                    ScanLine(m_iStatusModeLYCounter);
+                    
                     m_iStatusModeCounter -= 172;
                     m_iStatusMode = 0;
-
+                    
                     u8 stat = m_pMemory->Retrieve(0xFF41);
                     if (IsSetBit(stat, 3))
                         m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
