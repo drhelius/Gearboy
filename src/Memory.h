@@ -33,6 +33,12 @@ public:
     void AddRule(MemoryRule* pRule);
     u8 Read(u16 address);
     void Write(u16 address, u8 value);
+    u8 ReadCGBWRAM(u16 address);
+    void WriteCGBWRAM(u16 address, u8 value);
+    void SwitchCGBWRAM(u8 value);
+    u8 ReadCGBLCDRAM(u16 address, bool forceBank1);
+    void WriteCGBLCDRAM(u16 address, u8 value);
+    void SwitchCGBLCDRAM(u8 value);
     u8 Retrieve(u16 address);
     void Load(u16 address, u8 value);
     void Disassemble(u16 address, const char* szDisassembled);
@@ -40,11 +46,16 @@ public:
     void LoadBank0and1FromROM(u8* pTheROM);
     void MemoryDump(const char* szFilePath);
     void DoDMATransfer(u8 value);
+    void DoDMACGBTransfer(u8 value, bool hbdma);
 private:
     MemoryCell* m_pMap;
     std::vector<MemoryRule*> m_Rules;
     typedef std::vector<MemoryRule*>::iterator RulesVectorIterator;
     bool m_bCGB;
+    int m_iCurrentWRAMBank;
+    int m_iCurrentLCDRAMBank;
+    u8* m_pWRAMBanks;
+    u8* m_pLCDRAMBank1;
 };
 
 

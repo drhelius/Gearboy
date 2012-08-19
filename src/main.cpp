@@ -36,7 +36,7 @@ const int modifier = 4;
 int display_width = SCREEN_WIDTH * modifier;
 int display_height = SCREEN_HEIGHT * modifier;
 u8 screenData[SCREEN_HEIGHT][SCREEN_WIDTH][3];
-u8* frameBuffer;
+GB_Color* frameBuffer;
 GearboyCore* gb;
 bool keys[256];
 
@@ -67,30 +67,10 @@ void updateTexture()
     {
         for (int x = 0; x < SCREEN_WIDTH; ++x)
         {
-            int color = 0;
-            switch (frameBuffer[(y * SCREEN_WIDTH) + x])
-            {
-                case 0:
-                    screenData[y][x][0] = 0xEF;
-                    screenData[y][x][1] = 0xF3;
-                    screenData[y][x][2] = 0xD5;
-                    break;
-                case 1:
-                    screenData[y][x][0] = 0xA3;
-                    screenData[y][x][1] = 0xB6;
-                    screenData[y][x][2] = 0x7A;
-                    break;
-                case 2:
-                    screenData[y][x][0] = 0x37;
-                    screenData[y][x][1] = 0x61;
-                    screenData[y][x][2] = 0x3B;
-                    break;
-                case 3:
-                    screenData[y][x][0] = 0x04;
-                    screenData[y][x][1] = 0x1C;
-                    screenData[y][x][2] = 0x16;
-                    break;
-            }
+            int pixel = (y * SCREEN_WIDTH) + x;
+            screenData[y][x][0] = frameBuffer[pixel].red;
+            screenData[y][x][1] = frameBuffer[pixel].green;
+            screenData[y][x][2] = frameBuffer[pixel].blue;
         }
     }
 
@@ -197,15 +177,13 @@ int main(int argc, char** argv)
     //gb->LoadROM("/Users/nacho/Desktop/roms/Pokemon - Edicion Azul (S) [S].sgb");
     //gb->LoadROM("/Users/nacho/Desktop/roms/Prehistorik Man (U).gb");
     //gb->LoadROM("/Users/nacho/Desktop/roms/Wave Race (UE) [!].gb");
-    if (gb->LoadROM("/Users/nacho/Desktop/roms/Legend of Zelda, The - Link's Awakening DX (U) (V1.0) [C][!].gbc"))
+    //if (gb->LoadROM("/Users/nacho/Desktop/roms/Legend of Zelda, The - Link's Awakening DX (U) (V1.0) [C][!].gbc"))
+        if (gb->LoadROM("/Users/nacho/Desktop/roms/Pokemon - Gold Version (UE) [C][!].gbc"))
     {
         for (int i = 0; i < 256; i++)
             keys[i] = false;
 
-        frameBuffer = new u8[SCREEN_WIDTH * SCREEN_HEIGHT];
-
-        for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++)
-            frameBuffer[i] = 0;
+        frameBuffer = new GB_Color[SCREEN_WIDTH * SCREEN_HEIGHT];
 
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);

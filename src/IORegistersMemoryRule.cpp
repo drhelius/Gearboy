@@ -23,7 +23,7 @@
 IORegistersMemoryRule::IORegistersMemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
         Cartridge* pCartridge) : MemoryRule(pProcessor,
-        pMemory, pVideo, pInput, pCartridge)
+pMemory, pVideo, pInput, pCartridge)
 {
 }
 
@@ -107,6 +107,57 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     {
         // DMA
         m_pMemory->DoDMATransfer(value);
+    }
+    else if (m_bCGB && (address == 0xFF4F))
+    {
+        // VBK
+        m_pMemory->SwitchCGBLCDRAM(value);
+        m_pMemory->Load(address, value);
+    }
+    else if (m_bCGB && (address == 0xFF55))
+    {
+        // DMA CGB
+        bool hbdma = false;
+        if (!IsSetBit(7, m_pMemory->Retrieve(0xFF55)))
+        {
+            if (!IsSetBit(7, value))
+                hbdma = false;
+            else
+                hbdma = true;
+        }
+        else
+            hbdma = true;
+
+        m_pMemory->Load(address, value);
+        m_pMemory->DoDMACGBTransfer(value, hbdma);
+    }
+    else if (m_bCGB && (address == 0xFF68))
+    {
+        // BCPS
+        m_pMemory->Load(address, value);
+    }
+    else if (m_bCGB && (address == 0xFF69))
+    {
+        // BCPD
+        m_pVideo->SetColorPalette(true, value);
+        m_pMemory->Load(address, value);
+    }
+    else if (m_bCGB && (address == 0xFF6A))
+    {
+        // OCPS
+        m_pMemory->Load(address, value);
+    }
+    else if (m_bCGB && (address == 0xFF6B))
+    {
+        // OCPD
+        m_pVideo->SetColorPalette(false, value);
+        m_pMemory->Load(address, value);
+    }
+    else if (m_bCGB && (address == 0xFF70))
+    {
+        // SVBK
+        m_pMemory->SwitchCGBWRAM(value);
+        m_pMemory->Load(address, value);
     }
     else if (address == 0xFFFF)
     {

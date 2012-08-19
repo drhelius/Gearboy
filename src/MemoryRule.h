@@ -30,6 +30,7 @@ class MemoryRule
 public:
     MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo,
             Input* pInput, Cartridge* pCartridge);
+    virtual ~MemoryRule();
     virtual u8 PerformRead(u16 address) = 0;
     virtual void PerformWrite(u16 address, u8 value) = 0;
     virtual void Reset(bool bCGB) = 0;

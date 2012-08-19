@@ -43,6 +43,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
     m_MBC = MBC_NONE;
+    m_bCGB = false;
 }
 
 GearboyCore::~GearboyCore()
@@ -82,22 +83,65 @@ void GearboyCore::Init()
 
 void GearboyCore::Reset(bool bCGB)
 {
+    m_bCGB = bCGB;
+
+    if (m_bCGB)
+        Log("Switching to Game Boy Color");
+    else
+        Log("Defaulting to Game Boy DMG");
+
     m_MBC = MBC_NONE;
-    m_pMemory->Reset(bCGB);
-    m_pProcessor->Reset(bCGB);
-    m_pVideo->Reset(bCGB);
+    m_pMemory->Reset(m_bCGB);
+    m_pProcessor->Reset(m_bCGB);
+    m_pVideo->Reset(m_bCGB);
     m_pAudio->Reset();
     m_pInput->Reset();
 
-    m_pIORegistersMemoryRule->Reset(bCGB);
-    m_pMBC1MemoryRule->Reset(bCGB);
-    m_pMBC2MemoryRule->Reset(bCGB);
-    m_pMBC3MemoryRule->Reset(bCGB);
-    m_pMBC5MemoryRule->Reset(bCGB);
-    m_pIORegistersMemoryRule->Reset(bCGB);
+    m_pIORegistersMemoryRule->Reset(m_bCGB);
+    m_pMBC1MemoryRule->Reset(m_bCGB);
+    m_pMBC2MemoryRule->Reset(m_bCGB);
+    m_pMBC3MemoryRule->Reset(m_bCGB);
+    m_pMBC5MemoryRule->Reset(m_bCGB);
+    m_pIORegistersMemoryRule->Reset(m_bCGB);
 }
 
-void GearboyCore::RunToVBlank(u8* pFrameBuffer)
+void GearboyCore::RenderDMGFrame(GB_Color* pFrameBuffer) const
+{ 
+    if (!m_bCGB)
+    {
+        int pixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
+        const u8* pGamboyFrameBuffer = m_pVideo->GetFrameBuffer();
+
+        for (int i = 0; i < pixels; i++)
+        {
+            switch (pGamboyFrameBuffer[i])
+            {
+                case 0:
+                    pFrameBuffer[i].red = 0xEF;
+                    pFrameBuffer[i].green = 0xF3;
+                    pFrameBuffer[i].blue = 0xD5;
+                    break;
+                case 1:
+                    pFrameBuffer[i].red = 0xA3;
+                    pFrameBuffer[i].green = 0xB6;
+                    pFrameBuffer[i].blue = 0x7A;
+                    break;
+                case 2:
+                    pFrameBuffer[i].red = 0x37;
+                    pFrameBuffer[i].green = 0x61;
+                    pFrameBuffer[i].blue = 0x3B;
+                    break;
+                case 3:
+                    pFrameBuffer[i].red = 0x04;
+                    pFrameBuffer[i].green = 0x1C;
+                    pFrameBuffer[i].blue = 0x16;
+                    break;
+            }
+        }
+    }
+}
+
+void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
 {
     bool vblank = false;
     while (!vblank)
@@ -105,6 +149,7 @@ void GearboyCore::RunToVBlank(u8* pFrameBuffer)
         u8 clockCycles = m_pProcessor->Tick();
         vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
     }
+    RenderDMGFrame(pFrameBuffer);
 }
 
 bool GearboyCore::LoadROM(const char* szFilePath)
@@ -118,7 +163,7 @@ bool GearboyCore::LoadROM(const char* szFilePath)
 
         if (!romTypeOK)
             Log("There was a problem with the cartridge header. File: %s...", szFilePath);
-        
+
         return romTypeOK;
     }
     else

@@ -29,10 +29,12 @@ public:
     ~Video();
     void Init();
     void Reset(bool bCGB);
-    bool Tick(u8 clockCycles, u8* pFrameBuffer);
+    bool Tick(u8 clockCycles, GB_Color* pColorFrameBuffer);
     void EnableScreen();
     void DisableScreen();
-    bool IsScreenEnabled();
+    bool IsScreenEnabled() const;
+    const u8* GetFrameBuffer() const;
+    void SetColorPalette(bool background, u8 value);
 private:
     void ScanLine(int line);
     void RenderBG(int line);
@@ -40,10 +42,12 @@ private:
     void RenderSprites(int line);
     void UpdateStatRegister();
     void UpdateLYRegister();
+    GB_Color ConvertTo8BitColor(GB_Color color);
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
     u8* m_pFrameBuffer;
+    GB_Color* m_pColorFrameBuffer;
     int* m_pSpriteXCacheBuffer;
     u8* m_pColorCacheBuffer;
     int m_iStatusMode;
@@ -53,6 +57,8 @@ private:
     int m_iScreenEnableDelayCycles;
     bool m_bScreenEnabled;
     bool m_bCGB;
+    GB_Color m_CGBSpritePalettes[8][4];
+    GB_Color m_CGBBackgroundPalettes[8][4];
 };
 
 #endif	/* VIDEO_H */

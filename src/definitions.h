@@ -57,6 +57,13 @@ typedef int16_t s16;
 
 #define MAX_STRING_SIZE 256
 
+struct GB_Color
+{
+    u8 red;
+    u8 green;
+    u8 blue;
+};
+
 enum Gameboy_Keys
 {
     A_Key = 4,

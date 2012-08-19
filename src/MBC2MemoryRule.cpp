@@ -38,6 +38,10 @@ u8 MBC2MemoryRule::PerformRead(u16 address)
         u8* pROM = m_pCartridge->GetTheROM();
         return pROM[(address - 0x4000) + (0x4000 * m_iCurrentROMBank)];
     }
+    else if (m_bCGB && (address >= 0x8000 && address < 0xA000))
+    {
+        return m_pMemory->ReadCGBLCDRAM(address, false);
+    }
     else if (address >= 0xA000 && address < 0xA200)
     {
         if (m_bRamEnabled)
@@ -52,6 +56,10 @@ u8 MBC2MemoryRule::PerformRead(u16 address)
     {
         Log("--> ** Attempting to read from non usable address %X", address);
         return 0x00;
+    }
+    else if (m_bCGB && (address >= 0xD000 && address < 0xE000))
+    {
+        return m_pMemory->ReadCGBWRAM(address);
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
@@ -83,6 +91,10 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
     {
         Log("--> ** Attempting to write on non usable address %X %X", address, value);
     }
+    else if (m_bCGB && (address >= 0x8000 && address < 0xA000))
+    {
+        m_pMemory->WriteCGBLCDRAM(address, value);
+    }
     else if (address >= 0xA000 && address < 0xA200)
     {
         if (m_bRamEnabled)
@@ -98,15 +110,35 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
     }
     else if (address >= 0xC000 && address < 0xDE00)
     {
-        // Echo of 8K internal RAM
-        m_pMemory->Load(address + 0x2000, value);
-        m_pMemory->Load(address, value);
+        if (m_bCGB && (address >= 0xD000))
+        {
+            m_pMemory->WriteCGBWRAM(address, value);
+            m_pMemory->Load(address + 0x2000, value);
+        }
+        else
+        {
+            // Echo of 8K internal RAM
+            m_pMemory->Load(address + 0x2000, value);
+            m_pMemory->Load(address, value);
+        }
+    }
+    else if (m_bCGB && (address >= 0xDE00 && address < 0xE000))
+    {
+        m_pMemory->WriteCGBWRAM(address, value);
     }
     else if (address >= 0xE000 && address < 0xFE00)
     {
-        // Echo of 8K internal RAM
-        m_pMemory->Load(address - 0x2000, value);
-        m_pMemory->Load(address, value);
+        if (m_bCGB && (address >= 0xF000))
+        {
+            m_pMemory->WriteCGBWRAM(address - 0x2000, value);
+            m_pMemory->Load(address, value);
+        }
+        else
+        {
+            // Echo of 8K internal RAM
+            m_pMemory->Load(address - 0x2000, value);
+            m_pMemory->Load(address, value);
+        }
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
