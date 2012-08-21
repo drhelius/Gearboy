@@ -32,7 +32,7 @@ pMemory, pVideo, pInput, pCartridge)
     m_HigherRomBankBits = 0;
     m_bRamEnabled = false;
     m_pRAMBanks = new u8[0x8000];
-    Reset();
+    Reset(false);
 }
 
 MBC1MemoryRule::~MBC1MemoryRule()
@@ -46,6 +46,10 @@ u8 MBC1MemoryRule::PerformRead(u16 address)
     {
         u8* pROM = m_pCartridge->GetTheROM();
         return pROM[(address - 0x4000) + (0x4000 * m_iCurrentROMBank)];
+    }
+    else if (m_bCGB && (address >= 0x8000 && address < 0xA000))
+    {
+        return m_pMemory->ReadCGBLCDRAM(address, false);
     }
     else if (address >= 0xA000 && address < 0xC000)
     {
@@ -75,6 +79,10 @@ u8 MBC1MemoryRule::PerformRead(u16 address)
             Log("--> ** Attempting to read from disabled ram %X", address);
             return 0x00;
         }
+    }
+    else if (m_bCGB && (address >= 0xD000 && address < 0xE000))
+    {
+        return m_pMemory->ReadCGBWRAM(address);
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
@@ -122,6 +130,10 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         else if ((value & 0x01) != 0)
             Log("--> ** Attempting to change MBC1 to mode 1 with no RAM banks %X %X", address, value);
     }
+    else if (m_bCGB && (address >= 0x8000 && address < 0xA000))
+    {
+        m_pMemory->WriteCGBLCDRAM(address, value);
+    }
     else if (address >= 0xA000 && address < 0xC000)
     {
         if (m_bRamEnabled)
@@ -147,15 +159,35 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     }
     else if (address >= 0xC000 && address < 0xDE00)
     {
-        // Echo of 8K internal RAM
-        m_pMemory->Load(address + 0x2000, value);
-        m_pMemory->Load(address, value);
+        if (m_bCGB && (address >= 0xD000))
+        {
+            m_pMemory->WriteCGBWRAM(address, value);
+            m_pMemory->Load(address + 0x2000, value);
+        }
+        else
+        {
+            // Echo of 8K internal RAM
+            m_pMemory->Load(address + 0x2000, value);
+            m_pMemory->Load(address, value);
+        }
+    }
+    else if (m_bCGB && (address >= 0xDE00 && address < 0xE000))
+    {
+        m_pMemory->WriteCGBWRAM(address, value);
     }
     else if (address >= 0xE000 && address < 0xFE00)
     {
-        // Echo of 8K internal RAM
-        m_pMemory->Load(address - 0x2000, value);
-        m_pMemory->Load(address, value);
+        if (m_bCGB && (address >= 0xF000))
+        {
+            m_pMemory->WriteCGBWRAM(address - 0x2000, value);
+            m_pMemory->Load(address, value);
+        }
+        else
+        {
+            // Echo of 8K internal RAM
+            m_pMemory->Load(address - 0x2000, value);
+            m_pMemory->Load(address, value);
+        }
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
@@ -168,8 +200,9 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MBC1MemoryRule::Reset()
+void MBC1MemoryRule::Reset(bool bCGB)
 {
+    m_bCGB = bCGB;
     m_iMode = 0;
     m_iCurrentRAMBank = 0;
     m_iCurrentROMBank = 0;

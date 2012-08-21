@@ -38,15 +38,16 @@ public:
     GearboyCore();
     ~GearboyCore();
     void Init();
-    void Reset();
-    void RunToVBlank(u8* pFrameBuffer);
-    void LoadROM(const char* szFilePath);
+    void RunToVBlank(GB_Color* pFrameBuffer);
+    bool LoadROM(const char* szFilePath);
     Memory* GetMemory();
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
 private:
     void InitMemoryRules();
-    void AddMemoryRules();
+    bool AddMemoryRules();
+    void Reset(bool bCGB);
+    void RenderDMGFrame(GB_Color* pFrameBuffer) const;
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
@@ -61,6 +62,7 @@ private:
     MBC3MemoryRule* m_pMBC3MemoryRule;
     MBC5MemoryRule* m_pMBC5MemoryRule;
     Gameboy_MemoryBankControllers m_MBC;
+    bool m_bCGB;
 };
 
 #endif	/* CORE_H */

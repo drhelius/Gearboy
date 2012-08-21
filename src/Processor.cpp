@@ -34,6 +34,7 @@ Processor::Processor(Memory* pMemory)
     m_iIMECycles = 0;
     m_iSerialBit = 0;
     m_iSerialCycles = 0;
+    m_bCGB = false;
 }
 
 Processor::~Processor()
@@ -42,11 +43,12 @@ Processor::~Processor()
 
 void Processor::Init()
 {
-    Reset();
+    Reset(false);
 }
 
-void Processor::Reset()
+void Processor::Reset(bool bCGB)
 {
+    m_bCGB = bCGB;
     m_bIME = false;
     m_bHalt = false;
     m_bStop = false;
@@ -60,7 +62,10 @@ void Processor::Reset()
     m_iSerialCycles = 0;
     PC.SetValue(0x100);
     SP.SetValue(0xFFFE);
-    AF.SetValue(0x01B0);
+    if (m_bCGB)
+        AF.SetValue(0x11B0);
+    else     
+        AF.SetValue(0x01B0);
     BC.SetValue(0x0013);
     DE.SetValue(0x00D8);
     HL.SetValue(0x014D);

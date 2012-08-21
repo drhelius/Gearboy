@@ -33,8 +33,11 @@ public:
     const char* GetName() const;
     int GetTotalSize() const;
     u8* GetTheROM() const;
-    void LoadFromFile(const char* path);
-    void LoadFromBuffer(const u8* buffer, int size);
+    bool LoadFromFile(const char* path);
+    bool LoadFromBuffer(const u8* buffer, int size);
+    int GetVersion() const;
+    bool IsSGB() const;
+    bool IsCGB() const;
 private:
     void GatherMetadata();
 private:
@@ -45,6 +48,9 @@ private:
     int m_iRAMSize;
     int m_iType;
     bool m_bValidROM;
+    bool m_bCGB;
+    bool m_bSGB;
+    int m_iVersion;
 };
 
 #endif	/* CARTRIDGE_H */

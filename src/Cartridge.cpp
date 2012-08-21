@@ -25,6 +25,9 @@ Cartridge::Cartridge()
     m_iRAMSize = 0;
     m_iType = 0;
     m_bValidROM = false;
+    m_bCGB = false;
+    m_bSGB = false;
+    m_iVersion = 0;
 }
 
 Cartridge::~Cartridge()
@@ -46,6 +49,9 @@ void Cartridge::Reset()
     m_iRAMSize = 0;
     m_iType = 0;
     m_bValidROM = false;
+    m_bCGB = false;
+    m_bSGB = false;
+    m_iVersion = 0;
 }
 
 bool Cartridge::IsValidROM() const
@@ -83,8 +89,10 @@ u8* Cartridge::GetTheROM() const
     return m_pTheROM;
 }
 
-void Cartridge::LoadFromFile(const char* path)
+bool Cartridge::LoadFromFile(const char* path)
 {
+    Reset();
+
     using namespace std;
 
     Log("Loading %s...", path);
@@ -93,23 +101,31 @@ void Cartridge::LoadFromFile(const char* path)
 
     if (file.is_open())
     {
-        int size = static_cast<int>(file.tellg());
+        int size = static_cast<int> (file.tellg());
         char* memblock = new char[size];
         file.seekg(0, ios::beg);
         file.read(memblock, size);
         file.close();
 
-        LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
+        bool isOK = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
+
+        if (isOK)
+            Log("ROM loaded", path);
+        else
+            Log("There was a problem loading the memory for file %s...", path);
 
         SafeDeleteArray(memblock);
+
+        return isOK;
     }
     else
     {
-        //error
+        Log("There was a problem loading the file %s...", path);
+        return false;
     }
 }
 
-void Cartridge::LoadFromBuffer(const u8* buffer, int size)
+bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
 {
     if (IsValidPointer(buffer))
     {
@@ -118,14 +134,34 @@ void Cartridge::LoadFromBuffer(const u8* buffer, int size)
         memcpy(m_pTheROM, buffer, m_iTotalSize);
 
         GatherMetadata();
+
+        return true;
     }
+    else
+        return false;
+}
+
+int Cartridge::GetVersion() const
+{
+    return m_iVersion;
+}
+
+bool Cartridge::IsSGB() const
+{
+    return m_bSGB;
+}
+
+bool Cartridge::IsCGB() const
+{
+    return m_bCGB;
 }
 
 void Cartridge::GatherMetadata()
 {
-    char name[16] = {0};
+    char name[12] = {0};
+    name[11] = 0;
 
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 11; i++)
     {
         name[i] = m_pTheROM[0x0134 + i];
 
@@ -137,14 +173,26 @@ void Cartridge::GatherMetadata()
 
     strcpy(m_szName, name);
 
+    m_bCGB = (m_pTheROM[0x143] == 0x80) || (m_pTheROM[0x143] == 0xC0);
+    m_bSGB = (m_pTheROM[0x146] == 0x03);
     m_iType = m_pTheROM[0x147];
     m_iROMSize = m_pTheROM[0x148];
     m_iRAMSize = m_pTheROM[0x149];
+    m_iVersion = m_pTheROM[0x14C];
 
     Log("ROM Name %s", m_szName);
+    Log("ROM Version %d", m_iVersion);
     Log("ROM Type %X", m_iType);
     Log("ROM Size %X", m_iROMSize);
     Log("RAM Size %X", m_iRAMSize);
+
+    if (m_pTheROM[0x143] == 0xC0)
+        Log("Game Boy Color Only!");
+    else if (m_bCGB)
+        Log("Game Boy Color Supported");
+
+    if (m_bSGB)
+        Log("Super Game Boy Supported");
 
     int checksum = 0;
 
@@ -157,11 +205,5 @@ void Cartridge::GatherMetadata()
 
     if (m_bValidROM)
         Log("Checksum OK!");
-
-    //  only accept 32kb cartridges until mbc code is written
-    if ((m_iType != 0) || (m_iROMSize != 0) || (m_iRAMSize != 0))
-    {
-        m_bValidROM = false;
-    }
 }
 
