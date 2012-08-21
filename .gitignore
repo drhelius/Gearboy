@@ -66,6 +66,7 @@ moc_GLFrame.cpp
 moc_MainWindow.cpp
 moc_RenderThread.cpp
 qt-Debug.mk
+qt-Release.mk
 ui_MainWindow.h
 
 
