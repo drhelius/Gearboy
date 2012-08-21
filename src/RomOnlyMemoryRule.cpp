@@ -28,6 +28,10 @@ pMemory, pVideo, pInput, pCartridge)
 {
 }
 
+RomOnlyMemoryRule::~RomOnlyMemoryRule()
+{
+}
+
 u8 RomOnlyMemoryRule::PerformRead(u16 address)
 {
     if (address >= 0xA000 && address < 0xC000)

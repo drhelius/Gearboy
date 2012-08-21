@@ -17,6 +17,7 @@
 #include "Processor.h"
 #include "Memory.h"
 #include "opcode_timing.h"
+#include "opcode_names.h"
 
 Processor::Processor(Memory* pMemory)
 {

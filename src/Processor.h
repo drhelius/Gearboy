@@ -19,7 +19,6 @@
 
 #include "definitions.h"
 #include "SixteenBitRegister.h"
-#include "opcode_names.h"
 #include "boot_roms.h"
 
 class Memory;

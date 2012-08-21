@@ -27,6 +27,10 @@ IORegistersMemoryRule::IORegistersMemoryRule(Processor* pProcessor,
 {
 }
 
+IORegistersMemoryRule::~IORegistersMemoryRule()
+{
+}
+
 u8 IORegistersMemoryRule::PerformRead(u16 address)
 {
     if (address == 0xFF00)

@@ -31,6 +31,10 @@ pMemory, pVideo, pInput, pCartridge)
     Reset();
 }
 
+MBC2MemoryRule::~MBC2MemoryRule()
+{
+}
+
 u8 MBC2MemoryRule::PerformRead(u16 address)
 {
     if (address >= 0x4000 && address < 0x8000)
