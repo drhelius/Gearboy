@@ -50,7 +50,6 @@
       <itemPath>../../qt-shared/GLFrame.h</itemPath>
       <itemPath>../../qt-shared/MainWindow.h</itemPath>
       <itemPath>../../qt-shared/RenderThread.h</itemPath>
-      <itemPath>../Gearboy/ui_MainWindow.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
