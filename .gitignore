@@ -16,6 +16,7 @@
 /build/
 /nbproject/private/
 private.xml
+Makefile-variables.mk
 
 # Mac files
 *.DS_Store
@@ -68,5 +69,4 @@ moc_RenderThread.cpp
 qt-Debug.mk
 qt-Release.mk
 ui_MainWindow.h
-
 
