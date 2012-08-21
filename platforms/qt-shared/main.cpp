@@ -15,10 +15,16 @@
  */
 
 #include <QtGui/QApplication>
-#include "mainwindow.h"
+#include "MainWindow.h"
+#ifdef Q_WS_X11
+#include <X11/Xlib.h>
+#endif
 
 int main(int argc, char *argv[])
 {
+#ifdef Q_WS_X11
+    XInitThreads();
+#endif
     QApplication a(argc, argv);
     MainWindow w;
     w.show();

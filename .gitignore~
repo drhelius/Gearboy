@@ -14,7 +14,7 @@
 # Netbeans files
 /dist/
 /build/
-/nbproject/private/
+nbproject/private/
 
 # Mac files
 *.DS_Store

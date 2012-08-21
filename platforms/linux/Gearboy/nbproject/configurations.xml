@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="84">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f1" displayName="Core" projectFiles="true">
+      <itemPath>../../../src/Audio.cpp</itemPath>
+      <itemPath>../../../src/Audio.h</itemPath>
+      <itemPath>../../../src/Cartridge.cpp</itemPath>
+      <itemPath>../../../src/Cartridge.h</itemPath>
+      <itemPath>../../../src/EightBitRegister.cpp</itemPath>
+      <itemPath>../../../src/EightBitRegister.h</itemPath>
+      <itemPath>../../../src/GearboyCore.cpp</itemPath>
+      <itemPath>../../../src/GearboyCore.h</itemPath>
+      <itemPath>../../../src/IORegistersMemoryRule.cpp</itemPath>
+      <itemPath>../../../src/IORegistersMemoryRule.h</itemPath>
+      <itemPath>../../../src/Input.cpp</itemPath>
+      <itemPath>../../../src/Input.h</itemPath>
+      <itemPath>../../../src/MBC1MemoryRule.cpp</itemPath>
+      <itemPath>../../../src/MBC1MemoryRule.h</itemPath>
+      <itemPath>../../../src/MBC2MemoryRule.cpp</itemPath>
+      <itemPath>../../../src/MBC2MemoryRule.h</itemPath>
+      <itemPath>../../../src/MBC3MemoryRule.cpp</itemPath>
+      <itemPath>../../../src/MBC3MemoryRule.h</itemPath>
+      <itemPath>../../../src/MBC5MemoryRule.cpp</itemPath>
+      <itemPath>../../../src/MBC5MemoryRule.h</itemPath>
+      <itemPath>../../../src/Memory.cpp</itemPath>
+      <itemPath>../../../src/Memory.h</itemPath>
+      <itemPath>../../../src/MemoryCell.cpp</itemPath>
+      <itemPath>../../../src/MemoryCell.h</itemPath>
+      <itemPath>../../../src/MemoryRule.cpp</itemPath>
+      <itemPath>../../../src/MemoryRule.h</itemPath>
+      <itemPath>../../../src/Processor.cpp</itemPath>
+      <itemPath>../../../src/Processor.h</itemPath>
+      <itemPath>../../../src/RomOnlyMemoryRule.cpp</itemPath>
+      <itemPath>../../../src/RomOnlyMemoryRule.h</itemPath>
+      <itemPath>../../../src/SixteenBitRegister.cpp</itemPath>
+      <itemPath>../../../src/SixteenBitRegister.h</itemPath>
+      <itemPath>../../../src/Video.cpp</itemPath>
+      <itemPath>../../../src/Video.h</itemPath>
+      <itemPath>../../../src/boot_roms.h</itemPath>
+      <itemPath>../../../src/definitions.h</itemPath>
+      <itemPath>../../../src/gearboy.h</itemPath>
+      <itemPath>../../../src/opcode_names.h</itemPath>
+      <itemPath>../../../src/opcode_timing.h</itemPath>
+      <itemPath>../../../src/opcodes.cpp</itemPath>
+      <itemPath>../../../src/opcodes_cb.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>../../qt-shared/GLFrame.h</itemPath>
+      <itemPath>../../qt-shared/MainWindow.h</itemPath>
+      <itemPath>../../qt-shared/RenderThread.h</itemPath>
+      <itemPath>../Gearboy/ui_MainWindow.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+      <itemPath>../../qt-shared/MainWindow.ui</itemPath>
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>../../qt-shared/GLFrame.cpp</itemPath>
+      <itemPath>../../qt-shared/MainWindow.cpp</itemPath>
+      <itemPath>../../qt-shared/RenderThread.cpp</itemPath>
+      <itemPath>../../qt-shared/main.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="4">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GNU|GNU</compilerSet>
+      </toolsSet>
+      <qt>
+        <modules>core gui opengl</modules>
+      </qt>
+      <compileType>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerOptionItem>-lGLU</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release" type="4">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>CLang|CLang</compilerSet>
+      </toolsSet>
+      <qt>
+        <buildMode>1</buildMode>
+        <modules>core gui</modules>
+      </qt>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerOptionItem>-lGLU</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+  </confs>
+</configurationDescriptor>
