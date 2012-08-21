@@ -55,4 +55,14 @@ Thumbs.db
 _UpgradeReport_Files/
 _ReSharper.*/
 
+# Gearboy Memory Dump
+
 output.txt
+
+
+
+# Qt Ignores
+moc_GLFrame.cpp
+moc_MainWindow.cpp
+moc_RenderThread.cpp
+qt-Debug.mk
