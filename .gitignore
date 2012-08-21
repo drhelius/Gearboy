@@ -62,9 +62,8 @@ output.txt
 
 
 # Qt Ignores
-Gearboy/moc_GLFrame.cpp
-Gearboy/moc_MainWindow.cpp
-Gearboy/moc_RenderThread.cpp
-Gearboy/qt-Debug.mk
-
-platforms/macosx/Gearboy/moc_MainWindow.cpp
+moc_GLFrame.cpp
+moc_MainWindow.cpp
+moc_RenderThread.cpp
+qt-Debug.mk
+ui_MainWindow.h
