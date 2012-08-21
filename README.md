@@ -20,17 +20,17 @@ Features
 - Full support for most common Memory Bank Controllers (ROM, MBC1, MBC2, MBC3, MBC5)
 - Accurate emulation of LCD controller. Full support for background, window and sprites with correct timings and priorities.
 - Integrated disassembler. It can dump the full disassembled memory to a text file.
-- Compiles on Windows (Visual Studio 2010), Linux and Mac OS X. Netbeans project provided por Linux and Mac.
+- Compiles on Windows (Visual Studio 2010), Linux and Mac OS X. Netbeans project provided for Linux and Mac.
 
 Things left
 -----------
 
 - Add sound support.
 - Add Game Boy Color support
-- Save battery RAM to disk.
+- Save RAM battery to disk.
 - Add RTC support.
 - Improve timing and compatibility.
-- Use wxWidgets for GUI.
+- Use QT for GUI.
 - Cross device iOS version
 
 Passed Tests
@@ -38,26 +38,18 @@ Passed Tests
 
 This tests are from blargg's test roms (http://blargg.parodius.com/gb-tests/)
 
-![cpu_instrs.gb](http://www.geardome.com/files/gearboy/12.png) 
-![insrt_timing.gb](http://www.geardome.com/files/gearboy/13.png) 
+![cpu_instrs.gb](http://www.geardome.com/files/gearboy/12.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/13.png) 
 ![lcd_sync.gb](http://www.geardome.com/files/gearboy/14.png)
 
 Screenshots
 -----------
 
-![Screenshot](http://www.geardome.com/files/gearboy/1.png)
-![Screenshot](http://www.geardome.com/files/gearboy/2.png)
-![Screenshot](http://www.geardome.com/files/gearboy/3.png)
-![Screenshot](http://www.geardome.com/files/gearboy/4.png)
-![Screenshot](http://www.geardome.com/files/gearboy/5.png)
-![Screenshot](http://www.geardome.com/files/gearboy/6.png)
-![Screenshot](http://www.geardome.com/files/gearboy/7.png)
-![Screenshot](http://www.geardome.com/files/gearboy/8.png)
-![Screenshot](http://www.geardome.com/files/gearboy/9.png)
-![Screenshot](http://www.geardome.com/files/gearboy/10.png)
+![Screenshot](http://www.geardome.com/files/gearboy/1.png)![Screenshot](http://www.geardome.com/files/gearboy/2.png)
+![Screenshot](http://www.geardome.com/files/gearboy/3.png)![Screenshot](http://www.geardome.com/files/gearboy/4.png)
+![Screenshot](http://www.geardome.com/files/gearboy/5.png)![Screenshot](http://www.geardome.com/files/gearboy/6.png)
+![Screenshot](http://www.geardome.com/files/gearboy/7.png)![Screenshot](http://www.geardome.com/files/gearboy/8.png)
+![Screenshot](http://www.geardome.com/files/gearboy/9.png)![Screenshot](http://www.geardome.com/files/gearboy/10.png)
 ![Screenshot](http://www.geardome.com/files/gearboy/11.png)
-
-
 
 License
 -------
