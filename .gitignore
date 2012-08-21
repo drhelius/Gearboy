@@ -15,6 +15,7 @@
 /dist/
 /build/
 /nbproject/private/
+private.xml
 
 # Mac files
 *.DS_Store
@@ -60,10 +61,11 @@ _ReSharper.*/
 output.txt
 
 
-
 # Qt Ignores
 moc_GLFrame.cpp
 moc_MainWindow.cpp
 moc_RenderThread.cpp
 qt-Debug.mk
 ui_MainWindow.h
+
+
