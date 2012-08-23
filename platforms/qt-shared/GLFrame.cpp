@@ -41,7 +41,7 @@ void GLFrame::StopRenderThread()
 
 void GLFrame::PauseRenderThread()
 {
-    m_RenderThread.Stop();
+	m_RenderThread.Pause();
 }
 
 void GLFrame::ResumeRenderThread()

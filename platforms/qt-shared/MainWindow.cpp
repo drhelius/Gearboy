@@ -24,6 +24,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     m_pUI = new Ui::MainWindow();
     m_pUI->setupUi(this);
+
+	QObject::connect(m_pUI->menuGame_Boy, SIGNAL(aboutToShow()), this, SLOT(MenuPressed()));
+	QObject::connect(m_pUI->menuGame_Boy, SIGNAL(aboutToHide()), this, SLOT(MenuReleased()));
     
     m_pEmulator = new Emulator();
     m_pEmulator->Init();
@@ -132,7 +135,7 @@ void MainWindow::MenuAbout()
 
 void MainWindow::MenuPressed()
 {
-	m_pGLFrame->StopRenderThread();
+	m_pGLFrame->PauseRenderThread();
 }
 
 void MainWindow::MenuReleased()

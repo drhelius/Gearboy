@@ -34,6 +34,7 @@ public:
     void ResizeViewport(const QSize &size);
     void run();
     void Stop();
+	void Pause();
 	void Resume();
     void SetEmulator(Emulator* pEmulator);
 	bool IsRunningEmulator();
@@ -44,7 +45,7 @@ protected:
     void RenderFrame();
 
 private:
-    bool m_bDoRendering, m_bDoResize;
+    bool m_bDoRendering, m_bDoResize, m_bPaused;
     int m_iWidth, m_iHeight;
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;

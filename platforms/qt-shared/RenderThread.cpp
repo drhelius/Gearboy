@@ -31,6 +31,7 @@
 
 RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 {
+	m_bPaused = false;
     m_bDoRendering = true;
     m_bDoResize = false;
     m_pFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
@@ -55,9 +56,14 @@ void RenderThread::Stop()
     m_bDoRendering = false;
 }
 
+void RenderThread::Pause()
+{
+    m_bPaused = true;
+}
+
 void RenderThread::Resume()
 {
-    m_bDoRendering = true;
+    m_bPaused = false;
 }
 
 bool RenderThread::IsRunningEmulator()
@@ -77,6 +83,8 @@ void RenderThread::run()
 
     while (m_bDoRendering)
     {
+		if (!m_bPaused)
+		{
         m_pEmulator->RunToVBlank(m_pFrameBuffer);
 
         if (m_bDoResize)
@@ -87,6 +95,7 @@ void RenderThread::run()
 
         RenderFrame(); 
         m_pGLFrame->swapBuffers();
+		}
 
         //msleep(16); // wait 16ms => about 60 FPS
     }
