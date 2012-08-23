@@ -20,6 +20,7 @@
 #include <QThread>
 #include "../../src/gearboy.h"
 
+class Emulator;
 class GLFrame;
 class QSize;
 
@@ -28,20 +29,23 @@ class RenderThread : public QThread
     Q_OBJECT
 public:
     explicit RenderThread(GLFrame *parent = 0);
+    virtual ~RenderThread();
     void resizeViewport(const QSize &size);
-    void run(void);
-    void stop(void);
+    void run();
+    void stop();
+    void SetEmulator(Emulator* pEmulator);
 
 protected:
-    void GLInit(void);
+    void GLInit();
     void GLResize(int width, int height);
-    void paintGL(void);
+    void paintGL();
 
 private:
     bool m_bDoRendering, m_bDoResize;
-    int m_iWidth, m_iHeight, m_iFrameCounter;
-
+    int m_iWidth, m_iHeight;
     GLFrame *m_pGLFrame;
+    Emulator* m_pEmulator;
+    GB_Color* m_pFrameBuffer;
 
 signals:
 public slots:

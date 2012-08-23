@@ -14,7 +14,9 @@
 # Netbeans files
 /dist/
 /build/
-/nbproject/private/
+/private/
+platforms/macosx/Gearboy/nbproject/private/
+platforms/linux/Gearboy/nbproject/private/
 private.xml
 Makefile-variables.mk
 

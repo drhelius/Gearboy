@@ -29,14 +29,20 @@
 
 #include "RenderThread.h"
 #include "GLFrame.h"
+#include "Emulator.h"
 
 RenderThread::RenderThread(GLFrame*_GLFrame) : QThread(), m_pGLFrame(_GLFrame)
 {
     m_bDoRendering = true;
     m_bDoResize = false;
-    m_iFrameCounter = 0;
+    m_pFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     m_iWidth = 0;
     m_iHeight = 0;
+}
+
+RenderThread::~RenderThread()
+{
+    SafeDeleteArray(m_pFrameBuffer);
 }
 
 void RenderThread::resizeViewport(const QSize &size)
@@ -51,6 +57,11 @@ void RenderThread::stop()
     m_bDoRendering = false;
 }
 
+void RenderThread::SetEmulator(Emulator* pEmulator)
+{
+    m_pEmulator = pEmulator;
+}
+
 void RenderThread::run()
 {
     m_pGLFrame->makeCurrent();
@@ -58,52 +69,69 @@ void RenderThread::run()
 
     while (m_bDoRendering)
     {
+        m_pEmulator->RunToVBlank(m_pFrameBuffer);
+
         if (m_bDoResize)
         {
             GLResize(m_iWidth, m_iHeight);
             m_bDoResize = false;
         }
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glLoadIdentity();
 
         paintGL(); // render actual frame
 
-        m_iFrameCounter++;
         m_pGLFrame->swapBuffers();
 
         //msleep(16); // wait 16ms => about 60 FPS
     }
 }
 
-void RenderThread::GLInit(void)
+void RenderThread::GLInit()
 {
-    glClearColor(0.05f, 0.05f, 0.1f, 0.0f); // Background => dark blue
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+    // Clear screen
+
+    for (int y = 0; y < GAMEBOY_WIDTH; ++y)
+        for (int x = 0; x < GAMEBOY_HEIGHT; ++x)
+        {
+            int pixel = (y * GAMEBOY_WIDTH) + x;
+            m_pFrameBuffer[pixel].red = m_pFrameBuffer[pixel].green = m_pFrameBuffer[pixel].blue = 0;
+        }
+
+    // Create a texture 
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
+
+    // Set up the texture
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    // Enable textures
+    glEnable(GL_TEXTURE_2D);
 }
 
 void RenderThread::GLResize(int width, int height)
 {
-    glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
-
     glLoadIdentity();
-    gluPerspective(45., ((GLfloat) width) / ((GLfloat) height), 0.1f, 1000.0f);
-
+    gluOrtho2D(0, width, height, 0);
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    glViewport(0, 0, width, height);
 }
 
-void RenderThread::paintGL(void)
+void RenderThread::paintGL()
 {
-    glTranslatef(0.0f, 0.0f, -5.0f); // move 5 units into the screen
-    glRotatef(m_iFrameCounter, 0.0f, 0.0f, 1.0f); // rotate z-axis
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
+
     glBegin(GL_QUADS);
-    glColor3f(1., 1., 0.);
-    glVertex3f(-1.0, -1.0, 0.0);
-    glColor3f(1., 1., 1.);
-    glVertex3f(1.0, -1.0, 0.0);
-    glColor3f(1., 0., 1.);
-    glVertex3f(1.0, 1.0, 0.0);
-    glColor3f(1., 0., 0.);
-    glVertex3f(-1.0, 1.0, 0.0);
+    glTexCoord2d(0.0, 0.0);
+    glVertex2d(0.0, 0.0);
+    glTexCoord2d(1.0, 0.0);
+    glVertex2d(m_iWidth, 0.0);
+    glTexCoord2d(1.0, 1.0);
+    glVertex2d(m_iWidth, m_iHeight);
+    glTexCoord2d(0.0, 1.0);
+    glVertex2d(0.0, m_iHeight);
     glEnd();
 }

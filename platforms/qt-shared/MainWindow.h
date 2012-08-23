@@ -21,8 +21,10 @@
 #include "../../src/gearboy.h"
 
 class GLFrame;
+class Emulator;
 
-namespace Ui {
+namespace Ui
+{
     class MainWindow;
 }
 
@@ -34,12 +36,16 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+public slots:
+    void MenuLoadROM();
+
 protected:
     void closeEvent(QCloseEvent *evt);
 
 private:
     Ui::MainWindow *m_pUI;
     GLFrame *m_pGLFrame;
+    Emulator* m_pEmulator;
 };
 
 #endif // MAINWINDOW_H

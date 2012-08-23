@@ -21,13 +21,15 @@
 #include "../../src/gearboy.h"
 #include "RenderThread.h"
 
+class Emulator;
+
 class GLFrame : public QGLWidget
 {
     Q_OBJECT
 public:
     explicit GLFrame(QWidget *parent = 0);
     ~GLFrame();
-    void initRenderThread(void);
+    void initRenderThread(Emulator* pEmulator);
     void stopRenderThread(void);
 
 signals:
@@ -41,7 +43,7 @@ protected:
 
     RenderThread m_RenderThread;
 
-private:
+    private:
 };
 
 #endif // MYGLFRAME_H

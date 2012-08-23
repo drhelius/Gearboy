@@ -91,11 +91,6 @@
    <addaction name="menuAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionSafs">
-   <property name="text">
-    <string>safs</string>
-   </property>
-  </action>
   <action name="actionInput">
    <property name="text">
     <string>Input...</string>
@@ -199,11 +194,6 @@
     <string>Lad State From...</string>
    </property>
   </action>
-  <action name="actionExit">
-   <property name="text">
-    <string>Exit</string>
-   </property>
-  </action>
   <action name="actionReset">
    <property name="text">
     <string>Reset</string>
@@ -266,5 +256,25 @@
   </action>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionLoad_ROM</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>MenuLoadROM()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>MenuLoadROM()</slot>
+ </slots>
 </ui>
