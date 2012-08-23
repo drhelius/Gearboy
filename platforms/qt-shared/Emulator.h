@@ -32,6 +32,8 @@ public:
     void KeyReleased(Gameboy_Keys key);
     void Pause();
     void Resume();
+    bool IsPaused();
+    void Reset();
     
 private:
     GearboyCore* m_pGearboyCore;

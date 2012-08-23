@@ -7,20 +7,27 @@
     <x>0</x>
     <y>0</y>
     <width>320</width>
-    <height>314</height>
+    <height>310</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Gearboy</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>320</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSettings">
@@ -211,6 +218,12 @@
    </property>
   </action>
   <action name="actionPause">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Pause</string>
    </property>
@@ -295,7 +308,7 @@
   </connection>
   <connection>
    <sender>actionPause</sender>
-   <signal>triggered()</signal>
+   <signal>triggered(bool)</signal>
    <receiver>MainWindow</receiver>
    <slot>MenuGameBoyPause()</slot>
    <hints>

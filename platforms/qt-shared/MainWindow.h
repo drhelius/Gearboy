@@ -61,7 +61,12 @@ public slots:
 
     void MenuAbout();
 
-    void MenuPressed();
+    void MenuGameBoyPressed();
+    void MenuGameBoyReleased();
+    void MenuSettingsPressed();
+    void MenuSettingsReleased();
+    void MenuDebugPressed();
+    void MenuDebugReleased();
     void MenuReleased();
 
 protected:
@@ -73,6 +78,7 @@ private:
     Ui::MainWindow *m_pUI;
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;
+    bool m_bMenuPressed[3];
 };
 
 #endif // MAINWINDOW_H

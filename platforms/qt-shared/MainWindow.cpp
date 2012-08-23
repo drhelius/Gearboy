@@ -22,11 +22,16 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
+    m_bMenuPressed[0] = m_bMenuPressed[1] = m_bMenuPressed[2] = false;
     m_pUI = new Ui::MainWindow();
     m_pUI->setupUi(this);
 
-    QObject::connect(m_pUI->menuGame_Boy, SIGNAL(aboutToShow()), this, SLOT(MenuPressed()));
-    QObject::connect(m_pUI->menuGame_Boy, SIGNAL(aboutToHide()), this, SLOT(MenuReleased()));
+    QObject::connect(m_pUI->menuGame_Boy, SIGNAL(aboutToShow()), this, SLOT(MenuGameBoyPressed()));
+    QObject::connect(m_pUI->menuGame_Boy, SIGNAL(aboutToHide()), this, SLOT(MenuGameBoyReleased()));
+    QObject::connect(m_pUI->menuDebug, SIGNAL(aboutToShow()), this, SLOT(MenuDebugPressed()));
+    QObject::connect(m_pUI->menuDebug, SIGNAL(aboutToHide()), this, SLOT(MenuDebugReleased()));
+    QObject::connect(m_pUI->menuSettings, SIGNAL(aboutToShow()), this, SLOT(MenuSettingsPressed()));
+    QObject::connect(m_pUI->menuSettings, SIGNAL(aboutToHide()), this, SLOT(MenuSettingsReleased()));
 
     m_pEmulator = new Emulator();
     m_pEmulator->Init();
@@ -50,23 +55,38 @@ MainWindow::~MainWindow()
 
 void MainWindow::MenuGameBoyLoadROM()
 {
+    m_pGLFrame->PauseRenderThread();
+
     QString filename = QFileDialog::getOpenFileName(
             this,
             tr("Load ROM"),
             QDir::currentPath(),
             tr("Game Boy ROM files (*.gb *.gbc *.sgb);;All files (*.*)"));
+
     if (!filename.isNull())
     {
         m_pEmulator->LoadRom(filename.toUtf8().data());
+        m_pUI->actionPause->setChecked(false);
     }
+    
+    setFocus();
+    activateWindow();
+
+    m_pGLFrame->ResumeRenderThread();
 }
 
 void MainWindow::MenuGameBoyPause()
 {
+    if (m_pEmulator->IsPaused())
+        m_pEmulator->Resume();
+    else
+        m_pEmulator->Pause();
 }
 
 void MainWindow::MenuGameBoyReset()
 {
+    m_pUI->actionPause->setChecked(false);
+    m_pEmulator->Reset();
 }
 
 void MainWindow::MenuGameBoySelectStateSlot()
@@ -133,13 +153,49 @@ void MainWindow::MenuAbout()
 {
 }
 
-void MainWindow::MenuPressed()
+void MainWindow::MenuGameBoyPressed()
 {
+    m_bMenuPressed[0] = true;
     m_pGLFrame->PauseRenderThread();
+}
+
+void MainWindow::MenuGameBoyReleased()
+{
+    m_bMenuPressed[0] = false;
+    MenuReleased();
+}
+
+void MainWindow::MenuSettingsPressed()
+{
+    m_bMenuPressed[1] = true;
+    m_pGLFrame->PauseRenderThread();
+}
+
+void MainWindow::MenuSettingsReleased()
+{
+    m_bMenuPressed[1] = false;
+    MenuReleased();
+}
+
+void MainWindow::MenuDebugPressed()
+{
+    m_bMenuPressed[2] = true;
+    m_pGLFrame->PauseRenderThread();
+}
+
+void MainWindow::MenuDebugReleased()
+{
+    m_bMenuPressed[2] = false;
+    MenuReleased();
 }
 
 void MainWindow::MenuReleased()
 {
+    for (int i = 0; i < 3; i++)
+    {
+        if (m_bMenuPressed[i])
+            return;
+    }
     m_pGLFrame->ResumeRenderThread();
 }
 

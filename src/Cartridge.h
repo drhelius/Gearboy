@@ -27,6 +27,7 @@ public:
     void Init();
     void Reset();
     bool IsValidROM() const;
+    bool IsLoadedROM() const;
     int GetType() const;
     int GetRAMSize() const;
     int GetROMSize() const;
@@ -51,6 +52,7 @@ private:
     bool m_bCGB;
     bool m_bSGB;
     int m_iVersion;
+    bool m_bLoaded;
 };
 
 #endif	/* CARTRIDGE_H */

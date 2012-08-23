@@ -62,10 +62,29 @@ void Emulator::KeyReleased(Gameboy_Keys key)
 
 void Emulator::Pause()
 {
-
+    m_Mutex.lock();
+    m_pGearboyCore->Pause(true);
+    m_Mutex.unlock();
 }
 
 void Emulator::Resume()
 {
+    m_Mutex.lock();
+    m_pGearboyCore->Pause(false);
+    m_Mutex.unlock();
+}
 
+bool Emulator::IsPaused()
+{
+    m_Mutex.lock();
+    bool paused = m_pGearboyCore->IsPaused();
+    m_Mutex.unlock();
+    return paused;
+}
+
+void Emulator::Reset()
+{
+    m_Mutex.lock();
+    m_pGearboyCore->ResetROM();
+    m_Mutex.unlock();
 }

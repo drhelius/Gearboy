@@ -43,6 +43,9 @@ public:
     Memory* GetMemory();
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
+    void Pause(bool paused);
+    bool IsPaused();
+    void ResetROM();
 private:
     void InitMemoryRules();
     bool AddMemoryRules();
@@ -63,6 +66,7 @@ private:
     MBC5MemoryRule* m_pMBC5MemoryRule;
     Gameboy_MemoryBankControllers m_MBC;
     bool m_bCGB;
+    bool m_bPaused;
 };
 
 #endif	/* CORE_H */

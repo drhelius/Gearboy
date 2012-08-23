@@ -44,6 +44,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC5MemoryRule);
     m_MBC = MBC_NONE;
     m_bCGB = false;
+    m_bPaused = true;
 }
 
 GearboyCore::~GearboyCore()
@@ -81,75 +82,20 @@ void GearboyCore::Init()
     InitMemoryRules();
 }
 
-void GearboyCore::Reset(bool bCGB)
-{
-    m_bCGB = bCGB;
-
-    if (m_bCGB)
-        Log("Switching to Game Boy Color");
-    else
-        Log("Defaulting to Game Boy DMG");
-
-    m_MBC = MBC_NONE;
-    m_pMemory->Reset(m_bCGB);
-    m_pProcessor->Reset(m_bCGB);
-    m_pVideo->Reset(m_bCGB);
-    m_pAudio->Reset();
-    m_pInput->Reset();
-
-    m_pIORegistersMemoryRule->Reset(m_bCGB);
-    m_pMBC1MemoryRule->Reset(m_bCGB);
-    m_pMBC2MemoryRule->Reset(m_bCGB);
-    m_pMBC3MemoryRule->Reset(m_bCGB);
-    m_pMBC5MemoryRule->Reset(m_bCGB);
-    m_pIORegistersMemoryRule->Reset(m_bCGB);
-}
-
-void GearboyCore::RenderDMGFrame(GB_Color* pFrameBuffer) const
-{ 
-    if (!m_bCGB)
-    {
-        int pixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
-        const u8* pGamboyFrameBuffer = m_pVideo->GetFrameBuffer();
-
-        for (int i = 0; i < pixels; i++)
-        {
-            switch (pGamboyFrameBuffer[i])
-            {
-                case 0:
-                    pFrameBuffer[i].red = 0xEF;
-                    pFrameBuffer[i].green = 0xF3;
-                    pFrameBuffer[i].blue = 0xD5;
-                    break;
-                case 1:
-                    pFrameBuffer[i].red = 0xA3;
-                    pFrameBuffer[i].green = 0xB6;
-                    pFrameBuffer[i].blue = 0x7A;
-                    break;
-                case 2:
-                    pFrameBuffer[i].red = 0x37;
-                    pFrameBuffer[i].green = 0x61;
-                    pFrameBuffer[i].blue = 0x3B;
-                    break;
-                case 3:
-                    pFrameBuffer[i].red = 0x04;
-                    pFrameBuffer[i].green = 0x1C;
-                    pFrameBuffer[i].blue = 0x16;
-                    break;
-            }
-        }
-    }
-}
-
 void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
 {
-    bool vblank = false;
-    while (!vblank)
+    if (!m_bPaused)
     {
-        u8 clockCycles = m_pProcessor->Tick();
-        vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
+        bool vblank = false;
+        while (!vblank)
+        {
+            u8 clockCycles = m_pProcessor->Tick();
+            vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
+        }
+
+        if (!m_bCGB)
+            RenderDMGFrame(pFrameBuffer);
     }
-    RenderDMGFrame(pFrameBuffer);
 }
 
 bool GearboyCore::LoadROM(const char* szFilePath)
@@ -173,6 +119,36 @@ bool GearboyCore::LoadROM(const char* szFilePath)
 Memory* GearboyCore::GetMemory()
 {
     return m_pMemory;
+}
+
+void GearboyCore::KeyPressed(Gameboy_Keys key)
+{
+    m_pInput->KeyPressed(key);
+}
+
+void GearboyCore::KeyReleased(Gameboy_Keys key)
+{
+    m_pInput->KeyReleased(key);
+}
+
+void GearboyCore::Pause(bool paused)
+{
+    m_bPaused = paused;
+}
+
+bool GearboyCore::IsPaused()
+{
+    return m_bPaused;
+}
+
+void GearboyCore::ResetROM()
+{
+    if (m_pCartridge->IsLoadedROM())
+    {
+        Reset(m_pCartridge->IsCGB());
+        m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
+        AddMemoryRules();
+    }
 }
 
 void GearboyCore::InitMemoryRules()
@@ -333,13 +309,61 @@ bool GearboyCore::AddMemoryRules()
     return !notSupported;
 }
 
-void GearboyCore::KeyPressed(Gameboy_Keys key)
+void GearboyCore::Reset(bool bCGB)
 {
-    m_pInput->KeyPressed(key);
+    m_bCGB = bCGB;
+
+    if (m_bCGB)
+        Log("Switching to Game Boy Color");
+    else
+        Log("Defaulting to Game Boy DMG");
+
+    m_MBC = MBC_NONE;
+    m_pMemory->Reset(m_bCGB);
+    m_pProcessor->Reset(m_bCGB);
+    m_pVideo->Reset(m_bCGB);
+    m_pAudio->Reset();
+    m_pInput->Reset();
+
+    m_pIORegistersMemoryRule->Reset(m_bCGB);
+    m_pMBC1MemoryRule->Reset(m_bCGB);
+    m_pMBC2MemoryRule->Reset(m_bCGB);
+    m_pMBC3MemoryRule->Reset(m_bCGB);
+    m_pMBC5MemoryRule->Reset(m_bCGB);
+    m_pIORegistersMemoryRule->Reset(m_bCGB);
+
+    m_bPaused = false;
 }
 
-void GearboyCore::KeyReleased(Gameboy_Keys key)
+void GearboyCore::RenderDMGFrame(GB_Color* pFrameBuffer) const
 {
-    m_pInput->KeyReleased(key);
-}
+    int pixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
+    const u8* pGamboyFrameBuffer = m_pVideo->GetFrameBuffer();
 
+    for (int i = 0; i < pixels; i++)
+    {
+        switch (pGamboyFrameBuffer[i])
+        {
+            case 0:
+                pFrameBuffer[i].red = 0xEF;
+                pFrameBuffer[i].green = 0xF3;
+                pFrameBuffer[i].blue = 0xD5;
+                break;
+            case 1:
+                pFrameBuffer[i].red = 0xA3;
+                pFrameBuffer[i].green = 0xB6;
+                pFrameBuffer[i].blue = 0x7A;
+                break;
+            case 2:
+                pFrameBuffer[i].red = 0x37;
+                pFrameBuffer[i].green = 0x61;
+                pFrameBuffer[i].blue = 0x3B;
+                break;
+            case 3:
+                pFrameBuffer[i].red = 0x04;
+                pFrameBuffer[i].green = 0x1C;
+                pFrameBuffer[i].blue = 0x16;
+                break;
+        }
+    }
+}

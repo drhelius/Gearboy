@@ -28,6 +28,7 @@ Cartridge::Cartridge()
     m_bCGB = false;
     m_bSGB = false;
     m_iVersion = 0;
+    m_bLoaded = false;
 }
 
 Cartridge::~Cartridge()
@@ -52,11 +53,17 @@ void Cartridge::Reset()
     m_bCGB = false;
     m_bSGB = false;
     m_iVersion = 0;
+    m_bLoaded = false;
 }
 
 bool Cartridge::IsValidROM() const
 {
     return m_bValidROM;
+}
+
+bool Cartridge::IsLoadedROM() const
+{
+    return m_bLoaded;
 }
 
 int Cartridge::GetType() const
@@ -107,21 +114,22 @@ bool Cartridge::LoadFromFile(const char* path)
         file.read(memblock, size);
         file.close();
 
-        bool isOK = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
+        m_bLoaded = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
 
-        if (isOK)
+        if (m_bLoaded)
             Log("ROM loaded", path);
         else
             Log("There was a problem loading the memory for file %s...", path);
 
         SafeDeleteArray(memblock);
 
-        return isOK;
+        return m_bLoaded;
     }
     else
     {
         Log("There was a problem loading the file %s...", path);
-        return false;
+        m_bLoaded = false;
+        return m_bLoaded;
     }
 }
 
