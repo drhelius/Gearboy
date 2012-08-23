@@ -84,25 +84,18 @@ void RenderThread::run()
 
 void RenderThread::Init()
 {  
-    for (int y = 0; y < GAMEBOY_WIDTH; ++y)
+    for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
     {
-        for (int x = 0; x < GAMEBOY_HEIGHT; ++x)
+        for (int x = 0; x < GAMEBOY_WIDTH; ++x)
         {
             int pixel = (y * GAMEBOY_WIDTH) + x;
             m_pFrameBuffer[pixel].red = m_pFrameBuffer[pixel].green =
-                    m_pFrameBuffer[pixel].blue = 0;// = m_pFrameBuffer[pixel].alpha = 0;
+                    m_pFrameBuffer[pixel].blue = m_pFrameBuffer[pixel].alpha = 0;
         }
     }
-
-	for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
-        for (int x = 0; x < GAMEBOY_WIDTH; ++x)
-            screenData[y][x][0] = screenData[y][x][1] = screenData[y][x][2] = screenData[y][x][3] = 0;
-
-	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	//glPixelStorei(GL_PACK_ALIGNMENT, 1); 
-
+	
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0,
-            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) screenData);
+            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -123,19 +116,8 @@ void RenderThread::Resize(int width, int height)
 
 void RenderThread::RenderFrame()
 {
-	for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
-    {
-        for (int x = 0; x < GAMEBOY_WIDTH; ++x)
-        {
-            int pixel = (y * GAMEBOY_WIDTH) + x;
-            screenData[y][x][0] = m_pFrameBuffer[pixel].red;
-            screenData[y][x][1] = m_pFrameBuffer[pixel].green;
-            screenData[y][x][2] = m_pFrameBuffer[pixel].blue;
-        }
-    }
-
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
-            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) screenData);
+            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
 
     glBegin(GL_QUADS);
     glTexCoord2d(0.0, 0.0);
