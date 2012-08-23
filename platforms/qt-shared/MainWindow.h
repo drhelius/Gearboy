@@ -37,7 +37,28 @@ public:
     ~MainWindow();
     
 public slots:
-    void MenuLoadROM();
+    void MenuGameBoyLoadROM();
+	void MenuGameBoyPause();
+	void MenuGameBoyReset();
+	void MenuGameBoySelectStateSlot();
+	void MenuGameBoySaveState();
+	void MenuGameBoyLoadState();
+	void MenuGameBoySaveStateAs();
+	void MenuGameBoyLoadStateFrom();
+
+	void MenuSettingsInput();
+	void MenuSettingsVideo();
+	void MenuSettingsSound();
+	void MenuSettingswindowSize();
+	void MenuSettingsFullscreen();
+	void MenuSettingsForceDMG();
+
+	void MenuDebugDisassembler();
+	void MenuDebugOAM();
+	void MenuDebugMap();
+	void MenuDebugPalette();
+
+	void MenuAbout();
     
 protected:
     void closeEvent(QCloseEvent *evt);

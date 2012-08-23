@@ -45,7 +45,7 @@ MainWindow::~MainWindow()
     SafeDelete(m_pUI);
 }
 
-void MainWindow::MenuLoadROM()
+void MainWindow::MenuGameBoyLoadROM()
 {
     QString filename = QFileDialog::getOpenFileName( 
         this, 
@@ -56,6 +56,78 @@ void MainWindow::MenuLoadROM()
     {
         m_pEmulator->LoadRom(filename.toUtf8().data());
     }
+}
+
+void MainWindow::MenuGameBoyPause()
+{
+}
+
+void MainWindow::MenuGameBoyReset()
+{
+}
+
+void MainWindow::MenuGameBoySelectStateSlot()
+{
+}
+
+void MainWindow::MenuGameBoySaveState()
+{
+}
+
+void MainWindow::MenuGameBoyLoadState()
+{
+}
+
+void MainWindow::MenuGameBoySaveStateAs()
+{
+}
+
+void MainWindow::MenuGameBoyLoadStateFrom()
+{
+}
+
+void MainWindow::MenuSettingsInput()
+{
+}
+
+void MainWindow::MenuSettingsVideo()
+{
+}
+
+void MainWindow::MenuSettingsSound()
+{
+}
+
+void MainWindow::MenuSettingswindowSize()
+{
+}
+
+void MainWindow::MenuSettingsFullscreen()
+{
+}
+
+void MainWindow::MenuSettingsForceDMG()
+{
+}
+
+void MainWindow::MenuDebugDisassembler()
+{
+}
+
+void MainWindow::MenuDebugOAM()
+{
+}
+
+void MainWindow::MenuDebugMap()
+{
+}
+
+void MainWindow::MenuDebugPalette()
+{
+}
+
+void MainWindow::MenuAbout()
+{
 }
 
 void MainWindow::closeEvent(QCloseEvent *evt)
