@@ -145,3 +145,8 @@ void MainWindow::closeEvent(QCloseEvent *evt)
     m_pGLFrame->StopRenderThread();
     QMainWindow::closeEvent(evt);
 }
+
+void MainWindow::keyPressEvent(QKeyEvent* e)
+{
+	
+};

@@ -18,6 +18,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QKeyEvent>
 #include "../../src/gearboy.h"
 
 class GLFrame;
@@ -65,6 +66,7 @@ public slots:
     
 protected:
     void closeEvent(QCloseEvent *evt);
+	void keyPressEvent(QKeyEvent* e);
     
 private:
     Ui::MainWindow *m_pUI;
