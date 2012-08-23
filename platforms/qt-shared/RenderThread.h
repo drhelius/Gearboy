@@ -47,6 +47,7 @@ private:
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;
     GB_Color* m_pFrameBuffer;
+	u8 screenData[GAMEBOY_HEIGHT][GAMEBOY_WIDTH][4];
 
 signals:
 public slots:

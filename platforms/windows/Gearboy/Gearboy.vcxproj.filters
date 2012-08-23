@@ -86,9 +86,6 @@
     <ClCompile Include="..\..\..\src\IORegistersMemoryRule.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\main.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\MBC1MemoryRule.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -127,6 +124,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Video.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\qt-shared\Emulator.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -212,6 +212,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\Video.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\qt-shared\Emulator.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

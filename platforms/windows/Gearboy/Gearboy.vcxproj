@@ -83,7 +83,6 @@
     <ClCompile Include="..\..\..\src\GearboyCore.cpp" />
     <ClCompile Include="..\..\..\src\Input.cpp" />
     <ClCompile Include="..\..\..\src\IORegistersMemoryRule.cpp" />
-    <ClCompile Include="..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\src\MBC1MemoryRule.cpp" />
     <ClCompile Include="..\..\..\src\MBC2MemoryRule.cpp" />
     <ClCompile Include="..\..\..\src\MBC3MemoryRule.cpp" />
@@ -97,6 +96,7 @@
     <ClCompile Include="..\..\..\src\RomOnlyMemoryRule.cpp" />
     <ClCompile Include="..\..\..\src\SixteenBitRegister.cpp" />
     <ClCompile Include="..\..\..\src\Video.cpp" />
+    <ClCompile Include="..\..\qt-shared\Emulator.cpp" />
     <ClCompile Include="..\..\qt-shared\GLFrame.cpp" />
     <ClCompile Include="..\..\qt-shared\main.cpp" />
     <ClCompile Include="..\..\qt-shared\MainWindow.cpp" />
@@ -153,6 +153,7 @@
     <ClInclude Include="..\..\..\src\RomOnlyMemoryRule.h" />
     <ClInclude Include="..\..\..\src\SixteenBitRegister.h" />
     <ClInclude Include="..\..\..\src\Video.h" />
+    <ClInclude Include="..\..\qt-shared\Emulator.h" />
     <ClInclude Include="GeneratedFiles\ui_MainWindow.h" />
     <CustomBuild Include="..\..\qt-shared\GLFrame.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

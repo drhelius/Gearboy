@@ -62,6 +62,7 @@ struct GB_Color
     u8 red;
     u8 green;
     u8 blue;
+	//u8 alpha;
 };
 
 enum Gameboy_Keys
