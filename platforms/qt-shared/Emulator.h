@@ -28,6 +28,8 @@ public:
     void Init();
     void RunToVBlank(GB_Color* pFrameBuffer);
     void LoadRom(const char* szFilePath);
+    void KeyPressed(Gameboy_Keys key);
+    void KeyReleased(Gameboy_Keys key);
     void Pause();
     void Resume();
     

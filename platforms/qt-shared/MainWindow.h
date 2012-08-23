@@ -32,42 +32,43 @@ namespace Ui
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    
+
 public slots:
     void MenuGameBoyLoadROM();
-	void MenuGameBoyPause();
-	void MenuGameBoyReset();
-	void MenuGameBoySelectStateSlot();
-	void MenuGameBoySaveState();
-	void MenuGameBoyLoadState();
-	void MenuGameBoySaveStateAs();
-	void MenuGameBoyLoadStateFrom();
+    void MenuGameBoyPause();
+    void MenuGameBoyReset();
+    void MenuGameBoySelectStateSlot();
+    void MenuGameBoySaveState();
+    void MenuGameBoyLoadState();
+    void MenuGameBoySaveStateAs();
+    void MenuGameBoyLoadStateFrom();
 
-	void MenuSettingsInput();
-	void MenuSettingsVideo();
-	void MenuSettingsSound();
-	void MenuSettingswindowSize();
-	void MenuSettingsFullscreen();
-	void MenuSettingsForceDMG();
+    void MenuSettingsInput();
+    void MenuSettingsVideo();
+    void MenuSettingsSound();
+    void MenuSettingswindowSize();
+    void MenuSettingsFullscreen();
+    void MenuSettingsForceDMG();
 
-	void MenuDebugDisassembler();
-	void MenuDebugOAM();
-	void MenuDebugMap();
-	void MenuDebugPalette();
+    void MenuDebugDisassembler();
+    void MenuDebugOAM();
+    void MenuDebugMap();
+    void MenuDebugPalette();
 
-	void MenuAbout();
+    void MenuAbout();
 
-	void MenuPressed();
-	void MenuReleased();
-    
+    void MenuPressed();
+    void MenuReleased();
+
 protected:
     void closeEvent(QCloseEvent *evt);
-	void keyPressEvent(QKeyEvent* e);
-    
+    void keyPressEvent(QKeyEvent* e);
+    void keyReleaseEvent(QKeyEvent* e);
+
 private:
     Ui::MainWindow *m_pUI;
     GLFrame *m_pGLFrame;

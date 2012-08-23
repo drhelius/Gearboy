@@ -46,6 +46,20 @@ void Emulator::RunToVBlank(GB_Color* pFrameBuffer)
     m_Mutex.unlock();
 }
 
+void Emulator::KeyPressed(Gameboy_Keys key)
+{
+    m_Mutex.lock();
+    m_pGearboyCore->KeyPressed(key);
+    m_Mutex.unlock();
+}
+
+void Emulator::KeyReleased(Gameboy_Keys key)
+{
+    m_Mutex.lock();
+    m_pGearboyCore->KeyReleased(key);
+    m_Mutex.unlock();
+}
+
 void Emulator::Pause()
 {
 
