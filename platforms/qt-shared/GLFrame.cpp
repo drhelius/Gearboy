@@ -39,6 +39,21 @@ void GLFrame::StopRenderThread()
     m_RenderThread.wait();
 }
 
+void GLFrame::PauseRenderThread()
+{
+    m_RenderThread.Stop();
+}
+
+void GLFrame::ResumeRenderThread()
+{
+	m_RenderThread.Resume();
+}
+
+bool GLFrame::IsRunningRenderThread()
+{
+	return m_RenderThread.IsRunningEmulator();
+}
+
 void GLFrame::resizeEvent(QResizeEvent *evt)
 {
     m_RenderThread.ResizeViewport(evt->size());

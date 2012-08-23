@@ -34,7 +34,9 @@ public:
     void ResizeViewport(const QSize &size);
     void run();
     void Stop();
+	void Resume();
     void SetEmulator(Emulator* pEmulator);
+	bool IsRunningEmulator();
 
 protected:
     void Init();

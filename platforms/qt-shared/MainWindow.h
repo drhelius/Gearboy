@@ -59,6 +59,9 @@ public slots:
 	void MenuDebugPalette();
 
 	void MenuAbout();
+
+	void MenuPressed();
+	void MenuReleased();
     
 protected:
     void closeEvent(QCloseEvent *evt);

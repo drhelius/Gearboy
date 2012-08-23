@@ -130,6 +130,16 @@ void MainWindow::MenuAbout()
 {
 }
 
+void MainWindow::MenuPressed()
+{
+	m_pGLFrame->StopRenderThread();
+}
+
+void MainWindow::MenuReleased()
+{
+	m_pGLFrame->ResumeRenderThread();
+}
+
 void MainWindow::closeEvent(QCloseEvent *evt)
 {
     m_pGLFrame->StopRenderThread();

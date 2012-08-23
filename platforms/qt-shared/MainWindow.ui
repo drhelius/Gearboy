@@ -554,5 +554,7 @@
   <slot>MenuDebugMap()</slot>
   <slot>MenuDebugPalette()</slot>
   <slot>MenuAbout()</slot>
+  <slot>MenuPressed()</slot>
+  <slot>MenuReleased()</slot>
  </slots>
 </ui>

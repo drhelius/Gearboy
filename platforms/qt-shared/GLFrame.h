@@ -32,6 +32,9 @@ public:
     ~GLFrame();
     void InitRenderThread(Emulator* pEmulator);
     void StopRenderThread();
+	void PauseRenderThread();
+	void ResumeRenderThread();
+	bool IsRunningRenderThread();
     
 signals:
 public slots:

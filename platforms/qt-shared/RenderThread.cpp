@@ -55,6 +55,16 @@ void RenderThread::Stop()
     m_bDoRendering = false;
 }
 
+void RenderThread::Resume()
+{
+    m_bDoRendering = true;
+}
+
+bool RenderThread::IsRunningEmulator()
+{
+	return m_bDoRendering;
+}
+
 void RenderThread::SetEmulator(Emulator* pEmulator)
 {
     m_pEmulator = pEmulator;
