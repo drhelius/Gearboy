@@ -21,27 +21,31 @@
 #include "../../src/gearboy.h"
 #include "RenderThread.h"
 
+class Emulator;
+
 class GLFrame : public QGLWidget
 {
     Q_OBJECT
+    
 public:
     explicit GLFrame(QWidget *parent = 0);
     ~GLFrame();
-    void initRenderThread(void);
-    void stopRenderThread(void);
-
+    void InitRenderThread(Emulator* pEmulator);
+    void StopRenderThread();
+	void PauseRenderThread();
+	void ResumeRenderThread();
+	bool IsRunningRenderThread();
+    
 signals:
-
 public slots:
-
+    
 protected:
     void closeEvent(QCloseEvent *evt);
     void resizeEvent(QResizeEvent *evt);
     void paintEvent(QPaintEvent *);
-
-    RenderThread m_RenderThread;
-
+    
 private:
+    RenderThread m_RenderThread;
 };
 
 #endif // MYGLFRAME_H

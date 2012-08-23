@@ -17,93 +17,135 @@
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
-#include <GLUT/glut.h>
 #else
 #ifdef _WIN32
 #include <windows.h>
 #endif
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <GL/glut.h>
 #endif
 
 #include "RenderThread.h"
 #include "GLFrame.h"
+#include "Emulator.h"
 
-RenderThread::RenderThread(GLFrame*_GLFrame) : QThread(), m_pGLFrame(_GLFrame)
+RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 {
+	m_bPaused = false;
     m_bDoRendering = true;
     m_bDoResize = false;
-    m_iFrameCounter = 0;
+    m_pFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     m_iWidth = 0;
     m_iHeight = 0;
 }
 
-void RenderThread::resizeViewport(const QSize &size)
+RenderThread::~RenderThread()
+{
+    SafeDeleteArray(m_pFrameBuffer);
+}
+
+void RenderThread::ResizeViewport(const QSize &size)
 {
     m_iWidth = size.width();
     m_iHeight = size.height();
     m_bDoResize = true;
 }
 
-void RenderThread::stop()
+void RenderThread::Stop()
 {
     m_bDoRendering = false;
+}
+
+void RenderThread::Pause()
+{
+    m_bPaused = true;
+}
+
+void RenderThread::Resume()
+{
+    m_bPaused = false;
+}
+
+bool RenderThread::IsRunningEmulator()
+{
+	return m_bDoRendering;
+}
+
+void RenderThread::SetEmulator(Emulator* pEmulator)
+{
+    m_pEmulator = pEmulator;
 }
 
 void RenderThread::run()
 {
     m_pGLFrame->makeCurrent();
-    GLInit();
+    Init();
 
     while (m_bDoRendering)
     {
+		if (!m_bPaused)
+		{
+        m_pEmulator->RunToVBlank(m_pFrameBuffer);
+
         if (m_bDoResize)
         {
-            GLResize(m_iWidth, m_iHeight);
+            Resize(m_iWidth, m_iHeight);
             m_bDoResize = false;
         }
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glLoadIdentity();
 
-        paintGL(); // render actual frame
-
-        m_iFrameCounter++;
+        RenderFrame(); 
         m_pGLFrame->swapBuffers();
+		}
 
         //msleep(16); // wait 16ms => about 60 FPS
     }
 }
 
-void RenderThread::GLInit(void)
-{
-    glClearColor(0.05f, 0.05f, 0.1f, 0.0f); // Background => dark blue
+void RenderThread::Init()
+{  
+    for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
+    {
+        for (int x = 0; x < GAMEBOY_WIDTH; ++x)
+        {
+            int pixel = (y * GAMEBOY_WIDTH) + x;
+            m_pFrameBuffer[pixel].red = m_pFrameBuffer[pixel].green =
+                    m_pFrameBuffer[pixel].blue = m_pFrameBuffer[pixel].alpha = 0;
+        }
+    }
+	
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0,
+            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    glEnable(GL_TEXTURE_2D);
 }
 
-void RenderThread::GLResize(int width, int height)
+void RenderThread::Resize(int width, int height)
 {
-    glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
-
     glLoadIdentity();
-    gluPerspective(45., ((GLfloat) width) / ((GLfloat) height), 0.1f, 1000.0f);
-
+    gluOrtho2D(0, width, height, 0);
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    glViewport(0, 0, width, height);
 }
 
-void RenderThread::paintGL(void)
+void RenderThread::RenderFrame()
 {
-    glTranslatef(0.0f, 0.0f, -5.0f); // move 5 units into the screen
-    glRotatef(m_iFrameCounter, 0.0f, 0.0f, 1.0f); // rotate z-axis
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
+            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
+
     glBegin(GL_QUADS);
-    glColor3f(1., 1., 0.);
-    glVertex3f(-1.0, -1.0, 0.0);
-    glColor3f(1., 1., 1.);
-    glVertex3f(1.0, -1.0, 0.0);
-    glColor3f(1., 0., 1.);
-    glVertex3f(1.0, 1.0, 0.0);
-    glColor3f(1., 0., 0.);
-    glVertex3f(-1.0, 1.0, 0.0);
+    glTexCoord2d(0.0, 0.0);
+    glVertex2d(0.0, 0.0);
+    glTexCoord2d(1.0, 0.0);
+    glVertex2d(m_iWidth, 0.0);
+    glTexCoord2d(1.0, 1.0);
+    glVertex2d(m_iWidth, m_iHeight);
+    glTexCoord2d(0.0, 1.0);
+    glVertex2d(0.0, m_iHeight);
     glEnd();
 }

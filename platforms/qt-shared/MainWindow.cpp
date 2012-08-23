@@ -14,27 +14,142 @@
  *
  */
 
+#include <QFileDialog>
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "GLFrame.h"
+#include "Emulator.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     m_pUI = new Ui::MainWindow();
     m_pUI->setupUi(this);
-    m_pGLFrame = new GLFrame();      // create our subclassed GLWidget
-    setCentralWidget(m_pGLFrame);      // assign it to the central widget of the window
-    m_pGLFrame->initRenderThread();    // start rendering
+
+	QObject::connect(m_pUI->menuGame_Boy, SIGNAL(aboutToShow()), this, SLOT(MenuPressed()));
+	QObject::connect(m_pUI->menuGame_Boy, SIGNAL(aboutToHide()), this, SLOT(MenuReleased()));
+    
+    m_pEmulator = new Emulator();
+    m_pEmulator->Init();
+
+	QGLFormat f;
+	f.setSwapInterval(1);
+	QGLFormat::setDefaultFormat(f);
+   
+    m_pGLFrame = new GLFrame();
+
+    setCentralWidget(m_pGLFrame);
+    m_pGLFrame->InitRenderThread(m_pEmulator);
 }
 
 MainWindow::~MainWindow()
 {
+    SafeDelete(m_pEmulator);
     SafeDelete(m_pGLFrame);
     SafeDelete(m_pUI);
 }
 
+void MainWindow::MenuGameBoyLoadROM()
+{
+    QString filename = QFileDialog::getOpenFileName( 
+        this, 
+        tr("Load ROM"), 
+        QDir::currentPath(), 
+        tr("Game Boy ROM files (*.gb *.gbc *.sgb);;All files (*.*)") );
+    if( !filename.isNull() )
+    {
+        m_pEmulator->LoadRom(filename.toUtf8().data());
+    }
+}
+
+void MainWindow::MenuGameBoyPause()
+{
+}
+
+void MainWindow::MenuGameBoyReset()
+{
+}
+
+void MainWindow::MenuGameBoySelectStateSlot()
+{
+}
+
+void MainWindow::MenuGameBoySaveState()
+{
+}
+
+void MainWindow::MenuGameBoyLoadState()
+{
+}
+
+void MainWindow::MenuGameBoySaveStateAs()
+{
+}
+
+void MainWindow::MenuGameBoyLoadStateFrom()
+{
+}
+
+void MainWindow::MenuSettingsInput()
+{
+}
+
+void MainWindow::MenuSettingsVideo()
+{
+}
+
+void MainWindow::MenuSettingsSound()
+{
+}
+
+void MainWindow::MenuSettingswindowSize()
+{
+}
+
+void MainWindow::MenuSettingsFullscreen()
+{
+}
+
+void MainWindow::MenuSettingsForceDMG()
+{
+}
+
+void MainWindow::MenuDebugDisassembler()
+{
+}
+
+void MainWindow::MenuDebugOAM()
+{
+}
+
+void MainWindow::MenuDebugMap()
+{
+}
+
+void MainWindow::MenuDebugPalette()
+{
+}
+
+void MainWindow::MenuAbout()
+{
+}
+
+void MainWindow::MenuPressed()
+{
+	m_pGLFrame->PauseRenderThread();
+}
+
+void MainWindow::MenuReleased()
+{
+	m_pGLFrame->ResumeRenderThread();
+}
+
 void MainWindow::closeEvent(QCloseEvent *evt)
 {
-    m_pGLFrame->stopRenderThread();    // stop the thread befor exiting
+    m_pGLFrame->StopRenderThread();
     QMainWindow::closeEvent(evt);
 }
+
+void MainWindow::keyPressEvent(QKeyEvent* e)
+{
+	
+};
