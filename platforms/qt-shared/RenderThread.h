@@ -27,18 +27,19 @@ class QSize;
 class RenderThread : public QThread
 {
     Q_OBJECT
+    
 public:
-    explicit RenderThread(GLFrame *parent = 0);
+    explicit RenderThread(GLFrame *pGLFrame = 0);
     virtual ~RenderThread();
-    void resizeViewport(const QSize &size);
+    void ResizeViewport(const QSize &size);
     void run();
-    void stop();
+    void Stop();
     void SetEmulator(Emulator* pEmulator);
 
 protected:
-    void GLInit();
-    void GLResize(int width, int height);
-    void paintGL();
+    void Init();
+    void Resize(int width, int height);
+    void RenderFrame();
 
 private:
     bool m_bDoRendering, m_bDoResize;

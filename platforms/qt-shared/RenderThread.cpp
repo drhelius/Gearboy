@@ -17,21 +17,19 @@
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
-#include <GLUT/glut.h>
 #else
 #ifdef _WIN32
 #include <windows.h>
 #endif
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <GL/glut.h>
 #endif
 
 #include "RenderThread.h"
 #include "GLFrame.h"
 #include "Emulator.h"
 
-RenderThread::RenderThread(GLFrame*_GLFrame) : QThread(), m_pGLFrame(_GLFrame)
+RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 {
     m_bDoRendering = true;
     m_bDoResize = false;
@@ -45,14 +43,14 @@ RenderThread::~RenderThread()
     SafeDeleteArray(m_pFrameBuffer);
 }
 
-void RenderThread::resizeViewport(const QSize &size)
+void RenderThread::ResizeViewport(const QSize &size)
 {
     m_iWidth = size.width();
     m_iHeight = size.height();
     m_bDoResize = true;
 }
 
-void RenderThread::stop()
+void RenderThread::Stop()
 {
     m_bDoRendering = false;
 }
@@ -65,7 +63,7 @@ void RenderThread::SetEmulator(Emulator* pEmulator)
 void RenderThread::run()
 {
     m_pGLFrame->makeCurrent();
-    GLInit();
+    Init();
 
     while (m_bDoRendering)
     {
@@ -73,45 +71,41 @@ void RenderThread::run()
 
         if (m_bDoResize)
         {
-            GLResize(m_iWidth, m_iHeight);
+            Resize(m_iWidth, m_iHeight);
             m_bDoResize = false;
         }
 
-        paintGL(); // render actual frame
-
+        RenderFrame(); 
         m_pGLFrame->swapBuffers();
 
         //msleep(16); // wait 16ms => about 60 FPS
     }
 }
 
-void RenderThread::GLInit()
-{
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-    // Clear screen
-
+void RenderThread::Init()
+{  
     for (int y = 0; y < GAMEBOY_WIDTH; ++y)
+    {
         for (int x = 0; x < GAMEBOY_HEIGHT; ++x)
         {
             int pixel = (y * GAMEBOY_WIDTH) + x;
-            m_pFrameBuffer[pixel].red = m_pFrameBuffer[pixel].green = m_pFrameBuffer[pixel].blue = 0;
+            m_pFrameBuffer[pixel].red = m_pFrameBuffer[pixel].green =
+                    m_pFrameBuffer[pixel].blue = 0;
         }
+    }
 
-    // Create a texture 
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0,
+            GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
 
-    // Set up the texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    // Enable textures
     glEnable(GL_TEXTURE_2D);
 }
 
-void RenderThread::GLResize(int width, int height)
+void RenderThread::Resize(int width, int height)
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -120,9 +114,10 @@ void RenderThread::GLResize(int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void RenderThread::paintGL()
+void RenderThread::RenderFrame()
 {
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
+            GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
 
     glBegin(GL_QUADS);
     glTexCoord2d(0.0, 0.0);

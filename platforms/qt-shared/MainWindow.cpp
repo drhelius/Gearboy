@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  *
  */
+
 #include <QFileDialog>
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
@@ -27,9 +28,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_pEmulator = new Emulator();
     m_pEmulator->Init();
     
-    m_pGLFrame = new GLFrame();      // create our subclassed GLWidget
-    setCentralWidget(m_pGLFrame);      // assign it to the central widget of the window
-    m_pGLFrame->initRenderThread(m_pEmulator);    // start rendering
+    m_pGLFrame = new GLFrame();
+    setCentralWidget(m_pGLFrame);
+    m_pGLFrame->InitRenderThread(m_pEmulator);
 }
 
 MainWindow::~MainWindow()
@@ -54,6 +55,6 @@ void MainWindow::MenuLoadROM()
 
 void MainWindow::closeEvent(QCloseEvent *evt)
 {
-    m_pGLFrame->stopRenderThread();    // stop the thread befor exiting
+    m_pGLFrame->StopRenderThread();
     QMainWindow::closeEvent(evt);
 }

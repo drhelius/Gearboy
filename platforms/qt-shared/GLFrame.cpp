@@ -26,22 +26,22 @@ GLFrame::~GLFrame()
 {
 }
 
-void GLFrame::initRenderThread(Emulator* pEmulator)
+void GLFrame::InitRenderThread(Emulator* pEmulator)
 {
     doneCurrent();
     m_RenderThread.SetEmulator(pEmulator);
     m_RenderThread.start();
 }
 
-void GLFrame::stopRenderThread(void)
+void GLFrame::StopRenderThread()
 {
-    m_RenderThread.stop();
+    m_RenderThread.Stop();
     m_RenderThread.wait();
 }
 
 void GLFrame::resizeEvent(QResizeEvent *evt)
 {
-    m_RenderThread.resizeViewport(evt->size());
+    m_RenderThread.ResizeViewport(evt->size());
 }
 
 void GLFrame::paintEvent(QPaintEvent *)
@@ -51,6 +51,6 @@ void GLFrame::paintEvent(QPaintEvent *)
 
 void GLFrame::closeEvent(QCloseEvent *evt)
 {
-    stopRenderThread();
+    StopRenderThread();
     QGLWidget::closeEvent(evt);
 }

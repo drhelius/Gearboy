@@ -26,24 +26,23 @@ class Emulator;
 class GLFrame : public QGLWidget
 {
     Q_OBJECT
+    
 public:
     explicit GLFrame(QWidget *parent = 0);
     ~GLFrame();
-    void initRenderThread(Emulator* pEmulator);
-    void stopRenderThread(void);
-
+    void InitRenderThread(Emulator* pEmulator);
+    void StopRenderThread();
+    
 signals:
-
 public slots:
-
+    
 protected:
     void closeEvent(QCloseEvent *evt);
     void resizeEvent(QResizeEvent *evt);
     void paintEvent(QPaintEvent *);
-
+    
+private:
     RenderThread m_RenderThread;
-
-    private:
 };
 
 #endif // MYGLFRAME_H
