@@ -60,7 +60,7 @@ There is a nice Netbeans + Qt tutorial here: http://netbeans.org/kb/docs/cnd/qt-
 ### Mac OS
 - You need at least Netbeans 7.2 for C++.
 - Install Xcode for the compiler to be available on the command line.
-- Install the Qt development dependencies (http://qt.nokia.com/downloads/sdk-mac-os-cpp).
+- Install the Qt SDK for Mac OS (http://qt.nokia.com/downloads/sdk-mac-os-cpp).
 - Add <code>qmake</code> to the PATH (You can find qmake in the bin directory where you have Qt SDK installed). 
 - Open the Gearboy Netbeans project and build. This project is configured for using <code>clang</code>.
 - Alternatively you can use <code>make</code> to build the project.
