@@ -36,6 +36,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+	bool event(QEvent *ev); 
 
 public slots:
     void MenuGameBoyLoadROM();
@@ -50,7 +51,7 @@ public slots:
     void MenuSettingsInput();
     void MenuSettingsVideo();
     void MenuSettingsSound();
-    void MenuSettingswindowSize();
+    void MenuSettingsWindowSize(QAction* action);
     void MenuSettingsFullscreen();
     void MenuSettingsForceDMG();
 
@@ -66,19 +67,22 @@ public slots:
     void MenuSettingsPressed();
     void MenuSettingsReleased();
     void MenuDebugPressed();
-    void MenuDebugReleased();
-    void MenuReleased();
+    void MenuDebugReleased();    
 
 protected:
     void closeEvent(QCloseEvent *evt);
     void keyPressEvent(QKeyEvent* e);
     void keyReleaseEvent(QKeyEvent* e);
+	void MenuReleased();
+	void ResizeWindow(int factor);
 
 private:
     Ui::MainWindow *m_pUI;
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;
     bool m_bMenuPressed[3];
+	int m_iScreenSize;
+	bool m_bFullscreen;
 };
 
 #endif // MAINWINDOW_H
