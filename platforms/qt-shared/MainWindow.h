@@ -19,6 +19,7 @@
 
 #include <QMainWindow>
 #include <QKeyEvent>
+#include <QShortcut>
 #include "../../src/gearboy.h"
 
 class GLFrame;
@@ -39,6 +40,8 @@ public:
 	bool event(QEvent *ev); 
 
 public slots:
+	void Exit();
+	
     void MenuGameBoyLoadROM();
     void MenuGameBoyPause();
     void MenuGameBoyReset();
@@ -83,6 +86,7 @@ private:
     bool m_bMenuPressed[3];
 	int m_iScreenSize;
 	bool m_bFullscreen;
+	QShortcut* m_pExitShortcut;
 };
 
 #endif // MAINWINDOW_H

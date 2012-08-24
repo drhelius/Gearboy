@@ -29,6 +29,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_pUI = new Ui::MainWindow();
     m_pUI->setupUi(this);
 
+	this->addAction(m_pUI->actionFullscreen);
+	this->addAction(m_pUI->actionReset);
+	this->addAction(m_pUI->actionPause);
+	this->addAction(m_pUI->actionSave_State);
+	this->addAction(m_pUI->actionLoad_State);
+
+	m_pExitShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
+	m_pExitShortcut->setContext(Qt::ApplicationShortcut);
+	QObject::connect(m_pExitShortcut, SIGNAL(activated()), this, SLOT(Exit()));
+
+
     QObject::connect(m_pUI->menuGame_Boy, SIGNAL(aboutToShow()), this, SLOT(MenuGameBoyPressed()));
     QObject::connect(m_pUI->menuGame_Boy, SIGNAL(aboutToHide()), this, SLOT(MenuGameBoyReleased()));
     QObject::connect(m_pUI->menuDebug, SIGNAL(aboutToShow()), this, SLOT(MenuDebugPressed()));
@@ -63,9 +74,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
 MainWindow::~MainWindow()
 {
+	SafeDelete(m_pExitShortcut);
     SafeDelete(m_pEmulator);
     SafeDelete(m_pGLFrame);
     SafeDelete(m_pUI);
+}
+
+void MainWindow::Exit()
+{
+	this->close();
 }
 
 void MainWindow::MenuGameBoyLoadROM()
@@ -154,7 +171,7 @@ void MainWindow::MenuSettingsFullscreen()
 	{
 		m_bFullscreen = false;
 		this->showNormal();
-		//m_pUI->menubar->show();
+		m_pUI->menubar->show();
 		ResizeWindow(m_iScreenSize);
 		setFixedSize(sizeHint());
 		m_pGLFrame->move(0, 0);
@@ -165,7 +182,7 @@ void MainWindow::MenuSettingsFullscreen()
 		
 		this->showFullScreen();
 
-		//m_pUI->menubar->hide();
+		m_pUI->menubar->hide();
 
 		int w = this->width();
 		int h = this->height();
