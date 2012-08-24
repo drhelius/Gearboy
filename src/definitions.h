@@ -86,9 +86,14 @@ enum Gameboy_MemoryBankControllers
     MBC5
 };
 
-inline void Log(const char* const msg, ...)
-{
 #ifdef DEBUG_GEARBOY
+#define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
+#else
+#define Log(msg, ...)  
+#endif
+
+inline void Log_func(const char* const msg, ...)
+{
     static int count = 1;
     char szBuf[MAX_STRING_SIZE];
 
@@ -100,7 +105,6 @@ inline void Log(const char* const msg, ...)
     printf("%d: %s\n", count, szBuf);
 
     count++;
-#endif
 }
 
 inline u8 SetBit(const u8 value, const u8 bit)
