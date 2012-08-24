@@ -20,7 +20,9 @@ Features
 - Full support for most common Memory Bank Controllers (ROM, MBC1, MBC2, MBC3, MBC5)
 - Accurate emulation of LCD controller. Full support for background, window and sprites with correct timings and priorities.
 - Integrated disassembler. It can dump the full disassembled memory to a text file.
-- Compiles on Windows (Visual Studio 2010), Linux and Mac OS X. Netbeans project provided for Linux and Mac.
+- Uses Qt framework for GUI. Same appearance in Windows, Linux and Mac OS.
+- Multi platform. Compiles and runs on Windows, Linux and Mac OS X.
+- Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS.
 
 Things left
 -----------
