@@ -84,7 +84,7 @@ void GearboyCore::Init()
 
 void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
 {
-    if (!m_bPaused)
+    if (!m_bPaused && m_pCartridge->IsLoadedROM())
     {
         bool vblank = false;
         while (!vblank)
