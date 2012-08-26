@@ -28,6 +28,7 @@ Features
 Things left
 -----------
 
+- Improve GUI.
 - Add sound support.
 - Improve Game Boy Color support.
 - Save RAM battery to disk.
