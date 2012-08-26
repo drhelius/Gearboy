@@ -27,17 +27,17 @@ class QSize;
 class RenderThread : public QThread
 {
     Q_OBJECT
-    
+
 public:
     explicit RenderThread(GLFrame *pGLFrame = 0);
     virtual ~RenderThread();
     void ResizeViewport(const QSize &size);
     void run();
     void Stop();
-	void Pause();
-	void Resume();
+    void Pause();
+    void Resume();
     void SetEmulator(Emulator* pEmulator);
-	bool IsRunningEmulator();
+    bool IsRunningEmulator();
 
 protected:
     void Init();

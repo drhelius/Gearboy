@@ -31,7 +31,7 @@
 
 RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 {
-	m_bPaused = false;
+    m_bPaused = false;
     m_bDoRendering = true;
     m_bDoResize = false;
     m_pFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
@@ -68,7 +68,7 @@ void RenderThread::Resume()
 
 bool RenderThread::IsRunningEmulator()
 {
-	return m_bDoRendering;
+    return m_bDoRendering;
 }
 
 void RenderThread::SetEmulator(Emulator* pEmulator)
@@ -83,26 +83,26 @@ void RenderThread::run()
 
     while (m_bDoRendering)
     {
-		if (!m_bPaused)
-		{
-        m_pEmulator->RunToVBlank(m_pFrameBuffer);
-
-        if (m_bDoResize)
+        if (!m_bPaused)
         {
-            Resize(m_iWidth, m_iHeight);
-            m_bDoResize = false;
-        }
+            m_pEmulator->RunToVBlank(m_pFrameBuffer);
 
-        RenderFrame(); 
-        m_pGLFrame->swapBuffers();
-		}
+            if (m_bDoResize)
+            {
+                Resize(m_iWidth, m_iHeight);
+                m_bDoResize = false;
+            }
+
+            RenderFrame();
+            m_pGLFrame->swapBuffers();
+        }
 
         //msleep(16); // wait 16ms => about 60 FPS
     }
 }
 
 void RenderThread::Init()
-{  
+{
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
     {
         for (int x = 0; x < GAMEBOY_WIDTH; ++x)
@@ -112,7 +112,7 @@ void RenderThread::Init()
                     m_pFrameBuffer[pixel].blue = m_pFrameBuffer[pixel].alpha = 0;
         }
     }
-	
+
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0,
             GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
 

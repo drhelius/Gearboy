@@ -41,17 +41,17 @@ void GLFrame::StopRenderThread()
 
 void GLFrame::PauseRenderThread()
 {
-	m_RenderThread.Pause();
+    m_RenderThread.Pause();
 }
 
 void GLFrame::ResumeRenderThread()
 {
-	m_RenderThread.Resume();
+    m_RenderThread.Resume();
 }
 
 bool GLFrame::IsRunningRenderThread()
 {
-	return m_RenderThread.IsRunningEmulator();
+    return m_RenderThread.IsRunningEmulator();
 }
 
 void GLFrame::resizeEvent(QResizeEvent *evt)

@@ -34,7 +34,7 @@ public:
     void Resume();
     bool IsPaused();
     void Reset();
-    
+
 private:
     GearboyCore* m_pGearboyCore;
     QMutex m_Mutex;

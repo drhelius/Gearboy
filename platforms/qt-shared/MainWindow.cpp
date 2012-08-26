@@ -23,22 +23,22 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-	m_bFullscreen = false;
-	m_iScreenSize = 2;
+    m_bFullscreen = false;
+    m_iScreenSize = 2;
 
     m_bMenuPressed[0] = m_bMenuPressed[1] = m_bMenuPressed[2] = false;
     m_pUI = new Ui::MainWindow();
     m_pUI->setupUi(this);
 
-	this->addAction(m_pUI->actionFullscreen);
-	this->addAction(m_pUI->actionReset);
-	this->addAction(m_pUI->actionPause);
-	this->addAction(m_pUI->actionSave_State);
-	this->addAction(m_pUI->actionLoad_State);
+    this->addAction(m_pUI->actionFullscreen);
+    this->addAction(m_pUI->actionReset);
+    this->addAction(m_pUI->actionPause);
+    this->addAction(m_pUI->actionSave_State);
+    this->addAction(m_pUI->actionLoad_State);
 
-	m_pExitShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
-	m_pExitShortcut->setContext(Qt::ApplicationShortcut);
-	QObject::connect(m_pExitShortcut, SIGNAL(activated()), this, SLOT(Exit()));
+    m_pExitShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
+    m_pExitShortcut->setContext(Qt::ApplicationShortcut);
+    QObject::connect(m_pExitShortcut, SIGNAL(activated()), this, SLOT(Exit()));
 
 
     QObject::connect(m_pUI->menuGame_Boy, SIGNAL(aboutToShow()), this, SLOT(MenuGameBoyPressed()));
@@ -48,12 +48,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     QObject::connect(m_pUI->menuSettings, SIGNAL(aboutToShow()), this, SLOT(MenuSettingsPressed()));
     QObject::connect(m_pUI->menuSettings, SIGNAL(aboutToHide()), this, SLOT(MenuSettingsReleased()));
 
-	m_pUI->actionX_1->setData(1);
-	m_pUI->actionX_2->setData(2);
-	m_pUI->actionX_2->setChecked(true);
-	m_pUI->actionX_3->setData(3);
-	m_pUI->actionX_4->setData(4);
-	m_pUI->actionX_5->setData(5);
+    m_pUI->actionX_1->setData(1);
+    m_pUI->actionX_2->setData(2);
+    m_pUI->actionX_2->setChecked(true);
+    m_pUI->actionX_3->setData(3);
+    m_pUI->actionX_4->setData(4);
+    m_pUI->actionX_5->setData(5);
 
     m_pEmulator = new Emulator();
     m_pEmulator->Init();
@@ -63,19 +63,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     QGLFormat::setDefaultFormat(f);
 
     m_pGLFrame = new GLFrame();
-	ResizeWindow(m_iScreenSize);
+    ResizeWindow(m_iScreenSize);
     setCentralWidget(m_pGLFrame);
 
-	//QPalette pal = this->palette();
-	//pal.setColor(this->backgroundRole(), Qt::black);
-	//this->setPalette(pal);
+    //QPalette pal = this->palette();
+    //pal.setColor(this->backgroundRole(), Qt::black);
+    //this->setPalette(pal);
 
     m_pGLFrame->InitRenderThread(m_pEmulator);
 }
 
 MainWindow::~MainWindow()
 {
-	SafeDelete(m_pExitShortcut);
+    SafeDelete(m_pExitShortcut);
     SafeDelete(m_pEmulator);
     SafeDelete(m_pGLFrame);
     SafeDelete(m_pUI);
@@ -83,7 +83,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::Exit()
 {
-	this->close();
+    this->close();
 }
 
 void MainWindow::MenuGameBoyLoadROM()
@@ -101,7 +101,7 @@ void MainWindow::MenuGameBoyLoadROM()
         m_pEmulator->LoadRom(filename.toUtf8().data());
         m_pUI->actionPause->setChecked(false);
     }
-    
+
     setFocus();
     activateWindow();
 
@@ -156,52 +156,52 @@ void MainWindow::MenuSettingsSound()
 
 void MainWindow::MenuSettingsWindowSize(QAction* action)
 {
-	m_pUI->actionX_1->setChecked(false);
-	m_pUI->actionX_2->setChecked(false);
-	m_pUI->actionX_3->setChecked(false);
-	m_pUI->actionX_4->setChecked(false);
-	m_pUI->actionX_5->setChecked(false);
-	action->setChecked(true);
-	m_iScreenSize = action->data().toInt();
-	ResizeWindow(m_iScreenSize);
+    m_pUI->actionX_1->setChecked(false);
+    m_pUI->actionX_2->setChecked(false);
+    m_pUI->actionX_3->setChecked(false);
+    m_pUI->actionX_4->setChecked(false);
+    m_pUI->actionX_5->setChecked(false);
+    action->setChecked(true);
+    m_iScreenSize = action->data().toInt();
+    ResizeWindow(m_iScreenSize);
 }
 
 void MainWindow::MenuSettingsFullscreen()
 {
-	if (m_bFullscreen)
-	{
-		m_bFullscreen = false;
-		this->showNormal();
-		m_pUI->menubar->show();
-		ResizeWindow(m_iScreenSize);       
-		m_pGLFrame->move(0, 0);
-	}
-	else
-	{
-		m_bFullscreen = true;
+    if (m_bFullscreen)
+    {
+        m_bFullscreen = false;
+        this->showNormal();
+        m_pUI->menubar->show();
+        ResizeWindow(m_iScreenSize);
+        m_pGLFrame->move(0, 0);
+    }
+    else
+    {
+        m_bFullscreen = true;
 
-                this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-                this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
-                this->setMinimumSize(0,0);
-                this->showFullScreen();
-                
-		m_pUI->menubar->hide();
+        this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+        this->setMinimumSize(0, 0);
+        this->showFullScreen();
 
-		int w = qApp->desktop()->size().width();
-		int h = qApp->desktop()->size().height();
+        m_pUI->menubar->hide();
 
-		int factor = h / GAMEBOY_HEIGHT;
+        int w = qApp->desktop()->size().width();
+        int h = qApp->desktop()->size().height();
 
-		m_pGLFrame->setMaximumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
-		m_pGLFrame->setMinimumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
-		
-		int move_x = (w - (GAMEBOY_WIDTH * factor)) / 2;
-		int move_y = (h - (GAMEBOY_HEIGHT * factor)) / 2;
-		m_pGLFrame->setGeometry(move_x, move_y, GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
-	}
+        int factor = h / GAMEBOY_HEIGHT;
 
-	setFocus();
-	activateWindow();
+        m_pGLFrame->setMaximumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
+        m_pGLFrame->setMinimumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
+
+        int move_x = (w - (GAMEBOY_WIDTH * factor)) / 2;
+        int move_y = (h - (GAMEBOY_HEIGHT * factor)) / 2;
+        m_pGLFrame->setGeometry(move_x, move_y, GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
+    }
+
+    setFocus();
+    activateWindow();
 }
 
 void MainWindow::MenuSettingsForceDMG()
@@ -344,19 +344,21 @@ void MainWindow::keyReleaseEvent(QKeyEvent* e)
 
 void MainWindow::ResizeWindow(int factor)
 {
-	m_iScreenSize = factor;
-	m_pGLFrame->setMaximumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
-	m_pGLFrame->setMinimumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
+    m_iScreenSize = factor;
+    m_pGLFrame->setMaximumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
+    m_pGLFrame->setMinimumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
 }
 
-bool MainWindow::event(QEvent *ev) {
-    if(ev->type() == QEvent::LayoutRequest) {
-		if (!m_bFullscreen)
-                {
-                  this->setMaximumSize(sizeHint());
-                this->setMinimumSize(sizeHint());
-                this->resize(sizeHint());
-                }
+bool MainWindow::event(QEvent *ev)
+{
+    if (ev->type() == QEvent::LayoutRequest)
+    {
+        if (!m_bFullscreen)
+        {
+            this->setMaximumSize(sizeHint());
+            this->setMinimumSize(sizeHint());
+            this->resize(sizeHint());
+        }
     }
     return QMainWindow::event(ev);
 }
