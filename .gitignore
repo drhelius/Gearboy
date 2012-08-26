@@ -18,6 +18,11 @@
 private.xml
 Makefile-variables.mk
 
+platforms/macosx/Gearboy/nbproject/private/configurations.xml
+/platforms/linux/Gearboy/dist/
+/platforms/linux/Gearboy/build/
+/platforms/linux/Gearboy/nbproject/private/
+
 # Mac files
 *.DS_Store
 
@@ -71,4 +76,3 @@ qt-Release.mk
 ui_MainWindow.h
 
 
-platforms/macosx/Gearboy/nbproject/private/configurations.xml

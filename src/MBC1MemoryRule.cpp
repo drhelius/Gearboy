@@ -128,7 +128,9 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         if (m_pCartridge->GetRAMSize() == 3)
             m_iMode = value & 0x01;
         else if ((value & 0x01) != 0)
+        {
             Log("--> ** Attempting to change MBC1 to mode 1 with no RAM banks %X %X", address, value);
+        }
     }
     else if (m_bCGB && (address >= 0x8000 && address < 0xA000))
     {
@@ -146,7 +148,9 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
                     if (address < 0xA800)
                         m_pMemory->Load(address, value);
                     else
+                    {
                         Log("--> ** Attempting to write on non usable address %X %X", address, value);
+                    }
                 }
                 else
                     m_pMemory->Load(address, value);
@@ -155,7 +159,9 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
                 m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)] = value;
         }
         else
+        {
             Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+        }
     }
     else if (address >= 0xC000 && address < 0xDE00)
     {

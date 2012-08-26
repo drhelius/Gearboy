@@ -106,7 +106,9 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
             m_pMemory->Load(address, value & 0x0F);
         }
         else
+        {
             Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+        }
     }
     else if (address >= 0xA200 && address < 0xC000)
     {

@@ -108,7 +108,9 @@ bool GearboyCore::LoadROM(const char* szFilePath)
         bool romTypeOK = AddMemoryRules();
 
         if (!romTypeOK)
+        {
             Log("There was a problem with the cartridge header. File: %s...", szFilePath);
+        }
 
         return romTypeOK;
     }
@@ -303,7 +305,9 @@ bool GearboyCore::AddMemoryRules()
             Log("--> ** Unknown cartridge type: %d", type);
 
             if (notSupported)
+            {
                 Log("--> ** This cartridge is not supported. Type: %d", type);
+            }
     }
 
     return !notSupported;
@@ -314,9 +318,13 @@ void GearboyCore::Reset(bool bCGB)
     m_bCGB = bCGB;
 
     if (m_bCGB)
+    {
         Log("Switching to Game Boy Color");
+    }
     else
+    {
         Log("Defaulting to Game Boy DMG");
+    }
 
     m_MBC = MBC_NONE;
     m_pMemory->Reset(m_bCGB);

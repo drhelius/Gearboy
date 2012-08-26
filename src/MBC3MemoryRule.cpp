@@ -112,7 +112,9 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)] = value;
         }
         else
+        {
             Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+        }
     }
     else if (address >= 0xC000 && address < 0xDE00)
     {

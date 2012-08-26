@@ -117,9 +117,13 @@ bool Cartridge::LoadFromFile(const char* path)
         m_bLoaded = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
 
         if (m_bLoaded)
+        {
             Log("ROM loaded", path);
+        }
         else
+        {
             Log("There was a problem loading the memory for file %s...", path);
+        }
 
         SafeDeleteArray(memblock);
 
@@ -195,12 +199,18 @@ void Cartridge::GatherMetadata()
     Log("RAM Size %X", m_iRAMSize);
 
     if (m_pTheROM[0x143] == 0xC0)
+    {
         Log("Game Boy Color Only!");
+    }
     else if (m_bCGB)
+    {
         Log("Game Boy Color Supported");
+    }
 
     if (m_bSGB)
+    {
         Log("Super Game Boy Supported");
+    }
 
     int checksum = 0;
 
@@ -212,6 +222,8 @@ void Cartridge::GatherMetadata()
     m_bValidROM = ((checksum + 25) & BIT_MASK_8) == 0;
 
     if (m_bValidROM)
+    {
         Log("Checksum OK!");
+    }
 }
 
