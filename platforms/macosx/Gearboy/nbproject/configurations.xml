@@ -98,7 +98,7 @@
       </toolsSet>
       <qt>
         <buildMode>1</buildMode>
-        <modules>core gui</modules>
+        <modules>core gui opengl</modules>
       </qt>
       <compileType>
         <cTool>
