@@ -68,11 +68,9 @@ output.txt
 
 
 # Qt Ignores
-moc_GLFrame.cpp
-moc_MainWindow.cpp
-moc_RenderThread.cpp
+moc_*.cpp
 qt-Debug.mk
 qt-Release.mk
-ui_MainWindow.h
+ui_*.h
 
 

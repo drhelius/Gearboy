@@ -20,11 +20,14 @@
 #include "ui_MainWindow.h"
 #include "GLFrame.h"
 #include "Emulator.h"
+#include "InputSettings.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     m_bFullscreen = false;
     m_iScreenSize = 2;
+
+    m_pInputSettings = new InputSettings();
 
     m_bMenuPressed[0] = m_bMenuPressed[1] = m_bMenuPressed[2] = false;
     m_pUI = new Ui::MainWindow();
@@ -78,6 +81,7 @@ MainWindow::~MainWindow()
     SafeDelete(m_pExitShortcut);
     SafeDelete(m_pEmulator);
     SafeDelete(m_pGLFrame);
+    SafeDelete(m_pInputSettings);
     SafeDelete(m_pUI);
 }
 
@@ -144,6 +148,9 @@ void MainWindow::MenuGameBoyLoadStateFrom()
 
 void MainWindow::MenuSettingsInput()
 {
+    m_pGLFrame->PauseRenderThread();
+    m_pInputSettings->show();
+    m_pGLFrame->ResumeRenderThread();
 }
 
 void MainWindow::MenuSettingsVideo()
