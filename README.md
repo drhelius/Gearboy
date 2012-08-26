@@ -88,6 +88,7 @@ License
 -------
 
 <i>Gearboy - Nintendo Game Boy Emulator</i>
+
 <i>Copyright (C) 2012  Ignacio Sanchez</i>
 
 <i>This program is free software: you can redistribute it and/or modify</i>
