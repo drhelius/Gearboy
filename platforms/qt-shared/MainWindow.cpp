@@ -15,6 +15,7 @@
  */
 
 #include <QFileDialog>
+#include <QDesktopWidget>
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "GLFrame.h"
@@ -172,20 +173,22 @@ void MainWindow::MenuSettingsFullscreen()
 		m_bFullscreen = false;
 		this->showNormal();
 		m_pUI->menubar->show();
-		ResizeWindow(m_iScreenSize);
-		setFixedSize(sizeHint());
+		ResizeWindow(m_iScreenSize);       
 		m_pGLFrame->move(0, 0);
 	}
 	else
 	{
 		m_bFullscreen = true;
-		
-		this->showFullScreen();
 
+                this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+                this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+                this->setMinimumSize(0,0);
+                this->showFullScreen();
+                
 		m_pUI->menubar->hide();
 
-		int w = this->width();
-		int h = this->height();
+		int w = qApp->desktop()->size().width();
+		int h = qApp->desktop()->size().height();
 
 		int factor = h / GAMEBOY_HEIGHT;
 
@@ -343,14 +346,17 @@ void MainWindow::ResizeWindow(int factor)
 {
 	m_iScreenSize = factor;
 	m_pGLFrame->setMaximumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
-		m_pGLFrame->setMinimumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
-	//m_pGLFrame->setFixedSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
+	m_pGLFrame->setMinimumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
 }
 
 bool MainWindow::event(QEvent *ev) {
     if(ev->type() == QEvent::LayoutRequest) {
-		if (!this->isFullScreen())
-			setFixedSize(sizeHint());
+		if (!m_bFullscreen)
+                {
+                  this->setMaximumSize(sizeHint());
+                this->setMinimumSize(sizeHint());
+                this->resize(sizeHint());
+                }
     }
     return QMainWindow::event(ev);
 }
