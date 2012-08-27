@@ -49,12 +49,14 @@
                    projectFiles="true">
       <itemPath>../../qt-shared/Emulator.h</itemPath>
       <itemPath>../../qt-shared/GLFrame.h</itemPath>
+      <itemPath>../../qt-shared/InputSettings.h</itemPath>
       <itemPath>../../qt-shared/MainWindow.h</itemPath>
       <itemPath>../../qt-shared/RenderThread.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+      <itemPath>../../qt-shared/InputSettings.ui</itemPath>
       <itemPath>../../qt-shared/MainWindow.ui</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
@@ -62,6 +64,7 @@
                    projectFiles="true">
       <itemPath>../../qt-shared/Emulator.cpp</itemPath>
       <itemPath>../../qt-shared/GLFrame.cpp</itemPath>
+      <itemPath>../../qt-shared/InputSettings.cpp</itemPath>
       <itemPath>../../qt-shared/MainWindow.cpp</itemPath>
       <itemPath>../../qt-shared/RenderThread.cpp</itemPath>
       <itemPath>../../qt-shared/main.cpp</itemPath>
