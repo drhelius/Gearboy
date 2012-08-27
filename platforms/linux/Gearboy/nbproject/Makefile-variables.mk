@@ -15,13 +15,13 @@ CND_PACKAGE_DIR_Debug=dist/Debug/GNU-Linux-x86/package
 CND_PACKAGE_NAME_Debug=Gearboy.tar
 CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux-x86/package/Gearboy.tar
 # Release configuration
-CND_PLATFORM_Release=CLang-MacOSX
-CND_ARTIFACT_DIR_Release=dist/Release/CLang-MacOSX
+CND_PLATFORM_Release=GNU-Linux-x86
+CND_ARTIFACT_DIR_Release=dist/Release/GNU-Linux-x86
 CND_ARTIFACT_NAME_Release=Gearboy
-CND_ARTIFACT_PATH_Release=dist/Release/CLang-MacOSX/Gearboy
-CND_PACKAGE_DIR_Release=dist/Release/CLang-MacOSX/package
+CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux-x86/Gearboy
+CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux-x86/package
 CND_PACKAGE_NAME_Release=Gearboy.tar
-CND_PACKAGE_PATH_Release=dist/Release/CLang-MacOSX/package/Gearboy.tar
+CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux-x86/package/Gearboy.tar
 #
 # include compiler specific variables
 #

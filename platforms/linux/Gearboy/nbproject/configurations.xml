@@ -49,6 +49,7 @@
                    projectFiles="true">
       <itemPath>../../qt-shared/Emulator.h</itemPath>
       <itemPath>../../qt-shared/GLFrame.h</itemPath>
+      <itemPath>../../qt-shared/InputSettings.h</itemPath>
       <itemPath>../../qt-shared/MainWindow.h</itemPath>
       <itemPath>../../qt-shared/RenderThread.h</itemPath>
       <itemPath>../Gearboy/ui_MainWindow.h</itemPath>
@@ -56,6 +57,7 @@
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+      <itemPath>../../qt-shared/InputSettings.ui</itemPath>
       <itemPath>../../qt-shared/MainWindow.ui</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
@@ -63,6 +65,7 @@
                    projectFiles="true">
       <itemPath>../../qt-shared/Emulator.cpp</itemPath>
       <itemPath>../../qt-shared/GLFrame.cpp</itemPath>
+      <itemPath>../../qt-shared/InputSettings.cpp</itemPath>
       <itemPath>../../qt-shared/MainWindow.cpp</itemPath>
       <itemPath>../../qt-shared/RenderThread.cpp</itemPath>
       <itemPath>../../qt-shared/main.cpp</itemPath>
@@ -100,11 +103,11 @@
     <conf name="Release" type="4">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>CLang|CLang</compilerSet>
+        <compilerSet>GNU|GNU</compilerSet>
       </toolsSet>
       <qt>
         <buildMode>1</buildMode>
-        <modules>core gui</modules>
+        <modules>core gui opengl</modules>
       </qt>
       <compileType>
         <cTool>
