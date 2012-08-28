@@ -47,7 +47,10 @@ void Audio::Init(int sampleRate)
     m_iSampleRate = sampleRate;
     
     if (SDL_Init(SDL_INIT_AUDIO) < 0)
+    {
         Log("--> ** SDL Audio not initialized");
+    }
+    
     atexit(SDL_Quit);
 
 	m_pSampleBuffer = new blip_sample_t[kSampleBufferSize];

@@ -1,6 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="84">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f2" displayName="Audio" projectFiles="true" kind="ROOT">
+      <itemPath>../../../src/audio/gb_apu/Blip_Buffer.cpp</itemPath>
+      <itemPath>../../../src/audio/gb_apu/Blip_Buffer.h</itemPath>
+      <itemPath>../../../src/audio/gb_apu/Blip_Synth.h</itemPath>
+      <itemPath>../../../src/audio/gb_apu/Gb_Apu.cpp</itemPath>
+      <itemPath>../../../src/audio/gb_apu/Gb_Apu.h</itemPath>
+      <itemPath>../../../src/audio/gb_apu/Gb_Oscs.cpp</itemPath>
+      <itemPath>../../../src/audio/gb_apu/Gb_Oscs.h</itemPath>
+      <itemPath>../../../src/audio/gb_apu/Multi_Buffer.cpp</itemPath>
+      <itemPath>../../../src/audio/gb_apu/Multi_Buffer.h</itemPath>
+      <itemPath>../../../src/audio/Sound_Queue.cpp</itemPath>
+      <itemPath>../../../src/audio/Sound_Queue.h</itemPath>
+      <itemPath>../../../src/audio/gb_apu/blargg_common.h</itemPath>
+      <itemPath>../../../src/audio/gb_apu/blargg_source.h</itemPath>
+    </logicalFolder>
     <logicalFolder name="f1" displayName="Core" projectFiles="true">
       <itemPath>../../../src/Audio.cpp</itemPath>
       <itemPath>../../../src/Audio.h</itemPath>
@@ -95,7 +110,7 @@
       <compileType>
         <linkerTool>
           <linkerLibItems>
-            <linkerOptionItem>-lGLU</linkerOptionItem>
+            <linkerOptionItem>-lGLU -lSDL</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
@@ -124,7 +139,7 @@
         </asmTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerOptionItem>-lGLU</linkerOptionItem>
+            <linkerOptionItem>-lGLU -lSDL</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
