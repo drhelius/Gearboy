@@ -18,6 +18,7 @@
  */
 
 #include "Audio.h"
+#include "Memory.h"
 #include "audio/Sound_Queue.h"
 #include "audio/gb_apu/Gb_Apu.h"
 
@@ -30,39 +31,38 @@ Audio::Audio()
     m_iSampleRate = 0;
     InitPointer(m_pApu);
     InitPointer(m_pBuffer);
-	InitPointer(m_pSound);
-	InitPointer(m_pSampleBuffer);
+    InitPointer(m_pSound);
+    InitPointer(m_pSampleBuffer);
 }
 
 Audio::~Audio()
 {
     SafeDelete(m_pApu);
     SafeDelete(m_pBuffer);
-	SafeDelete(m_pSound);
-	SafeDeleteArray(m_pSampleBuffer);
+    SafeDelete(m_pSound);
+    SafeDeleteArray(m_pSampleBuffer);
 }
 
 void Audio::Init(int sampleRate)
 {
     m_iSampleRate = sampleRate;
-    
+
     if (SDL_Init(SDL_INIT_AUDIO) < 0)
     {
         Log("--> ** SDL Audio not initialized");
     }
-    
+
     atexit(SDL_Quit);
 
-	m_pSampleBuffer = new blip_sample_t[kSampleBufferSize];
+    m_pSampleBuffer = new blip_sample_t[kSampleBufferSize];
 
     Reset();
 }
 
 void Audio::Reset()
 {
-    m_Time = 0;
     m_bEnabled = true;
-    
+
     SafeDelete(m_pApu);
     SafeDelete(m_pBuffer);
     SafeDelete(m_pSound);
@@ -78,6 +78,11 @@ void Audio::Reset()
     m_pBuffer->clock_rate(4194304);
     m_pBuffer->set_sample_rate(m_iSampleRate);
     m_pSound->start(m_iSampleRate, 2);
+
+    for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
+        m_pApu->write_register(0, reg, kInitialValuesForFFXX[reg - 0xFF00]);
+
+    m_Time = 0;
 }
 
 void Audio::Enable(bool enabled)
@@ -92,37 +97,49 @@ bool Audio::IsEnabled() const
 
 u8 Audio::ReadAudioRegister(u16 address)
 {
-	if (m_bEnabled)
-	{
-		m_Time += 4;
-		return m_pApu->read_register(m_Time, address) | kSoundMask[address - 0xFF10];
-	}
-	else
-		return kSoundMask[address - 0xFF10];
+    if (m_bEnabled)
+    {
+        m_Time += 4;
+        return m_pApu->read_register(m_Time, address); // | kSoundMask[address - 0xFF10];
+    }
+    else
+        return kSoundMask[address - 0xFF10];
 }
 
 void Audio::WriteAudioRegister(u16 address, u8 value)
 {
-	if (m_bEnabled)
-	{
-		m_Time += 4;
-		m_pApu->write_register(m_Time, address, value);
-	} 
+    if (m_bEnabled)
+    {
+        m_Time += 4;
+        m_pApu->write_register(m_Time, address, value);
+        /*
+                if ((address == 0xFF26) && ((value & 0x80) == 0))
+                {
+                    for (int i = 0xFF10; i <= 0xFF26; i++)
+                        m_pApu->write_register(m_Time, i, 0);
+                }
+                else
+                {
+                    // Si no esta habilitado el sonido se ignora la escribitura a los registros
+                    if ((address >= 0xFF30) || (address == 0xFF26) || (m_pApu->read_register(m_Time, address)&0x80))
+                        m_pApu->write_register(m_Time, address, value);
+                }*/
+    }
 }
 
 void Audio::EndFrame()
 {
     m_Time = 0;
 
-	if (m_bEnabled)
-	{
-		bool stereo = m_pApu->end_frame(frame_length);
-		m_pBuffer->end_frame(frame_length, stereo);
-		
-		if ( m_pBuffer->samples_avail() >= kSampleBufferSize )
-		{
-			long count = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
-			m_pSound->write(m_pSampleBuffer, count);
-		}
-	}
+    if (m_bEnabled)
+    {
+        bool stereo = m_pApu->end_frame(frame_length);
+        m_pBuffer->end_frame(frame_length, stereo);
+
+        if (m_pBuffer->samples_avail() >= kSampleBufferSize)
+        {
+            long count = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
+            m_pSound->write(m_pSampleBuffer, count);
+        }
+    }
 }

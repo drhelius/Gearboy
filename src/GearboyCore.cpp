@@ -98,7 +98,7 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
 
         if (!m_bCGB)
             RenderDMGFrame(pFrameBuffer);
-        
+
         m_pAudio->EndFrame();
     }
 }
