@@ -26,8 +26,8 @@
 
 RomOnlyMemoryRule::RomOnlyMemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge)
+        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
+pMemory, pVideo, pInput, pCartridge, pAudio)
 {
 }
 

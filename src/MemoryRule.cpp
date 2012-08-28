@@ -20,13 +20,14 @@
 #include "MemoryRule.h"
 
 MemoryRule::MemoryRule(Processor* pProcessor, Memory* pMemory,
-        Video* pVideo, Input* pInput, Cartridge* pCartridge)
+        Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio)
 {
     m_pProcessor = pProcessor;
     m_pMemory = pMemory;
     m_pVideo = pVideo;
     m_pInput = pInput;
     m_pCartridge = pCartridge;
+    m_pAudio = pAudio;
     m_bEnabled = false;
     m_MaxAddress = 0;
     m_bCGB = false;

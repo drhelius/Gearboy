@@ -78,7 +78,7 @@ void GearboyCore::Init()
     m_pMemory->Init();
     m_pProcessor->Init();
     m_pVideo->Init();
-    m_pAudio->Init();
+    m_pAudio->Init(44100);
     m_pInput->Init();
     m_pCartridge->Init();
 
@@ -98,6 +98,8 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
 
         if (!m_bCGB)
             RenderDMGFrame(pFrameBuffer);
+        
+        m_pAudio->EndFrame();
     }
 }
 
@@ -159,37 +161,37 @@ void GearboyCore::ResetROM()
 void GearboyCore::InitMemoryRules()
 {
     m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge);
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pIORegistersMemoryRule->SetMinAddress(0xFF00);
     m_pIORegistersMemoryRule->SetMaxAddress(0xFFFF);
     m_pIORegistersMemoryRule->Enable();
 
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge);
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pRomOnlyMemoryRule->Enable();
     m_pRomOnlyMemoryRule->SetMinAddress(0x0000);
     m_pRomOnlyMemoryRule->SetMaxAddress(0xFEFF);
 
     m_pMBC1MemoryRule = new MBC1MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge);
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pMBC1MemoryRule->Enable();
     m_pMBC1MemoryRule->SetMinAddress(0x0000);
     m_pMBC1MemoryRule->SetMaxAddress(0xFEFF);
 
     m_pMBC2MemoryRule = new MBC2MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge);
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pMBC2MemoryRule->Enable();
     m_pMBC2MemoryRule->SetMinAddress(0x0000);
     m_pMBC2MemoryRule->SetMaxAddress(0xFEFF);
 
     m_pMBC3MemoryRule = new MBC3MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge);
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pMBC3MemoryRule->Enable();
     m_pMBC3MemoryRule->SetMinAddress(0x0000);
     m_pMBC3MemoryRule->SetMaxAddress(0xFEFF);
 
     m_pMBC5MemoryRule = new MBC5MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge);
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pMBC5MemoryRule->Enable();
     m_pMBC5MemoryRule->SetMinAddress(0x0000);
     m_pMBC5MemoryRule->SetMaxAddress(0xFEFF);

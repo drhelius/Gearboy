@@ -26,8 +26,8 @@
 
 MBC2MemoryRule::MBC2MemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge)
+        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
+pMemory, pVideo, pInput, pCartridge, pAudio)
 {
     m_iCurrentROMBank = 1;
     m_bRamEnabled = false;

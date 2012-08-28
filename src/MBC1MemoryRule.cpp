@@ -26,8 +26,8 @@
 
 MBC1MemoryRule::MBC1MemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge)
+        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
+pMemory, pVideo, pInput, pCartridge, pAudio)
 {
     m_iMode = 0;
     m_iCurrentRAMBank = 0;

@@ -22,11 +22,12 @@
 #include "Memory.h"
 #include "Processor.h"
 #include "Input.h"
+#include "Audio.h"
 
 IORegistersMemoryRule::IORegistersMemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge)
+        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
+pMemory, pVideo, pInput, pCartridge, pAudio)
 {
 }
 
@@ -40,6 +41,11 @@ u8 IORegistersMemoryRule::PerformRead(u16 address)
     {
         // P1
         return m_pInput->GetJoyPadState();
+    }
+    else if ((address >= 0xFF10) && (address <= 0xFF3F))
+    {
+        // SOUND REGISTERS
+        return m_pAudio->ReadAudioRegister(address);
     }
     else if (address == 0xFF44)
     {
@@ -81,6 +87,11 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     {
         // IF
         m_pMemory->Load(address, value & 0x1F);
+    }
+    else if ((address >= 0xFF10) && (address <= 0xFF3F))
+    {
+        // SOUND REGISTERS
+        m_pAudio->WriteAudioRegister(address, value);
     }
     else if (address == 0xFF40)
     {

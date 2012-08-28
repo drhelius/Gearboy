@@ -27,12 +27,13 @@ class Video;
 class Processor;
 class Input;
 class Cartridge;
+class Audio;
 
 class MemoryRule
 {
 public:
     MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo,
-            Input* pInput, Cartridge* pCartridge);
+            Input* pInput, Cartridge* pCartridge, Audio* pAudio);
     virtual ~MemoryRule();
     virtual u8 PerformRead(u16 address) = 0;
     virtual void PerformWrite(u16 address, u8 value) = 0;
@@ -51,6 +52,7 @@ protected:
     Video* m_pVideo;
     Input* m_pInput;
     Cartridge* m_pCartridge;
+    Audio* m_pAudio;
     bool m_bCGB;
 private:
     bool m_bEnabled;

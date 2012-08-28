@@ -1,0 +1,72 @@
+
+// Using the APU in an emulator
+
+#include "gb_apu/Gb_Apu.h"
+#include "gb_apu/Multi_Buffer.h"
+
+Gb_Apu apu;
+
+int cpu_time;
+
+void write_memory( gb_addr_t addr, int data )
+{
+	// ...
+	if ( addr >= apu.start_addr && addr <= apu.end_addr )
+		apu.write_register( cpu_time, addr, data );
+}
+
+int read_memory( gb_addr_t addr )
+{
+	// ...
+	if ( addr >= apu.start_addr && addr <= apu.end_addr )
+		return apu.read_register( cpu_time, addr );
+}
+
+void emulate_cpu( int end_time )
+{
+	while ( cpu_time < end_time )
+	{
+		// Emulate instruction
+		// ...
+		cpu_time += cycle_table [opcode];
+	}
+}
+
+Stereo_Buffer buf;
+const int out_size = 4096;
+blip_sample_t out_buf [out_size];
+
+void end_frame( int length )
+{
+	bool stereo = apu.end_frame( length );
+	buf.end_frame( length, stereo );
+	
+	// Read some samples out of Blip_Buffer if there are enough to
+	// fill our output buffer
+	if ( buf.samples_avail() >= out_size )
+	{
+		size_t count = buf.read_samples( out_buf, out_size );
+		
+		// Play samples
+		//play_samples( out_buf, count );
+	}
+}
+
+void render_frame()
+{
+	cpu_time = 0;
+	// Run CPU for frame
+	// ...
+	end_frame( cpu_time );
+}
+
+void init()
+{
+	blargg_err_t error = buf.set_sample_rate( 44100 );
+	if ( error )
+		report_error( error );
+	
+	buf.clock_rate( 4194304 );
+	apu.output( buf.center(), buf.left(), buf.right() );
+}
+

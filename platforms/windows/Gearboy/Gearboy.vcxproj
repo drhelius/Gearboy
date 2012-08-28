@@ -41,6 +41,10 @@
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">D:\Nacho\github\SDL-1.2.15\include;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">D:\Nacho\github\SDL-1.2.15\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">D:\Nacho\github\SDL-1.2.15\include;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">D:\Nacho\github\SDL-1.2.15\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -56,7 +60,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>qtmaind.lib;QtCored4.lib;QtGuid4.lib;QtOpenGLd4.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL.lib;qtmaind.lib;QtCored4.lib;QtGuid4.lib;QtOpenGLd4.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -73,11 +77,16 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>qtmain.lib;QtCore4.lib;QtGui4.lib;QtOpenGL4.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL.lib;qtmain.lib;QtCore4.lib;QtGui4.lib;QtOpenGL4.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Audio.cpp" />
+    <ClCompile Include="..\..\..\src\audio\gb_apu\Blip_Buffer.cpp" />
+    <ClCompile Include="..\..\..\src\audio\gb_apu\Gb_Apu.cpp" />
+    <ClCompile Include="..\..\..\src\audio\gb_apu\Gb_Oscs.cpp" />
+    <ClCompile Include="..\..\..\src\audio\gb_apu\Multi_Buffer.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp" />
     <ClCompile Include="..\..\..\src\Cartridge.cpp" />
     <ClCompile Include="..\..\..\src\EightBitRegister.cpp" />
     <ClCompile Include="..\..\..\src\GearboyCore.cpp" />
@@ -139,6 +148,14 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL"</Command>
     </CustomBuild>
     <ClInclude Include="..\..\..\src\Audio.h" />
+    <ClInclude Include="..\..\..\src\audio\gb_apu\blargg_common.h" />
+    <ClInclude Include="..\..\..\src\audio\gb_apu\blargg_source.h" />
+    <ClInclude Include="..\..\..\src\audio\gb_apu\Blip_Buffer.h" />
+    <ClInclude Include="..\..\..\src\audio\gb_apu\Blip_Synth.h" />
+    <ClInclude Include="..\..\..\src\audio\gb_apu\Gb_Apu.h" />
+    <ClInclude Include="..\..\..\src\audio\gb_apu\Gb_Oscs.h" />
+    <ClInclude Include="..\..\..\src\audio\gb_apu\Multi_Buffer.h" />
+    <ClInclude Include="..\..\..\src\audio\Sound_Queue.h" />
     <ClInclude Include="..\..\..\src\boot_roms.h" />
     <ClInclude Include="..\..\..\src\Cartridge.h" />
     <ClInclude Include="..\..\..\src\definitions.h" />

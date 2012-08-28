@@ -1,0 +1,87 @@
+Gb_Snd_Emu Change Log
+
+
+Gb_Snd_Emu 0.1.4
+----------------
+- Changed licensing to GNU Lesser General Public License (LGPL)
+
+- Created discussion forum: http://groups.google.com/group/blargg-sound-libs
+
+- Added simplified version of APU to make it easy to get started
+
+- Fixed hanging note problem in Bionic Commando: Elite Forces (and probably
+others).
+
+- Added Kode54's accuracy fixes for GBC differences, but haven't done much
+verification or checking of them
+
+- Implemented workaround for MSVC++ 6 compiler limitations, allowing it to work
+on that compiler again
+
+- Changed error return value of Blip_Buffer::set_sample_rate() to blargg_err_t
+(defined in blargg_common.h), to make error reporting consistent with other
+functions. This means the "no error" return value is the opposite of what it
+was before, which will break current code which checks the error return value:
+
+	// current code (broken)
+	if ( !buf.set_sample_rate( samples_per_sec ) )
+		out_of_memory();
+	
+	// quick-and-dirty fix (just remove the ! operation)
+	if ( buf.set_sample_rate( samples_per_sec ) )
+		out_of_memory();
+	
+	// proper fix
+	blargg_err_t error = buf.set_sample_rate( samples_per_sec );
+	if ( error )
+		report_error( error );
+
+- Added sample clamping to Blip_Buffer::read_samples(), allowing higher volume
+with little distortion
+
+- Changed 'size_t' values in Blip_Buffer interface to 'long'
+
+- Changed demo to generate a WAVE sound file rather than an AIFF file
+
+
+Gb_Snd_Emu 0.1.1
+----------------
+- Moved GBS player-related modules to Game_Music_Emu library
+
+- Added note about compiler optimizer bugs
+
+- Gb_Apu::write_register() and Gb_Apu::read_register() now take the actual
+memory address, rather than register number  (i.e. they now take 0xff25 rather
+than 0x15). An assertion was added to catch the old usage. See Gb_Apu.h.
+
+- Replaced Blip_Buffer::buffer_size() and Blip_Buffer::units_per_sample() with
+simpler functions (see Blip_Buffer.h and updated demo)
+
+	// old way
+	if ( !buf.buffer_size( sample_count ) )
+		out_of_memory();
+	buf.units_per_sample( clocks_per_sec / samples_per_sec );
+	
+	// new way
+	int length = 1000 / 2; // 1/2 second buffer length
+	if ( !buf.sample_rate( samples_per_sec, length ) )
+		out_of_memory();
+	buf.clock_rate( clocks_per_sec );
+
+- Renamed Gb_Apu::master_volume() to volume()
+
+- Added Gb_Apu::output() to assign all oscillators in one call.
+
+- Expanded notes
+
+- Updated to Blip_Buffer 0.3.0
+
+- Improved demo and changed it to use new Stereo_Buffer
+
+- Made assertions more descriptive when they fail
+
+
+Gb_Snd_Emu 0.1.0
+----------------
+- First release
+
