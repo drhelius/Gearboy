@@ -111,9 +111,19 @@ void Audio::WriteAudioRegister(u16 address, u8 value)
     if (m_bEnabled)
     {
         m_Time += 4;
-        m_pApu->write_register(m_Time, address, value);
+        if ((address == 0xFF26) && ((value & 0x80) == 0))
+        {
+            for (int i = 0xFF10; i <= 0xFF26; i++)
+                m_pApu->write_register(m_Time, i, 0);
+        }
+        else
+        {
+            if ((address >= 0xFF30) || (address == 0xFF26) || (address == 0xFF20) || (m_pApu->read_register(m_Time, 0xFF26) & 0x80))
+                m_pApu->write_register(m_Time, address, value);
+        }
     }
 }
+
 
 void Audio::EndFrame()
 {
