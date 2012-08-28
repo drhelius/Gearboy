@@ -25,6 +25,7 @@ Input::Input(Memory* pMemory, Processor* pProcessor)
 {
     m_pMemory = pMemory;
     m_pProcessor = pProcessor;
+    m_JoypadState = 0xFF;
 }
 
 void Input::Init()

@@ -34,7 +34,6 @@ public:
 private:
     int m_iCurrentROMBank;
     bool m_bRamEnabled;
-    u8 m_HigherRomBankBits;
 };
 
 #endif	/* MBC2MEMORYRULE_H */

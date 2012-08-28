@@ -338,7 +338,7 @@ void GearboyCore::Reset(bool bCGB)
     m_pAudio->Reset();
     m_pInput->Reset();
 
-    m_pIORegistersMemoryRule->Reset(m_bCGB);
+    m_pRomOnlyMemoryRule->Reset(m_bCGB);
     m_pMBC1MemoryRule->Reset(m_bCGB);
     m_pMBC2MemoryRule->Reset(m_bCGB);
     m_pMBC3MemoryRule->Reset(m_bCGB);

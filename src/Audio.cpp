@@ -28,7 +28,7 @@ Audio::Audio()
 {
     m_bEnabled = true;
     m_Time = 0;
-    m_iSampleRate = 0;
+    m_iSampleRate = 44100;
     InitPointer(m_pApu);
     InitPointer(m_pBuffer);
     InitPointer(m_pSound);
@@ -110,7 +110,7 @@ void Audio::WriteAudioRegister(u16 address, u8 value)
 {
     if (m_bEnabled)
     {
-        m_Time += 4;
+        
         if ((address == 0xFF26) && ((value & 0x80) == 0))
         {
             for (int i = 0xFF10; i <= 0xFF26; i++)
@@ -119,7 +119,10 @@ void Audio::WriteAudioRegister(u16 address, u8 value)
         else
         {
             if ((address >= 0xFF30) || (address == 0xFF26) || (address == 0xFF20) || (m_pApu->read_register(m_Time, 0xFF26) & 0x80))
+            {
+                m_Time += 4;
                 m_pApu->write_register(m_Time, address, value);
+            }
         }
     }
 }

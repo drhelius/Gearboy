@@ -40,6 +40,7 @@ RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
     m_pFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     m_iWidth = 0;
     m_iHeight = 0;
+    InitPointer(m_pEmulator);
 }
 
 RenderThread::~RenderThread()

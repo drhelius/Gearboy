@@ -36,7 +36,6 @@ private:
     int m_iCurrentROMBank;
     int m_iCurrentROMBankHi;
     bool m_bRamEnabled;
-    u8 m_HigherRomBankBits;
     u8* m_pRAMBanks;
 };
 
