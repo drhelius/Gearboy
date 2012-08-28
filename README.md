@@ -23,8 +23,8 @@ Features
 - Basic Game Boy Color support.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Uses Qt framework for GUI and OpenGL for rendering.
-- Multi platform. Compiles and runs on Windows, Linux and Mac OS.
-- Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS.
+- Multi platform. Compiles and runs on Windows, Linux and Mac OS X.
+- Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS X.
 
 Things left
 -----------
@@ -61,12 +61,12 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Open the Gearboy Netbeans project and build.
 - Alternatively you can use <code>make</code> to build the project.
 
-### Mac OS
+### Mac OS X
 - You need at least Netbeans 7.2 for C++.
 - Install Xcode for the compiler to be available on the command line.
 - Install the [Qt SDK for Mac OS](http://qt.nokia.com/downloads/sdk-mac-os-cpp).
+- Add <code>qmake</code> to the PATH (You can find qmake in the bin directory where you have Qt SDK installed).
 - Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
-- Add <code>qmake</code> to the PATH (You can find qmake in the bin directory where you have Qt SDK installed). 
 - Open the Gearboy Netbeans project and build. This project is configured for using <code>clang</code>.
 - Alternatively you can use <code>make</code> to build the project.
 
