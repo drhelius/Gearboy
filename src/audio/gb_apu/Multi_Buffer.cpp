@@ -53,7 +53,7 @@ Silent_Buffer::Silent_Buffer() : Multi_Buffer( 1 ) // 0 channels would probably 
 
 // Mono_Buffer
 
-Mono_Buffer::channel_t Mono_Buffer::channel( int index )
+Mono_Buffer::channel_t Mono_Buffer::channel( int )
 {
 	channel_t ch;
 	ch.center = &buf;
