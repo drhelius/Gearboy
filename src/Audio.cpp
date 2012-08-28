@@ -100,7 +100,7 @@ u8 Audio::ReadAudioRegister(u16 address)
     if (m_bEnabled)
     {
         m_Time += 4;
-        return m_pApu->read_register(m_Time, address); // | kSoundMask[address - 0xFF10];
+        return m_pApu->read_register(m_Time, address) | kSoundMask[address - 0xFF10];
     }
     else
         return kSoundMask[address - 0xFF10];
@@ -112,18 +112,6 @@ void Audio::WriteAudioRegister(u16 address, u8 value)
     {
         m_Time += 4;
         m_pApu->write_register(m_Time, address, value);
-        /*
-                if ((address == 0xFF26) && ((value & 0x80) == 0))
-                {
-                    for (int i = 0xFF10; i <= 0xFF26; i++)
-                        m_pApu->write_register(m_Time, i, 0);
-                }
-                else
-                {
-                    // Si no esta habilitado el sonido se ignora la escribitura a los registros
-                    if ((address >= 0xFF30) || (address == 0xFF26) || (m_pApu->read_register(m_Time, address)&0x80))
-                        m_pApu->write_register(m_Time, address, value);
-                }*/
     }
 }
 
