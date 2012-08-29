@@ -2,19 +2,23 @@
 <configurationDescriptor version="84">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f2" displayName="Audio" projectFiles="true">
-      <itemPath>../../../src/audio/gb_apu/Blip_Buffer.cpp</itemPath>
-      <itemPath>../../../src/audio/gb_apu/Blip_Buffer.h</itemPath>
-      <itemPath>../../../src/audio/gb_apu/Blip_Synth.h</itemPath>
-      <itemPath>../../../src/audio/gb_apu/Gb_Apu.cpp</itemPath>
-      <itemPath>../../../src/audio/gb_apu/Gb_Apu.h</itemPath>
-      <itemPath>../../../src/audio/gb_apu/Gb_Oscs.cpp</itemPath>
-      <itemPath>../../../src/audio/gb_apu/Gb_Oscs.h</itemPath>
-      <itemPath>../../../src/audio/gb_apu/Multi_Buffer.cpp</itemPath>
-      <itemPath>../../../src/audio/gb_apu/Multi_Buffer.h</itemPath>
+      <itemPath>../../../src/audio/Blip_Buffer.cpp</itemPath>
+      <itemPath>../../../src/audio/Blip_Buffer.h</itemPath>
+      <itemPath>../../../src/audio/Blip_Synth.h</itemPath>
+      <itemPath>../../../src/audio/Effects_Buffer.cpp</itemPath>
+      <itemPath>../../../src/audio/Effects_Buffer.h</itemPath>
+      <itemPath>../../../src/audio/Gb_Apu.cpp</itemPath>
+      <itemPath>../../../src/audio/Gb_Apu.h</itemPath>
+      <itemPath>../../../src/audio/Gb_Apu_State.cpp</itemPath>
+      <itemPath>../../../src/audio/Gb_Oscs.cpp</itemPath>
+      <itemPath>../../../src/audio/Gb_Oscs.h</itemPath>
+      <itemPath>../../../src/audio/Multi_Buffer.cpp</itemPath>
+      <itemPath>../../../src/audio/Multi_Buffer.h</itemPath>
       <itemPath>../../../src/audio/Sound_Queue.cpp</itemPath>
       <itemPath>../../../src/audio/Sound_Queue.h</itemPath>
-      <itemPath>../../../src/audio/gb_apu/blargg_common.h</itemPath>
-      <itemPath>../../../src/audio/gb_apu/blargg_source.h</itemPath>
+      <itemPath>../../../src/audio/blargg_common.h</itemPath>
+      <itemPath>../../../src/audio/blargg_config.h</itemPath>
+      <itemPath>../../../src/audio/blargg_source.h</itemPath>
     </logicalFolder>
     <logicalFolder name="f1" displayName="Core" projectFiles="true">
       <itemPath>../../../src/Audio.cpp</itemPath>
@@ -67,12 +71,16 @@
       <itemPath>../../qt-shared/InputSettings.h</itemPath>
       <itemPath>../../qt-shared/MainWindow.h</itemPath>
       <itemPath>../../qt-shared/RenderThread.h</itemPath>
+      <itemPath>../../qt-shared/SoundSettings.h</itemPath>
+      <itemPath>../../qt-shared/VideoSettings.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
       <itemPath>../../qt-shared/InputSettings.ui</itemPath>
       <itemPath>../../qt-shared/MainWindow.ui</itemPath>
+      <itemPath>../../qt-shared/SoundSettings.ui</itemPath>
+      <itemPath>../../qt-shared/VideoSettings.ui</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -82,6 +90,8 @@
       <itemPath>../../qt-shared/InputSettings.cpp</itemPath>
       <itemPath>../../qt-shared/MainWindow.cpp</itemPath>
       <itemPath>../../qt-shared/RenderThread.cpp</itemPath>
+      <itemPath>../../qt-shared/SoundSettings.cpp</itemPath>
+      <itemPath>../../qt-shared/VideoSettings.cpp</itemPath>
       <itemPath>../../qt-shared/main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
