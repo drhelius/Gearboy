@@ -78,6 +78,7 @@ Passed Tests
 This tests are from [blargg's test roms](http://blargg.parodius.com/gb-tests/).
 
 ![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_1.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_2.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_3.png)
+![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_32.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_33.png)!
 
 Screenshots
 -----------
