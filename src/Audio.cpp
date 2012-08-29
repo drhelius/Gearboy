@@ -102,34 +102,26 @@ bool Audio::IsEnabled() const
 
 u8 Audio::ReadAudioRegister(u16 address)
 {
-    if (m_bEnabled)
-    {
-        return m_pApu->read_register(m_Time, address);
-    }
-    else
-        return kSoundMask[address - 0xFF10];
+	return m_pApu->read_register(m_Time, address);
 }
 
 void Audio::WriteAudioRegister(u16 address, u8 value)
 {
-    if (m_bEnabled)
-    {
-		m_pApu->write_register(m_Time, address, value);
-    }
+	m_pApu->write_register(m_Time, address, value);
 }
 
 void Audio::EndFrame()
 {
-    if (m_bEnabled)
-    {
-        m_pApu->end_frame(70224);
-        m_pBuffer->end_frame(70224);
+    m_pApu->end_frame(kSoundFrameLength);
+    m_pBuffer->end_frame(kSoundFrameLength);
 
-        if (m_pBuffer->samples_avail() >= kSampleBufferSize)
-        {
-            long count = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
-            m_pSound->write(m_pSampleBuffer, count);
-        }
+    if (m_pBuffer->samples_avail() >= kSampleBufferSize)
+    {
+        long count = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
+		if (m_bEnabled)
+		{
+			m_pSound->write(m_pSampleBuffer, count);
+		}
     }
 }
 
@@ -137,9 +129,9 @@ void Audio::Tick(u8 clockCycles)
 {
 	m_Time += clockCycles;
 
-	if (m_Time >= 70224)
+	if (m_Time >= kSoundFrameLength)
 	{
-		m_Time -= 70224;
+		m_Time -= kSoundFrameLength;
 
 		EndFrame();
 	}
