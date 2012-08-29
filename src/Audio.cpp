@@ -24,7 +24,7 @@
 
 Audio::Audio()
 {
-	m_bCGB = false;
+    m_bCGB = false;
     m_bEnabled = true;
     m_Time = 0;
     m_iSampleRate = 44100;
@@ -60,7 +60,7 @@ void Audio::Init(int sampleRate)
 
 void Audio::Reset(bool bCGB)
 {
-	m_bCGB = bCGB;
+    m_bCGB = bCGB;
     m_bEnabled = true;
 
     SafeDelete(m_pApu);
@@ -68,9 +68,9 @@ void Audio::Reset(bool bCGB)
     SafeDelete(m_pSound);
     m_pApu = new Gb_Apu();
     m_pBuffer = new Stereo_Buffer();
-	m_pSound = new Sound_Queue();
+    m_pSound = new Sound_Queue();
 
-	m_pBuffer->clock_rate(4194304);
+    m_pBuffer->clock_rate(4194304);
     m_pBuffer->set_sample_rate(m_iSampleRate);
 
     // Adjust frequency equalization to make it sound like a tiny speaker
@@ -78,14 +78,14 @@ void Audio::Reset(bool bCGB)
     m_pBuffer->bass_freq(461); // higher values simulate smaller speaker
 
     m_pApu->output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
-    
+
     m_pSound->start(m_iSampleRate, 2);
 
-	Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
+    Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
 
-	m_pApu->reset(mode);
-	
-	m_pBuffer->clear();
+    m_pApu->reset(mode);
+
+    m_pBuffer->clear();
 
     m_Time = 0;
 }
@@ -102,12 +102,12 @@ bool Audio::IsEnabled() const
 
 u8 Audio::ReadAudioRegister(u16 address)
 {
-	return m_pApu->read_register(m_Time, address);
+    return m_pApu->read_register(m_Time, address);
 }
 
 void Audio::WriteAudioRegister(u16 address, u8 value)
 {
-	m_pApu->write_register(m_Time, address, value);
+    m_pApu->write_register(m_Time, address, value);
 }
 
 void Audio::EndFrame()
@@ -118,21 +118,21 @@ void Audio::EndFrame()
     if (m_pBuffer->samples_avail() >= kSampleBufferSize)
     {
         long count = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
-		if (m_bEnabled)
-		{
-			m_pSound->write(m_pSampleBuffer, count);
-		}
+        if (m_bEnabled)
+        {
+            m_pSound->write(m_pSampleBuffer, count);
+        }
     }
 }
 
 void Audio::Tick(u8 clockCycles)
 {
-	m_Time += clockCycles;
+    m_Time += clockCycles;
 
-	if (m_Time >= kSoundFrameLength)
-	{
-		m_Time -= kSoundFrameLength;
+    if (m_Time >= kSoundFrameLength)
+    {
+        m_Time -= kSoundFrameLength;
 
-		EndFrame();
-	}
+        EndFrame();
+    }
 }

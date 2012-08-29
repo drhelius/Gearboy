@@ -24,14 +24,14 @@
 
 class SoundSettings : public QDialog
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	SoundSettings();
-	~SoundSettings();
+    SoundSettings();
+    ~SoundSettings();
 
 private:
-	Ui::SoundSettings widget;
+    Ui::SoundSettings widget;
 };
 
 #endif // SOUNDSETTINGS_H
