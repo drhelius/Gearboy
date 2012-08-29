@@ -131,15 +131,6 @@
     <ClCompile Include="..\..\qt-shared\Emulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\audio\gb_apu\Blip_Buffer.cpp">
-      <Filter>Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\audio\gb_apu\Gb_Apu.cpp">
-      <Filter>Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\audio\gb_apu\Gb_Oscs.cpp">
-      <Filter>Audio</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_InputSettings.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
@@ -148,12 +139,6 @@
     </ClCompile>
     <ClCompile Include="..\..\qt-shared\InputSettings.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\audio\gb_apu\Multi_Buffer.cpp">
-      <Filter>Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp">
-      <Filter>Audio</Filter>
     </ClCompile>
     <ClCompile Include="..\..\qt-shared\VideoSettings.cpp">
       <Filter>Source Files</Filter>
@@ -172,6 +157,27 @@
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_SoundSettings.cpp">
       <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio\Blip_Buffer.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio\Effects_Buffer.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio\Gb_Apu.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio\Gb_Apu_State.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio\Gb_Oscs.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio\Multi_Buffer.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp">
+      <Filter>Audio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -279,30 +285,6 @@
     <ClInclude Include="..\..\qt-shared\Emulator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\gb_apu\Multi_Buffer.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\gb_apu\blargg_common.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\gb_apu\blargg_source.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\gb_apu\Blip_Buffer.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\gb_apu\Blip_Synth.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\gb_apu\Gb_Apu.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\gb_apu\Gb_Oscs.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\Sound_Queue.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_InputSettings.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
@@ -311,6 +293,36 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_SoundSettings.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\Sound_Queue.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\blargg_common.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\blargg_config.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\blargg_source.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\Blip_Buffer.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\Blip_Synth.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\Effects_Buffer.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\Gb_Apu.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\Gb_Oscs.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\Multi_Buffer.h">
+      <Filter>Audio</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

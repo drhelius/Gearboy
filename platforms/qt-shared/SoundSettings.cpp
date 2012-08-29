@@ -21,7 +21,7 @@
 
 SoundSettings::SoundSettings()
 {
-	widget.setupUi(this);
+    widget.setupUi(this);
 }
 
 SoundSettings::~SoundSettings()

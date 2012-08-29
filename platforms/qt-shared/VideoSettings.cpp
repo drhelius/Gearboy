@@ -21,7 +21,7 @@
 
 VideoSettings::VideoSettings()
 {
-	widget.setupUi(this);
+    widget.setupUi(this);
 }
 
 VideoSettings::~VideoSettings()

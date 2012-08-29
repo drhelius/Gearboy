@@ -24,14 +24,14 @@
 
 class VideoSettings : public QDialog
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	VideoSettings();
-	~VideoSettings();
+    VideoSettings();
+    ~VideoSettings();
 
 private:
-	Ui::VideoSettings widget;
+    Ui::VideoSettings widget;
 };
 
 #endif // VIDEOSETTINGS_H
