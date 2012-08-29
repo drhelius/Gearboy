@@ -55,9 +55,9 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 
 ### Linux
 - You need at least Netbeans 7.2 for C++.
-- Install the Qt development dependencies (Ubuntu: <code>sudo apt-get install qt4-dev-tools</code>).
-- Install the OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
-- Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
+- Install Qt development dependencies (Ubuntu: <code>sudo apt-get install qt4-dev-tools</code>).
+- Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
+- Install SDL development dependencies (Ubuntu: <code>sudo apt-get install libsdl1.2-dev</code>).
 - Open the Gearboy Netbeans project and build.
 - Alternatively you can use <code>make</code> to build the project.
 - In Ubuntu 12.04 I had to <code>set export SDL_AUDIODRIVER=ALSA</code> for the sound to work properly.
