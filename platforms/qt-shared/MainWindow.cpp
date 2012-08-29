@@ -90,6 +90,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::Exit()
 {
+#ifdef DEBUG_GEARBOY
+    m_pEmulator->MemoryDump();
+#endif
     this->close();
 }
 

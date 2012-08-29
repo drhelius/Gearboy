@@ -91,3 +91,8 @@ void Emulator::Reset()
     m_pGearboyCore->ResetROM();
     m_Mutex.unlock();
 }
+
+void Emulator::MemoryDump()
+{
+    m_pGearboyCore->GetMemory()->MemoryDump("memdump.txt");
+}

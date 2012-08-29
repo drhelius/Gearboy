@@ -37,6 +37,7 @@ public:
     void Resume();
     bool IsPaused();
     void Reset();
+    void MemoryDump();
 
 private:
     GearboyCore* m_pGearboyCore;
