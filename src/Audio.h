@@ -38,6 +38,7 @@ public:
     u8 ReadAudioRegister(u16 address);
     void WriteAudioRegister(u16 address, u8 value);
     void EndFrame();
+	void Tick(u8 clockCycles);
 
 private:
     bool m_bEnabled;
@@ -49,7 +50,7 @@ private:
     blip_sample_t* m_pSampleBuffer;
 };
 
-const int kSampleBufferSize = 2048;
+const int kSampleBufferSize = 4096;
 
 const u8 kSoundMask[] ={
     0x80, 0x3F, 0x00, 0xFF, 0xBF, // NR10-NR14 (0xFF10-0xFF14)

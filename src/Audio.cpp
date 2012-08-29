@@ -22,8 +22,6 @@
 #include "audio/Sound_Queue.h"
 #include "audio/gb_apu/Gb_Apu.h"
 
-gb_time_t const frame_length = 70224;
-
 Audio::Audio()
 {
     m_bEnabled = true;
@@ -99,7 +97,6 @@ u8 Audio::ReadAudioRegister(u16 address)
 {
     if (m_bEnabled)
     {
-        m_Time += 4;
         return m_pApu->read_register(m_Time, address) | kSoundMask[address - 0xFF10];
     }
     else
@@ -110,7 +107,6 @@ void Audio::WriteAudioRegister(u16 address, u8 value)
 {
     if (m_bEnabled)
     {
-        
         if ((address == 0xFF26) && ((value & 0x80) == 0))
         {
             for (int i = 0xFF10; i <= 0xFF26; i++)
@@ -120,7 +116,6 @@ void Audio::WriteAudioRegister(u16 address, u8 value)
         {
             if ((address >= 0xFF30) || (address == 0xFF26) || (address == 0xFF20) || (m_pApu->read_register(m_Time, 0xFF26) & 0x80))
             {
-                m_Time += 4;
                 m_pApu->write_register(m_Time, address, value);
             }
         }
@@ -130,17 +125,22 @@ void Audio::WriteAudioRegister(u16 address, u8 value)
 
 void Audio::EndFrame()
 {
-    m_Time = 0;
-
     if (m_bEnabled)
     {
-        bool stereo = m_pApu->end_frame(frame_length);
-        m_pBuffer->end_frame(frame_length, stereo);
+        bool stereo = m_pApu->end_frame(m_Time);
+        m_pBuffer->end_frame(m_Time, stereo);
 
         if (m_pBuffer->samples_avail() >= kSampleBufferSize)
         {
             long count = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
             m_pSound->write(m_pSampleBuffer, count);
         }
+
+		m_Time = 0;
     }
+}
+
+void Audio::Tick(u8 clockCycles)
+{
+	m_Time += clockCycles;
 }
