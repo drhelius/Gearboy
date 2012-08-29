@@ -36,7 +36,7 @@ MemoryRule::MemoryRule(Processor* pProcessor, Memory* pMemory,
 
 MemoryRule::~MemoryRule()
 {
-    
+
 }
 
 void MemoryRule::SetMaxAddress(u16 maxAddress)

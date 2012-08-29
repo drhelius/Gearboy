@@ -838,7 +838,7 @@ void Processor::OPCode0x76()
     // HALT
     u8 if_reg = m_pMemory->Retrieve(0xFF0F);
     u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
-    
+
     if (!m_bCGB && !m_bIME && (if_reg & ie_reg & 0x1F))
         m_bSkipPCBug = true;
     else

@@ -67,7 +67,7 @@ void Processor::Reset(bool bCGB)
     SP.SetValue(0xFFFE);
     if (m_bCGB)
         AF.SetValue(0x11B0);
-    else     
+    else
         AF.SetValue(0x01B0);
     BC.SetValue(0x0013);
     DE.SetValue(0x00D8);

@@ -38,7 +38,7 @@ void EightBitRegister::Increment()
 {
     m_Value++;
 }
-    
+
 void EightBitRegister::Decrement()
 {
     m_Value--;

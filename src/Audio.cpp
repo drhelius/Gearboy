@@ -75,13 +75,9 @@ void Audio::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
     m_bEnabled = true;
-
     Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
-
     m_pApu->reset(mode);
-
     m_pBuffer->clear();
-
     m_Time = 0;
 }
 

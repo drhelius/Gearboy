@@ -25,7 +25,7 @@
 class MBC3MemoryRule : public MemoryRule
 {
 public:
-    MBC3MemoryRule(Processor* pProcessor, Memory* pMemory, 
+    MBC3MemoryRule(Processor* pProcessor, Memory* pMemory,
             Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
     virtual ~MBC3MemoryRule();
     virtual u8 PerformRead(u16 address);

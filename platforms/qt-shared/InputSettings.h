@@ -25,11 +25,11 @@
 class InputSettings : public QDialog
 {
     Q_OBJECT
-    
+
 public:
     InputSettings();
     ~InputSettings();
-    
+
 private:
     Ui::InputSettings widget;
 };

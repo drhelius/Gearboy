@@ -45,7 +45,7 @@ void MemoryCell::SetDisassembledString(const char* szDisassembled)
     strcpy(m_szDisassembled, szDisassembled);
 }
 
-char* MemoryCell::GetDisassembledString() 
+char* MemoryCell::GetDisassembledString()
 {
     return m_szDisassembled;
 }
