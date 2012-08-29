@@ -55,17 +55,6 @@ void Audio::Init(int sampleRate)
 
     m_pSampleBuffer = new blip_sample_t[kSampleBufferSize];
 
-    Reset(false);
-}
-
-void Audio::Reset(bool bCGB)
-{
-    m_bCGB = bCGB;
-    m_bEnabled = true;
-
-    SafeDelete(m_pApu);
-    SafeDelete(m_pBuffer);
-    SafeDelete(m_pSound);
     m_pApu = new Gb_Apu();
     m_pBuffer = new Stereo_Buffer();
     m_pSound = new Sound_Queue();
@@ -80,6 +69,12 @@ void Audio::Reset(bool bCGB)
     m_pApu->set_output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
 
     m_pSound->start(m_iSampleRate, 2);
+}
+
+void Audio::Reset(bool bCGB)
+{
+    m_bCGB = bCGB;
+    m_bEnabled = true;
 
     Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
 
