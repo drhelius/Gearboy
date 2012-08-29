@@ -22,7 +22,7 @@ Compiling Instructions
 - Install SDL development dependencies (Ubuntu: <code>sudo apt-get install libsdl1.2-dev</code>).
 - Open the Gearboy Netbeans project and build.
 - Alternatively you can use <code>make</code> to build the project.
-- In Ubuntu 12.04 I had to <code>set export SDL_AUDIODRIVER=ALSA</code> for the sound to work properly.
+- In Ubuntu 12.04 I had to <code>export SDL_AUDIODRIVER=ALSA</code> for the sound to work properly.
 
 License
 -------
