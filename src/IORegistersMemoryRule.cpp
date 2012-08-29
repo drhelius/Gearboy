@@ -42,10 +42,35 @@ u8 IORegistersMemoryRule::PerformRead(u16 address)
         // P1
         return m_pInput->GetJoyPadState();
     }
+    else if (address == 0xFF03)
+    {
+        // UNDOCUMENTED
+        return 0xFF;
+    }
+    else if (address == 0xFF07)
+    {
+        // TAC
+        return m_pMemory->Retrieve(0xFF07) | 0xF8;
+    }
+    else if ((address >= 0xFF08) && (address <= 0xFF0E))
+    {
+        // UNDOCUMENTED
+        return 0xFF;
+    }
+    else if (address == 0xFF0F)
+    {
+        // IF
+        return m_pMemory->Retrieve(0xFF0F) | 0xE0;
+    }
     else if ((address >= 0xFF10) && (address <= 0xFF3F))
     {
         // SOUND REGISTERS
         return m_pAudio->ReadAudioRegister(address);
+    }
+    else if (address == 0xFF41)
+    {
+        // STAT
+        return m_pMemory->Retrieve(0xFF41) | 0x80;
     }
     else if (address == 0xFF44)
     {
@@ -53,6 +78,31 @@ u8 IORegistersMemoryRule::PerformRead(u16 address)
             return m_pMemory->Retrieve(0xFF44);
         else
             return 0x00;
+    }
+    else if (address == 0xFF4C)
+    {
+        // UNDOCUMENTED
+        return 0xFF;
+    }
+    else if (address == 0xFF4F)
+    {
+        // VBK
+        return m_pMemory->Retrieve(0xFF4F) | 0xFE;
+    }
+    else if ((address == 0xFF68) || (address == 0xFF6A))
+    {
+        // BCPS, OCPS
+        return (m_bCGB ? (m_pMemory->Retrieve(address) | 0x40) : 0xC0);
+    }
+    else if ((address == 0xFF69) || (address == 0xFF6B))
+    {
+        // BCPD, OCPD
+        return (m_bCGB ? m_pMemory->Retrieve(address) : 0xFF);
+    }
+    else if (address == 0xFF70)
+    {
+        // SVBK
+        return (m_bCGB ? (m_pMemory->Retrieve(0xFF70) | 0xF8) : 0xFF);
     }
     else
     {
@@ -126,6 +176,27 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         // DMA
         m_pMemory->DoDMATransfer(value);
     }
+    else if (address == 0xFF47)
+    {
+        // BGP
+        m_pMemory->Load(address, value);
+    }
+    else if (address == 0xFF48)
+    {
+        // OBP0
+        m_pMemory->Load(address, value);
+    }
+    else if (address == 0xFF49)
+    {
+        // OBP1
+        m_pMemory->Load(address, value);
+    }
+    else if (m_bCGB && (address == 0xFF4D))
+    {
+        // KEY1
+        u8 current_key1 = m_pMemory->Retrieve(0xFF4D);
+        m_pMemory->Load(address, (current_key1 & 0x80) | (value & 0x01) | 0x7E);
+    }
     else if (m_bCGB && (address == 0xFF4F))
     {
         // VBK
@@ -166,11 +237,21 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         m_pVideo->SetColorPalette(false, value);
         m_pMemory->Load(address, value);
     }
+    else if (address == 0xFF6C)
+    {
+        // UNDOCUMENTED
+        m_pMemory->Load(0xFF6C, value | 0xFE);
+    }
     else if (m_bCGB && (address == 0xFF70))
     {
         // SVBK
         m_pMemory->SwitchCGBWRAM(value);
         m_pMemory->Load(address, value);
+    }
+    else if (address == 0xFF75)
+    {
+        // UNDOCUMENTED
+        m_pMemory->Load(0xFF75, value | 0x8F);
     }
     else if (address == 0xFFFF)
     {

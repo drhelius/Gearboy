@@ -57,9 +57,11 @@ u8 RomOnlyMemoryRule::PerformRead(u16 address)
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
-        // Empty area
-        Log("--> ** Attempting to read from non usable address %X", address);
-        return 0x00;
+        // Empty area - GBC allows reading/writing to this area
+        if (m_bCGB)
+            return m_pMemory->Retrieve(address); 
+        else
+            return ((((address + ((address >> 4) - 0x0FEA)) >> 2) & 1) ? 0x00 : 0xFF );
     }
     else
         return m_pMemory->Retrieve(address);
@@ -117,8 +119,8 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
-        // Empty area
-        Log("--> ** Attempting to write on non usable address %X %X", address, value);
+        // Empty area - GBC allows reading/writing to this area
+        m_pMemory->Load(address, value);
     }
     else
     {
