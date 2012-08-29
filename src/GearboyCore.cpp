@@ -99,8 +99,6 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
 
         if (!m_bCGB)
             RenderDMGFrame(pFrameBuffer);
-
-        m_pAudio->EndFrame();
     }
 }
 
@@ -336,7 +334,7 @@ void GearboyCore::Reset(bool bCGB)
     m_pMemory->Reset(m_bCGB);
     m_pProcessor->Reset(m_bCGB);
     m_pVideo->Reset(m_bCGB);
-    m_pAudio->Reset();
+    m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();
 
     m_pRomOnlyMemoryRule->Reset(m_bCGB);

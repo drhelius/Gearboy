@@ -82,10 +82,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Audio.cpp" />
-    <ClCompile Include="..\..\..\src\audio\gb_apu\Blip_Buffer.cpp" />
-    <ClCompile Include="..\..\..\src\audio\gb_apu\Gb_Apu.cpp" />
-    <ClCompile Include="..\..\..\src\audio\gb_apu\Gb_Oscs.cpp" />
-    <ClCompile Include="..\..\..\src\audio\gb_apu\Multi_Buffer.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Blip_Buffer.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Effects_Buffer.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Gb_Apu.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Gb_Apu_State.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Gb_Oscs.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Multi_Buffer.cpp" />
     <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp" />
     <ClCompile Include="..\..\..\src\Cartridge.cpp" />
     <ClCompile Include="..\..\..\src\EightBitRegister.cpp" />
@@ -171,6 +173,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I.\..\..\qt-shared"</Command>
     </CustomBuild>
+    <ClInclude Include="..\..\..\src\audio\blargg_common.h" />
+    <ClInclude Include="..\..\..\src\audio\blargg_config.h" />
+    <ClInclude Include="..\..\..\src\audio\blargg_source.h" />
+    <ClInclude Include="..\..\..\src\audio\Blip_Buffer.h" />
+    <ClInclude Include="..\..\..\src\audio\Blip_Synth.h" />
+    <ClInclude Include="..\..\..\src\audio\Effects_Buffer.h" />
+    <ClInclude Include="..\..\..\src\audio\Gb_Apu.h" />
+    <ClInclude Include="..\..\..\src\audio\Gb_Oscs.h" />
+    <ClInclude Include="..\..\..\src\audio\Multi_Buffer.h" />
+    <ClInclude Include="..\..\..\src\audio\Sound_Queue.h" />
     <ClInclude Include="GeneratedFiles\ui_SoundSettings.h" />
     <ClInclude Include="GeneratedFiles\ui_VideoSettings.h" />
     <CustomBuild Include="..\..\qt-shared\RenderThread.h">
@@ -184,14 +196,6 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB  "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I.\..\..\qt-shared"</Command>
     </CustomBuild>
     <ClInclude Include="..\..\..\src\Audio.h" />
-    <ClInclude Include="..\..\..\src\audio\gb_apu\blargg_common.h" />
-    <ClInclude Include="..\..\..\src\audio\gb_apu\blargg_source.h" />
-    <ClInclude Include="..\..\..\src\audio\gb_apu\Blip_Buffer.h" />
-    <ClInclude Include="..\..\..\src\audio\gb_apu\Blip_Synth.h" />
-    <ClInclude Include="..\..\..\src\audio\gb_apu\Gb_Apu.h" />
-    <ClInclude Include="..\..\..\src\audio\gb_apu\Gb_Oscs.h" />
-    <ClInclude Include="..\..\..\src\audio\gb_apu\Multi_Buffer.h" />
-    <ClInclude Include="..\..\..\src\audio\Sound_Queue.h" />
     <ClInclude Include="..\..\..\src\boot_roms.h" />
     <ClInclude Include="..\..\..\src\Cartridge.h" />
     <ClInclude Include="..\..\..\src\definitions.h" />

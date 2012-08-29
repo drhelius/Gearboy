@@ -20,10 +20,11 @@
 #include "Audio.h"
 #include "Memory.h"
 #include "audio/Sound_Queue.h"
-#include "audio/gb_apu/Gb_Apu.h"
+#include "audio/Gb_Apu.h"
 
 Audio::Audio()
 {
+	m_bCGB = false;
     m_bEnabled = true;
     m_Time = 0;
     m_iSampleRate = 44100;
@@ -54,11 +55,12 @@ void Audio::Init(int sampleRate)
 
     m_pSampleBuffer = new blip_sample_t[kSampleBufferSize];
 
-    Reset();
+    Reset(false);
 }
 
-void Audio::Reset()
+void Audio::Reset(bool bCGB)
 {
+	m_bCGB = bCGB;
     m_bEnabled = true;
 
     SafeDelete(m_pApu);
@@ -66,19 +68,24 @@ void Audio::Reset()
     SafeDelete(m_pSound);
     m_pApu = new Gb_Apu();
     m_pBuffer = new Stereo_Buffer();
-    m_pSound = new Sound_Queue();
+	m_pSound = new Sound_Queue();
+
+	m_pBuffer->clock_rate(4194304);
+    m_pBuffer->set_sample_rate(m_iSampleRate);
 
     // Adjust frequency equalization to make it sound like a tiny speaker
     m_pApu->treble_eq(-20.0); // lower values muffle it more
     m_pBuffer->bass_freq(461); // higher values simulate smaller speaker
 
     m_pApu->output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
-    m_pBuffer->clock_rate(4194304);
-    m_pBuffer->set_sample_rate(m_iSampleRate);
+    
     m_pSound->start(m_iSampleRate, 2);
 
-    for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
-        m_pApu->write_register(0, reg, kInitialValuesForFFXX[reg - 0xFF00]);
+	Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
+
+	m_pApu->reset(mode);
+	
+	m_pBuffer->clear();
 
     m_Time = 0;
 }
@@ -97,7 +104,7 @@ u8 Audio::ReadAudioRegister(u16 address)
 {
     if (m_bEnabled)
     {
-        return m_pApu->read_register(m_Time, address) | kSoundMask[address - 0xFF10];
+        return m_pApu->read_register(m_Time, address);
     }
     else
         return kSoundMask[address - 0xFF10];
@@ -107,18 +114,7 @@ void Audio::WriteAudioRegister(u16 address, u8 value)
 {
     if (m_bEnabled)
     {
-        if ((address == 0xFF26) && ((value & 0x80) == 0))
-        {
-            for (int i = 0xFF10; i <= 0xFF26; i++)
-                m_pApu->write_register(m_Time, i, 0);
-        }
-        else
-        {
-            if ((address >= 0xFF30) || (address == 0xFF26) || (address == 0xFF20) || (m_pApu->read_register(m_Time, 0xFF26) & 0x80))
-            {
-                m_pApu->write_register(m_Time, address, value);
-            }
-        }
+		m_pApu->write_register(m_Time, address, value);
     }
 }
 
@@ -126,20 +122,25 @@ void Audio::EndFrame()
 {
     if (m_bEnabled)
     {
-        bool stereo = m_pApu->end_frame(m_Time);
-        m_pBuffer->end_frame(m_Time, stereo);
+        m_pApu->end_frame(70224);
+        m_pBuffer->end_frame(70224);
 
         if (m_pBuffer->samples_avail() >= kSampleBufferSize)
         {
             long count = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
             m_pSound->write(m_pSampleBuffer, count);
         }
-
-		m_Time = 0;
     }
 }
 
 void Audio::Tick(u8 clockCycles)
 {
 	m_Time += clockCycles;
+
+	if (m_Time >= 70224)
+	{
+		m_Time -= 70224;
+
+		EndFrame();
+	}
 }

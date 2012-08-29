@@ -21,7 +21,7 @@
 #define	AUDIO_H
 
 #include "definitions.h"
-#include "audio/gb_apu/Multi_Buffer.h"
+#include "audio/Multi_Buffer.h"
 
 class Gb_Apu;
 class Sound_Queue;
@@ -32,7 +32,7 @@ public:
     Audio();
     ~Audio();
     void Init(int sampleRate);
-    void Reset();
+    void Reset(bool bCGB);
     void Enable(bool enabled);
     bool IsEnabled() const;
     u8 ReadAudioRegister(u16 address);
@@ -48,9 +48,10 @@ private:
     Sound_Queue* m_pSound;
     int m_iSampleRate;
     blip_sample_t* m_pSampleBuffer;
+	bool m_bCGB;
 };
 
-const int kSampleBufferSize = 4096;
+const int kSampleBufferSize = 2048;
 
 const u8 kSoundMask[] ={
     0x80, 0x3F, 0x00, 0xFF, 0xBF, // NR10-NR14 (0xFF10-0xFF14)
