@@ -155,6 +155,24 @@
     <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp">
       <Filter>Audio</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\qt-shared\VideoSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_VideoSettings.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_VideoSettings.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\qt-shared\SoundSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_SoundSettings.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_SoundSettings.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\qt-shared\GLFrame.h">
@@ -174,6 +192,18 @@
     </CustomBuild>
     <CustomBuild Include="..\..\qt-shared\InputSettings.h">
       <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\qt-shared\VideoSettings.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\qt-shared\VideoSettings.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\qt-shared\SoundSettings.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\qt-shared\SoundSettings.ui">
+      <Filter>Form Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -274,6 +304,12 @@
       <Filter>Audio</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_InputSettings.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_VideoSettings.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_SoundSettings.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
