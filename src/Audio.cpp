@@ -122,7 +122,6 @@ void Audio::WriteAudioRegister(u16 address, u8 value)
     }
 }
 
-
 void Audio::EndFrame()
 {
     if (m_bEnabled)
