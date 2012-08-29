@@ -77,7 +77,7 @@ void Audio::Reset(bool bCGB)
     m_pApu->treble_eq(-20.0); // lower values muffle it more
     m_pBuffer->bass_freq(461); // higher values simulate smaller speaker
 
-    m_pApu->output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
+    m_pApu->set_output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
 
     m_pSound->start(m_iSampleRate, 2);
 
