@@ -76,3 +76,5 @@ ui_*.h
 
 
 platforms/macosx/Gearboy/memdump.txt
+
+platforms/macosx/Gearboy/test.txt
