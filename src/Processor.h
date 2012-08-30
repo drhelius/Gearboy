@@ -69,6 +69,7 @@ private:
     int m_iSerialCycles;
     int m_iIMECycles;
     bool m_bCGB;
+    int m_InterruptDelayCycles[5];
 private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);
