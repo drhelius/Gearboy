@@ -1554,7 +1554,8 @@ void Processor::OPCode0xD9()
 {
     // RETI
     StackPop(&PC);
-    m_iIMECycles = (kOPCodeMachineCycles[0xD9] * 4) + 1;
+    //m_iIMECycles = (kOPCodeMachineCycles[0xD9] * 4) + 1;
+    m_bIME = true;
 }
 
 void Processor::OPCode0xDA()
