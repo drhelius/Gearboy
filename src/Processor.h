@@ -69,6 +69,7 @@ private:
     int m_iSerialBit;
     int m_iSerialCycles;
     int m_iIMECycles;
+    int m_iUnhaltCycles;
     bool m_bCGB;
     int m_InterruptDelayCycles[5];
 private:
