@@ -62,6 +62,7 @@ private:
     bool m_bCGB;
     GB_Color m_CGBSpritePalettes[8][4];
     GB_Color m_CGBBackgroundPalettes[8][4];
+    bool m_bScanLineTransfered;
 };
 
 #endif	/* VIDEO_H */

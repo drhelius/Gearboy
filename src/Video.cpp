@@ -36,6 +36,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iScreenEnableDelayCycles = 0;
     m_bScreenEnabled = true;
     m_bCGB = false;
+    m_bScanLineTransfered = false;
 }
 
 Video::~Video()
@@ -70,6 +71,7 @@ void Video::Reset(bool bCGB)
     m_iStatusModeLYCounter = 144;
     m_iScreenEnableDelayCycles = 0;
     m_bScreenEnabled = true;
+    m_bScanLineTransfered = false;
     m_bCGB = bCGB;
 }
 
@@ -85,6 +87,7 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
 
         switch (m_iStatusMode)
         {
+            // During H-BLANK
             case 0:
             {
                 if (m_iStatusModeCounter >= 204)
@@ -122,6 +125,7 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 }
                 break;
             }
+            // During V-BLANK
             case 1:
             {
                 m_iStatusModeCounterAux += clockCycles;
@@ -147,22 +151,29 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 }
                 break;
             }
+            // During searching OAM RAM
             case 2:
             {
                 if (m_iStatusModeCounter >= 80)
                 {
                     m_iStatusModeCounter -= 80;
                     m_iStatusMode = 3;
+                    m_bScanLineTransfered = false;
                     UpdateStatRegister();
                 }
                 break;
             }
+            // During transfering data to LCD driver
             case 3:
-            {
+            {            
+                if (!m_bScanLineTransfered && (m_iStatusModeCounter >= 48))
+                {
+                    m_bScanLineTransfered = true;
+                    ScanLine(m_iStatusModeLYCounter);
+                }
+
                 if (m_iStatusModeCounter >= 172)
                 {
-                    ScanLine(m_iStatusModeLYCounter);
-
                     m_iStatusModeCounter -= 172;
                     m_iStatusMode = 0;
 
