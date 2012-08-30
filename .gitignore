@@ -74,3 +74,5 @@ qt-Release.mk
 ui_*.h
 
 
+
+platforms/macosx/Gearboy/memdump.txt
