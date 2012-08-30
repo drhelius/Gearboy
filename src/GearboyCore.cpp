@@ -201,7 +201,7 @@ bool GearboyCore::AddMemoryRules()
     m_pMemory->AddRule(m_pIORegistersMemoryRule);
 
     int type = m_pCartridge->GetType();
-    if (m_pCartridge->GetROMSize() == 0)
+    if ((type != 0xEA) && (m_pCartridge->GetROMSize() == 0))
         type = 0;
 
     bool notSupported = false;
