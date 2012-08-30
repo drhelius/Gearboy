@@ -38,7 +38,7 @@ Processor::Processor(Memory* pMemory)
     m_iSerialBit = 0;
     m_iSerialCycles = 0;
     m_bCGB = false;
-    for (int i=0; i<5 ; i++)
+    for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
 }
 
@@ -74,7 +74,7 @@ void Processor::Reset(bool bCGB)
     BC.SetValue(0x0013);
     DE.SetValue(0x00D8);
     HL.SetValue(0x014D);
-    for (int i=0; i<5 ; i++)
+    for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
 }
 
@@ -92,13 +92,13 @@ u8 Processor::Tick()
         else
             m_CurrentClockCycles += 10;
 
-        for (int i=0; i<5 ; i++)
+        for (int i = 0; i < 5; i++)
         {
             if (m_InterruptDelayCycles[i] > 0)
             {
                 m_InterruptDelayCycles[i] -= m_CurrentClockCycles;
             }
-        }   
+        }
     }
 
     if (!m_bHalt)
@@ -107,13 +107,13 @@ u8 Processor::Tick()
         u8 opcode = FetchOPCode();
         ExecuteOPCode(opcode);
 
-        for (int i=0; i<5 ; i++)
+        for (int i = 0; i < 5; i++)
         {
             if (m_InterruptDelayCycles[i] > 0)
             {
                 m_InterruptDelayCycles[i] -= m_CurrentClockCycles;
             }
-        }        
+        }
     }
 
     UpdateTimers();
@@ -139,27 +139,28 @@ void Processor::RequestInterrupt(Interrupts interrupt)
 
     switch (interrupt)
     {
-    case VBlank_Interrupt:
-        m_InterruptDelayCycles[0] = 32;
-        break;
-    case LCDSTAT_Interrupt:
-        m_InterruptDelayCycles[0] = 0;
-        break;
-    case Timer_Interrupt:
-        m_InterruptDelayCycles[0] = 0;
-        break;
-    case Serial_Interrupt:
-        m_InterruptDelayCycles[0] = 0;
-        break;
-    case Joypad_Interrupt:
-        m_InterruptDelayCycles[0] = 0;
-        break;
+        case VBlank_Interrupt:
+            m_InterruptDelayCycles[0] = 32;
+            break;
+        case LCDSTAT_Interrupt:
+            m_InterruptDelayCycles[0] = 0;
+            break;
+        case Timer_Interrupt:
+            m_InterruptDelayCycles[0] = 0;
+            break;
+        case Serial_Interrupt:
+            m_InterruptDelayCycles[0] = 0;
+            break;
+        case Joypad_Interrupt:
+            m_InterruptDelayCycles[0] = 0;
+            break;
     }
 }
 
 void Processor::ResetTIMACycles()
 {
     m_iTIMACycles = 0;
+    m_pMemory->Load(0xFF05, m_pMemory->Retrieve(0xFF06));
 }
 
 u8 Processor::FetchOPCode()
@@ -221,7 +222,7 @@ void Processor::ServeInterrupts()
     if (if_reg)
     {
         if (if_reg & 0x01)
-        { 
+        {
             // VBLANK INTERRUPT EXECUTION
             if (m_bIME && (ie_reg & 0x01) && (m_InterruptDelayCycles[0] <= 0))
             {
@@ -233,7 +234,7 @@ void Processor::ServeInterrupts()
                 m_CurrentClockCycles += 20;
             }
         }
-        
+
         if (m_bIME && (if_reg & ie_reg & 0x02))
         {
             // LCDC STAT INTERRUPT EXECUTION

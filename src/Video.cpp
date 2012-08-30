@@ -87,9 +87,9 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
 
         switch (m_iStatusMode)
         {
-            // During H-BLANK
             case 0:
             {
+                // During H-BLANK
                 if (m_iStatusModeCounter >= 204)
                 {
                     m_iStatusModeCounter -= 204;
@@ -125,9 +125,9 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 }
                 break;
             }
-            // During V-BLANK
             case 1:
             {
+                // During V-BLANK
                 m_iStatusModeCounterAux += clockCycles;
 
                 if (m_iStatusModeCounterAux >= 456)
@@ -151,9 +151,9 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 }
                 break;
             }
-            // During searching OAM RAM
             case 2:
             {
+                // During searching OAM RAM
                 if (m_iStatusModeCounter >= 80)
                 {
                     m_iStatusModeCounter -= 80;
@@ -163,9 +163,9 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 }
                 break;
             }
-            // During transfering data to LCD driver
             case 3:
-            {          
+            {
+                // During transfering data to LCD driver
                 if (!m_bScanLineTransfered && (m_iStatusModeCounter >= 48))
                 {
                     m_bScanLineTransfered = true;
@@ -380,7 +380,7 @@ void Video::RenderBG(int line)
                 pixely = 7 - pixely;
                 pixely_2 = pixely * 2;
             }
-            */
+             */
             if (m_bCGB && cgb_tile_bank)
             {
                 byte1 = m_pMemory->ReadCGBLCDRAM(tiles + tile_16 + pixely_2, true);
