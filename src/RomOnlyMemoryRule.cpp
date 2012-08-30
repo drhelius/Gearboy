@@ -29,6 +29,7 @@ RomOnlyMemoryRule::RomOnlyMemoryRule(Processor* pProcessor,
         Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
 pMemory, pVideo, pInput, pCartridge, pAudio)
 {
+	Reset(false);
 }
 
 RomOnlyMemoryRule::~RomOnlyMemoryRule()
@@ -48,7 +49,7 @@ u8 RomOnlyMemoryRule::PerformRead(u16 address)
         else
         {
             Log("--> ** Attempting to read from non usable address %X", address);
-            return 0x00;
+            return 0xFF;
         }
     }
     else if (m_bCGB && (address >= 0xD000 && address < 0xE000))

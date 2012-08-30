@@ -29,8 +29,6 @@ MBC2MemoryRule::MBC2MemoryRule(Processor* pProcessor,
         Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
 pMemory, pVideo, pInput, pCartridge, pAudio)
 {
-    m_iCurrentROMBank = 1;
-    m_bRamEnabled = false;
     Reset(false);
 }
 
@@ -56,7 +54,7 @@ u8 MBC2MemoryRule::PerformRead(u16 address)
         else
         {
             Log("--> ** Attempting to read from disabled ram %X", address);
-            return 0x00;
+            return 0xFF;
         }
     }
     else if (address >= 0xA200 && address < 0xC000)
@@ -165,7 +163,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
 void MBC2MemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
-    m_iCurrentROMBank = 0;
+    m_iCurrentROMBank = 1;
     m_bRamEnabled = false;
 }
 

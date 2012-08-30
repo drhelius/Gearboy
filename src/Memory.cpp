@@ -60,8 +60,15 @@ void Memory::Reset(bool bCGB)
     for (int i = 0; i < 65536; i++)
     {
         m_pMap[i].Reset();
-        if (i >= 0xFF00)
+
+		if ((i >= 0xA000) && (i < 0xC000))
+		{
+			m_pMap[i].SetValue(0xFF);
+		}
+        else if (i >= 0xFF00)
+		{
             m_pMap[i].SetValue(kInitialValuesForFFXX[i - 0xFF00]);
+		}
     }
 }
 

@@ -29,10 +29,6 @@ MBC5MemoryRule::MBC5MemoryRule(Processor* pProcessor,
         Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
 pMemory, pVideo, pInput, pCartridge, pAudio)
 {
-    m_iCurrentRAMBank = 0;
-    m_iCurrentROMBank = 1;
-    m_iCurrentROMBankHi = 0;
-    m_bRamEnabled = false;
     m_pRAMBanks = new u8[0x20000];
     Reset(false);
 }
@@ -62,7 +58,7 @@ u8 MBC5MemoryRule::PerformRead(u16 address)
         else
         {
             Log("--> ** Attempting to read from disabled ram %X", address);
-            return 0x00;
+            return 0xFF;
         }
     }
     else if (m_bCGB && (address >= 0xD000 && address < 0xE000))
@@ -166,10 +162,11 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
 void MBC5MemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
-    m_iCurrentRAMBank = 0;
-    m_iCurrentROMBank = 0;
+	m_iCurrentRAMBank = 0;
+    m_iCurrentROMBank = 1;
+    m_iCurrentROMBankHi = 0;
     m_bRamEnabled = false;
     for (int i = 0; i < 0x20000; i++)
-        m_pRAMBanks[i] = 0;
+        m_pRAMBanks[i] = 0xFF;
 }
 
