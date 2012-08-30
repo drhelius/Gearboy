@@ -162,7 +162,7 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
 void MBC5MemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
-	m_iCurrentRAMBank = 0;
+    m_iCurrentRAMBank = 0;
     m_iCurrentROMBank = 1;
     m_iCurrentROMBankHi = 0;
     m_bRamEnabled = false;

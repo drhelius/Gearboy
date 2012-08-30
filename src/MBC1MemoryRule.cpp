@@ -209,11 +209,11 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
 void MBC1MemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
-	m_iMode = 0;
+    m_iMode = 0;
     m_iCurrentRAMBank = 0;
     m_iCurrentROMBank = 1;
     m_HigherRomBankBits = 0;
-	m_bRamEnabled = false;
+    m_bRamEnabled = false;
     for (int i = 0; i < 0x8000; i++)
         m_pRAMBanks[i] = 0xFF;
 }

@@ -29,7 +29,7 @@ RomOnlyMemoryRule::RomOnlyMemoryRule(Processor* pProcessor,
         Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
 pMemory, pVideo, pInput, pCartridge, pAudio)
 {
-	Reset(false);
+    Reset(false);
 }
 
 RomOnlyMemoryRule::~RomOnlyMemoryRule()
@@ -60,9 +60,9 @@ u8 RomOnlyMemoryRule::PerformRead(u16 address)
     {
         // Empty area - GBC allows reading/writing to this area
         if (m_bCGB)
-            return m_pMemory->Retrieve(address); 
+            return m_pMemory->Retrieve(address);
         else
-            return ((((address + ((address >> 4) - 0x0FEA)) >> 2) & 1) ? 0x00 : 0xFF );
+            return ((((address + ((address >> 4) - 0x0FEA)) >> 2) & 1) ? 0x00 : 0xFF);
     }
     else
         return m_pMemory->Retrieve(address);
