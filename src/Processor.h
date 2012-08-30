@@ -32,6 +32,7 @@ public:
 
     enum Interrupts
     {
+        None_Interrupt = 0x00,
         VBlank_Interrupt = 0x01,
         LCDSTAT_Interrupt = 0x02,
         Timer_Interrupt = 0x04,
@@ -74,9 +75,11 @@ private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);
     void ExecuteOPCodeCB(u8 opcode);
-    void ServeInterrupts();
+    Processor::Interrupts InterruptPending();
+    void ServeInterrupt(Interrupts interrupt);
     void UpdateTimers();
     void UpdateSerial();
+    void UpdateDelayedInterrupts();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);
     void SetFlag(u8 flag);
