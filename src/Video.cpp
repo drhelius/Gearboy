@@ -431,6 +431,9 @@ void Video::RenderWindow(int line)
     {
         u8 wy = m_pMemory->Retrieve(0xFF4A);
 
+        if (wy > 143)
+            return;
+
         if (wy <= line)
         {
             int tiles = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
@@ -440,6 +443,9 @@ void Video::RenderWindow(int line)
             int pixely = lineAdjusted % 8;
             int pixely_2 = pixely * 2;
             int wx = m_pMemory->Retrieve(0xFF4B) - 7;
+
+            if (wx > 159)
+                return;
 
             for (int x = 0; x < 32; x++)
             {
