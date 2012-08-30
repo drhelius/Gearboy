@@ -304,6 +304,10 @@ bool GearboyCore::AddMemoryRules()
             // HuC1
             notSupported = true;
             break;
+        case 0xEA:
+            // Hack to accept 0xEA as a MBC1 memory bank controller (Sonic 3D Blast 5)
+            m_pMemory->AddRule(m_pMBC1MemoryRule);
+            break;
         default:
             notSupported = true;
             Log("--> ** Unknown cartridge type: %d", type);
