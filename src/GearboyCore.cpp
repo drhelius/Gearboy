@@ -210,6 +210,13 @@ bool GearboyCore::AddMemoryRules()
     {
         case 0x00:
             // NO MBC
+        case 0x08:
+            // ROM   
+            // SRAM 
+        case 0x09:
+            // ROM
+            // SRAM
+            // BATT
             m_pMemory->AddRule(m_pRomOnlyMemoryRule);
             break;
         case 0x01:
@@ -221,6 +228,8 @@ bool GearboyCore::AddMemoryRules()
             // MBC1
             // SRAM
             // BATT
+        case 0xEA:
+            // Hack to accept 0xEA as a MBC1 memory bank controller (Sonic 3D Blast 5)
             m_pMemory->AddRule(m_pMBC1MemoryRule);
             break;
         case 0x05:
@@ -229,26 +238,6 @@ bool GearboyCore::AddMemoryRules()
             // MBC2
             // BATT
             m_pMemory->AddRule(m_pMBC2MemoryRule);
-            break;
-        case 0x08:
-            // ROM   
-            // SRAM 
-        case 0x09:
-            // ROM
-            // SRAM
-            // BATT
-            m_pMemory->AddRule(m_pRomOnlyMemoryRule);
-            break;
-        case 0x0B:
-            // MMMO1
-        case 0x0C:
-            // MMM01   
-            // SRAM 
-        case 0x0D:
-            // MMM01
-            // SRAM
-            // BATT
-            notSupported = true;
             break;
         case 0x0F:
             // MBC3
@@ -268,6 +257,7 @@ bool GearboyCore::AddMemoryRules()
             // MBC3
             // BATT
             // SRAM
+        case 0xFC:
             m_pMemory->AddRule(m_pMBC3MemoryRule);
             break;
         case 0x19:
@@ -290,6 +280,15 @@ bool GearboyCore::AddMemoryRules()
             // SRAM
             m_pMemory->AddRule(m_pMBC5MemoryRule);
             break;
+        case 0x0B:
+            // MMMO1
+        case 0x0C:
+            // MMM01   
+            // SRAM 
+        case 0x0D:
+            // MMM01
+            // SRAM
+            // BATT
         case 0x1F:
             // Game Boy Camera
         case 0x22:
@@ -303,19 +302,11 @@ bool GearboyCore::AddMemoryRules()
         case 0xFF:
             // HuC1
             notSupported = true;
-            break;
-        case 0xEA:
-            // Hack to accept 0xEA as a MBC1 memory bank controller (Sonic 3D Blast 5)
-            m_pMemory->AddRule(m_pMBC1MemoryRule);
+            Log("--> ** This cartridge is not supported. Type: %d", type);
             break;
         default:
             notSupported = true;
             Log("--> ** Unknown cartridge type: %d", type);
-
-            if (notSupported)
-            {
-                Log("--> ** This cartridge is not supported. Type: %d", type);
-            }
     }
 
     return !notSupported;
