@@ -39,7 +39,6 @@ Processor::Processor(Memory* pMemory)
     m_iSerialCycles = 0;
     m_bCGB = false;
     m_iUnhaltCycles = 0;
-    m_bWakeFromHalt = false;
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
 }
@@ -68,7 +67,6 @@ void Processor::Reset(bool bCGB)
     m_iSerialBit = 0;
     m_iSerialCycles = 0;
     m_iUnhaltCycles = 0;
-    m_bWakeFromHalt = false;
     PC.SetValue(0x100);
     SP.SetValue(0xFFFE);
     if (m_bCGB)
@@ -88,7 +86,7 @@ u8 Processor::Tick()
 
     if (m_bHalt)
     {
-        m_CurrentClockCycles += 10;
+        m_CurrentClockCycles += 4;
 
         if (m_iUnhaltCycles > 0)
         {
@@ -98,16 +96,16 @@ u8 Processor::Tick()
             {
                 m_iUnhaltCycles = 0;
                 m_bHalt = false;
-                m_bWakeFromHalt = true;
             }
         }
 
         if (m_bHalt && (InterruptPending() != None_Interrupt) && (m_iUnhaltCycles == 0))
         {
-            m_iUnhaltCycles = 16;
+            m_iUnhaltCycles = 12;
         }
     }
-    else
+    
+    if (!m_bHalt)
     {
         ServeInterrupt(InterruptPending());
         u8 opcode = FetchOPCode();
@@ -252,9 +250,8 @@ Processor::Interrupts Processor::InterruptPending()
 
 void Processor::ServeInterrupt(Interrupts interrupt)
 {
-    if (m_bWakeFromHalt || m_bIME)
+    if (m_bIME)
     {
-        m_bWakeFromHalt = false;
         u8 if_reg = m_pMemory->Retrieve(0xFF0F);
         switch (interrupt)
         {

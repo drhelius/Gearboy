@@ -73,7 +73,6 @@ private:
     int m_iUnhaltCycles;
     bool m_bCGB;
     int m_InterruptDelayCycles[5];
-    bool m_bWakeFromHalt;
 private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);
