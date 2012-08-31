@@ -47,6 +47,7 @@ public:
     u8 Tick();
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
+    void ResetDIVCycles();
 private:
     typedef void (Processor::*OPCptr) (void);
     OPCptr m_OPCodes[256];

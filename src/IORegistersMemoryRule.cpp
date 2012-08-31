@@ -120,7 +120,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     else if (address == 0xFF04)
     {
         // DIV
-        m_pMemory->Load(address, 0x00);
+        m_pProcessor->ResetDIVCycles();
     }
     else if (address == 0xFF07)
     {

@@ -164,6 +164,12 @@ void Processor::ResetTIMACycles()
     m_pMemory->Load(0xFF05, m_pMemory->Retrieve(0xFF06));
 }
 
+void Processor::ResetDIVCycles()
+{
+    m_pMemory->Load(0xFF04, 0x00);
+    m_iTIMACycles = 0;
+}
+
 u8 Processor::FetchOPCode()
 {
     u8 opcode = m_pMemory->Read(PC.GetValue());
