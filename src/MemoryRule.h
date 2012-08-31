@@ -21,6 +21,7 @@
 #define	MEMORYRULE_H
 
 #include "definitions.h"
+#include <vector>
 
 class Memory;
 class Video;
@@ -38,14 +39,9 @@ public:
     virtual u8 PerformRead(u16 address) = 0;
     virtual void PerformWrite(u16 address, u8 value) = 0;
     virtual void Reset(bool bCGB) = 0;
-    void SetMaxAddress(u16 maxAddress);
-    u16 GetMaxAddress() const;
-    void SetMinAddress(u16 minAddress);
-    u16 GetMinAddress() const;
-    bool IsEnabled() const;
-    void Enable();
-    void Disable();
-    bool IsAddressInRange(u16 address);
+    void AddAddressRange(u16 minAddress, u16 maxAddress);
+    void ClearAddressRanges();
+    bool IsAddressInRanges(u16 address);
 protected:
     Processor* m_pProcessor;
     Memory* m_pMemory;
@@ -55,9 +51,13 @@ protected:
     Audio* m_pAudio;
     bool m_bCGB;
 private:
-    bool m_bEnabled;
-    u16 m_MinAddress;
-    u16 m_MaxAddress;
+    struct stAddressRange
+    {
+        u16 minAddress;
+        u16 maxAddress;
+    };
+    std::vector<stAddressRange> m_Ranges;
+    typedef std::vector<stAddressRange>::iterator AddressRangeVectorIterator;
 };
 
 #endif	/* MEMORYRULE_H */

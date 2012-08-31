@@ -24,6 +24,7 @@
 #include "Audio.h"
 #include "Input.h"
 #include "Cartridge.h"
+#include "CommonMemoryRule.h"
 #include "IORegistersMemoryRule.h"
 #include "RomOnlyMemoryRule.h"
 #include "MBC1MemoryRule.h"
@@ -39,6 +40,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pAudio);
     InitPointer(m_pInput);
     InitPointer(m_pCartridge);
+    InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
     InitPointer(m_pMBC1MemoryRule);
@@ -58,6 +60,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pMBC1MemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
+    SafeDelete(m_pCommonMemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
     SafeDelete(m_pAudio);
@@ -161,44 +164,43 @@ void GearboyCore::InitMemoryRules()
 {
     m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pIORegistersMemoryRule->SetMinAddress(0xFF00);
-    m_pIORegistersMemoryRule->SetMaxAddress(0xFFFF);
-    m_pIORegistersMemoryRule->Enable();
+    m_pIORegistersMemoryRule->AddAddressRange(0xFF00, 0xFFFF);
+
+    m_pCommonMemoryRule = new CommonMemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pCommonMemoryRule->AddAddressRange(0x8000, 0x9FFF);
+    m_pCommonMemoryRule->AddAddressRange(0xC000, 0xFEFF);
 
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pRomOnlyMemoryRule->Enable();
-    m_pRomOnlyMemoryRule->SetMinAddress(0x0000);
-    m_pRomOnlyMemoryRule->SetMaxAddress(0xFEFF);
+    m_pRomOnlyMemoryRule->AddAddressRange(0x0000, 0x7FFF);
+    m_pRomOnlyMemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC1MemoryRule = new MBC1MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC1MemoryRule->Enable();
-    m_pMBC1MemoryRule->SetMinAddress(0x0000);
-    m_pMBC1MemoryRule->SetMaxAddress(0xFEFF);
+    m_pMBC1MemoryRule->AddAddressRange(0x0000, 0x7FFF);
+    m_pMBC1MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC2MemoryRule = new MBC2MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC2MemoryRule->Enable();
-    m_pMBC2MemoryRule->SetMinAddress(0x0000);
-    m_pMBC2MemoryRule->SetMaxAddress(0xFEFF);
+    m_pMBC2MemoryRule->AddAddressRange(0x0000, 0x7FFF);
+    m_pMBC2MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC3MemoryRule = new MBC3MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC3MemoryRule->Enable();
-    m_pMBC3MemoryRule->SetMinAddress(0x0000);
-    m_pMBC3MemoryRule->SetMaxAddress(0xFEFF);
+    m_pMBC3MemoryRule->AddAddressRange(0x0000, 0x7FFF);
+    m_pMBC3MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC5MemoryRule = new MBC5MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC5MemoryRule->Enable();
-    m_pMBC5MemoryRule->SetMinAddress(0x0000);
-    m_pMBC5MemoryRule->SetMaxAddress(0xFEFF);
+    m_pMBC5MemoryRule->AddAddressRange(0x0000, 0x7FFF);
+    m_pMBC5MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 }
 
 bool GearboyCore::AddMemoryRules()
 {
     m_pMemory->AddRule(m_pIORegistersMemoryRule);
+    m_pMemory->AddRule(m_pCommonMemoryRule);
 
     int type = m_pCartridge->GetType();
     if ((type != 0xEA) && (m_pCartridge->GetROMSize() == 0))
@@ -332,6 +334,7 @@ void GearboyCore::Reset(bool bCGB)
     m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();
 
+    m_pCommonMemoryRule->Reset(m_bCGB);
     m_pRomOnlyMemoryRule->Reset(m_bCGB);
     m_pMBC1MemoryRule->Reset(m_bCGB);
     m_pMBC2MemoryRule->Reset(m_bCGB);

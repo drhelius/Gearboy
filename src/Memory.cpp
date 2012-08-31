@@ -140,7 +140,7 @@ u8 Memory::Read(u16 address)
     for (it = m_Rules.begin(); it < m_Rules.end(); it++)
     {
         MemoryRule* pRule = *it;
-        if (pRule->IsEnabled() && pRule->IsAddressInRange(address))
+        if (pRule->IsAddressInRanges(address))
         {
             return pRule->PerformRead(address);
         }
@@ -158,7 +158,7 @@ void Memory::Write(u16 address, u8 value)
     for (it = m_Rules.begin(); it < m_Rules.end(); it++)
     {
         MemoryRule* pRule = *it;
-        if (pRule->IsEnabled() && pRule->IsAddressInRange(address))
+        if (pRule->IsAddressInRanges(address))
         {
             pRule->PerformWrite(address, value);
             ruleExecuted = true;

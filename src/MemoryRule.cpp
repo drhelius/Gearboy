@@ -28,9 +28,6 @@ MemoryRule::MemoryRule(Processor* pProcessor, Memory* pMemory,
     m_pInput = pInput;
     m_pCartridge = pCartridge;
     m_pAudio = pAudio;
-    m_bEnabled = false;
-    m_MaxAddress = 0;
-    m_MinAddress = 0;
     m_bCGB = false;
 }
 
@@ -39,42 +36,28 @@ MemoryRule::~MemoryRule()
 
 }
 
-void MemoryRule::SetMaxAddress(u16 maxAddress)
+void MemoryRule::AddAddressRange(u16 minAddress, u16 maxAddress)
 {
-    this->m_MaxAddress = maxAddress;
+    stAddressRange range;
+    range.maxAddress = maxAddress;
+    range.minAddress = minAddress;
+    m_Ranges.push_back(range);
 }
 
-u16 MemoryRule::GetMaxAddress() const
+void MemoryRule::ClearAddressRanges()
 {
-    return m_MaxAddress;
+    m_Ranges.clear();
 }
 
-void MemoryRule::SetMinAddress(u16 minAddress)
+bool MemoryRule::IsAddressInRanges(u16 address)
 {
-    this->m_MinAddress = minAddress;
-}
+    AddressRangeVectorIterator it;
 
-u16 MemoryRule::GetMinAddress() const
-{
-    return m_MinAddress;
-}
-
-bool MemoryRule::IsEnabled() const
-{
-    return m_bEnabled;
-}
-
-void MemoryRule::Enable()
-{
-    m_bEnabled = true;
-}
-
-void MemoryRule::Disable()
-{
-    m_bEnabled = false;
-}
-
-bool MemoryRule::IsAddressInRange(u16 address)
-{
-    return (address >= m_MinAddress) && (address <= m_MaxAddress);
+    for (it = m_Ranges.begin(); it < m_Ranges.end(); it++)
+    {
+        if ((address >= (*it).minAddress) && (address <= (*it).maxAddress))
+            return true;
+    }
+    
+    return false;
 }
