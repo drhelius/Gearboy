@@ -51,6 +51,7 @@ protected:
     Audio* m_pAudio;
     bool m_bCGB;
 private:
+
     struct stAddressRange
     {
         u16 minAddress;

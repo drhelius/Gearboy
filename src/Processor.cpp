@@ -104,7 +104,7 @@ u8 Processor::Tick()
             m_iUnhaltCycles = 12;
         }
     }
-    
+
     if (!m_bHalt)
     {
         ServeInterrupt(InterruptPending());

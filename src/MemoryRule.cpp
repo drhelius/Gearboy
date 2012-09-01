@@ -58,6 +58,6 @@ bool MemoryRule::IsAddressInRanges(u16 address)
         if ((address >= (*it).minAddress) && (address <= (*it).maxAddress))
             return true;
     }
-    
+
     return false;
 }

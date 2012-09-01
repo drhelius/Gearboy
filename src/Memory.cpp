@@ -68,14 +68,14 @@ void Memory::Reset(bool bCGB)
         }
         else if ((i >= 0xC000) && (i < 0xE000))
         {
-            if ((i & 0x8) ^((i & 0x800)>>8))
+            if ((i & 0x8) ^((i & 0x800) >> 8))
             {
                 if (m_bCGB)
                 {
                     m_pMap[i].SetValue(0x00);
                     if (i >= 0xD000)
                     {
-                        for (int a=0; a < 8; a++)
+                        for (int a = 0; a < 8; a++)
                         {
                             if (a != 2)
                                 m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = m_pMap[i - 0x1000].GetValue();
@@ -92,7 +92,7 @@ void Memory::Reset(bool bCGB)
                 m_pMap[i].SetValue(0xff);
                 if (i >= 0xD000)
                 {
-                    for (int a=0; a < 8; a++)
+                    for (int a = 0; a < 8; a++)
                     {
                         if (a != 2)
                             m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = m_pMap[i - 0x1000].GetValue();
