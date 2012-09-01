@@ -140,7 +140,7 @@ void Processor::RequestInterrupt(Interrupts interrupt)
             m_InterruptDelayCycles[0] = 32;
             break;
         case LCDSTAT_Interrupt:
-            m_InterruptDelayCycles[1] = 32;
+            m_InterruptDelayCycles[1] = 18;
             break;
         case Timer_Interrupt:
             m_InterruptDelayCycles[2] = 0;
