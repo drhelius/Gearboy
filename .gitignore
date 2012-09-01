@@ -76,3 +76,5 @@ ui_*.h
 
 
 *.txt
+/platforms/macosx/Gearboy/build/
+/platforms/macosx/Gearboy/dist/
