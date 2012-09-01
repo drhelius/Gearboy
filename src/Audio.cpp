@@ -78,6 +78,10 @@ void Audio::Reset(bool bCGB)
     Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
     m_pApu->reset(mode);
     m_pBuffer->clear();
+    
+    for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
+        m_pApu->write_register(0, reg, kInitialValuesForFFXX[reg - 0xFF00]);
+    
     m_Time = 0;
 }
 
