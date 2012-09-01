@@ -40,11 +40,23 @@ u8 CommonMemoryRule::PerformRead(u16 address)
 {
     if (m_bCGB && (address >= 0x8000 && address < 0xA000))
     {
-        return m_pMemory->ReadCGBLCDRAM(address, false);
+        // No access to Vram during mode 3
+        if (m_pVideo->GetCurrentStatusMode() != 3)
+            return m_pMemory->ReadCGBLCDRAM(address, false);
+        else
+            return 0xFF;
     }
     else if (m_bCGB && (address >= 0xD000 && address < 0xE000))
     {
         return m_pMemory->ReadCGBWRAM(address);
+    }
+    else if (address >= 0xFE00 && address < 0xFEA0)
+    {
+        // OAM not accessible during mode 2 and 3
+        if ((m_pVideo->GetCurrentStatusMode() != 2) || (m_pVideo->GetCurrentStatusMode() != 3))
+            return m_pMemory->Retrieve(address);
+        else
+            return 0xFF;
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
@@ -62,7 +74,9 @@ void CommonMemoryRule::PerformWrite(u16 address, u8 value)
 {
     if (m_bCGB && (address >= 0x8000 && address < 0xA000))
     {
-        m_pMemory->WriteCGBLCDRAM(address, value);
+        // No access to Vram during mode 3
+        if (m_pVideo->GetCurrentStatusMode() != 3)
+            m_pMemory->WriteCGBLCDRAM(address, value);
     }
     else if (address >= 0xC000 && address < 0xDE00)
     {
@@ -96,15 +110,19 @@ void CommonMemoryRule::PerformWrite(u16 address, u8 value)
             m_pMemory->Load(address, value);
         }
     }
+    else if (address >= 0xFE00 && address < 0xFEA0)
+    {
+        // OAM not accessible during mode 2 and 3
+        if ((m_pVideo->GetCurrentStatusMode() != 2) || (m_pVideo->GetCurrentStatusMode() != 3))
+            m_pMemory->Load(address, value);
+    }
     else if (address >= 0xFEA0 && address < 0xFF00)
     {
         // Empty area - GBC allows reading/writing to this area
         m_pMemory->Load(address, value);
     }
     else
-    {
         m_pMemory->Load(address, value);
-    }
 }
 
 void CommonMemoryRule::Reset(bool bCGB)

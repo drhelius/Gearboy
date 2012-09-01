@@ -303,6 +303,11 @@ void Video::SetColorPalette(bool background, u8 value)
     }
 }
 
+int Video::GetCurrentStatusMode() const
+{
+    return m_iStatusMode;
+}
+
 void Video::ScanLine(int line)
 {
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
