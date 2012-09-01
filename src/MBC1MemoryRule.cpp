@@ -83,14 +83,14 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     if (address < 0x2000)
     {
         if (m_pCartridge->GetRAMSize() > 0)
-            m_bRamEnabled = (value & 0x0F) == 0x0A;
+            m_bRamEnabled = ((value & 0x0F) == 0x0A);
     }
     else if (address >= 0x2000 && address < 0x4000)
     {
         m_iCurrentROMBank = value & 0x1F;
         if (m_iMode == 0)
         {
-            m_iCurrentROMBank |= m_HigherRomBankBits;
+            m_iCurrentROMBank = (m_iCurrentROMBank & 0x1F) | (m_HigherRomBankBits << 5);
 
             if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
                     || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
@@ -103,8 +103,8 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
             m_iCurrentRAMBank = value & 0x03;
         else
         {
-            m_HigherRomBankBits = value & 0xE0;
-            m_iCurrentROMBank = (m_iCurrentROMBank & 0x1F) | m_HigherRomBankBits;
+            m_HigherRomBankBits = value & 0x03;
+            m_iCurrentROMBank = (m_iCurrentROMBank & 0x1F) | (m_HigherRomBankBits << 5);
         }
     }
     else if (address >= 0x6000 && address < 0x8000)
