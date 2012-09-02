@@ -90,6 +90,7 @@
     <ClCompile Include="..\..\..\src\audio\Multi_Buffer.cpp" />
     <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp" />
     <ClCompile Include="..\..\..\src\Cartridge.cpp" />
+    <ClCompile Include="..\..\..\src\CommonMemoryRule.cpp" />
     <ClCompile Include="..\..\..\src\EightBitRegister.cpp" />
     <ClCompile Include="..\..\..\src\GearboyCore.cpp" />
     <ClCompile Include="..\..\..\src\Input.cpp" />
@@ -183,6 +184,7 @@
     <ClInclude Include="..\..\..\src\audio\Gb_Oscs.h" />
     <ClInclude Include="..\..\..\src\audio\Multi_Buffer.h" />
     <ClInclude Include="..\..\..\src\audio\Sound_Queue.h" />
+    <ClInclude Include="..\..\..\src\CommonMemoryRule.h" />
     <ClInclude Include="GeneratedFiles\ui_SoundSettings.h" />
     <ClInclude Include="GeneratedFiles\ui_VideoSettings.h" />
     <CustomBuild Include="..\..\qt-shared\RenderThread.h">

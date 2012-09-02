@@ -179,6 +179,9 @@
     <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp">
       <Filter>Audio</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\CommonMemoryRule.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\qt-shared\GLFrame.h">
@@ -323,6 +326,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\audio\Multi_Buffer.h">
       <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\CommonMemoryRule.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
