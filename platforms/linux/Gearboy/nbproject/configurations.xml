@@ -25,6 +25,8 @@
       <itemPath>../../../src/Audio.h</itemPath>
       <itemPath>../../../src/Cartridge.cpp</itemPath>
       <itemPath>../../../src/Cartridge.h</itemPath>
+      <itemPath>../../../src/CommonMemoryRule.cpp</itemPath>
+      <itemPath>../../../src/CommonMemoryRule.h</itemPath>
       <itemPath>../../../src/EightBitRegister.cpp</itemPath>
       <itemPath>../../../src/EightBitRegister.h</itemPath>
       <itemPath>../../../src/GearboyCore.cpp</itemPath>
