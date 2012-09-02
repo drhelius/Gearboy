@@ -73,8 +73,6 @@ qt-Debug.mk
 qt-Release.mk
 ui_*.h
 
-
-
 *.txt
 /platforms/macosx/Gearboy/build/
 /platforms/macosx/Gearboy/dist/

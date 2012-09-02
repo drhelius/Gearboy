@@ -28,6 +28,7 @@ class Video;
 class Audio;
 class Input;
 class Cartridge;
+class CommonMemoryRule;
 class IORegistersMemoryRule;
 class RomOnlyMemoryRule;
 class MBC1MemoryRule;
@@ -61,6 +62,7 @@ private:
     Audio* m_pAudio;
     Input* m_pInput;
     Cartridge* m_pCartridge;
+    CommonMemoryRule* m_pCommonMemoryRule;
     IORegistersMemoryRule* m_pIORegistersMemoryRule;
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
     MBC1MemoryRule* m_pMBC1MemoryRule;

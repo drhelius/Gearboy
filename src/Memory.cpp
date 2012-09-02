@@ -60,8 +60,71 @@ void Memory::Reset(bool bCGB)
     for (int i = 0; i < 65536; i++)
     {
         m_pMap[i].Reset();
-        if (i >= 0xFF00)
+
+        if ((i >= 0x8000) && (i < 0xA000))
+        {
+            m_pMap[i].SetValue(0x00);
+            m_pLCDRAMBank1[i - 0x8000] = 0x00;
+        }
+        else if ((i >= 0xC000) && (i < 0xE000))
+        {
+            if ((i & 0x8) ^((i & 0x800) >> 8))
+            {
+                if (m_bCGB)
+                {
+                    m_pMap[i].SetValue(0x00);
+                    if (i >= 0xD000)
+                    {
+                        for (int a = 0; a < 8; a++)
+                        {
+                            if (a != 2)
+                                m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = m_pMap[i - 0x1000].GetValue();
+                            else
+                                m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = 0x00;
+                        }
+                    }
+                }
+                else
+                    m_pMap[i].SetValue(0x0f);
+            }
+            else
+            {
+                m_pMap[i].SetValue(0xff);
+                if (i >= 0xD000)
+                {
+                    for (int a = 0; a < 8; a++)
+                    {
+                        if (a != 2)
+                            m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = m_pMap[i - 0x1000].GetValue();
+                        else
+                            m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = 0x00;
+                    }
+                }
+            }
+        }
+        else if (i >= 0xFF00)
+        {
             m_pMap[i].SetValue(kInitialValuesForFFXX[i - 0xFF00]);
+        }
+        else
+        {
+            m_pMap[i].SetValue(0xFF);
+        }
+    }
+
+    if (m_bCGB)
+    {
+        m_pMap[0xff02].SetValue(0x7c);
+        m_pMap[0xff56].SetValue(0x3e);
+        m_pMap[0xff4d].SetValue(0x7e);
+    }
+    else
+    {
+        m_pMap[0xff02].SetValue(0x7e);
+        m_pMap[0xff56].SetValue(0xff);
+        m_pMap[0xff4d].SetValue(0xff);
+        m_pMap[0xff70].SetValue(0xff);
+        m_pMap[0xff74].SetValue(0xff);
     }
 }
 
@@ -77,7 +140,7 @@ u8 Memory::Read(u16 address)
     for (it = m_Rules.begin(); it < m_Rules.end(); it++)
     {
         MemoryRule* pRule = *it;
-        if (pRule->IsEnabled() && pRule->IsAddressInRange(address))
+        if (pRule->IsAddressInRanges(address))
         {
             return pRule->PerformRead(address);
         }
@@ -95,7 +158,7 @@ void Memory::Write(u16 address, u8 value)
     for (it = m_Rules.begin(); it < m_Rules.end(); it++)
     {
         MemoryRule* pRule = *it;
-        if (pRule->IsEnabled() && pRule->IsAddressInRange(address))
+        if (pRule->IsAddressInRanges(address))
         {
             pRule->PerformWrite(address, value);
             ruleExecuted = true;

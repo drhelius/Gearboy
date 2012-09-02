@@ -24,6 +24,7 @@
 #include "Audio.h"
 #include "Input.h"
 #include "Cartridge.h"
+#include "CommonMemoryRule.h"
 #include "IORegistersMemoryRule.h"
 #include "RomOnlyMemoryRule.h"
 #include "MBC1MemoryRule.h"
@@ -39,6 +40,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pAudio);
     InitPointer(m_pInput);
     InitPointer(m_pCartridge);
+    InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
     InitPointer(m_pMBC1MemoryRule);
@@ -58,6 +60,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pMBC1MemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
+    SafeDelete(m_pCommonMemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
     SafeDelete(m_pAudio);
@@ -161,47 +164,46 @@ void GearboyCore::InitMemoryRules()
 {
     m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pIORegistersMemoryRule->SetMinAddress(0xFF00);
-    m_pIORegistersMemoryRule->SetMaxAddress(0xFFFF);
-    m_pIORegistersMemoryRule->Enable();
+    m_pIORegistersMemoryRule->AddAddressRange(0xFF00, 0xFFFF);
+
+    m_pCommonMemoryRule = new CommonMemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pCommonMemoryRule->AddAddressRange(0x8000, 0x9FFF);
+    m_pCommonMemoryRule->AddAddressRange(0xC000, 0xFEFF);
 
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pRomOnlyMemoryRule->Enable();
-    m_pRomOnlyMemoryRule->SetMinAddress(0x0000);
-    m_pRomOnlyMemoryRule->SetMaxAddress(0xFEFF);
+    m_pRomOnlyMemoryRule->AddAddressRange(0x0000, 0x7FFF);
+    m_pRomOnlyMemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC1MemoryRule = new MBC1MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC1MemoryRule->Enable();
-    m_pMBC1MemoryRule->SetMinAddress(0x0000);
-    m_pMBC1MemoryRule->SetMaxAddress(0xFEFF);
+    m_pMBC1MemoryRule->AddAddressRange(0x0000, 0x7FFF);
+    m_pMBC1MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC2MemoryRule = new MBC2MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC2MemoryRule->Enable();
-    m_pMBC2MemoryRule->SetMinAddress(0x0000);
-    m_pMBC2MemoryRule->SetMaxAddress(0xFEFF);
+    m_pMBC2MemoryRule->AddAddressRange(0x0000, 0x7FFF);
+    m_pMBC2MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC3MemoryRule = new MBC3MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC3MemoryRule->Enable();
-    m_pMBC3MemoryRule->SetMinAddress(0x0000);
-    m_pMBC3MemoryRule->SetMaxAddress(0xFEFF);
+    m_pMBC3MemoryRule->AddAddressRange(0x0000, 0x7FFF);
+    m_pMBC3MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC5MemoryRule = new MBC5MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC5MemoryRule->Enable();
-    m_pMBC5MemoryRule->SetMinAddress(0x0000);
-    m_pMBC5MemoryRule->SetMaxAddress(0xFEFF);
+    m_pMBC5MemoryRule->AddAddressRange(0x0000, 0x7FFF);
+    m_pMBC5MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 }
 
 bool GearboyCore::AddMemoryRules()
 {
     m_pMemory->AddRule(m_pIORegistersMemoryRule);
+    m_pMemory->AddRule(m_pCommonMemoryRule);
 
     int type = m_pCartridge->GetType();
-    if (m_pCartridge->GetROMSize() == 0)
+    if ((type != 0xEA) && (m_pCartridge->GetROMSize() == 0))
         type = 0;
 
     bool notSupported = false;
@@ -210,6 +212,13 @@ bool GearboyCore::AddMemoryRules()
     {
         case 0x00:
             // NO MBC
+        case 0x08:
+            // ROM   
+            // SRAM 
+        case 0x09:
+            // ROM
+            // SRAM
+            // BATT
             m_pMemory->AddRule(m_pRomOnlyMemoryRule);
             break;
         case 0x01:
@@ -221,6 +230,8 @@ bool GearboyCore::AddMemoryRules()
             // MBC1
             // SRAM
             // BATT
+        case 0xEA:
+            // Hack to accept 0xEA as a MBC1 memory bank controller (Sonic 3D Blast 5)
             m_pMemory->AddRule(m_pMBC1MemoryRule);
             break;
         case 0x05:
@@ -229,26 +240,6 @@ bool GearboyCore::AddMemoryRules()
             // MBC2
             // BATT
             m_pMemory->AddRule(m_pMBC2MemoryRule);
-            break;
-        case 0x08:
-            // ROM   
-            // SRAM 
-        case 0x09:
-            // ROM
-            // SRAM
-            // BATT
-            m_pMemory->AddRule(m_pRomOnlyMemoryRule);
-            break;
-        case 0x0B:
-            // MMMO1
-        case 0x0C:
-            // MMM01   
-            // SRAM 
-        case 0x0D:
-            // MMM01
-            // SRAM
-            // BATT
-            notSupported = true;
             break;
         case 0x0F:
             // MBC3
@@ -268,6 +259,7 @@ bool GearboyCore::AddMemoryRules()
             // MBC3
             // BATT
             // SRAM
+        case 0xFC:
             m_pMemory->AddRule(m_pMBC3MemoryRule);
             break;
         case 0x19:
@@ -290,6 +282,15 @@ bool GearboyCore::AddMemoryRules()
             // SRAM
             m_pMemory->AddRule(m_pMBC5MemoryRule);
             break;
+        case 0x0B:
+            // MMMO1
+        case 0x0C:
+            // MMM01   
+            // SRAM 
+        case 0x0D:
+            // MMM01
+            // SRAM
+            // BATT
         case 0x1F:
             // Game Boy Camera
         case 0x22:
@@ -303,15 +304,11 @@ bool GearboyCore::AddMemoryRules()
         case 0xFF:
             // HuC1
             notSupported = true;
+            Log("--> ** This cartridge is not supported. Type: %d", type);
             break;
         default:
             notSupported = true;
             Log("--> ** Unknown cartridge type: %d", type);
-
-            if (notSupported)
-            {
-                Log("--> ** This cartridge is not supported. Type: %d", type);
-            }
     }
 
     return !notSupported;
@@ -337,6 +334,7 @@ void GearboyCore::Reset(bool bCGB)
     m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();
 
+    m_pCommonMemoryRule->Reset(m_bCGB);
     m_pRomOnlyMemoryRule->Reset(m_bCGB);
     m_pMBC1MemoryRule->Reset(m_bCGB);
     m_pMBC2MemoryRule->Reset(m_bCGB);

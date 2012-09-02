@@ -32,6 +32,7 @@ public:
 
     enum Interrupts
     {
+        None_Interrupt = 0x00,
         VBlank_Interrupt = 0x01,
         LCDSTAT_Interrupt = 0x02,
         Timer_Interrupt = 0x04,
@@ -46,6 +47,7 @@ public:
     u8 Tick();
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
+    void ResetDIVCycles();
 private:
     typedef void (Processor::*OPCptr) (void);
     OPCptr m_OPCodes[256];
@@ -68,14 +70,18 @@ private:
     int m_iSerialBit;
     int m_iSerialCycles;
     int m_iIMECycles;
+    int m_iUnhaltCycles;
     bool m_bCGB;
+    int m_InterruptDelayCycles[5];
 private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);
     void ExecuteOPCodeCB(u8 opcode);
-    void ServeInterrupts();
+    Processor::Interrupts InterruptPending();
+    void ServeInterrupt(Interrupts interrupt);
     void UpdateTimers();
     void UpdateSerial();
+    void UpdateDelayedInterrupts();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);
     void SetFlag(u8 flag);

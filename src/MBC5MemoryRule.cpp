@@ -29,10 +29,6 @@ MBC5MemoryRule::MBC5MemoryRule(Processor* pProcessor,
         Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
 pMemory, pVideo, pInput, pCartridge, pAudio)
 {
-    m_iCurrentRAMBank = 0;
-    m_iCurrentROMBank = 1;
-    m_iCurrentROMBankHi = 0;
-    m_bRamEnabled = false;
     m_pRAMBanks = new u8[0x20000];
     Reset(false);
 }
@@ -49,10 +45,6 @@ u8 MBC5MemoryRule::PerformRead(u16 address)
         u8* pROM = m_pCartridge->GetTheROM();
         return pROM[(address - 0x4000) + (0x4000 * m_iCurrentROMBank)];
     }
-    else if (m_bCGB && (address >= 0x8000 && address < 0xA000))
-    {
-        return m_pMemory->ReadCGBLCDRAM(address, false);
-    }
     else if (address >= 0xA000 && address < 0xC000)
     {
         if (m_bRamEnabled)
@@ -62,20 +54,8 @@ u8 MBC5MemoryRule::PerformRead(u16 address)
         else
         {
             Log("--> ** Attempting to read from disabled ram %X", address);
-            return 0x00;
+            return 0xFF;
         }
-    }
-    else if (m_bCGB && (address >= 0xD000 && address < 0xE000))
-    {
-        return m_pMemory->ReadCGBWRAM(address);
-    }
-    else if (address >= 0xFEA0 && address < 0xFF00)
-    {
-        // Empty area - GBC allows reading/writing to this area
-        if (m_bCGB)
-            return m_pMemory->Retrieve(address);
-        else
-            return ((((address + ((address >> 4) - 0x0FEA)) >> 2) & 1) ? 0x00 : 0xFF);
     }
     else
         return m_pMemory->Retrieve(address);
@@ -105,10 +85,6 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
     {
         Log("--> ** Attempting to write on non usable address %X %X", address, value);
     }
-    else if (m_bCGB && (address >= 0x8000 && address < 0xA000))
-    {
-        m_pMemory->WriteCGBLCDRAM(address, value);
-    }
     else if (address >= 0xA000 && address < 0xC000)
     {
         if (m_bRamEnabled)
@@ -120,56 +96,18 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
             Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
         }
     }
-    else if (address >= 0xC000 && address < 0xDE00)
-    {
-        if (m_bCGB && (address >= 0xD000))
-        {
-            m_pMemory->WriteCGBWRAM(address, value);
-            m_pMemory->Load(address + 0x2000, value);
-        }
-        else
-        {
-            // Echo of 8K internal RAM
-            m_pMemory->Load(address + 0x2000, value);
-            m_pMemory->Load(address, value);
-        }
-    }
-    else if (m_bCGB && (address >= 0xDE00 && address < 0xE000))
-    {
-        m_pMemory->WriteCGBWRAM(address, value);
-    }
-    else if (address >= 0xE000 && address < 0xFE00)
-    {
-        if (m_bCGB && (address >= 0xF000))
-        {
-            m_pMemory->WriteCGBWRAM(address - 0x2000, value);
-            m_pMemory->Load(address, value);
-        }
-        else
-        {
-            // Echo of 8K internal RAM
-            m_pMemory->Load(address - 0x2000, value);
-            m_pMemory->Load(address, value);
-        }
-    }
-    else if (address >= 0xFEA0 && address < 0xFF00)
-    {
-        // Empty area - GBC allows reading/writing to this area
-        m_pMemory->Load(address, value);
-    }
     else
-    {
         m_pMemory->Load(address, value);
-    }
 }
 
 void MBC5MemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
     m_iCurrentRAMBank = 0;
-    m_iCurrentROMBank = 0;
+    m_iCurrentROMBank = 1;
+    m_iCurrentROMBankHi = 0;
     m_bRamEnabled = false;
     for (int i = 0; i < 0x20000; i++)
-        m_pRAMBanks[i] = 0;
+        m_pRAMBanks[i] = 0xFF;
 }
 

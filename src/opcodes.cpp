@@ -19,6 +19,7 @@
 
 #include "Processor.h"
 #include "Memory.h"
+#include "opcode_timing.h"
 
 void Processor::OPCode0x00()
 {
@@ -1553,6 +1554,7 @@ void Processor::OPCode0xD9()
 {
     // RETI
     StackPop(&PC);
+    //m_iIMECycles = (kOPCodeMachineCycles[0xD9] * 4) + 1;
     m_bIME = true;
 }
 
@@ -1808,8 +1810,7 @@ void Processor::OPCode0xFA()
 void Processor::OPCode0xFB()
 {
     // EI
-    //m_bIME = true;
-    m_iIMECycles = 8;
+    m_iIMECycles = (kOPCodeMachineCycles[0xFB] * 4) + 1;
 }
 
 void Processor::OPCode0xFC()

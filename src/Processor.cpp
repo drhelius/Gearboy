@@ -38,6 +38,9 @@ Processor::Processor(Memory* pMemory)
     m_iSerialBit = 0;
     m_iSerialCycles = 0;
     m_bCGB = false;
+    m_iUnhaltCycles = 0;
+    for (int i = 0; i < 5; i++)
+        m_InterruptDelayCycles[i] = 0;
 }
 
 Processor::~Processor()
@@ -63,6 +66,7 @@ void Processor::Reset(bool bCGB)
     m_iIMECycles = 0;
     m_iSerialBit = 0;
     m_iSerialCycles = 0;
+    m_iUnhaltCycles = 0;
     PC.SetValue(0x100);
     SP.SetValue(0xFFFE);
     if (m_bCGB)
@@ -72,6 +76,8 @@ void Processor::Reset(bool bCGB)
     BC.SetValue(0x0013);
     DE.SetValue(0x00D8);
     HL.SetValue(0x014D);
+    for (int i = 0; i < 5; i++)
+        m_InterruptDelayCycles[i] = 0;
 }
 
 u8 Processor::Tick()
@@ -80,22 +86,33 @@ u8 Processor::Tick()
 
     if (m_bHalt)
     {
-        u8 if_reg = m_pMemory->Retrieve(0xFF0F);
-        u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
+        m_CurrentClockCycles += 4;
 
-        if (if_reg & ie_reg & 0x1F)
-            m_bHalt = false;
-        else
-            m_CurrentClockCycles += 10;
+        if (m_iUnhaltCycles > 0)
+        {
+            m_iUnhaltCycles -= m_CurrentClockCycles;
+
+            if (m_iUnhaltCycles <= 0)
+            {
+                m_iUnhaltCycles = 0;
+                m_bHalt = false;
+            }
+        }
+
+        if (m_bHalt && (InterruptPending() != None_Interrupt) && (m_iUnhaltCycles == 0))
+        {
+            m_iUnhaltCycles = 12;
+        }
     }
 
     if (!m_bHalt)
     {
-        ServeInterrupts();
+        ServeInterrupt(InterruptPending());
         u8 opcode = FetchOPCode();
         ExecuteOPCode(opcode);
     }
 
+    UpdateDelayedInterrupts();
     UpdateTimers();
     UpdateSerial();
 
@@ -116,10 +133,38 @@ u8 Processor::Tick()
 void Processor::RequestInterrupt(Interrupts interrupt)
 {
     m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | interrupt);
+
+    switch (interrupt)
+    {
+        case VBlank_Interrupt:
+            m_InterruptDelayCycles[0] = 32;
+            break;
+        case LCDSTAT_Interrupt:
+            m_InterruptDelayCycles[1] = 18;
+            break;
+        case Timer_Interrupt:
+            m_InterruptDelayCycles[2] = 0;
+            break;
+        case Serial_Interrupt:
+            m_InterruptDelayCycles[3] = 0;
+            break;
+        case Joypad_Interrupt:
+            m_InterruptDelayCycles[4] = 0;
+            break;
+        case None_Interrupt:
+            break;
+    }
 }
 
 void Processor::ResetTIMACycles()
 {
+    m_iTIMACycles = 0;
+    m_pMemory->Load(0xFF05, m_pMemory->Retrieve(0xFF06));
+}
+
+void Processor::ResetDIVCycles()
+{
+    m_pMemory->Load(0xFF04, 0x00);
     m_iTIMACycles = 0;
 }
 
@@ -174,57 +219,84 @@ void Processor::ExecuteOPCodeCB(u8 opcode)
     m_CurrentClockCycles += kOPCodeCBMachineCycles[opcode] * 4;
 }
 
-void Processor::ServeInterrupts()
+Processor::Interrupts Processor::InterruptPending()
 {
     u8 if_reg = m_pMemory->Retrieve(0xFF0F);
     u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
 
-    if (if_reg)
+    if ((if_reg & ie_reg & 0x01) && (m_InterruptDelayCycles[0] <= 0))
     {
-        if (m_bIME && (if_reg & ie_reg & 0x01))
+        return VBlank_Interrupt;
+    }
+    else if ((if_reg & ie_reg & 0x02) && (m_InterruptDelayCycles[1] <= 0))
+    {
+        return LCDSTAT_Interrupt;
+    }
+    else if ((if_reg & ie_reg & 0x04) && (m_InterruptDelayCycles[2] <= 0))
+    {
+        return Timer_Interrupt;
+    }
+    else if ((if_reg & ie_reg & 0x08) && (m_InterruptDelayCycles[3] <= 0))
+    {
+        return Serial_Interrupt;
+    }
+    else if ((if_reg & ie_reg & 0x10) && (m_InterruptDelayCycles[4] <= 0))
+    {
+        return Joypad_Interrupt;
+    }
+
+    return None_Interrupt;
+}
+
+void Processor::ServeInterrupt(Interrupts interrupt)
+{
+    if (m_bIME)
+    {
+        u8 if_reg = m_pMemory->Retrieve(0xFF0F);
+        switch (interrupt)
         {
-            // VBLANK INTERRUPT EXECUTION
-            m_pMemory->Load(0xFF0F, if_reg & 0xFE);
-            m_bIME = false;
-            StackPush(&PC);
-            PC.SetValue(0x0040);
-            m_CurrentClockCycles += 20;
-        }
-        else if (m_bIME && (if_reg & ie_reg & 0x02))
-        {
-            // LCDC STAT INTERRUPT EXECUTION
-            m_pMemory->Load(0xFF0F, if_reg & 0xFD);
-            m_bIME = false;
-            StackPush(&PC);
-            PC.SetValue(0x0048);
-            m_CurrentClockCycles += 20;
-        }
-        else if (m_bIME && (if_reg & ie_reg & 0x04))
-        {
-            // TIMER INTERRUPT EXECUTION
-            m_pMemory->Load(0xFF0F, if_reg & 0xFB);
-            m_bIME = false;
-            StackPush(&PC);
-            PC.SetValue(0x0050);
-            m_CurrentClockCycles += 20;
-        }
-        else if (m_bIME && (if_reg & ie_reg & 0x08))
-        {
-            // SERIAL INTERRUPT EXECUTION
-            m_pMemory->Load(0xFF0F, if_reg & 0xF7);
-            m_bIME = false;
-            StackPush(&PC);
-            PC.SetValue(0x0058);
-            m_CurrentClockCycles += 20;
-        }
-        else if (m_bIME && (if_reg & ie_reg & 0x10))
-        {
-            // JOYPAD INTERRUPT EXECUTION
-            m_pMemory->Load(0xFF0F, if_reg & 0xEF);
-            m_bIME = false;
-            StackPush(&PC);
-            PC.SetValue(0x0060);
-            m_CurrentClockCycles += 20;
+            case VBlank_Interrupt:
+                m_InterruptDelayCycles[0] = 0;
+                m_pMemory->Load(0xFF0F, if_reg & 0xFE);
+                m_bIME = false;
+                StackPush(&PC);
+                PC.SetValue(0x0040);
+                m_CurrentClockCycles += 20;
+                break;
+            case LCDSTAT_Interrupt:
+                m_InterruptDelayCycles[1] = 0;
+                m_pMemory->Load(0xFF0F, if_reg & 0xFD);
+                m_bIME = false;
+                StackPush(&PC);
+                PC.SetValue(0x0048);
+                m_CurrentClockCycles += 20;
+                break;
+            case Timer_Interrupt:
+                m_InterruptDelayCycles[2] = 0;
+                m_pMemory->Load(0xFF0F, if_reg & 0xFB);
+                m_bIME = false;
+                StackPush(&PC);
+                PC.SetValue(0x0050);
+                m_CurrentClockCycles += 20;
+                break;
+            case Serial_Interrupt:
+                m_InterruptDelayCycles[3] = 0;
+                m_pMemory->Load(0xFF0F, if_reg & 0xF7);
+                m_bIME = false;
+                StackPush(&PC);
+                PC.SetValue(0x0058);
+                m_CurrentClockCycles += 20;
+                break;
+            case Joypad_Interrupt:
+                m_InterruptDelayCycles[4] = 0;
+                m_pMemory->Load(0xFF0F, if_reg & 0xEF);
+                m_bIME = false;
+                StackPush(&PC);
+                PC.SetValue(0x0060);
+                m_CurrentClockCycles += 20;
+                break;
+            case None_Interrupt:
+                break;
         }
     }
 }
@@ -276,6 +348,7 @@ void Processor::UpdateTimers()
                 tima = m_pMemory->Retrieve(0xFF06);
                 RequestInterrupt(Timer_Interrupt);
             }
+
             else
                 tima++;
 
@@ -292,7 +365,6 @@ void Processor::UpdateSerial()
     {
         m_iSerialCycles += m_CurrentClockCycles;
 
-
         if (m_iSerialBit < 0)
         {
             m_iSerialBit = 0;
@@ -307,6 +379,7 @@ void Processor::UpdateSerial()
                 m_pMemory->Load(0xFF02, sc & 0x7F);
                 RequestInterrupt(Serial_Interrupt);
                 m_iSerialBit = -1;
+
                 return;
             }
 
@@ -317,6 +390,17 @@ void Processor::UpdateSerial()
 
             m_iSerialCycles -= 512;
             m_iSerialBit++;
+        }
+    }
+}
+
+void Processor::UpdateDelayedInterrupts()
+{
+    for (int i = 0; i < 5; i++)
+    {
+        if (m_InterruptDelayCycles[i] > 0)
+        {
+            m_InterruptDelayCycles[i] -= m_CurrentClockCycles;
         }
     }
 }
@@ -545,6 +629,7 @@ void Processor::OPCodes_SBC(u8 number)
     ToggleZeroFlagFromResult(static_cast<u8> (result));
     if (result < 0)
         ToggleFlag(FLAG_CARRY);
+
     if (((AF.GetHigh() & 0x0F) - (number & 0x0F) - carry) < 0)
         ToggleFlag(FLAG_HALF);
     AF.SetHigh(static_cast<u8> (result));
@@ -556,6 +641,7 @@ void Processor::OPCodes_ADD_HL(u16 number)
     IsSetFlag(FLAG_ZERO) ? SetFlag(FLAG_ZERO) : ClearAllFlags();
     if (result & 0x10000)
         ToggleFlag(FLAG_CARRY);
+
     if ((HL.GetValue() ^ number ^ (result & 0xFFFF)) & 0x1000)
         ToggleFlag(FLAG_HALF);
     HL.SetValue(static_cast<u16> (result));
@@ -567,6 +653,7 @@ void Processor::OPCodes_ADD_SP(s8 number)
     ClearAllFlags();
     if (((SP.GetValue() ^ number ^ (result & 0xFFFF)) & 0x100) == 0x100)
         ToggleFlag(FLAG_CARRY);
+
     if (((SP.GetValue() ^ number ^ (result & 0xFFFF)) & 0x10) == 0x10)
         ToggleFlag(FLAG_HALF);
     SP.SetValue(static_cast<u16> (result));
@@ -676,6 +763,7 @@ void Processor::OPCodes_RLC(EightBitRegister* reg, bool isRegisterA)
         result <<= 1;
     }
     reg->SetValue(result);
+
     if (!isRegisterA)
         ToggleZeroFlagFromResult(result);
 }
@@ -706,6 +794,7 @@ void Processor::OPCodes_RL(EightBitRegister* reg, bool isRegisterA)
     result <<= 1;
     result |= carry;
     reg->SetValue(result);
+
     if (!isRegisterA)
         ToggleZeroFlagFromResult(result);
 }
@@ -736,6 +825,7 @@ void Processor::OPCodes_RRC(EightBitRegister* reg, bool isRegisterA)
         result >>= 1;
     }
     reg->SetValue(result);
+
     if (!isRegisterA)
         ToggleZeroFlagFromResult(result);
 }
@@ -766,6 +856,7 @@ void Processor::OPCodes_RR(EightBitRegister* reg, bool isRegisterA)
     result >>= 1;
     result |= carry;
     reg->SetValue(result);
+
     if (!isRegisterA)
         ToggleZeroFlagFromResult(result);
 }
@@ -785,6 +876,7 @@ void Processor::OPCodes_BIT(EightBitRegister* reg, int bit)
 {
     if (((reg->GetValue() >> bit) & 0x01) == 0)
         ToggleFlag(FLAG_ZERO);
+
     else
         UntoggleFlag(FLAG_ZERO);
     ToggleFlag(FLAG_HALF);
@@ -795,6 +887,7 @@ void Processor::OPCodes_BIT_HL(int bit)
 {
     if (((m_pMemory->Read(HL.GetValue()) >> bit) & 0x01) == 0)
         ToggleFlag(FLAG_ZERO);
+
     else
         UntoggleFlag(FLAG_ZERO);
     ToggleFlag(FLAG_HALF);

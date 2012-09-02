@@ -38,6 +38,8 @@ public:
     bool IsScreenEnabled() const;
     const u8* GetFrameBuffer() const;
     void SetColorPalette(bool background, u8 value);
+    int GetCurrentStatusMode() const;
+    void ResetWindowLine();
 private:
     void ScanLine(int line);
     void RenderBG(int line);
@@ -62,6 +64,8 @@ private:
     bool m_bCGB;
     GB_Color m_CGBSpritePalettes[8][4];
     GB_Color m_CGBBackgroundPalettes[8][4];
+    bool m_bScanLineTransfered;
+    int m_iWindowLine;
 };
 
 #endif	/* VIDEO_H */
