@@ -34,6 +34,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iStatusModeCounterAux = 0;
     m_iStatusModeLYCounter = 0;
     m_iScreenEnableDelayCycles = 0;
+    m_iWindowLine = 0;
     m_bScreenEnabled = true;
     m_bCGB = false;
     m_bScanLineTransfered = false;
@@ -70,6 +71,7 @@ void Video::Reset(bool bCGB)
     m_iStatusModeCounterAux = 0;
     m_iStatusModeLYCounter = 144;
     m_iScreenEnableDelayCycles = 0;
+    m_iWindowLine = 0;
     m_bScreenEnabled = true;
     m_bScanLineTransfered = false;
     m_bCGB = bCGB;
@@ -113,6 +115,7 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                             m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
 
                         vblank = true;
+                        m_iWindowLine = 0;
                     }
                     else
                     {
@@ -308,6 +311,14 @@ int Video::GetCurrentStatusMode() const
     return m_iStatusMode;
 }
 
+void Video::ResetWindowLine()
+{
+    u8 wy = m_pMemory->Retrieve(0xFF4A);
+    
+    if ((m_iWindowLine == 0) && (m_iStatusModeLYCounter > wy))       
+        m_iWindowLine = 144;
+}
+
 void Video::ScanLine(int line)
 {
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
@@ -443,8 +454,9 @@ void Video::RenderBG(int line)
 void Video::RenderWindow(int line)
 {
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
+    int wx = m_pMemory->Retrieve(0xFF4B) - 7;
 
-    if (IsSetBit(lcdc, 5))
+    if (IsSetBit(lcdc, 5) && (wx <=158) && (m_iWindowLine < 144))
     {
         u8 wy = m_pMemory->Retrieve(0xFF4A);
 
@@ -455,14 +467,10 @@ void Video::RenderWindow(int line)
         {
             int tiles = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
             int map = IsSetBit(lcdc, 6) ? 0x9C00 : 0x9800;
-            u8 lineAdjusted = line - wy;
+            int lineAdjusted = m_iWindowLine - wy;
             int y_32 = (lineAdjusted / 8) * 32;
             int pixely = lineAdjusted % 8;
             int pixely_2 = pixely * 2;
-            int wx = m_pMemory->Retrieve(0xFF4B) - 7;
-
-            if (wx > 159)
-                return;
 
             for (int x = 0; x < 32; x++)
             {
@@ -555,6 +563,7 @@ void Video::RenderWindow(int line)
                 }
             }
         }
+        m_iWindowLine++;
     }
 }
 
