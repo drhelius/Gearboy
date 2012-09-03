@@ -52,11 +52,13 @@ public:
     void ResetROM();
     void EnableSound(bool enabled);
     void SetSoundSampleRate(int rate);
+    
 private:
     void InitMemoryRules();
     bool AddMemoryRules();
     void Reset(bool bCGB);
     void RenderDMGFrame(GB_Color* pFrameBuffer) const;
+    
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;

@@ -42,43 +42,51 @@ InputSettings::~InputSettings()
 void InputSettings::SetKeys(stCustomKey keys[])
 {
     char text[32];
-
-    PrintKey(&QKeyEvent(QEvent::KeyPress, keys[0].keyCode, Qt::NoModifier, keys[0].text), text);
+    
+    QKeyEvent a = QKeyEvent(QEvent::KeyPress, keys[0].keyCode, Qt::NoModifier, keys[0].text);
+    PrintKey(a, text);
     widget.lineEditUp->setText(text);
     m_Keys[0].keyCode = keys[0].keyCode;
     strcpy(m_Keys[0].text, text);
 
-    PrintKey(&QKeyEvent(QEvent::KeyPress, keys[1].keyCode, Qt::NoModifier, keys[1].text), text);
+    a = QKeyEvent(QEvent::KeyPress, keys[1].keyCode, Qt::NoModifier, keys[1].text);
+    PrintKey(a, text);
     widget.lineEditRight->setText(text);
     m_Keys[1].keyCode = keys[1].keyCode;
     strcpy(m_Keys[1].text, text);
 
-    PrintKey(&QKeyEvent(QEvent::KeyPress, keys[2].keyCode, Qt::NoModifier, keys[2].text), text);
+    a = QKeyEvent(QEvent::KeyPress, keys[2].keyCode, Qt::NoModifier, keys[2].text);
+    PrintKey(a, text);
     widget.lineEditDown->setText(text);
     m_Keys[2].keyCode = keys[2].keyCode;
     strcpy(m_Keys[2].text, text);
 
-    PrintKey(&QKeyEvent(QEvent::KeyPress, keys[3].keyCode, Qt::NoModifier, keys[3].text), text);
+    a = QKeyEvent(QEvent::KeyPress, keys[3].keyCode, Qt::NoModifier, keys[3].text);
+    PrintKey(a, text);
     widget.lineEditLeft->setText(text);
     m_Keys[3].keyCode = keys[3].keyCode;
     strcpy(m_Keys[3].text, text);
 
-    PrintKey(&QKeyEvent(QEvent::KeyPress, keys[4].keyCode, Qt::NoModifier, keys[4].text), text);
+    a = QKeyEvent(QEvent::KeyPress, keys[4].keyCode, Qt::NoModifier, keys[4].text);
+    PrintKey(a, text);
     widget.lineEditA->setText(text);
     m_Keys[4].keyCode = keys[4].keyCode;
     strcpy(m_Keys[4].text, text);
 
-    PrintKey(&QKeyEvent(QEvent::KeyPress, keys[5].keyCode, Qt::NoModifier, keys[5].text), text);
+    a = QKeyEvent(QEvent::KeyPress, keys[5].keyCode, Qt::NoModifier, keys[5].text);
+    PrintKey(a, text);
     widget.lineEditB->setText(text);
     m_Keys[5].keyCode = keys[5].keyCode;
     strcpy(m_Keys[5].text, text);
 
-    PrintKey(&QKeyEvent(QEvent::KeyPress, keys[6].keyCode, Qt::NoModifier, keys[6].text), text);
+    a = QKeyEvent(QEvent::KeyPress, keys[6].keyCode, Qt::NoModifier, keys[6].text);
+    PrintKey(a, text);
     widget.lineEditStart->setText(text);
     m_Keys[6].keyCode = keys[6].keyCode;
     strcpy(m_Keys[6].text, text);
 
-    PrintKey(&QKeyEvent(QEvent::KeyPress, keys[7].keyCode, Qt::NoModifier, keys[7].text), text);
+    a = QKeyEvent(QEvent::KeyPress, keys[7].keyCode, Qt::NoModifier, keys[7].text);
+    PrintKey(a, text);
     widget.lineEditSelect->setText(text);
     m_Keys[7].keyCode = keys[7].keyCode;
     strcpy(m_Keys[7].text, text);
@@ -140,7 +148,7 @@ bool InputSettings::eventFilter(QObject* pObj, QEvent *pEvent)
 
         if (strcmp(pObj->metaObject()->className(), "QLineEdit") == 0)
         {
-            PrintKey(keyEvent, text);
+            PrintKey(*keyEvent, text);
             QLineEdit* pLineEdit = static_cast<QLineEdit*> (pObj);
             pLineEdit->setText(text);
 
@@ -192,9 +200,9 @@ bool InputSettings::eventFilter(QObject* pObj, QEvent *pEvent)
     return QDialog::eventFilter(pObj, pEvent);
 }
 
-void InputSettings::PrintKey(QKeyEvent* pEvent, char* buffer)
+void InputSettings::PrintKey(QKeyEvent& pEvent, char* buffer)
 {
-    switch (pEvent->key())
+    switch (pEvent.key())
     {
         case Qt::Key_Control:
             strcpy(buffer, "CONTROL");
@@ -251,6 +259,6 @@ void InputSettings::PrintKey(QKeyEvent* pEvent, char* buffer)
             strcpy(buffer, "DELETE");
             break;
         default:
-            strcpy(buffer, pEvent->text().toUpper().toAscii());
+            strcpy(buffer, pEvent.text().toUpper().toAscii());
     }
 }

@@ -46,7 +46,7 @@ public slots:
     void RestoreKeys();
 
 private:
-    void PrintKey(QKeyEvent* pEvent, char* buffer);
+    void PrintKey(QKeyEvent& pEvent, char* buffer);
 
 private:
     Ui::InputSettings widget;
