@@ -58,17 +58,17 @@ void SoundSettings::PressedOK()
     int sampleRate = 0;
     switch (m_iRate)
     {
-    case 0:
-        sampleRate = 48000;
-        break;
-    case 1:
-        sampleRate = 44100;
-        break;
-    case 2:
-        sampleRate = 22050;
-        break;
-    default:
-        sampleRate = 44100;
+        case 0:
+            sampleRate = 48000;
+            break;
+        case 1:
+            sampleRate = 44100;
+            break;
+        case 2:
+            sampleRate = 22050;
+            break;
+        default:
+            sampleRate = 44100;
     }
 
     m_pEmulator->SetSoundSettings(m_bEnabled, sampleRate);
