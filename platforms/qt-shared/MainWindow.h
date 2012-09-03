@@ -84,6 +84,9 @@ protected:
     void ResizeWindow(int factor);
 
 private:
+    void InitKeys();
+
+private:
     Ui::MainWindow *m_pUI;
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;

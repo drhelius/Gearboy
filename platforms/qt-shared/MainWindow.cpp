@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_iScreenSize = 2;
 
     m_pInputSettings = new InputSettings();
+    InitKeys();
 
     m_bMenuPressed[0] = m_bMenuPressed[1] = m_bMenuPressed[2] = false;
     m_pUI = new Ui::MainWindow();
@@ -156,7 +157,6 @@ void MainWindow::MenuSettingsInput()
 {
     m_pGLFrame->PauseRenderThread();
     m_pInputSettings->show();
-    m_pGLFrame->ResumeRenderThread();
 }
 
 void MainWindow::MenuSettingsVideo()
@@ -295,62 +295,66 @@ void MainWindow::closeEvent(QCloseEvent *evt)
 
 void MainWindow::keyPressEvent(QKeyEvent* e)
 {
-    switch (e->key())
+    switch (m_pInputSettings->GetKey(e->key()))
     {
-        case Qt::Key_Up:
+        case 0:
             m_pEmulator->KeyPressed(Up_Key);
             break;
-        case Qt::Key_Left:
+        case 3:
             m_pEmulator->KeyPressed(Left_Key);
             break;
-        case Qt::Key_Right:
+        case 1:
             m_pEmulator->KeyPressed(Right_Key);
             break;
-        case Qt::Key_Down:
+        case 2:
             m_pEmulator->KeyPressed(Down_Key);
             break;
-        case Qt::Key_Return:
+        case 6:
             m_pEmulator->KeyPressed(Start_Key);
             break;
-        case Qt::Key_Space:
+        case 7:
             m_pEmulator->KeyPressed(Select_Key);
             break;
-        case Qt::Key_A:
+        case 5:
             m_pEmulator->KeyPressed(B_Key);
             break;
-        case Qt::Key_S:
+        case 4:
             m_pEmulator->KeyPressed(A_Key);
+            break;
+        default:
             break;
     }
 }
 
 void MainWindow::keyReleaseEvent(QKeyEvent* e)
 {
-    switch (e->key())
+    switch (m_pInputSettings->GetKey(e->key()))
     {
-        case Qt::Key_Up:
+        case 0:
             m_pEmulator->KeyReleased(Up_Key);
             break;
-        case Qt::Key_Left:
+        case 3:
             m_pEmulator->KeyReleased(Left_Key);
             break;
-        case Qt::Key_Right:
+        case 1:
             m_pEmulator->KeyReleased(Right_Key);
             break;
-        case Qt::Key_Down:
+        case 2:
             m_pEmulator->KeyReleased(Down_Key);
             break;
-        case Qt::Key_Return:
+        case 6:
             m_pEmulator->KeyReleased(Start_Key);
             break;
-        case Qt::Key_Space:
+        case 7:
             m_pEmulator->KeyReleased(Select_Key);
             break;
-        case Qt::Key_A:
+        case 5:
             m_pEmulator->KeyReleased(B_Key);
             break;
-        case Qt::Key_S:
+        case 4:
             m_pEmulator->KeyReleased(A_Key);
+            break;
+        default:
             break;
     }
 }
@@ -374,5 +378,29 @@ bool MainWindow::event(QEvent *ev)
         }
     }
     return QMainWindow::event(ev);
+}
+
+void MainWindow::InitKeys()
+{
+    stCustomKey keys[8];
+
+    keys[0].keyCode = Qt::Key_Up;
+    strcpy(keys[0].text, "UP");
+    keys[1].keyCode = Qt::Key_Right;
+    strcpy(keys[1].text, "RIGHT");
+    keys[2].keyCode = Qt::Key_Down;
+    strcpy(keys[2].text, "DOWN");
+    keys[3].keyCode = Qt::Key_Left;
+    strcpy(keys[3].text, "LEFT");
+    keys[4].keyCode = Qt::Key_S;
+    strcpy(keys[4].text, "S");
+    keys[5].keyCode = Qt::Key_A;
+    strcpy(keys[5].text, "A");
+    keys[6].keyCode = Qt::Key_Return;
+    strcpy(keys[6].text, "RETURN");
+    keys[7].keyCode = Qt::Key_Space;
+    strcpy(keys[7].text, "SPACE");
+
+    m_pInputSettings->SetKeys(keys);
 }
 
