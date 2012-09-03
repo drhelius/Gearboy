@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>336</width>
+    <width>324</width>
     <height>202</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>16</x>
      <y>160</y>
      <width>291</width>
      <height>32</height>
@@ -37,7 +37,7 @@
     <rect>
      <x>20</x>
      <y>10</y>
-     <width>291</width>
+     <width>281</width>
      <height>81</height>
     </rect>
    </property>
@@ -48,7 +48,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>30</y>
+      <y>32</y>
       <width>41</width>
       <height>31</height>
      </rect>
@@ -61,7 +61,7 @@
     <property name="geometry">
      <rect>
       <x>90</x>
-      <y>30</y>
+      <y>32</y>
       <width>41</width>
       <height>31</height>
      </rect>
@@ -74,7 +74,7 @@
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>30</y>
+      <y>32</y>
       <width>41</width>
       <height>31</height>
      </rect>
@@ -87,7 +87,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>30</y>
+      <y>32</y>
       <width>41</width>
       <height>31</height>
      </rect>
@@ -100,9 +100,9 @@
   <widget class="QCheckBox" name="checkBoxVSync">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>24</x>
      <y>120</y>
-     <width>101</width>
+     <width>131</width>
      <height>17</height>
     </rect>
    </property>
@@ -113,10 +113,10 @@
   <widget class="QCheckBox" name="checkBoxFilter">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>120</y>
-     <width>101</width>
-     <height>17</height>
+     <x>174</x>
+     <y>118</y>
+     <width>141</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
