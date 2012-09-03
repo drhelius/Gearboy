@@ -32,7 +32,7 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboBox">
+  <widget class="QComboBox" name="comboBoxSampleRate">
    <property name="geometry">
     <rect>
      <x>230</x>
@@ -55,7 +55,7 @@
     <string>Sample Rate:</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox">
+  <widget class="QCheckBox" name="checkBoxSoundEnabled">
    <property name="geometry">
     <rect>
      <x>20</x>

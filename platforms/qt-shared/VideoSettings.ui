@@ -44,7 +44,7 @@
    <property name="title">
     <string>DMG Color Palette</string>
    </property>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="pushButtonColor1">
     <property name="geometry">
      <rect>
       <x>30</x>
@@ -57,7 +57,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="pushButtonColor2">
     <property name="geometry">
      <rect>
       <x>90</x>
@@ -70,7 +70,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_3">
+   <widget class="QPushButton" name="pushButtonColor3">
     <property name="geometry">
      <rect>
       <x>150</x>
@@ -83,7 +83,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_4">
+   <widget class="QPushButton" name="pushButtonColor4">
     <property name="geometry">
      <rect>
       <x>210</x>
@@ -97,10 +97,10 @@
     </property>
    </widget>
   </widget>
-  <widget class="QCheckBox" name="checkBox">
+  <widget class="QCheckBox" name="checkBoxVSync">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>40</x>
      <y>120</y>
      <width>101</width>
      <height>17</height>
@@ -108,6 +108,19 @@
    </property>
    <property name="text">
     <string>V-Sync Enabled</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBoxFilter">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>120</y>
+     <width>101</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Bilinear Filtering</string>
    </property>
   </widget>
  </widget>

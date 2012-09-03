@@ -22,6 +22,12 @@
 
 #include "ui_InputSettings.h"
 
+struct stCustomKey
+{
+    int keyCode;
+    char text[32];
+};
+
 class InputSettings : public QDialog
 {
     Q_OBJECT
@@ -29,9 +35,21 @@ class InputSettings : public QDialog
 public:
     InputSettings();
     ~InputSettings();
+    bool eventFilter(QObject* pObj, QEvent *pEvent);
+    void SetKeys(stCustomKey keys[]);
+    int GetKey(int key);
+
+public slots:
+    void SaveKeys();
+    void RestoreKeys();
+
+private:
+    void PrintKey(QKeyEvent* pEvent, char* buffer);
 
 private:
     Ui::InputSettings widget;
+    stCustomKey m_Keys[8];
+    stCustomKey m_TempKeys[8];
 };
 
 #endif	/* _INPUTSETTINGS_H */

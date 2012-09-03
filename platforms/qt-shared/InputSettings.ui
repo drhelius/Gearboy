@@ -41,6 +41,9 @@
      <height>22</height>
     </rect>
    </property>
+   <property name="readOnly">
+    <bool>false</bool>
+   </property>
   </widget>
   <widget class="QLabel" name="label">
    <property name="geometry">
@@ -234,7 +237,7 @@
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
    <receiver>InputSettings</receiver>
-   <slot>accept()</slot>
+   <slot>SaveKeys()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>248</x>
@@ -250,7 +253,7 @@
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>InputSettings</receiver>
-   <slot>reject()</slot>
+   <slot>RestoreKeys()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>316</x>
@@ -263,4 +266,8 @@
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>SaveKeys()</slot>
+  <slot>RestoreKeys()</slot>
+ </slots>
 </ui>
