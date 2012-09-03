@@ -30,9 +30,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_bFullscreen = false;
     m_iScreenSize = 2;
 
-    m_pInputSettings = new InputSettings();
-    InitKeys();
-
     m_bMenuPressed[0] = m_bMenuPressed[1] = m_bMenuPressed[2] = false;
     m_pUI = new Ui::MainWindow();
     m_pUI->setupUi(this);
@@ -72,6 +69,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_pGLFrame = new GLFrame();
     ResizeWindow(m_iScreenSize);
     setCentralWidget(m_pGLFrame);
+
+    m_pInputSettings = new InputSettings(m_pGLFrame);
+    InitKeys();
+
 
     //QPalette pal = this->palette();
     //pal.setColor(this->backgroundRole(), Qt::black);

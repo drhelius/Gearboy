@@ -19,9 +19,11 @@
 
 #include <QKeyEvent>
 #include "InputSettings.h"
+#include "GLFrame.h"
 
-InputSettings::InputSettings()
+InputSettings::InputSettings(GLFrame* pGLFrame)
 {
+    m_pGLFrame = pGLFrame;
     widget.setupUi(this);
     widget.lineEditUp->installEventFilter(this);
     widget.lineEditRight->installEventFilter(this);
@@ -105,6 +107,7 @@ void InputSettings::SaveKeys()
         m_Keys[i].keyCode = m_TempKeys[i].keyCode;
         strcpy(m_Keys[i].text, m_TempKeys[i].text);
     }
+    m_pGLFrame->ResumeRenderThread();
     this->accept();
 }
 
@@ -123,6 +126,7 @@ void InputSettings::RestoreKeys()
     widget.lineEditB->setText(m_Keys[5].text);    
     widget.lineEditStart->setText(m_Keys[6].text);    
     widget.lineEditSelect->setText(m_Keys[7].text);
+    m_pGLFrame->ResumeRenderThread();
     this->reject();
 }
 

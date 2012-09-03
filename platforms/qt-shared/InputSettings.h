@@ -28,12 +28,14 @@ struct stCustomKey
     char text[32];
 };
 
+class GLFrame;
+
 class InputSettings : public QDialog
 {
     Q_OBJECT
 
 public:
-    InputSettings();
+    InputSettings(GLFrame* pGLFrame);
     ~InputSettings();
     bool eventFilter(QObject* pObj, QEvent *pEvent);
     void SetKeys(stCustomKey keys[]);
@@ -50,6 +52,7 @@ private:
     Ui::InputSettings widget;
     stCustomKey m_Keys[8];
     stCustomKey m_TempKeys[8];
+    GLFrame* m_pGLFrame;
 };
 
 #endif	/* _INPUTSETTINGS_H */
