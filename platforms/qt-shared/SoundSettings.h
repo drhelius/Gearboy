@@ -22,16 +22,28 @@
 
 #include "ui_SoundSettings.h"
 
+class GLFrame;
+class Emulator;
+
 class SoundSettings : public QDialog
 {
     Q_OBJECT
 
 public:
-    SoundSettings();
+    SoundSettings(GLFrame* pGLFrame, Emulator* pEmulator);
     ~SoundSettings();
+    void Init(bool enabled, int rate);
+
+public slots:
+    void PressedOK();
+    void PressedCancel();
 
 private:
     Ui::SoundSettings widget;
+    GLFrame* m_pGLFrame;
+    Emulator* m_pEmulator;
+    int m_iRate;
+    bool m_bEnabled;
 };
 
 #endif // SOUNDSETTINGS_H

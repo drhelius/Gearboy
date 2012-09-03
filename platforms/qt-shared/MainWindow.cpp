@@ -24,6 +24,7 @@
 #include "GLFrame.h"
 #include "Emulator.h"
 #include "InputSettings.h"
+#include "SoundSettings.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -73,6 +74,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_pInputSettings = new InputSettings(m_pGLFrame);
     InitKeys();
 
+    m_pSoundSettings = new SoundSettings(m_pGLFrame, m_pEmulator);
+    m_pSoundSettings->Init(true, 1);
+
 
     //QPalette pal = this->palette();
     //pal.setColor(this->backgroundRole(), Qt::black);
@@ -87,6 +91,7 @@ MainWindow::~MainWindow()
     SafeDelete(m_pEmulator);
     SafeDelete(m_pGLFrame);
     SafeDelete(m_pInputSettings);
+    SafeDelete(m_pSoundSettings);
     SafeDelete(m_pUI);
 }
 
@@ -166,6 +171,8 @@ void MainWindow::MenuSettingsVideo()
 
 void MainWindow::MenuSettingsSound()
 {
+    m_pGLFrame->PauseRenderThread();
+    m_pSoundSettings->show();
 }
 
 void MainWindow::MenuSettingsWindowSize(QAction* action)

@@ -94,5 +94,15 @@ void Emulator::Reset()
 
 void Emulator::MemoryDump()
 {
+    m_Mutex.lock();
     m_pGearboyCore->GetMemory()->MemoryDump("memdump.txt");
+    m_Mutex.unlock();
+}
+
+void Emulator::SetSoundSettings(bool enabled, int rate)
+{
+    m_Mutex.lock();
+    m_pGearboyCore->EnableSound(enabled);
+    m_pGearboyCore->SetSoundSampleRate(rate);
+    m_Mutex.unlock();
 }

@@ -50,6 +50,8 @@ public:
     void Pause(bool paused);
     bool IsPaused();
     void ResetROM();
+    void EnableSound(bool enabled);
+    void SetSoundSampleRate(int rate);
 private:
     void InitMemoryRules();
     bool AddMemoryRules();

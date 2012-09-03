@@ -75,7 +75,7 @@
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
    <receiver>SoundSettings</receiver>
-   <slot>accept()</slot>
+   <slot>PressedOK()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>248</x>
@@ -91,7 +91,7 @@
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>SoundSettings</receiver>
-   <slot>reject()</slot>
+   <slot>PressedCancel()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>316</x>
@@ -104,4 +104,8 @@
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>PressedOK()</slot>
+  <slot>PressedCancel()</slot>
+ </slots>
 </ui>

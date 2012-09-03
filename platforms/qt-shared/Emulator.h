@@ -38,6 +38,7 @@ public:
     bool IsPaused();
     void Reset();
     void MemoryDump();
+    void SetSoundSettings(bool enabled, int rate);
 
 private:
     GearboyCore* m_pGearboyCore;

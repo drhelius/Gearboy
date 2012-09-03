@@ -81,7 +81,7 @@ void GearboyCore::Init()
     m_pMemory->Init();
     m_pProcessor->Init();
     m_pVideo->Init();
-    m_pAudio->Init(44100);
+    m_pAudio->Init();
     m_pInput->Init();
     m_pCartridge->Init();
 
@@ -158,6 +158,16 @@ void GearboyCore::ResetROM()
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         AddMemoryRules();
     }
+}
+
+void GearboyCore::EnableSound(bool enabled)
+{
+    m_pAudio->Enable(enabled);
+}
+
+void GearboyCore::SetSoundSampleRate(int rate)
+{
+    m_pAudio->SetSampleRate(rate);
 }
 
 void GearboyCore::InitMemoryRules()
