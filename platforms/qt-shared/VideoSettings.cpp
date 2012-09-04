@@ -47,32 +47,32 @@ void VideoSettings::Init(int color1, int color2, int color3, int color4)
     QColor color;
     color.setBlue(color1 & 0xFF);
     color.setGreen((color1 >> 8) & 0xFF);
-    color.setRed((color1 >> 8) & 0xFF);
+    color.setRed((color1 >> 16) & 0xFF);
     QString qss = QString("background-color: %1").arg(color.name());
     widget.pushButtonColor1->setStyleSheet(qss);
 
     color.setBlue(color2 & 0xFF);
     color.setGreen((color2 >> 8) & 0xFF);
-    color.setRed((color2 >> 8) & 0xFF);
+    color.setRed((color2 >> 16) & 0xFF);
     qss = QString("background-color: %1").arg(color.name());
     widget.pushButtonColor2->setStyleSheet(qss);
 
     color.setBlue(color3 & 0xFF);
     color.setGreen((color3 >> 8) & 0xFF);
-    color.setRed((color3 >> 8) & 0xFF);
+    color.setRed((color3 >> 16) & 0xFF);
     qss = QString("background-color: %1").arg(color.name());
     widget.pushButtonColor3->setStyleSheet(qss);
 
     color.setBlue(color4 & 0xFF);
     color.setGreen((color4 >> 8) & 0xFF);
-    color.setRed((color4 >> 8) & 0xFF);
+    color.setRed((color4 >> 16) & 0xFF);
     qss = QString("background-color: %1").arg(color.name());
     widget.pushButtonColor4->setStyleSheet(qss);
 }
 
 void VideoSettings::ColorDialogFinished(QColor color)
 {
-    m_iColors[m_iCurrentColor] = (color.blue() & 0xFF) | ((color.green() << 8) & 0xFF) | ((color.red() << 16) & 0xFF);
+    m_iColors[m_iCurrentColor] = (color.blue() & 0xFF) | ((color.green() & 0xFF) << 8) | ((color.red() & 0xFF) << 16);
     QString qss = QString("background-color: %1").arg(color.name());
 
     switch (m_iCurrentColor)
@@ -90,7 +90,6 @@ void VideoSettings::ColorDialogFinished(QColor color)
             widget.pushButtonColor4->setStyleSheet(qss);
             break;
     }
-
 }
 
 void VideoSettings::Color1()
@@ -98,7 +97,7 @@ void VideoSettings::Color1()
     QColor old_color;
     old_color.setBlue(m_iColors[0] & 0xFF);
     old_color.setGreen((m_iColors[0] >> 8) & 0xFF);
-    old_color.setRed((m_iColors[0] >> 8) & 0xFF);
+    old_color.setRed((m_iColors[0] >> 16) & 0xFF);
     m_iCurrentColor = 0;
     SafeDelete(m_pColorDialog);
     m_pColorDialog = new QColorDialog();
@@ -113,7 +112,7 @@ void VideoSettings::Color2()
     QColor old_color;
     old_color.setBlue(m_iColors[1] & 0xFF);
     old_color.setGreen((m_iColors[1] >> 8) & 0xFF);
-    old_color.setRed((m_iColors[1] >> 8) & 0xFF);
+    old_color.setRed((m_iColors[1] >> 16) & 0xFF);
     m_iCurrentColor = 1;
     SafeDelete(m_pColorDialog);
     m_pColorDialog = new QColorDialog();
@@ -128,7 +127,7 @@ void VideoSettings::Color3()
     QColor old_color;
     old_color.setBlue(m_iColors[2] & 0xFF);
     old_color.setGreen((m_iColors[2] >> 8) & 0xFF);
-    old_color.setRed((m_iColors[2] >> 8) & 0xFF);
+    old_color.setRed((m_iColors[2] >> 16) & 0xFF);
     m_iCurrentColor = 2;
     SafeDelete(m_pColorDialog);
     m_pColorDialog = new QColorDialog();
@@ -143,7 +142,7 @@ void VideoSettings::Color4()
     QColor old_color;
     old_color.setBlue(m_iColors[3] & 0xFF);
     old_color.setGreen((m_iColors[3] >> 8) & 0xFF);
-    old_color.setRed((m_iColors[3] >> 8) & 0xFF);
+    old_color.setRed((m_iColors[3] >> 16) & 0xFF);
     m_iCurrentColor = 3;
     SafeDelete(m_pColorDialog);
     m_pColorDialog = new QColorDialog();
@@ -156,6 +155,19 @@ void VideoSettings::Color4()
 void VideoSettings::PressedOK()
 {
     m_pGLFrame->SetBilinearFiletering(widget.checkBoxFilter->isChecked());
+
+    GB_Color gb_color[4];
+
+    for (int i = 0; i < 4; i++)
+    {
+        gb_color[i].alpha = 0;
+        gb_color[i].red = (m_iColors[i] >> 16) & 0xFF;
+        gb_color[i].green = (m_iColors[i] >> 8) & 0xFF;
+        gb_color[i].blue = m_iColors[i] & 0xFF;
+    }
+
+    m_pEmulator->SetDMGPalette(gb_color[0], gb_color[1], gb_color[2], gb_color[3]);
+
     m_pGLFrame->ResumeRenderThread();
     this->accept();
 }

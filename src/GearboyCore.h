@@ -52,8 +52,10 @@ public:
     void ResetROM();
     void EnableSound(bool enabled);
     void SetSoundSampleRate(int rate);
+    void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
 
 private:
+    void InitDMGPalette();
     void InitMemoryRules();
     bool AddMemoryRules();
     void Reset(bool bCGB);
@@ -76,6 +78,7 @@ private:
     Gameboy_MemoryBankControllers m_MBC;
     bool m_bCGB;
     bool m_bPaused;
+    GB_Color m_DMGPalette[4];
 };
 
 #endif	/* CORE_H */

@@ -106,3 +106,11 @@ void Emulator::SetSoundSettings(bool enabled, int rate)
     m_pGearboyCore->SetSoundSampleRate(rate);
     m_Mutex.unlock();
 }
+
+void Emulator::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3,
+        GB_Color& color4)
+{
+    m_Mutex.lock();
+    m_pGearboyCore->SetDMGPalette(color1, color2, color3, color4);
+    m_Mutex.unlock();
+}
