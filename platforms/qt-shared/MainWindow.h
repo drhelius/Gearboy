@@ -87,6 +87,8 @@ protected:
 
 private:
     void InitKeys();
+    void LoadSettings();
+    void SaveSettings();
 
 private:
     Ui::MainWindow *m_pUI;

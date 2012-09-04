@@ -19,6 +19,7 @@
 
 #include <QFileDialog>
 #include <QDesktopWidget>
+#include <QSettings>
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "GLFrame.h"
@@ -56,7 +57,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     m_pUI->actionX_1->setData(1);
     m_pUI->actionX_2->setData(2);
-    m_pUI->actionX_2->setChecked(true);
     m_pUI->actionX_3->setData(3);
     m_pUI->actionX_4->setData(4);
     m_pUI->actionX_5->setData(5);
@@ -85,11 +85,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     //pal.setColor(this->backgroundRole(), Qt::black);
     //this->setPalette(pal);
 
+    LoadSettings();
+
     m_pGLFrame->InitRenderThread(m_pEmulator);
 }
 
 MainWindow::~MainWindow()
 {
+    SaveSettings();
+
     SafeDelete(m_pExitShortcut);
     SafeDelete(m_pEmulator);
     SafeDelete(m_pGLFrame);
@@ -415,5 +419,41 @@ void MainWindow::InitKeys()
     strcpy(keys[7].text, "SPACE");
 
     m_pInputSettings->SetKeys(keys);
+}
+
+void MainWindow::LoadSettings()
+{
+    QSettings settings("gearboy.ini", QSettings::IniFormat);
+    m_iScreenSize = settings.value("ScreenSize", 2).toInt();
+    
+    switch (m_iScreenSize)
+    {
+        case 1:
+            MenuSettingsWindowSize(m_pUI->actionX_1);
+            break;
+        case 2:
+            MenuSettingsWindowSize(m_pUI->actionX_2);
+            break;
+        case 3:
+            MenuSettingsWindowSize(m_pUI->actionX_3);
+            break;
+        case 4:
+            MenuSettingsWindowSize(m_pUI->actionX_4);
+            break;
+        case 5:
+            MenuSettingsWindowSize(m_pUI->actionX_5);
+            break;
+    }
+    
+    m_bFullscreen = !settings.value("FullScreen", false).toBool();
+        
+    MenuSettingsFullscreen();
+}
+
+void MainWindow::SaveSettings()
+{
+    QSettings settings("gearboy.ini", QSettings::IniFormat);
+    settings.setValue("ScreenSize", m_iScreenSize);
+    settings.setValue("FullScreen", m_bFullscreen);
 }
 
