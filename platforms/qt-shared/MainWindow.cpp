@@ -425,7 +425,7 @@ void MainWindow::LoadSettings()
 {
     QSettings settings("gearboy.ini", QSettings::IniFormat);
     m_iScreenSize = settings.value("ScreenSize", 2).toInt();
-    
+
     switch (m_iScreenSize)
     {
         case 1:
@@ -444,9 +444,9 @@ void MainWindow::LoadSettings()
             MenuSettingsWindowSize(m_pUI->actionX_5);
             break;
     }
-    
+
     m_bFullscreen = !settings.value("FullScreen", false).toBool();
-        
+
     MenuSettingsFullscreen();
 }
 
