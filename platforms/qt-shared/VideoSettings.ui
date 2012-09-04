@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>VideoSettings</class>
  <widget class="QDialog" name="VideoSettings">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -14,7 +17,7 @@
    <string>Video Settings</string>
   </property>
   <property name="modal">
-   <bool>true</bool>
+   <bool>false</bool>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">

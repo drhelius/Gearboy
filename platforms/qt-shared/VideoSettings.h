@@ -24,6 +24,7 @@
 
 class GLFrame;
 class Emulator;
+class QColorDialog;
 
 class VideoSettings : public QDialog
 {
@@ -41,11 +42,15 @@ public slots:
     void Color2();
     void Color3();
     void Color4();
+    void ColorDialogFinished(QColor color);
 
 private:
     Ui::VideoSettings widget;
     Emulator* m_pEmulator;
     GLFrame* m_pGLFrame;
+    int m_iColors[4];
+    QColorDialog* m_pColorDialog;
+    int m_iCurrentColor;
 };
 
 #endif // VIDEOSETTINGS_H

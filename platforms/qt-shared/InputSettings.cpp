@@ -42,7 +42,7 @@ InputSettings::~InputSettings()
 void InputSettings::SetKeys(stCustomKey keys[])
 {
     char text[32];
-    
+
     QKeyEvent a = QKeyEvent(QEvent::KeyPress, keys[0].keyCode, Qt::NoModifier, keys[0].text);
     PrintKey(a, text);
     widget.lineEditUp->setText(text);
