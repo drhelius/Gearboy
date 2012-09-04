@@ -29,6 +29,7 @@ class GLFrame;
 class Emulator;
 class InputSettings;
 class SoundSettings;
+class VideoSettings;
 
 namespace Ui
 {
@@ -97,6 +98,7 @@ private:
     QShortcut* m_pExitShortcut;
     InputSettings* m_pInputSettings;
     SoundSettings* m_pSoundSettings;
+    VideoSettings* m_pVideoSettings;
 };
 
 #endif // MAINWINDOW_H

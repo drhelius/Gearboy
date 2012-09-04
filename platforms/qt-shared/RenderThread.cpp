@@ -41,6 +41,7 @@ RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
     m_iWidth = 0;
     m_iHeight = 0;
     InitPointer(m_pEmulator);
+    m_bFiltering = false;
 }
 
 RenderThread::~RenderThread()
@@ -142,6 +143,17 @@ void RenderThread::RenderFrame()
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
             GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
 
+    if (m_bFiltering)
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
+    else
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
+
     glBegin(GL_QUADS);
     glTexCoord2d(0.0, 0.0);
     glVertex2d(0.0, 0.0);
@@ -152,4 +164,9 @@ void RenderThread::RenderFrame()
     glTexCoord2d(0.0, 1.0);
     glVertex2d(0.0, m_iHeight);
     glEnd();
+}
+
+void RenderThread::SetBilinearFiletering(bool enabled)
+{
+    m_bFiltering = enabled;
 }

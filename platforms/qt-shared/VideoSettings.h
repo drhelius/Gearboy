@@ -22,16 +22,30 @@
 
 #include "ui_VideoSettings.h"
 
+class GLFrame;
+class Emulator;
+
 class VideoSettings : public QDialog
 {
     Q_OBJECT
 
 public:
-    VideoSettings();
+    VideoSettings(GLFrame* pGLFrame, Emulator* pEmulator);
     ~VideoSettings();
+    void Init(int color1, int color2, int color3, int color4);
+
+public slots:
+    void PressedOK();
+    void PressedCancel();
+    void Color1();
+    void Color2();
+    void Color3();
+    void Color4();
 
 private:
     Ui::VideoSettings widget;
+    Emulator* m_pEmulator;
+    GLFrame* m_pGLFrame;
 };
 
 #endif // VIDEOSETTINGS_H

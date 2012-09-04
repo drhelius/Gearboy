@@ -41,6 +41,7 @@ public:
     void Resume();
     void SetEmulator(Emulator* pEmulator);
     bool IsRunningEmulator();
+    void SetBilinearFiletering(bool enabled);
 
 protected:
     void Init();
@@ -53,7 +54,7 @@ private:
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;
     GB_Color* m_pFrameBuffer;
-
+    bool m_bFiltering;
 signals:
 public slots:
 };
