@@ -41,15 +41,6 @@ SoundSettings::~SoundSettings()
 {
 }
 
-void SoundSettings::Init(bool enabled, int rate)
-{
-    m_iRate = rate;
-    m_bEnabled = enabled;
-
-    widget.comboBoxSampleRate->setCurrentIndex(m_iRate);
-    widget.checkBoxSoundEnabled->setChecked(m_bEnabled);
-}
-
 void SoundSettings::PressedOK()
 {
     m_iRate = widget.comboBoxSampleRate->currentIndex();
@@ -86,8 +77,32 @@ void SoundSettings::PressedCancel()
 
 void SoundSettings::SaveSettings(QSettings& settings)
 {
+    settings.setValue("SampleRate", m_iRate);
+    settings.setValue("SoundEnabled", m_bEnabled);
 }
 
 void SoundSettings::LoadSettings(QSettings& settings)
 {
+    m_iRate = settings.value("SampleRate", 1).toInt();
+    m_bEnabled = settings.value("SoundEnabled", true).toBool();
+    widget.comboBoxSampleRate->setCurrentIndex(m_iRate);
+    widget.checkBoxSoundEnabled->setChecked(m_bEnabled);
+
+    int sampleRate = 0;
+    switch (m_iRate)
+    {
+        case 0:
+            sampleRate = 48000;
+            break;
+        case 1:
+            sampleRate = 44100;
+            break;
+        case 2:
+            sampleRate = 22050;
+            break;
+        default:
+            sampleRate = 44100;
+    }
+
+    m_pEmulator->SetSoundSettings(m_bEnabled, sampleRate);
 }

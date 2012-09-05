@@ -44,6 +44,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     bool event(QEvent *ev);
+    bool eventFilter(QObject * watched, QEvent * event);
 
 public slots:
     void Exit();
@@ -86,7 +87,6 @@ protected:
     void ResizeWindow(int factor);
 
 private:
-    void InitKeys();
     void LoadSettings();
     void SaveSettings();
 

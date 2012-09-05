@@ -39,65 +39,6 @@ InputSettings::~InputSettings()
 {
 }
 
-void InputSettings::SetKeys(stCustomKey keys[])
-{
-    char text[32];
-
-    QKeyEvent a = QKeyEvent(QEvent::KeyPress, keys[0].keyCode, Qt::NoModifier, keys[0].text);
-    PrintKey(a, text);
-    widget.lineEditUp->setText(text);
-    m_Keys[0].keyCode = keys[0].keyCode;
-    strcpy(m_Keys[0].text, text);
-
-    a = QKeyEvent(QEvent::KeyPress, keys[1].keyCode, Qt::NoModifier, keys[1].text);
-    PrintKey(a, text);
-    widget.lineEditRight->setText(text);
-    m_Keys[1].keyCode = keys[1].keyCode;
-    strcpy(m_Keys[1].text, text);
-
-    a = QKeyEvent(QEvent::KeyPress, keys[2].keyCode, Qt::NoModifier, keys[2].text);
-    PrintKey(a, text);
-    widget.lineEditDown->setText(text);
-    m_Keys[2].keyCode = keys[2].keyCode;
-    strcpy(m_Keys[2].text, text);
-
-    a = QKeyEvent(QEvent::KeyPress, keys[3].keyCode, Qt::NoModifier, keys[3].text);
-    PrintKey(a, text);
-    widget.lineEditLeft->setText(text);
-    m_Keys[3].keyCode = keys[3].keyCode;
-    strcpy(m_Keys[3].text, text);
-
-    a = QKeyEvent(QEvent::KeyPress, keys[4].keyCode, Qt::NoModifier, keys[4].text);
-    PrintKey(a, text);
-    widget.lineEditA->setText(text);
-    m_Keys[4].keyCode = keys[4].keyCode;
-    strcpy(m_Keys[4].text, text);
-
-    a = QKeyEvent(QEvent::KeyPress, keys[5].keyCode, Qt::NoModifier, keys[5].text);
-    PrintKey(a, text);
-    widget.lineEditB->setText(text);
-    m_Keys[5].keyCode = keys[5].keyCode;
-    strcpy(m_Keys[5].text, text);
-
-    a = QKeyEvent(QEvent::KeyPress, keys[6].keyCode, Qt::NoModifier, keys[6].text);
-    PrintKey(a, text);
-    widget.lineEditStart->setText(text);
-    m_Keys[6].keyCode = keys[6].keyCode;
-    strcpy(m_Keys[6].text, text);
-
-    a = QKeyEvent(QEvent::KeyPress, keys[7].keyCode, Qt::NoModifier, keys[7].text);
-    PrintKey(a, text);
-    widget.lineEditSelect->setText(text);
-    m_Keys[7].keyCode = keys[7].keyCode;
-    strcpy(m_Keys[7].text, text);
-
-    for (int i = 0; i < 8; i++)
-    {
-        m_TempKeys[i].keyCode = m_Keys[i].keyCode;
-        strcpy(m_TempKeys[i].text, m_Keys[i].text);
-    }
-}
-
 int InputSettings::GetKey(int key)
 {
     for (int i = 0; i < 8; i++)
@@ -265,23 +206,23 @@ void InputSettings::PrintKey(QKeyEvent& pEvent, char* buffer)
 
 void InputSettings::SaveSettings(QSettings& settings)
 {
-        settings.setValue("KeyUP", m_Keys[0].keyCode);
-        settings.setValue("KeyRIGHT", m_Keys[1].keyCode);
-        settings.setValue("KeyDOWN", m_Keys[2].keyCode);
-        settings.setValue("KeyLEFT", m_Keys[3].keyCode);
-        settings.setValue("KeyA", m_Keys[4].keyCode);
-        settings.setValue("KeyB", m_Keys[5].keyCode);
-        settings.setValue("KeySTART", m_Keys[6].keyCode);
-        settings.setValue("KeySELECT", m_Keys[7].keyCode);
+    settings.setValue("KeyUP", m_Keys[0].keyCode);
+    settings.setValue("KeyRIGHT", m_Keys[1].keyCode);
+    settings.setValue("KeyDOWN", m_Keys[2].keyCode);
+    settings.setValue("KeyLEFT", m_Keys[3].keyCode);
+    settings.setValue("KeyA", m_Keys[4].keyCode);
+    settings.setValue("KeyB", m_Keys[5].keyCode);
+    settings.setValue("KeySTART", m_Keys[6].keyCode);
+    settings.setValue("KeySELECT", m_Keys[7].keyCode);
 
-        settings.setValue("KeyNameUP", m_Keys[0].text);
-        settings.setValue("KeyNameRIGHT", m_Keys[1].text);
-        settings.setValue("KeyNameDOWN", m_Keys[2].text);
-        settings.setValue("KeyNameLEFT", m_Keys[3].text);
-        settings.setValue("KeyNameA", m_Keys[4].text);
-        settings.setValue("KeyNameB", m_Keys[5].text);
-        settings.setValue("KeyNameSTART", m_Keys[6].text);
-        settings.setValue("KeyNameSELECT", m_Keys[7].text);
+    settings.setValue("KeyNameUP", m_Keys[0].text);
+    settings.setValue("KeyNameRIGHT", m_Keys[1].text);
+    settings.setValue("KeyNameDOWN", m_Keys[2].text);
+    settings.setValue("KeyNameLEFT", m_Keys[3].text);
+    settings.setValue("KeyNameA", m_Keys[4].text);
+    settings.setValue("KeyNameB", m_Keys[5].text);
+    settings.setValue("KeyNameSTART", m_Keys[6].text);
+    settings.setValue("KeyNameSELECT", m_Keys[7].text);
 }
 
 void InputSettings::LoadSettings(QSettings& settings)
@@ -295,21 +236,27 @@ void InputSettings::LoadSettings(QSettings& settings)
     m_Keys[6].keyCode = settings.value("KeySTART", Qt::Key_Return).toInt();
     m_Keys[7].keyCode = settings.value("KeySELECT", Qt::Key_Space).toInt();
 
-    /*
-    keys[0].keyCode = Qt::Key_Up;
-    strcpy(keys[0].text, "UP");
-    keys[1].keyCode = Qt::Key_Right;
-    strcpy(keys[1].text, "RIGHT");
-    keys[2].keyCode = Qt::Key_Down;
-    strcpy(keys[2].text, "DOWN");
-    keys[3].keyCode = Qt::Key_Left;
-    strcpy(keys[3].text, "LEFT");
-    keys[4].keyCode = Qt::Key_S;
-    strcpy(keys[4].text, "S");
-    keys[5].keyCode = Qt::Key_A;
-    strcpy(keys[5].text, "A");
-    keys[6].keyCode = Qt::Key_Return;
-    strcpy(keys[6].text, "RETURN");
-    keys[7].keyCode = Qt::Key_Space;
-    strcpy(keys[7].text, "SPACE");*/
+    strcpy(m_Keys[0].text, settings.value("KeyNameUP", "UP").toString().toAscii().constData());
+    strcpy(m_Keys[1].text, settings.value("KeyNameRIGHT", "RIGHT").toString().toAscii().constData());
+    strcpy(m_Keys[2].text, settings.value("KeyNameDOWN", "DOWN").toString().toAscii().constData());
+    strcpy(m_Keys[3].text, settings.value("KeyNameLEFT", "LEFT").toString().toAscii().constData());
+    strcpy(m_Keys[4].text, settings.value("KeyNameA", "S").toString().toAscii().constData());
+    strcpy(m_Keys[5].text, settings.value("KeyNameB", "A").toString().toAscii().constData());
+    strcpy(m_Keys[6].text, settings.value("KeyNameSTART", "RETURN").toString().toAscii().constData());
+    strcpy(m_Keys[7].text, settings.value("KeyNameSELECT", "SPACE").toString().toAscii().constData());
+
+    widget.lineEditUp->setText(m_Keys[0].text);
+    widget.lineEditRight->setText(m_Keys[1].text);
+    widget.lineEditDown->setText(m_Keys[2].text);
+    widget.lineEditLeft->setText(m_Keys[3].text);
+    widget.lineEditA->setText(m_Keys[4].text);
+    widget.lineEditB->setText(m_Keys[5].text);
+    widget.lineEditStart->setText(m_Keys[6].text);
+    widget.lineEditSelect->setText(m_Keys[7].text);
+
+    for (int i = 0; i < 8; i++)
+    {
+        m_TempKeys[i].keyCode = m_Keys[i].keyCode;
+        strcpy(m_TempKeys[i].text, m_Keys[i].text);
+    }
 }

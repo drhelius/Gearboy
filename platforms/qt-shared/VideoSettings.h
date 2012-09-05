@@ -34,7 +34,6 @@ class VideoSettings : public QDialog
 public:
     VideoSettings(GLFrame* pGLFrame, Emulator* pEmulator);
     ~VideoSettings();
-    void Init(int color1, int color2, int color3, int color4);
     void SaveSettings(QSettings& settings);
     void LoadSettings(QSettings& settings);
 

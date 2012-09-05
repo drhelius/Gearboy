@@ -37,39 +37,6 @@ VideoSettings::~VideoSettings()
     SafeDelete(m_pColorDialog);
 }
 
-void VideoSettings::Init(int color1, int color2, int color3, int color4)
-{
-    m_iColors[0] = color1;
-    m_iColors[1] = color2;
-    m_iColors[2] = color3;
-    m_iColors[3] = color4;
-
-    QColor color;
-    color.setBlue(color1 & 0xFF);
-    color.setGreen((color1 >> 8) & 0xFF);
-    color.setRed((color1 >> 16) & 0xFF);
-    QString qss = QString("background-color: %1").arg(color.name());
-    widget.pushButtonColor1->setStyleSheet(qss);
-
-    color.setBlue(color2 & 0xFF);
-    color.setGreen((color2 >> 8) & 0xFF);
-    color.setRed((color2 >> 16) & 0xFF);
-    qss = QString("background-color: %1").arg(color.name());
-    widget.pushButtonColor2->setStyleSheet(qss);
-
-    color.setBlue(color3 & 0xFF);
-    color.setGreen((color3 >> 8) & 0xFF);
-    color.setRed((color3 >> 16) & 0xFF);
-    qss = QString("background-color: %1").arg(color.name());
-    widget.pushButtonColor3->setStyleSheet(qss);
-
-    color.setBlue(color4 & 0xFF);
-    color.setGreen((color4 >> 8) & 0xFF);
-    color.setRed((color4 >> 16) & 0xFF);
-    qss = QString("background-color: %1").arg(color.name());
-    widget.pushButtonColor4->setStyleSheet(qss);
-}
-
 void VideoSettings::ColorDialogFinished(QColor color)
 {
     m_iColors[m_iCurrentColor] = (color.blue() & 0xFF) | ((color.green() & 0xFF) << 8) | ((color.red() & 0xFF) << 16);
@@ -180,9 +147,57 @@ void VideoSettings::PressedCancel()
 
 void VideoSettings::SaveSettings(QSettings& settings)
 {
-
+    settings.setValue("DMGColor1", m_iColors[0]);
+    settings.setValue("DMGColor2", m_iColors[1]);
+    settings.setValue("DMGColor3", m_iColors[2]);
+    settings.setValue("DMGColor4", m_iColors[3]);
+    settings.setValue("BilinearFiltering", widget.checkBoxFilter->isChecked());
 }
 
 void VideoSettings::LoadSettings(QSettings& settings)
 {
+    m_iColors[0] = settings.value("DMGColor1", 0xEFF3D5).toInt();
+    m_iColors[1] = settings.value("DMGColor2", 0xA3B67A).toInt();
+    m_iColors[2] = settings.value("DMGColor3", 0x37613B).toInt();
+    m_iColors[3] = settings.value("DMGColor4", 0x041C16).toInt();
+    widget.checkBoxFilter->setChecked(settings.value("BilinearFiltering", false).toBool());
+
+    QColor color;
+    color.setBlue(m_iColors[0] & 0xFF);
+    color.setGreen((m_iColors[0] >> 8) & 0xFF);
+    color.setRed((m_iColors[0] >> 16) & 0xFF);
+    QString qss = QString("background-color: %1").arg(color.name());
+    widget.pushButtonColor1->setStyleSheet(qss);
+
+    color.setBlue(m_iColors[1] & 0xFF);
+    color.setGreen((m_iColors[1] >> 8) & 0xFF);
+    color.setRed((m_iColors[1] >> 16) & 0xFF);
+    qss = QString("background-color: %1").arg(color.name());
+    widget.pushButtonColor2->setStyleSheet(qss);
+
+    color.setBlue(m_iColors[2] & 0xFF);
+    color.setGreen((m_iColors[2] >> 8) & 0xFF);
+    color.setRed((m_iColors[2] >> 16) & 0xFF);
+    qss = QString("background-color: %1").arg(color.name());
+    widget.pushButtonColor3->setStyleSheet(qss);
+
+    color.setBlue(m_iColors[3] & 0xFF);
+    color.setGreen((m_iColors[3] >> 8) & 0xFF);
+    color.setRed((m_iColors[3] >> 16) & 0xFF);
+    qss = QString("background-color: %1").arg(color.name());
+    widget.pushButtonColor4->setStyleSheet(qss);
+
+    m_pGLFrame->SetBilinearFiletering(widget.checkBoxFilter->isChecked());
+
+    GB_Color gb_color[4];
+
+    for (int i = 0; i < 4; i++)
+    {
+        gb_color[i].alpha = 0;
+        gb_color[i].red = (m_iColors[i] >> 16) & 0xFF;
+        gb_color[i].green = (m_iColors[i] >> 8) & 0xFF;
+        gb_color[i].blue = m_iColors[i] & 0xFF;
+    }
+
+    m_pEmulator->SetDMGPalette(gb_color[0], gb_color[1], gb_color[2], gb_color[3]);
 }

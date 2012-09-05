@@ -30,6 +30,7 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
+    qApp->installEventFilter(this);
     m_bFullscreen = false;
     m_iScreenSize = 2;
 
@@ -73,13 +74,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     setCentralWidget(m_pGLFrame);
 
     m_pInputSettings = new InputSettings(m_pGLFrame);
-    InitKeys();
 
     m_pSoundSettings = new SoundSettings(m_pGLFrame, m_pEmulator);
-    m_pSoundSettings->Init(true, 1);
 
     m_pVideoSettings = new VideoSettings(m_pGLFrame, m_pEmulator);
-    m_pVideoSettings->Init(0xEFF3D5, 0xA3B67A, 0x37613B, 0x041C16);
 
     //QPalette pal = this->palette();
     //pal.setColor(this->backgroundRole(), Qt::black);
@@ -122,7 +120,7 @@ void MainWindow::MenuGameBoyLoadROM()
 
     if (!filename.isNull())
     {
-        m_pEmulator->LoadRom(filename.toUtf8().data());
+        m_pEmulator->LoadRom(filename.toUtf8().data(), m_pUI->actionForce_Game_Boy_DMG->isChecked());
         m_pUI->actionPause->setChecked(false);
     }
 
@@ -143,7 +141,7 @@ void MainWindow::MenuGameBoyPause()
 void MainWindow::MenuGameBoyReset()
 {
     m_pUI->actionPause->setChecked(false);
-    m_pEmulator->Reset();
+    m_pEmulator->Reset(m_pUI->actionForce_Game_Boy_DMG->isChecked());
 }
 
 void MainWindow::MenuGameBoySelectStateSlot()
@@ -383,6 +381,20 @@ void MainWindow::ResizeWindow(int factor)
     m_pGLFrame->setMinimumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
 }
 
+bool MainWindow::eventFilter(QObject * watched, QEvent * event)
+{
+    if (event->type() == QEvent::ApplicationActivate)
+    {
+        m_pGLFrame->ResumeRenderThread();
+    }
+    else if (event->type() == QEvent::ApplicationDeactivate)
+    {
+        m_pGLFrame->PauseRenderThread();
+    }
+
+    return QMainWindow::eventFilter(watched, event);
+}
+
 bool MainWindow::event(QEvent *ev)
 {
     if (ev->type() == QEvent::LayoutRequest)
@@ -394,36 +406,15 @@ bool MainWindow::event(QEvent *ev)
             this->resize(sizeHint());
         }
     }
+
     return QMainWindow::event(ev);
-}
-
-void MainWindow::InitKeys()
-{
-    stCustomKey keys[8];
-
-    keys[0].keyCode = Qt::Key_Up;
-    strcpy(keys[0].text, "UP");
-    keys[1].keyCode = Qt::Key_Right;
-    strcpy(keys[1].text, "RIGHT");
-    keys[2].keyCode = Qt::Key_Down;
-    strcpy(keys[2].text, "DOWN");
-    keys[3].keyCode = Qt::Key_Left;
-    strcpy(keys[3].text, "LEFT");
-    keys[4].keyCode = Qt::Key_S;
-    strcpy(keys[4].text, "S");
-    keys[5].keyCode = Qt::Key_A;
-    strcpy(keys[5].text, "A");
-    keys[6].keyCode = Qt::Key_Return;
-    strcpy(keys[6].text, "RETURN");
-    keys[7].keyCode = Qt::Key_Space;
-    strcpy(keys[7].text, "SPACE");
-
-    m_pInputSettings->SetKeys(keys);
 }
 
 void MainWindow::LoadSettings()
 {
     QSettings settings("gearboy.ini", QSettings::IniFormat);
+
+    settings.beginGroup("Gearboy");
     m_iScreenSize = settings.value("ScreenSize", 2).toInt();
 
     switch (m_iScreenSize)
@@ -450,21 +441,37 @@ void MainWindow::LoadSettings()
     MenuSettingsFullscreen();
 
     m_pUI->actionForce_Game_Boy_DMG->setChecked(settings.value("ForceDMG", false).toBool());
+    settings.endGroup();
 
+    settings.beginGroup("Input");
     m_pInputSettings->LoadSettings(settings);
+    settings.endGroup();
+    settings.beginGroup("Video");
     m_pVideoSettings->LoadSettings(settings);
+    settings.endGroup();
+    settings.beginGroup("Sound");
     m_pSoundSettings->LoadSettings(settings);
+    settings.endGroup();
 }
 
 void MainWindow::SaveSettings()
 {
     QSettings settings("gearboy.ini", QSettings::IniFormat);
+
+    settings.beginGroup("Gearboy");
     settings.setValue("ScreenSize", m_iScreenSize);
     settings.setValue("FullScreen", m_bFullscreen);
     settings.setValue("ForceDMG", m_pUI->actionForce_Game_Boy_DMG->isChecked());
+    settings.endGroup();
 
+    settings.beginGroup("Input");
     m_pInputSettings->SaveSettings(settings);
+    settings.endGroup();
+    settings.beginGroup("Video");
     m_pVideoSettings->SaveSettings(settings);
+    settings.endGroup();
+    settings.beginGroup("Sound");
     m_pSoundSettings->SaveSettings(settings);
+    settings.endGroup();
 }
 

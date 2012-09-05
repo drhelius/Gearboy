@@ -35,10 +35,10 @@ void Emulator::Init()
     m_pGearboyCore->Init();
 }
 
-void Emulator::LoadRom(const char* szFilePath)
+void Emulator::LoadRom(const char* szFilePath, bool forceDMG)
 {
     m_Mutex.lock();
-    m_pGearboyCore->LoadROM(szFilePath);
+    m_pGearboyCore->LoadROM(szFilePath, forceDMG);
     m_Mutex.unlock();
 }
 
@@ -85,10 +85,10 @@ bool Emulator::IsPaused()
     return paused;
 }
 
-void Emulator::Reset()
+void Emulator::Reset(bool forceDMG)
 {
     m_Mutex.lock();
-    m_pGearboyCore->ResetROM();
+    m_pGearboyCore->ResetROM(forceDMG);
     m_Mutex.unlock();
 }
 

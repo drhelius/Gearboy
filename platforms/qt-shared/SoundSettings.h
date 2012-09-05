@@ -33,7 +33,6 @@ class SoundSettings : public QDialog
 public:
     SoundSettings(GLFrame* pGLFrame, Emulator* pEmulator);
     ~SoundSettings();
-    void Init(bool enabled, int rate);
     void SaveSettings(QSettings& settings);
     void LoadSettings(QSettings& settings);
 
