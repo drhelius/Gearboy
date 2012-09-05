@@ -50,6 +50,7 @@ GearboyCore::GearboyCore()
     m_MBC = MBC_NONE;
     m_bCGB = false;
     m_bPaused = true;
+    m_bForceDMG = false;
 }
 
 GearboyCore::~GearboyCore()
@@ -106,12 +107,13 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
     }
 }
 
-bool GearboyCore::LoadROM(const char* szFilePath)
+bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)
 {
     bool loaded = m_pCartridge->LoadFromFile(szFilePath);
     if (loaded)
     {
-        Reset(m_pCartridge->IsCGB());
+        m_bForceDMG = forceDMG;
+        Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         bool romTypeOK = AddMemoryRules();
 
@@ -151,11 +153,12 @@ bool GearboyCore::IsPaused()
     return m_bPaused;
 }
 
-void GearboyCore::ResetROM()
+void GearboyCore::ResetROM(bool forceDMG)
 {
     if (m_pCartridge->IsLoadedROM())
     {
-        Reset(m_pCartridge->IsCGB());
+        m_bForceDMG = forceDMG;
+        Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         AddMemoryRules();
     }
@@ -392,9 +395,9 @@ void GearboyCore::RenderDMGFrame(GB_Color* pFrameBuffer) const
 {
     int pixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
     const u8* pGameboyFrameBuffer = m_pVideo->GetFrameBuffer();
-    
+
     for (int i = 0; i < pixels; i++)
     {
-        pFrameBuffer[i]= m_DMGPalette[pGameboyFrameBuffer[i]];
+        pFrameBuffer[i] = m_DMGPalette[pGameboyFrameBuffer[i]];
     }
 }

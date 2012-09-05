@@ -43,13 +43,13 @@ public:
     ~GearboyCore();
     void Init();
     void RunToVBlank(GB_Color* pFrameBuffer);
-    bool LoadROM(const char* szFilePath);
+    bool LoadROM(const char* szFilePath, bool forceDMG);
     Memory* GetMemory();
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause(bool paused);
     bool IsPaused();
-    void ResetROM();
+    void ResetROM(bool forceDMG);
     void EnableSound(bool enabled);
     void SetSoundSampleRate(int rate);
     void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
@@ -79,6 +79,7 @@ private:
     bool m_bCGB;
     bool m_bPaused;
     GB_Color m_DMGPalette[4];
+    bool m_bForceDMG;
 };
 
 #endif	/* CORE_H */
