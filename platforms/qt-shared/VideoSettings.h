@@ -20,6 +20,7 @@
 #ifndef VIDEOSETTINGS_H
 #define VIDEOSETTINGS_H
 
+#include <QSettings>
 #include "ui_VideoSettings.h"
 
 class GLFrame;
@@ -34,6 +35,8 @@ public:
     VideoSettings(GLFrame* pGLFrame, Emulator* pEmulator);
     ~VideoSettings();
     void Init(int color1, int color2, int color3, int color4);
+    void SaveSettings(QSettings& settings);
+    void LoadSettings(QSettings& settings);
 
 public slots:
     void PressedOK();

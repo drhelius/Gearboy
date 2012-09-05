@@ -448,6 +448,12 @@ void MainWindow::LoadSettings()
     m_bFullscreen = !settings.value("FullScreen", false).toBool();
 
     MenuSettingsFullscreen();
+
+    m_pUI->actionForce_Game_Boy_DMG->setChecked(settings.value("ForceDMG", false).toBool());
+
+    m_pInputSettings->LoadSettings(settings);
+    m_pVideoSettings->LoadSettings(settings);
+    m_pSoundSettings->LoadSettings(settings);
 }
 
 void MainWindow::SaveSettings()
@@ -455,5 +461,10 @@ void MainWindow::SaveSettings()
     QSettings settings("gearboy.ini", QSettings::IniFormat);
     settings.setValue("ScreenSize", m_iScreenSize);
     settings.setValue("FullScreen", m_bFullscreen);
+    settings.setValue("ForceDMG", m_pUI->actionForce_Game_Boy_DMG->isChecked());
+
+    m_pInputSettings->SaveSettings(settings);
+    m_pVideoSettings->SaveSettings(settings);
+    m_pSoundSettings->SaveSettings(settings);
 }
 

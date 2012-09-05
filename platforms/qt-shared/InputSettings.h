@@ -20,6 +20,7 @@
 #ifndef _INPUTSETTINGS_H
 #define	_INPUTSETTINGS_H
 
+#include <QSettings>
 #include "ui_InputSettings.h"
 
 struct stCustomKey
@@ -40,6 +41,8 @@ public:
     bool eventFilter(QObject* pObj, QEvent *pEvent);
     void SetKeys(stCustomKey keys[]);
     int GetKey(int key);
+    void SaveSettings(QSettings& settings);
+    void LoadSettings(QSettings& settings);
 
 public slots:
     void SaveKeys();

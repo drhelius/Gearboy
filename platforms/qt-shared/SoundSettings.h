@@ -20,6 +20,7 @@
 #ifndef SOUNDSETTINGS_H
 #define SOUNDSETTINGS_H
 
+#include <QSettings>
 #include "ui_SoundSettings.h"
 
 class GLFrame;
@@ -33,6 +34,8 @@ public:
     SoundSettings(GLFrame* pGLFrame, Emulator* pEmulator);
     ~SoundSettings();
     void Init(bool enabled, int rate);
+    void SaveSettings(QSettings& settings);
+    void LoadSettings(QSettings& settings);
 
 public slots:
     void PressedOK();

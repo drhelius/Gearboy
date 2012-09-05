@@ -177,3 +177,12 @@ void VideoSettings::PressedCancel()
     m_pGLFrame->ResumeRenderThread();
     this->reject();
 }
+
+void VideoSettings::SaveSettings(QSettings& settings)
+{
+
+}
+
+void VideoSettings::LoadSettings(QSettings& settings)
+{
+}

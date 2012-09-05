@@ -262,3 +262,54 @@ void InputSettings::PrintKey(QKeyEvent& pEvent, char* buffer)
             strcpy(buffer, pEvent.text().toUpper().toAscii());
     }
 }
+
+void InputSettings::SaveSettings(QSettings& settings)
+{
+        settings.setValue("KeyUP", m_Keys[0].keyCode);
+        settings.setValue("KeyRIGHT", m_Keys[1].keyCode);
+        settings.setValue("KeyDOWN", m_Keys[2].keyCode);
+        settings.setValue("KeyLEFT", m_Keys[3].keyCode);
+        settings.setValue("KeyA", m_Keys[4].keyCode);
+        settings.setValue("KeyB", m_Keys[5].keyCode);
+        settings.setValue("KeySTART", m_Keys[6].keyCode);
+        settings.setValue("KeySELECT", m_Keys[7].keyCode);
+
+        settings.setValue("KeyNameUP", m_Keys[0].text);
+        settings.setValue("KeyNameRIGHT", m_Keys[1].text);
+        settings.setValue("KeyNameDOWN", m_Keys[2].text);
+        settings.setValue("KeyNameLEFT", m_Keys[3].text);
+        settings.setValue("KeyNameA", m_Keys[4].text);
+        settings.setValue("KeyNameB", m_Keys[5].text);
+        settings.setValue("KeyNameSTART", m_Keys[6].text);
+        settings.setValue("KeyNameSELECT", m_Keys[7].text);
+}
+
+void InputSettings::LoadSettings(QSettings& settings)
+{
+    m_Keys[0].keyCode = settings.value("KeyUP", Qt::Key_Up).toInt();
+    m_Keys[1].keyCode = settings.value("KeyRIGHT", Qt::Key_Right).toInt();
+    m_Keys[2].keyCode = settings.value("KeyDOWN", Qt::Key_Down).toInt();
+    m_Keys[3].keyCode = settings.value("KeyLEFT", Qt::Key_Left).toInt();
+    m_Keys[4].keyCode = settings.value("KeyA", Qt::Key_S).toInt();
+    m_Keys[5].keyCode = settings.value("KeyB", Qt::Key_A).toInt();
+    m_Keys[6].keyCode = settings.value("KeySTART", Qt::Key_Return).toInt();
+    m_Keys[7].keyCode = settings.value("KeySELECT", Qt::Key_Space).toInt();
+
+    /*
+    keys[0].keyCode = Qt::Key_Up;
+    strcpy(keys[0].text, "UP");
+    keys[1].keyCode = Qt::Key_Right;
+    strcpy(keys[1].text, "RIGHT");
+    keys[2].keyCode = Qt::Key_Down;
+    strcpy(keys[2].text, "DOWN");
+    keys[3].keyCode = Qt::Key_Left;
+    strcpy(keys[3].text, "LEFT");
+    keys[4].keyCode = Qt::Key_S;
+    strcpy(keys[4].text, "S");
+    keys[5].keyCode = Qt::Key_A;
+    strcpy(keys[5].text, "A");
+    keys[6].keyCode = Qt::Key_Return;
+    strcpy(keys[6].text, "RETURN");
+    keys[7].keyCode = Qt::Key_Space;
+    strcpy(keys[7].text, "SPACE");*/
+}

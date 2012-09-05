@@ -83,3 +83,11 @@ void SoundSettings::PressedCancel()
     m_pGLFrame->ResumeRenderThread();
     this->reject();
 }
+
+void SoundSettings::SaveSettings(QSettings& settings)
+{
+}
+
+void SoundSettings::LoadSettings(QSettings& settings)
+{
+}
