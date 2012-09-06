@@ -20,7 +20,7 @@ Features
 - Full support for most common Memory Bank Controllers (MBC1, MBC2, MBC3, MBC5) and ROM + RAM cartridges.
 - Accurate emulation of LCD controller. Full support for background, window and sprites, with correct timings and priorities.
 - Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://www.slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
-- Basic Game Boy Color support.
+- Game Boy Color support.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
 - Uses Qt framework for GUI and OpenGL for rendering.
@@ -30,7 +30,6 @@ Features
 Todo List
 -----------
 
-- Improve Game Boy Color support.
 - Save RAM battery to disk.
 - Add RTC support.
 - Improve timing and compatibility.
