@@ -18,12 +18,91 @@
  */
 
 #include "SoundSettings.h"
+#include "GLFrame.h"
+#include "Emulator.h"
 
-SoundSettings::SoundSettings()
+SoundSettings::SoundSettings(GLFrame* pGLFrame, Emulator* pEmulator)
 {
+    m_iRate = 1;
+    m_bEnabled = true;
+    m_pGLFrame = pGLFrame;
+    m_pEmulator = pEmulator;
     widget.setupUi(this);
+
+    widget.comboBoxSampleRate->addItem("48000");
+    widget.comboBoxSampleRate->addItem("44100");
+    widget.comboBoxSampleRate->addItem("22050");
+
+    widget.comboBoxSampleRate->setCurrentIndex(m_iRate);
+    widget.checkBoxSoundEnabled->setChecked(m_bEnabled);
 }
 
 SoundSettings::~SoundSettings()
 {
+}
+
+void SoundSettings::PressedOK()
+{
+    m_iRate = widget.comboBoxSampleRate->currentIndex();
+    m_bEnabled = widget.checkBoxSoundEnabled->isChecked();
+
+    int sampleRate = 0;
+    switch (m_iRate)
+    {
+        case 0:
+            sampleRate = 48000;
+            break;
+        case 1:
+            sampleRate = 44100;
+            break;
+        case 2:
+            sampleRate = 22050;
+            break;
+        default:
+            sampleRate = 44100;
+    }
+
+    m_pEmulator->SetSoundSettings(m_bEnabled, sampleRate);
+    m_pGLFrame->ResumeRenderThread();
+    this->accept();
+}
+
+void SoundSettings::PressedCancel()
+{
+    widget.comboBoxSampleRate->setCurrentIndex(m_iRate);
+    widget.checkBoxSoundEnabled->setChecked(m_bEnabled);
+    m_pGLFrame->ResumeRenderThread();
+    this->reject();
+}
+
+void SoundSettings::SaveSettings(QSettings& settings)
+{
+    settings.setValue("SampleRate", m_iRate);
+    settings.setValue("SoundEnabled", m_bEnabled);
+}
+
+void SoundSettings::LoadSettings(QSettings& settings)
+{
+    m_iRate = settings.value("SampleRate", 1).toInt();
+    m_bEnabled = settings.value("SoundEnabled", true).toBool();
+    widget.comboBoxSampleRate->setCurrentIndex(m_iRate);
+    widget.checkBoxSoundEnabled->setChecked(m_bEnabled);
+
+    int sampleRate = 0;
+    switch (m_iRate)
+    {
+        case 0:
+            sampleRate = 48000;
+            break;
+        case 1:
+            sampleRate = 44100;
+            break;
+        case 2:
+            sampleRate = 22050;
+            break;
+        default:
+            sampleRate = 44100;
+    }
+
+    m_pEmulator->SetSoundSettings(m_bEnabled, sampleRate);
 }

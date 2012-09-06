@@ -30,14 +30,16 @@ public:
     ~Emulator();
     void Init();
     void RunToVBlank(GB_Color* pFrameBuffer);
-    void LoadRom(const char* szFilePath);
+    void LoadRom(const char* szFilePath, bool forceDMG);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause();
     void Resume();
     bool IsPaused();
-    void Reset();
+    void Reset(bool forceDMG);
     void MemoryDump();
+    void SetSoundSettings(bool enabled, int rate);
+    void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
 
 private:
     GearboyCore* m_pGearboyCore;

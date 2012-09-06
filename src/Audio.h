@@ -31,10 +31,11 @@ class Audio
 public:
     Audio();
     ~Audio();
-    void Init(int sampleRate);
+    void Init();
     void Reset(bool bCGB);
     void Enable(bool enabled);
     bool IsEnabled() const;
+    void SetSampleRate(int rate);
     u8 ReadAudioRegister(u16 address);
     void WriteAudioRegister(u16 address, u8 value);
     void EndFrame();

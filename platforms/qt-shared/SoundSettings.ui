@@ -2,11 +2,14 @@
 <ui version="4.0">
  <class>SoundSettings</class>
  <widget class="QDialog" name="SoundSettings">
+  <property name="windowModality">
+   <enum>Qt::WindowModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>350</width>
+    <width>391</width>
     <height>122</height>
    </rect>
   </property>
@@ -19,7 +22,7 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>53</x>
      <y>70</y>
      <width>311</width>
      <height>32</height>
@@ -32,12 +35,12 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboBox">
+  <widget class="QComboBox" name="comboBoxSampleRate">
    <property name="geometry">
     <rect>
-     <x>230</x>
-     <y>20</y>
-     <width>101</width>
+     <x>260</x>
+     <y>21</y>
+     <width>111</width>
      <height>22</height>
     </rect>
    </property>
@@ -45,22 +48,22 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>20</y>
-     <width>71</width>
-     <height>16</height>
+     <x>167</x>
+     <y>23</y>
+     <width>91</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
     <string>Sample Rate:</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox">
+  <widget class="QCheckBox" name="checkBoxSoundEnabled">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>20</y>
-     <width>101</width>
+     <x>18</x>
+     <y>25</y>
+     <width>121</width>
      <height>17</height>
     </rect>
    </property>
@@ -75,7 +78,7 @@
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
    <receiver>SoundSettings</receiver>
-   <slot>accept()</slot>
+   <slot>PressedOK()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>248</x>
@@ -91,7 +94,7 @@
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>SoundSettings</receiver>
-   <slot>reject()</slot>
+   <slot>PressedCancel()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>316</x>
@@ -104,4 +107,8 @@
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>PressedOK()</slot>
+  <slot>PressedCancel()</slot>
+ </slots>
 </ui>

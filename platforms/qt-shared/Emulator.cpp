@@ -35,10 +35,10 @@ void Emulator::Init()
     m_pGearboyCore->Init();
 }
 
-void Emulator::LoadRom(const char* szFilePath)
+void Emulator::LoadRom(const char* szFilePath, bool forceDMG)
 {
     m_Mutex.lock();
-    m_pGearboyCore->LoadROM(szFilePath);
+    m_pGearboyCore->LoadROM(szFilePath, forceDMG);
     m_Mutex.unlock();
 }
 
@@ -85,14 +85,32 @@ bool Emulator::IsPaused()
     return paused;
 }
 
-void Emulator::Reset()
+void Emulator::Reset(bool forceDMG)
 {
     m_Mutex.lock();
-    m_pGearboyCore->ResetROM();
+    m_pGearboyCore->ResetROM(forceDMG);
     m_Mutex.unlock();
 }
 
 void Emulator::MemoryDump()
 {
+    m_Mutex.lock();
     m_pGearboyCore->GetMemory()->MemoryDump("memdump.txt");
+    m_Mutex.unlock();
+}
+
+void Emulator::SetSoundSettings(bool enabled, int rate)
+{
+    m_Mutex.lock();
+    m_pGearboyCore->EnableSound(enabled);
+    m_pGearboyCore->SetSoundSampleRate(rate);
+    m_Mutex.unlock();
+}
+
+void Emulator::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3,
+        GB_Color& color4)
+{
+    m_Mutex.lock();
+    m_pGearboyCore->SetDMGPalette(color1, color2, color3, color4);
+    m_Mutex.unlock();
 }

@@ -38,9 +38,7 @@ public:
     void PauseRenderThread();
     void ResumeRenderThread();
     bool IsRunningRenderThread();
-
-signals:
-public slots:
+    void SetBilinearFiletering(bool enabled);
 
 protected:
     void closeEvent(QCloseEvent *evt);

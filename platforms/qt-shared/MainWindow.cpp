@@ -19,18 +19,20 @@
 
 #include <QFileDialog>
 #include <QDesktopWidget>
+#include <QSettings>
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "GLFrame.h"
 #include "Emulator.h"
 #include "InputSettings.h"
+#include "SoundSettings.h"
+#include "VideoSettings.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
+    qApp->installEventFilter(this);
     m_bFullscreen = false;
     m_iScreenSize = 2;
-
-    m_pInputSettings = new InputSettings();
 
     m_bMenuPressed[0] = m_bMenuPressed[1] = m_bMenuPressed[2] = false;
     m_pUI = new Ui::MainWindow();
@@ -56,7 +58,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     m_pUI->actionX_1->setData(1);
     m_pUI->actionX_2->setData(2);
-    m_pUI->actionX_2->setChecked(true);
     m_pUI->actionX_3->setData(3);
     m_pUI->actionX_4->setData(4);
     m_pUI->actionX_5->setData(5);
@@ -72,19 +73,30 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     ResizeWindow(m_iScreenSize);
     setCentralWidget(m_pGLFrame);
 
+    m_pInputSettings = new InputSettings(m_pGLFrame);
+
+    m_pSoundSettings = new SoundSettings(m_pGLFrame, m_pEmulator);
+
+    m_pVideoSettings = new VideoSettings(m_pGLFrame, m_pEmulator);
+
     //QPalette pal = this->palette();
     //pal.setColor(this->backgroundRole(), Qt::black);
     //this->setPalette(pal);
+
+    LoadSettings();
 
     m_pGLFrame->InitRenderThread(m_pEmulator);
 }
 
 MainWindow::~MainWindow()
 {
+    SaveSettings();
+
     SafeDelete(m_pExitShortcut);
     SafeDelete(m_pEmulator);
     SafeDelete(m_pGLFrame);
     SafeDelete(m_pInputSettings);
+    SafeDelete(m_pSoundSettings);
     SafeDelete(m_pUI);
 }
 
@@ -104,11 +116,11 @@ void MainWindow::MenuGameBoyLoadROM()
             this,
             tr("Load ROM"),
             QDir::currentPath(),
-            tr("Game Boy ROM files (*.gb *.dmg *.gbc *.cgb *.sgb);;All files (*.*)"));
+            tr("Game Boy ROM files (*.gb *.dmg *.gbc *.cgb *.sgb *.zip);;All files (*.*)"));
 
     if (!filename.isNull())
     {
-        m_pEmulator->LoadRom(filename.toUtf8().data());
+        m_pEmulator->LoadRom(filename.toUtf8().data(), m_pUI->actionForce_Game_Boy_DMG->isChecked());
         m_pUI->actionPause->setChecked(false);
     }
 
@@ -129,7 +141,7 @@ void MainWindow::MenuGameBoyPause()
 void MainWindow::MenuGameBoyReset()
 {
     m_pUI->actionPause->setChecked(false);
-    m_pEmulator->Reset();
+    m_pEmulator->Reset(m_pUI->actionForce_Game_Boy_DMG->isChecked());
 }
 
 void MainWindow::MenuGameBoySelectStateSlot()
@@ -156,15 +168,18 @@ void MainWindow::MenuSettingsInput()
 {
     m_pGLFrame->PauseRenderThread();
     m_pInputSettings->show();
-    m_pGLFrame->ResumeRenderThread();
 }
 
 void MainWindow::MenuSettingsVideo()
 {
+    m_pGLFrame->PauseRenderThread();
+    m_pVideoSettings->show();
 }
 
 void MainWindow::MenuSettingsSound()
 {
+    m_pGLFrame->PauseRenderThread();
+    m_pSoundSettings->show();
 }
 
 void MainWindow::MenuSettingsWindowSize(QAction* action)
@@ -295,62 +310,66 @@ void MainWindow::closeEvent(QCloseEvent *evt)
 
 void MainWindow::keyPressEvent(QKeyEvent* e)
 {
-    switch (e->key())
+    switch (m_pInputSettings->GetKey(e->key()))
     {
-        case Qt::Key_Up:
+        case 0:
             m_pEmulator->KeyPressed(Up_Key);
             break;
-        case Qt::Key_Left:
+        case 3:
             m_pEmulator->KeyPressed(Left_Key);
             break;
-        case Qt::Key_Right:
+        case 1:
             m_pEmulator->KeyPressed(Right_Key);
             break;
-        case Qt::Key_Down:
+        case 2:
             m_pEmulator->KeyPressed(Down_Key);
             break;
-        case Qt::Key_Return:
+        case 6:
             m_pEmulator->KeyPressed(Start_Key);
             break;
-        case Qt::Key_Space:
+        case 7:
             m_pEmulator->KeyPressed(Select_Key);
             break;
-        case Qt::Key_A:
+        case 5:
             m_pEmulator->KeyPressed(B_Key);
             break;
-        case Qt::Key_S:
+        case 4:
             m_pEmulator->KeyPressed(A_Key);
+            break;
+        default:
             break;
     }
 }
 
 void MainWindow::keyReleaseEvent(QKeyEvent* e)
 {
-    switch (e->key())
+    switch (m_pInputSettings->GetKey(e->key()))
     {
-        case Qt::Key_Up:
+        case 0:
             m_pEmulator->KeyReleased(Up_Key);
             break;
-        case Qt::Key_Left:
+        case 3:
             m_pEmulator->KeyReleased(Left_Key);
             break;
-        case Qt::Key_Right:
+        case 1:
             m_pEmulator->KeyReleased(Right_Key);
             break;
-        case Qt::Key_Down:
+        case 2:
             m_pEmulator->KeyReleased(Down_Key);
             break;
-        case Qt::Key_Return:
+        case 6:
             m_pEmulator->KeyReleased(Start_Key);
             break;
-        case Qt::Key_Space:
+        case 7:
             m_pEmulator->KeyReleased(Select_Key);
             break;
-        case Qt::Key_A:
+        case 5:
             m_pEmulator->KeyReleased(B_Key);
             break;
-        case Qt::Key_S:
+        case 4:
             m_pEmulator->KeyReleased(A_Key);
+            break;
+        default:
             break;
     }
 }
@@ -360,6 +379,20 @@ void MainWindow::ResizeWindow(int factor)
     m_iScreenSize = factor;
     m_pGLFrame->setMaximumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
     m_pGLFrame->setMinimumSize(GAMEBOY_WIDTH * factor, GAMEBOY_HEIGHT * factor);
+}
+
+bool MainWindow::eventFilter(QObject * watched, QEvent * event)
+{
+    if (event->type() == QEvent::ApplicationActivate)
+    {
+        m_pGLFrame->ResumeRenderThread();
+    }
+    else if (event->type() == QEvent::ApplicationDeactivate)
+    {
+        m_pGLFrame->PauseRenderThread();
+    }
+
+    return QMainWindow::eventFilter(watched, event);
 }
 
 bool MainWindow::event(QEvent *ev)
@@ -373,6 +406,72 @@ bool MainWindow::event(QEvent *ev)
             this->resize(sizeHint());
         }
     }
+
     return QMainWindow::event(ev);
+}
+
+void MainWindow::LoadSettings()
+{
+    QSettings settings("gearboy.ini", QSettings::IniFormat);
+
+    settings.beginGroup("Gearboy");
+    m_iScreenSize = settings.value("ScreenSize", 2).toInt();
+
+    switch (m_iScreenSize)
+    {
+        case 1:
+            MenuSettingsWindowSize(m_pUI->actionX_1);
+            break;
+        case 2:
+            MenuSettingsWindowSize(m_pUI->actionX_2);
+            break;
+        case 3:
+            MenuSettingsWindowSize(m_pUI->actionX_3);
+            break;
+        case 4:
+            MenuSettingsWindowSize(m_pUI->actionX_4);
+            break;
+        case 5:
+            MenuSettingsWindowSize(m_pUI->actionX_5);
+            break;
+    }
+
+    m_bFullscreen = !settings.value("FullScreen", false).toBool();
+
+    MenuSettingsFullscreen();
+
+    m_pUI->actionForce_Game_Boy_DMG->setChecked(settings.value("ForceDMG", false).toBool());
+    settings.endGroup();
+
+    settings.beginGroup("Input");
+    m_pInputSettings->LoadSettings(settings);
+    settings.endGroup();
+    settings.beginGroup("Video");
+    m_pVideoSettings->LoadSettings(settings);
+    settings.endGroup();
+    settings.beginGroup("Sound");
+    m_pSoundSettings->LoadSettings(settings);
+    settings.endGroup();
+}
+
+void MainWindow::SaveSettings()
+{
+    QSettings settings("gearboy.ini", QSettings::IniFormat);
+
+    settings.beginGroup("Gearboy");
+    settings.setValue("ScreenSize", m_iScreenSize);
+    settings.setValue("FullScreen", m_bFullscreen);
+    settings.setValue("ForceDMG", m_pUI->actionForce_Game_Boy_DMG->isChecked());
+    settings.endGroup();
+
+    settings.beginGroup("Input");
+    m_pInputSettings->SaveSettings(settings);
+    settings.endGroup();
+    settings.beginGroup("Video");
+    m_pVideoSettings->SaveSettings(settings);
+    settings.endGroup();
+    settings.beginGroup("Sound");
+    m_pSoundSettings->SaveSettings(settings);
+    settings.endGroup();
 }
 

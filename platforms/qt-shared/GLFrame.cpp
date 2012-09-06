@@ -18,6 +18,7 @@
  */
 
 #include <QResizeEvent>
+#include <QGLContext>
 #include "GLFrame.h"
 
 GLFrame::GLFrame(QWidget *parent) : QGLWidget(parent), m_RenderThread(this)
@@ -71,4 +72,9 @@ void GLFrame::closeEvent(QCloseEvent *evt)
 {
     StopRenderThread();
     QGLWidget::closeEvent(evt);
+}
+
+void GLFrame::SetBilinearFiletering(bool enabled)
+{
+    m_RenderThread.SetBilinearFiletering(enabled);
 }

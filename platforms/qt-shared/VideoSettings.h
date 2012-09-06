@@ -20,18 +20,39 @@
 #ifndef VIDEOSETTINGS_H
 #define VIDEOSETTINGS_H
 
+#include <QSettings>
 #include "ui_VideoSettings.h"
+
+class GLFrame;
+class Emulator;
+class QColorDialog;
 
 class VideoSettings : public QDialog
 {
     Q_OBJECT
 
 public:
-    VideoSettings();
+    VideoSettings(GLFrame* pGLFrame, Emulator* pEmulator);
     ~VideoSettings();
+    void SaveSettings(QSettings& settings);
+    void LoadSettings(QSettings& settings);
+
+public slots:
+    void PressedOK();
+    void PressedCancel();
+    void Color1();
+    void Color2();
+    void Color3();
+    void Color4();
+    void ColorDialogFinished(QColor color);
 
 private:
     Ui::VideoSettings widget;
+    Emulator* m_pEmulator;
+    GLFrame* m_pGLFrame;
+    int m_iColors[4];
+    QColorDialog* m_pColorDialog;
+    int m_iCurrentColor;
 };
 
 #endif // VIDEOSETTINGS_H

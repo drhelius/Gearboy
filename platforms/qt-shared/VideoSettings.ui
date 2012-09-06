@@ -2,25 +2,28 @@
 <ui version="4.0">
  <class>VideoSettings</class>
  <widget class="QDialog" name="VideoSettings">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>336</width>
-    <height>202</height>
+    <width>324</width>
+    <height>189</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Video Settings</string>
   </property>
   <property name="modal">
-   <bool>true</bool>
+   <bool>false</bool>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>160</y>
+     <x>10</x>
+     <y>140</y>
      <width>291</width>
      <height>32</height>
     </rect>
@@ -37,18 +40,18 @@
     <rect>
      <x>20</x>
      <y>10</y>
-     <width>291</width>
+     <width>281</width>
      <height>81</height>
     </rect>
    </property>
    <property name="title">
     <string>DMG Color Palette</string>
    </property>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="pushButtonColor1">
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>30</y>
+      <y>32</y>
       <width>41</width>
       <height>31</height>
      </rect>
@@ -57,11 +60,11 @@
      <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="pushButtonColor2">
     <property name="geometry">
      <rect>
       <x>90</x>
-      <y>30</y>
+      <y>32</y>
       <width>41</width>
       <height>31</height>
      </rect>
@@ -70,11 +73,11 @@
      <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_3">
+   <widget class="QPushButton" name="pushButtonColor3">
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>30</y>
+      <y>32</y>
       <width>41</width>
       <height>31</height>
      </rect>
@@ -83,11 +86,11 @@
      <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_4">
+   <widget class="QPushButton" name="pushButtonColor4">
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>30</y>
+      <y>32</y>
       <width>41</width>
       <height>31</height>
      </rect>
@@ -97,17 +100,17 @@
     </property>
    </widget>
   </widget>
-  <widget class="QCheckBox" name="checkBox">
+  <widget class="QCheckBox" name="checkBoxFilter">
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>120</y>
-     <width>101</width>
-     <height>17</height>
+     <y>110</y>
+     <width>141</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>V-Sync Enabled</string>
+    <string>Bilinear Filtering</string>
    </property>
   </widget>
  </widget>
@@ -117,7 +120,7 @@
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
    <receiver>VideoSettings</receiver>
-   <slot>accept()</slot>
+   <slot>PressedOK()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>248</x>
@@ -133,7 +136,7 @@
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>VideoSettings</receiver>
-   <slot>reject()</slot>
+   <slot>PressedCancel()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>316</x>
@@ -145,5 +148,77 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButtonColor1</sender>
+   <signal>clicked()</signal>
+   <receiver>VideoSettings</receiver>
+   <slot>Color1()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>70</x>
+     <y>57</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>161</x>
+     <y>100</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButtonColor2</sender>
+   <signal>clicked()</signal>
+   <receiver>VideoSettings</receiver>
+   <slot>Color2()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>130</x>
+     <y>57</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>161</x>
+     <y>94</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButtonColor3</sender>
+   <signal>clicked()</signal>
+   <receiver>VideoSettings</receiver>
+   <slot>Color3()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>190</x>
+     <y>57</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>161</x>
+     <y>94</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButtonColor4</sender>
+   <signal>clicked()</signal>
+   <receiver>VideoSettings</receiver>
+   <slot>Color4()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>250</x>
+     <y>57</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>161</x>
+     <y>94</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>PressedOK()</slot>
+  <slot>PressedCancel()</slot>
+  <slot>Color1()</slot>
+  <slot>Color2()</slot>
+  <slot>Color3()</slot>
+  <slot>Color4()</slot>
+ </slots>
 </ui>

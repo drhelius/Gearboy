@@ -20,18 +20,41 @@
 #ifndef _INPUTSETTINGS_H
 #define	_INPUTSETTINGS_H
 
+#include <QSettings>
 #include "ui_InputSettings.h"
+
+struct stCustomKey
+{
+    int keyCode;
+    char text[32];
+};
+
+class GLFrame;
 
 class InputSettings : public QDialog
 {
     Q_OBJECT
 
 public:
-    InputSettings();
+    InputSettings(GLFrame* pGLFrame);
     ~InputSettings();
+    bool eventFilter(QObject* pObj, QEvent *pEvent);
+    int GetKey(int key);
+    void SaveSettings(QSettings& settings);
+    void LoadSettings(QSettings& settings);
+
+public slots:
+    void SaveKeys();
+    void RestoreKeys();
+
+private:
+    void PrintKey(QKeyEvent& pEvent, char* buffer);
 
 private:
     Ui::InputSettings widget;
+    stCustomKey m_Keys[8];
+    stCustomKey m_TempKeys[8];
+    GLFrame* m_pGLFrame;
 };
 
 #endif	/* _INPUTSETTINGS_H */

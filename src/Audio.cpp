@@ -42,10 +42,8 @@ Audio::~Audio()
     SafeDeleteArray(m_pSampleBuffer);
 }
 
-void Audio::Init(int sampleRate)
+void Audio::Init()
 {
-    m_iSampleRate = sampleRate;
-
     if (SDL_Init(SDL_INIT_AUDIO) < 0)
     {
         Log("--> ** SDL Audio not initialized");
@@ -78,10 +76,10 @@ void Audio::Reset(bool bCGB)
     Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
     m_pApu->reset(mode);
     m_pBuffer->clear();
-    
+
     for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
         m_pApu->write_register(0, reg, kInitialValuesForFFXX[reg - 0xFF00]);
-    
+
     m_Time = 0;
 }
 
@@ -93,6 +91,17 @@ void Audio::Enable(bool enabled)
 bool Audio::IsEnabled() const
 {
     return m_bEnabled;
+}
+
+void Audio::SetSampleRate(int rate)
+{
+    if (rate != m_iSampleRate)
+    {
+        m_iSampleRate = rate;
+        m_pBuffer->set_sample_rate(m_iSampleRate);
+        m_pSound->stop();
+        m_pSound->start(m_iSampleRate, 2);
+    }
 }
 
 u8 Audio::ReadAudioRegister(u16 address)

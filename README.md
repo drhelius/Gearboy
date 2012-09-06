@@ -22,19 +22,18 @@ Features
 - Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://www.slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
 - Basic Game Boy Color support.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
+- Compressed rom support (ZIP deflate).
 - Uses Qt framework for GUI and OpenGL for rendering.
 - Multi platform. Compiles and runs on Windows, Linux and Mac OS X.
 - Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS X.
 
-Things left
+Todo List
 -----------
 
-- Improve GUI.
 - Improve Game Boy Color support.
 - Add RTC support.
 - Improve timing and compatibility.
 - Cross device iOS version.
-- Support for compressed roms.
 - Debugger
 
 Compiling Instructions

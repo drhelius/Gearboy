@@ -28,6 +28,8 @@
 class GLFrame;
 class Emulator;
 class InputSettings;
+class SoundSettings;
+class VideoSettings;
 
 namespace Ui
 {
@@ -42,6 +44,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     bool event(QEvent *ev);
+    bool eventFilter(QObject * watched, QEvent * event);
 
 public slots:
     void Exit();
@@ -84,6 +87,10 @@ protected:
     void ResizeWindow(int factor);
 
 private:
+    void LoadSettings();
+    void SaveSettings();
+
+private:
     Ui::MainWindow *m_pUI;
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;
@@ -92,6 +99,8 @@ private:
     bool m_bFullscreen;
     QShortcut* m_pExitShortcut;
     InputSettings* m_pInputSettings;
+    SoundSettings* m_pSoundSettings;
+    VideoSettings* m_pVideoSettings;
 };
 
 #endif // MAINWINDOW_H

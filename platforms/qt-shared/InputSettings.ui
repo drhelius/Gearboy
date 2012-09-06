@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>InputSettings</class>
  <widget class="QDialog" name="InputSettings">
+  <property name="windowModality">
+   <enum>Qt::WindowModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -40,6 +43,9 @@
      <width>111</width>
      <height>22</height>
     </rect>
+   </property>
+   <property name="readOnly">
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QLabel" name="label">
@@ -234,7 +240,7 @@
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
    <receiver>InputSettings</receiver>
-   <slot>accept()</slot>
+   <slot>SaveKeys()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>248</x>
@@ -250,7 +256,7 @@
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>InputSettings</receiver>
-   <slot>reject()</slot>
+   <slot>RestoreKeys()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>316</x>
@@ -263,4 +269,8 @@
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>SaveKeys()</slot>
+  <slot>RestoreKeys()</slot>
+ </slots>
 </ui>
