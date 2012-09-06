@@ -17,7 +17,10 @@
  * 
  */
 
+#include <string>
+#include <algorithm>
 #include "Cartridge.h"
+#include "miniz\miniz.c"
 
 Cartridge::Cartridge()
 {
@@ -99,6 +102,61 @@ u8* Cartridge::GetTheROM() const
     return m_pTheROM;
 }
 
+bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
+{
+    using namespace std;
+
+    mz_zip_archive zip_archive;
+    mz_bool status;
+    memset(&zip_archive, 0, sizeof(zip_archive));
+
+    status = mz_zip_reader_init_mem(&zip_archive, (void*)buffer, size, 0);
+    if (!status)
+    {
+        Log("mz_zip_reader_init_mem() failed!");
+        return false;
+    }
+
+    for (int i = 0; i < mz_zip_reader_get_num_files(&zip_archive); i++)
+    {
+        mz_zip_archive_file_stat file_stat;
+        if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
+        {
+            Log("mz_zip_reader_file_stat() failed!");
+            mz_zip_reader_end(&zip_archive);
+            return false;
+        }
+
+        Log("ZIP Content - Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u", file_stat.m_filename, file_stat.m_comment, (uint)file_stat.m_uncomp_size, (uint)file_stat.m_comp_size);
+
+        string fn((const char*)file_stat.m_filename);
+        transform (fn.begin (), fn.end (), fn.begin (), (int(*)(int)) tolower);
+        string extension = fn.substr(fn.find_last_of(".") + 1);
+        
+        if((extension == "gb") || (extension == "dmg") || (extension == "gbc") || (extension == "cgb") || (extension == "sgb"))
+        {
+            void *p;
+            size_t uncomp_size;
+
+            p = mz_zip_reader_extract_file_to_heap(&zip_archive, file_stat.m_filename, &uncomp_size, 0);
+            if (!p)
+            {
+                Log("mz_zip_reader_extract_file_to_heap() failed!");
+                mz_zip_reader_end(&zip_archive);
+                return EXIT_FAILURE;
+            }
+
+            LoadFromBuffer((const u8*)p, uncomp_size);
+
+            free(p);
+            mz_zip_reader_end(&zip_archive);
+
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Cartridge::LoadFromFile(const char* path)
 {
     Reset();
@@ -117,7 +175,19 @@ bool Cartridge::LoadFromFile(const char* path)
         file.read(memblock, size);
         file.close();
 
-        m_bLoaded = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
+        string fn(path);
+        transform (fn.begin (), fn.end (), fn.begin (), (int(*)(int)) tolower);
+        string extension = fn.substr(fn.find_last_of(".") + 1);
+
+        if(extension == "zip")
+        {
+            Log("Loading from ZIP...");
+            m_bLoaded = LoadFromZipFile(reinterpret_cast<u8*> (memblock), size);
+        }
+        else
+        {
+            m_bLoaded = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
+        }
 
         if (m_bLoaded)
         {

@@ -34,7 +34,6 @@ Things left
 - Add RTC support.
 - Improve timing and compatibility.
 - Cross device iOS version.
-- Support for compressed roms.
 - Debugger
 
 Compiling Instructions

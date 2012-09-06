@@ -42,8 +42,11 @@ public:
     int GetVersion() const;
     bool IsSGB() const;
     bool IsCGB() const;
+
 private:
     void GatherMetadata();
+    bool LoadFromZipFile(const u8* buffer, int size);
+
 private:
     u8* m_pTheROM;
     int m_iTotalSize;
