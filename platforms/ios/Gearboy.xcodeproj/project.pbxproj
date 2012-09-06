@@ -1,0 +1,547 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		660F501B15F9615800617A2D /* gb~ipad.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 660F501915F9615800617A2D /* gb~ipad.jpg */; };
+		660F501C15F9615800617A2D /* gb@2x~ipad.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 660F501A15F9615800617A2D /* gb@2x~ipad.jpg */; };
+		662E1E1F15F9499600C7FF66 /* Audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1DF315F9499600C7FF66 /* Audio.cpp */; };
+		662E1E2015F9499600C7FF66 /* Cartridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1DF615F9499600C7FF66 /* Cartridge.cpp */; };
+		662E1E2115F9499600C7FF66 /* CommonMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1DF815F9499600C7FF66 /* CommonMemoryRule.cpp */; };
+		662E1E2215F9499600C7FF66 /* EightBitRegister.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1DFB15F9499600C7FF66 /* EightBitRegister.cpp */; };
+		662E1E2315F9499600C7FF66 /* GearboyCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1DFE15F9499600C7FF66 /* GearboyCore.cpp */; };
+		662E1E2415F9499600C7FF66 /* Input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0015F9499600C7FF66 /* Input.cpp */; };
+		662E1E2515F9499600C7FF66 /* IORegistersMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0215F9499600C7FF66 /* IORegistersMemoryRule.cpp */; };
+		662E1E2715F9499600C7FF66 /* MBC1MemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0515F9499600C7FF66 /* MBC1MemoryRule.cpp */; };
+		662E1E2815F9499600C7FF66 /* MBC2MemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0715F9499600C7FF66 /* MBC2MemoryRule.cpp */; };
+		662E1E2915F9499600C7FF66 /* MBC3MemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0915F9499600C7FF66 /* MBC3MemoryRule.cpp */; };
+		662E1E2A15F9499600C7FF66 /* MBC5MemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0B15F9499600C7FF66 /* MBC5MemoryRule.cpp */; };
+		662E1E2B15F9499600C7FF66 /* Memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0D15F9499600C7FF66 /* Memory.cpp */; };
+		662E1E2C15F9499600C7FF66 /* MemoryCell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0F15F9499600C7FF66 /* MemoryCell.cpp */; };
+		662E1E2D15F9499600C7FF66 /* MemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E1115F9499600C7FF66 /* MemoryRule.cpp */; };
+		662E1E2E15F9499600C7FF66 /* opcodes_cb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E1515F9499600C7FF66 /* opcodes_cb.cpp */; };
+		662E1E2F15F9499600C7FF66 /* opcodes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E1615F9499600C7FF66 /* opcodes.cpp */; };
+		662E1E3015F9499600C7FF66 /* Processor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E1715F9499600C7FF66 /* Processor.cpp */; };
+		662E1E3115F9499600C7FF66 /* RomOnlyMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E1915F9499600C7FF66 /* RomOnlyMemoryRule.cpp */; };
+		662E1E3215F9499600C7FF66 /* SixteenBitRegister.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E1B15F9499600C7FF66 /* SixteenBitRegister.cpp */; };
+		662E1E3315F9499600C7FF66 /* Video.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E1D15F9499600C7FF66 /* Video.cpp */; };
+		662E1E4515F949A700C7FF66 /* Blip_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E3715F949A700C7FF66 /* Blip_Buffer.cpp */; };
+		662E1E4615F949A700C7FF66 /* Effects_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E3A15F949A700C7FF66 /* Effects_Buffer.cpp */; };
+		662E1E4715F949A700C7FF66 /* Gb_Apu_State.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E3C15F949A700C7FF66 /* Gb_Apu_State.cpp */; };
+		662E1E4815F949A700C7FF66 /* Gb_Apu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E3D15F949A700C7FF66 /* Gb_Apu.cpp */; };
+		662E1E4915F949A700C7FF66 /* Gb_Oscs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E3F15F949A700C7FF66 /* Gb_Oscs.cpp */; };
+		662E1E4A15F949A700C7FF66 /* Multi_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E4115F949A700C7FF66 /* Multi_Buffer.cpp */; };
+		662E1E4B15F949A700C7FF66 /* Sound_Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E4315F949A700C7FF66 /* Sound_Queue.cpp */; };
+		66DCB34C15F940CC0076F6F6 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66DCB34B15F940CC0076F6F6 /* UIKit.framework */; };
+		66DCB34E15F940CC0076F6F6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66DCB34D15F940CC0076F6F6 /* Foundation.framework */; };
+		66DCB35015F940CC0076F6F6 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66DCB34F15F940CC0076F6F6 /* CoreGraphics.framework */; };
+		66DCB35615F940CC0076F6F6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB35415F940CC0076F6F6 /* InfoPlist.strings */; };
+		66DCB35815F940CC0076F6F6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35715F940CC0076F6F6 /* main.m */; };
+		66DCB35C15F940CC0076F6F6 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35B15F940CC0076F6F6 /* AppDelegate.mm */; };
+		66DCB35F15F940CC0076F6F6 /* MasterViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35E15F940CC0076F6F6 /* MasterViewController.mm */; };
+		66DCB36215F940CC0076F6F6 /* DetailViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB36115F940CC0076F6F6 /* DetailViewController.mm */; };
+		66DCB36515F940CC0076F6F6 /* MasterViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36315F940CC0076F6F6 /* MasterViewController_iPhone.xib */; };
+		66DCB36815F940CC0076F6F6 /* MasterViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36615F940CC0076F6F6 /* MasterViewController_iPad.xib */; };
+		66DCB36B15F940CC0076F6F6 /* DetailViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */; };
+		66DCB36E15F940CC0076F6F6 /* DetailViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36C15F940CC0076F6F6 /* DetailViewController_iPad.xib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		660F501915F9615800617A2D /* gb~ipad.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = "gb~ipad.jpg"; path = "img/gb~ipad.jpg"; sourceTree = "<group>"; };
+		660F501A15F9615800617A2D /* gb@2x~ipad.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = "gb@2x~ipad.jpg"; path = "img/gb@2x~ipad.jpg"; sourceTree = "<group>"; };
+		662E1DF315F9499600C7FF66 /* Audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Audio.cpp; path = ../../src/Audio.cpp; sourceTree = "<group>"; };
+		662E1DF415F9499600C7FF66 /* Audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Audio.h; path = ../../src/Audio.h; sourceTree = "<group>"; };
+		662E1DF515F9499600C7FF66 /* boot_roms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = boot_roms.h; path = ../../src/boot_roms.h; sourceTree = "<group>"; };
+		662E1DF615F9499600C7FF66 /* Cartridge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Cartridge.cpp; path = ../../src/Cartridge.cpp; sourceTree = "<group>"; };
+		662E1DF715F9499600C7FF66 /* Cartridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Cartridge.h; path = ../../src/Cartridge.h; sourceTree = "<group>"; };
+		662E1DF815F9499600C7FF66 /* CommonMemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CommonMemoryRule.cpp; path = ../../src/CommonMemoryRule.cpp; sourceTree = "<group>"; };
+		662E1DF915F9499600C7FF66 /* CommonMemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CommonMemoryRule.h; path = ../../src/CommonMemoryRule.h; sourceTree = "<group>"; };
+		662E1DFA15F9499600C7FF66 /* definitions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = definitions.h; path = ../../src/definitions.h; sourceTree = "<group>"; };
+		662E1DFB15F9499600C7FF66 /* EightBitRegister.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EightBitRegister.cpp; path = ../../src/EightBitRegister.cpp; sourceTree = "<group>"; };
+		662E1DFC15F9499600C7FF66 /* EightBitRegister.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EightBitRegister.h; path = ../../src/EightBitRegister.h; sourceTree = "<group>"; };
+		662E1DFD15F9499600C7FF66 /* gearboy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gearboy.h; path = ../../src/gearboy.h; sourceTree = "<group>"; };
+		662E1DFE15F9499600C7FF66 /* GearboyCore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GearboyCore.cpp; path = ../../src/GearboyCore.cpp; sourceTree = "<group>"; };
+		662E1DFF15F9499600C7FF66 /* GearboyCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GearboyCore.h; path = ../../src/GearboyCore.h; sourceTree = "<group>"; };
+		662E1E0015F9499600C7FF66 /* Input.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Input.cpp; path = ../../src/Input.cpp; sourceTree = "<group>"; };
+		662E1E0115F9499600C7FF66 /* Input.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Input.h; path = ../../src/Input.h; sourceTree = "<group>"; };
+		662E1E0215F9499600C7FF66 /* IORegistersMemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IORegistersMemoryRule.cpp; path = ../../src/IORegistersMemoryRule.cpp; sourceTree = "<group>"; };
+		662E1E0315F9499600C7FF66 /* IORegistersMemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IORegistersMemoryRule.h; path = ../../src/IORegistersMemoryRule.h; sourceTree = "<group>"; };
+		662E1E0515F9499600C7FF66 /* MBC1MemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MBC1MemoryRule.cpp; path = ../../src/MBC1MemoryRule.cpp; sourceTree = "<group>"; };
+		662E1E0615F9499600C7FF66 /* MBC1MemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MBC1MemoryRule.h; path = ../../src/MBC1MemoryRule.h; sourceTree = "<group>"; };
+		662E1E0715F9499600C7FF66 /* MBC2MemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MBC2MemoryRule.cpp; path = ../../src/MBC2MemoryRule.cpp; sourceTree = "<group>"; };
+		662E1E0815F9499600C7FF66 /* MBC2MemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MBC2MemoryRule.h; path = ../../src/MBC2MemoryRule.h; sourceTree = "<group>"; };
+		662E1E0915F9499600C7FF66 /* MBC3MemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MBC3MemoryRule.cpp; path = ../../src/MBC3MemoryRule.cpp; sourceTree = "<group>"; };
+		662E1E0A15F9499600C7FF66 /* MBC3MemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MBC3MemoryRule.h; path = ../../src/MBC3MemoryRule.h; sourceTree = "<group>"; };
+		662E1E0B15F9499600C7FF66 /* MBC5MemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MBC5MemoryRule.cpp; path = ../../src/MBC5MemoryRule.cpp; sourceTree = "<group>"; };
+		662E1E0C15F9499600C7FF66 /* MBC5MemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MBC5MemoryRule.h; path = ../../src/MBC5MemoryRule.h; sourceTree = "<group>"; };
+		662E1E0D15F9499600C7FF66 /* Memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Memory.cpp; path = ../../src/Memory.cpp; sourceTree = "<group>"; };
+		662E1E0E15F9499600C7FF66 /* Memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Memory.h; path = ../../src/Memory.h; sourceTree = "<group>"; };
+		662E1E0F15F9499600C7FF66 /* MemoryCell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MemoryCell.cpp; path = ../../src/MemoryCell.cpp; sourceTree = "<group>"; };
+		662E1E1015F9499600C7FF66 /* MemoryCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MemoryCell.h; path = ../../src/MemoryCell.h; sourceTree = "<group>"; };
+		662E1E1115F9499600C7FF66 /* MemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MemoryRule.cpp; path = ../../src/MemoryRule.cpp; sourceTree = "<group>"; };
+		662E1E1215F9499600C7FF66 /* MemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MemoryRule.h; path = ../../src/MemoryRule.h; sourceTree = "<group>"; };
+		662E1E1315F9499600C7FF66 /* opcode_names.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = opcode_names.h; path = ../../src/opcode_names.h; sourceTree = "<group>"; };
+		662E1E1415F9499600C7FF66 /* opcode_timing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = opcode_timing.h; path = ../../src/opcode_timing.h; sourceTree = "<group>"; };
+		662E1E1515F9499600C7FF66 /* opcodes_cb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = opcodes_cb.cpp; path = ../../src/opcodes_cb.cpp; sourceTree = "<group>"; };
+		662E1E1615F9499600C7FF66 /* opcodes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = opcodes.cpp; path = ../../src/opcodes.cpp; sourceTree = "<group>"; };
+		662E1E1715F9499600C7FF66 /* Processor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Processor.cpp; path = ../../src/Processor.cpp; sourceTree = "<group>"; };
+		662E1E1815F9499600C7FF66 /* Processor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Processor.h; path = ../../src/Processor.h; sourceTree = "<group>"; };
+		662E1E1915F9499600C7FF66 /* RomOnlyMemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RomOnlyMemoryRule.cpp; path = ../../src/RomOnlyMemoryRule.cpp; sourceTree = "<group>"; };
+		662E1E1A15F9499600C7FF66 /* RomOnlyMemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RomOnlyMemoryRule.h; path = ../../src/RomOnlyMemoryRule.h; sourceTree = "<group>"; };
+		662E1E1B15F9499600C7FF66 /* SixteenBitRegister.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SixteenBitRegister.cpp; path = ../../src/SixteenBitRegister.cpp; sourceTree = "<group>"; };
+		662E1E1C15F9499600C7FF66 /* SixteenBitRegister.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SixteenBitRegister.h; path = ../../src/SixteenBitRegister.h; sourceTree = "<group>"; };
+		662E1E1D15F9499600C7FF66 /* Video.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Video.cpp; path = ../../src/Video.cpp; sourceTree = "<group>"; };
+		662E1E1E15F9499600C7FF66 /* Video.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Video.h; path = ../../src/Video.h; sourceTree = "<group>"; };
+		662E1E3415F949A700C7FF66 /* blargg_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = blargg_common.h; path = ../../src/audio/blargg_common.h; sourceTree = "<group>"; };
+		662E1E3515F949A700C7FF66 /* blargg_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = blargg_config.h; path = ../../src/audio/blargg_config.h; sourceTree = "<group>"; };
+		662E1E3615F949A700C7FF66 /* blargg_source.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = blargg_source.h; path = ../../src/audio/blargg_source.h; sourceTree = "<group>"; };
+		662E1E3715F949A700C7FF66 /* Blip_Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Blip_Buffer.cpp; path = ../../src/audio/Blip_Buffer.cpp; sourceTree = "<group>"; };
+		662E1E3815F949A700C7FF66 /* Blip_Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Blip_Buffer.h; path = ../../src/audio/Blip_Buffer.h; sourceTree = "<group>"; };
+		662E1E3915F949A700C7FF66 /* Blip_Synth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Blip_Synth.h; path = ../../src/audio/Blip_Synth.h; sourceTree = "<group>"; };
+		662E1E3A15F949A700C7FF66 /* Effects_Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effects_Buffer.cpp; path = ../../src/audio/Effects_Buffer.cpp; sourceTree = "<group>"; };
+		662E1E3B15F949A700C7FF66 /* Effects_Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Effects_Buffer.h; path = ../../src/audio/Effects_Buffer.h; sourceTree = "<group>"; };
+		662E1E3C15F949A700C7FF66 /* Gb_Apu_State.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Gb_Apu_State.cpp; path = ../../src/audio/Gb_Apu_State.cpp; sourceTree = "<group>"; };
+		662E1E3D15F949A700C7FF66 /* Gb_Apu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Gb_Apu.cpp; path = ../../src/audio/Gb_Apu.cpp; sourceTree = "<group>"; };
+		662E1E3E15F949A700C7FF66 /* Gb_Apu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Gb_Apu.h; path = ../../src/audio/Gb_Apu.h; sourceTree = "<group>"; };
+		662E1E3F15F949A700C7FF66 /* Gb_Oscs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Gb_Oscs.cpp; path = ../../src/audio/Gb_Oscs.cpp; sourceTree = "<group>"; };
+		662E1E4015F949A700C7FF66 /* Gb_Oscs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Gb_Oscs.h; path = ../../src/audio/Gb_Oscs.h; sourceTree = "<group>"; };
+		662E1E4115F949A700C7FF66 /* Multi_Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Multi_Buffer.cpp; path = ../../src/audio/Multi_Buffer.cpp; sourceTree = "<group>"; };
+		662E1E4215F949A700C7FF66 /* Multi_Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Multi_Buffer.h; path = ../../src/audio/Multi_Buffer.h; sourceTree = "<group>"; };
+		662E1E4315F949A700C7FF66 /* Sound_Queue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound_Queue.cpp; path = ../../src/audio/Sound_Queue.cpp; sourceTree = "<group>"; };
+		662E1E4415F949A700C7FF66 /* Sound_Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound_Queue.h; path = ../../src/audio/Sound_Queue.h; sourceTree = "<group>"; };
+		66DCB34715F940CC0076F6F6 /* Gearboy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gearboy.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		66DCB34B15F940CC0076F6F6 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		66DCB34D15F940CC0076F6F6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		66DCB34F15F940CC0076F6F6 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		66DCB35315F940CC0076F6F6 /* Gearboy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Gearboy-Info.plist"; sourceTree = "<group>"; };
+		66DCB35515F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		66DCB35715F940CC0076F6F6 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		66DCB35915F940CC0076F6F6 /* Gearboy-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Gearboy-Prefix.pch"; sourceTree = "<group>"; };
+		66DCB35A15F940CC0076F6F6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		66DCB35B15F940CC0076F6F6 /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		66DCB35D15F940CC0076F6F6 /* MasterViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MasterViewController.h; sourceTree = "<group>"; };
+		66DCB35E15F940CC0076F6F6 /* MasterViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MasterViewController.mm; sourceTree = "<group>"; };
+		66DCB36015F940CC0076F6F6 /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DetailViewController.h; sourceTree = "<group>"; };
+		66DCB36115F940CC0076F6F6 /* DetailViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DetailViewController.mm; sourceTree = "<group>"; };
+		66DCB36415F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MasterViewController_iPhone.xib; sourceTree = "<group>"; };
+		66DCB36715F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MasterViewController_iPad.xib; sourceTree = "<group>"; };
+		66DCB36A15F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPhone.xib; sourceTree = "<group>"; };
+		66DCB36D15F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPad.xib; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		66DCB34415F940CC0076F6F6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				66DCB34C15F940CC0076F6F6 /* UIKit.framework in Frameworks */,
+				66DCB34E15F940CC0076F6F6 /* Foundation.framework in Frameworks */,
+				66DCB35015F940CC0076F6F6 /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		660F501815F9614300617A2D /* Images */ = {
+			isa = PBXGroup;
+			children = (
+				660F501915F9615800617A2D /* gb~ipad.jpg */,
+				660F501A15F9615800617A2D /* gb@2x~ipad.jpg */,
+			);
+			name = Images;
+			sourceTree = "<group>";
+		};
+		662E1DF115F9495F00C7FF66 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				662E1DF315F9499600C7FF66 /* Audio.cpp */,
+				662E1DF415F9499600C7FF66 /* Audio.h */,
+				662E1DF515F9499600C7FF66 /* boot_roms.h */,
+				662E1DF615F9499600C7FF66 /* Cartridge.cpp */,
+				662E1DF715F9499600C7FF66 /* Cartridge.h */,
+				662E1DF815F9499600C7FF66 /* CommonMemoryRule.cpp */,
+				662E1DF915F9499600C7FF66 /* CommonMemoryRule.h */,
+				662E1DFA15F9499600C7FF66 /* definitions.h */,
+				662E1DFB15F9499600C7FF66 /* EightBitRegister.cpp */,
+				662E1DFC15F9499600C7FF66 /* EightBitRegister.h */,
+				662E1DFD15F9499600C7FF66 /* gearboy.h */,
+				662E1DFE15F9499600C7FF66 /* GearboyCore.cpp */,
+				662E1DFF15F9499600C7FF66 /* GearboyCore.h */,
+				662E1E0015F9499600C7FF66 /* Input.cpp */,
+				662E1E0115F9499600C7FF66 /* Input.h */,
+				662E1E0215F9499600C7FF66 /* IORegistersMemoryRule.cpp */,
+				662E1E0315F9499600C7FF66 /* IORegistersMemoryRule.h */,
+				662E1E0515F9499600C7FF66 /* MBC1MemoryRule.cpp */,
+				662E1E0615F9499600C7FF66 /* MBC1MemoryRule.h */,
+				662E1E0715F9499600C7FF66 /* MBC2MemoryRule.cpp */,
+				662E1E0815F9499600C7FF66 /* MBC2MemoryRule.h */,
+				662E1E0915F9499600C7FF66 /* MBC3MemoryRule.cpp */,
+				662E1E0A15F9499600C7FF66 /* MBC3MemoryRule.h */,
+				662E1E0B15F9499600C7FF66 /* MBC5MemoryRule.cpp */,
+				662E1E0C15F9499600C7FF66 /* MBC5MemoryRule.h */,
+				662E1E0D15F9499600C7FF66 /* Memory.cpp */,
+				662E1E0E15F9499600C7FF66 /* Memory.h */,
+				662E1E0F15F9499600C7FF66 /* MemoryCell.cpp */,
+				662E1E1015F9499600C7FF66 /* MemoryCell.h */,
+				662E1E1115F9499600C7FF66 /* MemoryRule.cpp */,
+				662E1E1215F9499600C7FF66 /* MemoryRule.h */,
+				662E1E1315F9499600C7FF66 /* opcode_names.h */,
+				662E1E1415F9499600C7FF66 /* opcode_timing.h */,
+				662E1E1515F9499600C7FF66 /* opcodes_cb.cpp */,
+				662E1E1615F9499600C7FF66 /* opcodes.cpp */,
+				662E1E1715F9499600C7FF66 /* Processor.cpp */,
+				662E1E1815F9499600C7FF66 /* Processor.h */,
+				662E1E1915F9499600C7FF66 /* RomOnlyMemoryRule.cpp */,
+				662E1E1A15F9499600C7FF66 /* RomOnlyMemoryRule.h */,
+				662E1E1B15F9499600C7FF66 /* SixteenBitRegister.cpp */,
+				662E1E1C15F9499600C7FF66 /* SixteenBitRegister.h */,
+				662E1E1D15F9499600C7FF66 /* Video.cpp */,
+				662E1E1E15F9499600C7FF66 /* Video.h */,
+			);
+			name = Core;
+			sourceTree = "<group>";
+		};
+		662E1DF215F9496700C7FF66 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				662E1E3415F949A700C7FF66 /* blargg_common.h */,
+				662E1E3515F949A700C7FF66 /* blargg_config.h */,
+				662E1E3615F949A700C7FF66 /* blargg_source.h */,
+				662E1E3715F949A700C7FF66 /* Blip_Buffer.cpp */,
+				662E1E3815F949A700C7FF66 /* Blip_Buffer.h */,
+				662E1E3915F949A700C7FF66 /* Blip_Synth.h */,
+				662E1E3A15F949A700C7FF66 /* Effects_Buffer.cpp */,
+				662E1E3B15F949A700C7FF66 /* Effects_Buffer.h */,
+				662E1E3C15F949A700C7FF66 /* Gb_Apu_State.cpp */,
+				662E1E3D15F949A700C7FF66 /* Gb_Apu.cpp */,
+				662E1E3E15F949A700C7FF66 /* Gb_Apu.h */,
+				662E1E3F15F949A700C7FF66 /* Gb_Oscs.cpp */,
+				662E1E4015F949A700C7FF66 /* Gb_Oscs.h */,
+				662E1E4115F949A700C7FF66 /* Multi_Buffer.cpp */,
+				662E1E4215F949A700C7FF66 /* Multi_Buffer.h */,
+				662E1E4315F949A700C7FF66 /* Sound_Queue.cpp */,
+				662E1E4415F949A700C7FF66 /* Sound_Queue.h */,
+			);
+			name = Audio;
+			sourceTree = "<group>";
+		};
+		66DCB33C15F940CC0076F6F6 = {
+			isa = PBXGroup;
+			children = (
+				662E1DF215F9496700C7FF66 /* Audio */,
+				662E1DF115F9495F00C7FF66 /* Core */,
+				66DCB35115F940CC0076F6F6 /* Gearboy */,
+				66DCB34A15F940CC0076F6F6 /* Frameworks */,
+				66DCB34815F940CC0076F6F6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		66DCB34815F940CC0076F6F6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				66DCB34715F940CC0076F6F6 /* Gearboy.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		66DCB34A15F940CC0076F6F6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				66DCB34B15F940CC0076F6F6 /* UIKit.framework */,
+				66DCB34D15F940CC0076F6F6 /* Foundation.framework */,
+				66DCB34F15F940CC0076F6F6 /* CoreGraphics.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		66DCB35115F940CC0076F6F6 /* Gearboy */ = {
+			isa = PBXGroup;
+			children = (
+				66DCB35A15F940CC0076F6F6 /* AppDelegate.h */,
+				66DCB35B15F940CC0076F6F6 /* AppDelegate.mm */,
+				66DCB35D15F940CC0076F6F6 /* MasterViewController.h */,
+				66DCB35E15F940CC0076F6F6 /* MasterViewController.mm */,
+				66DCB36015F940CC0076F6F6 /* DetailViewController.h */,
+				66DCB36115F940CC0076F6F6 /* DetailViewController.mm */,
+				66DCB36315F940CC0076F6F6 /* MasterViewController_iPhone.xib */,
+				66DCB36615F940CC0076F6F6 /* MasterViewController_iPad.xib */,
+				66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */,
+				66DCB36C15F940CC0076F6F6 /* DetailViewController_iPad.xib */,
+				660F501815F9614300617A2D /* Images */,
+				66DCB35215F940CC0076F6F6 /* Supporting Files */,
+			);
+			path = Gearboy;
+			sourceTree = "<group>";
+		};
+		66DCB35215F940CC0076F6F6 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				66DCB35315F940CC0076F6F6 /* Gearboy-Info.plist */,
+				66DCB35415F940CC0076F6F6 /* InfoPlist.strings */,
+				66DCB35715F940CC0076F6F6 /* main.m */,
+				66DCB35915F940CC0076F6F6 /* Gearboy-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		66DCB34615F940CC0076F6F6 /* Gearboy */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 66DCB37115F940CC0076F6F6 /* Build configuration list for PBXNativeTarget "Gearboy" */;
+			buildPhases = (
+				66DCB34315F940CC0076F6F6 /* Sources */,
+				66DCB34415F940CC0076F6F6 /* Frameworks */,
+				66DCB34515F940CC0076F6F6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Gearboy;
+			productName = Gearboy;
+			productReference = 66DCB34715F940CC0076F6F6 /* Gearboy.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		66DCB33E15F940CC0076F6F6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0440;
+				ORGANIZATIONNAME = "Ignacio Sánchez Ginés";
+			};
+			buildConfigurationList = 66DCB34115F940CC0076F6F6 /* Build configuration list for PBXProject "Gearboy" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 66DCB33C15F940CC0076F6F6;
+			productRefGroup = 66DCB34815F940CC0076F6F6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				66DCB34615F940CC0076F6F6 /* Gearboy */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		66DCB34515F940CC0076F6F6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				66DCB35615F940CC0076F6F6 /* InfoPlist.strings in Resources */,
+				66DCB36515F940CC0076F6F6 /* MasterViewController_iPhone.xib in Resources */,
+				66DCB36815F940CC0076F6F6 /* MasterViewController_iPad.xib in Resources */,
+				66DCB36B15F940CC0076F6F6 /* DetailViewController_iPhone.xib in Resources */,
+				66DCB36E15F940CC0076F6F6 /* DetailViewController_iPad.xib in Resources */,
+				660F501B15F9615800617A2D /* gb~ipad.jpg in Resources */,
+				660F501C15F9615800617A2D /* gb@2x~ipad.jpg in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		66DCB34315F940CC0076F6F6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				66DCB35815F940CC0076F6F6 /* main.m in Sources */,
+				66DCB35C15F940CC0076F6F6 /* AppDelegate.mm in Sources */,
+				66DCB35F15F940CC0076F6F6 /* MasterViewController.mm in Sources */,
+				66DCB36215F940CC0076F6F6 /* DetailViewController.mm in Sources */,
+				662E1E1F15F9499600C7FF66 /* Audio.cpp in Sources */,
+				662E1E2015F9499600C7FF66 /* Cartridge.cpp in Sources */,
+				662E1E2115F9499600C7FF66 /* CommonMemoryRule.cpp in Sources */,
+				662E1E2215F9499600C7FF66 /* EightBitRegister.cpp in Sources */,
+				662E1E2315F9499600C7FF66 /* GearboyCore.cpp in Sources */,
+				662E1E2415F9499600C7FF66 /* Input.cpp in Sources */,
+				662E1E2515F9499600C7FF66 /* IORegistersMemoryRule.cpp in Sources */,
+				662E1E2715F9499600C7FF66 /* MBC1MemoryRule.cpp in Sources */,
+				662E1E2815F9499600C7FF66 /* MBC2MemoryRule.cpp in Sources */,
+				662E1E2915F9499600C7FF66 /* MBC3MemoryRule.cpp in Sources */,
+				662E1E2A15F9499600C7FF66 /* MBC5MemoryRule.cpp in Sources */,
+				662E1E2B15F9499600C7FF66 /* Memory.cpp in Sources */,
+				662E1E2C15F9499600C7FF66 /* MemoryCell.cpp in Sources */,
+				662E1E2D15F9499600C7FF66 /* MemoryRule.cpp in Sources */,
+				662E1E2E15F9499600C7FF66 /* opcodes_cb.cpp in Sources */,
+				662E1E2F15F9499600C7FF66 /* opcodes.cpp in Sources */,
+				662E1E3015F9499600C7FF66 /* Processor.cpp in Sources */,
+				662E1E3115F9499600C7FF66 /* RomOnlyMemoryRule.cpp in Sources */,
+				662E1E3215F9499600C7FF66 /* SixteenBitRegister.cpp in Sources */,
+				662E1E3315F9499600C7FF66 /* Video.cpp in Sources */,
+				662E1E4515F949A700C7FF66 /* Blip_Buffer.cpp in Sources */,
+				662E1E4615F949A700C7FF66 /* Effects_Buffer.cpp in Sources */,
+				662E1E4715F949A700C7FF66 /* Gb_Apu_State.cpp in Sources */,
+				662E1E4815F949A700C7FF66 /* Gb_Apu.cpp in Sources */,
+				662E1E4915F949A700C7FF66 /* Gb_Oscs.cpp in Sources */,
+				662E1E4A15F949A700C7FF66 /* Multi_Buffer.cpp in Sources */,
+				662E1E4B15F949A700C7FF66 /* Sound_Queue.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		66DCB35415F940CC0076F6F6 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				66DCB35515F940CC0076F6F6 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		66DCB36315F940CC0076F6F6 /* MasterViewController_iPhone.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				66DCB36415F940CC0076F6F6 /* en */,
+			);
+			name = MasterViewController_iPhone.xib;
+			sourceTree = "<group>";
+		};
+		66DCB36615F940CC0076F6F6 /* MasterViewController_iPad.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				66DCB36715F940CC0076F6F6 /* en */,
+			);
+			name = MasterViewController_iPad.xib;
+			sourceTree = "<group>";
+		};
+		66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				66DCB36A15F940CC0076F6F6 /* en */,
+			);
+			name = DetailViewController_iPhone.xib;
+			sourceTree = "<group>";
+		};
+		66DCB36C15F940CC0076F6F6 /* DetailViewController_iPad.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				66DCB36D15F940CC0076F6F6 /* en */,
+			);
+			name = DetailViewController_iPad.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		66DCB36F15F940CC0076F6F6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"../../src/**",
+					"./SDL/include/**",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				LIBRARY_SEARCH_PATHS = "SDL/lib/**";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		66DCB37015F940CC0076F6F6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"../../src/**",
+					"./SDL/include/**",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				LIBRARY_SEARCH_PATHS = "SDL/lib/**";
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		66DCB37215F940CC0076F6F6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Gearboy/Gearboy-Prefix.pch";
+				INFOPLIST_FILE = "Gearboy/Gearboy-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		66DCB37315F940CC0076F6F6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Gearboy/Gearboy-Prefix.pch";
+				INFOPLIST_FILE = "Gearboy/Gearboy-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		66DCB34115F940CC0076F6F6 /* Build configuration list for PBXProject "Gearboy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				66DCB36F15F940CC0076F6F6 /* Debug */,
+				66DCB37015F940CC0076F6F6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		66DCB37115F940CC0076F6F6 /* Build configuration list for PBXNativeTarget "Gearboy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				66DCB37215F940CC0076F6F6 /* Debug */,
+				66DCB37315F940CC0076F6F6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 66DCB33E15F940CC0076F6F6 /* Project object */;
+}
