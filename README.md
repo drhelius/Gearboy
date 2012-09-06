@@ -33,7 +33,6 @@ Todo List
 - Improve Game Boy Color support.
 - Save RAM battery to disk.
 - Add RTC support.
-- Improve timing and compatibility.
 - Cross device iOS version.
 - Debugger
 
