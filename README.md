@@ -27,7 +27,7 @@ Features
 - Multi platform. Compiles and runs on Windows, Linux and Mac OS X.
 - Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS X.
 
-Things left
+Todo List
 -----------
 
 - Improve Game Boy Color support.
