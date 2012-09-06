@@ -104,7 +104,7 @@ void MainWindow::MenuGameBoyLoadROM()
             this,
             tr("Load ROM"),
             QDir::currentPath(),
-            tr("Game Boy ROM files (*.gb *.dmg *.gbc *.cgb *.sgb);;All files (*.*)"));
+            tr("Game Boy ROM files (*.gb *.dmg *.gbc *.cgb *.sgb *.zip);;All files (*.*)"));
 
     if (!filename.isNull())
     {

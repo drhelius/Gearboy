@@ -39,6 +39,9 @@
     <Filter Include="Audio">
       <UniqueIdentifier>{c70f095b-d28e-45fc-b522-0ad4800fd9fc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Compression">
+      <UniqueIdentifier>{ea143349-ab5a-408f-85e0-c6d3bd92cccd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\qt-shared\GLFrame.cpp">
