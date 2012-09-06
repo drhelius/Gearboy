@@ -24,8 +24,8 @@ Features
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
 - Uses Qt framework for GUI and OpenGL for rendering.
-- Multi platform. Compiles and runs on Windows, Linux and Mac OS X.
-- Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS X.
+- Multi platform. Compiles and runs on Windows, Linux, Mac OS X and iOS.
+- Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS X. Xcode project for iOS.
 
 Todo List
 -----------
@@ -34,7 +34,6 @@ Todo List
 - Save RAM battery to disk.
 - Add RTC support.
 - Improve timing and compatibility.
-- Cross device iOS version.
 - Debugger
 
 Compiling Instructions
@@ -42,7 +41,9 @@ Compiling Instructions
 
 The best way of compiling Gearboy is by using one of the IDE projects provided for each platform.
 
-For all platforms you will need SDL and Qt Framework SDKs installed and configured.
+For all desktop platforms you will need SDL and Qt Framework SDKs installed and configured.
+
+For iOS you only need SDL.
 
 There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt-applications.html).
 
@@ -70,6 +71,11 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
 - Open the Gearboy Netbeans project and build. This project is configured for using <code>clang</code>.
 - Alternatively you can use <code>make</code> to build the project.
+
+### iOS
+- Install Xcode for Mac OS X.
+- Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
+- Open the Gearboy Xcode project and build. 
 
 Passed Tests
 ------------
