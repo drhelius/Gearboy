@@ -20,7 +20,7 @@
 #include <string>
 #include <algorithm>
 #include "Cartridge.h"
-#include "miniz\miniz.c"
+#include "miniz/miniz.c"
 
 Cartridge::Cartridge()
 {
@@ -117,7 +117,7 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
         return false;
     }
 
-    for (int i = 0; i < mz_zip_reader_get_num_files(&zip_archive); i++)
+    for (unsigned int i = 0; i < mz_zip_reader_get_num_files(&zip_archive); i++)
     {
         mz_zip_archive_file_stat file_stat;
         if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))

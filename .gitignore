@@ -78,3 +78,5 @@ ui_*.h
 /platforms/macosx/Gearboy/dist/
 
 platforms/macosx/Gearboy/gearboy.ini
+platforms/windows/Gearboy/gearboy.ini
+platforms/linux/Gearboy/gearboy.ini
