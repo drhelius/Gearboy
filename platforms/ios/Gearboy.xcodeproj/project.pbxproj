@@ -36,6 +36,11 @@
 		662E1E4915F949A700C7FF66 /* Gb_Oscs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E3F15F949A700C7FF66 /* Gb_Oscs.cpp */; };
 		662E1E4A15F949A700C7FF66 /* Multi_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E4115F949A700C7FF66 /* Multi_Buffer.cpp */; };
 		662E1E4B15F949A700C7FF66 /* Sound_Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E4315F949A700C7FF66 /* Sound_Queue.cpp */; };
+		66D4BA7415FABB4000D4937F /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7315FABB4000D4937F /* SDL.framework */; };
+		66D4BA7715FABB6C00D4937F /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7615FABB6C00D4937F /* GLKit.framework */; };
+		66D4BA7B15FABB8600D4937F /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */; };
+		66D4BA7D15FABB9100D4937F /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7C15FABB9100D4937F /* OpenGLES.framework */; };
+		66D4BA7F15FABBC500D4937F /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7E15FABBC500D4937F /* QuartzCore.framework */; };
 		66DCB34C15F940CC0076F6F6 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66DCB34B15F940CC0076F6F6 /* UIKit.framework */; };
 		66DCB34E15F940CC0076F6F6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66DCB34D15F940CC0076F6F6 /* Foundation.framework */; };
 		66DCB35015F940CC0076F6F6 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66DCB34F15F940CC0076F6F6 /* CoreGraphics.framework */; };
@@ -113,6 +118,12 @@
 		662E1E4215F949A700C7FF66 /* Multi_Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Multi_Buffer.h; path = ../../src/audio/Multi_Buffer.h; sourceTree = "<group>"; };
 		662E1E4315F949A700C7FF66 /* Sound_Queue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound_Queue.cpp; path = ../../src/audio/Sound_Queue.cpp; sourceTree = "<group>"; };
 		662E1E4415F949A700C7FF66 /* Sound_Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound_Queue.h; path = ../../src/audio/Sound_Queue.h; sourceTree = "<group>"; };
+		66D4BA7315FABB4000D4937F /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = SDL/SDL.framework; sourceTree = "<group>"; };
+		66D4BA7615FABB6C00D4937F /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		66D4BA7815FABB7B00D4937F /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		66D4BA7C15FABB9100D4937F /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		66D4BA7E15FABBC500D4937F /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		66DCB34715F940CC0076F6F6 /* Gearboy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gearboy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		66DCB34B15F940CC0076F6F6 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		66DCB34D15F940CC0076F6F6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -138,9 +149,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66D4BA7F15FABBC500D4937F /* QuartzCore.framework in Frameworks */,
+				66D4BA7D15FABB9100D4937F /* OpenGLES.framework in Frameworks */,
+				66D4BA7B15FABB8600D4937F /* AudioToolbox.framework in Frameworks */,
+				66D4BA7715FABB6C00D4937F /* GLKit.framework in Frameworks */,
 				66DCB34C15F940CC0076F6F6 /* UIKit.framework in Frameworks */,
 				66DCB34E15F940CC0076F6F6 /* Foundation.framework in Frameworks */,
 				66DCB35015F940CC0076F6F6 /* CoreGraphics.framework in Frameworks */,
+				66D4BA7415FABB4000D4937F /* SDL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -233,6 +249,12 @@
 		66DCB33C15F940CC0076F6F6 = {
 			isa = PBXGroup;
 			children = (
+				66D4BA7E15FABBC500D4937F /* QuartzCore.framework */,
+				66D4BA7C15FABB9100D4937F /* OpenGLES.framework */,
+				66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */,
+				66D4BA7815FABB7B00D4937F /* CoreAudio.framework */,
+				66D4BA7615FABB6C00D4937F /* GLKit.framework */,
+				66D4BA7315FABB4000D4937F /* SDL.framework */,
 				662E1DF215F9496700C7FF66 /* Audio */,
 				662E1DF115F9495F00C7FF66 /* Core */,
 				66DCB35115F940CC0076F6F6 /* Gearboy */,
@@ -464,7 +486,7 @@
 					"./SDL/include/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
-				LIBRARY_SEARCH_PATHS = "SDL/lib/**";
+				LIBRARY_SEARCH_PATHS = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -490,7 +512,7 @@
 					"./SDL/include/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
-				LIBRARY_SEARCH_PATHS = "SDL/lib/**";
+				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -501,6 +523,10 @@
 		66DCB37215F940CC0076F6F6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/SDL\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Gearboy/Gearboy-Prefix.pch";
 				INFOPLIST_FILE = "Gearboy/Gearboy-Info.plist";
@@ -512,6 +538,10 @@
 		66DCB37315F940CC0076F6F6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/SDL\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Gearboy/Gearboy-Prefix.pch";
 				INFOPLIST_FILE = "Gearboy/Gearboy-Info.plist";

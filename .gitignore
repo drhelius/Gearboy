@@ -1,15 +1,4 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
 
-# Compiled Dynamic libraries
-*.so
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
 
 # Netbeans files
 /dist/
@@ -80,3 +69,5 @@ ui_*.h
 platforms/macosx/Gearboy/gearboy.ini
 platforms/windows/Gearboy/gearboy.ini
 platforms/linux/Gearboy/gearboy.ini
+
+*.xcuserstate
