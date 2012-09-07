@@ -45,7 +45,6 @@ ipch/
 *.lib
 *.sbr
 Thumbs.db
-[Ll]ib/
 [Rr]elease*/
 [Tt]est[Rr]esults/
 _UpgradeReport_Files/
