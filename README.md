@@ -73,9 +73,9 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Alternatively you can use <code>make</code> to build the project.
 
 ### iOS
-- Install Xcode for Mac OS X.
-- Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
-- Open the Gearboy Xcode project and build. 
+- Install Xcode for Mac OS X. iOS SDK 5.1 or later is needed. 
+- Open the Gearboy Xcode project and build.
+- In order to run it on real hardware you will need an iOS developer certificate.
 
 Passed Tests
 ------------
