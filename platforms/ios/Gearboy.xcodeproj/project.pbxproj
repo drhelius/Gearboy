@@ -41,6 +41,12 @@
 		66D4BA7B15FABB8600D4937F /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */; };
 		66D4BA7D15FABB9100D4937F /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7C15FABB9100D4937F /* OpenGLES.framework */; };
 		66D4BA7F15FABBC500D4937F /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7E15FABBC500D4937F /* QuartzCore.framework */; };
+		66D4BA8215FAC90500D4937F /* gb.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 66D4BA8015FAC90500D4937F /* gb.jpg */; };
+		66D4BA8315FAC90500D4937F /* gb@2x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 66D4BA8115FAC90500D4937F /* gb@2x.jpg */; };
+		66D4BA8815FAD03100D4937F /* gb_icon_ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 66D4BA8415FAD03100D4937F /* gb_icon_ipad.png */; };
+		66D4BA8915FAD03100D4937F /* gb_icon_ipad@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 66D4BA8515FAD03100D4937F /* gb_icon_ipad@2x.png */; };
+		66D4BA8A15FAD03100D4937F /* gb_icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 66D4BA8615FAD03100D4937F /* gb_icon.png */; };
+		66D4BA8B15FAD03100D4937F /* gb_icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 66D4BA8715FAD03100D4937F /* gb_icon@2x.png */; };
 		66DCB34C15F940CC0076F6F6 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66DCB34B15F940CC0076F6F6 /* UIKit.framework */; };
 		66DCB34E15F940CC0076F6F6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66DCB34D15F940CC0076F6F6 /* Foundation.framework */; };
 		66DCB35015F940CC0076F6F6 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66DCB34F15F940CC0076F6F6 /* CoreGraphics.framework */; };
@@ -124,6 +130,12 @@
 		66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		66D4BA7C15FABB9100D4937F /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		66D4BA7E15FABBC500D4937F /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		66D4BA8015FAC90500D4937F /* gb.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = gb.jpg; path = img/gb.jpg; sourceTree = "<group>"; };
+		66D4BA8115FAC90500D4937F /* gb@2x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = "gb@2x.jpg"; path = "img/gb@2x.jpg"; sourceTree = "<group>"; };
+		66D4BA8415FAD03100D4937F /* gb_icon_ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = gb_icon_ipad.png; path = img/gb_icon_ipad.png; sourceTree = "<group>"; };
+		66D4BA8515FAD03100D4937F /* gb_icon_ipad@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "gb_icon_ipad@2x.png"; path = "img/gb_icon_ipad@2x.png"; sourceTree = "<group>"; };
+		66D4BA8615FAD03100D4937F /* gb_icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = gb_icon.png; path = img/gb_icon.png; sourceTree = "<group>"; };
+		66D4BA8715FAD03100D4937F /* gb_icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "gb_icon@2x.png"; path = "img/gb_icon@2x.png"; sourceTree = "<group>"; };
 		66DCB34715F940CC0076F6F6 /* Gearboy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gearboy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		66DCB34B15F940CC0076F6F6 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		66DCB34D15F940CC0076F6F6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -166,6 +178,12 @@
 		660F501815F9614300617A2D /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				66D4BA8415FAD03100D4937F /* gb_icon_ipad.png */,
+				66D4BA8515FAD03100D4937F /* gb_icon_ipad@2x.png */,
+				66D4BA8615FAD03100D4937F /* gb_icon.png */,
+				66D4BA8715FAD03100D4937F /* gb_icon@2x.png */,
+				66D4BA8015FAC90500D4937F /* gb.jpg */,
+				66D4BA8115FAC90500D4937F /* gb@2x.jpg */,
 				660F501915F9615800617A2D /* gb~ipad.jpg */,
 				660F501A15F9615800617A2D /* gb@2x~ipad.jpg */,
 			);
@@ -369,6 +387,12 @@
 				66DCB36E15F940CC0076F6F6 /* DetailViewController_iPad.xib in Resources */,
 				660F501B15F9615800617A2D /* gb~ipad.jpg in Resources */,
 				660F501C15F9615800617A2D /* gb@2x~ipad.jpg in Resources */,
+				66D4BA8215FAC90500D4937F /* gb.jpg in Resources */,
+				66D4BA8315FAC90500D4937F /* gb@2x.jpg in Resources */,
+				66D4BA8815FAD03100D4937F /* gb_icon_ipad.png in Resources */,
+				66D4BA8915FAD03100D4937F /* gb_icon_ipad@2x.png in Resources */,
+				66D4BA8A15FAD03100D4937F /* gb_icon.png in Resources */,
+				66D4BA8B15FAD03100D4937F /* gb_icon@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
