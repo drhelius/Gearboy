@@ -54,7 +54,9 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+	
+    
+    
     [self configureView];
 }
 
@@ -77,7 +79,14 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        self.title = NSLocalizedString(@"Detail", @"Detail");
+        self.title = @"Gearboy";
+        
+        theGLViewController = [[GLViewController alloc] initWithNibName:@"GLViewController" bundle:nil];
+        
+        //theGLViewController.view.frame = self.view.frame;
+        theGLViewController.preferredFramesPerSecond = 60;
+        
+        [self.view addSubview:theGLViewController.view];
     }
     return self;
 }
@@ -86,7 +95,7 @@
 
 - (void)splitViewController:(UISplitViewController *)splitController willHideViewController:(UIViewController *)viewController withBarButtonItem:(UIBarButtonItem *)barButtonItem forPopoverController:(UIPopoverController *)popoverController
 {
-    barButtonItem.title = NSLocalizedString(@"Master", @"Master");
+    barButtonItem.title = @"Games";
     [self.navigationItem setLeftBarButtonItem:barButtonItem animated:YES];
     self.masterPopoverController = popoverController;
 }

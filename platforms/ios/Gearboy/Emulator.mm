@@ -10,4 +10,14 @@
 
 @implementation Emulator
 
+- (void) update
+{
+    
+}
+
+- (void) draw
+{
+    
+}
+
 @end

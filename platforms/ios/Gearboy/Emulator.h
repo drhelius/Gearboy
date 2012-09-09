@@ -10,4 +10,7 @@
 
 @interface Emulator : NSObject
 
+- (void) update;
+- (void) draw;
+
 @end

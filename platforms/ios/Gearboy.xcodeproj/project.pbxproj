@@ -36,6 +36,9 @@
 		662E1E4915F949A700C7FF66 /* Gb_Oscs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E3F15F949A700C7FF66 /* Gb_Oscs.cpp */; };
 		662E1E4A15F949A700C7FF66 /* Multi_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E4115F949A700C7FF66 /* Multi_Buffer.cpp */; };
 		662E1E4B15F949A700C7FF66 /* Sound_Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E4315F949A700C7FF66 /* Sound_Queue.cpp */; };
+		667CEFDE15FD43720078A433 /* GLViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 667CEFDC15FD43720078A433 /* GLViewController.m */; };
+		667CEFDF15FD43720078A433 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 667CEFDD15FD43720078A433 /* GLViewController.xib */; };
+		667CF01915FD5E320078A433 /* Emulator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CF01815FD5E320078A433 /* Emulator.mm */; };
 		66D4BA7415FABB4000D4937F /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7315FABB4000D4937F /* SDL.framework */; };
 		66D4BA7715FABB6C00D4937F /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7615FABB6C00D4937F /* GLKit.framework */; };
 		66D4BA7B15FABB8600D4937F /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */; };
@@ -52,9 +55,9 @@
 		66DCB35015F940CC0076F6F6 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66DCB34F15F940CC0076F6F6 /* CoreGraphics.framework */; };
 		66DCB35615F940CC0076F6F6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB35415F940CC0076F6F6 /* InfoPlist.strings */; };
 		66DCB35815F940CC0076F6F6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35715F940CC0076F6F6 /* main.m */; };
-		66DCB35C15F940CC0076F6F6 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35B15F940CC0076F6F6 /* AppDelegate.mm */; };
-		66DCB35F15F940CC0076F6F6 /* MasterViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35E15F940CC0076F6F6 /* MasterViewController.mm */; };
-		66DCB36215F940CC0076F6F6 /* DetailViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB36115F940CC0076F6F6 /* DetailViewController.mm */; };
+		66DCB35C15F940CC0076F6F6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35B15F940CC0076F6F6 /* AppDelegate.m */; };
+		66DCB35F15F940CC0076F6F6 /* MasterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35E15F940CC0076F6F6 /* MasterViewController.m */; };
+		66DCB36215F940CC0076F6F6 /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB36115F940CC0076F6F6 /* DetailViewController.m */; };
 		66DCB36515F940CC0076F6F6 /* MasterViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36315F940CC0076F6F6 /* MasterViewController_iPhone.xib */; };
 		66DCB36815F940CC0076F6F6 /* MasterViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36615F940CC0076F6F6 /* MasterViewController_iPad.xib */; };
 		66DCB36B15F940CC0076F6F6 /* DetailViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */; };
@@ -124,6 +127,11 @@
 		662E1E4215F949A700C7FF66 /* Multi_Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Multi_Buffer.h; path = ../../src/audio/Multi_Buffer.h; sourceTree = "<group>"; };
 		662E1E4315F949A700C7FF66 /* Sound_Queue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound_Queue.cpp; path = ../../src/audio/Sound_Queue.cpp; sourceTree = "<group>"; };
 		662E1E4415F949A700C7FF66 /* Sound_Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound_Queue.h; path = ../../src/audio/Sound_Queue.h; sourceTree = "<group>"; };
+		667CEFDB15FD43720078A433 /* GLViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLViewController.h; sourceTree = "<group>"; };
+		667CEFDC15FD43720078A433 /* GLViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GLViewController.m; sourceTree = "<group>"; };
+		667CEFDD15FD43720078A433 /* GLViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = GLViewController.xib; sourceTree = "<group>"; };
+		667CF01715FD5E320078A433 /* Emulator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Emulator.h; sourceTree = "<group>"; };
+		667CF01815FD5E320078A433 /* Emulator.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Emulator.mm; sourceTree = "<group>"; };
 		66D4BA7315FABB4000D4937F /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = SDL/SDL.framework; sourceTree = "<group>"; };
 		66D4BA7615FABB6C00D4937F /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		66D4BA7815FABB7B00D4937F /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -145,11 +153,11 @@
 		66DCB35715F940CC0076F6F6 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		66DCB35915F940CC0076F6F6 /* Gearboy-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Gearboy-Prefix.pch"; sourceTree = "<group>"; };
 		66DCB35A15F940CC0076F6F6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		66DCB35B15F940CC0076F6F6 /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		66DCB35B15F940CC0076F6F6 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		66DCB35D15F940CC0076F6F6 /* MasterViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MasterViewController.h; sourceTree = "<group>"; };
-		66DCB35E15F940CC0076F6F6 /* MasterViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MasterViewController.mm; sourceTree = "<group>"; };
+		66DCB35E15F940CC0076F6F6 /* MasterViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MasterViewController.m; sourceTree = "<group>"; };
 		66DCB36015F940CC0076F6F6 /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DetailViewController.h; sourceTree = "<group>"; };
-		66DCB36115F940CC0076F6F6 /* DetailViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DetailViewController.mm; sourceTree = "<group>"; };
+		66DCB36115F940CC0076F6F6 /* DetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DetailViewController.m; sourceTree = "<group>"; };
 		66DCB36415F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MasterViewController_iPhone.xib; sourceTree = "<group>"; };
 		66DCB36715F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MasterViewController_iPad.xib; sourceTree = "<group>"; };
 		66DCB36A15F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPhone.xib; sourceTree = "<group>"; };
@@ -303,15 +311,20 @@
 			isa = PBXGroup;
 			children = (
 				66DCB35A15F940CC0076F6F6 /* AppDelegate.h */,
-				66DCB35B15F940CC0076F6F6 /* AppDelegate.mm */,
-				66DCB35D15F940CC0076F6F6 /* MasterViewController.h */,
-				66DCB35E15F940CC0076F6F6 /* MasterViewController.mm */,
+				66DCB35B15F940CC0076F6F6 /* AppDelegate.m */,
 				66DCB36015F940CC0076F6F6 /* DetailViewController.h */,
-				66DCB36115F940CC0076F6F6 /* DetailViewController.mm */,
-				66DCB36315F940CC0076F6F6 /* MasterViewController_iPhone.xib */,
-				66DCB36615F940CC0076F6F6 /* MasterViewController_iPad.xib */,
-				66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */,
+				66DCB36115F940CC0076F6F6 /* DetailViewController.m */,
+				667CF01715FD5E320078A433 /* Emulator.h */,
+				667CF01815FD5E320078A433 /* Emulator.mm */,
+				667CEFDB15FD43720078A433 /* GLViewController.h */,
+				667CEFDC15FD43720078A433 /* GLViewController.m */,
+				66DCB35D15F940CC0076F6F6 /* MasterViewController.h */,
+				66DCB35E15F940CC0076F6F6 /* MasterViewController.m */,
 				66DCB36C15F940CC0076F6F6 /* DetailViewController_iPad.xib */,
+				66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */,
+				667CEFDD15FD43720078A433 /* GLViewController.xib */,
+				66DCB36615F940CC0076F6F6 /* MasterViewController_iPad.xib */,
+				66DCB36315F940CC0076F6F6 /* MasterViewController_iPhone.xib */,
 				660F501815F9614300617A2D /* Images */,
 				66DCB35215F940CC0076F6F6 /* Supporting Files */,
 			);
@@ -393,6 +406,7 @@
 				66D4BA8915FAD03100D4937F /* gb_icon_ipad@2x.png in Resources */,
 				66D4BA8A15FAD03100D4937F /* gb_icon.png in Resources */,
 				66D4BA8B15FAD03100D4937F /* gb_icon@2x.png in Resources */,
+				667CEFDF15FD43720078A433 /* GLViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -404,9 +418,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				66DCB35815F940CC0076F6F6 /* main.m in Sources */,
-				66DCB35C15F940CC0076F6F6 /* AppDelegate.mm in Sources */,
-				66DCB35F15F940CC0076F6F6 /* MasterViewController.mm in Sources */,
-				66DCB36215F940CC0076F6F6 /* DetailViewController.mm in Sources */,
+				66DCB35C15F940CC0076F6F6 /* AppDelegate.m in Sources */,
+				66DCB35F15F940CC0076F6F6 /* MasterViewController.m in Sources */,
+				66DCB36215F940CC0076F6F6 /* DetailViewController.m in Sources */,
 				662E1E1F15F9499600C7FF66 /* Audio.cpp in Sources */,
 				662E1E2015F9499600C7FF66 /* Cartridge.cpp in Sources */,
 				662E1E2115F9499600C7FF66 /* CommonMemoryRule.cpp in Sources */,
@@ -434,6 +448,8 @@
 				662E1E4915F949A700C7FF66 /* Gb_Oscs.cpp in Sources */,
 				662E1E4A15F949A700C7FF66 /* Multi_Buffer.cpp in Sources */,
 				662E1E4B15F949A700C7FF66 /* Sound_Queue.cpp in Sources */,
+				667CEFDE15FD43720078A433 /* GLViewController.m in Sources */,
+				667CF01915FD5E320078A433 /* Emulator.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -7,7 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <GLKit/GLKit.h>
+#import "Emulator.h"
 
-@interface GLViewController : UIViewController
+@interface GLViewController : GLKViewController
+{
+    Emulator* theEmulator;
+}
+
+@property (strong, nonatomic) EAGLContext *context;
 
 @end
