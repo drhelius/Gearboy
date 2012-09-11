@@ -29,7 +29,6 @@
 #include "Video.h" 
 #include "SixteenBitRegister.h" 
 #include "EightBitRegister.h" 
-#include "MemoryCell.h" 
 #include "MemoryRule.h"  
 
 #endif	/* GEARBOY_H */

@@ -62,8 +62,6 @@ typedef int16_t s16;
 #define GAMEBOY_WIDTH 160
 #define GAMEBOY_HEIGHT 144
 
-#define MAX_STRING_SIZE 256
-
 struct GB_Color
 {
     u8 red;
@@ -102,7 +100,7 @@ enum Gameboy_MemoryBankControllers
 inline void Log_func(const char* const msg, ...)
 {
     static int count = 1;
-    char szBuf[MAX_STRING_SIZE];
+    char szBuf[512];
 
     va_list args;
     va_start(args, msg);

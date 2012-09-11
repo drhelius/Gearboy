@@ -21,11 +21,11 @@
 #include <fstream>
 #include "Memory.h"
 #include "MemoryRule.h"
-#include "MemoryCell.h"
 
 Memory::Memory()
 {
     InitPointer(m_pMap);
+    InitPointer(m_pDisassembledMap);
     InitPointer(m_pWRAMBanks);
     InitPointer(m_pLCDRAMBank1);
     m_bCGB = false;
@@ -37,15 +37,17 @@ Memory::Memory()
 Memory::~Memory()
 {
     SafeDeleteArray(m_pMap);
+    SafeDeleteArray(m_pDisassembledMap);
     SafeDeleteArray(m_pWRAMBanks);
     SafeDeleteArray(m_pLCDRAMBank1);
 }
 
 void Memory::Init()
 {
-    m_pMap = new MemoryCell[65536];
+    m_pMap = new u8[65536];
     m_pWRAMBanks = new u8[0x8000];
     m_pLCDRAMBank1 = new u8[0x2000];
+    m_pDisassembledMap = new stDisassemble[65536];
     Reset(false);
 }
 
@@ -59,11 +61,12 @@ void Memory::Reset(bool bCGB)
 
     for (int i = 0; i < 65536; i++)
     {
-        m_pMap[i].Reset();
+        m_pMap[i] = 0x00;
+        m_pDisassembledMap[i].szDisString[0] = 0;
 
         if ((i >= 0x8000) && (i < 0xA000))
         {
-            m_pMap[i].SetValue(0x00);
+            m_pMap[i] = 0x00;
             m_pLCDRAMBank1[i - 0x8000] = 0x00;
         }
         else if ((i >= 0xC000) && (i < 0xE000))
@@ -72,30 +75,30 @@ void Memory::Reset(bool bCGB)
             {
                 if (m_bCGB)
                 {
-                    m_pMap[i].SetValue(0x00);
+                    m_pMap[i] = 0x00;
                     if (i >= 0xD000)
                     {
                         for (int a = 0; a < 8; a++)
                         {
                             if (a != 2)
-                                m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = m_pMap[i - 0x1000].GetValue();
+                                m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = m_pMap[i - 0x1000];
                             else
                                 m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = 0x00;
                         }
                     }
                 }
                 else
-                    m_pMap[i].SetValue(0x0f);
+                    m_pMap[i] = 0x0f;
             }
             else
             {
-                m_pMap[i].SetValue(0xff);
+                m_pMap[i] = 0xff;
                 if (i >= 0xD000)
                 {
                     for (int a = 0; a < 8; a++)
                     {
                         if (a != 2)
-                            m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = m_pMap[i - 0x1000].GetValue();
+                            m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = m_pMap[i - 0x1000];
                         else
                             m_pWRAMBanks[(i - 0xD000) + (0x1000 * a)] = 0x00;
                     }
@@ -104,27 +107,27 @@ void Memory::Reset(bool bCGB)
         }
         else if (i >= 0xFF00)
         {
-            m_pMap[i].SetValue(kInitialValuesForFFXX[i - 0xFF00]);
+            m_pMap[i] = kInitialValuesForFFXX[i - 0xFF00];
         }
         else
         {
-            m_pMap[i].SetValue(0xFF);
+            m_pMap[i] = 0xFF;
         }
     }
 
     if (m_bCGB)
     {
-        m_pMap[0xff02].SetValue(0x7c);
-        m_pMap[0xff56].SetValue(0x3e);
-        m_pMap[0xff4d].SetValue(0x7e);
+        m_pMap[0xff02] = 0x7c;
+        m_pMap[0xff56] = 0x3e;
+        m_pMap[0xff4d] = 0x7e;
     }
     else
     {
-        m_pMap[0xff02].SetValue(0x7e);
-        m_pMap[0xff56].SetValue(0xff);
-        m_pMap[0xff4d].SetValue(0xff);
-        m_pMap[0xff70].SetValue(0xff);
-        m_pMap[0xff74].SetValue(0xff);
+        m_pMap[0xff02] = 0x7e;
+        m_pMap[0xff56] = 0xff;
+        m_pMap[0xff4d] = 0xff;
+        m_pMap[0xff70] = 0xff;
+        m_pMap[0xff74] = 0xff;
     }
 }
 
@@ -211,22 +214,22 @@ void Memory::SwitchCGBLCDRAM(u8 value)
 
 u8 Memory::Retrieve(u16 address)
 {
-    return m_pMap[address].Read();
+    return m_pMap[address];
 }
 
 void Memory::Load(u16 address, u8 value)
 {
-    m_pMap[address].Write(value);
+    m_pMap[address] = value;
 }
 
 void Memory::Disassemble(u16 address, const char* szDisassembled)
 {
-    m_pMap[address].SetDisassembledString(szDisassembled);
+    strcpy(m_pDisassembledMap[address].szDisString, szDisassembled);
 }
 
 bool Memory::IsDisassembled(u16 address)
 {
-    return m_pMap[address].GetDisassembledString()[0] != 0;
+    return m_pDisassembledMap[address].szDisString[0] != 0;
 }
 
 void Memory::LoadBank0and1FromROM(u8* pTheROM)
@@ -234,7 +237,7 @@ void Memory::LoadBank0and1FromROM(u8* pTheROM)
     // loads the first 32KB only (bank 0 and 1)
     for (int i = 0; i < 0x8000; i++)
     {
-        m_pMap[i].SetValue(pTheROM[i]);
+        m_pMap[i] = pTheROM[i];
     }
 }
 
@@ -250,11 +253,11 @@ void Memory::MemoryDump(const char* szFilePath)
         {
             if (IsDisassembled(i))
             {
-                myfile << "0x" << hex << i << "\t " << m_pMap[i].GetDisassembledString() << "\n";
+                myfile << "0x" << hex << i << "\t " << m_pDisassembledMap[i].szDisString << "\n";
             }
             else
             {
-                myfile << "0x" << hex << i << "\t [0x" << hex << (int) m_pMap[i].GetValue() << "]\n";
+                myfile << "0x" << hex << i << "\t [0x" << hex << (int) m_pMap[i] << "]\n";
             }
         }
 

@@ -21,7 +21,6 @@
 		662E1E2915F9499600C7FF66 /* MBC3MemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0915F9499600C7FF66 /* MBC3MemoryRule.cpp */; };
 		662E1E2A15F9499600C7FF66 /* MBC5MemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0B15F9499600C7FF66 /* MBC5MemoryRule.cpp */; };
 		662E1E2B15F9499600C7FF66 /* Memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0D15F9499600C7FF66 /* Memory.cpp */; };
-		662E1E2C15F9499600C7FF66 /* MemoryCell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E0F15F9499600C7FF66 /* MemoryCell.cpp */; };
 		662E1E2D15F9499600C7FF66 /* MemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E1115F9499600C7FF66 /* MemoryRule.cpp */; };
 		662E1E2E15F9499600C7FF66 /* opcodes_cb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E1515F9499600C7FF66 /* opcodes_cb.cpp */; };
 		662E1E2F15F9499600C7FF66 /* opcodes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E1615F9499600C7FF66 /* opcodes.cpp */; };
@@ -96,8 +95,6 @@
 		662E1E0C15F9499600C7FF66 /* MBC5MemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MBC5MemoryRule.h; path = ../../src/MBC5MemoryRule.h; sourceTree = "<group>"; };
 		662E1E0D15F9499600C7FF66 /* Memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Memory.cpp; path = ../../src/Memory.cpp; sourceTree = "<group>"; };
 		662E1E0E15F9499600C7FF66 /* Memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Memory.h; path = ../../src/Memory.h; sourceTree = "<group>"; };
-		662E1E0F15F9499600C7FF66 /* MemoryCell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MemoryCell.cpp; path = ../../src/MemoryCell.cpp; sourceTree = "<group>"; };
-		662E1E1015F9499600C7FF66 /* MemoryCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MemoryCell.h; path = ../../src/MemoryCell.h; sourceTree = "<group>"; };
 		662E1E1115F9499600C7FF66 /* MemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MemoryRule.cpp; path = ../../src/MemoryRule.cpp; sourceTree = "<group>"; };
 		662E1E1215F9499600C7FF66 /* MemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MemoryRule.h; path = ../../src/MemoryRule.h; sourceTree = "<group>"; };
 		662E1E1315F9499600C7FF66 /* opcode_names.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = opcode_names.h; path = ../../src/opcode_names.h; sourceTree = "<group>"; };
@@ -232,8 +229,6 @@
 				662E1E0C15F9499600C7FF66 /* MBC5MemoryRule.h */,
 				662E1E0D15F9499600C7FF66 /* Memory.cpp */,
 				662E1E0E15F9499600C7FF66 /* Memory.h */,
-				662E1E0F15F9499600C7FF66 /* MemoryCell.cpp */,
-				662E1E1015F9499600C7FF66 /* MemoryCell.h */,
 				662E1E1115F9499600C7FF66 /* MemoryRule.cpp */,
 				662E1E1215F9499600C7FF66 /* MemoryRule.h */,
 				662E1E1315F9499600C7FF66 /* opcode_names.h */,
@@ -449,7 +444,6 @@
 				662E1E2915F9499600C7FF66 /* MBC3MemoryRule.cpp in Sources */,
 				662E1E2A15F9499600C7FF66 /* MBC5MemoryRule.cpp in Sources */,
 				662E1E2B15F9499600C7FF66 /* Memory.cpp in Sources */,
-				662E1E2C15F9499600C7FF66 /* MemoryCell.cpp in Sources */,
 				662E1E2D15F9499600C7FF66 /* MemoryRule.cpp in Sources */,
 				662E1E2E15F9499600C7FF66 /* opcodes_cb.cpp in Sources */,
 				662E1E2F15F9499600C7FF66 /* opcodes.cpp in Sources */,
