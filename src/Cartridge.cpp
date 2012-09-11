@@ -127,7 +127,7 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
             return false;
         }
 
-        Log("ZIP Content - Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u", file_stat.m_filename, file_stat.m_comment, (uint)file_stat.m_uncomp_size, (uint)file_stat.m_comp_size);
+        Log("ZIP Content - Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u", file_stat.m_filename, file_stat.m_comment, (unsigned int)file_stat.m_uncomp_size, (unsigned int)file_stat.m_comp_size);
 
         string fn((const char*)file_stat.m_filename);
         transform (fn.begin (), fn.end (), fn.begin (), (int(*)(int)) tolower);
