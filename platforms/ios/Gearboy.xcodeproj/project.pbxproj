@@ -38,6 +38,7 @@
 		667CEFDE15FD43720078A433 /* GLViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CEFDC15FD43720078A433 /* GLViewController.mm */; };
 		667CEFDF15FD43720078A433 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 667CEFDD15FD43720078A433 /* GLViewController.xib */; };
 		667CF01915FD5E320078A433 /* Emulator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CF01815FD5E320078A433 /* Emulator.mm */; };
+		66D34FE215FF2B780046912E /* zelda.gb in Resources */ = {isa = PBXBuildFile; fileRef = 66D34FE115FF2B780046912E /* zelda.gb */; };
 		66D4BA7415FABB4000D4937F /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7315FABB4000D4937F /* SDL.framework */; };
 		66D4BA7715FABB6C00D4937F /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7615FABB6C00D4937F /* GLKit.framework */; };
 		66D4BA7B15FABB8600D4937F /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */; };
@@ -131,6 +132,7 @@
 		667CEFDD15FD43720078A433 /* GLViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = GLViewController.xib; sourceTree = "<group>"; };
 		667CF01715FD5E320078A433 /* Emulator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Emulator.h; sourceTree = "<group>"; };
 		667CF01815FD5E320078A433 /* Emulator.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Emulator.mm; sourceTree = "<group>"; };
+		66D34FE115FF2B780046912E /* zelda.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = zelda.gb; sourceTree = "<group>"; };
 		66D4BA7315FABB4000D4937F /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = SDL/SDL.framework; sourceTree = "<group>"; };
 		66D4BA7615FABB6C00D4937F /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		66D4BA7815FABB7B00D4937F /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -292,6 +294,7 @@
 				66DCB34A15F940CC0076F6F6 /* Frameworks */,
 				66DCB34815F940CC0076F6F6 /* Products */,
 				66E99E3C15FE9A16007F793C /* kwirk.gb */,
+				66D34FE115FF2B780046912E /* zelda.gb */,
 				66E99E3A15FE959C007F793C /* mario.gb */,
 			);
 			sourceTree = "<group>";
@@ -418,6 +421,7 @@
 				667CEFDF15FD43720078A433 /* GLViewController.xib in Resources */,
 				66E99E3B15FE959C007F793C /* mario.gb in Resources */,
 				66E99E3D15FE9A17007F793C /* kwirk.gb in Resources */,
+				66D34FE215FF2B780046912E /* zelda.gb in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -24,14 +24,13 @@
 {
     GearboyCore* theGearboyCore;
     BOOL initialized;
-    int width, height;
     GB_Color* theFrameBuffer;
     GB_Color* theTexture;
 }
 
 -(void)update;
 -(void)draw;
--(void)loadRomWithPath: (NSString *)filePath andForceDMG: (BOOL) forceDMG;
+-(void)loadRomWithPath: (NSString *)filePath;
 -(void)keyPressed: (Gameboy_Keys)key;
 -(void)keyReleased: (Gameboy_Keys)key;
 -(void)pause;

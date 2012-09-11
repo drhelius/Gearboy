@@ -20,6 +20,11 @@
 #import <GLKit/GLKit.h>
 #import "Emulator.h"
 
+const float kGB_Width = 160.0f;
+const float kGB_Height = 144.0f;
+const float kGB_TexWidth = kGB_Width / 256.0f;
+const float kGB_TexHeight = kGB_Height / 256.0f;
+
 @implementation Emulator
 
 -(id)init
@@ -30,8 +35,6 @@
         theGearboyCore->Init();
         theGearboyCore->SetSoundSampleRate(44100);
         initialized = NO;
-        width = 160;
-        height = 144;
         theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
         theTexture = new GB_Color[256 * 256];
         
@@ -55,7 +58,7 @@
             }
         }
         
-        NSString* path = [[NSBundle mainBundle] pathForResource:@"kwirk" ofType:@"gb"];
+        NSString* path = [[NSBundle mainBundle] pathForResource:@"zelda" ofType:@"gb"];
         
         theGearboyCore->LoadROM([path UTF8String], false);
     }
@@ -95,9 +98,9 @@
         
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrthof(0.0f, width, 0.0f, height, -100.0f, 100.0f);
+        glOrthof(0.0f, kGB_Width, 0.0f, kGB_Height, -100.0f, 100.0f);
         glMatrixMode(GL_MODELVIEW);
-        glViewport(0, 0, width, height);
+        glViewport(0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         
@@ -106,25 +109,18 @@
     
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
     
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    
-	GLfloat box[] = {0,(float)height,1, (float)width,(float)height,1, 0,0,1, (float)width,0,1};
-	GLfloat tex[] = {0,0, 160.0f / 256.0f,0, 0, 144.0f / 256.0f, 160.0f / 256.0f,144.0f / 256.0f};
-    
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	
-    
-	glVertexPointer(3, GL_FLOAT, 0,box);
+	static GLfloat box[] = {0.0f, kGB_Height, 1.0f, kGB_Width,kGB_Height, 1.0f, 0.0f, 0.0f, 1.0f, kGB_Width, 0.0f, 1.0f};
+	static GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight};
+
+	glVertexPointer(3, GL_FLOAT, 0, box);
 	glTexCoordPointer(2, GL_FLOAT, 0, tex);
     
 	glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 }
 
--(void)loadRomWithPath: (NSString *)filePath andForceDMG: (BOOL) forceDMG
+-(void)loadRomWithPath: (NSString *)filePath
 {
-    theGearboyCore->LoadROM([filePath UTF8String], forceDMG);
+    theGearboyCore->LoadROM([filePath UTF8String], false);
 }
 
 -(void)keyPressed: (Gameboy_Keys)key
