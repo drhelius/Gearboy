@@ -54,9 +54,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	
-    
-    
+
     [self configureView];
 }
 
@@ -82,7 +80,7 @@
         self.title = @"Gearboy";
         
         theGLViewController = [[GLViewController alloc] initWithNibName:@"GLViewController" bundle:nil];
-        
+                
         //theGLViewController.view.frame = self.view.frame;
         theGLViewController.preferredFramesPerSecond = 60;
         

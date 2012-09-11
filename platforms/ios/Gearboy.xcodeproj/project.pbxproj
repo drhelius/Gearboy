@@ -36,7 +36,7 @@
 		662E1E4915F949A700C7FF66 /* Gb_Oscs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E3F15F949A700C7FF66 /* Gb_Oscs.cpp */; };
 		662E1E4A15F949A700C7FF66 /* Multi_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E4115F949A700C7FF66 /* Multi_Buffer.cpp */; };
 		662E1E4B15F949A700C7FF66 /* Sound_Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1E4315F949A700C7FF66 /* Sound_Queue.cpp */; };
-		667CEFDE15FD43720078A433 /* GLViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 667CEFDC15FD43720078A433 /* GLViewController.m */; };
+		667CEFDE15FD43720078A433 /* GLViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CEFDC15FD43720078A433 /* GLViewController.mm */; };
 		667CEFDF15FD43720078A433 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 667CEFDD15FD43720078A433 /* GLViewController.xib */; };
 		667CF01915FD5E320078A433 /* Emulator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CF01815FD5E320078A433 /* Emulator.mm */; };
 		66D4BA7415FABB4000D4937F /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7315FABB4000D4937F /* SDL.framework */; };
@@ -55,13 +55,15 @@
 		66DCB35015F940CC0076F6F6 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66DCB34F15F940CC0076F6F6 /* CoreGraphics.framework */; };
 		66DCB35615F940CC0076F6F6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB35415F940CC0076F6F6 /* InfoPlist.strings */; };
 		66DCB35815F940CC0076F6F6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35715F940CC0076F6F6 /* main.m */; };
-		66DCB35C15F940CC0076F6F6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35B15F940CC0076F6F6 /* AppDelegate.m */; };
-		66DCB35F15F940CC0076F6F6 /* MasterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35E15F940CC0076F6F6 /* MasterViewController.m */; };
-		66DCB36215F940CC0076F6F6 /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB36115F940CC0076F6F6 /* DetailViewController.m */; };
+		66DCB35C15F940CC0076F6F6 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35B15F940CC0076F6F6 /* AppDelegate.mm */; };
+		66DCB35F15F940CC0076F6F6 /* MasterViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB35E15F940CC0076F6F6 /* MasterViewController.mm */; };
+		66DCB36215F940CC0076F6F6 /* DetailViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66DCB36115F940CC0076F6F6 /* DetailViewController.mm */; };
 		66DCB36515F940CC0076F6F6 /* MasterViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36315F940CC0076F6F6 /* MasterViewController_iPhone.xib */; };
 		66DCB36815F940CC0076F6F6 /* MasterViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36615F940CC0076F6F6 /* MasterViewController_iPad.xib */; };
 		66DCB36B15F940CC0076F6F6 /* DetailViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */; };
 		66DCB36E15F940CC0076F6F6 /* DetailViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36C15F940CC0076F6F6 /* DetailViewController_iPad.xib */; };
+		66E99E3B15FE959C007F793C /* mario.gb in Resources */ = {isa = PBXBuildFile; fileRef = 66E99E3A15FE959C007F793C /* mario.gb */; };
+		66E99E3D15FE9A17007F793C /* kwirk.gb in Resources */ = {isa = PBXBuildFile; fileRef = 66E99E3C15FE9A16007F793C /* kwirk.gb */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -128,7 +130,7 @@
 		662E1E4315F949A700C7FF66 /* Sound_Queue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound_Queue.cpp; path = ../../src/audio/Sound_Queue.cpp; sourceTree = "<group>"; };
 		662E1E4415F949A700C7FF66 /* Sound_Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound_Queue.h; path = ../../src/audio/Sound_Queue.h; sourceTree = "<group>"; };
 		667CEFDB15FD43720078A433 /* GLViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLViewController.h; sourceTree = "<group>"; };
-		667CEFDC15FD43720078A433 /* GLViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GLViewController.m; sourceTree = "<group>"; };
+		667CEFDC15FD43720078A433 /* GLViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GLViewController.mm; sourceTree = "<group>"; };
 		667CEFDD15FD43720078A433 /* GLViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = GLViewController.xib; sourceTree = "<group>"; };
 		667CF01715FD5E320078A433 /* Emulator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Emulator.h; sourceTree = "<group>"; };
 		667CF01815FD5E320078A433 /* Emulator.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Emulator.mm; sourceTree = "<group>"; };
@@ -153,15 +155,17 @@
 		66DCB35715F940CC0076F6F6 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		66DCB35915F940CC0076F6F6 /* Gearboy-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Gearboy-Prefix.pch"; sourceTree = "<group>"; };
 		66DCB35A15F940CC0076F6F6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		66DCB35B15F940CC0076F6F6 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		66DCB35B15F940CC0076F6F6 /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
 		66DCB35D15F940CC0076F6F6 /* MasterViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MasterViewController.h; sourceTree = "<group>"; };
-		66DCB35E15F940CC0076F6F6 /* MasterViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MasterViewController.m; sourceTree = "<group>"; };
+		66DCB35E15F940CC0076F6F6 /* MasterViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MasterViewController.mm; sourceTree = "<group>"; };
 		66DCB36015F940CC0076F6F6 /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DetailViewController.h; sourceTree = "<group>"; };
-		66DCB36115F940CC0076F6F6 /* DetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DetailViewController.m; sourceTree = "<group>"; };
+		66DCB36115F940CC0076F6F6 /* DetailViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DetailViewController.mm; sourceTree = "<group>"; };
 		66DCB36415F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MasterViewController_iPhone.xib; sourceTree = "<group>"; };
 		66DCB36715F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MasterViewController_iPad.xib; sourceTree = "<group>"; };
 		66DCB36A15F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPhone.xib; sourceTree = "<group>"; };
 		66DCB36D15F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPad.xib; sourceTree = "<group>"; };
+		66E99E3A15FE959C007F793C /* mario.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = mario.gb; sourceTree = "<group>"; };
+		66E99E3C15FE9A16007F793C /* kwirk.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = kwirk.gb; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -310,16 +314,18 @@
 		66DCB35115F940CC0076F6F6 /* Gearboy */ = {
 			isa = PBXGroup;
 			children = (
+				66E99E3C15FE9A16007F793C /* kwirk.gb */,
+				66E99E3A15FE959C007F793C /* mario.gb */,
 				66DCB35A15F940CC0076F6F6 /* AppDelegate.h */,
-				66DCB35B15F940CC0076F6F6 /* AppDelegate.m */,
+				66DCB35B15F940CC0076F6F6 /* AppDelegate.mm */,
 				66DCB36015F940CC0076F6F6 /* DetailViewController.h */,
-				66DCB36115F940CC0076F6F6 /* DetailViewController.m */,
+				66DCB36115F940CC0076F6F6 /* DetailViewController.mm */,
 				667CF01715FD5E320078A433 /* Emulator.h */,
 				667CF01815FD5E320078A433 /* Emulator.mm */,
 				667CEFDB15FD43720078A433 /* GLViewController.h */,
-				667CEFDC15FD43720078A433 /* GLViewController.m */,
+				667CEFDC15FD43720078A433 /* GLViewController.mm */,
 				66DCB35D15F940CC0076F6F6 /* MasterViewController.h */,
-				66DCB35E15F940CC0076F6F6 /* MasterViewController.m */,
+				66DCB35E15F940CC0076F6F6 /* MasterViewController.mm */,
 				66DCB36C15F940CC0076F6F6 /* DetailViewController_iPad.xib */,
 				66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */,
 				667CEFDD15FD43720078A433 /* GLViewController.xib */,
@@ -407,6 +413,8 @@
 				66D4BA8A15FAD03100D4937F /* gb_icon.png in Resources */,
 				66D4BA8B15FAD03100D4937F /* gb_icon@2x.png in Resources */,
 				667CEFDF15FD43720078A433 /* GLViewController.xib in Resources */,
+				66E99E3B15FE959C007F793C /* mario.gb in Resources */,
+				66E99E3D15FE9A17007F793C /* kwirk.gb in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -418,9 +426,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				66DCB35815F940CC0076F6F6 /* main.m in Sources */,
-				66DCB35C15F940CC0076F6F6 /* AppDelegate.m in Sources */,
-				66DCB35F15F940CC0076F6F6 /* MasterViewController.m in Sources */,
-				66DCB36215F940CC0076F6F6 /* DetailViewController.m in Sources */,
+				66DCB35C15F940CC0076F6F6 /* AppDelegate.mm in Sources */,
+				66DCB35F15F940CC0076F6F6 /* MasterViewController.mm in Sources */,
+				66DCB36215F940CC0076F6F6 /* DetailViewController.mm in Sources */,
 				662E1E1F15F9499600C7FF66 /* Audio.cpp in Sources */,
 				662E1E2015F9499600C7FF66 /* Cartridge.cpp in Sources */,
 				662E1E2115F9499600C7FF66 /* CommonMemoryRule.cpp in Sources */,
@@ -448,7 +456,7 @@
 				662E1E4915F949A700C7FF66 /* Gb_Oscs.cpp in Sources */,
 				662E1E4A15F949A700C7FF66 /* Multi_Buffer.cpp in Sources */,
 				662E1E4B15F949A700C7FF66 /* Sound_Queue.cpp in Sources */,
-				667CEFDE15FD43720078A433 /* GLViewController.m in Sources */,
+				667CEFDE15FD43720078A433 /* GLViewController.mm in Sources */,
 				667CF01915FD5E320078A433 /* Emulator.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -511,7 +519,8 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -543,6 +552,9 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = "RELEASE=1";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;

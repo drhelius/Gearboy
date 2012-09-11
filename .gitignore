@@ -72,3 +72,5 @@ platforms/linux/Gearboy/gearboy.ini
 *.xcuserstate
 
 platforms/ios/Gearboy.xcodeproj/xcuserdata/*
+
+*.gb
