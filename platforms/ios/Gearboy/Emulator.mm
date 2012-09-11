@@ -24,6 +24,8 @@ const float kGB_Width = 160.0f;
 const float kGB_Height = 144.0f;
 const float kGB_TexWidth = kGB_Width / 256.0f;
 const float kGB_TexHeight = kGB_Height / 256.0f;
+const GLfloat box[] = {0.0f, kGB_Height, 1.0f, kGB_Width,kGB_Height, 1.0f, 0.0f, 0.0f, 1.0f, kGB_Width, 0.0f, 1.0f};
+const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight};
 
 @implementation Emulator
 
@@ -33,7 +35,6 @@ const float kGB_TexHeight = kGB_Height / 256.0f;
     {
         theGearboyCore = new GearboyCore();
         theGearboyCore->Init();
-        theGearboyCore->SetSoundSampleRate(44100);
         initialized = NO;
         theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
         theTexture = new GB_Color[256 * 256];
@@ -104,17 +105,18 @@ const float kGB_TexHeight = kGB_Height / 256.0f;
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         
+        glVertexPointer(3, GL_FLOAT, 0, box);
+        glTexCoordPointer(2, GL_FLOAT, 0, tex);
+        
+        glClearColor(0.0, 0.0, 0.0, 0.0);
+        
         initialized = YES;
     }
     
+    glClear(GL_COLOR_BUFFER_BIT);
+    
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
-    
-	static GLfloat box[] = {0.0f, kGB_Height, 1.0f, kGB_Width,kGB_Height, 1.0f, 0.0f, 0.0f, 1.0f, kGB_Width, 0.0f, 1.0f};
-	static GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight};
 
-	glVertexPointer(3, GL_FLOAT, 0, box);
-	glTexCoordPointer(2, GL_FLOAT, 0, tex);
-    
 	glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 }
 
