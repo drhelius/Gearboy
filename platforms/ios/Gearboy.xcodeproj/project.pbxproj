@@ -164,8 +164,8 @@
 		66DCB36715F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MasterViewController_iPad.xib; sourceTree = "<group>"; };
 		66DCB36A15F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPhone.xib; sourceTree = "<group>"; };
 		66DCB36D15F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPad.xib; sourceTree = "<group>"; };
-		66E99E3A15FE959C007F793C /* mario.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = mario.gb; sourceTree = "<group>"; };
-		66E99E3C15FE9A16007F793C /* kwirk.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = kwirk.gb; sourceTree = "<group>"; };
+		66E99E3A15FE959C007F793C /* mario.gb */ = {isa = PBXFileReference; lastKnownFileType = file; name = mario.gb; path = Gearboy/mario.gb; sourceTree = "<group>"; };
+		66E99E3C15FE9A16007F793C /* kwirk.gb */ = {isa = PBXFileReference; lastKnownFileType = file; name = kwirk.gb; path = Gearboy/kwirk.gb; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -276,20 +276,28 @@
 			name = Audio;
 			sourceTree = "<group>";
 		};
+		66A24EC415FEBD9200B15341 /* GUI */ = {
+			isa = PBXGroup;
+			children = (
+				66DCB36C15F940CC0076F6F6 /* DetailViewController_iPad.xib */,
+				66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */,
+				667CEFDD15FD43720078A433 /* GLViewController.xib */,
+				66DCB36615F940CC0076F6F6 /* MasterViewController_iPad.xib */,
+				66DCB36315F940CC0076F6F6 /* MasterViewController_iPhone.xib */,
+			);
+			name = GUI;
+			sourceTree = "<group>";
+		};
 		66DCB33C15F940CC0076F6F6 = {
 			isa = PBXGroup;
 			children = (
-				66D4BA7E15FABBC500D4937F /* QuartzCore.framework */,
-				66D4BA7C15FABB9100D4937F /* OpenGLES.framework */,
-				66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */,
-				66D4BA7815FABB7B00D4937F /* CoreAudio.framework */,
-				66D4BA7615FABB6C00D4937F /* GLKit.framework */,
-				66D4BA7315FABB4000D4937F /* SDL.framework */,
 				662E1DF215F9496700C7FF66 /* Audio */,
 				662E1DF115F9495F00C7FF66 /* Core */,
 				66DCB35115F940CC0076F6F6 /* Gearboy */,
 				66DCB34A15F940CC0076F6F6 /* Frameworks */,
 				66DCB34815F940CC0076F6F6 /* Products */,
+				66E99E3C15FE9A16007F793C /* kwirk.gb */,
+				66E99E3A15FE959C007F793C /* mario.gb */,
 			);
 			sourceTree = "<group>";
 		};
@@ -304,9 +312,15 @@
 		66DCB34A15F940CC0076F6F6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				66DCB34B15F940CC0076F6F6 /* UIKit.framework */,
-				66DCB34D15F940CC0076F6F6 /* Foundation.framework */,
+				66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */,
+				66D4BA7815FABB7B00D4937F /* CoreAudio.framework */,
 				66DCB34F15F940CC0076F6F6 /* CoreGraphics.framework */,
+				66DCB34D15F940CC0076F6F6 /* Foundation.framework */,
+				66D4BA7615FABB6C00D4937F /* GLKit.framework */,
+				66D4BA7C15FABB9100D4937F /* OpenGLES.framework */,
+				66D4BA7E15FABBC500D4937F /* QuartzCore.framework */,
+				66D4BA7315FABB4000D4937F /* SDL.framework */,
+				66DCB34B15F940CC0076F6F6 /* UIKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -314,8 +328,9 @@
 		66DCB35115F940CC0076F6F6 /* Gearboy */ = {
 			isa = PBXGroup;
 			children = (
-				66E99E3C15FE9A16007F793C /* kwirk.gb */,
-				66E99E3A15FE959C007F793C /* mario.gb */,
+				66A24EC415FEBD9200B15341 /* GUI */,
+				660F501815F9614300617A2D /* Images */,
+				66DCB35215F940CC0076F6F6 /* Supporting Files */,
 				66DCB35A15F940CC0076F6F6 /* AppDelegate.h */,
 				66DCB35B15F940CC0076F6F6 /* AppDelegate.mm */,
 				66DCB36015F940CC0076F6F6 /* DetailViewController.h */,
@@ -326,13 +341,6 @@
 				667CEFDC15FD43720078A433 /* GLViewController.mm */,
 				66DCB35D15F940CC0076F6F6 /* MasterViewController.h */,
 				66DCB35E15F940CC0076F6F6 /* MasterViewController.mm */,
-				66DCB36C15F940CC0076F6F6 /* DetailViewController_iPad.xib */,
-				66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */,
-				667CEFDD15FD43720078A433 /* GLViewController.xib */,
-				66DCB36615F940CC0076F6F6 /* MasterViewController_iPad.xib */,
-				66DCB36315F940CC0076F6F6 /* MasterViewController_iPhone.xib */,
-				660F501815F9614300617A2D /* Images */,
-				66DCB35215F940CC0076F6F6 /* Supporting Files */,
 			);
 			path = Gearboy;
 			sourceTree = "<group>";
