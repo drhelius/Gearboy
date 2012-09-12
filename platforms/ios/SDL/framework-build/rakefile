@@ -1,0 +1,356 @@
+# ------------------------------------------------------------------------------
+# Builds a SDL framework for the iOS
+# Copyright (c) 2011-2012 Andrey Nesterov
+# See LICENSE for licensing information
+# ------------------------------------------------------------------------------
+#
+# Creates a pseudo-framework which could be used to build iOS applications for 
+# both simulator and device
+#
+# ------------------------------------------------------------------------------
+#
+# Depends on tools:
+#  hg
+#  git
+#  svn
+#
+# Depends on rubygems:
+#  colorize
+#
+# ------------------------------------------------------------------------------
+#
+# To configure the script, define:
+#   Conf      	   configuration (:release or :debug)
+#   Arch      	   architecture for the device's library (e.g. :armv6)
+#   SDK       	   version number of the iOS SDK (e.g. "4.3")
+#
+# ------------------------------------------------------------------------------
+
+require 'rubygems'
+require 'colorize'
+require 'find'
+
+# --- Configure ----------------------------------------------------------------
+module Configure
+	Conf = :release
+	Arch = :armv7
+	SDK = '5.1'
+end
+
+# --- Constants ----------------------------------------------------------------
+module Global
+	RootDir = Dir.pwd
+	TemplatesDir = "#{RootDir}/templates"
+	SourcesDir = "#{RootDir}/src"
+	BuildDir = "#{RootDir}/build"
+end
+
+# --- Common -------------------------------------------------------------------
+def message(text)
+	tailSize = 75 - text.length;
+	puts "\n>>> #{text} #{'-' * (tailSize < 0 ? 0 : tailSize)}".green
+end
+
+def refresh_dir(path)
+	rm_rf path if FileTest.exists? path
+	mkdir_p path
+end
+
+module Builder
+	def build_library(project, dest, target, conf, sdk, arch)
+		dest = library_bundle_path(dest, conf, sdk, arch)
+		sdk, arch = compute_platform(sdk, arch)
+
+		refresh_dir dest
+		cd File.dirname project
+
+		args = []
+		args << %{-sdk "#{sdk}"}
+		args << %{-configuration "#{conf}"}
+		args << %{-target "#{target}"}
+		args << %{-arch "#{arch.to_str}"}
+		args << %{-project "#{project}"}
+		args << %{TARGETED_DEVICE_FAMILY="1,2"}
+		args << %{BUILT_PRODUCTS_DIR="build"}
+		args << %{CONFIGURATION_BUILD_DIR="#{dest}"}
+		args << %{CONFIGURATION_TEMP_DIR="#{dest}.build"}
+		sh %{xcodebuild #{args.join " "}}
+	end
+
+	def build_framework_library(frameworkLib, deviceLib, simulatorLib)
+		refresh_dir(File.dirname(frameworkLib))
+		sh %{lipo -create #{deviceLib} #{simulatorLib} -o #{frameworkLib}}
+	end
+
+	def build_framework(name, version, identifier, dest, headers, project, target, conf, sdk, arch)
+		build_library(project, dest, target, conf, sdk, arch);
+		build_library(project, dest, target, conf, sdk, :i386);
+
+		libFileName = nil
+		Find.find(library_bundle_path(dest, conf, sdk, arch)) do |path| 
+			libFileName = File.basename(path) if path =~ /\A.*\.a\z/
+		end
+		libFilePath = "#{dest}/universal-#{conf}/#{libFileName}"
+
+		build_framework_library(
+			libFilePath, 
+			"#{library_bundle_path(dest, conf, sdk, arch)}/#{libFileName}",
+			"#{library_bundle_path(dest, conf, sdk, :i386)}/#{libFileName}"
+		)
+		create_framework(name, version, identifier, dest, headers, libFilePath)
+	end
+
+	def create_framework(name, version, identifier, dest, headers, lib)
+		frameworkVersion = "A"
+		frameworkBundle = framework_bundle_path(dest, name)
+
+		# creating framework's directories	
+		refresh_dir frameworkBundle
+		mkdir "#{frameworkBundle}/Versions"
+		mkdir "#{frameworkBundle}/Versions/#{frameworkVersion}"
+		mkdir "#{frameworkBundle}/Versions/#{frameworkVersion}/Resources"
+		mkdir "#{frameworkBundle}/Versions/#{frameworkVersion}/Headers"
+		mkdir "#{frameworkBundle}/Versions/#{frameworkVersion}/Documentation"
+
+		# creating framework's symlinks
+		sh %{ln -s "#{frameworkVersion}" "#{frameworkBundle}/Versions/Current"}
+		sh %{ln -s "Versions/Current/Headers" "#{frameworkBundle}/Headers"}
+		sh %{ln -s "Versions/Current/Resources" "#{frameworkBundle}/Resources"}
+		sh %{ln -s "Versions/Current/Documentation" "#{frameworkBundle}/Documentation"}
+		sh %{ln -s "Versions/Current/#{File.basename lib}" "#{frameworkBundle}/#{name}"}
+
+		# copying lib
+		cp lib, "#{frameworkBundle}/Versions/#{frameworkVersion}"
+
+		# copying includes
+		FileList["#{headers}/*.h"].each do |source|
+			cp source, "#{frameworkBundle}/Headers"
+		end
+
+		# creating plist
+		File.open("#{frameworkBundle}/Resources/Info.plist", "w") do |f|
+			f.puts '<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">'
+			f.puts "<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>#{name}</string>
+	<key>CFBundleIdentifier</key>
+	<string>#{identifier}</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>FMWK</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>#{version}</string>
+</dict>
+</plist>"
+		end
+	end
+
+	def library_bundle_path(path, conf, sdk, arch)
+		sdk, arch = compute_platform(sdk, arch)
+		"#{path}/#{sdk}-#{arch}-#{conf}"
+	end
+
+	def framework_bundle_path(path, name)
+		"#{path}/#{name}.framework"
+	end
+
+	def compute_platform(sdk, arch)
+		return [sdk, arch] if arch.class == String
+		[arch == :i386 ? "iphonesimulator" + sdk : "iphoneos" + sdk, arch.to_s]
+	end
+
+	private :library_bundle_path, :framework_bundle_path, :compute_platform 
+end
+
+# --- Package ------------------------------------------------------------------
+class Package
+	extend Builder
+
+	def self.build(conf, sdk, arch)
+		download
+		unpack
+		install(config(conf), sdk, arch)
+	end
+
+	def self.unpack
+	end
+
+	def self.config conf
+		conf == :release ? "Release" : "Debug"
+	end
+end
+
+# --- SDL ----------------------------------------------------------------------
+class SDL < Package
+	ProjFile = "SDL.xcodeproj"
+	SourcesDir = (FileTest.exists? ProjFile) ? "#{Global::RootDir}/../.." : "#{Global::SourcesDir}/SDL"
+	BuildDir = "#{Global::BuildDir}/sdl"
+	Version = "2.0"
+
+	def self.download
+		message "downloading SDL"
+		sh %{hg clone "http://hg.libsdl.org/SDL" "#{SourcesDir}"}
+	end
+	
+	def self.install(conf, sdk, arch)
+		message "building SDL"
+		self.build_framework(
+			"SDL",
+			Version,
+			"org.libsdl",
+			BuildDir, 
+			"#{SourcesDir}/include",
+			"#{SourcesDir}/Xcode-iOS/SDL/#{ProjFile}",
+			"libSDL",
+			conf,
+			sdk,
+			arch
+		)
+	end
+end
+
+# --- SDL_image ----------------------------------------------------------------
+class SDL_image < Package
+	SourcesDir = "#{Global::SourcesDir}/sdl_image"
+	BuildDir = "#{Global::BuildDir}/sdl_image"
+	Version = "1.2.12"
+ 
+	def self.download
+		message "downloading SDL_image"
+		sh %{hg clone "http://hg.libsdl.org/SDL_image" "#{SourcesDir}"}
+	end
+	
+	def self.install(conf, sdk, arch)
+		message "building SDL_image"
+		self.build_framework(
+			"SDL_image",
+			Version,
+			"org.libsdl",
+			BuildDir, 
+			"#{SourcesDir}",
+			"#{SourcesDir}/Xcode-iOS/SDL_image.xcodeproj",
+			"libSDL_image",
+			conf,
+			sdk,
+			arch
+		)
+	end
+end
+
+# --- SDL_mixer ----------------------------------------------------------------
+class SDL_mixer < Package
+	SourcesDir = "#{Global::SourcesDir}/sdl_mixer"
+	BuildDir = "#{Global::BuildDir}/sdl_mixer"
+	Version = "1.2.12"
+
+	def self.download
+		message "downloading SDL_mixer"
+		sh %{hg clone "http://hg.libsdl.org/SDL_mixer" "#{SourcesDir}"}
+	end
+	
+	def self.install(conf, sdk, arch)
+		message "creating links on vorbis headers for successful SDL_mixer building"
+		refresh_dir(headersDir = "#{Global::SourcesDir}/libtremor")
+		sh %{ln -s "#{Tremor::BuildDir}/vorbis.framework/Headers" "#{headersDir}/ogg"}
+		sh %{ln -s "#{Tremor::BuildDir}/vorbis.framework/Headers" "#{headersDir}/tremor"}
+
+		message "building SDL_mixer"
+		self.build_framework(
+			"SDL_mixer",
+			Version,
+			"org.libsdl",
+			BuildDir, 
+			"#{SourcesDir}",
+			"#{SourcesDir}/Xcode-iOS/SDL_mixer.xcodeproj",
+			"Static Library",
+			conf,
+			sdk,
+			arch
+		)
+
+		rm_rf headersDir
+	end
+end
+
+# --- Tremor -------------------------------------------------------------------
+class Tremor < Package
+	SourcesDir = "#{Global::SourcesDir}/cocos2d"
+	BuildDir = "#{Global::BuildDir}/tremor"
+	Version = "1.3.2"
+
+	def self.download
+		message "downloading Cocos2d"
+		sh %{git clone "https://github.com/cocos2d/cocos2d-iphone.git" "#{SourcesDir}"}
+	end
+	
+	def self.install(conf, sdk, arch)
+		message "building Tremor"
+		self.build_framework(
+			"vorbis",
+			Version,
+			"org.xiph",
+			BuildDir, 
+			"#{SourcesDir}/external/Tremor",
+			"#{SourcesDir}/cocos2d-ios.xcodeproj",
+			"vorbis",
+			conf,
+			sdk,
+			arch
+		)
+	end
+end
+
+# --- Tasks --------------------------------------------------------------------
+require 'rake/clean'
+
+Libs = [:SDL, :SDL_image, :Tremor, :SDL_mixer]
+
+desc "Download sources and build SDL.framework"
+task :default => ["SDL:build"] do
+end
+
+desc "Download sources and build all targets [#{Libs.join ", "}]"
+task :build_all do
+	Libs.each do |classname|
+		Object.const_get(classname).build Configure::Conf, Configure::SDK, Configure::Arch
+	end
+end
+
+Libs.each do |classname|
+	namespace classname do
+		obj = Object.const_get(classname)
+
+		desc "Download sources and build #{classname}.framework"
+		task :build do
+			obj.build Configure::Conf, Configure::SDK, Configure::Arch
+		end
+
+		desc "Only download #{classname} sources"
+		task :download do
+			obj.download
+			obj.unpack
+		end
+
+		desc "Only build #{classname}.framework"
+		task :install do
+			obj.install Configure::Conf, Configure::SDK, Configure::Arch
+		end
+
+		desc "Remove all files associated with #{classname}"
+		task :clobber do
+			CLOBBER = Rake::FileList.new
+			CLOBBER.include obj::SourcesDir, obj::BuildDir
+			Rake::Task[:clobber].execute
+		end
+	end
+end
+
+CLOBBER.include Global::SourcesDir, Global::BuildDir
+

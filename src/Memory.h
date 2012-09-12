@@ -24,7 +24,6 @@
 #include <vector>
 
 class MemoryRule;
-class MemoryCell;
 
 class Memory
 {
@@ -52,8 +51,16 @@ public:
     void DoDMACGBTransfer(u8 value, bool hbdma);
     void DoHDMACGBTransfer(bool hbdma);
     bool IsHBDMAEnabled();
+    
 private:
-    MemoryCell* m_pMap;
+    struct stDisassemble
+    {
+        char szDisString[32];
+    };
+    
+private:
+    u8* m_pMap;
+    stDisassemble* m_pDisassembledMap;
     std::vector<MemoryRule*> m_Rules;
     typedef std::vector<MemoryRule*>::iterator RulesVectorIterator;
     bool m_bCGB;

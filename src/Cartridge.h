@@ -50,7 +50,7 @@ private:
 private:
     u8* m_pTheROM;
     int m_iTotalSize;
-    char m_szName[MAX_STRING_SIZE];
+    char m_szName[16];
     int m_iROMSize;
     int m_iRAMSize;
     int m_iType;
