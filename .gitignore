@@ -1,15 +1,4 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
 
-# Compiled Dynamic libraries
-*.so
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
 
 # Netbeans files
 /dist/
@@ -56,7 +45,6 @@ ipch/
 *.lib
 *.sbr
 Thumbs.db
-[Ll]ib/
 [Rr]elease*/
 [Tt]est[Rr]esults/
 _UpgradeReport_Files/
@@ -78,3 +66,11 @@ ui_*.h
 /platforms/macosx/Gearboy/dist/
 
 platforms/macosx/Gearboy/gearboy.ini
+platforms/windows/Gearboy/gearboy.ini
+platforms/linux/Gearboy/gearboy.ini
+
+*.xcuserstate
+
+platforms/ios/Gearboy.xcodeproj/xcuserdata/*
+
+*.gb

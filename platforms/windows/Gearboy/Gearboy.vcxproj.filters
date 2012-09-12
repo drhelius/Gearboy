@@ -104,9 +104,6 @@
     <ClCompile Include="..\..\..\src\Memory.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\MemoryCell.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\MemoryRule.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -259,9 +256,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\Memory.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\MemoryCell.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\MemoryRule.h">
