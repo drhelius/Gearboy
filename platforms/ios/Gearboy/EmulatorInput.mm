@@ -35,6 +35,7 @@ EmulatorInput::~EmulatorInput()
 
 void EmulatorInput::Init()
 {
+    InputManager::Instance().ClearRegionEvents();
     for (int i = 0; i < 4; i++)
         m_bController[i] = false;
     
@@ -60,18 +61,30 @@ void EmulatorInput::Init()
         }
         else
         {
-
+            InputManager::Instance().AddCircleRegionEvent(256.0f, 316.0f, 29.0f, m_pInputCallbackButtons, 1, false);
+            InputManager::Instance().AddCircleRegionEvent(213.0f, 337.0f, 29.0f, m_pInputCallbackButtons, 2, false);
+            InputManager::Instance().AddCircleRegionEvent(167.0f, 397.0f, 25.0f, m_pInputCallbackButtons, 3, false);
+            InputManager::Instance().AddCircleRegionEvent(121.0f, 397.0f, 25.0f, m_pInputCallbackButtons, 4, false);
+            InputManager::Instance().AddCircleRegionEvent(80.0f, 331.0f, 50.0f, m_pInputCallbackController, 0, true);
         }
     }
     else
     {
         if (retina)
         {
-            
+            InputManager::Instance().AddCircleRegionEvent(674.0f, 660.0f, 78.0f, m_pInputCallbackButtons, 1, false);
+            InputManager::Instance().AddCircleRegionEvent(544.0f, 721.0f, 78.0f, m_pInputCallbackButtons, 2, false);
+            InputManager::Instance().AddCircleRegionEvent(408.0f, 891.0f, 60.0f, m_pInputCallbackButtons, 3, false);
+            InputManager::Instance().AddCircleRegionEvent(276.0f, 891.0f, 60.0f, m_pInputCallbackButtons, 4, false);
+            InputManager::Instance().AddCircleRegionEvent(151.0f, 699.0f, 110.0f, m_pInputCallbackController, 0, true);
         }
         else
         {
-
+            InputManager::Instance().AddCircleRegionEvent(614.0f, 623.0f, 64.0f, m_pInputCallbackButtons, 1, false);
+            InputManager::Instance().AddCircleRegionEvent(510.0f, 671.0f, 64.0f, m_pInputCallbackButtons, 2, false);
+            InputManager::Instance().AddCircleRegionEvent(400.0f, 809.0f, 50.0f, m_pInputCallbackButtons, 3, false);
+            InputManager::Instance().AddCircleRegionEvent(293.0f, 809.0f, 50.0f, m_pInputCallbackButtons, 4, false);
+            InputManager::Instance().AddCircleRegionEvent(192.0f, 653.0f, 100.0f, m_pInputCallbackController, 0, true);
         }
     }
 }
@@ -90,7 +103,15 @@ void EmulatorInput::InputController(stInputCallbackParameter parameter, int id)
     if (parameter.type != PRESS_END)
     {
         float length = parameter.vector.length();
-        if (length >= 11.0f)
+        
+        float minLength = 25.0f;
+        
+        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
+        {
+            minLength = 11.0f;
+        }
+        
+        if (length >= minLength)
         {
             float angle = atan2f(parameter.vector.x, -parameter.vector.y) * 57.29577951f;
             

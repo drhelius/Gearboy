@@ -62,7 +62,7 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
             }
         }
         
-        NSString* path = [[NSBundle mainBundle] pathForResource:@"zelda" ofType:@"gb"];
+        NSString* path = [[NSBundle mainBundle] pathForResource:@"mario" ofType:@"gb"];
         
         theGearboyCore->LoadROM([path UTF8String], false);
     }
