@@ -19,6 +19,7 @@
 
 #import <GLKit/GLKit.h>
 #import "Emulator.h"
+#include "inputmanager.h"
 
 const float kGB_Width = 160.0f;
 const float kGB_Height = 144.0f;
@@ -35,6 +36,8 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     {
         theGearboyCore = new GearboyCore();
         theGearboyCore->Init();
+        theInput = new EmulatorInput(self);
+        theInput->Init();
         initialized = NO;
         theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
         theTexture = new GB_Color[256 * 256];
@@ -75,6 +78,8 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
 
 -(void)update
 {
+    InputManager::Instance().Update();
+    
     theGearboyCore->RunToVBlank(theFrameBuffer);
     
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)

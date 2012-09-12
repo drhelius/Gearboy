@@ -48,7 +48,6 @@
     
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
-    //view.contentScaleFactor = 1.0;
     
     CGFloat scale;
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {

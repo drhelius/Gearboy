@@ -54,6 +54,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    self.view.multipleTouchEnabled = YES;
 
     [self configureView];
 }
@@ -103,6 +105,43 @@
     // Called when the view is shown again in the split view, invalidating the button and popover controller.
     [self.navigationItem setLeftBarButtonItem:nil animated:YES];
     self.masterPopoverController = nil;
+}
+
+-(void) _handleTouch : (UITouch *) touch
+{
+    InputManager::Instance().HandleTouch(touch, self.view);
+}
+
+-(void) touchesBegan : (NSSet *) touches withEvent : (UIEvent *) event
+{
+    for (UITouch *touch in touches)
+    {
+        [self _handleTouch : touch];
+    }
+}
+
+-(void) touchesMoved : (NSSet *) touches withEvent : (UIEvent *) event
+{
+    for (UITouch *touch in touches)
+    {
+        [self _handleTouch : touch];
+    }
+}
+
+-(void) touchesEnded : (NSSet *) touches withEvent : (UIEvent *) event
+{
+    for (UITouch *touch in touches)
+    {
+        [self _handleTouch : touch];
+    }
+}
+
+-(void) touchesCancelled : (NSSet *) touches withEvent : (UIEvent *) event
+{
+    for (UITouch *touch in touches)
+    {
+        [self _handleTouch : touch];
+    }
 }
 
 @end

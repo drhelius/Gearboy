@@ -19,6 +19,7 @@
 
 #import <Foundation/Foundation.h>
 #import "../../src/gearboy.h"
+#import "EmulatorInput.h"
 
 @interface Emulator : NSObject
 {
@@ -26,6 +27,7 @@
     BOOL initialized;
     GB_Color* theFrameBuffer;
     GB_Color* theTexture;
+    EmulatorInput* theInput;
 }
 
 -(void)update;

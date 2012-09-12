@@ -17,18 +17,21 @@
  *
  */
 
-#import <UIKit/UIKit.h>
-#import <GLKit/GLKit.h>
-#import "GLViewController.h"
+#pragma once
+#ifndef _SINGLETON_H
+#define	_SINGLETON_H
 
-@interface DetailViewController : UIViewController <UISplitViewControllerDelegate>
+template<typename T> class Singleton
 {
-    GLViewController* theGLViewController;
-}
+public:
 
-@property (strong, nonatomic) id detailItem;
-@property (weak, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
+    static T& Instance(void)
+    {
+        static T singleton;
 
--(void) _handleTouch : (UITouch *) touch;
+        return singleton;
+    };
+};
 
-@end
+#endif	/* _SINGLETON_H */
+

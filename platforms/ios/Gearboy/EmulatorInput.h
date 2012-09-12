@@ -17,18 +17,27 @@
  *
  */
 
-#import <UIKit/UIKit.h>
-#import <GLKit/GLKit.h>
-#import "GLViewController.h"
+#ifndef __Gearboy__EmulatorInput__
+#define __Gearboy__EmulatorInput__
 
-@interface DetailViewController : UIViewController <UISplitViewControllerDelegate>
+#include "inputmanager.h"
+
+@class Emulator;
+
+class EmulatorInput
 {
-    GLViewController* theGLViewController;
-}
+public:
+    EmulatorInput(Emulator* pEmulator);
+    ~EmulatorInput();
+    void InputController(stInputCallbackParameter parameter, int id);
+    void InputButtons(stInputCallbackParameter parameter, int id);
+    void Init();
+    
+private:
+    InputCallback<EmulatorInput>* m_pInputCallbackController;
+    InputCallback<EmulatorInput>* m_pInputCallbackButtons;
+    Emulator* m_pEmulator;
+    bool m_bController[4];
+};
 
-@property (strong, nonatomic) id detailItem;
-@property (weak, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
-
--(void) _handleTouch : (UITouch *) touch;
-
-@end
+#endif /* defined(__Gearboy__EmulatorInput__) */
