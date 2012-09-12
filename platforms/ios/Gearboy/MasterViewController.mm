@@ -56,7 +56,7 @@
     
     for (NSString* rom in self.listData)
     {
-        NSString* c = [rom substringToIndex:1];
+        NSString* c = [[rom substringToIndex:1] uppercaseString];
         
         found = NO;
         
@@ -76,7 +76,7 @@
     
     for (NSString* rom in self.listData)
     {
-        [[self.sections objectForKey:[rom substringToIndex:1]] addObject:rom];
+        [[self.sections objectForKey:[[rom substringToIndex:1] uppercaseString]] addObject:rom];
     }
 }
 
@@ -129,7 +129,7 @@
     
     NSString* rom = [[self.sections valueForKey:[[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:indexPath.section]] objectAtIndex:indexPath.row];
 
-    cell.textLabel.text = rom;
+    cell.textLabel.text = [rom stringByDeletingPathExtension];
     cell.textLabel.adjustsFontSizeToFitWidth = YES;
     return cell;
 }
@@ -152,6 +152,16 @@
     } else {
         self.detailViewController.detailItem = rom;
     }
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [self.detailViewController.theGLViewController.theEmulator pause];
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [self.detailViewController.theGLViewController.theEmulator resume];
 }
 
 @end

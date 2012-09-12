@@ -31,7 +31,7 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        theEmulator = [[Emulator alloc]init];
+        self.theEmulator = [[Emulator alloc]init];
         if ([[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPhone)
         {
             self.view.hidden = YES;
@@ -94,7 +94,7 @@
     
     NSString* path = [NSString stringWithFormat:@"%@/%@", documentsDirectoryPath, name];
     
-    [theEmulator loadRomWithPath:path];
+    [self.theEmulator loadRomWithPath:path];
     
     self.view.hidden = NO;
     self.paused = NO;
@@ -117,13 +117,13 @@
 
 - (void)update
 {
-    [theEmulator update];
+    [self.theEmulator update];
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
     
-    [theEmulator draw];
+    [self.theEmulator draw];
 }
 
 @end

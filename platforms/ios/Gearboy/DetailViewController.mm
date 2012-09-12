@@ -30,14 +30,12 @@
 
 - (void)setDetailItem:(id)newDetailItem
 {
-    if (_detailItem != newDetailItem)
-    {
-        _detailItem = newDetailItem;
-        [self configureView];
-    }
-
+    _detailItem = newDetailItem;
+    [self configureView];
+    
     if (self.masterPopoverController != nil)
     {
+        [self.theGLViewController.theEmulator resume];
         [self.masterPopoverController dismissPopoverAnimated:YES];
     }        
 }

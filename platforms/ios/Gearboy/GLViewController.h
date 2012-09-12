@@ -22,11 +22,9 @@
 #import "Emulator.h"
 
 @interface GLViewController : GLKViewController
-{
-    Emulator* theEmulator;
-}
 
-@property (strong, nonatomic) EAGLContext *context;
+@property (strong, nonatomic) EAGLContext* context;
+@property (strong, nonatomic) Emulator* theEmulator;
 
 - (void)loadRomWithName: (NSString*) path;
 
