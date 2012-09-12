@@ -22,7 +22,11 @@
 @class DetailViewController;
 
 @interface MasterViewController : UITableViewController
+{
+    NSArray *listData;
+}
 
 @property (strong, nonatomic) DetailViewController *detailViewController;
+@property (strong, nonatomic) NSArray *listData;
 
 @end

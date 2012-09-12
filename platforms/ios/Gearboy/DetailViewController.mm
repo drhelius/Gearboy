@@ -47,7 +47,8 @@
     // Update the user interface for the detail item.
 
     if (self.detailItem) {
-        self.detailDescriptionLabel.text = [self.detailItem description];
+        
+        [self.theGLViewController loadRomWithName:self.detailItem];
     }
 }
 
@@ -81,12 +82,12 @@
     if (self) {
         self.title = @"Gearboy";
         
-        theGLViewController = [[GLViewController alloc] initWithNibName:@"GLViewController" bundle:nil];
-                
-        //theGLViewController.view.frame = self.view.frame;
-        theGLViewController.preferredFramesPerSecond = 60;
+        self.theGLViewController = [[GLViewController alloc] initWithNibName:@"GLViewController" bundle:nil];
+        self.theGLViewController.preferredFramesPerSecond = 60;
+        self.theGLViewController.resumeOnDidBecomeActive = NO;
+        self.theGLViewController.pauseOnWillResignActive = NO;
         
-        [self.view addSubview:theGLViewController.view];
+        [self.view addSubview:self.theGLViewController.view];
     }
     return self;
 }

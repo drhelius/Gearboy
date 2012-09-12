@@ -32,6 +32,10 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         theEmulator = [[Emulator alloc]init];
+        if ([[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPhone)
+        {
+            self.view.hidden = YES;
+        }
     }
     return self;
 }
@@ -81,7 +85,18 @@
             view.frame = CGRectMake(222, 82, 80 * 4, 72 * 4);
         }
     }
+}
+
+- (void)loadRomWithName: (NSString*) name
+{
+    NSArray* paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString* documentsDirectoryPath = [paths objectAtIndex:0];
     
+    NSString* path = [NSString stringWithFormat:@"%@/%@", documentsDirectoryPath, name];
+    
+    [theEmulator loadRomWithPath:path];
+    
+    self.view.hidden = NO;
     self.paused = NO;
 }
 

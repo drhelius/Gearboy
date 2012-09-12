@@ -28,4 +28,6 @@
 
 @property (strong, nonatomic) EAGLContext *context;
 
+- (void)loadRomWithName: (NSString*) path;
+
 @end

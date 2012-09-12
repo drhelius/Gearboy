@@ -21,12 +21,9 @@
 
 #import "DetailViewController.h"
 
-@interface MasterViewController () {
-    NSMutableArray *_objects;
-}
-@end
-
 @implementation MasterViewController
+
+@synthesize listData;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -44,11 +41,21 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
-    self.navigationItem.leftBarButtonItem = self.editButtonItem;
+    
+    NSArray *homeDomains = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [homeDomains objectAtIndex:0];
+    
+    NSFileManager *fileManager = [[NSFileManager alloc] init];
+    NSArray *files = [fileManager contentsOfDirectoryAtPath:documentsDirectory
+                                                      error:nil];
 
-    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
-    self.navigationItem.rightBarButtonItem = addButton;
+    self.listData = files;
+    
+	// Do any additional setup after loading the view, typically from a nib.
+    //self.navigationItem.leftBarButtonItem = self.editButtonItem;
+
+    //UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
+    //self.navigationItem.rightBarButtonItem = addButton;
 }
 
 - (void)viewDidUnload
@@ -66,6 +73,7 @@
     }
 }
 
+/*
 - (void)insertNewObject:(id)sender
 {
     if (!_objects) {
@@ -74,7 +82,7 @@
     [_objects insertObject:[NSDate date] atIndex:0];
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
     [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-}
+}*/
 
 #pragma mark - Table View
 
@@ -85,7 +93,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return _objects.count;
+    return self.listData.count;
 }
 
 // Customize the appearance of table view cells.
@@ -102,17 +110,19 @@
     }
 
 
-    NSDate *object = [_objects objectAtIndex:indexPath.row];
-    cell.textLabel.text = [object description];
+    NSString *path = [self.listData objectAtIndex:indexPath.row];
+    cell.textLabel.text = path;
+    cell.textLabel.adjustsFontSizeToFitWidth = YES;
     return cell;
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
 {
     // Return NO if you do not want the specified item to be editable.
-    return YES;
+    return NO;
 }
 
+/*
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
@@ -121,7 +131,7 @@
     } else if (editingStyle == UITableViewCellEditingStyleInsert) {
         // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
     }
-}
+}*/
 
 /*
 // Override to support rearranging the table view.
@@ -141,15 +151,15 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSDate *object = [_objects objectAtIndex:indexPath.row];
+    NSString *path = [self.listData objectAtIndex:indexPath.row];
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
 	    if (!self.detailViewController) {
 	        self.detailViewController = [[DetailViewController alloc] initWithNibName:@"DetailViewController_iPhone" bundle:nil];
 	    }
-	    self.detailViewController.detailItem = object;
+	    self.detailViewController.detailItem = path;
         [self.navigationController pushViewController:self.detailViewController animated:YES];
     } else {
-        self.detailViewController.detailItem = object;
+        self.detailViewController.detailItem = path;
     }
 }
 

@@ -48,7 +48,7 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
             {
                 int pixel = (y * GAMEBOY_WIDTH) + x;
                 theFrameBuffer[pixel].red = theFrameBuffer[pixel].green =
-                theFrameBuffer[pixel].blue = theFrameBuffer[pixel].alpha = 255;
+                theFrameBuffer[pixel].blue = theFrameBuffer[pixel].alpha = 0;
             }
         }
         
@@ -61,10 +61,6 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
                 theTexture[pixel].blue = theTexture[pixel].alpha = 0;
             }
         }
-        
-        NSString* path = [[NSBundle mainBundle] pathForResource:@"mario" ofType:@"gb"];
-        
-        theGearboyCore->LoadROM([path UTF8String], false);
     }
     return self;
 }
@@ -155,9 +151,9 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     return theGearboyCore->IsPaused();
 }
 
--(void)reset: (BOOL)forceDMG
+-(void)reset
 {
-    theGearboyCore->ResetROM(forceDMG);
+    theGearboyCore->ResetROM(false);
 }
 
 @end

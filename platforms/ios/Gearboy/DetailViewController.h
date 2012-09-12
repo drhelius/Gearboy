@@ -22,10 +22,8 @@
 #import "GLViewController.h"
 
 @interface DetailViewController : UIViewController <UISplitViewControllerDelegate>
-{
-    GLViewController* theGLViewController;
-}
 
+@property (strong, nonatomic) GLViewController* theGLViewController;
 @property (strong, nonatomic) id detailItem;
 @property (weak, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
 

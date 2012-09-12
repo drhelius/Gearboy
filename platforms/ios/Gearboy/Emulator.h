@@ -38,6 +38,6 @@
 -(void)pause;
 -(void)resume;
 -(BOOL)paused;
--(void)reset: (BOOL)forceDMG;
+-(void)reset;
 
 @end
