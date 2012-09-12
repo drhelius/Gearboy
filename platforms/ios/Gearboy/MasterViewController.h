@@ -23,10 +23,12 @@
 
 @interface MasterViewController : UITableViewController
 {
-    NSArray *listData;
+    NSArray* listData;
+    NSMutableDictionary *sections;  
 }
 
 @property (strong, nonatomic) DetailViewController *detailViewController;
 @property (strong, nonatomic) NSArray *listData;
+@property (strong, nonatomic) NSMutableDictionary *sections;
 
 @end
