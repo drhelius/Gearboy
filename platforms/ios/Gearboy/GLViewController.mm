@@ -57,7 +57,7 @@
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
         scale=[[UIScreen mainScreen] scale];
     } else {
-        scale=1; //only called on iPad.
+        scale=1; 
     }
     
     BOOL retina;

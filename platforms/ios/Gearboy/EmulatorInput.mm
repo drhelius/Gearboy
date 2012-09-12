@@ -43,7 +43,7 @@ void EmulatorInput::Init()
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
         scale=[[UIScreen mainScreen] scale];
     } else {
-        scale=1; //only called on iPad.
+        scale=1; 
     }
     
     BOOL retina;
@@ -91,11 +91,6 @@ void EmulatorInput::Init()
 
 void EmulatorInput::InputController(stInputCallbackParameter parameter, int id)
 {
-    //[m_pEmulator keyReleased:Gameboy_Keys::Up_Key];
-    //[m_pEmulator keyReleased:Gameboy_Keys::Down_Key];
-    //[m_pEmulator keyReleased:Gameboy_Keys::Right_Key];
-    //[m_pEmulator keyReleased:Gameboy_Keys::Left_Key];
-   
     bool bNewController[4];
     for (int i = 0; i < 4; i++)
         bNewController[i] = false;

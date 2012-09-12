@@ -31,9 +31,7 @@
 
 class Timer
 {
-
 public:
-
     Timer(void);
 
     Timer(bool calculateFPS)
@@ -64,7 +62,6 @@ public:
     };
 
 private:
-
     bool m_bCalculateFPS;
     bool m_bIsRunning;
 

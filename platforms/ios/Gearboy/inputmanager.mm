@@ -19,24 +19,15 @@
 
 #include "inputmanager.h"
 
-//////////////////////////
-//////////////////////////
-
 InputManager::InputManager()
 {
     m_fInputRate = 0.1f; //0.05f;
     m_Timer.Start();
 }
 
-//////////////////////////
-//////////////////////////
-
 InputManager::~InputManager()
 {
 }
-
-//////////////////////////
-//////////////////////////
 
 void InputManager::Update(void)
 {
@@ -48,9 +39,6 @@ void InputManager::Update(void)
         event.pCallback->Execute(event.parameter, event.id);
     }
 }
-
-//////////////////////////
-//////////////////////////
 
 void InputManager::AddCircleRegionEvent(float x, float y, float radius, InputCallbackGeneric* pCallback, int id, bool receiveMoveEvent)
 {
@@ -67,9 +55,6 @@ void InputManager::AddCircleRegionEvent(float x, float y, float radius, InputCal
     m_RegionEventVector.push_back(tmp);
 }
 
-//////////////////////////
-//////////////////////////
-
 void InputManager::AddRectRegionEvent(float x, float y, float width, float height, InputCallbackGeneric* pCallback, int id, bool receiveMoveEvent)
 {
     stRegionEvent tmp;
@@ -84,9 +69,6 @@ void InputManager::AddRectRegionEvent(float x, float y, float width, float heigh
 
     m_RegionEventVector.push_back(tmp);
 }
-
-//////////////////////////
-//////////////////////////
 
 void InputManager::ClearRegionEvents(void)
 {
@@ -104,9 +86,6 @@ void InputManager::ClearRegionEvents(void)
         m_RegionEventResponseQueue.pop();
     }
 }
-
-//////////////////////////
-//////////////////////////
 
 void InputManager::HandleTouch(UITouch* touch, UIView* view)
 {

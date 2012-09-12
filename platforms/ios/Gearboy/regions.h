@@ -25,9 +25,7 @@
 
 class Region
 {
-
 public:
-
     virtual ~Region() { };
     virtual bool PointInRegion(float px, float py) = 0;
     virtual Vec3 GetPosition(void) = 0;
@@ -35,16 +33,13 @@ public:
 
 class RectRegion : public Region
 {
-
 private:
-
     float m_fRectPosX;
     float m_fRectPosY;
     float m_fRectWidth;
     float m_fRectHeight;
 
 public:
-
     RectRegion(float rx, float ry, float width, float height)
     {
         m_fRectPosX = rx;
@@ -68,14 +63,11 @@ public:
 
 class CircleRegion : public Region
 {
-
 private:
-
     Vec2 m_CirclePos;
     float m_fCircleRadius;
 
 public:
-
     CircleRegion(float rx, float ry, float radius)
     {
         m_CirclePos.x = rx;
@@ -98,8 +90,6 @@ public:
         return Vec3(m_CirclePos.x, m_CirclePos.y, 0.0f);
     }
 };
-
-
 
 #endif	/* _REGIONS_H */
 

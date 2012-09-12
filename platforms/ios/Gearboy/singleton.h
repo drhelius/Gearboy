@@ -24,7 +24,6 @@
 template<typename T> class Singleton
 {
 public:
-
     static T& Instance(void)
     {
         static T singleton;
@@ -34,4 +33,3 @@ public:
 };
 
 #endif	/* _SINGLETON_H */
-
