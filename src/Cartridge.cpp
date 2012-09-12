@@ -20,7 +20,7 @@
 #include <string>
 #include <algorithm>
 #include "Cartridge.h"
-#include "miniz\miniz.c"
+#include "miniz/miniz.c"
 
 Cartridge::Cartridge()
 {
@@ -117,7 +117,7 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
         return false;
     }
 
-    for (int i = 0; i < mz_zip_reader_get_num_files(&zip_archive); i++)
+    for (unsigned int i = 0; i < mz_zip_reader_get_num_files(&zip_archive); i++)
     {
         mz_zip_archive_file_stat file_stat;
         if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
@@ -127,7 +127,7 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
             return false;
         }
 
-        Log("ZIP Content - Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u", file_stat.m_filename, file_stat.m_comment, (uint)file_stat.m_uncomp_size, (uint)file_stat.m_comp_size);
+        Log("ZIP Content - Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u", file_stat.m_filename, file_stat.m_comment, (unsigned int)file_stat.m_uncomp_size, (unsigned int)file_stat.m_comp_size);
 
         string fn((const char*)file_stat.m_filename);
         transform (fn.begin (), fn.end (), fn.begin (), (int(*)(int)) tolower);
