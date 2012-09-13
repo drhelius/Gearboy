@@ -32,13 +32,18 @@
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         MasterViewController *masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController_iPhone" bundle:nil];
         self.navigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
+        self.navigationController.navigationBar.tintColor = [UIColor blackColor];
         self.window.rootViewController = self.navigationController;
     } else {
         MasterViewController *masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController_iPad" bundle:nil];
         UINavigationController *masterNavigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
         
+        masterNavigationController.navigationBar.tintColor = [UIColor blackColor];
+        
         DetailViewController *detailViewController = [[DetailViewController alloc] initWithNibName:@"DetailViewController_iPad" bundle:nil];
         UINavigationController *detailNavigationController = [[UINavigationController alloc] initWithRootViewController:detailViewController];
+        
+        detailNavigationController.navigationBar.tintColor = [UIColor blackColor];
     	
     	masterViewController.detailViewController = detailViewController;
     	

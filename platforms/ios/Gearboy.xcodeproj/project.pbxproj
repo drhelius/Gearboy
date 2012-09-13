@@ -38,7 +38,6 @@
 		667CEFDE15FD43720078A433 /* GLViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CEFDC15FD43720078A433 /* GLViewController.mm */; };
 		667CEFDF15FD43720078A433 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 667CEFDD15FD43720078A433 /* GLViewController.xib */; };
 		667CF01915FD5E320078A433 /* Emulator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CF01815FD5E320078A433 /* Emulator.mm */; };
-		66D34FE215FF2B780046912E /* zelda.gb in Resources */ = {isa = PBXBuildFile; fileRef = 66D34FE115FF2B780046912E /* zelda.gb */; };
 		66D34FE815FFDF410046912E /* inputmanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FE515FFDF410046912E /* inputmanager.mm */; };
 		66D34FE915FFDF410046912E /* timer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FE715FFDF410046912E /* timer.mm */; };
 		66D34FF115FFEC480046912E /* EmulatorInput.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FEF15FFEC470046912E /* EmulatorInput.mm */; };
@@ -65,8 +64,6 @@
 		66DCB36815F940CC0076F6F6 /* MasterViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36615F940CC0076F6F6 /* MasterViewController_iPad.xib */; };
 		66DCB36B15F940CC0076F6F6 /* DetailViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */; };
 		66DCB36E15F940CC0076F6F6 /* DetailViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36C15F940CC0076F6F6 /* DetailViewController_iPad.xib */; };
-		66E99E3B15FE959C007F793C /* mario.gb in Resources */ = {isa = PBXBuildFile; fileRef = 66E99E3A15FE959C007F793C /* mario.gb */; };
-		66E99E3D15FE9A17007F793C /* kwirk.gb in Resources */ = {isa = PBXBuildFile; fileRef = 66E99E3C15FE9A16007F793C /* kwirk.gb */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -135,7 +132,6 @@
 		667CEFDD15FD43720078A433 /* GLViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = GLViewController.xib; sourceTree = "<group>"; };
 		667CF01715FD5E320078A433 /* Emulator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Emulator.h; sourceTree = "<group>"; };
 		667CF01815FD5E320078A433 /* Emulator.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Emulator.mm; sourceTree = "<group>"; };
-		66D34FE115FF2B780046912E /* zelda.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = zelda.gb; sourceTree = "<group>"; };
 		66D34FE315FFDF400046912E /* inputcallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inputcallback.h; sourceTree = "<group>"; };
 		66D34FE415FFDF400046912E /* inputmanager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inputmanager.h; sourceTree = "<group>"; };
 		66D34FE515FFDF410046912E /* inputmanager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = inputmanager.mm; sourceTree = "<group>"; };
@@ -176,8 +172,6 @@
 		66DCB36715F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MasterViewController_iPad.xib; sourceTree = "<group>"; };
 		66DCB36A15F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPhone.xib; sourceTree = "<group>"; };
 		66DCB36D15F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPad.xib; sourceTree = "<group>"; };
-		66E99E3A15FE959C007F793C /* mario.gb */ = {isa = PBXFileReference; lastKnownFileType = file; name = mario.gb; path = Gearboy/mario.gb; sourceTree = "<group>"; };
-		66E99E3C15FE9A16007F793C /* kwirk.gb */ = {isa = PBXFileReference; lastKnownFileType = file; name = kwirk.gb; path = Gearboy/kwirk.gb; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -306,9 +300,6 @@
 				66DCB35115F940CC0076F6F6 /* Gearboy */,
 				66DCB34A15F940CC0076F6F6 /* Frameworks */,
 				66DCB34815F940CC0076F6F6 /* Products */,
-				66E99E3C15FE9A16007F793C /* kwirk.gb */,
-				66D34FE115FF2B780046912E /* zelda.gb */,
-				66E99E3A15FE959C007F793C /* mario.gb */,
 			);
 			sourceTree = "<group>";
 		};
@@ -442,9 +433,6 @@
 				66D4BA8A15FAD03100D4937F /* gb_icon.png in Resources */,
 				66D4BA8B15FAD03100D4937F /* gb_icon@2x.png in Resources */,
 				667CEFDF15FD43720078A433 /* GLViewController.xib in Resources */,
-				66E99E3B15FE959C007F793C /* mario.gb in Resources */,
-				66E99E3D15FE9A17007F793C /* kwirk.gb in Resources */,
-				66D34FE215FF2B780046912E /* zelda.gb in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

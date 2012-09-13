@@ -45,8 +45,6 @@
       <itemPath>../../../src/MBC5MemoryRule.h</itemPath>
       <itemPath>../../../src/Memory.cpp</itemPath>
       <itemPath>../../../src/Memory.h</itemPath>
-      <itemPath>../../../src/MemoryCell.cpp</itemPath>
-      <itemPath>../../../src/MemoryCell.h</itemPath>
       <itemPath>../../../src/MemoryRule.cpp</itemPath>
       <itemPath>../../../src/MemoryRule.h</itemPath>
       <itemPath>../../../src/Processor.cpp</itemPath>
