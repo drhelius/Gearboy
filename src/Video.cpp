@@ -456,7 +456,7 @@ void Video::RenderWindow(int line)
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
     int wx = m_pMemory->Retrieve(0xFF4B) - 7;
 
-    if (IsSetBit(lcdc, 5) && (wx <=158) && (m_iWindowLine < 144))
+    if (IsSetBit(lcdc, 5) && (wx <=159) && (m_iWindowLine < 144))
     {
         u8 wy = m_pMemory->Retrieve(0xFF4A);
 
