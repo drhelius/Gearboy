@@ -139,6 +139,12 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                     m_iStatusModeCounterAux = 0;
                     UpdateLYRegister();
                 }
+                
+                if ((m_iStatusModeCounter >= 4104) && (m_iStatusModeCounterAux >= 32) && (m_iStatusModeLYCounter == 153)) 
+                {
+                    m_iStatusModeLYCounter = 0;
+                    UpdateLYRegister();
+                }
 
                 if (m_iStatusModeCounter >= 4560)
                 {
@@ -148,9 +154,7 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                     u8 stat = m_pMemory->Retrieve(0xFF41);
                     if (IsSetBit(stat, 5))
                         m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                    m_iStatusModeLYCounter = 0;
                     UpdateStatRegister();
-                    UpdateLYRegister();
                 }
                 break;
             }
