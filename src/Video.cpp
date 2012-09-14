@@ -38,6 +38,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bScreenEnabled = true;
     m_bCGB = false;
     m_bScanLineTransfered = false;
+    m_iHideFrames = 0;
 }
 
 Video::~Video()
@@ -75,6 +76,7 @@ void Video::Reset(bool bCGB)
     m_bScreenEnabled = true;
     m_bScanLineTransfered = false;
     m_bCGB = bCGB;
+    m_iHideFrames = 0;
 }
 
 bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
@@ -113,7 +115,11 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                         if (IsSetBit(stat, 4))
                             m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
 
-                        vblank = true;
+                        if (m_iHideFrames > 0)
+                            m_iHideFrames--;
+                        else
+                            vblank = true;
+                        
                         m_iWindowLine = 0;
                     }
                     else
@@ -143,7 +149,6 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 {
                     m_iStatusModeLYCounter = 0;
                     m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
-                    //UpdateLYRegister();
                 }
 
                 if (m_iStatusModeCounter >= 4560)
@@ -207,7 +212,7 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
             {
                 m_iScreenEnableDelayCycles = 0;
                 m_bScreenEnabled = true;
-
+                m_iHideFrames = 2;
                 m_iStatusMode = 0;
                 m_iStatusModeCounter = 0;
                 m_iStatusModeCounterAux = 0;

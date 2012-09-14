@@ -66,6 +66,7 @@ private:
     GB_Color m_CGBBackgroundPalettes[8][4];
     bool m_bScanLineTransfered;
     int m_iWindowLine;
+    int m_iHideFrames;
 };
 
 #endif	/* VIDEO_H */
