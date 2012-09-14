@@ -463,7 +463,7 @@ void Video::RenderBG(int line)
 }
 
 void Video::RenderWindow(int line)
-{
+{                                                            
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
     int wx = m_pMemory->Retrieve(0xFF4B) - 7;
 
@@ -478,7 +478,7 @@ void Video::RenderWindow(int line)
         {
             int tiles = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
             int map = IsSetBit(lcdc, 6) ? 0x9C00 : 0x9800;
-            int lineAdjusted = m_iWindowLine - wy;
+            int lineAdjusted = m_iWindowLine;
             int y_32 = (lineAdjusted / 8) * 32;
             int pixely = lineAdjusted % 8;
             int pixely_2 = pixely * 2;
@@ -573,8 +573,8 @@ void Video::RenderWindow(int line)
                     }
                 }
             }
+            m_iWindowLine++;
         }
-        m_iWindowLine++;
     }
 }
 
