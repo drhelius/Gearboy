@@ -231,7 +231,7 @@ void Video::DisableScreen()
     m_bScreenEnabled = false;
     m_pMemory->Load(0xFF44, 0x00);
     u8 stat = m_pMemory->Retrieve(0xFF41);
-    stat &= 0x78;
+    stat &= 0x7C;
     m_pMemory->Load(0xFF41, stat);
     m_iStatusMode = 0;
     m_iStatusModeCounter = 0;
