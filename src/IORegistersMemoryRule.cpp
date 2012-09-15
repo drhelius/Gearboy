@@ -40,7 +40,7 @@ u8 IORegistersMemoryRule::PerformRead(u16 address)
     if (address == 0xFF00)
     {
         // P1
-        return m_pInput->GetJoyPadState();
+        return m_pInput->Read();
     }
     else if (address == 0xFF03)
     {
@@ -115,7 +115,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     if (address == 0xFF00)
     {
         // P1
-        m_pMemory->Load(address, value & 0x30);
+        m_pInput->Write(value);
     }
     else if (address == 0xFF04)
     {

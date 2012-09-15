@@ -26,60 +26,80 @@ Input::Input(Memory* pMemory, Processor* pProcessor)
     m_pMemory = pMemory;
     m_pProcessor = pProcessor;
     m_JoypadState = 0xFF;
+    m_P1 = 0xFF;
+    m_iInputCycles = 0;
 }
 
 void Input::Init()
 {
-    m_JoypadState = 0xFF;
+    Reset();
 }
 
 void Input::Reset()
 {
     m_JoypadState = 0xFF;
+    m_P1 = 0xFF;
+    m_iInputCycles = 0;
 }
 
-u8 Input::GetJoyPadState()
+void Input::Tick(u8 clockCycles)
 {
-    u8 reg = m_pMemory->Retrieve(0xFF00) ^ 0xFF;
+    m_iInputCycles += clockCycles;
 
-    if (!IsSetBit(reg, 4))
+    // Joypad Poll Speed (64 Hz)
+    if (m_iInputCycles >= 65536)
     {
-        u8 topJoypad = m_JoypadState >> 4;
-        topJoypad |= 0xF0;
-        reg &= topJoypad;
+        m_iInputCycles -= 65536;
+        Update();
     }
-    else if (!IsSetBit(reg, 5))
-    {
-        u8 bottomJoypad = m_JoypadState & 0xF;
-        bottomJoypad |= 0xF0;
-        reg &= bottomJoypad;
-    }
-    return reg;
 }
 
 void Input::KeyPressed(Gameboy_Keys key)
 {
-    bool previouslyUnset = false;
-
-    if (!IsSetBit(m_JoypadState, key))
-        previouslyUnset = true;
-
     m_JoypadState = UnsetBit(m_JoypadState, key);
-
-    bool button = (key > 3);
-    u8 reg = m_pMemory->Retrieve(0xFF00);
-    bool requestInterupt = false;
-
-    if (button && !IsSetBit(reg, 5))
-        requestInterupt = true;
-    else if (!button && !IsSetBit(reg, 4))
-        requestInterupt = true;
-
-    if (requestInterupt && !previouslyUnset)
-        m_pProcessor->RequestInterrupt(Processor::Joypad_Interrupt);
 }
 
 void Input::KeyReleased(Gameboy_Keys key)
 {
     m_JoypadState = SetBit(m_JoypadState, key);
+}
+
+void Input::Write(u8 value)
+{
+    m_P1 = (m_P1 & 0xCF) | (value & 0x30);
+    Update();
+}
+
+u8 Input::Read()
+{
+    return m_P1;
+}
+
+void Input::Update()
+{
+    u8 current = m_P1 & 0xF0;
+
+    switch (current & 0x30)
+    {
+        case 0x10:
+        {
+            u8 topJoypad = (m_JoypadState >> 4) & 0x0F;
+            current |= topJoypad;
+            break;
+        }
+        case 0x20:
+        {
+            u8 bottomJoypad = m_JoypadState & 0x0F;
+            current |= bottomJoypad;
+            break;
+        }
+        case 0x30:
+            current |= 0x0F;
+            break;
+    }
+
+    if ((m_P1 & ~current & 0x0F) != 0)
+        m_pProcessor->RequestInterrupt(Processor::Joypad_Interrupt);
+
+    m_P1 = current;
 }
