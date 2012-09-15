@@ -149,7 +149,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         u8 current_lcdc = m_pMemory->Retrieve(0xFF40);
         u8 new_lcdc = value;
         m_pMemory->Load(address, new_lcdc);
-        
+
         if (!IsSetBit(current_lcdc, 5) && IsSetBit(new_lcdc, 5))
             m_pVideo->ResetWindowLine();
 

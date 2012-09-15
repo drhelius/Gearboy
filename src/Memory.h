@@ -51,13 +51,14 @@ public:
     void DoDMACGBTransfer(u8 value, bool hbdma);
     void DoHDMACGBTransfer(bool hbdma);
     bool IsHBDMAEnabled();
-    
+
 private:
+
     struct stDisassemble
     {
         char szDisString[32];
     };
-    
+
 private:
     u8* m_pMap;
     stDisassemble* m_pDisassembledMap;

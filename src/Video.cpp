@@ -119,7 +119,7 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                             m_iHideFrames--;
                         else
                             vblank = true;
-                        
+
                         m_iWindowLine = 0;
                     }
                     else
@@ -144,8 +144,8 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                     m_iStatusModeCounterAux -= 456;
                     UpdateLYRegister();
                 }
-                
-                if ((m_iStatusModeCounter >= 4104) && (m_iStatusModeCounterAux >= 32) && (m_iStatusModeLYCounter == 153)) 
+
+                if ((m_iStatusModeCounter >= 4104) && (m_iStatusModeCounterAux >= 32) && (m_iStatusModeLYCounter == 153))
                 {
                     m_iStatusModeLYCounter = 0;
                     m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
@@ -325,8 +325,8 @@ int Video::GetCurrentStatusMode() const
 void Video::ResetWindowLine()
 {
     u8 wy = m_pMemory->Retrieve(0xFF4A);
-    
-    if ((m_iWindowLine == 0) && (m_iStatusModeLYCounter > wy))       
+
+    if ((m_iWindowLine == 0) && (m_iStatusModeLYCounter > wy))
         m_iWindowLine = 144;
 }
 
@@ -463,11 +463,11 @@ void Video::RenderBG(int line)
 }
 
 void Video::RenderWindow(int line)
-{                                                            
+{
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
     int wx = m_pMemory->Retrieve(0xFF4B) - 7;
 
-    if (IsSetBit(lcdc, 5) && (wx <=159) && (m_iWindowLine < 144))
+    if (IsSetBit(lcdc, 5) && (wx <= 159) && (m_iWindowLine < 144))
     {
         u8 wy = m_pMemory->Retrieve(0xFF4A);
 
