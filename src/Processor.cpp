@@ -140,7 +140,7 @@ void Processor::RequestInterrupt(Interrupts interrupt)
             m_InterruptDelayCycles[0] = 32;
             break;
         case LCDSTAT_Interrupt:
-            m_InterruptDelayCycles[1] = 18;
+            m_InterruptDelayCycles[1] = 32;
             break;
         case Timer_Interrupt:
             m_InterruptDelayCycles[2] = 0;
@@ -190,7 +190,7 @@ void Processor::ExecuteOPCode(u8 opcode)
     }
     else
     {
-        u16 opcode_address = PC.GetValue() -1;
+        u16 opcode_address = PC.GetValue() - 1;
         if (!m_pMemory->IsDisassembled(opcode_address))
         {
             m_pMemory->Disassemble(opcode_address, kOPCodeNames[opcode]);
@@ -210,7 +210,7 @@ void Processor::ExecuteOPCode(u8 opcode)
 
 void Processor::ExecuteOPCodeCB(u8 opcode)
 {
-    u16 opcode_address = PC.GetValue() -1;
+    u16 opcode_address = PC.GetValue() - 1;
     if (!m_pMemory->IsDisassembled(opcode_address))
     {
         m_pMemory->Disassemble(opcode_address, kOPCodeCBNames[opcode]);

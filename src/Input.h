@@ -31,13 +31,21 @@ public:
     Input(Memory* pMemory, Processor* pProcessor);
     void Init();
     void Reset();
-    u8 GetJoyPadState();
+    void Tick(u8 clockCycles);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
+    void Write(u8 value);
+    u8 Read();
+    
+private:
+    void Update();
+    
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
     u8 m_JoypadState;
+    u8 m_P1;
+    int m_iInputCycles;
 };
 
 #endif	/* INPUT_H */
