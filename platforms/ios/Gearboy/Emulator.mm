@@ -41,23 +41,23 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
         GB_Color color2;
         GB_Color color3;
         GB_Color color4;
-        
+    
         color1.alpha = 0;
-        color1.red = 0xC9;
-        color1.green = 0xE4;
-        color1.blue = 0x47;
+        color1.red = 0xAB;
+        color1.green = 0xB9;
+        color1.blue = 0x4B;
         color2.alpha = 0;
-        color2.red = 0x70;
-        color2.green = 0xA4;
-        color2.blue = 0x06;
+        color2.red = 0x7A;
+        color2.green = 0x8B;
+        color2.blue = 0x29;
         color3.alpha = 0;
-        color3.red = 0x3B;
-        color3.green = 0x60;
-        color3.blue = 0x04;
+        color3.red = 0x2D;
+        color3.green = 0x5D;
+        color3.blue = 0x2D;
         color4.alpha = 0;
-        color4.red = 0x06;
-        color4.green = 0x1B;
-        color4.blue = 0x04;
+        color4.red = 0x1D;
+        color4.green = 0x3C;
+        color4.blue = 0x1D;
         
         theGearboyCore->SetDMGPalette(color1, color2, color3, color4);
         
