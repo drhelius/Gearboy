@@ -36,6 +36,31 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     {
         theGearboyCore = new GearboyCore();
         theGearboyCore->Init();
+        
+        GB_Color color1;
+        GB_Color color2;
+        GB_Color color3;
+        GB_Color color4;
+        
+        color1.alpha = 0;
+        color1.red = 0x8D;
+        color1.green = 0xB5;
+        color1.blue = 0x00;
+        color2.alpha = 0;
+        color2.red = 0x52;
+        color2.green = 0x8F;
+        color2.blue = 0x00;
+        color3.alpha = 0;
+        color3.red = 0x2E;
+        color3.green = 0x64;
+        color3.blue = 0x04;
+        color4.alpha = 0;
+        color4.red = 0x0B;
+        color4.green = 0x2A;
+        color4.blue = 0x02;
+        
+        theGearboyCore->SetDMGPalette(color1, color2, color3, color4);
+        
         theInput = new EmulatorInput(self);
         theInput->Init();
         initialized = NO;
