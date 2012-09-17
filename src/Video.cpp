@@ -34,6 +34,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iStatusModeCounterAux = 0;
     m_iStatusModeLYCounter = 0;
     m_iScreenEnableDelayCycles = 0;
+    m_iStatusVBlankLine = 0;
     m_iWindowLine = 0;
     m_bScreenEnabled = true;
     m_bCGB = false;
@@ -72,6 +73,7 @@ void Video::Reset(bool bCGB)
     m_iStatusModeCounterAux = 0;
     m_iStatusModeLYCounter = 144;
     m_iScreenEnableDelayCycles = 0;
+    m_iStatusVBlankLine = 0;
     m_iWindowLine = 0;
     m_bScreenEnabled = true;
     m_bScanLineTransfered = false;
@@ -100,7 +102,8 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                     m_iStatusMode = 2;
 
                     m_iStatusModeLYCounter++;
-                    UpdateLYRegister();
+                    m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
+                    CompareLYToLYC();
 
                     if (m_bCGB && m_pMemory->IsHBDMAEnabled())
                         m_pMemory->DoHDMACGBTransfer(true);
@@ -108,6 +111,8 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                     if (m_iStatusModeLYCounter == 144)
                     {
                         m_iStatusMode = 1;
+                        m_iStatusVBlankLine = 0;
+                        m_iStatusModeCounterAux = m_iStatusModeCounter;
 
                         m_pProcessor->RequestInterrupt(Processor::VBlank_Interrupt);
 
@@ -140,9 +145,15 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
 
                 if (m_iStatusModeCounterAux >= 456)
                 {
-                    m_iStatusModeLYCounter++;
                     m_iStatusModeCounterAux -= 456;
-                    UpdateLYRegister();
+                    m_iStatusVBlankLine++;
+
+                    if (m_iStatusVBlankLine <= 9)
+                    {
+                        m_iStatusModeLYCounter++;
+                        m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
+                        CompareLYToLYC();
+                    }
                 }
 
                 if ((m_iStatusModeCounter >= 4104) && (m_iStatusModeCounterAux >= 32) && (m_iStatusModeLYCounter == 153))
@@ -154,14 +165,12 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 if (m_iStatusModeCounter >= 4560)
                 {
                     m_iStatusModeCounter -= 4560;
-                    m_iStatusModeCounterAux = 0;
                     m_iStatusMode = 2;
                     u8 stat = m_pMemory->Retrieve(0xFF41);
                     if (IsSetBit(stat, 5))
                         m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
                     UpdateStatRegister();
-                    m_iStatusModeLYCounter = 0;
-                    UpdateLYRegister();
+                    CompareLYToLYC();
                 }
                 break;
             }
@@ -217,7 +226,8 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 m_iStatusModeCounter = 0;
                 m_iStatusModeCounterAux = 0;
                 m_iStatusModeLYCounter = 0;
-                UpdateLYRegister();
+                m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
+                CompareLYToLYC();
             }
         }
 
@@ -689,24 +699,24 @@ void Video::UpdateStatRegister()
     m_pMemory->Load(0xFF41, (stat & 0xFC) | (m_iStatusMode & 0x3));
 }
 
-void Video::UpdateLYRegister()
+void Video::CompareLYToLYC()
 {
-    // Establish the LY register
-    m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
-
-    u8 lyc = m_pMemory->Retrieve(0xFF45);
-    u8 stat = m_pMemory->Retrieve(0xFF41);
-
-    if (lyc == m_iStatusModeLYCounter)
+    if (m_bScreenEnabled)
     {
-        stat = SetBit(stat, 2);
-        if (IsSetBit(stat, 6))
-            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-    }
-    else
-        stat = UnsetBit(stat, 2);
+        u8 lyc = m_pMemory->Retrieve(0xFF45);
+        u8 stat = m_pMemory->Retrieve(0xFF41);
 
-    m_pMemory->Load(0xFF41, stat);
+        if (lyc == m_iStatusModeLYCounter)
+        {
+            stat = SetBit(stat, 2);
+            if (IsSetBit(stat, 6))
+                m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+        }
+        else
+            stat = UnsetBit(stat, 2);
+
+        m_pMemory->Load(0xFF41, stat);
+    }
 }
 
 GB_Color Video::ConvertTo8BitColor(GB_Color color)

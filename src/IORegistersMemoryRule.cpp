@@ -176,6 +176,12 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             }
         }
     }
+    else if (address == 0xFF45)
+    {
+        // LYC
+        m_pMemory->Load(0xFF45, value);
+        m_pVideo->CompareLYToLYC();
+    }
     else if (address == 0xFF46)
     {
         // DMA
