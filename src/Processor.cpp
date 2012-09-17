@@ -137,16 +137,16 @@ void Processor::RequestInterrupt(Interrupts interrupt)
     switch (interrupt)
     {
         case VBlank_Interrupt:
-            m_InterruptDelayCycles[0] = 32;
+            m_InterruptDelayCycles[0] = 12;
             break;
         case LCDSTAT_Interrupt:
-            m_InterruptDelayCycles[1] = 32;
+            m_InterruptDelayCycles[1] = 12;
             break;
         case Timer_Interrupt:
-            m_InterruptDelayCycles[2] = 0;
+            m_InterruptDelayCycles[2] = 12;
             break;
         case Serial_Interrupt:
-            m_InterruptDelayCycles[3] = 0;
+            m_InterruptDelayCycles[3] = 12;
             break;
         case Joypad_Interrupt:
             m_InterruptDelayCycles[4] = 0;
