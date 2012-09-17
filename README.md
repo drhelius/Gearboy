@@ -30,10 +30,10 @@ Features
 Todo List
 -----------
 
-- Improve Game Boy Color support.
+- Improve Game Boy Color support (https://gist.github.com/3394856)
 - Save RAM battery to disk.
 - Add RTC support.
-- Improve timing and compatibility.
+- Pixel precision scan line timing (http://google.com/calendar/iphoneselect).
 - Debugger
 
 Compiling Instructions
