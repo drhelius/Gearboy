@@ -33,7 +33,7 @@ Todo List
 - Improve Game Boy Color support (https://gist.github.com/3394856)
 - Save RAM battery to disk.
 - Add RTC support.
-- Pixel precision scan line timing (http://google.com/calendar/iphoneselect).
+- Pixel precision scan line timing (https://gist.github.com/3730564).
 - Debugger
 
 Compiling Instructions
