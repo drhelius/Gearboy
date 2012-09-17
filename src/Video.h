@@ -40,13 +40,13 @@ public:
     void SetColorPalette(bool background, u8 value);
     int GetCurrentStatusMode() const;
     void ResetWindowLine();
+    void CompareLYToLYC();
 private:
     void ScanLine(int line);
     void RenderBG(int line);
     void RenderWindow(int line);
     void RenderSprites(int line);
     void UpdateStatRegister();
-    void UpdateLYRegister();
     GB_Color ConvertTo8BitColor(GB_Color color);
 private:
     Memory* m_pMemory;
@@ -60,12 +60,14 @@ private:
     int m_iStatusModeCounterAux;
     int m_iStatusModeLYCounter;
     int m_iScreenEnableDelayCycles;
+    int m_iStatusVBlankLine;
     bool m_bScreenEnabled;
     bool m_bCGB;
     GB_Color m_CGBSpritePalettes[8][4];
     GB_Color m_CGBBackgroundPalettes[8][4];
     bool m_bScanLineTransfered;
     int m_iWindowLine;
+    int m_iHideFrames;
 };
 
 #endif	/* VIDEO_H */

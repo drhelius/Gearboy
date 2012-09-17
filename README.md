@@ -32,7 +32,7 @@ Todo List
 
 - Save RAM battery to disk.
 - Add RTC support.
-- Improve timing and compatibility.
+- Pixel precision scan line timing (https://gist.github.com/3730564).
 - Debugger
 
 Compiling Instructions

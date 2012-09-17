@@ -1749,6 +1749,7 @@ void Processor::OPCode0xF3()
 {
     // DI
     m_bIME = false;
+    m_iIMECycles = 0;
 }
 
 void Processor::OPCode0xF4()
