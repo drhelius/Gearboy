@@ -60,7 +60,6 @@
 - (void)viewDidUnload
 {
     [super viewDidUnload];
-    self.theGLViewController = nil;
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation

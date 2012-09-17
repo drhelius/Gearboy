@@ -40,7 +40,7 @@ u8 IORegistersMemoryRule::PerformRead(u16 address)
     if (address == 0xFF00)
     {
         // P1
-        return m_pInput->GetJoyPadState();
+        return m_pInput->Read();
     }
     else if (address == 0xFF03)
     {
@@ -115,7 +115,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     if (address == 0xFF00)
     {
         // P1
-        m_pMemory->Load(address, value & 0x30);
+        m_pInput->Write(value);
     }
     else if (address == 0xFF04)
     {
@@ -149,7 +149,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         u8 current_lcdc = m_pMemory->Retrieve(0xFF40);
         u8 new_lcdc = value;
         m_pMemory->Load(address, new_lcdc);
-        
+
         if (!IsSetBit(current_lcdc, 5) && IsSetBit(new_lcdc, 5))
             m_pVideo->ResetWindowLine();
 
@@ -175,6 +175,12 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                 m_pVideo->DisableScreen();
             }
         }
+    }
+    else if (address == 0xFF45)
+    {
+        // LYC
+        m_pMemory->Load(0xFF45, value);
+        m_pVideo->CompareLYToLYC();
     }
     else if (address == 0xFF46)
     {
