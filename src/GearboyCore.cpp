@@ -51,6 +51,7 @@ GearboyCore::GearboyCore()
     m_bCGB = false;
     m_bPaused = true;
     m_bForceDMG = false;
+    m_bRTCUpdateCount = 0;
 }
 
 GearboyCore::~GearboyCore()
@@ -101,6 +102,13 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
+        }
+
+        m_bRTCUpdateCount++;
+        if (m_bRTCUpdateCount == 50)
+        {
+            m_bRTCUpdateCount = 0;
+            m_pCartridge->UpdateCurrentRTC();
         }
 
         if (!m_bCGB)
@@ -380,6 +388,8 @@ void GearboyCore::Reset(bool bCGB)
     m_pVideo->Reset(m_bCGB);
     m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();
+    m_pCartridge->UpdateCurrentRTC();
+    m_bRTCUpdateCount = 0;
 
     m_pCommonMemoryRule->Reset(m_bCGB);
     m_pRomOnlyMemoryRule->Reset(m_bCGB);
