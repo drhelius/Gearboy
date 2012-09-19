@@ -127,7 +127,6 @@ void VideoSettings::PressedOK()
 
     for (int i = 0; i < 4; i++)
     {
-        gb_color[i].alpha = 0;
         gb_color[i].red = (m_iColors[i] >> 16) & 0xFF;
         gb_color[i].green = (m_iColors[i] >> 8) & 0xFF;
         gb_color[i].blue = m_iColors[i] & 0xFF;
@@ -193,7 +192,6 @@ void VideoSettings::LoadSettings(QSettings& settings)
 
     for (int i = 0; i < 4; i++)
     {
-        gb_color[i].alpha = 0;
         gb_color[i].red = (m_iColors[i] >> 16) & 0xFF;
         gb_color[i].green = (m_iColors[i] >> 8) & 0xFF;
         gb_color[i].blue = m_iColors[i] & 0xFF;

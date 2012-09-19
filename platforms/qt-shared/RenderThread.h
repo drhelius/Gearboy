@@ -20,6 +20,17 @@
 #ifndef MYRENDERTHREAD_H
 #define MYRENDERTHREAD_H
 
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
+
 #include <QThread>
 #include "../../src/gearboy.h"
 
@@ -45,18 +56,23 @@ public:
 
 protected:
     void Init();
-    void Resize(int width, int height);
     void RenderFrame();
+    void RenderQuad(int viewportWidth, int viewportHeight);
+    void SetupTexture(GLvoid* data);
 
 private:
-    bool m_bDoRendering, m_bDoResize, m_bPaused;
+    bool m_bDoRendering, m_bPaused;
     int m_iWidth, m_iHeight;
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;
     GB_Color* m_pFrameBuffer;
     bool m_bFiltering;
-signals:
-public slots:
+    GLuint m_IntermediateFramebuffer;
+    GLuint m_IntermediateTexture;
+    GLuint m_AccumulationFramebuffer;
+    GLuint m_AccumulationTexture;
+    GLuint m_GBTexture;
+    bool m_bFirstFrame;
 };
 
 #endif // MYRENDERTHREAD_H
