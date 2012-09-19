@@ -78,3 +78,8 @@ void GLFrame::SetBilinearFiletering(bool enabled)
 {
     m_RenderThread.SetBilinearFiletering(enabled);
 }
+
+void GLFrame::SetMixFrames(bool enabled)
+{
+    m_RenderThread.SetMixFrames(enabled);
+}

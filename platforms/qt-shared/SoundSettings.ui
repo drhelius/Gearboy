@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>391</width>
-    <height>122</height>
+    <width>439</width>
+    <height>120</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,9 +22,9 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>53</x>
+     <x>150</x>
      <y>70</y>
-     <width>311</width>
+     <width>251</width>
      <height>32</height>
     </rect>
    </property>
@@ -38,8 +38,8 @@
   <widget class="QComboBox" name="comboBoxSampleRate">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>21</y>
+     <x>310</x>
+     <y>15</y>
      <width>111</width>
      <height>22</height>
     </rect>
@@ -48,9 +48,9 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>167</x>
-     <y>23</y>
-     <width>91</width>
+     <x>210</x>
+     <y>17</y>
+     <width>121</width>
      <height>21</height>
     </rect>
    </property>
@@ -61,9 +61,9 @@
   <widget class="QCheckBox" name="checkBoxSoundEnabled">
    <property name="geometry">
     <rect>
-     <x>18</x>
-     <y>25</y>
-     <width>121</width>
+     <x>30</x>
+     <y>20</y>
+     <width>141</width>
      <height>17</height>
     </rect>
    </property>

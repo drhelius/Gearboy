@@ -39,6 +39,7 @@ public:
     void ResumeRenderThread();
     bool IsRunningRenderThread();
     void SetBilinearFiletering(bool enabled);
+    void SetMixFrames(bool enabled);
 
 protected:
     void closeEvent(QCloseEvent *evt);
