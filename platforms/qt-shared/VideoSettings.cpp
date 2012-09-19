@@ -122,6 +122,7 @@ void VideoSettings::Color4()
 void VideoSettings::PressedOK()
 {
     m_pGLFrame->SetBilinearFiletering(widget.checkBoxFilter->isChecked());
+    m_pGLFrame->SetMixFrames(widget.checkBoxMix->isChecked());
 
     GB_Color gb_color[4];
 
@@ -151,6 +152,7 @@ void VideoSettings::SaveSettings(QSettings& settings)
     settings.setValue("DMGColor3", m_iColors[2]);
     settings.setValue("DMGColor4", m_iColors[3]);
     settings.setValue("BilinearFiltering", widget.checkBoxFilter->isChecked());
+    settings.setValue("MixFrames", widget.checkBoxMix->isChecked());
 }
 
 void VideoSettings::LoadSettings(QSettings& settings)
@@ -160,6 +162,7 @@ void VideoSettings::LoadSettings(QSettings& settings)
     m_iColors[2] = settings.value("DMGColor3", 0x37613B).toInt();
     m_iColors[3] = settings.value("DMGColor4", 0x041C16).toInt();
     widget.checkBoxFilter->setChecked(settings.value("BilinearFiltering", false).toBool());
+    widget.checkBoxMix->setChecked(settings.value("MixFrames", true).toBool());
 
     QColor color;
     color.setBlue(m_iColors[0] & 0xFF);

@@ -53,10 +53,12 @@ public:
     void SetEmulator(Emulator* pEmulator);
     bool IsRunningEmulator();
     void SetBilinearFiletering(bool enabled);
+    void SetMixFrames(bool enabled);
 
 protected:
     void Init();
     void RenderFrame();
+    void RenderMixFrames();
     void RenderQuad(int viewportWidth, int viewportHeight);
     void SetupTexture(GLvoid* data);
 
@@ -67,6 +69,7 @@ private:
     Emulator* m_pEmulator;
     GB_Color* m_pFrameBuffer;
     bool m_bFiltering;
+    bool m_bMixFrames;
     GLuint m_IntermediateFramebuffer;
     GLuint m_IntermediateTexture;
     GLuint m_AccumulationFramebuffer;

@@ -33,6 +33,7 @@ RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
     m_bFirstFrame = true;
     InitPointer(m_pEmulator);
     m_bFiltering = false;
+    m_bMixFrames = true;
     m_IntermediateFramebuffer = 0;
     m_IntermediateTexture = 0;
     m_AccumulationFramebuffer = 0;
@@ -91,7 +92,10 @@ void RenderThread::run()
         if (!m_bPaused)
         {
             m_pEmulator->RunToVBlank(m_pFrameBuffer);
-            RenderFrame();
+            if (m_bMixFrames)
+                RenderMixFrames();
+            else
+                RenderFrame();
             m_pGLFrame->swapBuffers();
         }
     }
@@ -149,6 +153,25 @@ void RenderThread::SetupTexture(GLvoid* data)
 }
 
 void RenderThread::RenderFrame()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, m_GBTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
+            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
+    if (m_bFiltering)
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
+    else
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
+    RenderQuad(m_iWidth, m_iHeight);
+}
+
+void RenderThread::RenderMixFrames()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, m_IntermediateFramebuffer);
     glBindTexture(GL_TEXTURE_2D, m_GBTexture);
@@ -210,3 +233,9 @@ void RenderThread::SetBilinearFiletering(bool enabled)
 {
     m_bFiltering = enabled;
 }
+
+void RenderThread::SetMixFrames(bool enabled)
+{
+    m_bMixFrames = enabled;
+}
+
