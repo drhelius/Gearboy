@@ -21,6 +21,8 @@
 #include "GLFrame.h"
 #include "Emulator.h"
 
+float const kMixFrameAlpha = 0.69f;
+
 RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 {
     m_bPaused = false;
@@ -164,7 +166,7 @@ void RenderThread::RenderFrame()
     {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor4f(1.0f, 1.0f, 1.0f, 0.69f);
+        glColor4f(1.0f, 1.0f, 1.0f, kMixFrameAlpha);
     }
     RenderQuad(GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
     glDisable(GL_BLEND);
