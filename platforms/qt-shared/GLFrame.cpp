@@ -17,9 +17,10 @@
  * 
  */
 
+#include "GLFrame.h"
 #include <QResizeEvent>
 #include <QGLContext>
-#include "GLFrame.h"
+
 
 GLFrame::GLFrame(QWidget *parent) : QGLWidget(parent), m_RenderThread(this)
 {

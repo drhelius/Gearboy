@@ -20,6 +20,9 @@
 #ifndef MYGLFRAME_H
 #define MYGLFRAME_H
 
+#ifdef _WIN32
+#include <GL/glew.h>
+#endif
 #include <QGLWidget>
 #include "../../src/gearboy.h"
 #include "RenderThread.h"

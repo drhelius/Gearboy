@@ -143,12 +143,10 @@ void EmulatorInput::InputController(stInputCallbackParameter parameter, int id)
             
             if (m_bController[i])
             {
-                Log("pulsando controller %d", key);
                 [m_pEmulator keyPressed:key];
             }
             else
             {
-                Log("soltando controller %d", key);
                 [m_pEmulator keyReleased:key];
             }
         }
@@ -161,38 +159,23 @@ void EmulatorInput::InputButtons(stInputCallbackParameter parameter, int id)
     
     switch (id) {
         case 1:
-            if (parameter.type == PRESS_START)
-                Log("pulsado A");
-            else if (parameter.type == PRESS_END)
-                Log("solatado A");
             key = Gameboy_Keys::A_Key;
             break;
         case 2:
-            if (parameter.type == PRESS_START)
-                Log("pulsado B");
-            else if (parameter.type == PRESS_END)
-                Log("solatado B");
             key = Gameboy_Keys::B_Key;
             break;
         case 3:
-            if (parameter.type == PRESS_START)
-                Log("pulsado start");
-            else if (parameter.type == PRESS_END)
-                Log("solatado start");
             key = Gameboy_Keys::Start_Key;
             break;
         case 4:
-            if (parameter.type == PRESS_START)
-                Log("pulsado select");
-            else if (parameter.type == PRESS_END)
-                Log("solatado select");
             key = Gameboy_Keys::Select_Key;
             break;
+        default:
+            return;
     }
     
     if (parameter.type == PRESS_START)
         [m_pEmulator keyPressed:key];
     else if (parameter.type == PRESS_END)
         [m_pEmulator keyReleased:key];
-    
 }

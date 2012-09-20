@@ -35,6 +35,7 @@ Cartridge::Cartridge()
     m_bSGB = false;
     m_iVersion = 0;
     m_bLoaded = false;
+    m_RTCCurrentTime = 0;
 }
 
 Cartridge::~Cartridge()
@@ -60,6 +61,7 @@ void Cartridge::Reset()
     m_bSGB = false;
     m_iVersion = 0;
     m_bLoaded = false;
+    m_RTCCurrentTime = 0;
 }
 
 bool Cartridge::IsValidROM() const
@@ -239,6 +241,16 @@ bool Cartridge::IsSGB() const
 bool Cartridge::IsCGB() const
 {
     return m_bCGB;
+}
+
+void Cartridge::UpdateCurrentRTC()
+{
+    m_RTCCurrentTime = time(NULL);
+}
+
+size_t Cartridge::GetCurrentRTC()
+{
+    return m_RTCCurrentTime;
 }
 
 void Cartridge::GatherMetadata()
