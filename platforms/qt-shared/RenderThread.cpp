@@ -43,6 +43,7 @@ RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 
 RenderThread::~RenderThread()
 {
+    m_pGLFrame->makeCurrent();
     SafeDeleteArray(m_pFrameBuffer);
     glDeleteTextures(1, &m_IntermediateTexture);
     glDeleteTextures(1, &m_AccumulationTexture);
@@ -116,6 +117,16 @@ void RenderThread::Init()
         }
     }
 
+#ifdef _WIN32
+    GLenum err = glewInit();
+    if (GLEW_OK != err)
+    {
+      /* Problem: glewInit failed, something is seriously wrong. */
+      Log("GLEW Error: %s\n", glewGetErrorString(err));
+    }
+    Log("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+#endif
+
     glGenFramebuffers(1, &m_IntermediateFramebuffer);
     glGenFramebuffers(1, &m_AccumulationFramebuffer);
     glGenTextures(1, &m_IntermediateTexture);
@@ -130,14 +141,14 @@ void RenderThread::Init()
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, m_IntermediateTexture);
     SetupTexture(NULL);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
             m_IntermediateTexture, 0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFramebuffer);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
     SetupTexture(NULL);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
             m_AccumulationTexture, 0);
 }
 
