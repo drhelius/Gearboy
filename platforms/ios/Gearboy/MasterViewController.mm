@@ -24,6 +24,7 @@
 @implementation MasterViewController
 
 @synthesize listData;
+@synthesize sections = _sections;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
