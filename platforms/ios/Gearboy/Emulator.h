@@ -30,6 +30,8 @@
     EmulatorInput* theInput;
 }
 
+@property (weak, nonatomic) EAGLContext* context;
+
 -(void)update;
 -(void)draw;
 -(void)loadRomWithPath: (NSString *)filePath;
@@ -39,5 +41,9 @@
 -(void)resume;
 -(BOOL)paused;
 -(void)reset;
+-(void)init;
+-(void)renderMixFrames;
+-(void)renderQuadWithViewportWidth: (int)viewportWidth andHeight: (int)viewportHeight;
+-(void)setupTextureWithData: (GLvoid*) data;
 
 @end

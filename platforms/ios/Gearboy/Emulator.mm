@@ -30,6 +30,8 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
 
 @implementation Emulator
 
+@synthesize context = _context;
+
 -(id)init
 {
     if (self = [super init])
@@ -112,38 +114,94 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     }
 }
 
--(void)draw
+-(void)init
 {
-    if (!initialized)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
-        
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
 
-        glEnable(GL_TEXTURE_2D);
-        
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrthof(0.0f, kGB_Width, 0.0f, kGB_Height, -100.0f, 100.0f);
-        glMatrixMode(GL_MODELVIEW);
-        glViewport(0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        
-        glVertexPointer(3, GL_FLOAT, 0, box);
-        glTexCoordPointer(2, GL_FLOAT, 0, tex);
-        
-        glClearColor(0.0, 0.0, 0.0, 0.0);
-        
-        initialized = YES;
-    }
-    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    glEnable(GL_TEXTURE_2D);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrthof(0.0f, kGB_Width, 0.0f, kGB_Height, -100.0f, 100.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glViewport(0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glVertexPointer(3, GL_FLOAT, 0, box);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex);
+
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+
+    initialized = YES;
+}
+
+-(void)renderMixFrames
+{
     glClear(GL_COLOR_BUFFER_BIT);
     
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
 
-	glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+	
+    
+    
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, m_IntermediateFramebuffer);
+    glBindTexture(GL_TEXTURE_2D, m_GBTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    RenderQuad(GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFramebuffer);
+    glBindTexture(GL_TEXTURE_2D, m_IntermediateTexture);
+    if (m_bFirstFrame)
+    {
+        m_bFirstFrame = false;
+    }
+    else
+    {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(1.0f, 1.0f, 1.0f, kMixFrameAlpha);
+    }
+    RenderQuad(GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
+    glDisable(GL_BLEND);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
+    if (m_bFiltering)
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
+    else
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
+    RenderQuad(m_iWidth, m_iHeight);
+}
+
+-(void)renderQuadWithViewportWidth: (int)viewportWidth andHeight: (int)viewportHeight
+{
+    glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+}
+
+-(void)setupTextureWithData: (GLvoid*) data
+{
+}
+
+-(void)draw
+{
+    if (!initialized)
+    {
+        [self init];
+
+    }
+    
+    [self renderMixFrames];
 }
 
 -(void)loadRomWithPath: (NSString *)filePath
