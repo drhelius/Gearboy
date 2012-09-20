@@ -50,7 +50,7 @@
         NSLog(@"Failed to create ES context");
     }
     
-    self.theEmulator.context = self.context;
+    //self.theEmulator.context = self.context;
     
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
@@ -65,28 +65,37 @@
     BOOL retina;
     retina = (scale != 1);
     
+    int multiplier = 0;
+    
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
     {
         if (retina)
         {
-            view.frame = CGRectMake(40, 28, 80 * 3, 72 * 3);
+            multiplier = 3;
+            view.frame = CGRectMake(40, 28, 80 * multiplier, 72 * multiplier);
         }
         else
         {
-            view.frame = CGRectMake(0, 0, 80 * 4, 72 * 4);
+            multiplier = 4;
+            view.frame = CGRectMake(0, 0, 80 * multiplier, 72 * multiplier);
         }
     }
     else
     {
         if (retina)
         {
-            view.frame = CGRectMake(187, 53, 80 * 5, 72 * 5);
+            multiplier = 5;
+            view.frame = CGRectMake(187, 53, 80 * multiplier, 72 * multiplier);
         }
         else
         {
-            view.frame = CGRectMake(222, 82, 80 * 4, 72 * 4);
+            multiplier = 4;
+            view.frame = CGRectMake(222, 82, 80 * multiplier, 72 * multiplier);
         }
     }
+    
+    self.theEmulator.multiplier = multiplier * (retina ? 2 : 1);
+    self.theEmulator.retina = retina;
 }
 
 - (void)loadRomWithName: (NSString*) name

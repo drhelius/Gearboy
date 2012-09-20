@@ -21,7 +21,7 @@
 #include "GLFrame.h"
 #include "Emulator.h"
 
-float const kMixFrameAlpha = 0.68f;
+const float kMixFrameAlpha = 0.68f;
 
 RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 {
@@ -155,7 +155,7 @@ void RenderThread::Init()
 void RenderThread::SetupTexture(GLvoid* data)
 {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0,
-            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) data);
+            GL_RGBA, GL_UNSIGNED_BYTE, data);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

@@ -28,9 +28,17 @@
     GB_Color* theFrameBuffer;
     GB_Color* theTexture;
     EmulatorInput* theInput;
+    GLint iOSFrameBuffer;
+    GLuint intermediateFramebuffer;
+    GLuint intermediateTexture;
+    GLuint accumulationFramebuffer;
+    GLuint accumulationTexture;
+    GLuint GBTexture;
+    BOOL firstFrame;
 }
 
-@property (weak, nonatomic) EAGLContext* context;
+@property (nonatomic) BOOL multiplier;
+@property (nonatomic) BOOL retina;
 
 -(void)update;
 -(void)draw;
@@ -41,9 +49,10 @@
 -(void)resume;
 -(BOOL)paused;
 -(void)reset;
--(void)init;
+-(void)initGL;
+-(void)renderFrame;
 -(void)renderMixFrames;
--(void)renderQuadWithViewportWidth: (int)viewportWidth andHeight: (int)viewportHeight;
 -(void)setupTextureWithData: (GLvoid*) data;
+-(void)renderQuadWithViewportWidth: (int)viewportWidth andHeight: (int)viewportHeight;
 
 @end
