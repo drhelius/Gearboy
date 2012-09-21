@@ -21,7 +21,7 @@
 #import "Emulator.h"
 #include "inputmanager.h"
 
-const float kMixFrameAlpha = 0.66f;
+const float kMixFrameAlpha = 0.87f;
 const float kGB_Width = 160.0f;
 const float kGB_Height = 144.0f;
 const float kGB_TexWidth = kGB_Width / 256.0f;
@@ -96,6 +96,11 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     SafeDeleteArray(theTexture);
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearboyCore);
+    glDeleteTextures(1, &intermediateTexture);
+    glDeleteTextures(1, &accumulationTexture);
+    glDeleteTextures(1, &GBTexture);
+    glDeleteFramebuffers(1, &intermediateFramebuffer);
+    glDeleteFramebuffers(1, &accumulationFramebuffer);
 }
 
 -(void)update
@@ -189,7 +194,8 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     else
     {
         glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA); //GL_ONE_MINUS_SRC_ALPHA
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
         glColor4f(1.0f, 1.0f, 1.0f, kMixFrameAlpha);
     }
     [self renderQuadWithViewportWidth:GAMEBOY_WIDTH andHeight:GAMEBOY_HEIGHT];
