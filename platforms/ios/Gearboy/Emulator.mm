@@ -21,7 +21,7 @@
 #import "Emulator.h"
 #include "inputmanager.h"
 
-const float kMixFrameAlpha = 0.87f;
+const float kMixFrameAlpha = 0.40f;
 const float kGB_Width = 160.0f;
 const float kGB_Height = 144.0f;
 const float kGB_TexWidth = kGB_Width / 256.0f;
@@ -186,21 +186,20 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     [self renderQuadWithViewportWidth:GAMEBOY_WIDTH andHeight:GAMEBOY_HEIGHT];
     
     glBindFramebuffer(GL_FRAMEBUFFER, accumulationFramebuffer);
-    glBindTexture(GL_TEXTURE_2D, intermediateTexture);
+    glBindTexture(GL_TEXTURE_2D, intermediateTexture);   
+    float alpha = kMixFrameAlpha;
     if (firstFrame)
     {
         firstFrame = NO;
+        alpha = 1.0f;
     }
-    else
-    {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA); //GL_ONE_MINUS_SRC_ALPHA
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        glColor4f(1.0f, 1.0f, 1.0f, kMixFrameAlpha);
-    }
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1.0f, 1.0f, 1.0f, alpha);
     [self renderQuadWithViewportWidth:GAMEBOY_WIDTH andHeight:GAMEBOY_HEIGHT];
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDisable(GL_BLEND);
-    
+
     glBindFramebuffer(GL_FRAMEBUFFER, iOSFrameBuffer);
     glBindTexture(GL_TEXTURE_2D, accumulationTexture);
     [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier)];
@@ -222,7 +221,7 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     glLoadIdentity();
     glViewport(0, 0, viewportWidth, viewportHeight);
     
-    glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 -(void)loadRomWithPath: (NSString *)filePath

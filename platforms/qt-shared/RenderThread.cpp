@@ -21,7 +21,7 @@
 #include "GLFrame.h"
 #include "Emulator.h"
 
-const float kMixFrameAlpha = 0.76f;
+const float kMixFrameAlpha = 0.50f;
 
 RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 {
@@ -141,15 +141,13 @@ void RenderThread::Init()
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, m_IntermediateTexture);
     SetupTexture(NULL);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-            m_IntermediateTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_IntermediateTexture, 0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFramebuffer);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
     SetupTexture(NULL);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-            m_AccumulationTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_AccumulationTexture, 0);
 }
 
 void RenderThread::SetupTexture(GLvoid* data)
@@ -186,24 +184,27 @@ void RenderThread::RenderMixFrames()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, m_IntermediateFramebuffer);
     glBindTexture(GL_TEXTURE_2D, m_GBTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
-            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
     RenderQuad(GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
+
+    /////
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFramebuffer);
     glBindTexture(GL_TEXTURE_2D, m_IntermediateTexture);
+    float alpha = kMixFrameAlpha;
     if (m_bFirstFrame)
     {
         m_bFirstFrame = false;
+        alpha = 1.0f;
     }
-    else
-    {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
-        glColor4f(1.0f, 1.0f, 1.0f, kMixFrameAlpha);
-    }
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1.0f, 1.0f, 1.0f, alpha);
     RenderQuad(GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDisable(GL_BLEND);
+
+    /////
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
