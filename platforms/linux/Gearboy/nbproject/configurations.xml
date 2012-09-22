@@ -120,7 +120,7 @@
       <compileType>
         <linkerTool>
           <linkerLibItems>
-            <linkerOptionItem>-lGLU -lSDL</linkerOptionItem>
+            <linkerOptionItem>-lGLU -lSDL -lGLEW</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
@@ -149,7 +149,7 @@
         </asmTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerOptionItem>-lGLU -lSDL</linkerOptionItem>
+            <linkerOptionItem>-lGLU -lSDL -lGLEW</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>

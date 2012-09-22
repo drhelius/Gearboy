@@ -23,13 +23,7 @@
 #ifdef __APPLE__
 #include <OpenGL/glu.h>
 #else
-#ifdef _WIN32
-#include <windows.h>
 #include <GL/glew.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
 #endif
 
 #include <QThread>

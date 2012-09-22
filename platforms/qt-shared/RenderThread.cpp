@@ -117,7 +117,7 @@ void RenderThread::Init()
         }
     }
 
-#ifdef _WIN32
+#ifndef __APPLE__
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {

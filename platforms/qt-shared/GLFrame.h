@@ -20,7 +20,7 @@
 #ifndef MYGLFRAME_H
 #define MYGLFRAME_H
 
-#ifdef _WIN32
+#ifndef __APPLE__
 #include <GL/glew.h>
 #endif
 #include <QGLWidget>
