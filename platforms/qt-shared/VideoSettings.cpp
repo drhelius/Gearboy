@@ -190,6 +190,7 @@ void VideoSettings::LoadSettings(QSettings& settings)
     widget.pushButtonColor4->setStyleSheet(qss);
 
     m_pGLFrame->SetBilinearFiletering(widget.checkBoxFilter->isChecked());
+    m_pGLFrame->SetMixFrames(widget.checkBoxMix->isChecked());
 
     GB_Color gb_color[4];
 
