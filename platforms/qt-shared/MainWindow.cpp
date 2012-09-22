@@ -67,6 +67,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     QGLFormat f;
     f.setSwapInterval(1);
+    f.setAccum(true);
     QGLFormat::setDefaultFormat(f);
 
     m_pGLFrame = new GLFrame();

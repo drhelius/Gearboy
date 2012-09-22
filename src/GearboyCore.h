@@ -80,6 +80,7 @@ private:
     bool m_bPaused;
     GB_Color m_DMGPalette[4];
     bool m_bForceDMG;
+    int m_bRTCUpdateCount;
 };
 
 #endif	/* CORE_H */

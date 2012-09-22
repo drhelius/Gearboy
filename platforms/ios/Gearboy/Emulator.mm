@@ -21,6 +21,7 @@
 #import "Emulator.h"
 #include "inputmanager.h"
 
+const float kMixFrameAlpha = 0.40f;
 const float kGB_Width = 160.0f;
 const float kGB_Height = 144.0f;
 const float kGB_TexWidth = kGB_Width / 256.0f;
@@ -30,10 +31,14 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
 
 @implementation Emulator
 
+@synthesize multiplier, retina;
+
 -(id)init
 {
     if (self = [super init])
     {
+        firstFrame = YES;
+        
         theGearboyCore = new GearboyCore();
         theGearboyCore->Init();
         
@@ -41,20 +46,16 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
         GB_Color color2;
         GB_Color color3;
         GB_Color color4;
-    
-        color1.alpha = 0;
+        
         color1.red = 0xB8;
         color1.green = 0xC2;
         color1.blue = 0x66;
-        color2.alpha = 0;
         color2.red = 0x7B;
         color2.green = 0x8A;
         color2.blue = 0x32;
-        color3.alpha = 0;
         color3.red = 0x43;
         color3.green = 0x59;
         color3.blue = 0x1D;
-        color4.alpha = 0;
         color4.red = 0x13;
         color4.green = 0x2C;
         color4.blue = 0x13;
@@ -72,8 +73,8 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
             for (int x = 0; x < GAMEBOY_WIDTH; ++x)
             {
                 int pixel = (y * GAMEBOY_WIDTH) + x;
-                theFrameBuffer[pixel].red = theFrameBuffer[pixel].green =
-                theFrameBuffer[pixel].blue = theFrameBuffer[pixel].alpha = 0;
+                theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
+                theFrameBuffer[pixel].alpha = 0xFF;
             }
         }
         
@@ -82,8 +83,8 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
             for (int x = 0; x < 256; ++x)
             {
                 int pixel = (y * 256) + x;
-                theTexture[pixel].red = theTexture[pixel].green =
-                theTexture[pixel].blue = theTexture[pixel].alpha = 0;
+                theTexture[pixel].red = theTexture[pixel].green = theTexture[pixel].blue = 0x00;
+                theTexture[pixel].alpha = 0xFF;
             }
         }
     }
@@ -95,6 +96,11 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     SafeDeleteArray(theTexture);
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearboyCore);
+    glDeleteTextures(1, &intermediateTexture);
+    glDeleteTextures(1, &accumulationTexture);
+    glDeleteTextures(1, &GBTexture);
+    glDeleteFramebuffers(1, &intermediateFramebuffer);
+    glDeleteFramebuffers(1, &accumulationFramebuffer);
 }
 
 -(void)update
@@ -116,39 +122,112 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
 {
     if (!initialized)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
-        
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-        glEnable(GL_TEXTURE_2D);
-        
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrthof(0.0f, kGB_Width, 0.0f, kGB_Height, -100.0f, 100.0f);
-        glMatrixMode(GL_MODELVIEW);
-        glViewport(0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        
-        glVertexPointer(3, GL_FLOAT, 0, box);
-        glTexCoordPointer(2, GL_FLOAT, 0, tex);
-        
-        glClearColor(0.0, 0.0, 0.0, 0.0);
-        
         initialized = YES;
+        [self initGL];     
     }
     
-    glClear(GL_COLOR_BUFFER_BIT);
-    
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    if (retina)
+    {
+        [self renderMixFrames];
+    }
+    else
+    {
+        //[self renderFrame];
+        [self renderMixFrames];
+    }
+}
 
-	glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+-(void)initGL
+{
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &iOSFrameBuffer);
+    
+    glGenFramebuffers(1, &intermediateFramebuffer);
+    glGenFramebuffers(1, &accumulationFramebuffer);
+    glGenTextures(1, &intermediateTexture);
+    glGenTextures(1, &accumulationTexture);
+    glGenTextures(1, &GBTexture);
+    
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    
+    glVertexPointer(3, GL_FLOAT, 0, box);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex);
+    
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, GBTexture);
+    [self setupTextureWithData: (GLvoid*) theTexture];
+
+    glBindFramebuffer(GL_FRAMEBUFFER, intermediateFramebuffer);
+    glBindTexture(GL_TEXTURE_2D, intermediateTexture);
+    [self setupTextureWithData: NULL];
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, intermediateTexture, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, accumulationFramebuffer);
+    glBindTexture(GL_TEXTURE_2D, accumulationTexture);
+    [self setupTextureWithData: NULL];
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accumulationTexture, 0);  
+}
+
+-(void)renderFrame
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, iOSFrameBuffer);
+    glBindTexture(GL_TEXTURE_2D, GBTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier)];
+}
+
+-(void)renderMixFrames
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, intermediateFramebuffer);
+    glBindTexture(GL_TEXTURE_2D, GBTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    [self renderQuadWithViewportWidth:GAMEBOY_WIDTH andHeight:GAMEBOY_HEIGHT];
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, accumulationFramebuffer);
+    glBindTexture(GL_TEXTURE_2D, intermediateTexture);   
+    float alpha = kMixFrameAlpha;
+    if (firstFrame)
+    {
+        firstFrame = NO;
+        alpha = 1.0f;
+    }
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1.0f, 1.0f, 1.0f, alpha);
+    [self renderQuadWithViewportWidth:GAMEBOY_WIDTH andHeight:GAMEBOY_HEIGHT];
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glDisable(GL_BLEND);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, iOSFrameBuffer);
+    glBindTexture(GL_TEXTURE_2D, accumulationTexture);
+    [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier)];
+}
+
+-(void)setupTextureWithData: (GLvoid*) data
+{
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+}
+
+-(void)renderQuadWithViewportWidth: (int)viewportWidth andHeight: (int)viewportHeight
+{
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrthof(0.0f, kGB_Width, 0.0f, kGB_Height, -100.0f, 100.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glViewport(0, 0, viewportWidth, viewportHeight);
+    
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 -(void)loadRomWithPath: (NSString *)filePath
 {
     theGearboyCore->LoadROM([filePath UTF8String], false);
+    firstFrame = YES;
 }
 
 -(void)keyPressed: (Gameboy_Keys)key
@@ -179,6 +258,7 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
 -(void)reset
 {
     theGearboyCore->ResetROM(false);
+    firstFrame = YES;
 }
 
 @end

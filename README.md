@@ -17,22 +17,24 @@ Features
 
 - Full CPU emulation, passes cpu_instrs.gb from blargg's tests.
 - Accurate instruction timing, passes instr_timing.gb from blargg's tests.
-- Full support for most common Memory Bank Controllers (MBC1, MBC2, MBC3, MBC5) and ROM + RAM cartridges.
+- Full support for most common Memory Bank Controllers (MBC1, MBC2, MBC3 with RTC, MBC5) and ROM + RAM cartridges.
 - Accurate emulation of LCD controller. Full support for background, window and sprites, with correct timings and priorities.
+- Mix frames: Mimics the LCD ghosting effect seen in the original Game Boy.
 - Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://www.slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
 - Game Boy Color support.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
-- Uses Qt framework for GUI and OpenGL for rendering.
-- Multi platform. Compiles and runs on Windows, Linux, Mac OS X and iOS.
+- Multi platform. Compiles and runs on recent versions of Windows, Linux, Mac OS X and iOS.
+- Uses OpenGL for rendering on all platforms.
+- Uses Qt framework for Mac, Windows and Linux GUI. Uses iOS for iPhone and iPad GUI.
 - Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS X. Xcode project for iOS.
 
 Todo List
 -----------
 
 - Save RAM battery to disk.
-- Add RTC support.
 - Pixel precision scan line timing (https://gist.github.com/3730564).
+- Improve compatibility.
 - Debugger
 
 Compiling Instructions
@@ -48,6 +50,7 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
 - Install the [Qt SDK for Windows](http://qt.nokia.com/downloads/sdk-windows-cpp).
 - Install the Qt Visual Studio Add-in and point it to the [Qt SDK](http://qt.nokia.com/downloads/visual-studio-add-in).
+- In order to use OpenGL extensions I used [GLEW](http://glew.sourceforge.net/). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions. Make sure the GLEW headers and libs are configured within VC++.
 - Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
 - Open the Gearboy Visual Studio project and build.
 
@@ -56,6 +59,7 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Install Qt development dependencies (Ubuntu: <code>sudo apt-get install qt4-dev-tools</code>).
 - Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
 - Install SDL development dependencies (Ubuntu: <code>sudo apt-get install libsdl1.2-dev</code>).
+- In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew1.6-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions. 
 - Open the Gearboy Netbeans project and build.
 - Alternatively you can use <code>make</code> to build the project.
 - In Ubuntu 12.04 I had to <code>export SDL_AUDIODRIVER=ALSA</code> for the sound to work properly.

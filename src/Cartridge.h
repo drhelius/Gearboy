@@ -42,11 +42,13 @@ public:
     int GetVersion() const;
     bool IsSGB() const;
     bool IsCGB() const;
-
+    void UpdateCurrentRTC();
+    size_t GetCurrentRTC();
+    
 private:
     void GatherMetadata();
     bool LoadFromZipFile(const u8* buffer, int size);
-
+    
 private:
     u8* m_pTheROM;
     int m_iTotalSize;
@@ -59,6 +61,7 @@ private:
     bool m_bSGB;
     int m_iVersion;
     bool m_bLoaded;
+    size_t m_RTCCurrentTime;
 };
 
 #endif	/* CARTRIDGE_H */

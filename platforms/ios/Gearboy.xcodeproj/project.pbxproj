@@ -46,6 +46,7 @@
 		667CEFDE15FD43720078A433 /* GLViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CEFDC15FD43720078A433 /* GLViewController.mm */; };
 		667CEFDF15FD43720078A433 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 667CEFDD15FD43720078A433 /* GLViewController.xib */; };
 		667CF01915FD5E320078A433 /* Emulator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CF01815FD5E320078A433 /* Emulator.mm */; };
+		66A1372E160BDA7C008002C7 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 66A1372D160BDA7C008002C7 /* Default-568h@2x.png */; };
 		66D34FE815FFDF410046912E /* inputmanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FE515FFDF410046912E /* inputmanager.mm */; };
 		66D34FE915FFDF410046912E /* timer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FE715FFDF410046912E /* timer.mm */; };
 		66D34FF115FFEC480046912E /* EmulatorInput.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FEF15FFEC470046912E /* EmulatorInput.mm */; };
@@ -144,6 +145,7 @@
 		667CEFDD15FD43720078A433 /* GLViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = GLViewController.xib; sourceTree = "<group>"; };
 		667CF01715FD5E320078A433 /* Emulator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Emulator.h; sourceTree = "<group>"; };
 		667CF01815FD5E320078A433 /* Emulator.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Emulator.mm; sourceTree = "<group>"; };
+		66A1372D160BDA7C008002C7 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "../Default-568h@2x.png"; sourceTree = "<group>"; };
 		66D34FE315FFDF400046912E /* inputcallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inputcallback.h; sourceTree = "<group>"; };
 		66D34FE415FFDF400046912E /* inputmanager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inputmanager.h; sourceTree = "<group>"; };
 		66D34FE515FFDF410046912E /* inputmanager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = inputmanager.mm; sourceTree = "<group>"; };
@@ -204,6 +206,7 @@
 		660F501815F9614300617A2D /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				66A1372D160BDA7C008002C7 /* Default-568h@2x.png */,
 				6648B4F816053ECC00E7A377 /* Default-Portrait@2x~ipad.png */,
 				6648B4F916053ECC00E7A377 /* Default-Portrait~ipad.png */,
 				6648B4FA16053ECC00E7A377 /* Default.png */,
@@ -449,6 +452,7 @@
 				6648B50516053ECC00E7A377 /* gb_icon_ipad@2x.png in Resources */,
 				6648B50616053ECC00E7A377 /* gb_icon.png in Resources */,
 				6648B50716053ECC00E7A377 /* gb_icon@2x.png in Resources */,
+				66A1372E160BDA7C008002C7 /* Default-568h@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -574,6 +578,7 @@
 				LIBRARY_SEARCH_PATHS = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = armv7;
 			};
 			name = Debug;
 		};
@@ -605,6 +610,7 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = armv7;
 			};
 			name = Release;
 		};
