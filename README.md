@@ -21,7 +21,7 @@ Features
 - Accurate emulation of LCD controller. Full support for background, window and sprites, with correct timings and priorities.
 - Mix frames: Mimics the LCD ghosting effect seen in the original Game Boy.
 - Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://www.slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
-- Basic Game Boy Color support.
+- Game Boy Color support.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
 - Multi platform. Compiles and runs on recent versions of Windows, Linux, Mac OS X and iOS.
@@ -32,7 +32,11 @@ Features
 Todo List
 -----------
 
+<<<<<<< HEAD
 - Improve Game Boy Color support (https://gist.github.com/3394856)
+=======
+- Save RAM battery to disk.
+>>>>>>> gameboy-color
 - Pixel precision scan line timing (https://gist.github.com/3730564).
 - Improve compatibility.
 - Debugger
