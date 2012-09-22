@@ -51,6 +51,7 @@ GearboyCore::GearboyCore()
     m_bCGB = false;
     m_bPaused = true;
     m_bForceDMG = false;
+    m_bRTCUpdateCount = 0;
 }
 
 GearboyCore::~GearboyCore()
@@ -101,6 +102,13 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
+        }
+
+        m_bRTCUpdateCount++;
+        if (m_bRTCUpdateCount == 50)
+        {
+            m_bRTCUpdateCount = 0;
+            m_pCartridge->UpdateCurrentRTC();
         }
 
         if (!m_bCGB)
@@ -182,6 +190,10 @@ void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& co
     m_DMGPalette[1] = color2;
     m_DMGPalette[2] = color3;
     m_DMGPalette[3] = color4;
+    m_DMGPalette[0].alpha = 0xFF;
+    m_DMGPalette[1].alpha = 0xFF;
+    m_DMGPalette[2].alpha = 0xFF;
+    m_DMGPalette[3].alpha = 0xFF;
 }
 
 void GearboyCore::InitDMGPalette()
@@ -189,22 +201,22 @@ void GearboyCore::InitDMGPalette()
     m_DMGPalette[0].red = 0xEF;
     m_DMGPalette[0].green = 0xF3;
     m_DMGPalette[0].blue = 0xD5;
-    m_DMGPalette[0].alpha = 0x00;
+    m_DMGPalette[0].alpha = 0xFF;
 
     m_DMGPalette[1].red = 0xA3;
     m_DMGPalette[1].green = 0xB6;
     m_DMGPalette[1].blue = 0x7A;
-    m_DMGPalette[1].alpha = 0x00;
+    m_DMGPalette[1].alpha = 0xFF;
 
     m_DMGPalette[2].red = 0x37;
     m_DMGPalette[2].green = 0x61;
     m_DMGPalette[2].blue = 0x3B;
-    m_DMGPalette[2].alpha = 0x00;
+    m_DMGPalette[2].alpha = 0xFF;
 
     m_DMGPalette[3].red = 0x04;
     m_DMGPalette[3].green = 0x1C;
     m_DMGPalette[3].blue = 0x16;
-    m_DMGPalette[3].alpha = 0x00;
+    m_DMGPalette[3].alpha = 0xFF;
 }
 
 void GearboyCore::InitMemoryRules()
@@ -380,6 +392,8 @@ void GearboyCore::Reset(bool bCGB)
     m_pVideo->Reset(m_bCGB);
     m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();
+    m_pCartridge->UpdateCurrentRTC();
+    m_bRTCUpdateCount = 0;
 
     m_pCommonMemoryRule->Reset(m_bCGB);
     m_pRomOnlyMemoryRule->Reset(m_bCGB);

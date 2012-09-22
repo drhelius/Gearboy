@@ -32,10 +32,26 @@ public:
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset(bool bCGB);
 private:
+    void UpdateRTC();
+private:
     int m_iCurrentRAMBank;
     int m_iCurrentROMBank;
     bool m_bRamEnabled;
     u8* m_pRAMBanks;
+    int m_iRTCSeconds;
+    int m_iRTCMinutes;
+    int m_iRTCHours;
+    int m_iRTCDays;
+    int m_iRTCControl;
+    int m_iRTCLatchedSeconds;
+    int m_iRTCLatchedMinutes;
+    int m_iRTCLatchedHours;
+    int m_iRTCLatchedDays;
+    int m_iRTCLatchedControl;
+    int m_iRTCLatch;
+    u8 m_RTCRegister;
+    time_t m_RTCLastTime;
+    time_t m_RTCLastTimeCache;
 };
 
 #endif	/* MBC3MEMORYRULE_H */

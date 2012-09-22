@@ -724,6 +724,7 @@ GB_Color Video::ConvertTo8BitColor(GB_Color color)
     color.red = (color.red * 255) / 31;
     color.green = (color.green * 255) / 31;
     color.blue = (color.blue * 255) / 31;
+    color.alpha = 0xFF;
 
     return color;
 }

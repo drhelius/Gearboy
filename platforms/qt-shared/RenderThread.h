@@ -20,6 +20,16 @@
 #ifndef MYRENDERTHREAD_H
 #define MYRENDERTHREAD_H
 
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
 #include <QThread>
 #include "../../src/gearboy.h"
 
@@ -42,21 +52,22 @@ public:
     void SetEmulator(Emulator* pEmulator);
     bool IsRunningEmulator();
     void SetBilinearFiletering(bool enabled);
+    void SetMixFrames(bool enabled);
 
 protected:
     void Init();
-    void Resize(int width, int height);
     void RenderFrame();
+    void RenderMixFrames();
+    void RenderQuad(int viewportWidth, int viewportHeight);
 
 private:
-    bool m_bDoRendering, m_bDoResize, m_bPaused;
+    bool m_bDoRendering, m_bPaused;
     int m_iWidth, m_iHeight;
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;
     GB_Color* m_pFrameBuffer;
     bool m_bFiltering;
-signals:
-public slots:
+    bool m_bMixFrames;
 };
 
 #endif // MYRENDERTHREAD_H
