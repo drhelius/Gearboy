@@ -21,12 +21,12 @@ Features
 - Accurate emulation of LCD controller. Full support for background, window and sprites, with correct timings and priorities.
 - Mix frames: Mimics the LCD ghosting effect seen in the original Game Boy.
 - Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://www.slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
-- Game Boy Color support.
+- Basic Game Boy Color support.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
-- Multi platform. Compiles and runs on recent versions of Windows, Linux, Mac OS X and iOS.
+- Multi platform. Compiles and runs on Windows, Linux, Mac OS X and iOS.
 - Uses OpenGL for rendering on all platforms.
-- Uses Qt framework for Mac, Windows and Linux GUI. Uses iOS for iPhone and iPad GUI.
+- Uses Qt framework for Mac, Windows and Linux. Uses Cocoa Touch for iPad, iPhone and iPod touch.
 - Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS X. Xcode project for iOS.
 
 Todo List
@@ -62,7 +62,7 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew1.6-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.
 - Open the Gearboy Netbeans project and build.
 - Alternatively you can use <code>make</code> to build the project.
-- In Ubuntu 12.04 I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the game for the sound to work properly.
+- In Ubuntu 12.04 I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
 
 ### Mac OS X
 - You need at least Netbeans 7.2 for C++.
