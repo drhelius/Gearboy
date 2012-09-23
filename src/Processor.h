@@ -61,6 +61,7 @@ private:
     SixteenBitRegister PC;
     bool m_bIME;
     bool m_bHalt;
+    bool m_bPendingHalt;
     bool m_bStop;
     bool m_bBranchTaken;
     bool m_bSkipPCBug;
