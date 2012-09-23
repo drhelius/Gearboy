@@ -51,6 +51,7 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Install the [Qt SDK for Windows](http://qt.nokia.com/downloads/sdk-windows-cpp).
 - Install the Qt Visual Studio Add-in and point it to the [Qt SDK](http://qt.nokia.com/downloads/visual-studio-add-in).
 - Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
+- In order to use OpenGL extensions I used [GLEW](http://glew.sourceforge.net/). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions. Make sure the GLEW headers and libs are configured within VC++.
 - Open the Gearboy Visual Studio project and build.
 
 ### Linux
@@ -58,9 +59,10 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Install Qt development dependencies (Ubuntu: <code>sudo apt-get install qt4-dev-tools</code>).
 - Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
 - Install SDL development dependencies (Ubuntu: <code>sudo apt-get install libsdl1.2-dev</code>).
+- In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew1.6-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.
 - Open the Gearboy Netbeans project and build.
 - Alternatively you can use <code>make</code> to build the project.
-- In Ubuntu 12.04 I had to <code>export SDL_AUDIODRIVER=ALSA</code> for the sound to work properly.
+- In Ubuntu 12.04 I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the game for the sound to work properly.
 
 ### Mac OS X
 - You need at least Netbeans 7.2 for C++.
