@@ -20,6 +20,9 @@
 #ifndef MYGLFRAME_H
 #define MYGLFRAME_H
 
+#ifndef __APPLE__
+#include <GL/glew.h>
+#endif
 #include <QGLWidget>
 #include "../../src/gearboy.h"
 #include "RenderThread.h"

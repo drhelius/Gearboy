@@ -21,7 +21,7 @@
 #import "Emulator.h"
 #include "inputmanager.h"
 
-const float kMixFrameAlpha = 0.40f;
+const float kMixFrameAlpha = 0.45f;
 const float kGB_Width = 160.0f;
 const float kGB_Height = 144.0f;
 const float kGB_TexWidth = kGB_Width / 256.0f;
@@ -194,13 +194,14 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
         alpha = 1.0f;
     }
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor4f(1.0f, 1.0f, 1.0f, alpha);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     [self renderQuadWithViewportWidth:GAMEBOY_WIDTH andHeight:GAMEBOY_HEIGHT];
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDisable(GL_BLEND);
 
     glBindFramebuffer(GL_FRAMEBUFFER, iOSFrameBuffer);
+    glClear(GL_COLOR_BUFFER_BIT);
     glBindTexture(GL_TEXTURE_2D, accumulationTexture);
     [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier)];
 }

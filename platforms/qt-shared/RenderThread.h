@@ -24,11 +24,7 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include <GL/glew.h>
 #endif
 #include <QThread>
 #include "../../src/gearboy.h"
@@ -59,6 +55,7 @@ protected:
     void RenderFrame();
     void RenderMixFrames();
     void RenderQuad(int viewportWidth, int viewportHeight);
+    void SetupTexture(GLvoid* data);
 
 private:
     bool m_bDoRendering, m_bPaused;
@@ -68,6 +65,13 @@ private:
     GB_Color* m_pFrameBuffer;
     bool m_bFiltering;
     bool m_bMixFrames;
+    bool m_bResizeEvent;
+    GLuint m_IntermediateFramebuffer;
+    GLuint m_IntermediateTexture;
+    GLuint m_AccumulationFramebuffer;
+    GLuint m_AccumulationTexture;
+    GLuint m_GBTexture;
+    bool m_bFirstFrame;
 };
 
 #endif // MYRENDERTHREAD_H
