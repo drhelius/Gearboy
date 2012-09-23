@@ -44,11 +44,11 @@ public:
     bool IsCGB() const;
     void UpdateCurrentRTC();
     size_t GetCurrentRTC();
-    
+
 private:
     void GatherMetadata();
     bool LoadFromZipFile(const u8* buffer, int size);
-    
+
 private:
     u8* m_pTheROM;
     int m_iTotalSize;
@@ -65,4 +65,3 @@ private:
 };
 
 #endif	/* CARTRIDGE_H */
-

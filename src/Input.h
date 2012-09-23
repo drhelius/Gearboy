@@ -36,10 +36,10 @@ public:
     void KeyReleased(Gameboy_Keys key);
     void Write(u8 value);
     u8 Read();
-    
+
 private:
     void Update();
-    
+
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;

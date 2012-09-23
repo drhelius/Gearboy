@@ -202,7 +202,7 @@ void MBC3MemoryRule::Reset(bool bCGB)
 void MBC3MemoryRule::UpdateRTC()
 {
     time_t now = m_pCartridge->GetCurrentRTC();
-    
+
     if (m_RTCLastTimeCache != now)
     {
         m_RTCLastTimeCache = now;

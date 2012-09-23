@@ -30,6 +30,7 @@ public:
     u8 GetValue() const;
     void Increment();
     void Decrement();
+    
 private:
     u8 m_Value;
 };

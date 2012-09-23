@@ -41,6 +41,7 @@ public:
     int GetCurrentStatusMode() const;
     void ResetWindowLine();
     void CompareLYToLYC();
+    
 private:
     void ScanLine(int line);
     void RenderBG(int line);
@@ -48,6 +49,7 @@ private:
     void RenderSprites(int line);
     void UpdateStatRegister();
     GB_Color ConvertTo8BitColor(GB_Color color);
+    
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;

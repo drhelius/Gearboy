@@ -42,6 +42,7 @@ public:
     void AddAddressRange(u16 minAddress, u16 maxAddress);
     void ClearAddressRanges();
     bool IsAddressInRanges(u16 address);
+    
 protected:
     Processor* m_pProcessor;
     Memory* m_pMemory;
@@ -50,8 +51,8 @@ protected:
     Cartridge* m_pCartridge;
     Audio* m_pAudio;
     bool m_bCGB;
+    
 private:
-
     struct stAddressRange
     {
         u16 minAddress;
