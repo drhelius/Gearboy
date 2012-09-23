@@ -845,6 +845,7 @@ void Processor::OPCode0x76()
     if (m_bIME)
     {
         m_bHalt = true;
+        m_HaltCachedIFRegister = if_reg;
     }
     else
     {
@@ -1570,6 +1571,7 @@ void Processor::OPCode0xD9()
     {
         m_bPendingHalt = false;
         m_bHalt = true;
+        m_HaltCachedIFRegister = m_pMemory->Retrieve(0xFF0F);
     }
 }
 

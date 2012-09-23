@@ -74,11 +74,12 @@ private:
     int m_iUnhaltCycles;
     bool m_bCGB;
     int m_InterruptDelayCycles[5];
+    u8 m_HaltCachedIFRegister;
 private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);
     void ExecuteOPCodeCB(u8 opcode);
-    Processor::Interrupts InterruptPending();
+    Processor::Interrupts InterruptPending(u8 if_reg);
     void ServeInterrupt(Interrupts interrupt);
     void UpdateTimers();
     void UpdateSerial();
