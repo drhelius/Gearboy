@@ -29,7 +29,6 @@ class Memory;
 class Processor
 {
 public:
-
     enum Interrupts
     {
         None_Interrupt = 0x00,
@@ -39,6 +38,7 @@ public:
         Serial_Interrupt = 0x08,
         Joypad_Interrupt = 0x10
     };
+
 public:
     Processor(Memory* pMemory);
     ~Processor();
@@ -48,6 +48,7 @@ public:
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
     void ResetDIVCycles();
+
 private:
     typedef void (Processor::*OPCptr) (void);
     OPCptr m_OPCodes[256];
@@ -75,6 +76,7 @@ private:
     bool m_bCGB;
     int m_InterruptDelayCycles[5];
     u8 m_HaltCachedIFRegister;
+
 private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);

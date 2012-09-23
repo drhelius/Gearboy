@@ -53,7 +53,6 @@ public:
     bool IsHBDMAEnabled();
 
 private:
-
     struct stDisassemble
     {
         char szDisString[32];

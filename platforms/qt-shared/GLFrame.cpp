@@ -21,7 +21,6 @@
 #include <QResizeEvent>
 #include <QGLContext>
 
-
 GLFrame::GLFrame(QWidget *parent) : QGLWidget(parent), m_RenderThread(this)
 {
     setAutoBufferSwap(false);

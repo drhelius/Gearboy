@@ -34,4 +34,3 @@ public:
 };
 
 #endif	/* COMMONMEMORYRULE_H */
-
