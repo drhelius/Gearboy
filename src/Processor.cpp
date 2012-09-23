@@ -28,6 +28,7 @@ Processor::Processor(Memory* pMemory)
     InitOPCodeFunctors();
     m_bIME = false;
     m_bHalt = false;
+    m_bPendingHalt = false;
     m_bStop = false;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
@@ -57,6 +58,7 @@ void Processor::Reset(bool bCGB)
     m_bCGB = bCGB;
     m_bIME = false;
     m_bHalt = false;
+    m_bPendingHalt = false;
     m_bStop = false;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
@@ -124,6 +126,11 @@ u8 Processor::Tick()
         {
             m_iIMECycles = 0;
             m_bIME = true;
+            if (m_bPendingHalt)
+            {
+                m_bPendingHalt = false;
+                m_bHalt = true;
+            }
         }
     }
 
@@ -140,7 +147,7 @@ void Processor::RequestInterrupt(Interrupts interrupt)
             m_InterruptDelayCycles[0] = 12;
             break;
         case LCDSTAT_Interrupt:
-            m_InterruptDelayCycles[1] = 16;
+            m_InterruptDelayCycles[1] = 24;
             break;
         case Timer_Interrupt:
             m_InterruptDelayCycles[2] = 12;
