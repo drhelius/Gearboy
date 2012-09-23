@@ -60,9 +60,8 @@ void Audio::Init()
     m_pBuffer->clock_rate(4194304);
     m_pBuffer->set_sample_rate(m_iSampleRate);
 
-    // Adjust frequency equalization to make it sound like a tiny speaker
-    m_pApu->treble_eq(-20.0); // lower values muffle it more
-    m_pBuffer->bass_freq(461); // higher values simulate smaller speaker
+    m_pApu->treble_eq(-30.0);
+    m_pBuffer->bass_freq(461);
 
     m_pApu->set_output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
 
