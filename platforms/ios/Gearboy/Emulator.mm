@@ -132,8 +132,7 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     }
     else
     {
-        //[self renderFrame];
-        [self renderMixFrames];
+        [self renderFrame];
     }
 }
 
