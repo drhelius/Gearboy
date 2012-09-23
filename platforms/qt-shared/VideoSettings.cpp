@@ -157,10 +157,11 @@ void VideoSettings::SaveSettings(QSettings& settings)
 
 void VideoSettings::LoadSettings(QSettings& settings)
 {
-    m_iColors[0] = settings.value("DMGColor1", 0xEFF3D5).toInt();
-    m_iColors[1] = settings.value("DMGColor2", 0xA3B67A).toInt();
-    m_iColors[2] = settings.value("DMGColor3", 0x37613B).toInt();
-    m_iColors[3] = settings.value("DMGColor4", 0x041C16).toInt();
+    m_iColors[0] = settings.value("DMGColor1", 0xB8C266).toInt();
+    m_iColors[1] = settings.value("DMGColor2", 0x7B8A32).toInt();
+    m_iColors[2] = settings.value("DMGColor3", 0x43591D).toInt();
+    m_iColors[3] = settings.value("DMGColor4", 0x132C13).toInt();
+
     widget.checkBoxFilter->setChecked(settings.value("BilinearFiltering", false).toBool());
     widget.checkBoxMix->setChecked(settings.value("MixFrames", true).toBool());
 
