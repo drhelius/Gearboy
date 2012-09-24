@@ -283,7 +283,6 @@ void Cartridge::CheckCartridgeType(int type)
             // MBC3
             // BATT
             // SRAM
-        case 0xFC:
             m_Type = CartridgeMBC3;
             break;
         case 0x19:
@@ -315,12 +314,23 @@ void Cartridge::CheckCartridgeType(int type)
             // MMM01
             // SRAM
             // BATT
-        case 0x1F:
-            // Game Boy Camera
+        case 0x15:
+            // MBC4
+        case 0x16:
+            // MBC4
+            // SRAM 
+        case 0x17:
+            // MBC4
+            // SRAM
+            // BATT
         case 0x22:
             // MBC7
             // BATT
             // SRAM
+        case 0x56:
+            // GS3
+        case 0xFC:
+            // Game Boy Camera
         case 0xFD:
             // TAMA 5
         case 0xFE:
