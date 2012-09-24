@@ -29,7 +29,7 @@ Cartridge::Cartridge()
     m_szName[0] = 0;
     m_iROMSize = 0;
     m_iRAMSize = 0;
-    m_iType = 0;
+    m_Type = CartridgeNotSupported;
     m_bValidROM = false;
     m_bCGB = false;
     m_bSGB = false;
@@ -55,7 +55,7 @@ void Cartridge::Reset()
     m_szName[0] = 0;
     m_iROMSize = 0;
     m_iRAMSize = 0;
-    m_iType = 0;
+    m_Type = CartridgeNotSupported;
     m_bValidROM = false;
     m_bCGB = false;
     m_bSGB = false;
@@ -74,9 +74,9 @@ bool Cartridge::IsLoadedROM() const
     return m_bLoaded;
 }
 
-int Cartridge::GetType() const
+Cartridge::CartridgeTypes Cartridge::GetType() const
 {
-    return m_iType;
+    return m_Type;
 }
 
 int Cartridge::GetRAMSize() const
@@ -201,7 +201,6 @@ bool Cartridge::LoadFromFile(const char* path)
         }
 
         SafeDeleteArray(memblock);
-
         return m_bLoaded;
     }
     else
@@ -219,13 +218,120 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
         m_iTotalSize = size;
         m_pTheROM = new u8[m_iTotalSize];
         memcpy(m_pTheROM, buffer, m_iTotalSize);
-
         GatherMetadata();
-
         return true;
     }
     else
         return false;
+}
+
+void Cartridge::CheckCartridgeType(int type)
+{
+    if ((type != 0xEA) && (GetROMSize() == 0))
+        type = 0;
+
+    switch (type)
+    {
+        case 0x00:
+            // NO MBC
+        case 0x08:
+            // ROM   
+            // SRAM 
+        case 0x09:
+            // ROM
+            // SRAM
+            // BATT
+            m_Type = CartridgeNoMBC;
+            break;
+        case 0x01:
+            // MBC1
+        case 0x02:
+            // MBC1
+            // SRAM
+        case 0x03:
+            // MBC1
+            // SRAM
+            // BATT
+        case 0xEA:
+            // Hack to accept 0xEA as a MBC1 (Sonic 3D Blast 5)
+        case 0xFF:
+            // Hack to accept HuC1 as a MBC1
+            m_Type = CartridgeMBC1;
+            break;
+        case 0x05:
+            // MBC2
+        case 0x06:
+            // MBC2
+            // BATT
+            m_Type = CartridgeMBC2;
+            break;
+        case 0x0F:
+            // MBC3
+            // TIMER
+            // BATT
+        case 0x10:
+            // MBC3
+            // TIMER
+            // BATT
+            // SRAM
+        case 0x11:
+            // MBC3
+        case 0x12:
+            // MBC3
+            // SRAM
+        case 0x13:
+            // MBC3
+            // BATT
+            // SRAM
+        case 0xFC:
+            m_Type = CartridgeMBC3;
+            break;
+        case 0x19:
+            // MBC5
+        case 0x1A:
+            // MBC5
+            // SRAM
+        case 0x1B:
+            // MBC5
+            // BATT
+            // SRAM
+        case 0x1C:
+            // RUMBLE
+        case 0x1D:
+            // RUMBLE
+            // SRAM
+        case 0x1E:
+            // RUMBLE
+            // BATT
+            // SRAM
+            m_Type = CartridgeMBC5;
+            break;
+        case 0x0B:
+            // MMMO1
+        case 0x0C:
+            // MMM01   
+            // SRAM 
+        case 0x0D:
+            // MMM01
+            // SRAM
+            // BATT
+        case 0x1F:
+            // Game Boy Camera
+        case 0x22:
+            // MBC7
+            // BATT
+            // SRAM
+        case 0xFD:
+            // TAMA 5
+        case 0xFE:
+            // HuC3
+            m_Type = CartridgeNotSupported;
+            Log("--> ** This cartridge is not supported. Type: %d", type);
+            break;
+        default:
+            m_Type = CartridgeNotSupported;
+            Log("--> ** Unknown cartridge type: %d", type);
+    }
 }
 
 int Cartridge::GetVersion() const
@@ -272,14 +378,16 @@ void Cartridge::GatherMetadata()
 
     m_bCGB = (m_pTheROM[0x143] == 0x80) || (m_pTheROM[0x143] == 0xC0);
     m_bSGB = (m_pTheROM[0x146] == 0x03);
-    m_iType = m_pTheROM[0x147];
+    int type = m_pTheROM[0x147];
     m_iROMSize = m_pTheROM[0x148];
     m_iRAMSize = m_pTheROM[0x149];
     m_iVersion = m_pTheROM[0x14C];
 
+    CheckCartridgeType(type);
+
     Log("ROM Name %s", m_szName);
     Log("ROM Version %d", m_iVersion);
-    Log("ROM Type %X", m_iType);
+    Log("ROM Type %X", type);
     Log("ROM Size %X", m_iROMSize);
     Log("RAM Size %X", m_iRAMSize);
 

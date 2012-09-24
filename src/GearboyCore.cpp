@@ -261,113 +261,32 @@ bool GearboyCore::AddMemoryRules()
     m_pMemory->AddRule(m_pIORegistersMemoryRule);
     m_pMemory->AddRule(m_pCommonMemoryRule);
 
-    int type = m_pCartridge->GetType();
-    if ((type != 0xEA) && (m_pCartridge->GetROMSize() == 0))
-        type = 0;
-
+    Cartridge::CartridgeTypes type = m_pCartridge->GetType();
+    
     bool notSupported = false;
 
     switch (type)
     {
-        case 0x00:
-            // NO MBC
-        case 0x08:
-            // ROM   
-            // SRAM 
-        case 0x09:
-            // ROM
-            // SRAM
-            // BATT
+        case Cartridge::CartridgeNoMBC:
             m_pMemory->AddRule(m_pRomOnlyMemoryRule);
             break;
-        case 0x01:
-            // MBC1
-        case 0x02:
-            // MBC1
-            // SRAM
-        case 0x03:
-            // MBC1
-            // SRAM
-            // BATT
-        case 0xEA:
-            // Hack to accept 0xEA as a MBC1 memory bank controller (Sonic 3D Blast 5)
+        case Cartridge::CartridgeMBC1:
             m_pMemory->AddRule(m_pMBC1MemoryRule);
             break;
-        case 0x05:
-            // MBC2
-        case 0x06:
-            // MBC2
-            // BATT
+        case Cartridge::CartridgeMBC2:
             m_pMemory->AddRule(m_pMBC2MemoryRule);
             break;
-        case 0x0F:
-            // MBC3
-            // TIMER
-            // BATT
-        case 0x10:
-            // MBC3
-            // TIMER
-            // BATT
-            // SRAM
-        case 0x11:
-            // MBC3
-        case 0x12:
-            // MBC3
-            // SRAM
-        case 0x13:
-            // MBC3
-            // BATT
-            // SRAM
-        case 0xFC:
+        case Cartridge::CartridgeMBC3:
             m_pMemory->AddRule(m_pMBC3MemoryRule);
             break;
-        case 0x19:
-            // MBC5
-        case 0x1A:
-            // MBC5
-            // SRAM
-        case 0x1B:
-            // MBC5
-            // BATT
-            // SRAM
-        case 0x1C:
-            // RUMBLE
-        case 0x1D:
-            // RUMBLE
-            // SRAM
-        case 0x1E:
-            // RUMBLE
-            // BATT
-            // SRAM
+        case Cartridge::CartridgeMBC5:
             m_pMemory->AddRule(m_pMBC5MemoryRule);
             break;
-        case 0x0B:
-            // MMMO1
-        case 0x0C:
-            // MMM01   
-            // SRAM 
-        case 0x0D:
-            // MMM01
-            // SRAM
-            // BATT
-        case 0x1F:
-            // Game Boy Camera
-        case 0x22:
-            // MBC7
-            // BATT
-            // SRAM
-        case 0xFD:
-            // TAMA 5
-        case 0xFE:
-            // HuC3
-        case 0xFF:
-            // HuC1
+        case Cartridge::CartridgeNotSupported:
             notSupported = true;
-            Log("--> ** This cartridge is not supported. Type: %d", type);
             break;
         default:
             notSupported = true;
-            Log("--> ** Unknown cartridge type: %d", type);
     }
 
     return !notSupported;

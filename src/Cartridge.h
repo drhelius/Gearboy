@@ -25,13 +25,24 @@
 class Cartridge
 {
 public:
+    enum CartridgeTypes
+    {
+        CartridgeNoMBC,
+        CartridgeMBC1,
+        CartridgeMBC2,
+        CartridgeMBC3,
+        CartridgeMBC5,
+        CartridgeNotSupported
+    };
+
+public:
     Cartridge();
     ~Cartridge();
     void Init();
     void Reset();
     bool IsValidROM() const;
     bool IsLoadedROM() const;
-    int GetType() const;
+    CartridgeTypes GetType() const;
     int GetRAMSize() const;
     int GetROMSize() const;
     const char* GetName() const;
@@ -48,6 +59,7 @@ public:
 private:
     void GatherMetadata();
     bool LoadFromZipFile(const u8* buffer, int size);
+    void CheckCartridgeType(int type);
 
 private:
     u8* m_pTheROM;
@@ -55,7 +67,7 @@ private:
     char m_szName[16];
     int m_iROMSize;
     int m_iRAMSize;
-    int m_iType;
+    CartridgeTypes m_Type;
     bool m_bValidROM;
     bool m_bCGB;
     bool m_bSGB;
