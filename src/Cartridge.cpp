@@ -36,6 +36,7 @@ Cartridge::Cartridge()
     m_iVersion = 0;
     m_bLoaded = false;
     m_RTCCurrentTime = 0;
+    m_bBattery = false;
 }
 
 Cartridge::~Cartridge()
@@ -62,6 +63,7 @@ void Cartridge::Reset()
     m_iVersion = 0;
     m_bLoaded = false;
     m_RTCCurrentTime = 0;
+    m_bBattery = false;
 }
 
 bool Cartridge::IsValidROM() const
@@ -97,6 +99,11 @@ const char* Cartridge::GetName() const
 int Cartridge::GetTotalSize() const
 {
     return m_iTotalSize;
+}
+
+bool Cartridge::HasBattery() const
+{
+    return m_bBattery;
 }
 
 u8* Cartridge::GetTheROM() const
@@ -343,6 +350,27 @@ void Cartridge::CheckCartridgeType(int type)
         default:
             m_Type = CartridgeNotSupported;
             Log("--> ** Unknown cartridge type: %d", type);
+    }
+
+    switch(type)
+    {
+        case 0x03:
+        case 0x06:
+        case 0x09:
+        case 0x0D:
+        case 0x0F:
+        case 0x10:
+        case 0x13:
+        case 0x17:
+        case 0x1B:
+        case 0x1E:
+        case 0x22:
+        case 0xFD:
+        case 0xFF:
+            m_bBattery = true;
+            break;
+        default:
+            m_bBattery = false;
     }
 }
 
