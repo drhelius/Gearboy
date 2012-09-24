@@ -283,6 +283,8 @@ void Cartridge::CheckCartridgeType(int type)
             // MBC3
             // BATT
             // SRAM
+        case 0xFC:
+            // Game Boy Camera
             m_Type = CartridgeMBC3;
             break;
         case 0x19:
@@ -327,10 +329,10 @@ void Cartridge::CheckCartridgeType(int type)
             // MBC7
             // BATT
             // SRAM
+        case 0x55:
+            // GG
         case 0x56:
             // GS3
-        case 0xFC:
-            // Game Boy Camera
         case 0xFD:
             // TAMA 5
         case 0xFE:
