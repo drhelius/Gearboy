@@ -47,6 +47,7 @@ public:
     int GetROMSize() const;
     const char* GetName() const;
     int GetTotalSize() const;
+    bool HasBattery() const;
     u8* GetTheROM() const;
     bool LoadFromFile(const char* path);
     bool LoadFromBuffer(const u8* buffer, int size);
@@ -74,6 +75,7 @@ private:
     int m_iVersion;
     bool m_bLoaded;
     size_t m_RTCCurrentTime;
+    bool m_ bBattery;
 };
 
 #endif	/* CARTRIDGE_H */
