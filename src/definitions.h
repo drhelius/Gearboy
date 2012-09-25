@@ -38,6 +38,8 @@
 #define BLARGG_USE_NAMESPACE 1
 #endif
 
+#define SAVE_FILE_VERSION 1
+
 #define SafeDelete(pointer) if(pointer != NULL) {delete pointer; pointer = NULL;}
 #define SafeDeleteArray(pointer) if(pointer != NULL) {delete [] pointer; pointer = NULL;}
 

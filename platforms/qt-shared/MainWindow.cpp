@@ -473,5 +473,7 @@ void MainWindow::SaveSettings()
     settings.beginGroup("Sound");
     m_pSoundSettings->SaveSettings(settings);
     settings.endGroup();
+
+    m_pEmulator->SaveRam();
 }
 

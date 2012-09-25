@@ -24,6 +24,7 @@
 #include "Audio.h"
 #include "Input.h"
 #include "Cartridge.h"
+#include "MemoryRule.h"
 #include "CommonMemoryRule.h"
 #include "IORegistersMemoryRule.h"
 #include "RomOnlyMemoryRule.h"
@@ -47,6 +48,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC2MemoryRule);
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
+    InitPointer(m_pCurrentMapper);
     m_bCGB = false;
     m_bPaused = true;
     m_bForceDMG = false;
@@ -202,15 +204,61 @@ void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& co
 
 void GearboyCore::SaveRam()
 {
-    if (m_pCartridge->IsLoadedROM())
+    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pCurrentMapper))
     {
+        using namespace std;
+
+        char path[512];
+
+        strcpy(path, m_pCartridge->GetFilePath());
+        strcat(path, ".gearboy");
+
+        char signature[16] = "GearboySaveFile";
+        u8 version = SAVE_FILE_VERSION;
+        u8 romType = m_pCartridge->GetType();
+        u8 romSize = m_pCartridge->GetROMSize();
+        u8 ramSize = m_pCartridge->GetRAMSize();
+        u8 ramBanksSize = m_pCurrentMapper->GetRamBanksSize();
+        u8 ramBanksStart = 39;
+        u8 saveStateSize = 0;
+
+        ofstream file(path, ios::out | ios::binary);
+
+        file.write(signature, 16);
+        file.write(reinterpret_cast<const char*>(&version), 1);
+        file.write(m_pCartridge->GetName(), 16);
+        file.write(reinterpret_cast<const char*>(&romType), 1);
+        file.write(reinterpret_cast<const char*>(&romSize), 1);
+        file.write(reinterpret_cast<const char*>(&ramSize), 1);
+        file.write(reinterpret_cast<const char*>(&ramBanksSize), 1);
+        file.write(reinterpret_cast<const char*>(&ramBanksStart), 1);
+        file.write(reinterpret_cast<const char*>(&saveStateSize), 1);
+
+        m_pCurrentMapper->SaveRam(file);
+
+        file.close();
     }
 }
 
 void GearboyCore::LoadRam()
 {
-    if (m_pCartridge->IsLoadedROM())
+    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pCurrentMapper))
     {
+        using namespace std;
+        
+        char path[512];
+
+        strcpy(path, m_pCartridge->GetFilePath());
+        strcat(path, ".gearboy");
+
+        ifstream file(path, ios::in | ios::binary);
+
+        if (!file.fail())
+        {
+            m_pCurrentMapper->LoadRam(file);
+        }
+
+        file.close();
     }
 }
 
@@ -286,21 +334,27 @@ bool GearboyCore::AddMemoryRules()
     switch (type)
     {
         case Cartridge::CartridgeNoMBC:
+            m_pCurrentMapper = m_pRomOnlyMemoryRule;
             m_pMemory->AddRule(m_pRomOnlyMemoryRule);
             break;
         case Cartridge::CartridgeMBC1:
+            m_pCurrentMapper = m_pMBC1MemoryRule;
             m_pMemory->AddRule(m_pMBC1MemoryRule);
             break;
         case Cartridge::CartridgeMBC2:
+            m_pCurrentMapper = m_pMBC2MemoryRule;
             m_pMemory->AddRule(m_pMBC2MemoryRule);
             break;
         case Cartridge::CartridgeMBC3:
+            m_pCurrentMapper = m_pMBC3MemoryRule;
             m_pMemory->AddRule(m_pMBC3MemoryRule);
             break;
         case Cartridge::CartridgeMBC5:
+            m_pCurrentMapper = m_pMBC5MemoryRule;
             m_pMemory->AddRule(m_pMBC5MemoryRule);
             break;
         case Cartridge::CartridgeNotSupported:
+            InitPointer(m_pCurrentMapper);
             notSupported = true;
             break;
         default:
@@ -338,6 +392,8 @@ void GearboyCore::Reset(bool bCGB)
     m_pMBC3MemoryRule->Reset(m_bCGB);
     m_pMBC5MemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
+
+    InitPointer(m_pCurrentMapper);
 
     m_bPaused = false;
 }

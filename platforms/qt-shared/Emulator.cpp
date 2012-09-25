@@ -39,6 +39,7 @@ void Emulator::LoadRom(const char* szFilePath, bool forceDMG)
 {
     m_Mutex.lock();
     m_pGearboyCore->LoadROM(szFilePath, forceDMG);
+    m_pGearboyCore->LoadRam();
     m_Mutex.unlock();
 }
 
@@ -112,5 +113,12 @@ void Emulator::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color
 {
     m_Mutex.lock();
     m_pGearboyCore->SetDMGPalette(color1, color2, color3, color4);
+    m_Mutex.unlock();
+}
+
+void Emulator::SaveRam()
+{
+    m_Mutex.lock();
+    m_pGearboyCore->SaveRam();
     m_Mutex.unlock();
 }

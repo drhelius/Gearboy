@@ -44,6 +44,7 @@ public:
     void AddAddressRange(u16 minAddress, u16 maxAddress);
     void ClearAddressRanges();
     bool IsAddressInRanges(u16 address);
+    int GetRamBanksSize();
     
 protected:
     Processor* m_pProcessor;

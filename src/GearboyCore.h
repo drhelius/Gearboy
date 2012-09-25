@@ -35,6 +35,7 @@ class MBC1MemoryRule;
 class MBC2MemoryRule;
 class MBC3MemoryRule;
 class MBC5MemoryRule;
+class MemoryRule;
 
 class GearboyCore
 {
@@ -78,6 +79,7 @@ private:
     MBC2MemoryRule* m_pMBC2MemoryRule;
     MBC3MemoryRule* m_pMBC3MemoryRule;
     MBC5MemoryRule* m_pMBC5MemoryRule;
+    MemoryRule* m_pCurrentMapper;
     bool m_bCGB;
     bool m_bPaused;
     GB_Color m_DMGPalette[4];

@@ -46,6 +46,11 @@ void MemoryRule::LoadRam(std::ifstream&)
 
 }
 
+int MemoryRule::GetRamBanksSize()
+{
+    return 0;
+}
+
 void MemoryRule::AddAddressRange(u16 minAddress, u16 maxAddress)
 {
     stAddressRange range;
