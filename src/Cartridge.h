@@ -75,7 +75,7 @@ private:
     int m_iVersion;
     bool m_bLoaded;
     size_t m_RTCCurrentTime;
-    bool m_ bBattery;
+    bool m_bBattery;
 };
 
 #endif	/* CARTRIDGE_H */
