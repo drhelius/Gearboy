@@ -221,18 +221,20 @@ void GearboyCore::SaveRam()
         u8 ramBanksSize = m_pCurrentMapper->GetRamBanksSize();
         u8 ramBanksStart = 39;
         u8 saveStateSize = 0;
+        u8 saveStateStart = 0;
 
         ofstream file(path, ios::out | ios::binary);
 
         file.write(signature, 16);
-        file.write(reinterpret_cast<const char*>(&version), 1);
+        file.write(reinterpret_cast<const char*> (&version), 1);
         file.write(m_pCartridge->GetName(), 16);
-        file.write(reinterpret_cast<const char*>(&romType), 1);
-        file.write(reinterpret_cast<const char*>(&romSize), 1);
-        file.write(reinterpret_cast<const char*>(&ramSize), 1);
-        file.write(reinterpret_cast<const char*>(&ramBanksSize), 1);
-        file.write(reinterpret_cast<const char*>(&ramBanksStart), 1);
-        file.write(reinterpret_cast<const char*>(&saveStateSize), 1);
+        file.write(reinterpret_cast<const char*> (&romType), 1);
+        file.write(reinterpret_cast<const char*> (&romSize), 1);
+        file.write(reinterpret_cast<const char*> (&ramSize), 1);
+        file.write(reinterpret_cast<const char*> (&ramBanksSize), 1);
+        file.write(reinterpret_cast<const char*> (&ramBanksStart), 1);
+        file.write(reinterpret_cast<const char*> (&saveStateSize), 1);
+        file.write(reinterpret_cast<const char*> (&saveStateStart), 1);
 
         m_pCurrentMapper->SaveRam(file);
 
@@ -245,7 +247,7 @@ void GearboyCore::LoadRam()
     if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pCurrentMapper))
     {
         using namespace std;
-        
+
         char path[512];
 
         strcpy(path, m_pCartridge->GetFilePath());
@@ -255,6 +257,28 @@ void GearboyCore::LoadRam()
 
         if (!file.fail())
         {
+            char signature[16];
+            u8 version;
+            char romName[16];
+            u8 romType;
+            u8 romSize;
+            u8 ramSize;
+            u8 ramBanksSize;
+            u8 ramBanksStart;
+            u8 saveStateSize;
+            u8 saveStateStart;
+            
+            file.read(signature, 16);
+            file.read(reinterpret_cast<char*> (&version), 1);
+            file.read(romName, 16);
+            file.read(reinterpret_cast<char*> (&romType), 1);
+            file.read(reinterpret_cast<char*> (&romSize), 1);
+            file.read(reinterpret_cast<char*> (&ramSize), 1);
+            file.read(reinterpret_cast<char*> (&ramBanksSize), 1);
+            file.read(reinterpret_cast<char*> (&ramBanksStart), 1);
+            file.read(reinterpret_cast<char*> (&saveStateSize), 1);
+            file.read(reinterpret_cast<char*> (&saveStateStart), 1);
+
             m_pCurrentMapper->LoadRam(file);
         }
 
@@ -328,7 +352,7 @@ bool GearboyCore::AddMemoryRules()
     m_pMemory->AddRule(m_pCommonMemoryRule);
 
     Cartridge::CartridgeTypes type = m_pCartridge->GetType();
-    
+
     bool notSupported = false;
 
     switch (type)

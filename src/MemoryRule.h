@@ -41,11 +41,11 @@ public:
     virtual void Reset(bool bCGB) = 0;
     virtual void SaveRam(std::ofstream &file);
     virtual void LoadRam(std::ifstream &file);
+    virtual int GetRamBanksSize();
     void AddAddressRange(u16 minAddress, u16 maxAddress);
     void ClearAddressRanges();
     bool IsAddressInRanges(u16 address);
-    int GetRamBanksSize();
-    
+
 protected:
     Processor* m_pProcessor;
     Memory* m_pMemory;

@@ -24,12 +24,14 @@
 #include "Input.h"
 #include "Cartridge.h"
 
+const int kMBC1RamBanksSize = 0x8000;
+
 MBC1MemoryRule::MBC1MemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
         Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
 pMemory, pVideo, pInput, pCartridge, pAudio)
 {
-    m_pRAMBanks = new u8[0x8000];
+    m_pRAMBanks = new u8[kMBC1RamBanksSize];
     Reset(false);
 }
 
@@ -155,6 +157,52 @@ void MBC1MemoryRule::Reset(bool bCGB)
     m_iCurrentROMBank = 1;
     m_HigherRomBankBits = 0;
     m_bRamEnabled = false;
-    for (int i = 0; i < 0x8000; i++)
+    for (int i = 0; i < kMBC1RamBanksSize; i++)
         m_pRAMBanks[i] = 0xFF;
+}
+
+void MBC1MemoryRule::SaveRam(std::ofstream &file)
+{
+    u8 mode = m_iMode;
+    file.write(reinterpret_cast<const char*> (&mode), 1);
+    
+    for (int i = 0; i < kMBC1RamBanksSize; i++)
+    {
+        u8 ram_byte = 0;
+        if ((m_iMode == 0) && (i < 0x2000))
+        {
+            ram_byte = m_pMemory->Retrieve(0xA000 + i);
+        }
+        else
+        {
+            ram_byte = m_pRAMBanks[i];
+        }
+        file.write(reinterpret_cast<const char*> (&ram_byte), 1);
+    }
+}
+
+void MBC1MemoryRule::LoadRam(std::ifstream &file)
+{
+    u8 mode;
+    file.read(reinterpret_cast<char*> (&mode), 1);
+
+    for (int i = 0; i < kMBC1RamBanksSize; i++)
+    {
+        u8 ram_byte = 0;
+        file.read(reinterpret_cast<char*> (&ram_byte), 1);
+        
+        if ((mode == 0) && (i < 0x2000))
+        {
+            m_pMemory->Load(0xA000 + i, ram_byte);
+        }
+        else
+        {
+            m_pRAMBanks[i] = ram_byte;
+        }
+    }
+}
+
+int MBC1MemoryRule::GetRamBanksSize()
+{
+    return kMBC1RamBanksSize + 1;
 }

@@ -38,6 +38,8 @@ void Emulator::Init()
 void Emulator::LoadRom(const char* szFilePath, bool forceDMG)
 {
     m_Mutex.lock();
+    if (m_pGearboyCore->GetCartridge()->IsLoadedROM())
+        m_pGearboyCore->SaveRam();
     m_pGearboyCore->LoadROM(szFilePath, forceDMG);
     m_pGearboyCore->LoadRam();
     m_Mutex.unlock();
