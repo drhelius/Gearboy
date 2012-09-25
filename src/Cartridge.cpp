@@ -443,19 +443,48 @@ bool Cartridge::GatherMetadata()
     Log("ROM Type %X", type);
     Log("ROM Size %X", m_iROMSize);
     Log("RAM Size %X", m_iRAMSize);
+    
+    switch (m_Type)
+    {
+        case Cartridge::CartridgeNoMBC:
+            Log("No MBC found");
+            break;
+        case Cartridge::CartridgeMBC1:
+            Log("MBC1 found");
+            break;
+        case Cartridge::CartridgeMBC2:
+            Log("MBC2 found");
+            break;
+        case Cartridge::CartridgeMBC3:
+            Log("MBC3 found");
+            break;
+        case Cartridge::CartridgeMBC5:
+            Log("MBC5 found");
+            break;
+        case Cartridge::CartridgeNotSupported:
+            Log("Cartridge not supported!!");
+            break;
+        default:
+            break;
+    }
+    
+    if (m_bBattery)
+    {
+        Log("Battery powered RAM found");
+    }
 
     if (m_pTheROM[0x143] == 0xC0)
     {
-        Log("Game Boy Color Only!");
+        Log("Game Boy Color only");
     }
     else if (m_bCGB)
     {
-        Log("Game Boy Color Supported");
+        Log("Game Boy Color supported");
     }
 
     if (m_bSGB)
     {
-        Log("Super Game Boy Supported");
+        Log("Super Game Boy supported");
     }
 
     int checksum = 0;
