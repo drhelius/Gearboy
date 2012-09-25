@@ -79,3 +79,28 @@ void RomOnlyMemoryRule::Reset(bool bCGB)
     m_bCGB = bCGB;
 }
 
+void RomOnlyMemoryRule::SaveRam(std::ofstream &file)
+{
+    for (int i = 0xA000; i < 0xC000; i++)
+    {
+        u8 ram_byte = 0;
+        ram_byte = m_pMemory->Retrieve(i);
+        file.write(reinterpret_cast<const char*> (&ram_byte), 1);
+    }
+}
+
+void RomOnlyMemoryRule::LoadRam(std::ifstream &file)
+{
+    for (int i = 0xA000; i < 0xC000; i++)
+    {
+        u8 ram_byte = 0;
+        file.read(reinterpret_cast<char*> (&ram_byte), 1);
+        m_pMemory->Load(i, ram_byte);
+    }
+}
+
+int RomOnlyMemoryRule::GetRamBanksSize()
+{
+    return 0x2000;
+}
+
