@@ -46,6 +46,7 @@ public:
     int GetRAMSize() const;
     int GetROMSize() const;
     const char* GetName() const;
+    const char* GetFilePath() const;
     int GetTotalSize() const;
     bool HasBattery() const;
     u8* GetTheROM() const;
@@ -58,7 +59,7 @@ public:
     size_t GetCurrentRTC();
 
 private:
-    void GatherMetadata();
+    bool GatherMetadata();
     bool LoadFromZipFile(const u8* buffer, int size);
     void CheckCartridgeType(int type);
 
@@ -76,6 +77,7 @@ private:
     bool m_bLoaded;
     size_t m_RTCCurrentTime;
     bool m_bBattery;
+    char m_szFilePath[512];
 };
 
 #endif	/* CARTRIDGE_H */

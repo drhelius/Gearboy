@@ -37,6 +37,7 @@ Cartridge::Cartridge()
     m_bLoaded = false;
     m_RTCCurrentTime = 0;
     m_bBattery = false;
+    m_szFilePath[0] = 0;
 }
 
 Cartridge::~Cartridge()
@@ -64,6 +65,7 @@ void Cartridge::Reset()
     m_bLoaded = false;
     m_RTCCurrentTime = 0;
     m_bBattery = false;
+    m_szFilePath[0] = 0;
 }
 
 bool Cartridge::IsValidROM() const
@@ -94,6 +96,11 @@ int Cartridge::GetROMSize() const
 const char* Cartridge::GetName() const
 {
     return m_szName;
+}
+
+const char* Cartridge::GetFilePath() const
+{
+    return m_szFilePath;
 }
 
 int Cartridge::GetTotalSize() const
@@ -152,15 +159,15 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
             {
                 Log("mz_zip_reader_extract_file_to_heap() failed!");
                 mz_zip_reader_end(&zip_archive);
-                return EXIT_FAILURE;
+                return false;
             }
 
-            LoadFromBuffer((const u8*) p, uncomp_size);
+            bool ok = LoadFromBuffer((const u8*) p, uncomp_size);
 
             free(p);
             mz_zip_reader_end(&zip_archive);
 
-            return true;
+            return ok;
         }
     }
     return false;
@@ -168,11 +175,13 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
 
 bool Cartridge::LoadFromFile(const char* path)
 {
-    Reset();
-
     using namespace std;
 
     Log("Loading %s...", path);
+        
+    Reset();
+
+    strcpy(m_szFilePath, path);
 
     ifstream file(path, ios::in | ios::binary | ios::ate);
 
@@ -208,14 +217,19 @@ bool Cartridge::LoadFromFile(const char* path)
         }
 
         SafeDeleteArray(memblock);
-        return m_bLoaded;
     }
     else
     {
         Log("There was a problem loading the file %s...", path);
         m_bLoaded = false;
-        return m_bLoaded;
     }
+
+    if (!m_bLoaded)
+    {
+        Reset();
+    }
+
+    return m_bLoaded;
 }
 
 bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
@@ -225,8 +239,7 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
         m_iTotalSize = size;
         m_pTheROM = new u8[m_iTotalSize];
         memcpy(m_pTheROM, buffer, m_iTotalSize);
-        GatherMetadata();
-        return true;
+        return GatherMetadata();
     }
     else
         return false;
@@ -399,7 +412,7 @@ size_t Cartridge::GetCurrentRTC()
     return m_RTCCurrentTime;
 }
 
-void Cartridge::GatherMetadata()
+bool Cartridge::GatherMetadata()
 {
     char name[12] = {0};
     name[11] = 0;
@@ -452,11 +465,17 @@ void Cartridge::GatherMetadata()
         checksum += m_pTheROM[j];
     }
 
-    m_bValidROM = ((checksum + 25) & BIT_MASK_8) == 0;
+    m_bValidROM = ((checksum + 25) & 0xFF) == 0;
 
     if (m_bValidROM)
     {
         Log("Checksum OK!");
     }
+    else
+    {
+        Log("Checksum FAILED!!!");
+    }
+
+    return (m_Type != CartridgeNotSupported);
 }
 
