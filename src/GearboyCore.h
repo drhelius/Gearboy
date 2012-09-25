@@ -45,6 +45,7 @@ public:
     void RunToVBlank(GB_Color* pFrameBuffer);
     bool LoadROM(const char* szFilePath, bool forceDMG);
     Memory* GetMemory();
+    Cartridge* GetCartridge();
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause(bool paused);
@@ -53,6 +54,8 @@ public:
     void EnableSound(bool enabled);
     void SetSoundSampleRate(int rate);
     void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
+    void SaveRam();
+    void LoadRam();
 
 private:
     void InitDMGPalette();
@@ -75,7 +78,6 @@ private:
     MBC2MemoryRule* m_pMBC2MemoryRule;
     MBC3MemoryRule* m_pMBC3MemoryRule;
     MBC5MemoryRule* m_pMBC5MemoryRule;
-    Gameboy_MemoryBankControllers m_MBC;
     bool m_bCGB;
     bool m_bPaused;
     GB_Color m_DMGPalette[4];

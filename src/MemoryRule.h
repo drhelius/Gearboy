@@ -39,6 +39,8 @@ public:
     virtual u8 PerformRead(u16 address) = 0;
     virtual void PerformWrite(u16 address, u8 value) = 0;
     virtual void Reset(bool bCGB) = 0;
+    virtual void SaveRam(std::ofstream &file);
+    virtual void LoadRam(std::ifstream &file);
     void AddAddressRange(u16 minAddress, u16 maxAddress);
     void ClearAddressRanges();
     bool IsAddressInRanges(u16 address);

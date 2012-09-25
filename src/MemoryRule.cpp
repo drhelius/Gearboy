@@ -36,6 +36,16 @@ MemoryRule::~MemoryRule()
 
 }
 
+void MemoryRule::SaveRam(std::ofstream&)
+{
+
+}
+
+void MemoryRule::LoadRam(std::ifstream&)
+{
+
+}
+
 void MemoryRule::AddAddressRange(u16 minAddress, u16 maxAddress)
 {
     stAddressRange range;

@@ -47,7 +47,6 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC2MemoryRule);
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
-    m_MBC = MBC_NONE;
     m_bCGB = false;
     m_bPaused = true;
     m_bForceDMG = false;
@@ -142,6 +141,11 @@ Memory* GearboyCore::GetMemory()
     return m_pMemory;
 }
 
+Cartridge* GearboyCore::GetCartridge()
+{
+    return m_pCartridge;
+}
+
 void GearboyCore::KeyPressed(Gameboy_Keys key)
 {
     m_pInput->KeyPressed(key);
@@ -194,6 +198,20 @@ void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& co
     m_DMGPalette[1].alpha = 0xFF;
     m_DMGPalette[2].alpha = 0xFF;
     m_DMGPalette[3].alpha = 0xFF;
+}
+
+void GearboyCore::SaveRam()
+{
+    if (m_pCartridge->IsLoadedROM())
+    {
+    }
+}
+
+void GearboyCore::LoadRam()
+{
+    if (m_pCartridge->IsLoadedROM())
+    {
+    }
 }
 
 void GearboyCore::InitDMGPalette()
@@ -305,7 +323,6 @@ void GearboyCore::Reset(bool bCGB)
         Log("Defaulting to Game Boy DMG");
     }
 
-    m_MBC = MBC_NONE;
     m_pMemory->Reset(m_bCGB);
     m_pProcessor->Reset(m_bCGB);
     m_pVideo->Reset(m_bCGB);
