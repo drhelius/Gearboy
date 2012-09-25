@@ -66,7 +66,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
 {
     if (address < 0x1000)
     {
-        m_bRamEnabled = (value & 0x0A) == 0x0A;
+        m_bRamEnabled = (value & 0x0F) == 0x0A;
     }
     else if (address >= 0x1000 && address < 0x2100)
     {

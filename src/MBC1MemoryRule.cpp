@@ -83,7 +83,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     if (address < 0x2000)
     {
         if (m_pCartridge->GetRAMSize() > 0)
-            m_bRamEnabled = ((value & 0x0A) == 0x0A);
+            m_bRamEnabled = ((value & 0x0F) == 0x0A);
     }
     else if (address >= 0x2000 && address < 0x4000)
     {
