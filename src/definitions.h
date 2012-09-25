@@ -53,10 +53,6 @@ typedef int32_t s32;
 typedef uint64_t u64;
 typedef int64_t s64;
 
-#define BIT_MASK_4 0x0F
-#define BIT_MASK_8 0xFF
-#define BIT_MASK_16 0xFFFF
-
 #define FLAG_ZERO 0x80
 #define FLAG_SUB 0x40
 #define FLAG_HALF 0x20
@@ -84,15 +80,6 @@ enum Gameboy_Keys
     Left_Key = 1,
     Up_Key = 2,
     Down_Key = 3
-};
-
-enum Gameboy_MemoryBankControllers
-{
-    MBC_NONE,
-    MBC1,
-    MBC2,
-    MBC3,
-    MBC5
 };
 
 #ifdef DEBUG_GEARBOY
