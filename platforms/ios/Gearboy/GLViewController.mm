@@ -62,7 +62,7 @@
         scale=1; 
     }
     
-    BOOL retina;
+    BOOL retina, iPad;
     retina = (scale != 1);
     
     int multiplier = 0;
@@ -82,6 +82,7 @@
     }
     else
     {
+        iPad = YES;
         if (retina)
         {
             multiplier = 5;
@@ -96,6 +97,7 @@
     
     self.theEmulator.multiplier = multiplier * (retina ? 2 : 1);
     self.theEmulator.retina = retina;
+    self.theEmulator.iPad = iPad;
 }
 
 - (void)loadRomWithName: (NSString*) name

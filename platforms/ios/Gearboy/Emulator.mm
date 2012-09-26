@@ -31,7 +31,7 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
 
 @implementation Emulator
 
-@synthesize multiplier, retina;
+@synthesize multiplier, retina, iPad;
 
 -(id)init
 {
@@ -93,6 +93,7 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
 
 -(void)dealloc
 {
+    theGearboyCore->SaveRam();
     SafeDeleteArray(theTexture);
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearboyCore);
@@ -126,7 +127,7 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
         [self initGL];     
     }
     
-    if (retina)
+    if (retina || iPad)
     {
         [self renderMixFrames];
     }
@@ -226,7 +227,9 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
 
 -(void)loadRomWithPath: (NSString *)filePath
 {
+    theGearboyCore->SaveRam();
     theGearboyCore->LoadROM([filePath UTF8String], false);
+    theGearboyCore->LoadRam();
     firstFrame = YES;
 }
 
@@ -257,7 +260,9 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
 
 -(void)reset
 {
+    theGearboyCore->SaveRam();
     theGearboyCore->ResetROM(false);
+    theGearboyCore->LoadRam();
     firstFrame = YES;
 }
 
