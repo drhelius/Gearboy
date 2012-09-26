@@ -304,10 +304,10 @@ void GearboyCore::LoadRam()
                 Log("Integrity check failed loading save file");
             }
         }
-    }
-    else
-    {
-        Log("Save file doesn't exist");
+        else
+        {
+            Log("Save file doesn't exist");
+        }
     }
 }
 
