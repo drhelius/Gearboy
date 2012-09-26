@@ -35,7 +35,6 @@ Todo List
 - Saving and loading game states.
 - Improve Game Boy Color support (https://gist.github.com/3394856).
 - Pixel precision scan line timing (https://gist.github.com/3730564).
-- Improve compatibility.
 - Debugger.
 
 Compiling Instructions
