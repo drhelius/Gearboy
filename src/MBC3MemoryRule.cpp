@@ -199,6 +199,39 @@ void MBC3MemoryRule::Reset(bool bCGB)
     m_RTCLastTimeCache = 0;
 }
 
+void MBC3MemoryRule::SaveRam(std::ofstream &file)
+{
+    Log("MBC3MemoryRule save RAM...");
+    
+    for (int i = 0; i < 0x8000; i++)
+    {
+        u8 ram_byte = 0;
+        ram_byte = m_pRAMBanks[i];
+        file.write(reinterpret_cast<const char*> (&ram_byte), 1);
+    }
+    
+    Log("MBC3MemoryRule save RAM done");
+}
+
+void MBC3MemoryRule::LoadRam(std::ifstream &file)
+{
+    Log("MBC3MemoryRule load RAM...");
+    
+    for (int i = 0; i < 0x8000; i++)
+    {
+        u8 ram_byte = 0;
+        file.read(reinterpret_cast<char*> (&ram_byte), 1);
+        m_pRAMBanks[i] = ram_byte;
+    }
+    
+    Log("MBC3MemoryRule load RAM done");
+}
+
+int MBC3MemoryRule::GetRamBanksSize()
+{
+    return 0x8000;
+}
+
 void MBC3MemoryRule::UpdateRTC()
 {
     time_t now = m_pCartridge->GetCurrentRTC();
@@ -249,3 +282,4 @@ void MBC3MemoryRule::UpdateRTC()
         m_RTCLastTime = now;
     }
 }
+
