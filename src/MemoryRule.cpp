@@ -38,12 +38,12 @@ MemoryRule::~MemoryRule()
 
 void MemoryRule::SaveRam(std::ofstream&)
 {
-
+    Log("Save RAM not implemented");
 }
 
 void MemoryRule::LoadRam(std::ifstream&)
 {
-
+    Log("Load RAM not implemented");
 }
 
 int MemoryRule::GetRamBanksSize()

@@ -206,6 +206,8 @@ void GearboyCore::SaveRam()
 {
     if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pCurrentMapper))
     {
+        Log("Saving RAM...");
+
         using namespace std;
 
         char path[512];
@@ -213,7 +215,9 @@ void GearboyCore::SaveRam()
         strcpy(path, m_pCartridge->GetFilePath());
         strcat(path, ".gearboy");
 
-        char signature[16] = "GearboySaveFile";
+        Log("Save file: %s", path);
+
+        char signature[16] = SAVE_FILE_SIGNATURE;
         u8 version = SAVE_FILE_VERSION;
         u8 romType = m_pCartridge->GetType();
         u8 romSize = m_pCartridge->GetROMSize();
@@ -236,9 +240,11 @@ void GearboyCore::SaveRam()
         file.write(reinterpret_cast<const char*> (&saveStateSize), 1);
         file.write(reinterpret_cast<const char*> (&saveStateStart), 1);
 
+        Log("Header saved");
+
         m_pCurrentMapper->SaveRam(file);
 
-        file.close();
+        Log("RAM saved");
     }
 }
 
@@ -246,12 +252,16 @@ void GearboyCore::LoadRam()
 {
     if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pCurrentMapper))
     {
+        Log("Loading RAM...");
+
         using namespace std;
 
         char path[512];
 
         strcpy(path, m_pCartridge->GetFilePath());
         strcat(path, ".gearboy");
+
+        Log("Save file: %s", path);
 
         ifstream file(path, ios::in | ios::binary);
 
@@ -267,7 +277,7 @@ void GearboyCore::LoadRam()
             u8 ramBanksStart;
             u8 saveStateSize;
             u8 saveStateStart;
-            
+
             file.read(signature, 16);
             file.read(reinterpret_cast<char*> (&version), 1);
             file.read(romName, 16);
@@ -279,10 +289,25 @@ void GearboyCore::LoadRam()
             file.read(reinterpret_cast<char*> (&saveStateSize), 1);
             file.read(reinterpret_cast<char*> (&saveStateStart), 1);
 
-            m_pCurrentMapper->LoadRam(file);
-        }
+            Log("Header loaded");
 
-        file.close();
+            if ((strcmp(signature, SAVE_FILE_SIGNATURE) == 0) && (strcmp(romName, m_pCartridge->GetName()) == 0) &&
+                    (version == SAVE_FILE_VERSION) && (romType == m_pCartridge->GetType()) &&
+                    (romSize == m_pCartridge->GetROMSize()) && (ramSize == m_pCartridge->GetRAMSize()))
+            {
+                m_pCurrentMapper->LoadRam(file);
+
+                Log("RAM loaded");
+            }
+            else
+            {
+                Log("Integrity check failed loading save file");
+            }
+        }
+    }
+    else
+    {
+        Log("Save file doesn't exist");
     }
 }
 

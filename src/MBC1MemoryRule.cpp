@@ -163,8 +163,12 @@ void MBC1MemoryRule::Reset(bool bCGB)
 
 void MBC1MemoryRule::SaveRam(std::ofstream &file)
 {
+    Log("MBC1MemoryRule save RAM...");
+    
     u8 mode = m_iMode;
     file.write(reinterpret_cast<const char*> (&mode), 1);
+    
+    Log("MBC1MemoryRule save RAM mode %d", mode);
     
     for (int i = 0; i < kMBC1RamBanksSize; i++)
     {
@@ -179,12 +183,18 @@ void MBC1MemoryRule::SaveRam(std::ofstream &file)
         }
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
+    
+    Log("MBC1MemoryRule save RAM done");
 }
 
 void MBC1MemoryRule::LoadRam(std::ifstream &file)
 {
+    Log("MBC1MemoryRule load RAM...");
+    
     u8 mode;
     file.read(reinterpret_cast<char*> (&mode), 1);
+    
+    Log("MBC1MemoryRule load RAM mode %d", mode);
 
     for (int i = 0; i < kMBC1RamBanksSize; i++)
     {
@@ -200,6 +210,8 @@ void MBC1MemoryRule::LoadRam(std::ifstream &file)
             m_pRAMBanks[i] = ram_byte;
         }
     }
+    
+    Log("MBC1MemoryRule load RAM done");
 }
 
 int MBC1MemoryRule::GetRamBanksSize()
