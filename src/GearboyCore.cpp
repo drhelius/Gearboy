@@ -24,6 +24,7 @@
 #include "Audio.h"
 #include "Input.h"
 #include "Cartridge.h"
+#include "MemoryRule.h"
 #include "CommonMemoryRule.h"
 #include "IORegistersMemoryRule.h"
 #include "RomOnlyMemoryRule.h"
@@ -47,7 +48,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC2MemoryRule);
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
-    m_MBC = MBC_NONE;
+    InitPointer(m_pCurrentMapper);
     m_bCGB = false;
     m_bPaused = true;
     m_bForceDMG = false;
@@ -142,6 +143,11 @@ Memory* GearboyCore::GetMemory()
     return m_pMemory;
 }
 
+Cartridge* GearboyCore::GetCartridge()
+{
+    return m_pCartridge;
+}
+
 void GearboyCore::KeyPressed(Gameboy_Keys key)
 {
     m_pInput->KeyPressed(key);
@@ -194,6 +200,115 @@ void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& co
     m_DMGPalette[1].alpha = 0xFF;
     m_DMGPalette[2].alpha = 0xFF;
     m_DMGPalette[3].alpha = 0xFF;
+}
+
+void GearboyCore::SaveRam()
+{
+    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pCurrentMapper))
+    {
+        Log("Saving RAM...");
+
+        using namespace std;
+
+        char path[512];
+
+        strcpy(path, m_pCartridge->GetFilePath());
+        strcat(path, ".gearboy");
+
+        Log("Save file: %s", path);
+
+        char signature[16] = SAVE_FILE_SIGNATURE;
+        u8 version = SAVE_FILE_VERSION;
+        u8 romType = m_pCartridge->GetType();
+        u8 romSize = m_pCartridge->GetROMSize();
+        u8 ramSize = m_pCartridge->GetRAMSize();
+        u8 ramBanksSize = m_pCurrentMapper->GetRamBanksSize();
+        u8 ramBanksStart = 39;
+        u8 saveStateSize = 0;
+        u8 saveStateStart = 0;
+
+        ofstream file(path, ios::out | ios::binary);
+
+        file.write(signature, 16);
+        file.write(reinterpret_cast<const char*> (&version), 1);
+        file.write(m_pCartridge->GetName(), 16);
+        file.write(reinterpret_cast<const char*> (&romType), 1);
+        file.write(reinterpret_cast<const char*> (&romSize), 1);
+        file.write(reinterpret_cast<const char*> (&ramSize), 1);
+        file.write(reinterpret_cast<const char*> (&ramBanksSize), 1);
+        file.write(reinterpret_cast<const char*> (&ramBanksStart), 1);
+        file.write(reinterpret_cast<const char*> (&saveStateSize), 1);
+        file.write(reinterpret_cast<const char*> (&saveStateStart), 1);
+
+        Log("Header saved");
+
+        m_pCurrentMapper->SaveRam(file);
+
+        Log("RAM saved");
+    }
+}
+
+void GearboyCore::LoadRam()
+{
+    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pCurrentMapper))
+    {
+        Log("Loading RAM...");
+
+        using namespace std;
+
+        char path[512];
+
+        strcpy(path, m_pCartridge->GetFilePath());
+        strcat(path, ".gearboy");
+
+        Log("Save file: %s", path);
+
+        ifstream file(path, ios::in | ios::binary);
+
+        if (!file.fail())
+        {
+            char signature[16];
+            u8 version;
+            char romName[16];
+            u8 romType;
+            u8 romSize;
+            u8 ramSize;
+            u8 ramBanksSize;
+            u8 ramBanksStart;
+            u8 saveStateSize;
+            u8 saveStateStart;
+
+            file.read(signature, 16);
+            file.read(reinterpret_cast<char*> (&version), 1);
+            file.read(romName, 16);
+            file.read(reinterpret_cast<char*> (&romType), 1);
+            file.read(reinterpret_cast<char*> (&romSize), 1);
+            file.read(reinterpret_cast<char*> (&ramSize), 1);
+            file.read(reinterpret_cast<char*> (&ramBanksSize), 1);
+            file.read(reinterpret_cast<char*> (&ramBanksStart), 1);
+            file.read(reinterpret_cast<char*> (&saveStateSize), 1);
+            file.read(reinterpret_cast<char*> (&saveStateStart), 1);
+
+            Log("Header loaded");
+
+            if ((strcmp(signature, SAVE_FILE_SIGNATURE) == 0) && (strcmp(romName, m_pCartridge->GetName()) == 0) &&
+                    (version == SAVE_FILE_VERSION) && (romType == m_pCartridge->GetType()) &&
+                    (romSize == m_pCartridge->GetROMSize()) && (ramSize == m_pCartridge->GetRAMSize()))
+            {
+                m_pCurrentMapper->LoadRam(file);
+
+                Log("RAM loaded");
+            }
+            else
+            {
+                Log("Integrity check failed loading save file");
+            }
+        }
+        else
+        {
+            Log("Save file doesn't exist");
+        }
+    }
 }
 
 void GearboyCore::InitDMGPalette()
@@ -261,113 +376,38 @@ bool GearboyCore::AddMemoryRules()
     m_pMemory->AddRule(m_pIORegistersMemoryRule);
     m_pMemory->AddRule(m_pCommonMemoryRule);
 
-    int type = m_pCartridge->GetType();
-    if ((type != 0xEA) && (m_pCartridge->GetROMSize() == 0))
-        type = 0;
+    Cartridge::CartridgeTypes type = m_pCartridge->GetType();
 
     bool notSupported = false;
 
     switch (type)
     {
-        case 0x00:
-            // NO MBC
-        case 0x08:
-            // ROM   
-            // SRAM 
-        case 0x09:
-            // ROM
-            // SRAM
-            // BATT
+        case Cartridge::CartridgeNoMBC:
+            m_pCurrentMapper = m_pRomOnlyMemoryRule;
             m_pMemory->AddRule(m_pRomOnlyMemoryRule);
             break;
-        case 0x01:
-            // MBC1
-        case 0x02:
-            // MBC1
-            // SRAM
-        case 0x03:
-            // MBC1
-            // SRAM
-            // BATT
-        case 0xEA:
-            // Hack to accept 0xEA as a MBC1 memory bank controller (Sonic 3D Blast 5)
+        case Cartridge::CartridgeMBC1:
+            m_pCurrentMapper = m_pMBC1MemoryRule;
             m_pMemory->AddRule(m_pMBC1MemoryRule);
             break;
-        case 0x05:
-            // MBC2
-        case 0x06:
-            // MBC2
-            // BATT
+        case Cartridge::CartridgeMBC2:
+            m_pCurrentMapper = m_pMBC2MemoryRule;
             m_pMemory->AddRule(m_pMBC2MemoryRule);
             break;
-        case 0x0F:
-            // MBC3
-            // TIMER
-            // BATT
-        case 0x10:
-            // MBC3
-            // TIMER
-            // BATT
-            // SRAM
-        case 0x11:
-            // MBC3
-        case 0x12:
-            // MBC3
-            // SRAM
-        case 0x13:
-            // MBC3
-            // BATT
-            // SRAM
-        case 0xFC:
+        case Cartridge::CartridgeMBC3:
+            m_pCurrentMapper = m_pMBC3MemoryRule;
             m_pMemory->AddRule(m_pMBC3MemoryRule);
             break;
-        case 0x19:
-            // MBC5
-        case 0x1A:
-            // MBC5
-            // SRAM
-        case 0x1B:
-            // MBC5
-            // BATT
-            // SRAM
-        case 0x1C:
-            // RUMBLE
-        case 0x1D:
-            // RUMBLE
-            // SRAM
-        case 0x1E:
-            // RUMBLE
-            // BATT
-            // SRAM
+        case Cartridge::CartridgeMBC5:
+            m_pCurrentMapper = m_pMBC5MemoryRule;
             m_pMemory->AddRule(m_pMBC5MemoryRule);
             break;
-        case 0x0B:
-            // MMMO1
-        case 0x0C:
-            // MMM01   
-            // SRAM 
-        case 0x0D:
-            // MMM01
-            // SRAM
-            // BATT
-        case 0x1F:
-            // Game Boy Camera
-        case 0x22:
-            // MBC7
-            // BATT
-            // SRAM
-        case 0xFD:
-            // TAMA 5
-        case 0xFE:
-            // HuC3
-        case 0xFF:
-            // HuC1
+        case Cartridge::CartridgeNotSupported:
+            InitPointer(m_pCurrentMapper);
             notSupported = true;
-            Log("--> ** This cartridge is not supported. Type: %d", type);
             break;
         default:
             notSupported = true;
-            Log("--> ** Unknown cartridge type: %d", type);
     }
 
     return !notSupported;
@@ -386,7 +426,6 @@ void GearboyCore::Reset(bool bCGB)
         Log("Defaulting to Game Boy DMG");
     }
 
-    m_MBC = MBC_NONE;
     m_pMemory->Reset(m_bCGB);
     m_pProcessor->Reset(m_bCGB);
     m_pVideo->Reset(m_bCGB);
@@ -402,6 +441,8 @@ void GearboyCore::Reset(bool bCGB)
     m_pMBC3MemoryRule->Reset(m_bCGB);
     m_pMBC5MemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
+
+    InitPointer(m_pCurrentMapper);
 
     m_bPaused = false;
 }

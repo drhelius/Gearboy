@@ -29,13 +29,15 @@ Cartridge::Cartridge()
     m_szName[0] = 0;
     m_iROMSize = 0;
     m_iRAMSize = 0;
-    m_iType = 0;
+    m_Type = CartridgeNotSupported;
     m_bValidROM = false;
     m_bCGB = false;
     m_bSGB = false;
     m_iVersion = 0;
     m_bLoaded = false;
     m_RTCCurrentTime = 0;
+    m_bBattery = false;
+    m_szFilePath[0] = 0;
 }
 
 Cartridge::~Cartridge()
@@ -55,13 +57,15 @@ void Cartridge::Reset()
     m_szName[0] = 0;
     m_iROMSize = 0;
     m_iRAMSize = 0;
-    m_iType = 0;
+    m_Type = CartridgeNotSupported;
     m_bValidROM = false;
     m_bCGB = false;
     m_bSGB = false;
     m_iVersion = 0;
     m_bLoaded = false;
     m_RTCCurrentTime = 0;
+    m_bBattery = false;
+    m_szFilePath[0] = 0;
 }
 
 bool Cartridge::IsValidROM() const
@@ -74,9 +78,9 @@ bool Cartridge::IsLoadedROM() const
     return m_bLoaded;
 }
 
-int Cartridge::GetType() const
+Cartridge::CartridgeTypes Cartridge::GetType() const
 {
-    return m_iType;
+    return m_Type;
 }
 
 int Cartridge::GetRAMSize() const
@@ -94,9 +98,19 @@ const char* Cartridge::GetName() const
     return m_szName;
 }
 
+const char* Cartridge::GetFilePath() const
+{
+    return m_szFilePath;
+}
+
 int Cartridge::GetTotalSize() const
 {
     return m_iTotalSize;
+}
+
+bool Cartridge::HasBattery() const
+{
+    return m_bBattery;
 }
 
 u8* Cartridge::GetTheROM() const
@@ -145,15 +159,15 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
             {
                 Log("mz_zip_reader_extract_file_to_heap() failed!");
                 mz_zip_reader_end(&zip_archive);
-                return EXIT_FAILURE;
+                return false;
             }
 
-            LoadFromBuffer((const u8*) p, uncomp_size);
+            bool ok = LoadFromBuffer((const u8*) p, uncomp_size);
 
             free(p);
             mz_zip_reader_end(&zip_archive);
 
-            return true;
+            return ok;
         }
     }
     return false;
@@ -161,11 +175,13 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
 
 bool Cartridge::LoadFromFile(const char* path)
 {
-    Reset();
-
     using namespace std;
 
     Log("Loading %s...", path);
+        
+    Reset();
+
+    strcpy(m_szFilePath, path);
 
     ifstream file(path, ios::in | ios::binary | ios::ate);
 
@@ -201,15 +217,19 @@ bool Cartridge::LoadFromFile(const char* path)
         }
 
         SafeDeleteArray(memblock);
-
-        return m_bLoaded;
     }
     else
     {
         Log("There was a problem loading the file %s...", path);
         m_bLoaded = false;
-        return m_bLoaded;
     }
+
+    if (!m_bLoaded)
+    {
+        Reset();
+    }
+
+    return m_bLoaded;
 }
 
 bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
@@ -219,13 +239,152 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
         m_iTotalSize = size;
         m_pTheROM = new u8[m_iTotalSize];
         memcpy(m_pTheROM, buffer, m_iTotalSize);
-
-        GatherMetadata();
-
-        return true;
+        return GatherMetadata();
     }
     else
         return false;
+}
+
+void Cartridge::CheckCartridgeType(int type)
+{
+    if ((type != 0xEA) && (GetROMSize() == 0))
+        type = 0;
+
+    switch (type)
+    {
+        case 0x00:
+            // NO MBC
+        case 0x08:
+            // ROM   
+            // SRAM 
+        case 0x09:
+            // ROM
+            // SRAM
+            // BATT
+            m_Type = CartridgeNoMBC;
+            break;
+        case 0x01:
+            // MBC1
+        case 0x02:
+            // MBC1
+            // SRAM
+        case 0x03:
+            // MBC1
+            // SRAM
+            // BATT
+        case 0xEA:
+            // Hack to accept 0xEA as a MBC1 (Sonic 3D Blast 5)
+        case 0xFF:
+            // Hack to accept HuC1 as a MBC1
+            m_Type = CartridgeMBC1;
+            break;
+        case 0x05:
+            // MBC2
+        case 0x06:
+            // MBC2
+            // BATT
+            m_Type = CartridgeMBC2;
+            break;
+        case 0x0F:
+            // MBC3
+            // TIMER
+            // BATT
+        case 0x10:
+            // MBC3
+            // TIMER
+            // BATT
+            // SRAM
+        case 0x11:
+            // MBC3
+        case 0x12:
+            // MBC3
+            // SRAM
+        case 0x13:
+            // MBC3
+            // BATT
+            // SRAM
+        case 0xFC:
+            // Game Boy Camera
+            m_Type = CartridgeMBC3;
+            break;
+        case 0x19:
+            // MBC5
+        case 0x1A:
+            // MBC5
+            // SRAM
+        case 0x1B:
+            // MBC5
+            // BATT
+            // SRAM
+        case 0x1C:
+            // RUMBLE
+        case 0x1D:
+            // RUMBLE
+            // SRAM
+        case 0x1E:
+            // RUMBLE
+            // BATT
+            // SRAM
+            m_Type = CartridgeMBC5;
+            break;
+        case 0x0B:
+            // MMMO1
+        case 0x0C:
+            // MMM01   
+            // SRAM 
+        case 0x0D:
+            // MMM01
+            // SRAM
+            // BATT
+        case 0x15:
+            // MBC4
+        case 0x16:
+            // MBC4
+            // SRAM 
+        case 0x17:
+            // MBC4
+            // SRAM
+            // BATT
+        case 0x22:
+            // MBC7
+            // BATT
+            // SRAM
+        case 0x55:
+            // GG
+        case 0x56:
+            // GS3
+        case 0xFD:
+            // TAMA 5
+        case 0xFE:
+            // HuC3
+            m_Type = CartridgeNotSupported;
+            Log("--> ** This cartridge is not supported. Type: %d", type);
+            break;
+        default:
+            m_Type = CartridgeNotSupported;
+            Log("--> ** Unknown cartridge type: %d", type);
+    }
+
+    switch(type)
+    {
+        case 0x03:
+        case 0x06:
+        case 0x09:
+        case 0x0D:
+        case 0x0F:
+        case 0x10:
+        case 0x13:
+        case 0x17:
+        case 0x1B:
+        case 0x1E:
+        case 0x22:
+        case 0xFD:
+        case 0xFF:
+            m_bBattery = true;
+            break;
+        default:
+            m_bBattery = false;
+    }
 }
 
 int Cartridge::GetVersion() const
@@ -253,7 +412,7 @@ size_t Cartridge::GetCurrentRTC()
     return m_RTCCurrentTime;
 }
 
-void Cartridge::GatherMetadata()
+bool Cartridge::GatherMetadata()
 {
     char name[12] = {0};
     name[11] = 0;
@@ -272,29 +431,60 @@ void Cartridge::GatherMetadata()
 
     m_bCGB = (m_pTheROM[0x143] == 0x80) || (m_pTheROM[0x143] == 0xC0);
     m_bSGB = (m_pTheROM[0x146] == 0x03);
-    m_iType = m_pTheROM[0x147];
+    int type = m_pTheROM[0x147];
     m_iROMSize = m_pTheROM[0x148];
     m_iRAMSize = m_pTheROM[0x149];
     m_iVersion = m_pTheROM[0x14C];
 
+    CheckCartridgeType(type);
+
     Log("ROM Name %s", m_szName);
     Log("ROM Version %d", m_iVersion);
-    Log("ROM Type %X", m_iType);
+    Log("ROM Type %X", type);
     Log("ROM Size %X", m_iROMSize);
     Log("RAM Size %X", m_iRAMSize);
+    
+    switch (m_Type)
+    {
+        case Cartridge::CartridgeNoMBC:
+            Log("No MBC found");
+            break;
+        case Cartridge::CartridgeMBC1:
+            Log("MBC1 found");
+            break;
+        case Cartridge::CartridgeMBC2:
+            Log("MBC2 found");
+            break;
+        case Cartridge::CartridgeMBC3:
+            Log("MBC3 found");
+            break;
+        case Cartridge::CartridgeMBC5:
+            Log("MBC5 found");
+            break;
+        case Cartridge::CartridgeNotSupported:
+            Log("Cartridge not supported!!");
+            break;
+        default:
+            break;
+    }
+    
+    if (m_bBattery)
+    {
+        Log("Battery powered RAM found");
+    }
 
     if (m_pTheROM[0x143] == 0xC0)
     {
-        Log("Game Boy Color Only!");
+        Log("Game Boy Color only");
     }
     else if (m_bCGB)
     {
-        Log("Game Boy Color Supported");
+        Log("Game Boy Color supported");
     }
 
     if (m_bSGB)
     {
-        Log("Super Game Boy Supported");
+        Log("Super Game Boy supported");
     }
 
     int checksum = 0;
@@ -304,11 +494,17 @@ void Cartridge::GatherMetadata()
         checksum += m_pTheROM[j];
     }
 
-    m_bValidROM = ((checksum + 25) & BIT_MASK_8) == 0;
+    m_bValidROM = ((checksum + 25) & 0xFF) == 0;
 
     if (m_bValidROM)
     {
         Log("Checksum OK!");
     }
+    else
+    {
+        Log("Checksum FAILED!!!");
+    }
+
+    return (m_Type != CartridgeNotSupported);
 }
 

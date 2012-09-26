@@ -66,7 +66,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
 {
     if (address < 0x1000)
     {
-        m_bRamEnabled = (value & 0x0A) == 0x0A;
+        m_bRamEnabled = (value & 0x0F) == 0x0A;
     }
     else if (address >= 0x1000 && address < 0x2100)
     {
@@ -106,6 +106,39 @@ void MBC2MemoryRule::Reset(bool bCGB)
     m_bCGB = bCGB;
     m_iCurrentROMBank = 1;
     m_bRamEnabled = false;
+}
+
+void MBC2MemoryRule::SaveRam(std::ofstream &file)
+{
+    Log("MBC2MemoryRule save RAM...");
+    
+    for (int i = 0xA000; i < 0xA200; i++)
+    {
+        u8 ram_byte = 0;
+        ram_byte = m_pMemory->Retrieve(i);
+        file.write(reinterpret_cast<const char*> (&ram_byte), 1);
+    }
+    
+    Log("MBC2MemoryRule save RAM done");
+}
+
+void MBC2MemoryRule::LoadRam(std::ifstream &file)
+{
+    Log("MBC2MemoryRule load RAM...");
+    
+    for (int i = 0xA000; i < 0xA200; i++)
+    {
+        u8 ram_byte = 0;
+        file.read(reinterpret_cast<char*> (&ram_byte), 1);
+        m_pMemory->Load(i, ram_byte);
+    }
+    
+    Log("MBC2MemoryRule load RAM done");
+}
+
+int MBC2MemoryRule::GetRamBanksSize()
+{
+    return 0x200;
 }
 
 

@@ -24,12 +24,14 @@
 #include "Input.h"
 #include "Cartridge.h"
 
+const int kMBC1RamBanksSize = 0x8000;
+
 MBC1MemoryRule::MBC1MemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
         Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
 pMemory, pVideo, pInput, pCartridge, pAudio)
 {
-    m_pRAMBanks = new u8[0x8000];
+    m_pRAMBanks = new u8[kMBC1RamBanksSize];
     Reset(false);
 }
 
@@ -83,7 +85,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     if (address < 0x2000)
     {
         if (m_pCartridge->GetRAMSize() > 0)
-            m_bRamEnabled = ((value & 0x0A) == 0x0A);
+            m_bRamEnabled = ((value & 0x0F) == 0x0A);
     }
     else if (address >= 0x2000 && address < 0x4000)
     {
@@ -155,6 +157,64 @@ void MBC1MemoryRule::Reset(bool bCGB)
     m_iCurrentROMBank = 1;
     m_HigherRomBankBits = 0;
     m_bRamEnabled = false;
-    for (int i = 0; i < 0x8000; i++)
+    for (int i = 0; i < kMBC1RamBanksSize; i++)
         m_pRAMBanks[i] = 0xFF;
+}
+
+void MBC1MemoryRule::SaveRam(std::ofstream &file)
+{
+    Log("MBC1MemoryRule save RAM...");
+    
+    u8 mode = m_iMode;
+    file.write(reinterpret_cast<const char*> (&mode), 1);
+    
+    Log("MBC1MemoryRule save RAM mode %d", mode);
+    
+    for (int i = 0; i < kMBC1RamBanksSize; i++)
+    {
+        u8 ram_byte = 0;
+        if ((m_iMode == 0) && (i < 0x2000))
+        {
+            ram_byte = m_pMemory->Retrieve(0xA000 + i);
+        }
+        else
+        {
+            ram_byte = m_pRAMBanks[i];
+        }
+        file.write(reinterpret_cast<const char*> (&ram_byte), 1);
+    }
+    
+    Log("MBC1MemoryRule save RAM done");
+}
+
+void MBC1MemoryRule::LoadRam(std::ifstream &file)
+{
+    Log("MBC1MemoryRule load RAM...");
+    
+    u8 mode;
+    file.read(reinterpret_cast<char*> (&mode), 1);
+    
+    Log("MBC1MemoryRule load RAM mode %d", mode);
+
+    for (int i = 0; i < kMBC1RamBanksSize; i++)
+    {
+        u8 ram_byte = 0;
+        file.read(reinterpret_cast<char*> (&ram_byte), 1);
+        
+        if ((mode == 0) && (i < 0x2000))
+        {
+            m_pMemory->Load(0xA000 + i, ram_byte);
+        }
+        else
+        {
+            m_pRAMBanks[i] = ram_byte;
+        }
+    }
+    
+    Log("MBC1MemoryRule load RAM done");
+}
+
+int MBC1MemoryRule::GetRamBanksSize()
+{
+    return kMBC1RamBanksSize + 1;
 }
