@@ -39,6 +39,7 @@
 
 @property (nonatomic) BOOL multiplier;
 @property (nonatomic) BOOL retina;
+@property (nonatomic) BOOL iPad;
 
 -(void)update;
 -(void)draw;
