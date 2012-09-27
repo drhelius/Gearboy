@@ -42,6 +42,7 @@ private:
     int m_iCurrentRAMBank;
     int m_iCurrentROMBank;
     bool m_bRamEnabled;
+    bool m_bRTCEnabled;
     u8* m_pRAMBanks;
     int m_iRTCSeconds;
     int m_iRTCMinutes;

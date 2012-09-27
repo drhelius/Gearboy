@@ -57,6 +57,7 @@ public:
     bool IsCGB() const;
     void UpdateCurrentRTC();
     size_t GetCurrentRTC();
+    bool IsRTCPresent() const;
 
 private:
     bool GatherMetadata();
@@ -78,6 +79,7 @@ private:
     size_t m_RTCCurrentTime;
     bool m_bBattery;
     char m_szFilePath[512];
+    bool m_bRTCPresent;
 };
 
 #endif	/* CARTRIDGE_H */
