@@ -47,39 +47,44 @@ u8 MBC3MemoryRule::PerformRead(u16 address)
     }
     else if (address >= 0xA000 && address < 0xC000)
     {
-        if (m_bRamEnabled)
+        if (m_iCurrentRAMBank >= 0)
         {
-            if (m_iCurrentRAMBank >= 0)
+            if (m_bRamEnabled)
             {
                 return m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)];
             }
             else
             {
-                switch (m_RTCRegister)
-                {
-                    case 0x08:
-                        return m_iRTCLatchedSeconds;
-                        break;
-                    case 0x09:
-                        return m_iRTCLatchedMinutes;
-                        break;
-                    case 0x0A:
-                        return m_iRTCLatchedHours;
-                        break;
-                    case 0x0B:
-                        return m_iRTCLatchedDays;
-                        break;
-                    case 0x0C:
-                        return m_iRTCLatchedControl;
-                        break;
-                    default:
-                        return 0xFF;
-                }
+                Log("--> ** Attempting to read from disabled ram %X", address);
+                return 0xFF;
+            }
+        }
+        else if (m_pCartridge->IsRTCPresent() && m_bRTCEnabled)
+        {
+            switch (m_RTCRegister)
+            {
+                case 0x08:
+                    return m_iRTCLatchedSeconds;
+                    break;
+                case 0x09:
+                    return m_iRTCLatchedMinutes;
+                    break;
+                case 0x0A:
+                    return m_iRTCLatchedHours;
+                    break;
+                case 0x0B:
+                    return m_iRTCLatchedDays;
+                    break;
+                case 0x0C:
+                    return m_iRTCLatchedControl;
+                    break;
+                default:
+                    return 0xFF;
             }
         }
         else
         {
-            Log("--> ** Attempting to read from disabled ram %X", address);
+            Log("--> ** Attempting to read from disabled RTC %X", address);
             return 0xFF;
         }
     }
@@ -93,6 +98,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
     {
         if (m_pCartridge->GetRAMSize() > 0)
             m_bRamEnabled = (value & 0x0F) == 0x0A;
+        m_bRTCEnabled = (value & 0x0F) == 0x0A;
     }
     else if (address >= 0x2000 && address < 0x4000)
     {
@@ -105,70 +111,79 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
         if ((value >= 0x08) && (value <= 0x0C))
         {
             // RTC
-            if (m_bRamEnabled)
+            if (m_pCartridge->IsRTCPresent() && m_bRTCEnabled)
             {
                 m_RTCRegister = value;
                 m_iCurrentRAMBank = -1;
             }
         }
         else if (value <= 0x03)
-            m_iCurrentRAMBank = value;
+        {
+            if (m_bRamEnabled)
+                m_iCurrentRAMBank = value;
+        }
     }
     else if (address >= 0x6000 && address < 0x8000)
     {
-        // RTC Latch
-        if ((m_iRTCLatch == 0x00) && (value == 0x01))
+        if (m_pCartridge->IsRTCPresent())
         {
-            UpdateRTC();
-            m_iRTCLatchedSeconds = m_iRTCSeconds;
-            m_iRTCLatchedMinutes = m_iRTCMinutes;
-            m_iRTCLatchedHours = m_iRTCHours;
-            m_iRTCLatchedDays = m_iRTCDays;
-            m_iRTCLatchedControl = m_iRTCControl;
-        }
-
-        if ((value == 0x00) || (value == 0x01))
-        {
-            m_iRTCLatch = value;
+            // RTC Latch
+            if ((m_iRTCLatch == 0x00) && (value == 0x01))
+            {
+                UpdateRTC();
+                m_iRTCLatchedSeconds = m_iRTCSeconds;
+                m_iRTCLatchedMinutes = m_iRTCMinutes;
+                m_iRTCLatchedHours = m_iRTCHours;
+                m_iRTCLatchedDays = m_iRTCDays;
+                m_iRTCLatchedControl = m_iRTCControl;
+            }
+            if ((value == 0x00) || (value == 0x01))
+            {
+                m_iRTCLatch = value;
+            }
         }
     }
     else if (address >= 0xA000 && address < 0xC000)
     {
-        if (m_bRamEnabled)
+        if (m_iCurrentRAMBank >= 0)
         {
-            if (m_iCurrentRAMBank >= 0)
+            if (m_bRamEnabled)
             {
                 m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)] = value;
             }
             else
             {
-                m_RTCLastTime = m_pCartridge->GetCurrentRTC();
-                switch (m_RTCRegister)
-                {
-                    case 0x08:
-                        m_iRTCSeconds = value;
-                        break;
-                    case 0x09:
-                        m_iRTCMinutes = value;
-                        break;
-                    case 0x0A:
-                        m_iRTCHours = value;
-                        break;
-                    case 0x0B:
-                        m_iRTCDays = value;
-                        break;
-                    case 0x0C:
-                        if (m_iRTCControl & 0x80)
-                            m_iRTCControl = 0x80 | value;
-                        else
-                            m_iRTCControl = value;
-                        break;
-                }
+                Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+            }
+        }
+        else if (m_pCartridge->IsRTCPresent() && m_bRTCEnabled)
+        {
+            m_RTCLastTime = m_pCartridge->GetCurrentRTC();
+            switch (m_RTCRegister)
+            {
+                case 0x08:
+                    m_iRTCSeconds = value;
+                    break;
+                case 0x09:
+                    m_iRTCMinutes = value;
+                    break;
+                case 0x0A:
+                    m_iRTCHours = value;
+                    break;
+                case 0x0B:
+                    m_iRTCDays = value;
+                    break;
+                case 0x0C:
+                    if (m_iRTCControl & 0x80)
+                        m_iRTCControl = 0x80 | value;
+                    else
+                        m_iRTCControl = value;
+                    break;
             }
         }
         else
         {
-            Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+            Log("--> ** Attempting to write on RTC when RTC is disabled %X %X", address, value);
         }
     }
     else
@@ -181,6 +196,7 @@ void MBC3MemoryRule::Reset(bool bCGB)
     m_iCurrentRAMBank = 0;
     m_iCurrentROMBank = 1;
     m_bRamEnabled = false;
+    m_bRTCEnabled = false;
     for (int i = 0; i < 0x8000; i++)
         m_pRAMBanks[i] = 0xFF;
     m_iRTCSeconds = 0;
@@ -202,28 +218,28 @@ void MBC3MemoryRule::Reset(bool bCGB)
 void MBC3MemoryRule::SaveRam(std::ofstream &file)
 {
     Log("MBC3MemoryRule save RAM...");
-    
+
     for (int i = 0; i < 0x8000; i++)
     {
         u8 ram_byte = 0;
         ram_byte = m_pRAMBanks[i];
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
-    
+
     Log("MBC3MemoryRule save RAM done");
 }
 
 void MBC3MemoryRule::LoadRam(std::ifstream &file)
 {
     Log("MBC3MemoryRule load RAM...");
-    
+
     for (int i = 0; i < 0x8000; i++)
     {
         u8 ram_byte = 0;
         file.read(reinterpret_cast<char*> (&ram_byte), 1);
         m_pRAMBanks[i] = ram_byte;
     }
-    
+
     Log("MBC3MemoryRule load RAM done");
 }
 

@@ -38,6 +38,7 @@ Cartridge::Cartridge()
     m_RTCCurrentTime = 0;
     m_bBattery = false;
     m_szFilePath[0] = 0;
+    m_bRTCPresent = false;
 }
 
 Cartridge::~Cartridge()
@@ -66,6 +67,7 @@ void Cartridge::Reset()
     m_RTCCurrentTime = 0;
     m_bBattery = false;
     m_szFilePath[0] = 0;
+    m_bRTCPresent = false;
 }
 
 bool Cartridge::IsValidROM() const
@@ -178,7 +180,7 @@ bool Cartridge::LoadFromFile(const char* path)
     using namespace std;
 
     Log("Loading %s...", path);
-        
+
     Reset();
 
     strcpy(m_szFilePath, path);
@@ -365,7 +367,7 @@ void Cartridge::CheckCartridgeType(int type)
             Log("--> ** Unknown cartridge type: %d", type);
     }
 
-    switch(type)
+    switch (type)
     {
         case 0x03:
         case 0x06:
@@ -384,6 +386,16 @@ void Cartridge::CheckCartridgeType(int type)
             break;
         default:
             m_bBattery = false;
+    }
+
+    switch (type)
+    {
+        case 0x0F:
+        case 0x10:
+            m_bRTCPresent = true;
+            break;
+        default:
+            m_bRTCPresent = false;
     }
 }
 
@@ -410,6 +422,11 @@ void Cartridge::UpdateCurrentRTC()
 size_t Cartridge::GetCurrentRTC()
 {
     return m_RTCCurrentTime;
+}
+
+bool Cartridge::IsRTCPresent() const
+{
+    return m_bRTCPresent;
 }
 
 bool Cartridge::GatherMetadata()
@@ -443,7 +460,7 @@ bool Cartridge::GatherMetadata()
     Log("ROM Type %X", type);
     Log("ROM Size %X", m_iROMSize);
     Log("RAM Size %X", m_iRAMSize);
-    
+
     switch (m_Type)
     {
         case Cartridge::CartridgeNoMBC:
@@ -467,7 +484,7 @@ bool Cartridge::GatherMetadata()
         default:
             break;
     }
-    
+
     if (m_bBattery)
     {
         Log("Battery powered RAM found");

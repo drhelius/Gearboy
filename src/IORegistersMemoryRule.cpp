@@ -168,12 +168,9 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     {
         // LY
         u8 current_ly = m_pMemory->Retrieve(0xFF44);
-        if (current_ly & 0x80)
+        if (IsSetBit(current_ly, 7) && !IsSetBit(value, 7))
         {
-            if ((value & 0x80) == 0)
-            {
-                m_pVideo->DisableScreen();
-            }
+            m_pVideo->DisableScreen();
         }
     }
     else if (address == 0xFF45)

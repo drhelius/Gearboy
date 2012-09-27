@@ -221,7 +221,7 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
             {
                 m_iScreenEnableDelayCycles = 0;
                 m_bScreenEnabled = true;
-                m_iHideFrames = 2;
+                m_iHideFrames = 3;
                 m_iStatusMode = 0;
                 m_iStatusModeCounter = 0;
                 m_iStatusModeCounterAux = 0;
@@ -239,10 +239,6 @@ void Video::EnableScreen()
 {
     if (!m_bScreenEnabled)
     {
-        m_pMemory->Load(0xFF44, 0);
-        u8 stat = m_pMemory->Retrieve(0xFF41);
-        stat &= 0x78;
-        m_pMemory->Load(0xFF41, stat);
         m_iScreenEnableDelayCycles = 244;
     }
 }
