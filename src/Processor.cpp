@@ -40,6 +40,7 @@ Processor::Processor(Memory* pMemory)
     m_iSerialCycles = 0;
     m_bCGB = false;
     m_iUnhaltCycles = 0;
+    m_IRQ48Signal = 0;
     m_HaltCachedIFRegister = 0;
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
@@ -71,6 +72,7 @@ void Processor::Reset(bool bCGB)
     m_iSerialCycles = 0;
     m_iUnhaltCycles = 0;
     m_HaltCachedIFRegister = 0;
+    m_IRQ48Signal = 0;
     PC.SetValue(0x100);
     SP.SetValue(0xFFFE);
     if (m_bCGB)
@@ -180,6 +182,16 @@ void Processor::ResetDIVCycles()
 {
     m_pMemory->Load(0xFF04, 0x00);
     m_iTIMACycles = 0;
+}
+
+u8 Processor::GetIRQ48Signal() const
+{
+    return m_IRQ48Signal;
+}
+
+void Processor::SetIRQ48Signal(u8 signal)
+{
+    m_IRQ48Signal = signal;
 }
 
 u8 Processor::FetchOPCode()

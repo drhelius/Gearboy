@@ -227,10 +227,22 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 m_iStatusModeCounterAux = 0;
                 m_iStatusModeLYCounter = 0;
                 m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
+                m_pProcessor->SetIRQ48Signal(0);
+
+                u8 stat = m_pMemory->Retrieve(0xFF41);
+                if (IsSetBit(stat, 5))
+                {
+                    u8 signal = m_pProcessor->GetIRQ48Signal();
+                    if (signal == 0x00)
+                    {
+                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                    }
+                    m_pProcessor->SetIRQ48Signal(SetBit(signal, 2));
+                }
+
                 CompareLYToLYC();
             }
         }
-
     }
     return vblank;
 }
@@ -706,10 +718,20 @@ void Video::CompareLYToLYC()
         {
             stat = SetBit(stat, 2);
             if (IsSetBit(stat, 6))
-                m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+            {
+                u8 signal = m_pProcessor->GetIRQ48Signal();
+                if (signal == 0x00)
+                {
+                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                }
+                m_pProcessor->SetIRQ48Signal(SetBit(signal, 3));
+            }
         }
         else
+        {
             stat = UnsetBit(stat, 2);
+            m_pProcessor->SetIRQ48Signal(UnsetBit(m_pProcessor->GetIRQ48Signal(), 3));
+        }
 
         m_pMemory->Load(0xFF41, stat);
     }
