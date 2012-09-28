@@ -222,10 +222,12 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 m_iScreenEnableDelayCycles = 0;
                 m_bScreenEnabled = true;
                 m_iHideFrames = 3;
-                m_iStatusMode = 0;
+                m_iStatusMode = 2;
                 m_iStatusModeCounter = 0;
                 m_iStatusModeCounterAux = 0;
                 m_iStatusModeLYCounter = 0;
+                m_iWindowLine = 0;
+                m_iStatusVBlankLine = 0;
                 m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
                 CompareLYToLYC();
             }
