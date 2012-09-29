@@ -185,6 +185,7 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                     m_iStatusModeCounter -= 4560;
                     m_iStatusMode = 2;
                     UpdateStatRegister();
+                    m_IRQ48Signal &= 0x07;
                     CompareLYToLYC();
 
                     m_IRQ48Signal &= 0x0A;
@@ -752,7 +753,7 @@ void Video::CompareLYToLYC()
             stat = SetBit(stat, 2);
             if (IsSetBit(stat, 6))
             {
-                if (m_IRQ48Signal == 0x00)
+                if (m_IRQ48Signal == 0)
                 {
                     m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
                 }
