@@ -48,8 +48,6 @@ public:
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
     void ResetDIVCycles();
-    u8 GetIRQ48Signal() const;
-    void SetIRQ48Signal(u8 signal);
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -78,7 +76,6 @@ private:
     bool m_bCGB;
     int m_InterruptDelayCycles[5];
     u8 m_HaltCachedIFRegister;
-    u8 m_IRQ48Signal;
 
 private:
     u8 FetchOPCode();

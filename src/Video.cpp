@@ -40,6 +40,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bCGB = false;
     m_bScanLineTransfered = false;
     m_iHideFrames = 0;
+    m_IRQ48Signal = 0;
 }
 
 Video::~Video()
@@ -79,6 +80,7 @@ void Video::Reset(bool bCGB)
     m_bScanLineTransfered = false;
     m_bCGB = bCGB;
     m_iHideFrames = 0;
+    m_IRQ48Signal = 0;
 }
 
 bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
@@ -116,9 +118,17 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
 
                         m_pProcessor->RequestInterrupt(Processor::VBlank_Interrupt);
 
+                        m_IRQ48Signal &= 0x09;
                         u8 stat = m_pMemory->Retrieve(0xFF41);
                         if (IsSetBit(stat, 4))
-                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                        {
+                            if (!IsSetBit(m_IRQ48Signal, 0) && !IsSetBit(m_IRQ48Signal, 3))
+                            {
+                                m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                            }
+                            m_IRQ48Signal = SetBit(m_IRQ48Signal, 1);
+                        }
+                        m_IRQ48Signal &= 0x0E;
 
                         if (m_iHideFrames > 0)
                             m_iHideFrames--;
@@ -129,9 +139,17 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                     }
                     else
                     {
+                        m_IRQ48Signal &= 0x09;
                         u8 stat = m_pMemory->Retrieve(0xFF41);
                         if (IsSetBit(stat, 5))
-                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                        {
+                            if (m_IRQ48Signal == 0)
+                            {
+                                m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                            }
+                            m_IRQ48Signal = SetBit(m_IRQ48Signal, 2);
+                        }
+                        m_IRQ48Signal &= 0x0E;
                     }
 
                     UpdateStatRegister();
@@ -166,11 +184,20 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 {
                     m_iStatusModeCounter -= 4560;
                     m_iStatusMode = 2;
-                    u8 stat = m_pMemory->Retrieve(0xFF41);
-                    if (IsSetBit(stat, 5))
-                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
                     UpdateStatRegister();
                     CompareLYToLYC();
+
+                    m_IRQ48Signal &= 0x0A;
+                    u8 stat = m_pMemory->Retrieve(0xFF41);
+                    if (IsSetBit(stat, 5))
+                    {
+                        if (m_IRQ48Signal == 0)
+                        {
+                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                        }
+                        m_IRQ48Signal = SetBit(m_IRQ48Signal, 2);
+                    }
+                    m_IRQ48Signal &= 0x0D;
                 }
                 break;
             }
@@ -182,6 +209,7 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                     m_iStatusModeCounter -= 80;
                     m_iStatusMode = 3;
                     m_bScanLineTransfered = false;
+                    m_IRQ48Signal &= 0x08;
                     UpdateStatRegister();
                 }
                 break;
@@ -200,12 +228,18 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                     ScanLine(m_iStatusModeLYCounter);
                     m_iStatusModeCounter -= 172;
                     m_iStatusMode = 0;
+                    UpdateStatRegister();
 
+                    m_IRQ48Signal &= 0x08;
                     u8 stat = m_pMemory->Retrieve(0xFF41);
                     if (IsSetBit(stat, 3))
-                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-
-                    UpdateStatRegister();
+                    {
+                        if (!IsSetBit(m_IRQ48Signal, 3))
+                        {
+                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                        }
+                        m_IRQ48Signal = SetBit(m_IRQ48Signal, 0);
+                    }
                 }
                 break;
             }
@@ -229,17 +263,13 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 m_iWindowLine = 0;
                 m_iStatusVBlankLine = 0;
                 m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
-                m_pProcessor->SetIRQ48Signal(0);
+                m_IRQ48Signal = 0;
 
                 u8 stat = m_pMemory->Retrieve(0xFF41);
                 if (IsSetBit(stat, 5))
                 {
-                    u8 signal = m_pProcessor->GetIRQ48Signal();
-                    if (signal == 0x00)
-                    {
-                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                    }
-                    m_pProcessor->SetIRQ48Signal(SetBit(signal, 2));
+                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                    m_IRQ48Signal = SetBit(m_IRQ48Signal, 2);
                 }
 
                 CompareLYToLYC();
@@ -268,6 +298,7 @@ void Video::DisableScreen()
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
     m_iStatusModeLYCounter = 0;
+    m_IRQ48Signal = 0;
 }
 
 bool Video::IsScreenEnabled() const
@@ -721,18 +752,17 @@ void Video::CompareLYToLYC()
             stat = SetBit(stat, 2);
             if (IsSetBit(stat, 6))
             {
-                u8 signal = m_pProcessor->GetIRQ48Signal();
-                if (signal == 0x00)
+                if (m_IRQ48Signal == 0x00)
                 {
                     m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
                 }
-                m_pProcessor->SetIRQ48Signal(SetBit(signal, 3));
+                m_IRQ48Signal = SetBit(m_IRQ48Signal, 3);
             }
         }
         else
         {
             stat = UnsetBit(stat, 2);
-            m_pProcessor->SetIRQ48Signal(UnsetBit(m_pProcessor->GetIRQ48Signal(), 3));
+            m_IRQ48Signal = UnsetBit(m_IRQ48Signal, 3);
         }
 
         m_pMemory->Load(0xFF41, stat);

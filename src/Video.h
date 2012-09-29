@@ -41,7 +41,7 @@ public:
     int GetCurrentStatusMode() const;
     void ResetWindowLine();
     void CompareLYToLYC();
-    
+
 private:
     void ScanLine(int line);
     void RenderBG(int line);
@@ -49,7 +49,7 @@ private:
     void RenderSprites(int line);
     void UpdateStatRegister();
     GB_Color ConvertTo8BitColor(GB_Color color);
-    
+
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
@@ -70,6 +70,7 @@ private:
     bool m_bScanLineTransfered;
     int m_iWindowLine;
     int m_iHideFrames;
+    u8 m_IRQ48Signal;
 };
 
 #endif	/* VIDEO_H */
