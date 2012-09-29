@@ -769,6 +769,16 @@ void Video::CompareLYToLYC()
     }
 }
 
+u8 Video::GetIRQ48Signal() const
+{
+    return m_IRQ48Signal;
+}
+
+void Video::SetIRQ48Signal(u8 signal)
+{
+    m_IRQ48Signal = signal;
+}
+
 GB_Color Video::ConvertTo8BitColor(GB_Color color)
 {
     color.red = (color.red * 255) / 31;

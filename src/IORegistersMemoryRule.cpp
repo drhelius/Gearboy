@@ -161,8 +161,48 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     else if (address == 0xFF41)
     {
         // STAT
-        u8 current_stat_mode = m_pMemory->Retrieve(0xFF41) & 0x03;
-        m_pMemory->Load(address, (value & 0x7C) | current_stat_mode);
+        u8 current_stat = m_pMemory->Retrieve(0xFF41) & 0x07;
+        u8 new_stat = (value & 0x78) | (current_stat & 0x07);
+        m_pMemory->Load(address, new_stat);
+
+        u8 lcdc = m_pMemory->Retrieve(0xFF40);
+        u8 signal = m_pVideo->GetIRQ48Signal();
+        int mode = m_pVideo->GetCurrentStatusMode();
+
+        signal &= ((new_stat >> 3) & 0x0F);
+        m_pVideo->SetIRQ48Signal(signal);
+
+        if (IsSetBit(lcdc, 7))
+        {
+            if (IsSetBit(new_stat, 3) && (mode == 0))
+            {
+                if (signal == 0)
+                {
+                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                }
+                signal = SetBit(signal, 0);
+            }
+        
+            if (IsSetBit(new_stat, 4) && (mode == 1))
+            {
+                if (signal == 0)
+                {
+                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                }
+                signal = SetBit(signal, 1);
+            }
+            
+            if (IsSetBit(new_stat, 5) && (mode == 2))
+            {
+                if (signal == 0)
+                {
+                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                }
+                signal = SetBit(signal, 2);
+            }
+            
+            m_pVideo->CompareLYToLYC();
+        }
     }
     else if (address == 0xFF44)
     {

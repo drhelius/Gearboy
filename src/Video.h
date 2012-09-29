@@ -41,6 +41,8 @@ public:
     int GetCurrentStatusMode() const;
     void ResetWindowLine();
     void CompareLYToLYC();
+    u8 GetIRQ48Signal() const;
+    void SetIRQ48Signal(u8 signal);
 
 private:
     void ScanLine(int line);
