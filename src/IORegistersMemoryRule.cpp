@@ -182,7 +182,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                 }
                 signal = SetBit(signal, 0);
             }
-        
+
             if (IsSetBit(new_stat, 4) && (mode == 1))
             {
                 if (signal == 0)
@@ -191,7 +191,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                 }
                 signal = SetBit(signal, 1);
             }
-            
+
             if (IsSetBit(new_stat, 5) && (mode == 2))
             {
                 if (signal == 0)
@@ -200,7 +200,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                 }
                 signal = SetBit(signal, 2);
             }
-            
+
             m_pVideo->CompareLYToLYC();
         }
     }
@@ -216,8 +216,16 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     else if (address == 0xFF45)
     {
         // LYC
-        m_pMemory->Load(0xFF45, value);
-        m_pVideo->CompareLYToLYC();
+        u8 current_lyc = m_pMemory->Retrieve(0xFF45);
+        if (current_lyc != value)
+        {
+            m_pMemory->Load(0xFF45, value);
+            u8 lcdc = m_pMemory->Retrieve(0xFF40);
+            if (IsSetBit(lcdc, 7))
+            {
+                m_pVideo->CompareLYToLYC();
+            }
+        }
     }
     else if (address == 0xFF46)
     {
