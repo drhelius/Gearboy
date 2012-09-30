@@ -102,6 +102,7 @@
     <ClCompile Include="..\..\..\src\MBC5MemoryRule.cpp" />
     <ClCompile Include="..\..\..\src\Memory.cpp" />
     <ClCompile Include="..\..\..\src\MemoryRule.cpp" />
+    <ClCompile Include="..\..\..\src\MultiMBC1MemoryRule.cpp" />
     <ClCompile Include="..\..\..\src\opcodes.cpp" />
     <ClCompile Include="..\..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\..\src\Processor.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="..\..\..\src\audio\Multi_Buffer.h" />
     <ClInclude Include="..\..\..\src\audio\Sound_Queue.h" />
     <ClInclude Include="..\..\..\src\CommonMemoryRule.h" />
+    <ClInclude Include="..\..\..\src\MultiMBC1MemoryRule.h" />
     <ClInclude Include="GeneratedFiles\ui_SoundSettings.h" />
     <ClInclude Include="GeneratedFiles\ui_VideoSettings.h" />
     <CustomBuild Include="..\..\qt-shared\RenderThread.h">

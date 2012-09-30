@@ -179,6 +179,9 @@
     <ClCompile Include="..\..\..\src\CommonMemoryRule.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\MultiMBC1MemoryRule.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\qt-shared\GLFrame.h">
@@ -322,6 +325,9 @@
       <Filter>Audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\CommonMemoryRule.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\MultiMBC1MemoryRule.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
