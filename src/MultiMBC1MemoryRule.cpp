@@ -39,7 +39,7 @@ MultiMBC1MemoryRule::~MultiMBC1MemoryRule()
 
 u8 MultiMBC1MemoryRule::PerformRead(u16 address)
 {
-    if (address >= 0x0000 && address < 0x4000)
+    if (address < 0x4000)
     {
         u8* pROM = m_pCartridge->GetTheROM();
         return pROM[address + (0x4000 * m_iFinalROMBank0)];
