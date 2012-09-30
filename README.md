@@ -17,7 +17,7 @@ Features
 
 - Accurate CPU emulation, passes cpu_instrs.gb from blargg's tests.
 - Accurate instruction timing, passes instr_timing.gb from blargg's tests.
-- Memory Bank Controllers (MBC1, MBC2, MBC3 with RTC, MBC5) and ROM + RAM cartridges.
+- Memory Bank Controllers (MBC1, MBC2, MBC3 with RTC, MBC5), ROM + RAM and multicart cartridges.
 - Accurate LCD controller emulation. Background, window and sprites, with correct timings and priorities.
 - Mix frames: Mimics the LCD ghosting effect seen in the original Game Boy.
 - Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://www.slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
