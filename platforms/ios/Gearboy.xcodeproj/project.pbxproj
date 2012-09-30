@@ -69,6 +69,7 @@
 		66DCB36B15F940CC0076F6F6 /* DetailViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36915F940CC0076F6F6 /* DetailViewController_iPhone.xib */; };
 		66DCB36E15F940CC0076F6F6 /* DetailViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66DCB36C15F940CC0076F6F6 /* DetailViewController_iPad.xib */; };
 		66EB653C160FD1A200972E75 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 66EB653B160FD1A200972E75 /* Default-568h@2x.png */; };
+		66FB445F161866DA00F805ED /* MultiMBC1MemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66FB445D161866DA00F805ED /* MultiMBC1MemoryRule.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -181,6 +182,8 @@
 		66DCB36A15F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPhone.xib; sourceTree = "<group>"; };
 		66DCB36D15F940CC0076F6F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPad.xib; sourceTree = "<group>"; };
 		66EB653B160FD1A200972E75 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "img/Default-568h@2x.png"; sourceTree = "<group>"; };
+		66FB445D161866DA00F805ED /* MultiMBC1MemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MultiMBC1MemoryRule.cpp; path = ../../src/MultiMBC1MemoryRule.cpp; sourceTree = "<group>"; };
+		66FB445E161866DA00F805ED /* MultiMBC1MemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MultiMBC1MemoryRule.h; path = ../../src/MultiMBC1MemoryRule.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -254,6 +257,8 @@
 				662E1E0E15F9499600C7FF66 /* Memory.h */,
 				662E1E1115F9499600C7FF66 /* MemoryRule.cpp */,
 				662E1E1215F9499600C7FF66 /* MemoryRule.h */,
+				66FB445D161866DA00F805ED /* MultiMBC1MemoryRule.cpp */,
+				66FB445E161866DA00F805ED /* MultiMBC1MemoryRule.h */,
 				662E1E1315F9499600C7FF66 /* opcode_names.h */,
 				662E1E1415F9499600C7FF66 /* opcode_timing.h */,
 				662E1E1515F9499600C7FF66 /* opcodes_cb.cpp */,
@@ -496,6 +501,7 @@
 				66D34FE815FFDF410046912E /* inputmanager.mm in Sources */,
 				66D34FE915FFDF410046912E /* timer.mm in Sources */,
 				66D34FF115FFEC480046912E /* EmulatorInput.mm in Sources */,
+				66FB445F161866DA00F805ED /* MultiMBC1MemoryRule.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
