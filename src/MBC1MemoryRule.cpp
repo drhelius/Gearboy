@@ -89,14 +89,17 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     }
     else if (address >= 0x2000 && address < 0x4000)
     {
-        m_iCurrentROMBank = value & 0x1F;
         if (m_iMode == 0)
         {
-            m_iCurrentROMBank = (m_iCurrentROMBank & 0x1F) | (m_HigherRomBankBits << 5);
+            m_iCurrentROMBank = (value & 0x1F) | (m_HigherRomBankBits << 5);
 
             if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
                     || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
                 m_iCurrentROMBank++;
+        }
+        else
+        {
+            m_iCurrentROMBank = value & 0x1F;
         }
     }
     else if (address >= 0x4000 && address < 0x6000)

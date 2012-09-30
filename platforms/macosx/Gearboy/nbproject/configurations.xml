@@ -47,6 +47,8 @@
       <itemPath>../../../src/Memory.h</itemPath>
       <itemPath>../../../src/MemoryRule.cpp</itemPath>
       <itemPath>../../../src/MemoryRule.h</itemPath>
+      <itemPath>../../../src/MultiMBC1MemoryRule.cpp</itemPath>
+      <itemPath>../../../src/MultiMBC1MemoryRule.h</itemPath>
       <itemPath>../../../src/Processor.cpp</itemPath>
       <itemPath>../../../src/Processor.h</itemPath>
       <itemPath>../../../src/RomOnlyMemoryRule.cpp</itemPath>

@@ -32,6 +32,7 @@ public:
         CartridgeMBC2,
         CartridgeMBC3,
         CartridgeMBC5,
+        CartridgeMBC1Multi,
         CartridgeNotSupported
     };
 

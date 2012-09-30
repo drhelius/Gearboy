@@ -32,6 +32,7 @@
 #include "MBC2MemoryRule.h"
 #include "MBC3MemoryRule.h"
 #include "MBC5MemoryRule.h"
+#include "MultiMBC1MemoryRule.h"
 
 GearboyCore::GearboyCore()
 {
@@ -45,6 +46,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
     InitPointer(m_pMBC1MemoryRule);
+    InitPointer(m_pMultiMBC1MemoryRule);
     InitPointer(m_pMBC2MemoryRule);
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
@@ -60,6 +62,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pMBC5MemoryRule);
     SafeDelete(m_pMBC3MemoryRule);
     SafeDelete(m_pMBC2MemoryRule);
+    SafeDelete(m_pMultiMBC1MemoryRule);
     SafeDelete(m_pMBC1MemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
@@ -355,6 +358,11 @@ void GearboyCore::InitMemoryRules()
     m_pMBC1MemoryRule->AddAddressRange(0x0000, 0x7FFF);
     m_pMBC1MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
+    m_pMultiMBC1MemoryRule = new MultiMBC1MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pMultiMBC1MemoryRule->AddAddressRange(0x0000, 0x7FFF);
+    m_pMultiMBC1MemoryRule->AddAddressRange(0xA000, 0xBFFF);
+
     m_pMBC2MemoryRule = new MBC2MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pMBC2MemoryRule->AddAddressRange(0x0000, 0x7FFF);
@@ -389,6 +397,10 @@ bool GearboyCore::AddMemoryRules()
         case Cartridge::CartridgeMBC1:
             m_pCurrentMapper = m_pMBC1MemoryRule;
             m_pMemory->AddRule(m_pMBC1MemoryRule);
+            break;
+        case Cartridge::CartridgeMBC1Multi:
+            m_pCurrentMapper = m_pMultiMBC1MemoryRule;
+            m_pMemory->AddRule(m_pMultiMBC1MemoryRule);
             break;
         case Cartridge::CartridgeMBC2:
             m_pCurrentMapper = m_pMBC2MemoryRule;
@@ -437,6 +449,7 @@ void GearboyCore::Reset(bool bCGB)
     m_pCommonMemoryRule->Reset(m_bCGB);
     m_pRomOnlyMemoryRule->Reset(m_bCGB);
     m_pMBC1MemoryRule->Reset(m_bCGB);
+    m_pMultiMBC1MemoryRule->Reset(m_bCGB);
     m_pMBC2MemoryRule->Reset(m_bCGB);
     m_pMBC3MemoryRule->Reset(m_bCGB);
     m_pMBC5MemoryRule->Reset(m_bCGB);

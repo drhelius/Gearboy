@@ -28,7 +28,7 @@
 #include <iostream>
 #include <fstream>
 
-#define DEBUG_GEARBOY 1
+//#define DEBUG_GEARBOY 1
 
 #ifndef NULL
 #define NULL 0

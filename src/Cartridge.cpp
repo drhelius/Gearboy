@@ -452,8 +452,16 @@ bool Cartridge::GatherMetadata()
     m_iROMSize = m_pTheROM[0x148];
     m_iRAMSize = m_pTheROM[0x149];
     m_iVersion = m_pTheROM[0x14C];
+    
+    bool presumeMultiMBC1 = ((type == 1) && (m_iRAMSize == 0) && (m_iROMSize == 5));
 
     CheckCartridgeType(type);
+    
+    if ((m_Type == Cartridge::CartridgeMBC1) && presumeMultiMBC1)
+    {
+        m_Type = Cartridge::CartridgeMBC1Multi;
+        Log("Presumed Multi 64");
+    }
 
     Log("ROM Name %s", m_szName);
     Log("ROM Version %d", m_iVersion);
@@ -468,6 +476,9 @@ bool Cartridge::GatherMetadata()
             break;
         case Cartridge::CartridgeMBC1:
             Log("MBC1 found");
+            break;
+        case Cartridge::CartridgeMBC1Multi:
+            Log("MBC1 Multi 64 found");
             break;
         case Cartridge::CartridgeMBC2:
             Log("MBC2 found");
