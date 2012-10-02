@@ -53,19 +53,13 @@ u8 MBC1MemoryRule::PerformRead(u16 address)
         {
             if (m_iMode == 0)
             {
-                if (m_pCartridge->GetRAMSize() == 1)
+                if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
                 {
                     // only 2KB of ram
-                    if (address < 0xA800)
-                        return m_pMemory->Retrieve(address);
-                    else
-                    {
-                        Log("--> ** Attempting to read from non usable address %X", address);
-                        return 0xFF;
-                    }
+                    Log("--> ** Attempting to read from non usable address %X", address);
                 }
-                else
-                    return m_pMemory->Retrieve(address);
+                
+                return m_pMemory->Retrieve(address);
             }
             else
                 return m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)];
@@ -91,16 +85,16 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     {
         if (m_iMode == 0)
         {
-            m_iCurrentROMBank = (value & 0x1F) | (m_HigherRomBankBits << 5);
-
-            if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
-                    || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
-                m_iCurrentROMBank++;
+            m_iCurrentROMBank = (value & 0x1F) | (m_HigherRomBankBits << 5); 
         }
         else
         {
             m_iCurrentROMBank = value & 0x1F;
         }
+
+        if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
+                    || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
+            m_iCurrentROMBank++;
     }
     else if (address >= 0x4000 && address < 0x6000)
     {
@@ -110,15 +104,19 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             m_HigherRomBankBits = value & 0x03;
             m_iCurrentROMBank = (m_iCurrentROMBank & 0x1F) | (m_HigherRomBankBits << 5);
+
+            if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
+                    || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
+                m_iCurrentROMBank++;
         }
     }
     else if (address >= 0x6000 && address < 0x8000)
     {
-        if (m_pCartridge->GetRAMSize() == 3)
-            m_iMode = value & 0x01;
-        else if ((value & 0x01) != 0)
+        m_iMode = value & 0x01;
+        
+        if ((m_pCartridge->GetRAMSize() != 3) && (value & 0x01))
         {
-            Log("--> ** Attempting to change MBC1 to mode 1 with no RAM banks %X %X", address, value);
+            Log("--> ** Attempting to change MBC1 to mode 1 with incorrect RAM banks %X %X", address, value);
         }
     }
     else if (address >= 0xA000 && address < 0xC000)
@@ -127,18 +125,13 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             if (m_iMode == 0)
             {
-                if (m_pCartridge->GetRAMSize() == 1)
+                if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
                 {
                     // only 2KB of ram
-                    if (address < 0xA800)
-                        m_pMemory->Load(address, value);
-                    else
-                    {
-                        Log("--> ** Attempting to write on non usable address %X %X", address, value);
-                    }
+                    Log("--> ** Attempting to write on non usable address %X %X", address, value);
                 }
-                else
-                    m_pMemory->Load(address, value);
+                
+                m_pMemory->Load(address, value);
             }
             else
                 m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)] = value;
