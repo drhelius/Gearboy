@@ -77,6 +77,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
         m_iCurrentROMBank = value & 0x0F;
         if (m_iCurrentROMBank == 0)
             m_iCurrentROMBank = 1;
+        m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
     }
     else if (address >= 0x2200 && address < 0x8000)
     {

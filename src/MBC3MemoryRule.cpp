@@ -105,6 +105,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
         m_iCurrentROMBank = value & 0x7F;
         if (m_iCurrentROMBank == 0)
             m_iCurrentROMBank = 1;
+        m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
     }
     else if (address >= 0x4000 && address < 0x6000)
     {
@@ -120,7 +121,10 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
         else if (value <= 0x03)
         {
             if (m_bRamEnabled)
+            {
                 m_iCurrentRAMBank = value;
+                m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
+            }
         }
     }
     else if (address >= 0x6000 && address < 0x8000)

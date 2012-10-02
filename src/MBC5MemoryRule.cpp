@@ -71,15 +71,18 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
     else if (address >= 0x2000 && address < 0x3000)
     {
         m_iCurrentROMBank = value | (m_iCurrentROMBankHi << 8);
+        m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
     }
     else if (address >= 0x3000 && address < 0x4000)
     {
         m_iCurrentROMBankHi = value & 0x01;
         m_iCurrentROMBank = (m_iCurrentROMBank & 0xFF) | (m_iCurrentROMBankHi << 8);
+        m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
     }
     else if (address >= 0x4000 && address < 0x6000)
     {
         m_iCurrentRAMBank = value & 0x0F;
+        m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
     }
     else if (address >= 0x6000 && address < 0x8000)
     {

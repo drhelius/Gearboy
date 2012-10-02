@@ -78,6 +78,7 @@ void MultiMBC1MemoryRule::PerformWrite(u16 address, u8 value)
         if (m_iMode == 0)
         {
             m_iFinalROMBank = (m_iCurrentROMBank & 0x1F) ? m_iCurrentROMBank : (m_iCurrentROMBank | 1);
+            m_iFinalROMBank &= (m_pCartridge->GetROMBankCount() - 1);
         }
         else
         {
@@ -126,6 +127,7 @@ void MultiMBC1MemoryRule::SetRomBank()
     {
         m_iFinalROMBank0 = 0;
         m_iFinalROMBank = (m_iCurrentROMBank & 0x1F) ? m_iCurrentROMBank : (m_iCurrentROMBank | 1);
+        m_iFinalROMBank &= (m_pCartridge->GetROMBankCount() - 1);
     }
     else
     {

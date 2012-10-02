@@ -39,6 +39,8 @@ Cartridge::Cartridge()
     m_bBattery = false;
     m_szFilePath[0] = 0;
     m_bRTCPresent = false;
+    m_iRAMBankCount = 0;
+    m_iROMBankCount = 0;
 }
 
 Cartridge::~Cartridge()
@@ -68,6 +70,8 @@ void Cartridge::Reset()
     m_bBattery = false;
     m_szFilePath[0] = 0;
     m_bRTCPresent = false;
+    m_iRAMBankCount = 0;
+    m_iROMBankCount = 0;
 }
 
 bool Cartridge::IsValidROM() const
@@ -93,6 +97,16 @@ int Cartridge::GetRAMSize() const
 int Cartridge::GetROMSize() const
 {
     return m_iROMSize;
+}
+
+int Cartridge::GetRAMBankCount() const
+{
+    return m_iRAMBankCount;
+}
+
+int Cartridge::GetROMBankCount() const
+{
+    return m_iROMBankCount;
 }
 
 const char* Cartridge::GetName() const
@@ -282,8 +296,10 @@ void Cartridge::CheckCartridgeType(int type)
             break;
         case 0x05:
             // MBC2
+            // SRAM
         case 0x06:
             // MBC2
+            // SRAM
             // BATT
             m_Type = CartridgeMBC2;
             break;
@@ -429,6 +445,17 @@ bool Cartridge::IsRTCPresent() const
     return m_bRTCPresent;
 }
 
+unsigned int Cartridge::Pow2Ceil(unsigned int n)
+{
+    --n;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    ++n;
+    return n;
+}
+
 bool Cartridge::GatherMetadata()
 {
     char name[12] = {0};
@@ -452,22 +479,46 @@ bool Cartridge::GatherMetadata()
     m_iROMSize = m_pTheROM[0x148];
     m_iRAMSize = m_pTheROM[0x149];
     m_iVersion = m_pTheROM[0x14C];
-    
-    bool presumeMultiMBC1 = ((type == 1) && (m_iRAMSize == 0) && (m_iROMSize == 5));
+
+
 
     CheckCartridgeType(type);
-    
+
+    switch (m_iRAMSize)
+    {
+        case 0x00:
+            m_iRAMBankCount = (m_Type == Cartridge::CartridgeMBC2) ? 1 : 0;
+            break;
+        case 0x01:
+        case 0x02:
+            m_iRAMBankCount = 1;
+            break;
+        case 0x04:
+            m_iRAMBankCount = 16;
+            break;
+        default:
+            m_iRAMBankCount = 4;
+            break;
+    }
+
+    m_iROMBankCount = std::max(Pow2Ceil(m_iTotalSize / 0x4000), 2u);
+
+    bool presumeMultiMBC1 = ((type == 1) && (m_iRAMSize == 0) && (m_iROMBankCount == 64));
+
     if ((m_Type == Cartridge::CartridgeMBC1) && presumeMultiMBC1)
     {
         m_Type = Cartridge::CartridgeMBC1Multi;
         Log("Presumed Multi 64");
     }
 
+    Log("Cartridge Size %d", m_iTotalSize);
     Log("ROM Name %s", m_szName);
     Log("ROM Version %d", m_iVersion);
     Log("ROM Type %X", type);
     Log("ROM Size %X", m_iROMSize);
+    Log("ROM Bank Count %d", m_iROMBankCount);
     Log("RAM Size %X", m_iRAMSize);
+    Log("RAM Bank Count %d", m_iRAMBankCount);
 
     switch (m_Type)
     {

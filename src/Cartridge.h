@@ -46,6 +46,8 @@ public:
     CartridgeTypes GetType() const;
     int GetRAMSize() const;
     int GetROMSize() const;
+    int GetROMBankCount() const;
+    int GetRAMBankCount() const;
     const char* GetName() const;
     const char* GetFilePath() const;
     int GetTotalSize() const;
@@ -61,6 +63,7 @@ public:
     bool IsRTCPresent() const;
 
 private:
+    unsigned int Pow2Ceil(unsigned int n);
     bool GatherMetadata();
     bool LoadFromZipFile(const u8* buffer, int size);
     void CheckCartridgeType(int type);
@@ -81,6 +84,8 @@ private:
     bool m_bBattery;
     char m_szFilePath[512];
     bool m_bRTCPresent;
+    int m_iRAMBankCount;
+    int m_iROMBankCount;
 };
 
 #endif	/* CARTRIDGE_H */
