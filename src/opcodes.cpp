@@ -840,21 +840,12 @@ void Processor::OPCode0x76()
     u8 if_reg = m_pMemory->Retrieve(0xFF0F);
     u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
 
-    m_bPendingHalt = false;
+    m_bHalt = true;
+    m_HaltCachedIFRegister = if_reg;
 
-    if (m_bIME)
+    if (!m_bCGB && !m_bIME && (if_reg & ie_reg & 0x1F))
     {
-        m_bHalt = true;
-        m_HaltCachedIFRegister = if_reg;
-    }
-    else
-    {
-        if (!m_bCGB && (if_reg & ie_reg & 0x1F))
-        {
-            m_bSkipPCBug = true;
-        }
-
-        m_bPendingHalt = true;
+        m_bSkipPCBug = true;
     }
 }
 
@@ -1567,12 +1558,6 @@ void Processor::OPCode0xD9()
     // RETI
     StackPop(&PC);
     m_bIME = true;
-    if (m_bPendingHalt)
-    {
-        m_bPendingHalt = false;
-        m_bHalt = true;
-        m_HaltCachedIFRegister = m_pMemory->Retrieve(0xFF0F);
-    }
 }
 
 void Processor::OPCode0xDA()
