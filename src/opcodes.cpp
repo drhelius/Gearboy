@@ -837,6 +837,13 @@ void Processor::OPCode0x75()
 void Processor::OPCode0x76()
 {
     // HALT
+
+    if (m_iIMECycles > 0)
+    {
+        m_iIMECycles = 0;
+        m_bIME = true;
+    }
+
     u8 if_reg = m_pMemory->Retrieve(0xFF0F);
     u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
 
