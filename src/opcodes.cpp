@@ -837,22 +837,25 @@ void Processor::OPCode0x75()
 void Processor::OPCode0x76()
 {
     // HALT
-
     if (m_iIMECycles > 0)
     {
+        // If EI is pending interrupts are triggered before Halt
         m_iIMECycles = 0;
         m_bIME = true;
+        PC.Decrement();
     }
-
-    u8 if_reg = m_pMemory->Retrieve(0xFF0F);
-    u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
-
-    m_bHalt = true;
-    m_HaltCachedIFRegister = if_reg;
-
-    if (!m_bCGB && !m_bIME && (if_reg & ie_reg & 0x1F))
+    else
     {
-        m_bSkipPCBug = true;
+        u8 if_reg = m_pMemory->Retrieve(0xFF0F);
+        u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
+
+        m_bHalt = true;
+        m_HaltCachedIFRegister = if_reg;
+
+        if (!m_bCGB && !m_bIME && (if_reg & ie_reg & 0x1F))
+        {
+            m_bSkipPCBug = true;
+        }
     }
 }
 
