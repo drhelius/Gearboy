@@ -69,6 +69,7 @@
     
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
     {
+        iPad = NO;
         if (retina)
         {
             multiplier = 3;
