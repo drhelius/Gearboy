@@ -77,7 +77,10 @@ void Audio::Reset(bool bCGB)
     m_pBuffer->clear();
 
     for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
-        m_pApu->write_register(0, reg, kInitialValuesForFFXX[reg - 0xFF00]);
+    {
+        u8 value = m_bCGB ? kInitialValuesForColorFFXX[reg - 0xFF00] : kInitialValuesForFFXX[reg - 0xFF00];
+        m_pApu->write_register(0, reg, value);
+    }
 
     m_Time = 0;
 }

@@ -107,27 +107,15 @@ void Memory::Reset(bool bCGB)
         }
         else if (i >= 0xFF00)
         {
-            m_pMap[i] = kInitialValuesForFFXX[i - 0xFF00];
+            if (m_bCGB)
+                m_pMap[i] = kInitialValuesForColorFFXX[i - 0xFF00];
+            else
+                m_pMap[i] = kInitialValuesForFFXX[i - 0xFF00];
         }
         else
         {
             m_pMap[i] = 0xFF;
         }
-    }
-
-    if (m_bCGB)
-    {
-        m_pMap[0xff02] = 0x7c;
-        m_pMap[0xff56] = 0x3e;
-        m_pMap[0xff4d] = 0x7e;
-    }
-    else
-    {
-        m_pMap[0xff02] = 0x7e;
-        m_pMap[0xff56] = 0xff;
-        m_pMap[0xff4d] = 0xff;
-        m_pMap[0xff70] = 0xff;
-        m_pMap[0xff74] = 0xff;
     }
 }
 
