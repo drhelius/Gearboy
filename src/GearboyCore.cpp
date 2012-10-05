@@ -59,6 +59,24 @@ GearboyCore::GearboyCore()
 
 GearboyCore::~GearboyCore()
 {
+#ifdef DEBUG_GEARBOY
+    if (m_pCartridge->IsLoadedROM())
+    {
+        Log("Saving Memory Dump...");
+
+        using namespace std;
+
+        char path[512];
+
+        strcpy(path, m_pCartridge->GetFilePath());
+        strcat(path, ".dump");
+
+        m_pMemory->MemoryDump(path);
+
+        Log("Memory Dump Saved");
+    }
+#endif
+
     SafeDelete(m_pMBC5MemoryRule);
     SafeDelete(m_pMBC3MemoryRule);
     SafeDelete(m_pMBC2MemoryRule);
@@ -122,6 +140,24 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
 
 bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)
 {
+#ifdef DEBUG_GEARBOY
+    if (m_pCartridge->IsLoadedROM())
+    {
+        Log("Saving Memory Dump...");
+
+        using namespace std;
+
+        char path[512];
+
+        strcpy(path, m_pCartridge->GetFilePath());
+        strcat(path, ".dump");
+
+        m_pMemory->MemoryDump(path);
+
+        Log("Memory Dump Saved");
+    }
+#endif
+    
     bool loaded = m_pCartridge->LoadFromFile(szFilePath);
     if (loaded)
     {
