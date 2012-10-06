@@ -64,22 +64,24 @@ u8 MBC2MemoryRule::PerformRead(u16 address)
 
 void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
 {
-    if (address < 0x1000)
+    if (address < 0x2000)
     {
-        m_bRamEnabled = (value & 0x0F) == 0x0A;
+        if (!(address & 0x0100))
+        {
+            m_bRamEnabled = (value & 0x0F) == 0x0A;
+        }
     }
-    else if (address >= 0x1000 && address < 0x2100)
+    else if (address >= 0x2000 && address < 0x4000)
     {
-        Log("--> ** Attempting to write on non usable address %X %X", address, value);
+        if (address & 0x0100)
+        {
+            m_iCurrentROMBank = value & 0x0F;
+            if (m_iCurrentROMBank == 0)
+                m_iCurrentROMBank = 1;
+            m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+        }
     }
-    else if (address >= 0x2100 && address < 0x2200)
-    {
-        m_iCurrentROMBank = value & 0x0F;
-        if (m_iCurrentROMBank == 0)
-            m_iCurrentROMBank = 1;
-        m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
-    }
-    else if (address >= 0x2200 && address < 0x8000)
+    else if (address >= 0x4000 && address < 0x8000)
     {
         Log("--> ** Attempting to write on non usable address %X %X", address, value);
     }
@@ -112,28 +114,28 @@ void MBC2MemoryRule::Reset(bool bCGB)
 void MBC2MemoryRule::SaveRam(std::ofstream &file)
 {
     Log("MBC2MemoryRule save RAM...");
-    
+
     for (int i = 0xA000; i < 0xA200; i++)
     {
         u8 ram_byte = 0;
         ram_byte = m_pMemory->Retrieve(i);
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
-    
+
     Log("MBC2MemoryRule save RAM done");
 }
 
 void MBC2MemoryRule::LoadRam(std::ifstream &file)
 {
     Log("MBC2MemoryRule load RAM...");
-    
+
     for (int i = 0xA000; i < 0xA200; i++)
     {
         u8 ram_byte = 0;
         file.read(reinterpret_cast<char*> (&ram_byte), 1);
         m_pMemory->Load(i, ram_byte);
     }
-    
+
     Log("MBC2MemoryRule load RAM done");
 }
 
