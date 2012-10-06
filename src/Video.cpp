@@ -221,12 +221,11 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                 if (!m_bScanLineTransfered && (m_iStatusModeCounter >= 48))
                 {
                     m_bScanLineTransfered = true;
-                    //ScanLine(m_iStatusModeLYCounter);
+                    ScanLine(m_iStatusModeLYCounter);
                 }
 
                 if (m_iStatusModeCounter >= 172)
                 {
-                    ScanLine(m_iStatusModeLYCounter);
                     m_iStatusModeCounter -= 172;
                     m_iStatusMode = 0;
                     UpdateStatRegister();
