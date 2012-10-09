@@ -130,14 +130,26 @@ void Processor::OPCode0x0F()
 void Processor::OPCode0x10()
 {
     // STOP
-    /*
-    if (GameBoyMemory.Read(PC) != 0)
-    {
-        InvalidOPCode();
-    }
-     */
-    m_bStop = true;
     PC.Increment();
+
+    if (m_bCGB)
+    {
+        u8 current_key1 = m_pMemory->Retrieve(0xFF4D);
+
+        if (current_key1 & 0x01)
+        {
+            SpeedSwitch();
+
+            if (m_iCGBSpeed == 0)
+            {
+                m_pMemory->Load(0xFF4D, 0x00);
+            }
+            else
+            {
+                m_pMemory->Load(0xFF4D, 0x80);
+            }
+        }
+    }
 }
 
 void Processor::OPCode0x11()

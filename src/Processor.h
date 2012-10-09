@@ -62,7 +62,6 @@ private:
     SixteenBitRegister PC;
     bool m_bIME;
     bool m_bHalt;
-    bool m_bStop;
     bool m_bBranchTaken;
     bool m_bSkipPCBug;
     u8 m_CurrentClockCycles;
@@ -74,6 +73,7 @@ private:
     int m_iUnhaltCycles;
     bool m_bCGB;
     int m_InterruptDelayCycles[5];
+    int m_iCGBSpeed;
 
 private:
     u8 FetchOPCode();
@@ -84,6 +84,7 @@ private:
     void UpdateTimers();
     void UpdateSerial();
     void UpdateDelayedInterrupts();
+    void SpeedSwitch();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);
     void SetFlag(u8 flag);

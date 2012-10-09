@@ -28,7 +28,7 @@ Processor::Processor(Memory* pMemory)
     InitOPCodeFunctors();
     m_bIME = false;
     m_bHalt = false;
-    m_bStop = false;
+    m_iCGBSpeed = 0;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_CurrentClockCycles = 0;
@@ -57,7 +57,7 @@ void Processor::Reset(bool bCGB)
     m_bCGB = bCGB;
     m_bIME = false;
     m_bHalt = false;
-    m_bStop = false;
+    m_iCGBSpeed = 0;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_CurrentClockCycles = 0;
@@ -403,6 +403,18 @@ void Processor::UpdateDelayedInterrupts()
         {
             m_InterruptDelayCycles[i] -= m_CurrentClockCycles;
         }
+    }
+}
+
+void Processor::SpeedSwitch()
+{
+    if (m_iCGBSpeed == 0)
+    {
+        m_iCGBSpeed = 1;
+    }
+    else
+    {
+        m_iCGBSpeed = 0;
     }
 }
 
