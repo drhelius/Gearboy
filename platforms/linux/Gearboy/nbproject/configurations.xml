@@ -68,6 +68,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../qt-shared/About.h</itemPath>
       <itemPath>../../qt-shared/Emulator.h</itemPath>
       <itemPath>../../qt-shared/GLFrame.h</itemPath>
       <itemPath>../../qt-shared/InputSettings.h</itemPath>
@@ -80,6 +81,7 @@
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+      <itemPath>../../qt-shared/About.ui</itemPath>
       <itemPath>../../qt-shared/InputSettings.ui</itemPath>
       <itemPath>../../qt-shared/MainWindow.ui</itemPath>
       <itemPath>../../qt-shared/SoundSettings.ui</itemPath>
@@ -88,6 +90,7 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>../../qt-shared/About.cpp</itemPath>
       <itemPath>../../qt-shared/Emulator.cpp</itemPath>
       <itemPath>../../qt-shared/GLFrame.cpp</itemPath>
       <itemPath>../../qt-shared/InputSettings.cpp</itemPath>
