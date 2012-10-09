@@ -452,13 +452,13 @@ void Video::RenderBG(int line)
             int tile_16 = tile * 16;
             u8 byte1 = 0;
             u8 byte2 = 0;
-            /*
+            
             if (m_bCGB && cgb_tile_yflip)
             {
                 pixely = 7 - pixely;
                 pixely_2 = pixely * 2;
             }
-             */
+             
             if (m_bCGB && cgb_tile_bank)
             {
                 byte1 = m_pMemory->ReadCGBLCDRAM(tiles + tile_16 + pixely_2, true);
