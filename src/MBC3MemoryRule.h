@@ -44,11 +44,11 @@ private:
     bool m_bRamEnabled;
     bool m_bRTCEnabled;
     u8* m_pRAMBanks;
-    int m_iRTCSeconds;
-    int m_iRTCMinutes;
-    int m_iRTCHours;
-    int m_iRTCDays;
-    int m_iRTCControl;
+    s32 m_iRTCSeconds;
+    s32 m_iRTCMinutes;
+    s32 m_iRTCHours;
+    s32 m_iRTCDays;
+    s32 m_iRTCControl;
     int m_iRTCLatchedSeconds;
     int m_iRTCLatchedMinutes;
     int m_iRTCLatchedHours;

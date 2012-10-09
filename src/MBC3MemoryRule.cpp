@@ -230,6 +230,12 @@ void MBC3MemoryRule::SaveRam(std::ofstream &file)
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
 
+    file.write(reinterpret_cast<const char*> (&m_iRTCSeconds), sizeof(s32));
+    file.write(reinterpret_cast<const char*> (&m_iRTCMinutes), sizeof(s32));
+    file.write(reinterpret_cast<const char*> (&m_iRTCHours), sizeof(s32));
+    file.write(reinterpret_cast<const char*> (&m_iRTCDays), sizeof(s32));
+    file.write(reinterpret_cast<const char*> (&m_iRTCControl), sizeof(s32));
+
     Log("MBC3MemoryRule save RAM done");
 }
 
@@ -244,12 +250,18 @@ void MBC3MemoryRule::LoadRam(std::ifstream &file)
         m_pRAMBanks[i] = ram_byte;
     }
 
+    file.read(reinterpret_cast<char*> (&m_iRTCSeconds), sizeof(s32));
+    file.read(reinterpret_cast<char*> (&m_iRTCMinutes), sizeof(s32));
+    file.read(reinterpret_cast<char*> (&m_iRTCHours), sizeof(s32));
+    file.read(reinterpret_cast<char*> (&m_iRTCDays), sizeof(s32));
+    file.read(reinterpret_cast<char*> (&m_iRTCControl), sizeof(s32));
+
     Log("MBC3MemoryRule load RAM done");
 }
 
 int MBC3MemoryRule::GetRamBanksSize()
 {
-    return 0x8000;
+    return 0x8000 + (sizeof(s32) * 5);
 }
 
 void MBC3MemoryRule::UpdateRTC()
