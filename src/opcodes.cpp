@@ -138,7 +138,7 @@ void Processor::OPCode0x10()
 
         if (IsSetBit(current_key1, 0))
         {
-            SpeedSwitch();
+            m_bCGBSpeed = !m_bCGBSpeed;
 
             if (m_bCGBSpeed)
                 m_pMemory->Load(0xFF4D, 0x80);
@@ -1830,7 +1830,8 @@ void Processor::OPCode0xFA()
 void Processor::OPCode0xFB()
 {
     // EI
-    m_iIMECycles = (kOPCodeMachineCycles[0xFB] * 4) + 1;
+    int ei_cycles = kOPCodeMachineCycles[0xFB] * (m_bCGBSpeed ? 2 : 4);
+    m_iIMECycles = ei_cycles + 1;
 }
 
 void Processor::OPCode0xFC()

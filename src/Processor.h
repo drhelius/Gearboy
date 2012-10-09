@@ -84,7 +84,6 @@ private:
     void UpdateTimers();
     void UpdateSerial();
     void UpdateDelayedInterrupts();
-    void SpeedSwitch();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);
     void SetFlag(u8 flag);

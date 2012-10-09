@@ -307,7 +307,7 @@ void Processor::UpdateTimers()
 {
     m_iDIVCycles += m_CurrentClockCycles;
 
-    int div_cycles = (m_bCGBSpeed ? 128 : 256);
+    unsigned int div_cycles = (m_bCGBSpeed ? 128 : 256);
 
     while (m_iDIVCycles >= div_cycles)
     {
@@ -407,20 +407,6 @@ void Processor::UpdateDelayedInterrupts()
         {
             m_InterruptDelayCycles[i] -= m_CurrentClockCycles;
         }
-    }
-}
-
-void Processor::SpeedSwitch()
-{
-    m_bCGBSpeed = !m_bCGBSpeed;
-
-    if (m_bCGBSpeed)
-    {
-
-    }
-    else
-    {
-
     }
 }
 
