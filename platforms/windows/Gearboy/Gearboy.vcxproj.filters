@@ -182,6 +182,15 @@
     <ClCompile Include="..\..\..\src\MultiMBC1MemoryRule.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_About.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_About.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\qt-shared\About.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\qt-shared\GLFrame.h">
@@ -213,6 +222,12 @@
     </CustomBuild>
     <CustomBuild Include="..\..\qt-shared\SoundSettings.ui">
       <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\qt-shared\About.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\qt-shared\About.h">
+      <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -329,6 +344,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\MultiMBC1MemoryRule.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_About.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

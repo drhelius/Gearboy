@@ -30,6 +30,7 @@ class Emulator;
 class InputSettings;
 class SoundSettings;
 class VideoSettings;
+class About;
 
 namespace Ui
 {
@@ -96,6 +97,7 @@ private:
     InputSettings* m_pInputSettings;
     SoundSettings* m_pSoundSettings;
     VideoSettings* m_pVideoSettings;
+    About* m_pAbout;
 };
 
 #endif // MAINWINDOW_H

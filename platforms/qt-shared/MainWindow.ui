@@ -71,10 +71,11 @@
     <addaction name="separator"/>
     <addaction name="actionForce_Game_Boy_DMG"/>
    </widget>
-   <widget class="QMenu" name="menuAbout">
+   <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>About</string>
+     <string>Help</string>
     </property>
+    <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -113,7 +114,7 @@
    <addaction name="menuGame_Boy"/>
    <addaction name="menuSettings"/>
    <addaction name="menuDebug"/>
-   <addaction name="menuAbout"/>
+   <addaction name="menuHelp"/>
   </widget>
   <action name="actionInput">
    <property name="text">
@@ -303,6 +304,11 @@
    </property>
    <property name="text">
     <string>x 5</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>
@@ -577,6 +583,22 @@
     <hint type="destinationlabel">
      <x>37</x>
      <y>24</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionAbout</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>MenuAbout()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>170</x>
+     <y>160</y>
     </hint>
    </hints>
   </connection>

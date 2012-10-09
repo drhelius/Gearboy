@@ -27,6 +27,7 @@
 #include "InputSettings.h"
 #include "SoundSettings.h"
 #include "VideoSettings.h"
+#include "About.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -79,6 +80,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     m_pVideoSettings = new VideoSettings(m_pGLFrame, m_pEmulator);
 
+    m_pAbout = new About();
+
     //QPalette pal = this->palette();
     //pal.setColor(this->backgroundRole(), Qt::black);
     //this->setPalette(pal);
@@ -92,6 +95,7 @@ MainWindow::~MainWindow()
 {
     SaveSettings();
 
+    SafeDelete(m_pAbout);
     SafeDelete(m_pExitShortcut);
     SafeDelete(m_pEmulator);
     SafeDelete(m_pGLFrame);
@@ -254,6 +258,8 @@ void MainWindow::MenuDebugPalette()
 
 void MainWindow::MenuAbout()
 {
+    m_pAbout->setModal(true);
+    m_pAbout->show();
 }
 
 void MainWindow::MenuGameBoyPressed()
