@@ -28,7 +28,7 @@ Processor::Processor(Memory* pMemory)
     InitOPCodeFunctors();
     m_bIME = false;
     m_bHalt = false;
-    m_iCGBSpeed = 0;
+    m_bCGBSpeed = false;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_CurrentClockCycles = 0;
@@ -57,7 +57,7 @@ void Processor::Reset(bool bCGB)
     m_bCGB = bCGB;
     m_bIME = false;
     m_bHalt = false;
-    m_iCGBSpeed = 0;
+    m_bCGBSpeed = false;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_CurrentClockCycles = 0;
@@ -86,7 +86,7 @@ u8 Processor::Tick()
 
     if (m_bHalt)
     {
-        m_CurrentClockCycles += 4;
+        m_CurrentClockCycles += (m_bCGBSpeed ? 2 : 4);
 
         if (m_iUnhaltCycles > 0)
         {
@@ -101,7 +101,7 @@ u8 Processor::Tick()
         
         if (m_bHalt && (InterruptPending() != None_Interrupt) && (m_iUnhaltCycles == 0))
         {
-            m_iUnhaltCycles = 12;
+            m_iUnhaltCycles = (m_bCGBSpeed ? 6 : 12);
         }
     }
 
@@ -137,7 +137,7 @@ void Processor::RequestInterrupt(Interrupts interrupt)
     switch (interrupt)
     {
         case VBlank_Interrupt:
-            m_InterruptDelayCycles[0] = 4;
+            m_InterruptDelayCycles[0] = (m_bCGBSpeed ? 0 : 4);
             break;
         case LCDSTAT_Interrupt:
             m_InterruptDelayCycles[1] = 0;
@@ -201,10 +201,10 @@ void Processor::ExecuteOPCode(u8 opcode)
         if (m_bBranchTaken)
         {
             m_bBranchTaken = false;
-            m_CurrentClockCycles += kOPCodeConditionalsMachineCycles[opcode] * 4;
+            m_CurrentClockCycles += kOPCodeConditionalsMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
         }
         else
-            m_CurrentClockCycles += kOPCodeMachineCycles[opcode] * 4;
+            m_CurrentClockCycles += kOPCodeMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
     }
 }
 
@@ -218,7 +218,7 @@ void Processor::ExecuteOPCodeCB(u8 opcode)
 
     (this->*m_OPCodesCB[opcode])();
 
-    m_CurrentClockCycles += kOPCodeCBMachineCycles[opcode] * 4;
+    m_CurrentClockCycles += kOPCodeCBMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
 }
 
 Processor::Interrupts Processor::InterruptPending()
@@ -263,7 +263,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0040);
-                m_CurrentClockCycles += 20;
+                m_CurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
                 break;
             case LCDSTAT_Interrupt:
                 m_InterruptDelayCycles[1] = 0;
@@ -271,7 +271,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0048);
-                m_CurrentClockCycles += 20;
+                m_CurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
                 break;
             case Timer_Interrupt:
                 m_InterruptDelayCycles[2] = 0;
@@ -279,7 +279,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0050);
-                m_CurrentClockCycles += 20;
+                m_CurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
                 break;
             case Serial_Interrupt:
                 m_InterruptDelayCycles[3] = 0;
@@ -287,7 +287,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0058);
-                m_CurrentClockCycles += 20;
+                m_CurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
                 break;
             case Joypad_Interrupt:
                 m_InterruptDelayCycles[4] = 0;
@@ -295,7 +295,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0060);
-                m_CurrentClockCycles += 20;
+                m_CurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
                 break;
             case None_Interrupt:
                 break;
@@ -307,9 +307,11 @@ void Processor::UpdateTimers()
 {
     m_iDIVCycles += m_CurrentClockCycles;
 
-    while (m_iDIVCycles >= 256)
+    int div_cycles = (m_bCGBSpeed ? 128 : 256);
+
+    while (m_iDIVCycles >= div_cycles)
     {
-        m_iDIVCycles -= 256;
+        m_iDIVCycles -= div_cycles;
         u8 div = m_pMemory->Retrieve(0xFF04);
         div++;
         m_pMemory->Load(0xFF04, div);
@@ -327,16 +329,16 @@ void Processor::UpdateTimers()
         switch (tac & 0x03)
         {
             case 0:
-                freq = 1024;
+                freq = (m_bCGBSpeed ? 512 : 1024);
                 break;
             case 1:
-                freq = 16;
+                freq = (m_bCGBSpeed ? 8 : 16);
                 break;
             case 2:
-                freq = 64;
+                freq = (m_bCGBSpeed ? 32 : 64);
                 break;
             case 3:
-                freq = 256;
+                freq = (m_bCGBSpeed ? 128 : 256);
                 break;
         }
 
@@ -373,7 +375,9 @@ void Processor::UpdateSerial()
             return;
         }
 
-        if (m_iSerialCycles >= 512)
+        int serial_cycles = (m_bCGBSpeed ? 256 : 512);
+
+        if (m_iSerialCycles >= serial_cycles)
         {
             if (m_iSerialBit > 7)
             {
@@ -389,7 +393,7 @@ void Processor::UpdateSerial()
             sb |= 0x01;
             m_pMemory->Load(0xFF01, sb);
 
-            m_iSerialCycles -= 512;
+            m_iSerialCycles -= serial_cycles;
             m_iSerialBit++;
         }
     }
@@ -408,13 +412,15 @@ void Processor::UpdateDelayedInterrupts()
 
 void Processor::SpeedSwitch()
 {
-    if (m_iCGBSpeed == 0)
+    m_bCGBSpeed = !m_bCGBSpeed;
+
+    if (m_bCGBSpeed)
     {
-        m_iCGBSpeed = 1;
+
     }
     else
     {
-        m_iCGBSpeed = 0;
+
     }
 }
 

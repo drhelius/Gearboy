@@ -73,7 +73,7 @@ private:
     int m_iUnhaltCycles;
     bool m_bCGB;
     int m_InterruptDelayCycles[5];
-    int m_iCGBSpeed;
+    int m_bCGBSpeed;
 
 private:
     u8 FetchOPCode();
