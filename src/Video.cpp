@@ -412,6 +412,7 @@ void Video::RenderBG(int line)
         int y_32 = (lineAdjusted / 8) * 32;
         int pixely = lineAdjusted % 8;
         int pixely_2 = pixely * 2;
+        int pixely_2_flip = (7 - pixely) * 2;
 
         for (int x = 0; x < 32; x++)
         {
@@ -446,22 +447,18 @@ void Video::RenderBG(int line)
             int tile_16 = tile * 16;
             u8 byte1 = 0;
             u8 byte2 = 0;
+            int final_pixely_2 = (m_bCGB && cgb_tile_yflip) ? pixely_2_flip : pixely_2;
+            int tile_address = tiles + tile_16 + final_pixely_2;
             
-            if (m_bCGB && cgb_tile_yflip)
-            {
-                pixely = 7 - pixely;
-                pixely_2 = pixely * 2;
-            }
-             
             if (m_bCGB && cgb_tile_bank)
             {
-                byte1 = m_pMemory->ReadCGBLCDRAM(tiles + tile_16 + pixely_2, true);
-                byte2 = m_pMemory->ReadCGBLCDRAM(tiles + tile_16 + pixely_2 + 1, true);
+                byte1 = m_pMemory->ReadCGBLCDRAM(tile_address, true);
+                byte2 = m_pMemory->ReadCGBLCDRAM(tile_address + 1, true);
             }
             else
             {
-                byte1 = m_pMemory->Retrieve(tiles + tile_16 + pixely_2);
-                byte2 = m_pMemory->Retrieve(tiles + tile_16 + pixely_2 + 1);
+                byte1 = m_pMemory->Retrieve(tile_address);
+                byte2 = m_pMemory->Retrieve(tile_address + 1);
             }
 
             for (int pixelx = 0; pixelx < 8; pixelx++)
@@ -527,6 +524,7 @@ void Video::RenderWindow(int line)
             int y_32 = (lineAdjusted / 8) * 32;
             int pixely = lineAdjusted % 8;
             int pixely_2 = pixely * 2;
+            int pixely_2_flip = (7 - pixely) * 2;
 
             for (int x = 0; x < 32; x++)
             {
@@ -562,22 +560,18 @@ void Video::RenderWindow(int line)
                 int tile_16 = tile * 16;
                 u8 byte1 = 0;
                 u8 byte2 = 0;
-
-                if (m_bCGB && cgb_tile_yflip)
-                {
-                    pixely = 7 - pixely;
-                    pixely_2 = pixely * 2;
-                }
+                int final_pixely_2 = (m_bCGB && cgb_tile_yflip) ? pixely_2_flip : pixely_2;
+                int tile_address = tiles + tile_16 + final_pixely_2;
 
                 if (m_bCGB && cgb_tile_bank)
                 {
-                    byte1 = m_pMemory->ReadCGBLCDRAM(tiles + tile_16 + pixely_2, true);
-                    byte2 = m_pMemory->ReadCGBLCDRAM(tiles + tile_16 + pixely_2 + 1, true);
+                    byte1 = m_pMemory->ReadCGBLCDRAM(tile_address, true);
+                    byte2 = m_pMemory->ReadCGBLCDRAM(tile_address + 1, true);
                 }
                 else
                 {
-                    byte1 = m_pMemory->Retrieve(tiles + tile_16 + pixely_2);
-                    byte2 = m_pMemory->Retrieve(tiles + tile_16 + pixely_2 + 1);
+                    byte1 = m_pMemory->Retrieve(tile_address);
+                    byte2 = m_pMemory->Retrieve(tile_address + 1);
                 }
 
                 for (int pixelx = 0; pixelx < 8; pixelx++)
