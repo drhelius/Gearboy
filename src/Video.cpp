@@ -419,18 +419,12 @@ void Video::RenderBG(int line)
 
             if (tiles == 0x8800)
             {
-                if (m_bCGB)
-                    tile = static_cast<s8> (m_pMemory->ReadCGBLCDRAM(map + y_32 + x, false));
-                else
-                    tile = static_cast<s8> (m_pMemory->Retrieve(map + y_32 + x));
+                tile = static_cast<s8> (m_pMemory->Retrieve(map + y_32 + x));
                 tile += 128;
             }
             else
             {
-                if (m_bCGB)
-                    tile = m_pMemory->ReadCGBLCDRAM(map + y_32 + x, false);
-                else
-                    tile = m_pMemory->Retrieve(map + y_32 + x);
+               tile = m_pMemory->Retrieve(map + y_32 + x);
             }
 
             u8 cgb_tile_attr = 0;
@@ -540,18 +534,12 @@ void Video::RenderWindow(int line)
 
                 if (tiles == 0x8800)
                 {
-                    if (m_bCGB)
-                        tile = static_cast<s8> (m_pMemory->ReadCGBLCDRAM(map + y_32 + x, false));
-                    else
-                        tile = static_cast<s8> (m_pMemory->Retrieve(map + y_32 + x));
+                    tile = static_cast<s8> (m_pMemory->Retrieve(map + y_32 + x));
                     tile += 128;
                 }
                 else
                 {
-                    if (m_bCGB)
-                        tile = m_pMemory->ReadCGBLCDRAM(map + y_32 + x, false);
-                    else
-                        tile = m_pMemory->Retrieve(map + y_32 + x);
+                    tile = m_pMemory->Retrieve(map + y_32 + x);
                 }
 
                 u8 cgb_tile_attr = 0;
