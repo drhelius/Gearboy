@@ -49,12 +49,12 @@ private:
     s32 m_iRTCHours;
     s32 m_iRTCDays;
     s32 m_iRTCControl;
-    int m_iRTCLatchedSeconds;
-    int m_iRTCLatchedMinutes;
-    int m_iRTCLatchedHours;
-    int m_iRTCLatchedDays;
-    int m_iRTCLatchedControl;
-    int m_iRTCLatch;
+    s32 m_iRTCLatchedSeconds;
+    s32 m_iRTCLatchedMinutes;
+    s32 m_iRTCLatchedHours;
+    s32 m_iRTCLatchedDays;
+    s32 m_iRTCLatchedControl;
+    s32 m_iRTCLatch;
     u8 m_RTCRegister;
     time_t m_RTCLastTime;
     time_t m_RTCLastTimeCache;

@@ -235,6 +235,15 @@ void MBC3MemoryRule::SaveRam(std::ofstream &file)
     file.write(reinterpret_cast<const char*> (&m_iRTCHours), sizeof(s32));
     file.write(reinterpret_cast<const char*> (&m_iRTCDays), sizeof(s32));
     file.write(reinterpret_cast<const char*> (&m_iRTCControl), sizeof(s32));
+    file.write(reinterpret_cast<const char*> (&m_iRTCLatchedSeconds), sizeof(s32));
+    file.write(reinterpret_cast<const char*> (&m_iRTCLatchedMinutes), sizeof(s32));
+    file.write(reinterpret_cast<const char*> (&m_iRTCLatchedHours), sizeof(s32));
+    file.write(reinterpret_cast<const char*> (&m_iRTCLatchedDays), sizeof(s32));
+    file.write(reinterpret_cast<const char*> (&m_iRTCLatchedControl), sizeof(s32));
+    file.write(reinterpret_cast<const char*> (&m_RTCLastTime), sizeof(time_t));
+    file.write(reinterpret_cast<const char*> (&m_RTCLastTimeCache), sizeof(time_t));
+    file.write(reinterpret_cast<const char*> (&m_iRTCLatch), sizeof(s32));
+    file.write(reinterpret_cast<const char*> (&m_RTCRegister), sizeof(u8));
 
     Log("MBC3MemoryRule save RAM done");
 }
@@ -255,13 +264,25 @@ void MBC3MemoryRule::LoadRam(std::ifstream &file)
     file.read(reinterpret_cast<char*> (&m_iRTCHours), sizeof(s32));
     file.read(reinterpret_cast<char*> (&m_iRTCDays), sizeof(s32));
     file.read(reinterpret_cast<char*> (&m_iRTCControl), sizeof(s32));
+    file.read(reinterpret_cast<char*> (&m_iRTCLatchedSeconds), sizeof(s32));
+    file.read(reinterpret_cast<char*> (&m_iRTCLatchedMinutes), sizeof(s32));
+    file.read(reinterpret_cast<char*> (&m_iRTCLatchedHours), sizeof(s32));
+    file.read(reinterpret_cast<char*> (&m_iRTCLatchedDays), sizeof(s32));
+    file.read(reinterpret_cast<char*> (&m_iRTCLatchedControl), sizeof(s32));
+    file.read(reinterpret_cast<char*> (&m_RTCLastTime), sizeof(time_t));
+    file.read(reinterpret_cast<char*> (&m_RTCLastTimeCache), sizeof(time_t));
+    file.read(reinterpret_cast<char*> (&m_iRTCLatch), sizeof(s32));
+    file.read(reinterpret_cast<char*> (&m_RTCRegister), sizeof(u8));
+    
+    m_iRTCControl &= 0x01;
+    m_iRTCLatchedControl &= 0x01;
 
     Log("MBC3MemoryRule load RAM done");
 }
 
 int MBC3MemoryRule::GetRamBanksSize()
 {
-    return 0x8000 + (sizeof(s32) * 5);
+    return 0x8000 + (sizeof(s32) * 11) + (sizeof(time_t) * 2) + 1;
 }
 
 void MBC3MemoryRule::UpdateRTC()
