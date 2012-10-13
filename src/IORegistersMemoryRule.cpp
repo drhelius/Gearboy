@@ -104,6 +104,16 @@ u8 IORegistersMemoryRule::PerformRead(u16 address)
         // SVBK
         return (m_bCGB ? (m_pMemory->Retrieve(0xFF70) | 0xF8) : 0xFF);
     }
+    else if (address == 0xFF76)
+    {
+        // UNDOCUMENTED
+        return (m_bCGB ? 0x00 : 0xFF);
+    }
+    else if (address == 0xFF77)
+    {
+        // UNDOCUMENTED
+        return (m_bCGB ? 0x0 : 0xFF);
+    }
     else
     {
         return m_pMemory->Retrieve(address);
