@@ -425,7 +425,7 @@ void Video::RenderBG(int line)
             }
             else
             {
-               tile = m_pMemory->Retrieve(map + y_32 + x);
+                tile = m_pMemory->Retrieve(map + y_32 + x);
             }
 
             u8 cgb_tile_attr = 0;
@@ -449,7 +449,7 @@ void Video::RenderBG(int line)
             u8 byte2 = 0;
             int final_pixely_2 = (m_bCGB && cgb_tile_yflip) ? pixely_2_flip : pixely_2;
             int tile_address = tiles + tile_16 + final_pixely_2;
-            
+
             if (m_bCGB && cgb_tile_bank)
             {
                 byte1 = m_pMemory->ReadCGBLCDRAM(tile_address, true);
@@ -479,8 +479,10 @@ void Video::RenderBG(int line)
 
                     int position = (line * GAMEBOY_WIDTH) + bufferX;
                     m_pColorCacheBuffer[position] = pixel & 0x03;
+
                     if (m_bCGB)
                     {
+                        m_pColorCacheBuffer[position] |= (cgb_tile_priority ? 0x20 : 0x00);
                         GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel];
                         m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
                     }
@@ -592,8 +594,10 @@ void Video::RenderWindow(int line)
 
                         int position = (line * GAMEBOY_WIDTH) + bufferX;
                         m_pColorCacheBuffer[position] = pixel & 0x03;
+                        
                         if (m_bCGB)
                         {
+                            m_pColorCacheBuffer[position] |= (cgb_tile_priority ? 0x20 : 0x00);
                             GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel];
                             m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
                         }
@@ -679,6 +683,12 @@ void Video::RenderSprites(int line)
                         {
                             int bufferX = (sprite_x + pixelx);
                             u8 color_cache = m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX];
+                            
+                            if (m_bCGB && ((color_cache & 0x20) != 0))
+                            {
+                                continue;
+                            }
+                            
                             int sprite_x_cache = m_pSpriteXCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX];
 
                             if ((color_cache & 0x10) != 0)
