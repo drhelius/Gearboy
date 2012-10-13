@@ -313,19 +313,19 @@ const u8* Video::GetFrameBuffer() const
 
 void Video::SetColorPalette(bool background, u8 value)
 {
-    u8 bcps = m_pMemory->Retrieve(0xFF68);
-    bool hl = IsSetBit(bcps, 0);
-    int index = (bcps >> 1) & 0x03;
-    int pal = (bcps >> 3) & 0x07;
-    bool increment = IsSetBit(bcps, 7);
+    u8 ps = background ? m_pMemory->Retrieve(0xFF68) : m_pMemory->Retrieve(0xFF6A);
+    bool hl = IsSetBit(ps, 0);
+    int index = (ps >> 1) & 0x03;
+    int pal = (ps >> 3) & 0x07;
+    bool increment = IsSetBit(ps, 7);
 
     if (increment)
     {
-        u8 address = bcps & 0x3F;
+        u8 address = ps & 0x3F;
         address++;
         address &= 0x3F;
-        bcps = (bcps & 0xC0) | address;
-        m_pMemory->Load(0xFF68, bcps);
+        ps = (ps & 0xC0) | address;
+        m_pMemory->Load(background ? 0xFF68 : 0xFF6A, ps);
     }
 
     if (hl)
@@ -679,7 +679,7 @@ void Video::RenderSprites(int line)
                         int pixel = (byte1 & (0x1 << (xflip ? pixelx : 7 - pixelx))) ? 1 : 0;
                         pixel |= (byte2 & (0x1 << (xflip ? pixelx : 7 - pixelx))) ? 2 : 0;
 
-                        if (pixel)
+                        if (pixel != 0)
                         {
                             int bufferX = (sprite_x + pixelx);
                             u8 color_cache = m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX];
