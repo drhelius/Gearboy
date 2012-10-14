@@ -316,6 +316,32 @@ const u8* Video::GetFrameBuffer() const
     return m_pFrameBuffer;
 }
 
+void Video::UpdatePaletteToSpecification(bool background, u8 value)
+{
+    bool hl = IsSetBit(value, 0);
+    int index = (value >> 1) & 0x03;
+    int pal = (value >> 3) & 0x07;
+    
+    GB_Color color = (background ? m_CGBBackgroundPalettes[pal][index] : m_CGBSpritePalettes[pal][index]);
+    
+    u8 final_value = 0;
+    
+    if (hl)
+    {
+        u8 blue = (color.blue & 0x1f) << 2;
+        u8 half_green_hi = (color.green >> 3) & 0x03;
+        final_value = (blue | half_green_hi) & 0x7F;
+    }
+    else
+    {
+        u8 half_green_low = (color.green & 0x07) << 5;
+        u8 red = color.red & 0x1F;
+        final_value = (red | half_green_low);
+    }
+    
+    m_pMemory->Load(background ? 0xFF69 : 0xFF6B, final_value);
+}
+
 void Video::SetColorPalette(bool background, u8 value)
 {
     u8 ps = background ? m_pMemory->Retrieve(0xFF68) : m_pMemory->Retrieve(0xFF6A);
@@ -329,8 +355,9 @@ void Video::SetColorPalette(bool background, u8 value)
         u8 address = ps & 0x3F;
         address++;
         address &= 0x3F;
-        ps = (ps & 0xC0) | address;
+        ps = (ps & 0x80) | address;
         m_pMemory->Load(background ? 0xFF68 : 0xFF6A, ps);
+        UpdatePaletteToSpecification(background, ps);
     }
 
     if (hl)

@@ -306,17 +306,29 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         // DMA CGB
         m_pMemory->SwitchCGBDMA(value);
     }
+    else if (m_bCGB && (address == 0xFF68))
+    {
+        // BCPS
+        m_pMemory->Load(address, value);
+        m_pVideo->UpdatePaletteToSpecification(true, value);
+    }
     else if (m_bCGB && (address == 0xFF69))
     {
         // BCPD
-        m_pVideo->SetColorPalette(true, value);
         m_pMemory->Load(address, value);
+        m_pVideo->SetColorPalette(true, value);
+    }
+    else if (m_bCGB && (address == 0xFF6A))
+    {
+        // OCPS
+        m_pMemory->Load(address, value);
+        m_pVideo->UpdatePaletteToSpecification(false, value);
     }
     else if (m_bCGB && (address == 0xFF6B))
     {
         // OCPD
-        m_pVideo->SetColorPalette(false, value);
         m_pMemory->Load(address, value);
+        m_pVideo->SetColorPalette(false, value);
     }
     else if (address == 0xFF6C)
     {
