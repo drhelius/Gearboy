@@ -130,14 +130,22 @@ void Processor::OPCode0x0F()
 void Processor::OPCode0x10()
 {
     // STOP
-    /*
-    if (GameBoyMemory.Read(PC) != 0)
-    {
-        InvalidOPCode();
-    }
-     */
-    m_bStop = true;
     PC.Increment();
+
+    if (m_bCGB)
+    {
+        u8 current_key1 = m_pMemory->Retrieve(0xFF4D);
+
+        if (IsSetBit(current_key1, 0))
+        {
+            m_bCGBSpeed = !m_bCGBSpeed;
+
+            if (m_bCGBSpeed)
+                m_pMemory->Load(0xFF4D, 0x80);
+            else
+                m_pMemory->Load(0xFF4D, 0x00);
+        }
+    }
 }
 
 void Processor::OPCode0x11()
@@ -1822,7 +1830,8 @@ void Processor::OPCode0xFA()
 void Processor::OPCode0xFB()
 {
     // EI
-    m_iIMECycles = (kOPCodeMachineCycles[0xFB] * 4) + 1;
+    int ei_cycles = kOPCodeMachineCycles[0xFB] * (m_bCGBSpeed ? 2 : 4);
+    m_iIMECycles = ei_cycles + 1;
 }
 
 void Processor::OPCode0xFC()

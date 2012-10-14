@@ -131,7 +131,7 @@ void Audio::EndFrame()
     }
 }
 
-void Audio::Tick(u8 clockCycles)
+void Audio::Tick(unsigned int clockCycles)
 {
     m_Time += clockCycles;
 

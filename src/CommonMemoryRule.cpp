@@ -53,7 +53,7 @@ u8 CommonMemoryRule::PerformRead(u16 address)
     else if (address >= 0xFE00 && address < 0xFEA0)
     {
         // OAM not accessible during mode 2 and 3
-        if ((m_pVideo->GetCurrentStatusMode() != 2) || (m_pVideo->GetCurrentStatusMode() != 3))
+        if ((m_pVideo->GetCurrentStatusMode() != 2) && (m_pVideo->GetCurrentStatusMode() != 3))
             return m_pMemory->Retrieve(address);
         else
             return 0xFF;
@@ -113,7 +113,7 @@ void CommonMemoryRule::PerformWrite(u16 address, u8 value)
     else if (address >= 0xFE00 && address < 0xFEA0)
     {
         // OAM not accessible during mode 2 and 3
-        if ((m_pVideo->GetCurrentStatusMode() != 2) || (m_pVideo->GetCurrentStatusMode() != 3))
+        if ((m_pVideo->GetCurrentStatusMode() != 2) && (m_pVideo->GetCurrentStatusMode() != 3))
             m_pMemory->Load(address, value);
     }
     else if (address >= 0xFEA0 && address < 0xFF00)

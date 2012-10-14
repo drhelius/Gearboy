@@ -21,9 +21,13 @@
 #include <fstream>
 #include "Memory.h"
 #include "MemoryRule.h"
+#include "Processor.h"
+#include "Video.h"
 
 Memory::Memory()
 {
+    InitPointer(m_pProcessor);
+    InitPointer(m_pVideo);
     InitPointer(m_pMap);
     InitPointer(m_pDisassembledMap);
     InitPointer(m_pWRAMBanks);
@@ -31,15 +35,32 @@ Memory::Memory()
     m_bCGB = false;
     m_iCurrentWRAMBank = 1;
     m_iCurrentLCDRAMBank = 0;
-    m_bHBDMAEnabled = false;
+    m_bHDMAEnabled = false;
+    m_iHDMABytes = 0;
+    for (int i = 0; i < 5; i++)
+        m_HDMA[i] = 0;
+    m_HDMASource = 0;
+    m_HDMADestination = 0;
 }
 
 Memory::~Memory()
 {
+    InitPointer(m_pProcessor);
+    InitPointer(m_pVideo);
     SafeDeleteArray(m_pMap);
     SafeDeleteArray(m_pDisassembledMap);
     SafeDeleteArray(m_pWRAMBanks);
     SafeDeleteArray(m_pLCDRAMBank1);
+}
+
+void Memory::SetProcessor(Processor* pProcessor)
+{
+    m_pProcessor = pProcessor;
+}
+
+void Memory::SetVideo(Video* pVideo)
+{
+    m_pVideo = pVideo;
 }
 
 void Memory::Init()
@@ -57,7 +78,8 @@ void Memory::Reset(bool bCGB)
     m_Rules.clear();
     m_iCurrentWRAMBank = 1;
     m_iCurrentLCDRAMBank = 0;
-    m_bHBDMAEnabled = false;
+    m_bHDMAEnabled = false;
+    m_iHDMABytes = 0;
 
     for (int i = 0; i < 65536; i++)
     {
@@ -117,6 +139,26 @@ void Memory::Reset(bool bCGB)
             m_pMap[i] = 0xFF;
         }
     }
+
+    if (m_bCGB)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            m_HDMA[i] = m_pMap[0xFF51 + i];
+        }
+
+        u8 hdma1 = m_HDMA[0];
+        u8 hdma2 = m_HDMA[1];
+        u8 hdma3 = m_HDMA[2];
+        u8 hdma4 = m_HDMA[3];
+
+        if (hdma1 > 0x7f && hdma1 < 0xa0)
+            hdma1 = 0;
+
+        m_HDMASource = (hdma1 << 8) | (hdma2 & 0xF0);
+        m_HDMADestination = ((hdma3 & 0x1F) << 8) | (hdma4 & 0xF0);
+        m_HDMADestination |= 0x8000;
+    }
 }
 
 void Memory::AddRule(MemoryRule* pRule)
@@ -173,7 +215,7 @@ void Memory::WriteCGBWRAM(u16 address, u8 value)
 
 void Memory::SwitchCGBWRAM(u8 value)
 {
-    m_iCurrentWRAMBank = value & 0x07;
+    m_iCurrentWRAMBank = value;
 
     if (m_iCurrentWRAMBank == 0)
         m_iCurrentWRAMBank = 1;
@@ -197,7 +239,7 @@ void Memory::WriteCGBLCDRAM(u16 address, u8 value)
 
 void Memory::SwitchCGBLCDRAM(u8 value)
 {
-    m_iCurrentLCDRAMBank = value & 0x01;
+    m_iCurrentLCDRAMBank = value;
 }
 
 u8 Memory::Retrieve(u16 address)
@@ -253,7 +295,7 @@ void Memory::MemoryDump(const char* szFilePath)
     }
 }
 
-void Memory::DoDMATransfer(u8 value)
+void Memory::PerformDMA(u8 value)
 {
     if (m_bCGB)
     {
@@ -288,62 +330,159 @@ void Memory::DoDMATransfer(u8 value)
     }
 }
 
-void Memory::DoDMACGBTransfer(u8 value, bool hbdma)
+void Memory::SwitchCGBDMA(u8 value)
 {
-    if (hbdma)
+    m_iHDMABytes = 16 + ((value & 0x7f) * 16);
+
+    if (m_bHDMAEnabled)
     {
-        // Horizontal Blanking DMA
-        m_bHBDMAEnabled = IsSetBit(value, 7);
+        if (IsSetBit(value, 7))
+        {
+            m_HDMA[4] = value & 0x7F;
+        }
+        else
+        {
+            m_HDMA[4] = 0xFF;
+            m_bHDMAEnabled = false;
+        }
     }
     else
     {
-        // General purpose DMA
-        DoHDMACGBTransfer(false);
-        // transfer finished
-        Load(0xFF51, 0xFF);
-        Load(0xFF52, 0xFF);
-        Load(0xFF53, 0xFF);
-        Load(0xFF54, 0xFF);
-        Load(0xFF55, 0xFF);
+        if (IsSetBit(value, 7))
+        {
+            m_bHDMAEnabled = true;
+            m_HDMA[4] = value & 0x7F;
+            if (m_pVideo->GetCurrentStatusMode() == 0)
+            {
+                m_pProcessor->AddCycles(PerformHDMA());
+            }
+        }
+        else
+        {
+            PerformGDMA(value);
+        }
     }
 }
 
-void Memory::DoHDMACGBTransfer(bool hbdma)
+unsigned int Memory::PerformHDMA()
 {
-    u8 hdma5 = Retrieve(0xFF55);
-
-    int bytes = 16 + (hdma5 & 0x7F) * 16;
-
-    if (hbdma)
-        bytes = 16;
-
-    u8 hdma1 = Retrieve(0xFF51);
-
-    if (hdma1 > 0x7f && hdma1 < 0xa0)
-        hdma1 = 0;
-
-    u8 hdma2 = Retrieve(0xFF52);
-    u8 hdma3 = Retrieve(0xFF53);
-    u8 hdma4 = Retrieve(0xFF54);
-
-    u16 source = (hdma1 << 8) | (hdma2 & 0xF0);
-    u16 destination = ((hdma3 & 0x1F) << 8) | (hdma4 & 0xF0);
-    destination |= 0x8000;
+    u16 source = m_HDMASource & 0xFFF0;
+    u16 destination = (m_HDMADestination & 0x1FF0) | 0x8000;
 
     if (source >= 0xD000 && source < 0xE000)
     {
-        for (int i = 0; i < bytes; i++)
+        for (int i = 0; i < 0x10; i++)
             WriteCGBLCDRAM(destination + i, ReadCGBWRAM(source + i));
     }
     else
     {
-        for (int i = 0; i < bytes; i++)
+        for (int i = 0; i < 0x10; i++)
             WriteCGBLCDRAM(destination + i, Read(source + i));
     }
+
+    m_HDMADestination += 0x10;
+    if (m_HDMADestination == 0xA000)
+        m_HDMADestination = 0x8000;
+
+    m_HDMASource += 0x10;
+    if (m_HDMASource == 0x8000)
+        m_HDMASource = 0xA000;
+
+    m_HDMA[1] = m_HDMASource & 0xFF;
+    m_HDMA[0] = m_HDMASource >> 8;
+
+    m_HDMA[3] = m_HDMADestination & 0xFF;
+    m_HDMA[2] = m_HDMADestination >> 8;
+
+    m_iHDMABytes -= 0x10;
+    m_HDMA[4]--;
+
+    if (m_HDMA[4] == 0xFF)
+        m_bHDMAEnabled = false;
+
+    // return clock cycles used
+    return (m_pProcessor->CGBSpeed() ? 17 : 9) * 4;
 }
 
-bool Memory::IsHBDMAEnabled()
+void Memory::PerformGDMA(u8 value)
 {
-    return m_bHBDMAEnabled;
+    u16 source = m_HDMASource & 0xFFF0;
+    u16 destination = (m_HDMADestination & 0x1FF0) | 0x8000;
+
+    if (source >= 0xD000 && source < 0xE000)
+    {
+        for (int i = 0; i < m_iHDMABytes; i++)
+            WriteCGBLCDRAM(destination + i, ReadCGBWRAM(source + i));
+    }
+    else
+    {
+        for (int i = 0; i < m_iHDMABytes; i++)
+            WriteCGBLCDRAM(destination + i, Read(source + i));
+    }
+
+    m_HDMADestination += m_iHDMABytes;
+    m_HDMASource += m_iHDMABytes;
+
+    for (int i = 0; i < 5; i++)
+        m_HDMA[i] = 0xFF;
+
+    int clock_cycles = 0;
+
+    if (m_pProcessor->CGBSpeed())
+        clock_cycles = 2 + 16 * ((value & 0x7f) + 1);
+    else
+        clock_cycles = 1 + 8 * ((value & 0x7f) + 1);
+
+    m_pProcessor->AddCycles(clock_cycles * 4);
+}
+
+bool Memory::IsHDMAEnabled()
+{
+    return m_bHDMAEnabled;
+}
+
+void Memory::SetHDMARegister(int reg, u8 value)
+{
+    switch (reg)
+    {
+        case 1:
+        {
+            // HDMA1
+            if (value > 0x7f && value < 0xa0)
+                value = 0;
+            m_HDMASource = (value << 8) | (m_HDMASource & 0xF0);
+            break;
+        }
+        case 2:
+        {
+            // HDMA2
+            value &= 0xF0;
+            m_HDMASource = (m_HDMASource & 0xFF00) | value;
+            break;
+        }
+        case 3:
+        {
+            // HDMA3
+            value &= 0x1F;
+            m_HDMADestination = (value << 8) | (m_HDMADestination & 0xF0);
+            m_HDMADestination |= 0x8000;
+            break;
+        }
+        case 4:
+        {
+            // HDMA4
+            value &= 0xF0;
+            m_HDMADestination = (m_HDMADestination & 0x1F00) | value;
+            m_HDMADestination |= 0x8000;
+            break;
+        }
+    }
+
+    m_HDMA[reg - 1] = value;
+}
+
+u8 Memory::GetHDMARegister(int reg)
+{
+    return m_HDMA[reg - 1];
 }
 
