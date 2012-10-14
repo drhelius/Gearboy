@@ -4,7 +4,7 @@ Gearboy
 
 ----------
 
-Gearboy is a Nintendo Game Boy emulator written in C++.
+Gearboy is a Nintendo Game Boy / Game Boy Color emulator written in C++.
 
 The emulator is focused on readability of source code, but nevertheless it has good compatibility.
 
@@ -21,7 +21,7 @@ Features
 - Accurate LCD controller emulation. Background, window and sprites, with correct timings and priorities.
 - Mix frames: Mimics the LCD ghosting effect seen in the original Game Boy.
 - Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://www.slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
-- Basic Game Boy Color support.
+- Game Boy Color support.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Saves battery powered RAM cartridges to file.
 - Compressed rom support (ZIP deflate).
@@ -33,7 +33,6 @@ Features
 Todo List
 -----------
 - Saving and loading game states.
-- Improve Game Boy Color support (https://gist.github.com/3394856).
 - Pixel precision scan line timing (https://gist.github.com/3730564).
 - Debugger.
 
