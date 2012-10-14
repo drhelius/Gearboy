@@ -24,12 +24,16 @@
 #include <vector>
 
 class MemoryRule;
+class Processor;
+class Video;
 
 class Memory
 {
 public:
     Memory();
     ~Memory();
+    void SetProcessor(Processor* pProcessor);
+    void SetVideo(Video* pVideo);
     void Init();
     void Reset(bool bCGB);
     void AddRule(MemoryRule* pRule);
@@ -47,10 +51,13 @@ public:
     bool IsDisassembled(u16 address);
     void LoadBank0and1FromROM(u8* pTheROM);
     void MemoryDump(const char* szFilePath);
-    void DoDMATransfer(u8 value);
-    void DoDMACGBTransfer(u8 value, bool hbdma);
-    void DoHDMACGBTransfer(bool hbdma);
-    bool IsHBDMAEnabled();
+    void PerformDMA(u8 value);
+    void SwitchCGBDMA(u8 value);
+    unsigned int PerformHDMA();
+    void PerformGDMA(u8 value);
+    bool IsHDMAEnabled();
+    void SetHDMARegister(int reg, u8 value);
+    u8 GetHDMARegister(int reg);
 
 private:
 
@@ -60,6 +67,8 @@ private:
     };
 
 private:
+    Processor* m_pProcessor;
+    Video* m_pVideo;
     u8* m_pMap;
     stDisassemble* m_pDisassembledMap;
     std::vector<MemoryRule*> m_Rules;
@@ -69,7 +78,11 @@ private:
     int m_iCurrentLCDRAMBank;
     u8* m_pWRAMBanks;
     u8* m_pLCDRAMBank1;
-    bool m_bHBDMAEnabled;
+    bool m_bHDMAEnabled;
+    int m_iHDMABytes;
+    u8 m_HDMA[5];
+    u16 m_HDMASource;
+    u16 m_HDMADestination;
 };
 
 

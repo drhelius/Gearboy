@@ -89,6 +89,31 @@ u8 IORegistersMemoryRule::PerformRead(u16 address)
         // VBK
         return m_pMemory->Retrieve(0xFF4F) | 0xFE;
     }
+    else if (m_bCGB && (address == 0xFF51))
+    {
+        // HDMA1
+        return m_pMemory->GetHDMARegister(1);
+    }
+    else if (m_bCGB && (address == 0xFF52))
+    {
+        // HDMA2
+        return m_pMemory->GetHDMARegister(2);
+    }
+    else if (m_bCGB && (address == 0xFF53))
+    {
+        // HDMA3
+        return m_pMemory->GetHDMARegister(3);
+    }
+    else if (m_bCGB && (address == 0xFF54))
+    {
+        // HDMA4
+        return m_pMemory->GetHDMARegister(4);
+    }
+    else if (m_bCGB && (address == 0xFF55))
+    {
+        // DMA CGB
+        return m_pMemory->GetHDMARegister(5);
+    }
     else if ((address == 0xFF68) || (address == 0xFF6A))
     {
         // BCPS, OCPS
@@ -240,22 +265,8 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     else if (address == 0xFF46)
     {
         // DMA
-        m_pMemory->DoDMATransfer(value);
-    }
-    else if (address == 0xFF47)
-    {
-        // BGP
         m_pMemory->Load(address, value);
-    }
-    else if (address == 0xFF48)
-    {
-        // OBP0
-        m_pMemory->Load(address, value);
-    }
-    else if (address == 0xFF49)
-    {
-        // OBP1
-        m_pMemory->Load(address, value);
+        m_pMemory->PerformDMA(value);
     }
     else if (m_bCGB && (address == 0xFF4D))
     {
@@ -266,35 +277,39 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     else if (m_bCGB && (address == 0xFF4F))
     {
         // VBK
+        value &= 0x01;
         m_pMemory->SwitchCGBLCDRAM(value);
         m_pMemory->Load(address, value);
+    }
+    else if (m_bCGB && (address == 0xFF51))
+    {
+        // HDMA1
+        m_pMemory->SetHDMARegister(1, value);
+    }
+    else if (m_bCGB && (address == 0xFF52))
+    {
+        // HDMA2
+        m_pMemory->SetHDMARegister(2, value);
+    }
+    else if (m_bCGB && (address == 0xFF53))
+    {
+        // HDMA3
+        m_pMemory->SetHDMARegister(3, value);
+    }
+    else if (m_bCGB && (address == 0xFF54))
+    {
+        // HDMA4
+        m_pMemory->SetHDMARegister(4, value);
     }
     else if (m_bCGB && (address == 0xFF55))
     {
         // DMA CGB
-        bool hbdma = false;
-        if (!IsSetBit(7, m_pMemory->Retrieve(0xFF55)))
-            hbdma = IsSetBit(7, value);
-        else
-            hbdma = true;
-
-        m_pMemory->Load(address, value);
-        m_pMemory->DoDMACGBTransfer(value, hbdma);
-    }
-    else if (m_bCGB && (address == 0xFF68))
-    {
-        // BCPS
-        m_pMemory->Load(address, value);
+        m_pMemory->SwitchCGBDMA(value);
     }
     else if (m_bCGB && (address == 0xFF69))
     {
         // BCPD
         m_pVideo->SetColorPalette(true, value);
-        m_pMemory->Load(address, value);
-    }
-    else if (m_bCGB && (address == 0xFF6A))
-    {
-        // OCPS
         m_pMemory->Load(address, value);
     }
     else if (m_bCGB && (address == 0xFF6B))
@@ -311,6 +326,7 @@ void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
     else if (m_bCGB && (address == 0xFF70))
     {
         // SVBK
+        value &= 0x07;
         m_pMemory->SwitchCGBWRAM(value);
         m_pMemory->Load(address, value);
     }

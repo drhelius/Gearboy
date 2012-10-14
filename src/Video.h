@@ -32,7 +32,7 @@ public:
     ~Video();
     void Init();
     void Reset(bool bCGB);
-    bool Tick(u8 clockCycles, GB_Color* pColorFrameBuffer);
+    bool Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer);
     void EnableScreen();
     void DisableScreen();
     bool IsScreenEnabled() const;

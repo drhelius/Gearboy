@@ -48,6 +48,10 @@ public:
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
     void ResetDIVCycles();
+    bool Halted() const;
+    bool CGBSpeed() const;
+    void AddCycles(unsigned int cycles);
+    bool InterruptIsAboutToRaise();
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -64,7 +68,7 @@ private:
     bool m_bHalt;
     bool m_bBranchTaken;
     bool m_bSkipPCBug;
-    u8 m_CurrentClockCycles;
+    unsigned int m_iCurrentClockCycles;
     unsigned int m_iDIVCycles;
     unsigned int m_iTIMACycles;
     int m_iSerialBit;

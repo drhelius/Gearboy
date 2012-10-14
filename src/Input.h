@@ -31,7 +31,7 @@ public:
     Input(Memory* pMemory, Processor* pProcessor);
     void Init();
     void Reset();
-    void Tick(u8 clockCycles);
+    void Tick(unsigned int clockCycles);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Write(u8 value);

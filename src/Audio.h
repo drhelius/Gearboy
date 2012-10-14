@@ -39,7 +39,7 @@ public:
     u8 ReadAudioRegister(u16 address);
     void WriteAudioRegister(u16 address, u8 value);
     void EndFrame();
-    void Tick(u8 clockCycles);
+    void Tick(unsigned int clockCycles);
 
 private:
     bool m_bEnabled;

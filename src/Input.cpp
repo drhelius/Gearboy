@@ -42,7 +42,7 @@ void Input::Reset()
     m_iInputCycles = 0;
 }
 
-void Input::Tick(u8 clockCycles)
+void Input::Tick(unsigned int clockCycles)
 {
     m_iInputCycles += clockCycles;
 

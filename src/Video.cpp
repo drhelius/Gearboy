@@ -24,6 +24,7 @@
 Video::Video(Memory* pMemory, Processor* pProcessor)
 {
     m_pMemory = pMemory;
+    m_pMemory->SetVideo(this);
     m_pProcessor = pProcessor;
     InitPointer(m_pFrameBuffer);
     InitPointer(m_pColorFrameBuffer);
@@ -83,7 +84,7 @@ void Video::Reset(bool bCGB)
     m_IRQ48Signal = 0;
 }
 
-bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
+bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
 {
     m_pColorFrameBuffer = pColorFrameBuffer;
 
@@ -107,8 +108,12 @@ bool Video::Tick(u8 clockCycles, GB_Color* pColorFrameBuffer)
                     m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
                     CompareLYToLYC();
 
-                    if (m_bCGB && m_pMemory->IsHBDMAEnabled())
-                        m_pMemory->DoHDMACGBTransfer(true);
+                    if (m_bCGB && m_pMemory->IsHDMAEnabled() && (!m_pProcessor->Halted() || m_pProcessor->InterruptIsAboutToRaise()))
+                    {
+                        unsigned int cycles = m_pMemory->PerformHDMA();
+                        m_iStatusModeCounter += cycles;
+                        clockCycles += cycles;
+                    }
 
                     if (m_iStatusModeLYCounter == 144)
                     {
