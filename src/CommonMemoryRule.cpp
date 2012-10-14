@@ -40,11 +40,7 @@ u8 CommonMemoryRule::PerformRead(u16 address)
 {
     if (m_bCGB && (address >= 0x8000 && address < 0xA000))
     {
-        // No access to Vram during mode 3
-        if (m_pVideo->GetCurrentStatusMode() != 3)
-            return m_pMemory->ReadCGBLCDRAM(address, false);
-        else
-            return 0xFF;
+        return m_pMemory->ReadCGBLCDRAM(address, false);  
     }
     else if (m_bCGB && (address >= 0xD000 && address < 0xE000))
     {
@@ -74,9 +70,7 @@ void CommonMemoryRule::PerformWrite(u16 address, u8 value)
 {
     if (m_bCGB && (address >= 0x8000 && address < 0xA000))
     {
-        // No access to Vram during mode 3
-        if (m_pVideo->GetCurrentStatusMode() != 3)
-            m_pMemory->WriteCGBLCDRAM(address, value);
+        m_pMemory->WriteCGBLCDRAM(address, value);
     }
     else if (address >= 0xC000 && address < 0xDE00)
     {
