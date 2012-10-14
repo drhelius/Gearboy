@@ -599,7 +599,7 @@ void Video::RenderWindow(int line)
 
                         int position = (line * GAMEBOY_WIDTH) + bufferX;
                         m_pColorCacheBuffer[position] = pixel & 0x03;
-                        
+
                         if (m_bCGB)
                         {
                             m_pColorCacheBuffer[position] |= (cgb_tile_priority ? 0x20 : 0x00);
@@ -687,40 +687,40 @@ void Video::RenderSprites(int line)
                         if (pixel != 0)
                         {
                             int bufferX = (sprite_x + pixelx);
-                            u8 color_cache = m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX];
-                            
-                            if (m_bCGB && ((color_cache & 0x20) != 0))
-                            {
-                                continue;
-                            }
-                            
-                            int sprite_x_cache = m_pSpriteXCacheBuffer[(line * GAMEBOY_WIDTH) + bufferX];
+                            int position = (line * GAMEBOY_WIDTH) + bufferX;
 
-                            if ((color_cache & 0x10) != 0)
+                            if (bufferX < 0 || bufferX >= GAMEBOY_WIDTH)
+                                continue;
+
+                            u8 color_cache = m_pColorCacheBuffer[position];
+
+                            if (m_bCGB)
                             {
-                                if (!m_bCGB && (sprite_x_cache < sprite_x))
+                                if (((color_cache & 0x20) != 0) && ((color_cache & 0x03) != 0))
                                     continue;
                             }
-
-                            if (bufferX >= 0 && bufferX < GAMEBOY_WIDTH)
+                            else
                             {
-                                if (aboveBG || ((color_cache & 0x03) == 0))
-                                {
-                                    int position = (line * GAMEBOY_WIDTH) + bufferX;
-                                    m_pColorCacheBuffer[position] = (color_cache & 0x03) | 0x10;
-                                    m_pSpriteXCacheBuffer[position] = sprite_x;
-                                    if (m_bCGB)
-                                    {
-                                        GB_Color color = m_CGBSpritePalettes[cgb_tile_pal][pixel];
-                                        m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
-                                    }
-                                    else
-                                    {
-                                        u8 palette = m_pMemory->Retrieve(sprite_pallette ? 0xFF49 : 0xFF48);
-                                        u8 color = (palette >> (pixel * 2)) & 0x03;
-                                        m_pFrameBuffer[position] = color;
-                                    }
-                                }
+                                int sprite_x_cache = m_pSpriteXCacheBuffer[position];
+                                if (((color_cache & 0x10) != 0) && (sprite_x_cache < sprite_x))
+                                    continue;
+                            }
+                            
+                            if (!aboveBG && ((color_cache & 0x03) != 0))
+                                continue;
+
+                            m_pColorCacheBuffer[position] = (pixel & 0x03) | (color_cache & 0x20 ) | 0x10;
+                            m_pSpriteXCacheBuffer[position] = sprite_x;
+                            if (m_bCGB)
+                            {
+                                GB_Color color = m_CGBSpritePalettes[cgb_tile_pal][pixel];
+                                m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
+                            }
+                            else
+                            {
+                                u8 palette = m_pMemory->Retrieve(sprite_pallette ? 0xFF49 : 0xFF48);
+                                u8 color = (palette >> (pixel * 2)) & 0x03;
+                                m_pFrameBuffer[position] = color;
                             }
                         }
                     }
