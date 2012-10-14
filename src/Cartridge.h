@@ -61,6 +61,7 @@ public:
     void UpdateCurrentRTC();
     size_t GetCurrentRTC();
     bool IsRTCPresent() const;
+    bool IsRumblePresent() const;
 
 private:
     unsigned int Pow2Ceil(unsigned int n);
@@ -84,6 +85,7 @@ private:
     bool m_bBattery;
     char m_szFilePath[512];
     bool m_bRTCPresent;
+    bool m_bRumblePresent;
     int m_iRAMBankCount;
     int m_iROMBankCount;
 };

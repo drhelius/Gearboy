@@ -39,6 +39,7 @@ Cartridge::Cartridge()
     m_bBattery = false;
     m_szFilePath[0] = 0;
     m_bRTCPresent = false;
+    m_bRumblePresent = false;
     m_iRAMBankCount = 0;
     m_iROMBankCount = 0;
 }
@@ -70,6 +71,7 @@ void Cartridge::Reset()
     m_bBattery = false;
     m_szFilePath[0] = 0;
     m_bRTCPresent = false;
+    m_bRumblePresent = false;
     m_iRAMBankCount = 0;
     m_iROMBankCount = 0;
 }
@@ -413,6 +415,17 @@ void Cartridge::CheckCartridgeType(int type)
         default:
             m_bRTCPresent = false;
     }
+
+    switch (type)
+    {
+        case 0x1C:
+        case 0x1D:
+        case 0x1E:
+            m_bRumblePresent = true;
+            break;
+        default:
+            m_bRumblePresent = false;
+    }
 }
 
 int Cartridge::GetVersion() const
@@ -443,6 +456,11 @@ size_t Cartridge::GetCurrentRTC()
 bool Cartridge::IsRTCPresent() const
 {
     return m_bRTCPresent;
+}
+
+bool Cartridge::IsRumblePresent() const
+{
+    return m_bRumblePresent;
 }
 
 unsigned int Cartridge::Pow2Ceil(unsigned int n)
@@ -479,8 +497,6 @@ bool Cartridge::GatherMetadata()
     m_iROMSize = m_pTheROM[0x148];
     m_iRAMSize = m_pTheROM[0x149];
     m_iVersion = m_pTheROM[0x14C];
-
-
 
     CheckCartridgeType(type);
 
