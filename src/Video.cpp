@@ -179,7 +179,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                     }
                 }
 
-                if ((m_iStatusModeCounter >= 4104) && (m_iStatusModeCounterAux >= 32) && (m_iStatusModeLYCounter == 153))
+                if ((m_iStatusModeCounter >= 4104) && (m_iStatusModeCounterAux >= 4) && (m_iStatusModeLYCounter == 153))
                 {
                     m_iStatusModeLYCounter = 0;
                     m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
