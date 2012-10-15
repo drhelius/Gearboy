@@ -416,7 +416,7 @@ void Video::ResetWindowLine()
 void Video::ScanLine(int line)
 {
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
-
+    
     if (m_bScreenEnabled && IsSetBit(lcdc, 7))
     {
         RenderBG(line);
@@ -425,14 +425,29 @@ void Video::ScanLine(int line)
     }
     else
     {
-        for (int x = 0; x < GAMEBOY_WIDTH; x++)
-            m_pFrameBuffer[(line * GAMEBOY_WIDTH) + x] = 0;
+        int line_width = (line * GAMEBOY_WIDTH);
+        if (m_bCGB)
+        {
+            GB_Color black;
+            black.red = 0;
+            black.green = 0;
+            black.blue = 0;
+            black.alpha = 0xFF;
+            for (int x = 0; x < GAMEBOY_WIDTH; x++)
+                m_pColorFrameBuffer[line_width + x] = black;
+        }
+        else
+        {
+            for (int x = 0; x < GAMEBOY_WIDTH; x++)
+                m_pFrameBuffer[line_width + x] = 0;
+        }
     }
 }
 
 void Video::RenderBG(int line)
 {
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
+    int line_width = (line * GAMEBOY_WIDTH);
 
     if (m_bCGB || IsSetBit(lcdc, 0))
     {
@@ -460,21 +475,12 @@ void Video::RenderBG(int line)
                 tile = m_pMemory->Retrieve(map + y_32 + x);
             }
 
-            u8 cgb_tile_attr = 0;
-            u8 cgb_tile_pal = 0;
-            bool cgb_tile_bank = false;
-            bool cgb_tile_yflip = false;
-            bool cgb_tile_xflip = false;
-            bool cgb_tile_priority = false;
-            if (m_bCGB)
-            {
-                cgb_tile_attr = m_pMemory->ReadCGBLCDRAM(map + y_32 + x, true);
-                cgb_tile_pal = cgb_tile_attr & 0x07;
-                cgb_tile_bank = IsSetBit(cgb_tile_attr, 3);
-                cgb_tile_xflip = IsSetBit(cgb_tile_attr, 5);
-                cgb_tile_yflip = IsSetBit(cgb_tile_attr, 6);
-                cgb_tile_priority = IsSetBit(cgb_tile_attr, 7);
-            }
+            u8 cgb_tile_attr = m_bCGB ? m_pMemory->ReadCGBLCDRAM(map + y_32 + x, true) : 0;
+            u8 cgb_tile_pal = m_bCGB ? (cgb_tile_attr & 0x07) : 0;
+            bool cgb_tile_bank = m_bCGB ? IsSetBit(cgb_tile_attr, 3) : false;
+            bool cgb_tile_xflip = m_bCGB ? IsSetBit(cgb_tile_attr, 5) : false;
+            bool cgb_tile_yflip = m_bCGB ? IsSetBit(cgb_tile_attr, 6) : false;
+            bool cgb_tile_priority = m_bCGB ? IsSetBit(cgb_tile_attr, 7) : false;
             int mapOffsetX = x * 8;
             int tile_16 = tile * 16;
             u8 byte1 = 0;
@@ -497,34 +503,35 @@ void Video::RenderBG(int line)
             {
                 u8 bufferX = (mapOffsetX + pixelx - scx);
 
-                if (bufferX < GAMEBOY_WIDTH)
+                if (bufferX >= GAMEBOY_WIDTH)
+                    continue;
+                
+                int pixelx_pos = pixelx;
+
+                if (m_bCGB && cgb_tile_xflip)
                 {
-                    int pixelx_pos = pixelx;
-
-                    if (m_bCGB && cgb_tile_xflip)
-                    {
-                        pixelx_pos = 7 - pixelx_pos;
-                    }
-
-                    int pixel = (byte1 & (0x1 << (7 - pixelx_pos))) ? 1 : 0;
-                    pixel |= (byte2 & (0x1 << (7 - pixelx_pos))) ? 2 : 0;
-
-                    int position = (line * GAMEBOY_WIDTH) + bufferX;
-                    m_pColorCacheBuffer[position] = pixel & 0x03;
-
-                    if (m_bCGB)
-                    {
-                        m_pColorCacheBuffer[position] |= (cgb_tile_priority ? 0x20 : 0x00);
-                        GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel];
-                        m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
-                    }
-                    else
-                    {
-                        u8 palette = m_pMemory->Retrieve(0xFF47);
-                        u8 color = (palette >> (pixel * 2)) & 0x03;
-                        m_pFrameBuffer[position] = color;
-                    }
+                    pixelx_pos = 7 - pixelx_pos;
                 }
+
+                int pixel = (byte1 & (0x1 << (7 - pixelx_pos))) ? 1 : 0;
+                pixel |= (byte2 & (0x1 << (7 - pixelx_pos))) ? 2 : 0;
+
+                int position = line_width + bufferX;
+                m_pColorCacheBuffer[position] = pixel & 0x03;
+
+                if (m_bCGB)
+                {
+                    if (cgb_tile_priority && (pixel != 0))
+                        m_pColorCacheBuffer[position] = SetBit(m_pColorCacheBuffer[position], 2);
+                    GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel];
+                    m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
+                }
+                else
+                {
+                    u8 palette = m_pMemory->Retrieve(0xFF47);
+                    u8 color = (palette >> (pixel * 2)) & 0x03;
+                    m_pFrameBuffer[position] = color;
+                }                
             }
         }
     }
@@ -532,8 +539,9 @@ void Video::RenderBG(int line)
     {
         for (int x = 0; x < GAMEBOY_WIDTH; x++)
         {
-            m_pFrameBuffer[(line * GAMEBOY_WIDTH) + x] = 0;
-            m_pColorCacheBuffer[(line * GAMEBOY_WIDTH) + x] = 0;
+            int position = line_width + x;
+            m_pFrameBuffer[position] = 0;
+            m_pColorCacheBuffer[position] = 0;
         }
     }
 }
@@ -559,6 +567,7 @@ void Video::RenderWindow(int line)
             int pixely = lineAdjusted % 8;
             int pixely_2 = pixely * 2;
             int pixely_2_flip = (7 - pixely) * 2;
+            int line_width = (line * GAMEBOY_WIDTH);
 
             for (int x = 0; x < 32; x++)
             {
@@ -574,22 +583,12 @@ void Video::RenderWindow(int line)
                     tile = m_pMemory->Retrieve(map + y_32 + x);
                 }
 
-                u8 cgb_tile_attr = 0;
-                u8 cgb_tile_pal = 0;
-                bool cgb_tile_bank = false;
-                bool cgb_tile_yflip = false;
-                bool cgb_tile_xflip = false;
-                bool cgb_tile_priority = false;
-                if (m_bCGB)
-                {
-                    cgb_tile_attr = m_pMemory->ReadCGBLCDRAM(map + y_32 + x, true);
-                    cgb_tile_pal = cgb_tile_attr & 0x07;
-                    cgb_tile_bank = IsSetBit(cgb_tile_attr, 3);
-                    cgb_tile_xflip = IsSetBit(cgb_tile_attr, 5);
-                    cgb_tile_yflip = IsSetBit(cgb_tile_attr, 6);
-                    cgb_tile_priority = IsSetBit(cgb_tile_attr, 7);
-                }
-
+                u8 cgb_tile_attr = m_bCGB ? m_pMemory->ReadCGBLCDRAM(map + y_32 + x, true) : 0;
+                u8 cgb_tile_pal = m_bCGB ? (cgb_tile_attr & 0x07) : 0;
+                bool cgb_tile_bank = m_bCGB ? IsSetBit(cgb_tile_attr, 3) : false;
+                bool cgb_tile_xflip = m_bCGB ? IsSetBit(cgb_tile_attr, 5) : false;
+                bool cgb_tile_yflip = m_bCGB ? IsSetBit(cgb_tile_attr, 6) : false;
+                bool cgb_tile_priority = m_bCGB ? IsSetBit(cgb_tile_attr, 7) : false;
                 int mapOffsetX = x * 8;
                 int tile_16 = tile * 16;
                 u8 byte1 = 0;
@@ -612,34 +611,35 @@ void Video::RenderWindow(int line)
                 {
                     int bufferX = (mapOffsetX + pixelx + wx);
 
-                    if (bufferX >= 0 && bufferX < GAMEBOY_WIDTH)
+                    if (bufferX < 0 || bufferX >= GAMEBOY_WIDTH)
+                        continue;
+                    
+                    int pixelx_pos = pixelx;
+
+                    if (m_bCGB && cgb_tile_xflip)
                     {
-                        int pixelx_pos = pixelx;
-
-                        if (m_bCGB && cgb_tile_xflip)
-                        {
-                            pixelx_pos = 7 - pixelx_pos;
-                        }
-
-                        int pixel = (byte1 & (0x1 << (7 - pixelx_pos))) ? 1 : 0;
-                        pixel |= (byte2 & (0x1 << (7 - pixelx_pos))) ? 2 : 0;
-
-                        int position = (line * GAMEBOY_WIDTH) + bufferX;
-                        m_pColorCacheBuffer[position] = pixel & 0x03;
-
-                        if (m_bCGB)
-                        {
-                            m_pColorCacheBuffer[position] |= (cgb_tile_priority ? 0x20 : 0x00);
-                            GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel];
-                            m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
-                        }
-                        else
-                        {
-                            u8 palette = m_pMemory->Retrieve(0xFF47);
-                            u8 color = (palette >> (pixel * 2)) & 0x03;
-                            m_pFrameBuffer[position] = color;
-                        }
+                        pixelx_pos = 7 - pixelx_pos;
                     }
+
+                    int pixel = (byte1 & (0x1 << (7 - pixelx_pos))) ? 1 : 0;
+                    pixel |= (byte2 & (0x1 << (7 - pixelx_pos))) ? 2 : 0;
+
+                    int position = line_width + bufferX;
+                    m_pColorCacheBuffer[position] = pixel & 0x03;
+
+                    if (m_bCGB)
+                    {
+                        if (cgb_tile_priority && (pixel != 0))
+                            m_pColorCacheBuffer[position] = SetBit(m_pColorCacheBuffer[position], 2);
+                        GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel];
+                        m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
+                    }
+                    else
+                    {
+                        u8 palette = m_pMemory->Retrieve(0xFF47);
+                        u8 color = (palette >> (pixel * 2)) & 0x03;
+                        m_pFrameBuffer[position] = color;
+                    }                    
                 }
             }
             m_iWindowLine++;
@@ -654,6 +654,7 @@ void Video::RenderSprites(int line)
     if (IsSetBit(lcdc, 1))
     {
         int sprite_height = IsSetBit(lcdc, 2) ? 16 : 8;
+        int line_width = (line * GAMEBOY_WIDTH);
 
         for (int sprite = 39; sprite >= 0; sprite--)
         {
@@ -677,7 +678,6 @@ void Video::RenderSprites(int line)
                     int cgb_tile_pal = sprite_flags & 0x07;
                     int tiles = 0x8000;
                     int pixel_y = yflip ? ((sprite_height == 16) ? 15 : 7) - (line - sprite_y) : line - sprite_y;
-
                     u8 byte1 = 0;
                     u8 byte2 = 0;
                     int pixel_y_2 = 0;
@@ -691,65 +691,63 @@ void Video::RenderSprites(int line)
                     else
                         pixel_y_2 = pixel_y * 2;
 
+                    int tile_address = tiles + sprite_tile_16 + pixel_y_2 + offset;
+
                     if (m_bCGB && cgb_tile_bank)
                     {
-                        byte1 = m_pMemory->ReadCGBLCDRAM(tiles + sprite_tile_16 +
-                                pixel_y_2 + offset, true);
-                        byte2 = m_pMemory->ReadCGBLCDRAM(tiles + sprite_tile_16 +
-                                pixel_y_2 + 1 + offset, true);
+                        byte1 = m_pMemory->ReadCGBLCDRAM(tile_address, true);
+                        byte2 = m_pMemory->ReadCGBLCDRAM(tile_address + 1, true);
                     }
                     else
                     {
-                        byte1 = m_pMemory->Retrieve(tiles + sprite_tile_16 +
-                                pixel_y_2 + offset);
-                        byte2 = m_pMemory->Retrieve(tiles + sprite_tile_16 +
-                                pixel_y_2 + 1 + offset);
+                        byte1 = m_pMemory->Retrieve(tile_address);
+                        byte2 = m_pMemory->Retrieve(tile_address + 1);
                     }
 
                     for (int pixelx = 0; pixelx < 8; pixelx++)
                     {
-                        int pixel = (byte1 & (0x1 << (xflip ? pixelx : 7 - pixelx))) ? 1 : 0;
-                        pixel |= (byte2 & (0x1 << (xflip ? pixelx : 7 - pixelx))) ? 2 : 0;
+                        int pixel = (byte1 & (0x01 << (xflip ? pixelx : 7 - pixelx))) ? 1 : 0;
+                        pixel |= (byte2 & (0x01 << (xflip ? pixelx : 7 - pixelx))) ? 2 : 0;
 
-                        if (pixel != 0)
+                        if (pixel == 0)
+                            continue;
+                        
+                        int bufferX = (sprite_x + pixelx);
+                        
+                        if (bufferX < 0 || bufferX >= GAMEBOY_WIDTH)
+                            continue;
+
+                        int position = line_width + bufferX;
+                        u8 color_cache = m_pColorCacheBuffer[position];
+
+                        if (m_bCGB)
                         {
-                            int bufferX = (sprite_x + pixelx);
-                            int position = (line * GAMEBOY_WIDTH) + bufferX;
-
-                            if (bufferX < 0 || bufferX >= GAMEBOY_WIDTH)
+                            if (IsSetBit(color_cache, 2))
                                 continue;
-
-                            u8 color_cache = m_pColorCacheBuffer[position];
-
-                            if (m_bCGB)
-                            {
-                                if (((color_cache & 0x20) != 0) && ((color_cache & 0x03) != 0))
-                                    continue;
-                            }
-                            else
-                            {
-                                int sprite_x_cache = m_pSpriteXCacheBuffer[position];
-                                if (((color_cache & 0x10) != 0) && (sprite_x_cache < sprite_x))
-                                    continue;
-                            }
-                            
-                            if (!aboveBG && ((color_cache & 0x03) != 0))
-                                continue;
-
-                            m_pColorCacheBuffer[position] = (pixel & 0x03) | (color_cache & 0x20 ) | 0x10;
-                            m_pSpriteXCacheBuffer[position] = sprite_x;
-                            if (m_bCGB)
-                            {
-                                GB_Color color = m_CGBSpritePalettes[cgb_tile_pal][pixel];
-                                m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
-                            }
-                            else
-                            {
-                                u8 palette = m_pMemory->Retrieve(sprite_pallette ? 0xFF49 : 0xFF48);
-                                u8 color = (palette >> (pixel * 2)) & 0x03;
-                                m_pFrameBuffer[position] = color;
-                            }
                         }
+                        else
+                        {
+                            int sprite_x_cache = m_pSpriteXCacheBuffer[position];
+                            if (IsSetBit(color_cache, 3) && (sprite_x_cache < sprite_x))
+                                continue;
+                        }
+                            
+                        if (!aboveBG && (color_cache & 0x03))
+                            continue;
+
+                        m_pColorCacheBuffer[position] = SetBit(color_cache, 3);
+                        m_pSpriteXCacheBuffer[position] = sprite_x;
+                        if (m_bCGB)
+                        {
+                            GB_Color color = m_CGBSpritePalettes[cgb_tile_pal][pixel];
+                            m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
+                        }
+                        else
+                        {
+                            u8 palette = m_pMemory->Retrieve(sprite_pallette ? 0xFF49 : 0xFF48);
+                            u8 color = (palette >> (pixel * 2)) & 0x03;
+                            m_pFrameBuffer[position] = color;
+                        }                        
                     }
                 }
             }
