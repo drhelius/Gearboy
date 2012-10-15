@@ -157,7 +157,7 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)
         Log("Memory Dump Saved");
     }
 #endif
-    
+
     bool loaded = m_pCartridge->LoadFromFile(szFilePath);
     if (loaded)
     {

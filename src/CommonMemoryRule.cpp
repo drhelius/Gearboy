@@ -40,7 +40,7 @@ u8 CommonMemoryRule::PerformRead(u16 address)
 {
     if (m_bCGB && (address >= 0x8000 && address < 0xA000))
     {
-        return m_pMemory->ReadCGBLCDRAM(address, false);  
+        return m_pMemory->ReadCGBLCDRAM(address, false);
     }
     else if (m_bCGB && (address >= 0xD000 && address < 0xE000))
     {

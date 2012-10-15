@@ -321,11 +321,11 @@ void Video::UpdatePaletteToSpecification(bool background, u8 value)
     bool hl = IsSetBit(value, 0);
     int index = (value >> 1) & 0x03;
     int pal = (value >> 3) & 0x07;
-    
+
     GB_Color color = (background ? m_CGBBackgroundPalettes[pal][index] : m_CGBSpritePalettes[pal][index]);
-    
+
     u8 final_value = 0;
-    
+
     if (hl)
     {
         u8 blue = (color.blue & 0x1f) << 2;
@@ -338,7 +338,7 @@ void Video::UpdatePaletteToSpecification(bool background, u8 value)
         u8 red = color.red & 0x1F;
         final_value = (red | half_green_low);
     }
-    
+
     m_pMemory->Load(background ? 0xFF69 : 0xFF6B, final_value);
 }
 
@@ -416,7 +416,7 @@ void Video::ResetWindowLine()
 void Video::ScanLine(int line)
 {
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
-    
+
     if (m_bScreenEnabled && IsSetBit(lcdc, 7))
     {
         RenderBG(line);
@@ -505,7 +505,7 @@ void Video::RenderBG(int line)
 
                 if (bufferX >= GAMEBOY_WIDTH)
                     continue;
-                
+
                 int pixelx_pos = pixelx;
 
                 if (m_bCGB && cgb_tile_xflip)
@@ -531,7 +531,7 @@ void Video::RenderBG(int line)
                     u8 palette = m_pMemory->Retrieve(0xFF47);
                     u8 color = (palette >> (pixel * 2)) & 0x03;
                     m_pFrameBuffer[position] = color;
-                }                
+                }
             }
         }
     }
@@ -613,7 +613,7 @@ void Video::RenderWindow(int line)
 
                     if (bufferX < 0 || bufferX >= GAMEBOY_WIDTH)
                         continue;
-                    
+
                     int pixelx_pos = pixelx;
 
                     if (m_bCGB && cgb_tile_xflip)
@@ -639,7 +639,7 @@ void Video::RenderWindow(int line)
                         u8 palette = m_pMemory->Retrieve(0xFF47);
                         u8 color = (palette >> (pixel * 2)) & 0x03;
                         m_pFrameBuffer[position] = color;
-                    }                    
+                    }
                 }
             }
             m_iWindowLine++;
@@ -711,9 +711,9 @@ void Video::RenderSprites(int line)
 
                         if (pixel == 0)
                             continue;
-                        
+
                         int bufferX = (sprite_x + pixelx);
-                        
+
                         if (bufferX < 0 || bufferX >= GAMEBOY_WIDTH)
                             continue;
 
@@ -731,7 +731,7 @@ void Video::RenderSprites(int line)
                             if (IsSetBit(color_cache, 3) && (sprite_x_cache < sprite_x))
                                 continue;
                         }
-                            
+
                         if (!aboveBG && (color_cache & 0x03))
                             continue;
 
@@ -747,7 +747,7 @@ void Video::RenderSprites(int line)
                             u8 palette = m_pMemory->Retrieve(sprite_pallette ? 0xFF49 : 0xFF48);
                             u8 color = (palette >> (pixel * 2)) & 0x03;
                             m_pFrameBuffer[position] = color;
-                        }                        
+                        }
                     }
                 }
             }

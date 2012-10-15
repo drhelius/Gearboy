@@ -37,7 +37,7 @@ public:
     u16 GetValue() const;
     void Increment();
     void Decrement();
-    
+
 private:
     EightBitRegister m_High;
     EightBitRegister m_Low;

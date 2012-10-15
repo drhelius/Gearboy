@@ -34,7 +34,7 @@ public:
     virtual void SaveRam(std::ofstream &file);
     virtual void LoadRam(std::ifstream &file);
     virtual int GetRamBanksSize();
-    
+
 private:
     int m_iCurrentROMBank;
     bool m_bRamEnabled;

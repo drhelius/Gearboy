@@ -54,7 +54,7 @@ protected:
     Cartridge* m_pCartridge;
     Audio* m_pAudio;
     bool m_bCGB;
-    
+
 private:
     struct stAddressRange
     {

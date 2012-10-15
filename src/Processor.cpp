@@ -99,7 +99,7 @@ u8 Processor::Tick()
                 m_bHalt = false;
             }
         }
-        
+
         if (m_bHalt && (InterruptPending() != None_Interrupt) && (m_iUnhaltCycles == 0))
         {
             m_iUnhaltCycles = (m_bCGBSpeed ? 6 : 12);
@@ -241,7 +241,7 @@ bool Processor::InterruptIsAboutToRaise()
 {
     u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
     u8 if_reg = m_pMemory->Retrieve(0xFF0F);
-    
+
     return (if_reg & ie_reg & 0x1F);
 }
 

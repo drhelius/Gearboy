@@ -114,32 +114,31 @@ void MBC5MemoryRule::Reset(bool bCGB)
         m_pRAMBanks[i] = 0xFF;
 }
 
-
 void MBC5MemoryRule::SaveRam(std::ofstream &file)
 {
     Log("MBC5MemoryRule save RAM...");
-    
+
     for (int i = 0; i < 0x20000; i++)
     {
         u8 ram_byte = 0;
         ram_byte = m_pRAMBanks[i];
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
-    
+
     Log("MBC5MemoryRule save RAM done");
 }
 
 void MBC5MemoryRule::LoadRam(std::ifstream &file)
 {
     Log("MBC5MemoryRule load RAM...");
-    
+
     for (int i = 0; i < 0x20000; i++)
     {
         u8 ram_byte = 0;
         file.read(reinterpret_cast<char*> (&ram_byte), 1);
         m_pRAMBanks[i] = ram_byte;
     }
-    
+
     Log("MBC5MemoryRule load RAM done");
 }
 
