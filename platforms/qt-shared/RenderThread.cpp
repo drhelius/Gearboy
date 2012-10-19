@@ -102,7 +102,7 @@ void RenderThread::run()
                 m_bFirstFrame = true;
             }
 
-            if (m_bMixFrames)
+            if (m_bMixFrames && !m_pEmulator->IsCGBRom())
                 RenderMixFrames();
             else
                 RenderFrame();

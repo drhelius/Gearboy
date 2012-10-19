@@ -125,3 +125,11 @@ void Emulator::SaveRam()
     m_pGearboyCore->SaveRam();
     m_Mutex.unlock();
 }
+
+bool Emulator::IsCGBRom()
+{
+    m_Mutex.lock();
+    bool cgb = m_pGearboyCore->GetCartridge()->IsCGB();
+    m_Mutex.unlock();
+    return cgb;
+}

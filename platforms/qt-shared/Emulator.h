@@ -41,6 +41,7 @@ public:
     void SetSoundSettings(bool enabled, int rate);
     void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
     void SaveRam();
+    bool IsCGBRom();
 
 private:
     GearboyCore* m_pGearboyCore;

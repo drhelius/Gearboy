@@ -127,7 +127,7 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
         [self initGL];     
     }
     
-    if (retina || iPad)
+    if ((retina || iPad) && !theGearboyCore->GetCartridge()->IsCGB())
     {
         [self renderMixFrames];
     }
