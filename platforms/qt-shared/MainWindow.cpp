@@ -82,9 +82,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     m_pAbout = new About();
 
-    //QPalette pal = this->palette();
-    //pal.setColor(this->backgroundRole(), Qt::black);
-    //this->setPalette(pal);
+    QPalette pal = this->palette();
+    pal.setColor(this->backgroundRole(), Qt::black);
+    this->setPalette(pal);
 
     LoadSettings();
 
