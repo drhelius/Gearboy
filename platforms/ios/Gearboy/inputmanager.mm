@@ -21,7 +21,7 @@
 
 InputManager::InputManager()
 {
-    m_fInputRate = 0.1f; //0.05f;
+    m_fInputRate = 0.15f;
     m_Timer.Start();
 }
 
