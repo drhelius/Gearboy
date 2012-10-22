@@ -169,10 +169,12 @@ void Memory::AddRule(MemoryRule* pRule)
 u8 Memory::Read(u16 address)
 {
     RulesVectorIterator it;
+    RulesVectorIterator end = m_Rules.end();
+    MemoryRule* pRule = NULL;
 
-    for (it = m_Rules.begin(); it < m_Rules.end(); it++)
+    for (it = m_Rules.begin(); it < end; it++)
     {
-        MemoryRule* pRule = *it;
+        pRule = *it;
         if (pRule->IsAddressInRanges(address))
         {
             return pRule->PerformRead(address);
@@ -185,22 +187,20 @@ u8 Memory::Read(u16 address)
 void Memory::Write(u16 address, u8 value)
 {
     RulesVectorIterator it;
+    RulesVectorIterator end = m_Rules.end();
+    MemoryRule* pRule = NULL;
 
-    bool ruleExecuted = false;
-
-    for (it = m_Rules.begin(); it < m_Rules.end(); it++)
+    for (it = m_Rules.begin(); it < end; it++)
     {
-        MemoryRule* pRule = *it;
+        pRule = *it;
         if (pRule->IsAddressInRanges(address))
         {
             pRule->PerformWrite(address, value);
-            ruleExecuted = true;
-            break;
+            return;
         }
     }
 
-    if (!ruleExecuted)
-        Load(address, value);
+    Load(address, value);
 }
 
 u8 Memory::ReadCGBWRAM(u16 address)
