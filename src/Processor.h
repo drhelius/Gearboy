@@ -82,7 +82,6 @@ private:
 private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);
-    void ExecuteOPCodeCB(u8 opcode);
     Processor::Interrupts InterruptPending();
     void ServeInterrupt(Interrupts interrupt);
     void UpdateTimers();

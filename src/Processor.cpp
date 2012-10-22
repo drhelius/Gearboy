@@ -109,8 +109,7 @@ u8 Processor::Tick()
     if (!m_bHalt)
     {
         ServeInterrupt(InterruptPending());
-        u8 opcode = FetchOPCode();
-        ExecuteOPCode(opcode);
+        ExecuteOPCode(FetchOPCode());
     }
 
     UpdateDelayedInterrupts();
@@ -202,7 +201,16 @@ void Processor::ExecuteOPCode(u8 opcode)
     if (opcode == 0xCB)
     {
         opcode = FetchOPCode();
-        ExecuteOPCodeCB(opcode);
+        u16 opcode_address = PC.GetValue() - 1;
+        
+        if (!m_pMemory->IsDisassembled(opcode_address))
+        {
+            m_pMemory->Disassemble(opcode_address, kOPCodeCBNames[opcode]);
+        }
+
+        (this->*m_OPCodesCB[opcode])();
+
+        m_iCurrentClockCycles += kOPCodeCBMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
     }
     else
     {
@@ -224,19 +232,6 @@ void Processor::ExecuteOPCode(u8 opcode)
     }
 }
 
-void Processor::ExecuteOPCodeCB(u8 opcode)
-{
-    u16 opcode_address = PC.GetValue() - 1;
-    if (!m_pMemory->IsDisassembled(opcode_address))
-    {
-        m_pMemory->Disassemble(opcode_address, kOPCodeCBNames[opcode]);
-    }
-
-    (this->*m_OPCodesCB[opcode])();
-
-    m_iCurrentClockCycles += kOPCodeCBMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
-}
-
 bool Processor::InterruptIsAboutToRaise()
 {
     u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
@@ -249,24 +244,25 @@ Processor::Interrupts Processor::InterruptPending()
 {
     u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
     u8 if_reg = m_pMemory->Retrieve(0xFF0F);
+    u8 ie_if = if_reg & ie_reg;
 
-    if ((if_reg & ie_reg & 0x01) && (m_InterruptDelayCycles[0] <= 0))
+    if ((ie_if & 0x01) && (m_InterruptDelayCycles[0] <= 0))
     {
         return VBlank_Interrupt;
     }
-    else if ((if_reg & ie_reg & 0x02) && (m_InterruptDelayCycles[1] <= 0))
+    else if ((ie_if & 0x02) && (m_InterruptDelayCycles[1] <= 0))
     {
         return LCDSTAT_Interrupt;
     }
-    else if ((if_reg & ie_reg & 0x04) && (m_InterruptDelayCycles[2] <= 0))
+    else if ((ie_if & 0x04) && (m_InterruptDelayCycles[2] <= 0))
     {
         return Timer_Interrupt;
     }
-    else if ((if_reg & ie_reg & 0x08) && (m_InterruptDelayCycles[3] <= 0))
+    else if ((ie_if & 0x08) && (m_InterruptDelayCycles[3] <= 0))
     {
         return Serial_Interrupt;
     }
-    else if ((if_reg & ie_reg & 0x10) && (m_InterruptDelayCycles[4] <= 0))
+    else if ((ie_if & 0x10) && (m_InterruptDelayCycles[4] <= 0))
     {
         return Joypad_Interrupt;
     }
@@ -442,9 +438,7 @@ void Processor::ClearAllFlags()
 void Processor::ToggleZeroFlagFromResult(u8 result)
 {
     if (result == 0)
-    {
         ToggleFlag(FLAG_ZERO);
-    }
 }
 
 void Processor::SetFlag(u8 flag)
