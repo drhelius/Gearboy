@@ -67,8 +67,9 @@ void MemoryRule::ClearAddressRanges()
 bool MemoryRule::IsAddressInRanges(u16 address)
 {
     AddressRangeVectorIterator it;
+    AddressRangeVectorIterator end = m_Ranges.end();
 
-    for (it = m_Ranges.begin(); it < m_Ranges.end(); it++)
+    for (it = m_Ranges.begin(); it < end; it++)
     {
         if ((address >= (*it).minAddress) && (address <= (*it).maxAddress))
             return true;
