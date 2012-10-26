@@ -41,6 +41,8 @@ private:
     int m_iCurrentROMBankHi;
     bool m_bRamEnabled;
     u8* m_pRAMBanks;
+    int m_CurrentROMAddress;
+    int m_CurrentRAMAddress;
 };
 
 #endif	/* MBC5MEMORYRULE_H */

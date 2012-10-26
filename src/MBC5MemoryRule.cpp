@@ -43,13 +43,13 @@ u8 MBC5MemoryRule::PerformRead(u16 address)
     if (address >= 0x4000 && address < 0x8000)
     {
         u8* pROM = m_pCartridge->GetTheROM();
-        return pROM[(address - 0x4000) + (0x4000 * m_iCurrentROMBank)];
+        return pROM[(address - 0x4000) + m_CurrentROMAddress];
     }
     else if (address >= 0xA000 && address < 0xC000)
     {
         if (m_bRamEnabled)
         {
-            return m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)];
+            return m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress];
         }
         else
         {
@@ -63,36 +63,48 @@ u8 MBC5MemoryRule::PerformRead(u16 address)
 
 void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
 {
-    if (address < 0x2000)
+    switch (address & 0x6000)
     {
-        if (m_pCartridge->GetRAMSize() > 0)
-            m_bRamEnabled = (value & 0x0F) == 0x0A;
+        case 0x0000:
+        {
+            if (m_pCartridge->GetRAMSize() > 0)
+                m_bRamEnabled = (value & 0x0F) == 0x0A;
+            return;
+        }
+        case 0x2000:
+        {
+            if (address < 0x3000)
+            {
+                m_iCurrentROMBank = value | (m_iCurrentROMBankHi << 8);
+            }
+            else
+            {
+                m_iCurrentROMBankHi = value & 0x01;
+                m_iCurrentROMBank = (m_iCurrentROMBank & 0xFF) | (m_iCurrentROMBankHi << 8);
+            }
+            m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+            m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+            return;
+        }
+        case 0x4000:
+        {
+            m_iCurrentRAMBank = value & 0x0F;
+            m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
+            m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
+            return;
+        }
+        case 0x6000:
+        {
+            Log("--> ** Attempting to write on non usable address %X %X", address, value);
+            return;
+        }
     }
-    else if (address >= 0x2000 && address < 0x3000)
-    {
-        m_iCurrentROMBank = value | (m_iCurrentROMBankHi << 8);
-        m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
-    }
-    else if (address >= 0x3000 && address < 0x4000)
-    {
-        m_iCurrentROMBankHi = value & 0x01;
-        m_iCurrentROMBank = (m_iCurrentROMBank & 0xFF) | (m_iCurrentROMBankHi << 8);
-        m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
-    }
-    else if (address >= 0x4000 && address < 0x6000)
-    {
-        m_iCurrentRAMBank = value & 0x0F;
-        m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
-    }
-    else if (address >= 0x6000 && address < 0x8000)
-    {
-        Log("--> ** Attempting to write on non usable address %X %X", address, value);
-    }
-    else if (address >= 0xA000 && address < 0xC000)
+    
+    if (address >= 0xA000 && address < 0xC000)
     {
         if (m_bRamEnabled)
         {
-            m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)] = value;
+            m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress] = value;
         }
         else
         {
@@ -112,6 +124,8 @@ void MBC5MemoryRule::Reset(bool bCGB)
     m_bRamEnabled = false;
     for (int i = 0; i < 0x20000; i++)
         m_pRAMBanks[i] = 0xFF;
+    m_CurrentROMAddress = 0x4000;
+    m_CurrentRAMAddress = 0;
 }
 
 void MBC5MemoryRule::SaveRam(std::ofstream &file)
