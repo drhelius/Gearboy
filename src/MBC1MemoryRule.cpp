@@ -87,8 +87,6 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             if (m_pCartridge->GetRAMSize() > 0)
                 m_bRamEnabled = ((value & 0x0F) == 0x0A);
-
-            Log("enable ram %b %X %X", m_bRamEnabled, address, value);
             break;
         }
         case 0x2000:
@@ -108,7 +106,6 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
 
             m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
             m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
-            Log("rom bank %d %X %X", m_iCurrentROMBank, address, value);
             break;
         }
         case 0x4000:
@@ -118,7 +115,6 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
                 m_iCurrentRAMBank = value & 0x03;
                 m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
                 m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
-                Log("ram bank %d %X %X", m_iCurrentRAMBank, address, value);
             }
             else
             {
@@ -131,7 +127,6 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
 
                 m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
                 m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
-                Log("rom bank hi %d %X %X", m_iCurrentROMBank, address, value);
             }
             break;
         }
