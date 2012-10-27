@@ -21,7 +21,7 @@
 #include "GLFrame.h"
 #include "Emulator.h"
 
-const float kMixFrameAlpha = 0.45f;
+const float kMixFrameAlpha = 0.35f;
 
 RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 {
