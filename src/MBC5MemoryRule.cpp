@@ -40,36 +40,42 @@ MBC5MemoryRule::~MBC5MemoryRule()
 
 u8 MBC5MemoryRule::PerformRead(u16 address)
 {
-    if (address >= 0x4000 && address < 0x8000)
+    switch (address & 0xE000)
     {
-        u8* pROM = m_pCartridge->GetTheROM();
-        return pROM[(address - 0x4000) + m_CurrentROMAddress];
-    }
-    else if (address >= 0xA000 && address < 0xC000)
-    {
-        if (m_bRamEnabled)
+        case 0x4000:
+        case 0x6000:
         {
-            return m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress];
+            u8* pROM = m_pCartridge->GetTheROM();
+            return pROM[(address - 0x4000) + m_CurrentROMAddress];
         }
-        else
+        case 0xA000:
         {
-            Log("--> ** Attempting to read from disabled ram %X", address);
-            return 0xFF;
+            if (m_bRamEnabled)
+            {
+                return m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress];
+            }
+            else
+            {
+                Log("--> ** Attempting to read from disabled ram %X", address);
+                return 0xFF;
+            }
+        }
+        default:
+        {
+            return m_pMemory->Retrieve(address);
         }
     }
-    else
-        return m_pMemory->Retrieve(address);
 }
 
 void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
 {
-    switch (address & 0x6000)
+    switch (address & 0xE000)
     {
         case 0x0000:
         {
             if (m_pCartridge->GetRAMSize() > 0)
                 m_bRamEnabled = (value & 0x0F) == 0x0A;
-            return;
+            break;
         }
         case 0x2000:
         {
@@ -84,35 +90,38 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
             }
             m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
             m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
-            return;
+            break;
         }
         case 0x4000:
         {
             m_iCurrentRAMBank = value & 0x0F;
             m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
             m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
-            return;
+            break;
         }
         case 0x6000:
         {
             Log("--> ** Attempting to write on non usable address %X %X", address, value);
-            return;
+            break;
+        }
+        case 0xA000:
+        {
+            if (m_bRamEnabled)
+            {
+                m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress] = value;
+            }
+            else
+            {
+                Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+            }
+            break;
+        }
+        default:
+        {
+            m_pMemory->Load(address, value);
+            break;
         }
     }
-    
-    if (address >= 0xA000 && address < 0xC000)
-    {
-        if (m_bRamEnabled)
-        {
-            m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress] = value;
-        }
-        else
-        {
-            Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
-        }
-    }
-    else
-        m_pMemory->Load(address, value);
 }
 
 void MBC5MemoryRule::Reset(bool bCGB)
@@ -128,7 +137,7 @@ void MBC5MemoryRule::Reset(bool bCGB)
     m_CurrentRAMAddress = 0;
 }
 
-void MBC5MemoryRule::SaveRam(std::ofstream &file)
+void MBC5MemoryRule::SaveRam(std::ofstream & file)
 {
     Log("MBC5MemoryRule save RAM...");
 
@@ -142,7 +151,7 @@ void MBC5MemoryRule::SaveRam(std::ofstream &file)
     Log("MBC5MemoryRule save RAM done");
 }
 
-void MBC5MemoryRule::LoadRam(std::ifstream &file)
+void MBC5MemoryRule::LoadRam(std::ifstream & file)
 {
     Log("MBC5MemoryRule load RAM...");
 
