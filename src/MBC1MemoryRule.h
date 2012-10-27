@@ -42,6 +42,8 @@ private:
     bool m_bRamEnabled;
     u8 m_HigherRomBankBits;
     u8* m_pRAMBanks;
+    int m_CurrentROMAddress;
+    int m_CurrentRAMAddress;
 };
 
 #endif	/* MBC1MEMORYRULE_H */

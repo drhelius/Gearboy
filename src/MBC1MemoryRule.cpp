@@ -42,116 +42,141 @@ MBC1MemoryRule::~MBC1MemoryRule()
 
 u8 MBC1MemoryRule::PerformRead(u16 address)
 {
-    if (address >= 0x4000 && address < 0x8000)
+    switch (address & 0xE000)
     {
-        u8* pROM = m_pCartridge->GetTheROM();
-        return pROM[(address - 0x4000) + (0x4000 * m_iCurrentROMBank)];
-    }
-    else if (address >= 0xA000 && address < 0xC000)
-    {
-        if (m_bRamEnabled)
+        case 0x4000:
+        case 0x6000:
         {
-            if (m_iMode == 0)
+            u8* pROM = m_pCartridge->GetTheROM();
+            return pROM[(address - 0x4000) + m_CurrentROMAddress];
+        }
+        case 0xA000:
+        {
+            if (m_bRamEnabled)
             {
-                if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
+                if (m_iMode == 0)
                 {
-                    // only 2KB of ram
-                    Log("--> ** Attempting to read from non usable address %X", address);
+                    if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
+                    {
+                        // only 2KB of ram
+                        Log("--> ** Attempting to read from non usable address %X", address);
+                    }
+                    return m_pMemory->Retrieve(address);
                 }
-
-                return m_pMemory->Retrieve(address);
+                else
+                    return m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress];
             }
             else
-                return m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)];
+            {
+                Log("--> ** Attempting to read from disabled ram %X", address);
+                return 0xFF;
+            }
         }
-        else
+        default:
         {
-            Log("--> ** Attempting to read from disabled ram %X", address);
-            return 0xFF;
+            return m_pMemory->Retrieve(address);
         }
     }
-    else
-        return m_pMemory->Retrieve(address);
 }
 
 void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
 {
-    if (address < 0x2000)
+    switch (address & 0xE000)
     {
-        if (m_pCartridge->GetRAMSize() > 0)
-            m_bRamEnabled = ((value & 0x0F) == 0x0A);
-    }
-    else if (address >= 0x2000 && address < 0x4000)
-    {
-        if (m_iMode == 0)
+        case 0x0000:
         {
-            m_iCurrentROMBank = (value & 0x1F) | (m_HigherRomBankBits << 5);
-        }
-        else
-        {
-            m_iCurrentROMBank = value & 0x1F;
-        }
+            if (m_pCartridge->GetRAMSize() > 0)
+                m_bRamEnabled = ((value & 0x0F) == 0x0A);
 
-        if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
-                || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
-            m_iCurrentROMBank++;
-
-        m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
-    }
-    else if (address >= 0x4000 && address < 0x6000)
-    {
-        if (m_iMode == 1)
-        {
-            m_iCurrentRAMBank = value & 0x03;
-            m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
+            Log("enable ram %b %X %X", m_bRamEnabled, address, value);
+            break;
         }
-        else
+        case 0x2000:
         {
-            m_HigherRomBankBits = value & 0x03;
-            m_iCurrentROMBank = (m_iCurrentROMBank & 0x1F) | (m_HigherRomBankBits << 5);
+            if (m_iMode == 0)
+            {
+                m_iCurrentROMBank = (value & 0x1F) | (m_HigherRomBankBits << 5);
+            }
+            else
+            {
+                m_iCurrentROMBank = value & 0x1F;
+            }
 
             if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
                     || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
                 m_iCurrentROMBank++;
 
             m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+            m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+            Log("rom bank %d %X %X", m_iCurrentROMBank, address, value);
+            break;
         }
-    }
-    else if (address >= 0x6000 && address < 0x8000)
-    {
-        if ((m_pCartridge->GetRAMSize() != 3) && (value & 0x01))
+        case 0x4000:
         {
-            Log("--> ** Attempting to change MBC1 to mode 1 with incorrect RAM banks %X %X", address, value);
-        }
-        else
-        {
-            m_iMode = value & 0x01;
-        }
-    }
-    else if (address >= 0xA000 && address < 0xC000)
-    {
-        if (m_bRamEnabled)
-        {
-            if (m_iMode == 0)
+            if (m_iMode == 1)
             {
-                if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
-                {
-                    // only 2KB of ram
-                    Log("--> ** Attempting to write on non usable address %X %X", address, value);
-                }
-
-                m_pMemory->Load(address, value);
+                m_iCurrentRAMBank = value & 0x03;
+                m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
+                m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
+                Log("ram bank %d %X %X", m_iCurrentRAMBank, address, value);
             }
             else
-                m_pRAMBanks[(address - 0xA000) + (0x2000 * m_iCurrentRAMBank)] = value;
+            {
+                m_HigherRomBankBits = value & 0x03;
+                m_iCurrentROMBank = (m_iCurrentROMBank & 0x1F) | (m_HigherRomBankBits << 5);
+
+                if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
+                        || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
+                    m_iCurrentROMBank++;
+
+                m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+                m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+                Log("rom bank hi %d %X %X", m_iCurrentROMBank, address, value);
+            }
+            break;
         }
-        else
+        case 0x6000:
         {
-            Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+            if ((m_pCartridge->GetRAMSize() != 3) && (value & 0x01))
+            {
+                Log("--> ** Attempting to change MBC1 to mode 1 with incorrect RAM banks %X %X", address, value);
+            }
+            else
+            {
+                m_iMode = value & 0x01;
+            }
+            Log("mode %d %X %X", m_iMode, address, value);
+            break;
+        }
+        case 0xA000:
+        {
+            if (m_bRamEnabled)
+            {
+                if (m_iMode == 0)
+                {
+                    if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
+                    {
+                        // only 2KB of ram
+                        Log("--> ** Attempting to write on non usable address %X %X", address, value);
+                    }
+
+                    m_pMemory->Load(address, value);
+                }
+                else
+                    m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress] = value;
+            }
+            else
+            {
+                Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+            }
+            break;
+        }
+        default:
+        {
+            m_pMemory->Load(address, value);
+            break;
         }
     }
-    else
-        m_pMemory->Load(address, value);
 }
 
 void MBC1MemoryRule::Reset(bool bCGB)
@@ -164,6 +189,8 @@ void MBC1MemoryRule::Reset(bool bCGB)
     m_bRamEnabled = false;
     for (int i = 0; i < kMBC1RamBanksSize; i++)
         m_pRAMBanks[i] = 0xFF;
+    m_CurrentROMAddress = 0x4000;
+    m_CurrentRAMAddress = 0;
 }
 
 void MBC1MemoryRule::SaveRam(std::ofstream &file)
