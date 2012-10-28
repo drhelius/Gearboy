@@ -60,8 +60,8 @@ void Audio::Init()
     m_pBuffer->clock_rate(4194304);
     m_pBuffer->set_sample_rate(m_iSampleRate);
 
-    m_pApu->treble_eq(-30.0);
-    m_pBuffer->bass_freq(461);
+    m_pApu->treble_eq(-15.0);
+    m_pBuffer->bass_freq(100);
 
     m_pApu->set_output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
 
