@@ -38,6 +38,7 @@ public:
 private:
     int m_iCurrentROMBank;
     bool m_bRamEnabled;
+    int m_CurrentROMAddress;
 };
 
 #endif	/* MBC2MEMORYRULE_H */
