@@ -58,6 +58,8 @@ private:
     u8 m_RTCRegister;
     time_t m_RTCLastTime;
     time_t m_RTCLastTimeCache;
+    int m_CurrentROMAddress;
+    int m_CurrentRAMAddress;
 };
 
 #endif	/* MBC3MEMORYRULE_H */
