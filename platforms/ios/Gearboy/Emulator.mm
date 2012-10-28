@@ -21,7 +21,7 @@
 #import "Emulator.h"
 #include "inputmanager.h"
 
-const float kMixFrameAlpha = 0.45f;
+const float kMixFrameAlpha = 0.35f;
 const float kGB_Width = 160.0f;
 const float kGB_Height = 144.0f;
 const float kGB_TexWidth = kGB_Width / 256.0f;
