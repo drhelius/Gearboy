@@ -140,7 +140,6 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
             {
                 m_iMode = value & 0x01;
             }
-            Log("mode %d %X %X", m_iMode, address, value);
             break;
         }
         case 0xA000:
