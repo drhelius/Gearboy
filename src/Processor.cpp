@@ -164,8 +164,8 @@ void Processor::ResetTIMACycles()
 
 void Processor::ResetDIVCycles()
 {
+    m_iDIVCycles = 0;
     m_pMemory->Load(0xFF04, 0x00);
-    m_iTIMACycles = 0;
 }
 
 bool Processor::Halted() const
