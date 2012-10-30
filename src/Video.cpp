@@ -409,7 +409,7 @@ void Video::ResetWindowLine()
 {
     u8 wy = m_pMemory->Retrieve(0xFF4A);
 
-    if ((m_iWindowLine == 0) && (m_iStatusModeLYCounter > wy))
+    if ((m_iWindowLine == 0) && (m_iStatusModeLYCounter < 144) && (m_iStatusModeLYCounter > wy))
         m_iWindowLine = 144;
 }
 
