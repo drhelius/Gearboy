@@ -10,6 +10,8 @@ The emulator is focused on readability of source code, but nevertheless it has g
 
 A lot of effort has gone into this in order to follow OOP and keep it as simple as possible.
 
+For any comments or questions I can be reached at: http://twitter.com/drhelius
+
 ----------
 
 Features
