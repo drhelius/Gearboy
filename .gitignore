@@ -1,4 +1,3 @@
-
 # Netbeans files
 /dist/
 /build/
@@ -10,6 +9,7 @@ platforms/macosx/Gearboy/nbproject/private/configurations.xml
 /platforms/linux/Gearboy/dist/
 /platforms/linux/Gearboy/build/
 /platforms/linux/Gearboy/nbproject/private/
+/platforms/raspberry/Gearboy/nbproject/private/
 
 # Mac files
 *.DS_Store
