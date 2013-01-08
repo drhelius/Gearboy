@@ -1,5 +1,4 @@
 
-
 # Netbeans files
 /dist/
 /build/
@@ -68,6 +67,7 @@ ui_*.h
 platforms/macosx/Gearboy/gearboy.ini
 platforms/windows/Gearboy/gearboy.ini
 platforms/linux/Gearboy/gearboy.ini
+platforms/raspberrypi/Gearboy/gearboy.ini
 
 *.xcuserstate
 
