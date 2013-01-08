@@ -13,11 +13,11 @@
             <confList>
                 <confElem>
                     <name>Debug</name>
-                    <type>4</type>
+                    <type>1</type>
                 </confElem>
                 <confElem>
                     <name>Release</name>
-                    <type>4</type>
+                    <type>1</type>
                 </confElem>
             </confList>
         </data>

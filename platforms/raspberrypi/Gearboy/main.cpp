@@ -29,7 +29,7 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 #endif
-#include "gearboy.h"
+#include "../../../src/gearboy.h"
 
 #define SCREEN_WIDTH GAMEBOY_WIDTH
 #define SCREEN_HEIGHT GAMEBOY_HEIGHT
@@ -181,7 +181,7 @@ int main(int argc, char** argv)
     //gb->LoadROM("/Users/nacho/Desktop/roms/Prehistorik Man (U).gb");
     //gb->LoadROM("/Users/nacho/Desktop/roms/Wave Race (UE) [!].gb");
     //if (gb->LoadROM("/Users/nacho/Desktop/roms/Legend of Zelda, The - Link's Awakening DX (U) (V1.0) [C][!].gbc"))
-        if (gb->LoadROM("/Users/nacho/Desktop/roms/Pokemon - Gold Version (UE) [C][!].gbc"))
+        if (gb->LoadROM("/home/pi/Desktop/roms/testrom.gb", false))
     {
         for (int i = 0; i < 256; i++)
             keys[i] = false;
