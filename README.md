@@ -14,9 +14,13 @@ For any comments or questions I can be reached at: http://twitter.com/drhelius
 
 ----------
 
+Downloads
+--------
+- Windows: [Gearboy-0.5-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-0.5-Windows.zip)
+- Linux: [Gearboy-0.5-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.5-Linux.tar.gz)
+
 Features
 --------
-
 - Accurate CPU emulation, passes cpu_instrs.gb from blargg's tests.
 - Accurate instruction timing, passes instr_timing.gb from blargg's tests.
 - Memory Bank Controllers (MBC1, MBC2, MBC3 with RTC, MBC5), ROM + RAM and multicart cartridges.
