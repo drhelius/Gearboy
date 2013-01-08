@@ -22,7 +22,7 @@ Compiling Instructions
 - Add <code>qmake</code> to the PATH (You can find qmake in the bin directory where you have Qt SDK installed).
 - Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
 - Open the Gearboy Netbeans project and build. This project is configured for using <code>clang</code>.
-- Alternatively you can use <code>make</code> to build the project.
+- Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
 
 License
 -------
