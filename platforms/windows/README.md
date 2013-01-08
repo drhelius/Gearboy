@@ -4,11 +4,13 @@ Gearboy
 
 ----------
 
-Gearboy is a Nintendo Game Boy emulator written in C++.
+Gearboy is a Nintendo Game Boy / Game Boy Color emulator written in C++.
 
 The emulator is focused on readability of source code, but nevertheless it has good compatibility.
 
 A lot of effort has gone into this in order to follow OOP and keep it as simple as possible.
+
+For any comments or questions I can be reached at: http://twitter.com/drhelius
 
 ----------
 
