@@ -27,10 +27,10 @@ Features
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Saves battery powered RAM cartridges to file.
 - Compressed rom support (ZIP deflate).
-- Multi platform. Compiles and runs on Windows, Linux, Mac OS X and iOS.
+- Multi platform. Compiles and runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
 - Uses OpenGL for rendering on all platforms.
 - Uses Qt framework for Mac, Windows and Linux. Uses Cocoa Touch for iPad, iPhone and iPod touch.
-- Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS X. Xcode project for iOS.
+- Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux, Raspbian and Mac OS X. Xcode project for iOS.
 
 Todo List
 -----------
@@ -62,7 +62,7 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Install SDL development dependencies (Ubuntu: <code>sudo apt-get install libsdl1.2-dev</code>).
 - In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew1.6-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.
 - Open the Gearboy Netbeans project and build.
-- Alternatively you can use <code>make</code> to build the project.
+- Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
 - In Ubuntu 12.04 I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
 
 ### Mac OS X
@@ -72,12 +72,19 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Add <code>qmake</code> to the PATH (You can find qmake in the bin directory where you have Qt SDK installed).
 - Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
 - Open the Gearboy Netbeans project and build. This project is configured for using <code>clang</code>.
-- Alternatively you can use <code>make</code> to build the project.
+- Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
 
 ### iOS
 - Install Xcode for Mac OS X. iOS SDK 5.1 or later is needed. 
 - Open the Gearboy Xcode project and build.
 - In order to run it on real hardware you will need an iOS developer certificate.
+
+### Raspberry Pi - Raspbian
+- Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
+- Install SDL development dependencies (Ubuntu: <code>sudo apt-get install libsdl1.2-dev</code>).
+- In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.
+- Use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .clean-conf</code> to clean the project.
+- Use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
 
 Passed Tests
 ------------
