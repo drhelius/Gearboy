@@ -268,7 +268,7 @@ int main(int argc, char** argv)
     gb = new GearboyCore();
     gb->Init();
 
-    if (gb->LoadROM("/home/pi/roms/testrom.zip", false))
+    if (gb->LoadROM("/home/pi/roms/testrom.gb", false))
     {
         for (int i = 0; i < 256; i++)
             keys[i] = false;

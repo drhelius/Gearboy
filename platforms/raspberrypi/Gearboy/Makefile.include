@@ -16,7 +16,7 @@ all: $(BIN) $(LIB)
 	$(CXX) $(CFLAGS) $(INCLUDES) -g -c $< -o $@ -Wno-deprecated-declarations
 
 %.bin: $(OBJS)
-	$(CC) -o gearboy -Wl,--whole-archive $(OBJS) $(LDFLAGS) -Wl,--no-whole-archive -rdynamic
+	$(CC) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) -lstdc++ -Wl,--no-whole-archive -rdynamic
 
 %.a: $(OBJS)
 	$(AR) r $@ $^
