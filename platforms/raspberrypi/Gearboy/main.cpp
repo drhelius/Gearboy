@@ -13,10 +13,10 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
- 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,11 +24,11 @@
 #include <assert.h>
 #include <unistd.h>
 
-#include "bcm_host.h"
+#include "/opt/vc/include/bcm_host.h"
 
-#include "GLES/gl.h"
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
+#include "/opt/vc/include/GLES/gl.h"
+#include "/opt/vc/include/EGL/egl.h"
+#include "/opt/vc/include/EGL/eglext.h"
 
 
 #include "../../../src/gearboy.h"
@@ -55,7 +55,7 @@ void setupTexture()
 {
     // Create the framebuffer for the emulator
     frameBuffer = new GB_Color[SCREEN_WIDTH * SCREEN_HEIGHT];
-    
+
     // Clear screen
     for (int y = 0; y < SCREEN_HEIGHT; ++y)
         for (int x = 0; x < SCREEN_WIDTH; ++x)
@@ -67,11 +67,25 @@ void setupTexture()
     // Set up the texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
     // Enable the texture
     glEnable(GL_TEXTURE_2D);
+}
+
+void draw( short x, short y, short w, short h )
+{
+    const GLshort t[8] = { 0, 0, 1, 0, 1, 1, 0, 1 };
+    const GLshort v[8] = { x, y, x+w, y, x+w, y+h, x, y+h };
+
+    glVertexPointer( 2, GL_SHORT, 0, v );
+    glEnableClientState( GL_VERTEX_ARRAY );
+
+    glTexCoordPointer( 2, GL_SHORT, 0, t );
+    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+    glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
 }
 
 void updateTexture()
@@ -95,7 +109,7 @@ void updateTexture()
     draw(0, 0, display_width, display_height);
 }
 
-void display()
+void draw()
 {
     // Run emulator until next VBlank
     gb->RunToVBlank(frameBuffer);
@@ -156,27 +170,13 @@ static void keyboardUP(unsigned char key, int x, int y)
     keys[key] = false;
 }
 
-void draw( short x, short y, short w, short h )
-{
-    const GLshort t[8] = { 0, 0, 1, 0, 1, 1, 0, 1 };
-    const GLshort v[8] = { x, y, x+w, y, x+w, y+h, x, y+h };
-
-    glVertexPointer( 2, GL_SHORT, 0, v );
-    glEnableClientState( GL_VERTEX_ARRAY );
-
-    glTexCoordPointer( 2, GL_SHORT, 0, t );
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-    glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-}
-
 void init_ogl(void)
 {
    int32_t success = 0;
    EGLBoolean result;
    EGLint num_config;
 
-   EGL_DISPMANX_WINDOW_T nativewindow;
+   static EGL_DISPMANX_WINDOW_T nativewindow;
 
    DISPMANX_ELEMENT_HANDLE_T dispman_element;
    DISPMANX_DISPLAY_HANDLE_T dispman_display;
@@ -184,7 +184,7 @@ void init_ogl(void)
    VC_RECT_T dst_rect;
    VC_RECT_T src_rect;
 
-   const EGLint attribute_list[] =
+   static const EGLint attribute_list[] =
    {
       EGL_RED_SIZE, 8,
       EGL_GREEN_SIZE, 8,
@@ -193,7 +193,7 @@ void init_ogl(void)
       EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
       EGL_NONE
    };
-   
+
    EGLConfig config;
 
    // Get an EGL display connection
@@ -220,7 +220,7 @@ void init_ogl(void)
    dst_rect.y = 0;
    dst_rect.width = screen_width;
    dst_rect.height = screen_height;
-      
+
    src_rect.x = 0;
    src_rect.y = 0;
    src_rect.width = screen_width << 16;
@@ -228,16 +228,16 @@ void init_ogl(void)
 
    dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
    dispman_update = vc_dispmanx_update_start( 0 );
-         
+
    dispman_element = vc_dispmanx_element_add ( dispman_update, dispman_display,
       0/*layer*/, &dst_rect, 0/*src*/,
-      &src_rect, DISPMANX_PROTECTION_NONE, 0 /*alpha*/, 0/*clamp*/, 0/*transform*/);
-      
+      &src_rect, DISPMANX_PROTECTION_NONE, 0 /*alpha*/, 0/*clamp*/, DISPMANX_NO_ROTATE/*transform*/);
+
    nativewindow.element = dispman_element;
    nativewindow.width = screen_width;
    nativewindow.height = screen_height;
    vc_dispmanx_update_submit_sync( dispman_update );
-      
+
    surface = eglCreateWindowSurface( display, config, &nativewindow, NULL );
    assert(surface != EGL_NO_SURFACE);
 
@@ -250,32 +250,32 @@ void init_ogl(void)
     glClearColor(0.0f, 0.0f, 0.5f, 0.0f);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    //gluOrtho2D(0, w, h, 0);
-    glOrtho(0,  w,  h,  0,  -1,  1)
+    //gluOrtho2D(0, screen_width, screen_height, 0);
+    glOrthof(0,  screen_width,  screen_height,  0,  -1,  1);
     glMatrixMode(GL_MODELVIEW);
-    glViewport(0, 0, w, h);
+    glViewport(0, 0, screen_width, screen_height);
 }
 
 
 int main(int argc, char** argv)
 {
     bcm_host_init();
-    
+
     init_ogl();
 
     setupTexture();
 
     gb = new GearboyCore();
     gb->Init();
-            
-    if (gb->LoadROM("/home/pi/Desktop/roms/testrom.gb", false))
+
+    if (gb->LoadROM("/home/pi/roms/testrom.zip", false))
     {
         for (int i = 0; i < 256; i++)
             keys[i] = false;
 
         while (!terminate)
         {
-          display();
+          draw();
         }
     }
 
