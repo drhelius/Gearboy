@@ -17,18 +17,20 @@
  * 
  */
  
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <GLUT/glut.h>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+#include <unistd.h>
+
+#include "bcm_host.h"
+
+#include "GLES/gl.h"
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+
+
 #include "../../../src/gearboy.h"
 
 #define SCREEN_WIDTH GAMEBOY_WIDTH
@@ -38,13 +40,22 @@ const int modifier = 4;
 
 int display_width = SCREEN_WIDTH * modifier;
 int display_height = SCREEN_HEIGHT * modifier;
+uint32_t screen_width;
+uint32_t screen_height;
 u8 screenData[SCREEN_HEIGHT][SCREEN_WIDTH][3];
 GB_Color* frameBuffer;
 GearboyCore* gb;
 bool keys[256];
+bool terminate = false;
+EGLDisplay display;
+EGLSurface surface;
+EGLContext context;
 
 void setupTexture()
 {
+    // Create the framebuffer for the emulator
+    frameBuffer = new GB_Color[SCREEN_WIDTH * SCREEN_HEIGHT];
+    
     // Clear screen
     for (int y = 0; y < SCREEN_HEIGHT; ++y)
         for (int x = 0; x < SCREEN_WIDTH; ++x)
@@ -59,13 +70,13 @@ void setupTexture()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    // Enable textures
+    // Enable the texture
     glEnable(GL_TEXTURE_2D);
 }
 
 void updateTexture()
 {
-    // Update pixels
+    // Update texture data from emulator buffer
     for (int y = 0; y < SCREEN_HEIGHT; ++y)
     {
         for (int x = 0; x < SCREEN_WIDTH; ++x)
@@ -77,28 +88,22 @@ void updateTexture()
         }
     }
 
-    // Update Texture
+    // Upload data to texture
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) screenData);
 
-    glBegin(GL_QUADS);
-    glTexCoord2d(0.0, 0.0);
-    glVertex2d(0.0, 0.0);
-    glTexCoord2d(1.0, 0.0);
-    glVertex2d(display_width, 0.0);
-    glTexCoord2d(1.0, 1.0);
-    glVertex2d(display_width, display_height);
-    glTexCoord2d(0.0, 1.0);
-    glVertex2d(0.0, display_height);
-    glEnd();
+    // Draw screen quad
+    draw(0, 0, display_width, display_height);
 }
 
 void display()
 {
+    // Run emulator until next VBlank
     gb->RunToVBlank(frameBuffer);
 
+    // Draw the emulator quad
     glClear(GL_COLOR_BUFFER_BIT);
     updateTexture();
-    glutSwapBuffers();
+    eglSwapBuffers(display, surface);
 }
 
 static void keyboard(unsigned char key, int x, int y)
@@ -151,60 +156,127 @@ static void keyboardUP(unsigned char key, int x, int y)
     keys[key] = false;
 }
 
-void reshape_window(GLsizei w, GLsizei h)
+void draw( short x, short y, short w, short h )
 {
+    const GLshort t[8] = { 0, 0, 1, 0, 1, 1, 0, 1 };
+    const GLshort v[8] = { x, y, x+w, y, x+w, y+h, x, y+h };
+
+    glVertexPointer( 2, GL_SHORT, 0, v );
+    glEnableClientState( GL_VERTEX_ARRAY );
+
+    glTexCoordPointer( 2, GL_SHORT, 0, t );
+    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+    glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+}
+
+void init_ogl(void)
+{
+   int32_t success = 0;
+   EGLBoolean result;
+   EGLint num_config;
+
+   EGL_DISPMANX_WINDOW_T nativewindow;
+
+   DISPMANX_ELEMENT_HANDLE_T dispman_element;
+   DISPMANX_DISPLAY_HANDLE_T dispman_display;
+   DISPMANX_UPDATE_HANDLE_T dispman_update;
+   VC_RECT_T dst_rect;
+   VC_RECT_T src_rect;
+
+   const EGLint attribute_list[] =
+   {
+      EGL_RED_SIZE, 8,
+      EGL_GREEN_SIZE, 8,
+      EGL_BLUE_SIZE, 8,
+      EGL_ALPHA_SIZE, 8,
+      EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+      EGL_NONE
+   };
+   
+   EGLConfig config;
+
+   // Get an EGL display connection
+   display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+   assert(display!=EGL_NO_DISPLAY);
+
+   // Initialize the EGL display connection
+   result = eglInitialize(display, NULL, NULL);
+   assert(EGL_FALSE != result);
+
+   // Get an appropriate EGL frame buffer configuration
+   result = eglChooseConfig(display, attribute_list, &config, 1, &num_config);
+   assert(EGL_FALSE != result);
+
+   // Create an EGL rendering context
+   context = eglCreateContext(display, config, EGL_NO_CONTEXT, NULL);
+   assert(context!=EGL_NO_CONTEXT);
+
+   // Create an EGL window surface
+   success = graphics_get_display_size(0 /* LCD */, &screen_width, &screen_height);
+   assert( success >= 0 );
+
+   dst_rect.x = 0;
+   dst_rect.y = 0;
+   dst_rect.width = screen_width;
+   dst_rect.height = screen_height;
+      
+   src_rect.x = 0;
+   src_rect.y = 0;
+   src_rect.width = screen_width << 16;
+   src_rect.height = screen_height << 16;
+
+   dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
+   dispman_update = vc_dispmanx_update_start( 0 );
+         
+   dispman_element = vc_dispmanx_element_add ( dispman_update, dispman_display,
+      0/*layer*/, &dst_rect, 0/*src*/,
+      &src_rect, DISPMANX_PROTECTION_NONE, 0 /*alpha*/, 0/*clamp*/, 0/*transform*/);
+      
+   nativewindow.element = dispman_element;
+   nativewindow.width = screen_width;
+   nativewindow.height = screen_height;
+   vc_dispmanx_update_submit_sync( dispman_update );
+      
+   surface = eglCreateWindowSurface( display, config, &nativewindow, NULL );
+   assert(surface != EGL_NO_SURFACE);
+
+   // Connect the context to the surface
+   result = eglMakeCurrent(display, surface, surface, context);
+   assert(EGL_FALSE != result);
+
+
+   // Setup 2D view
     glClearColor(0.0f, 0.0f, 0.5f, 0.0f);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0, w, h, 0);
+    //gluOrtho2D(0, w, h, 0);
+    glOrtho(0,  w,  h,  0,  -1,  1)
     glMatrixMode(GL_MODELVIEW);
     glViewport(0, 0, w, h);
-
-    // Resize quad
-    display_width = w;
-    display_height = h;
 }
+
 
 int main(int argc, char** argv)
 {
+    bcm_host_init();
+    
+    init_ogl();
+
+    setupTexture();
+
     gb = new GearboyCore();
     gb->Init();
-    //gb->LoadROM("/Users/nacho/Desktop/roms/Super Mario Land (JUE) (V1.0) [!].gb");
-    //gb->LoadROM("/Users/nacho/Desktop/roms/Super Mario Land 2 - 6 Golden Coins (UE) (V1.0) [!].gb");
-    //gb->LoadROM("/Users/nacho/Desktop/roms/Legend of Zelda, The - Link's Awakening (U) (V1.2) [!].gb");
-    //gb->LoadROM("/Users/nacho/Desktop/roms/Kirby's Dream Land (UE) [!].gb");
-    //gb->LoadROM("/Users/nacho/Desktop/roms/Snoopy - Magic Show (U) [!].gb");
-    //gb->LoadROM("/Users/nacho/Desktop/roms/Donkey Kong Land (U) [S][!].sgb");
-    //Elevator Action (U) [!].gb
-    //gb->LoadROM("/Users/nacho/Desktop/roms/Pokemon - Gold Version (UE) [C][!].gbc");
-    //gb->LoadROM("/Users/nacho/Desktop/roms/Pokemon - Edicion Azul (S) [S].sgb");
-    //gb->LoadROM("/Users/nacho/Desktop/roms/Prehistorik Man (U).gb");
-    //gb->LoadROM("/Users/nacho/Desktop/roms/Wave Race (UE) [!].gb");
-    //if (gb->LoadROM("/Users/nacho/Desktop/roms/Legend of Zelda, The - Link's Awakening DX (U) (V1.0) [C][!].gbc"))
-        if (gb->LoadROM("/home/pi/Desktop/roms/testrom.gb", false))
+            
+    if (gb->LoadROM("/home/pi/Desktop/roms/testrom.gb", false))
     {
         for (int i = 0; i < 256; i++)
             keys[i] = false;
 
-        frameBuffer = new GB_Color[SCREEN_WIDTH * SCREEN_HEIGHT];
-
-        glutInit(&argc, argv);
-        glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-
-        glutInitWindowSize(display_width, display_height);
-        glutInitWindowPosition(320, 320);
-        glutCreateWindow("Gearboy");
-
-        glutDisplayFunc(display);
-        glutIdleFunc(display);
-        glutReshapeFunc(reshape_window);
-        glutKeyboardFunc(keyboard);
-        glutKeyboardUpFunc(keyboardUP);
-        glutIgnoreKeyRepeat(1);
-
-        setupTexture();
-
-        glutMainLoop();
+        while (!terminate)
+        {
+          display();
+        }
     }
 
     SafeDeleteArray(frameBuffer);
