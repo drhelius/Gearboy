@@ -39,76 +39,92 @@ MultiMBC1MemoryRule::~MultiMBC1MemoryRule()
 
 u8 MultiMBC1MemoryRule::PerformRead(u16 address)
 {
-    if (address < 0x4000)
+    switch (address & 0xE000)
     {
-        u8* pROM = m_pCartridge->GetTheROM();
-        return pROM[address + (0x4000 * m_iFinalROMBank0)];
-    }
-    else if (address >= 0x4000 && address < 0x8000)
-    {
-        u8* pROM = m_pCartridge->GetTheROM();
-        return pROM[(address - 0x4000) + (0x4000 * m_iFinalROMBank)];
-    }
-    else if (address >= 0xA000 && address < 0xC000)
-    {
-        if (m_bRamEnabled)
+        case 0x0000:
+        case 0x2000:
+        {
+            u8* pROM = m_pCartridge->GetTheROM();
+            return pROM[address + (0x4000 * m_iFinalROMBank0)];
+        }
+        case 0x4000:
+        case 0x6000:
+        {
+            u8* pROM = m_pCartridge->GetTheROM();
+            return pROM[(address - 0x4000) + (0x4000 * m_iFinalROMBank)];
+        }
+        case 0xA000:
+        {
+            if (m_bRamEnabled)
+            {
+                return m_pMemory->Retrieve(address);
+            }
+            else
+            {
+                Log("--> ** Attempting to read from disabled ram %X", address);
+                return 0xFF;
+            }
+        }
+        default:
         {
             return m_pMemory->Retrieve(address);
         }
-        else
-        {
-            Log("--> ** Attempting to read from disabled ram %X", address);
-            return 0xFF;
-        }
     }
-    else
-        return m_pMemory->Retrieve(address);
 }
 
 void MultiMBC1MemoryRule::PerformWrite(u16 address, u8 value)
 {
-    if (address < 0x2000)
+    switch (address & 0xE000)
     {
-        m_bRamEnabled = ((value & 0x0F) == 0x0A);
-    }
-    else if (address >= 0x2000 && address < 0x4000)
-    {
-        m_iCurrentROMBank = (m_iCurrentROMBank & 0x60) | (value & 0x1F);
-
-        if (m_iMode == 0)
+        case 0x0000:
         {
-            m_iFinalROMBank = (m_iCurrentROMBank & 0x1F) ? m_iCurrentROMBank : (m_iCurrentROMBank | 1);
-            m_iFinalROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+            m_bRamEnabled = ((value & 0x0F) == 0x0A);
+            break;
         }
-        else
+        case 0x2000:
         {
-            int rombank = ((m_iCurrentROMBank >> 1) & 0x30) | (m_iCurrentROMBank & 0xF);
-            m_iFinalROMBank = (rombank & 0x1F) ? rombank : (rombank | 1);
+            if (m_iMode == 0)
+            {
+                m_iFinalROMBank = (m_iCurrentROMBank & 0x1F) ? m_iCurrentROMBank : (m_iCurrentROMBank | 1);
+                m_iFinalROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+            }
+            else
+            {
+                int rombank = ((m_iCurrentROMBank >> 1) & 0x30) | (m_iCurrentROMBank & 0xF);
+                m_iFinalROMBank = (rombank & 0x1F) ? rombank : (rombank | 1);
+            }
+            break;
         }
-    }
-    else if (address >= 0x4000 && address < 0x6000)
-    {
-        m_iCurrentROMBank = ((value << 5) & 0x60) | (m_iCurrentROMBank & 0x1F);
-        SetRomBank();
-    }
-    else if (address >= 0x6000 && address < 0x8000)
-    {
-        m_iMode = value & 0x01;
-        SetRomBank();
-    }
-    else if (address >= 0xA000 && address < 0xC000)
-    {
-        if (m_bRamEnabled)
+        case 0x4000:
+        {
+            m_iCurrentROMBank = ((value << 5) & 0x60) | (m_iCurrentROMBank & 0x1F);
+            SetRomBank();
+            break;
+        }
+        case 0x6000:
+        {
+            m_iMode = value & 0x01;
+            SetRomBank();
+            break;
+        }
+        case 0xA000:
+        {
+            if (m_bRamEnabled)
+            {
+                m_pMemory->Load(address, value);
+            }
+            else
+            {
+                Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+            }
+            break;
+        }
+        default:
         {
             m_pMemory->Load(address, value);
-        }
-        else
-        {
-            Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+            break;
         }
     }
-    else
-        m_pMemory->Load(address, value);
 }
 
 void MultiMBC1MemoryRule::Reset(bool bCGB)
