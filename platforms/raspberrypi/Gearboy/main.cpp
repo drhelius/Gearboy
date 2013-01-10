@@ -26,7 +26,7 @@
 #include "bcm_host.h"
 #include "GLES/gl.h"
 #include "EGL/egl.h"
-#include "eglext.h"
+#include "EGL/eglext.h"
 #include "gearboy.h"
 
 bool keys[256];
@@ -47,14 +47,16 @@ GB_Color* theFrameBuffer;
 GB_Color* theTexture;
 GLuint theGBTexture;
 
+uint32_t screen_width, screen_height;
+
 void draw(void)
 {
     // Run emulator until next VBlank
-    theGearboyCore->RunToVBlank(frameBuffer);
+    theGearboyCore->RunToVBlank(theFrameBuffer);
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBindTexture(GL_TEXTURE_2D, GBTexture);
+    glBindTexture(GL_TEXTURE_2D, theGBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
 
     glMatrixMode(GL_PROJECTION);
@@ -81,7 +83,7 @@ void update(void)
         }
     }
 }
-
+/*
 static void keyboard(unsigned char key, int x, int y)
 {
     // Escape key
@@ -131,7 +133,7 @@ static void keyboardUP(unsigned char key, int x, int y)
 
     keys[key] = false;
 }
-
+*/
 void init_ogl(void)
 {
    int32_t success = 0;
@@ -274,8 +276,8 @@ int main(int argc, char** argv)
         }
     }
 
-    SafeDeleteArray(frameBuffer);
-    SafeDelete(gb);
+    SafeDeleteArray(theFrameBuffer);
+    SafeDelete(theGearboyCore);
 
     return 0;
 }
