@@ -23,101 +23,63 @@
 #include <math.h>
 #include <assert.h>
 #include <unistd.h>
+#include "bcm_host.h"
+#include "GLES/gl.h"
+#include "EGL/egl.h"
+#include "eglext.h"
+#include "gearboy.h"
 
-#include "/opt/vc/include/bcm_host.h"
-
-#include "/opt/vc/include/GLES/gl.h"
-#include "/opt/vc/include/EGL/egl.h"
-#include "/opt/vc/include/EGL/eglext.h"
-
-
-#include "../../../src/gearboy.h"
-
-#define SCREEN_WIDTH GAMEBOY_WIDTH
-#define SCREEN_HEIGHT GAMEBOY_HEIGHT
-
-const int modifier = 4;
-
-int display_width = SCREEN_WIDTH * modifier;
-int display_height = SCREEN_HEIGHT * modifier;
-uint32_t screen_width;
-uint32_t screen_height;
-u8 screenData[SCREEN_HEIGHT][SCREEN_WIDTH][3];
-GB_Color* frameBuffer;
-GearboyCore* gb;
 bool keys[256];
 bool terminate = false;
 EGLDisplay display;
 EGLSurface surface;
 EGLContext context;
 
-void setupTexture()
-{
-    // Create the framebuffer for the emulator
-    frameBuffer = new GB_Color[SCREEN_WIDTH * SCREEN_HEIGHT];
+const float kGB_Width = 160.0f;
+const float kGB_Height = 144.0f;
+const float kGB_TexWidth = kGB_Width / 256.0f;
+const float kGB_TexHeight = kGB_Height / 256.0f;
+const GLfloat box[] = {0.0f, kGB_Height, 1.0f, kGB_Width,kGB_Height, 1.0f, 0.0f, 0.0f, 1.0f, kGB_Width, 0.0f, 1.0f};
+const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight};
 
-    // Clear screen
-    for (int y = 0; y < SCREEN_HEIGHT; ++y)
-        for (int x = 0; x < SCREEN_WIDTH; ++x)
-            screenData[y][x][0] = screenData[y][x][1] = screenData[y][x][2] = 0;
+GearboyCore* theGearboyCore;
+GB_Color* theFrameBuffer;
+GB_Color* theTexture;
+GLuint theGBTexture;
 
-    // Create a texture 
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) screenData);
-
-    // Set up the texture
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-    // Enable the texture
-    glEnable(GL_TEXTURE_2D);
-}
-
-void draw( short x, short y, short w, short h )
-{
-    const GLshort t[8] = { 0, 0, 1, 0, 1, 1, 0, 1 };
-    const GLshort v[8] = { x, y, x+w, y, x+w, y+h, x, y+h };
-
-    glVertexPointer( 2, GL_SHORT, 0, v );
-    glEnableClientState( GL_VERTEX_ARRAY );
-
-    glTexCoordPointer( 2, GL_SHORT, 0, t );
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-    glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-}
-
-void updateTexture()
-{
-    // Update texture data from emulator buffer
-    for (int y = 0; y < SCREEN_HEIGHT; ++y)
-    {
-        for (int x = 0; x < SCREEN_WIDTH; ++x)
-        {
-            int pixel = (y * SCREEN_WIDTH) + x;
-            screenData[y][x][0] = frameBuffer[pixel].red;
-            screenData[y][x][1] = frameBuffer[pixel].green;
-            screenData[y][x][2] = frameBuffer[pixel].blue;
-        }
-    }
-
-    // Upload data to texture
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) screenData);
-
-    // Draw screen quad
-    draw(0, 0, display_width, display_height);
-}
-
-void draw()
+void draw(void)
 {
     // Run emulator until next VBlank
-    gb->RunToVBlank(frameBuffer);
+    theGearboyCore->RunToVBlank(frameBuffer);
 
-    // Draw the emulator quad
     glClear(GL_COLOR_BUFFER_BIT);
-    updateTexture();
+
+    glBindTexture(GL_TEXTURE_2D, GBTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrthof(0.0f, kGB_Width, 0.0f, kGB_Height, -100.0f, 100.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glViewport(0, 0, GAMEBOY_WIDTH * 4, GAMEBOY_HEIGHT * 4);
+    
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    
     eglSwapBuffers(display, surface);
+}
+
+void update(void)
+{
+    theGearboyCore->RunToVBlank(theFrameBuffer);
+    
+    for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
+    {
+        for (int x = 0; x < GAMEBOY_WIDTH; ++x)
+        {
+            theTexture[(y * 256) + x] = theFrameBuffer[(y * GAMEBOY_WIDTH) + x];
+        }
+    }
 }
 
 static void keyboard(unsigned char key, int x, int y)
@@ -245,36 +207,69 @@ void init_ogl(void)
    result = eglMakeCurrent(display, surface, surface, context);
    assert(EGL_FALSE != result);
 
-
-   // Setup 2D view
+    glGenTextures(1, &theGBTexture);
+    
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    
+    glVertexPointer(3, GL_FLOAT, 0, box);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex);
+    
     glClearColor(0.0f, 0.0f, 0.5f, 0.0f);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    //gluOrtho2D(0, screen_width, screen_height, 0);
-    glOrthof(0,  screen_width,  screen_height,  0,  -1,  1);
-    glMatrixMode(GL_MODELVIEW);
-    glViewport(0, 0, screen_width, screen_height);
+    
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, theGBTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+}
+
+void init(void)
+{
+    theGearboyCore = new GearboyCore();
+    theGearboyCore->Init();
+       
+    theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+    theTexture = new GB_Color[256 * 256];
+    
+    for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
+    {
+        for (int x = 0; x < GAMEBOY_WIDTH; ++x)
+        {
+            int pixel = (y * GAMEBOY_WIDTH) + x;
+            theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
+            theFrameBuffer[pixel].alpha = 0xFF;
+        }
+    }
+    
+    for (int y = 0; y < 256; ++y)
+    {
+        for (int x = 0; x < 256; ++x)
+        {
+            int pixel = (y * 256) + x;
+            theTexture[pixel].red = theTexture[pixel].green = theTexture[pixel].blue = 0x00;
+            theTexture[pixel].alpha = 0xFF;
+        }
+    }
+    
+    for (int i = 0; i < 256; i++)
+            keys[i] = false;
+    
+    init_ogl();
 }
 
 
 int main(int argc, char** argv)
 {
     bcm_host_init();
+    
+    init();
 
-    init_ogl();
-
-    setupTexture();
-
-    gb = new GearboyCore();
-    gb->Init();
-
-    if (gb->LoadROM("/home/pi/roms/testrom.gb", false))
+    if (theGearboyCore->LoadROM("/home/pi/roms/testrom.gb", false))
     {
-        for (int i = 0; i < 256; i++)
-            keys[i] = false;
-
         while (!terminate)
         {
+          update();
           draw();
         }
     }
