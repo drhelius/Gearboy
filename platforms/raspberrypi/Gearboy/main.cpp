@@ -58,9 +58,9 @@ uint32_t screen_width, screen_height;
 
 void draw(void)
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    //glClear(GL_COLOR_BUFFER_BIT);
 
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 144, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
@@ -79,9 +79,9 @@ void update(void)
         {
         	int tex_offset = y_offset_tex + x;
         	int buff_offset = y_offset_gb + x;
-            theTexture[tex_offset].red = theFrameBuffer[y_offset_gb + x].red;
-            theTexture[tex_offset].green = theFrameBuffer[y_offset_gb + x].green;
-            theTexture[tex_offset].blue = theFrameBuffer[y_offset_gb + x].blue;
+            theTexture[tex_offset].red = theFrameBuffer[buff_offset].red;
+            theTexture[tex_offset].green = theFrameBuffer[buff_offset].green;
+            theTexture[tex_offset].blue = theFrameBuffer[buff_offset].blue;
         }
     }
 }
@@ -133,6 +133,9 @@ void init_ogl(void)
     success = graphics_get_display_size(0 /* LCD */, &screen_width, &screen_height);
     assert( success >= 0 );
 
+    screen_width = 256;
+screen_height = 256;
+
     dst_rect.x = 0;
     dst_rect.y = 0;
     dst_rect.width = screen_width;
@@ -166,9 +169,11 @@ void init_ogl(void)
     result = eglMakeCurrent(display, surface, surface, context);
     assert(EGL_FALSE != result);
 
+    eglSwapInterval(display, 0);
+
     glGenTextures(1, &theGBTexture);
 
-    glClearColor(0.0f, 0.0f, 0.5f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, theGBTexture);
@@ -188,6 +193,8 @@ void init_ogl(void)
 
     glTexCoordPointer(2, GL_FLOAT, 0, kQuadTex);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+   glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void init(void)
