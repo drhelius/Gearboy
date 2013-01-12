@@ -23,6 +23,7 @@
 #include <math.h>
 #include <assert.h>
 #include <unistd.h>
+#include <sys/time.h> 
 #include "bcm_host.h"
 #include "GLES/gl.h"
 #include "EGL/egl.h"
@@ -236,13 +237,29 @@ int main(int argc, char** argv)
     bcm_host_init();
     
     init();
+    
+    int frames = 0;
+    timeval t1, t2;
+    double elapsedTime;
+    gettimeofday(&t1, NULL);
 
     if (theGearboyCore->LoadROM("/home/pi/roms/testrom.gb", false))
     {
         while (!terminate)
         {
           update();
-          draw();
+          //draw();
+          frames++;
+          gettimeofday(&t2, NULL);
+          elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+    	  elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+    	  if (elapsedTime > 1.0)
+    	  {
+    	  	Log("FPS %f", frames / elpasedTime);
+    	  	frames = 0;
+    	  	t1=t2;
+    	  	}
+          
         }
     }
 
