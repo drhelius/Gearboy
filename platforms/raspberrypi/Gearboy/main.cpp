@@ -29,6 +29,13 @@
 #include "EGL/eglext.h"
 #include "gearboy.h"
 
+struct Tex_Color
+{
+    u8 red;
+    u8 green;
+    u8 blue;
+};
+
 bool keys[256];
 bool terminate = false;
 EGLDisplay display;
@@ -44,7 +51,7 @@ const GLshort kQuadVerts[8] = { 0.0f, 0.0f, GAMEBOY_WIDTH, 0.0f, GAMEBOY_WIDTH, 
 
 GearboyCore* theGearboyCore;
 GB_Color* theFrameBuffer;
-GB_Color* theTexture;
+Tex_Color* theTexture;
 GLuint theGBTexture;
 
 uint32_t screen_width, screen_height;
@@ -53,7 +60,7 @@ void draw(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
@@ -70,7 +77,11 @@ void update(void)
         int y_offset_gb = y * GAMEBOY_WIDTH;
         for (int x = 0; x < GAMEBOY_WIDTH; ++x)
         {
-            theTexture[y_offset_tex + x] = theFrameBuffer[y_offset_gb + x];
+        	int tex_offset = y_offset_tex + x;
+        	int buff_offset = y_offset_gb + x;
+            theTexture[tex_offset].red = theFrameBuffer[y_offset_gb + x].red;
+            theTexture[tex_offset].green = theFrameBuffer[y_offset_gb + x].green;
+            theTexture[tex_offset].blue = theFrameBuffer[y_offset_gb + x].blue;
         }
     }
 }
@@ -86,6 +97,7 @@ void init_ogl(void)
     DISPMANX_ELEMENT_HANDLE_T dispman_element;
     DISPMANX_DISPLAY_HANDLE_T dispman_display;
     DISPMANX_UPDATE_HANDLE_T dispman_update;
+    VC_DISPMANX_ALPHA_T alpha;
     VC_RECT_T dst_rect;
     VC_RECT_T src_rect;
 
@@ -133,10 +145,14 @@ void init_ogl(void)
 
     dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
     dispman_update = vc_dispmanx_update_start( 0 );
+    
+    alpha.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS;
+	alpha.opacity = 255;
+    alpha.mask = 0;
 
     dispman_element = vc_dispmanx_element_add ( dispman_update, dispman_display,
         0/*layer*/, &dst_rect, 0/*src*/,
-        &src_rect, DISPMANX_PROTECTION_NONE, 0 /*alpha*/, 0/*clamp*/, DISPMANX_NO_ROTATE/*transform*/);
+        &src_rect, DISPMANX_PROTECTION_NONE, &alpha, 0/*clamp*/, DISPMANX_NO_ROTATE/*transform*/);
 
     nativewindow.element = dispman_element;
     nativewindow.width = screen_width;
@@ -152,17 +168,11 @@ void init_ogl(void)
 
     glGenTextures(1, &theGBTexture);
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-    glVertexPointer(3, GL_FLOAT, 0, box);
-    glTexCoordPointer(2, GL_FLOAT, 0, tex);
-
     glClearColor(0.0f, 0.0f, 0.5f, 0.0f);
 
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, theGBTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -186,7 +196,7 @@ void init(void)
     theGearboyCore->Init();
        
     theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
-    theTexture = new GB_Color[256 * 256];
+    theTexture = new Tex_Color[256 * 256];
     
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
     {
@@ -204,12 +214,11 @@ void init(void)
         {
             int pixel = (y * 256) + x;
             theTexture[pixel].red = theTexture[pixel].green = theTexture[pixel].blue = 0x00;
-            theTexture[pixel].alpha = 0xFF;
         }
     }
     
     for (int i = 0; i < 256; i++)
-            keys[i] = false;
+    	keys[i] = false;
     
     init_ogl();
 }
