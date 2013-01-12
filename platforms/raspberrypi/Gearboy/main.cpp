@@ -202,6 +202,7 @@ void init(void)
 {
     theGearboyCore = new GearboyCore();
     theGearboyCore->Init();
+theGearboyCore->EnableSound(false);
        
     theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     theTexture = new Tex_Color[256 * 256];
@@ -248,16 +249,17 @@ int main(int argc, char** argv)
         while (!terminate)
         {
           update();
-          //draw();
+          draw();
           frames++;
-          gettimeofday(&t2, NULL);
-          elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
-    	  elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+          //gettimeofday(&t2, NULL);
+          //elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+    	  //elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+//elapsedTime /= 1000.0;
     	  if (elapsedTime > 1.0)
     	  {
-    	  	Log("FPS %f", frames / elpasedTime);
-    	  	frames = 0;
-    	  	t1=t2;
+    	  	//Log("FPS %f", frames / elapsedTime);
+    	  	//frames = 0;
+    	  	//t1=t2;
     	  	}
           
         }
