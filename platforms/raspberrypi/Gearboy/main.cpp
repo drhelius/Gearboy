@@ -48,7 +48,7 @@ const float kGB_Height = 144.0f;
 const float kGB_TexWidth = kGB_Width / 256.0f;
 const float kGB_TexHeight = kGB_Height / 256.0f;
 const GLfloat kQuadTex[8] = { 0, 0, kGB_TexWidth, 0, kGB_TexWidth, kGB_TexHeight, 0, kGB_TexHeight};
-const GLshort kQuadVerts[8] = { 0.0f, 0.0f, GAMEBOY_WIDTH, 0.0f, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0.0f, GAMEBOY_HEIGHT};
+GLshort quadVerts[8];// = { display_offset_x, display_offset_y, display_width, display_offset_y, display_width, display_height, display_offset_x, display_height};
 
 GearboyCore* theGearboyCore;
 GB_Color* theFrameBuffer;
@@ -59,27 +59,25 @@ uint32_t screen_width, screen_height;
 
 void draw(void)
 {
-    //glClear(GL_COLOR_BUFFER_BIT);
-
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 144, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
-
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
     eglSwapBuffers(display, surface);
 }
 
 void update(void)
 {
+    theGearboyCore->RunToVBlank(NULL);
+    theGearboyCore->RunToVBlank(NULL);
     theGearboyCore->RunToVBlank(theFrameBuffer);
-    
+
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
     {
         int y_offset_tex = y * 256;
         int y_offset_gb = y * GAMEBOY_WIDTH;
         for (int x = 0; x < GAMEBOY_WIDTH; ++x)
         {
-        	int tex_offset = y_offset_tex + x;
-        	int buff_offset = y_offset_gb + x;
+            int tex_offset = y_offset_tex + x;
+            int buff_offset = y_offset_gb + x;
             theTexture[tex_offset].red = theFrameBuffer[buff_offset].red;
             theTexture[tex_offset].green = theFrameBuffer[buff_offset].green;
             theTexture[tex_offset].blue = theFrameBuffer[buff_offset].blue;
@@ -134,8 +132,20 @@ void init_ogl(void)
     success = graphics_get_display_size(0 /* LCD */, &screen_width, &screen_height);
     assert( success >= 0 );
 
-    screen_width = 256;
-screen_height = 256;
+
+//screen_width = 1024;
+//screen_height = 1024;
+
+    int32_t zoom = screen_width / GAMEBOY_WIDTH;
+    int32_t zoom2 = screen_height / GAMEBOY_HEIGHT;
+
+    if (zoom2 < zoom)
+        zoom = zoom2;
+
+    int32_t display_width = GAMEBOY_WIDTH * zoom;
+    int32_t display_height = GAMEBOY_HEIGHT * zoom;
+    int32_t display_offset_x = (screen_width / 2) - (display_width / 2);
+    int32_t display_offset_y = (screen_height / 2) - (display_height / 2);
 
     dst_rect.x = 0;
     dst_rect.y = 0;
@@ -149,9 +159,9 @@ screen_height = 256;
 
     dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
     dispman_update = vc_dispmanx_update_start( 0 );
-    
+
     alpha.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS;
-	alpha.opacity = 255;
+    alpha.opacity = 255;
     alpha.mask = 0;
 
     dispman_element = vc_dispmanx_element_add ( dispman_update, dispman_display,
@@ -189,24 +199,33 @@ screen_height = 256;
     glLoadIdentity();
     glViewport(0.0f, 0.0f, screen_width, screen_height);
 
-    glVertexPointer(2, GL_SHORT, 0, kQuadVerts);
+    quadVerts[0] = display_offset_x;
+    quadVerts[1] = display_offset_y;
+    quadVerts[2] = display_offset_x + display_width;
+    quadVerts[3] = display_offset_y;
+    quadVerts[4] = display_offset_x + display_width;
+    quadVerts[5] = display_offset_y + display_height;
+    quadVerts[6] = display_offset_x;
+    quadVerts[7] = display_offset_y + display_height;
+
+    glVertexPointer(2, GL_SHORT, 0, quadVerts);
     glEnableClientState(GL_VERTEX_ARRAY);
 
     glTexCoordPointer(2, GL_FLOAT, 0, kQuadTex);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-   glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void init(void)
 {
     theGearboyCore = new GearboyCore();
     theGearboyCore->Init();
-theGearboyCore->EnableSound(false);
-       
+    theGearboyCore->EnableSound(false);
+
     theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     theTexture = new Tex_Color[256 * 256];
-    
+
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
     {
         for (int x = 0; x < GAMEBOY_WIDTH; ++x)
@@ -216,7 +235,7 @@ theGearboyCore->EnableSound(false);
             theFrameBuffer[pixel].alpha = 0xFF;
         }
     }
-    
+
     for (int y = 0; y < 256; ++y)
     {
         for (int x = 0; x < 256; ++x)
@@ -225,10 +244,10 @@ theGearboyCore->EnableSound(false);
             theTexture[pixel].red = theTexture[pixel].green = theTexture[pixel].blue = 0x00;
         }
     }
-    
+
     for (int i = 0; i < 256; i++)
     	keys[i] = false;
-    
+
     init_ogl();
 }
 
@@ -236,32 +255,31 @@ theGearboyCore->EnableSound(false);
 int main(int argc, char** argv)
 {
     bcm_host_init();
-    
+
     init();
-    
+
     int frames = 0;
     timeval t1, t2;
     double elapsedTime;
     gettimeofday(&t1, NULL);
 
-    if (theGearboyCore->LoadROM("/home/pi/roms/testrom.gb", false))
+    if (theGearboyCore->LoadROM(argv[1], false))
     {
         while (!terminate)
         {
           update();
           draw();
           frames++;
-          //gettimeofday(&t2, NULL);
-          //elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
-    	  //elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
-//elapsedTime /= 1000.0;
+          gettimeofday(&t2, NULL);
+          elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+    	  elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+	  elapsedTime /= 1000.0;
     	  if (elapsedTime > 1.0)
     	  {
-    	  	//Log("FPS %f", frames / elapsedTime);
-    	  	//frames = 0;
-    	  	//t1=t2;
-    	  	}
-          
+    	  	Log("FPS %f", frames / elapsedTime);
+    	  	frames = 0;
+    	  	t1=t2;
+	  }
         }
     }
 
