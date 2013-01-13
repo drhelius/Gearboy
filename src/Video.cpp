@@ -415,31 +415,34 @@ void Video::ResetWindowLine()
 
 void Video::ScanLine(int line)
 {
-    u8 lcdc = m_pMemory->Retrieve(0xFF40);
+    if (IsValidPointer(m_pColorFrameBuffer))
+    {
+        u8 lcdc = m_pMemory->Retrieve(0xFF40);
 
-    if (m_bScreenEnabled && IsSetBit(lcdc, 7))
-    {
-        RenderBG(line);
-        RenderWindow(line);
-        RenderSprites(line);
-    }
-    else
-    {
-        int line_width = (line * GAMEBOY_WIDTH);
-        if (m_bCGB)
+        if (m_bScreenEnabled && IsSetBit(lcdc, 7))
         {
-            GB_Color black;
-            black.red = 0;
-            black.green = 0;
-            black.blue = 0;
-            black.alpha = 0xFF;
-            for (int x = 0; x < GAMEBOY_WIDTH; x++)
-                m_pColorFrameBuffer[line_width + x] = black;
+            RenderBG(line);
+            RenderWindow(line);
+            RenderSprites(line);
         }
         else
         {
-            for (int x = 0; x < GAMEBOY_WIDTH; x++)
-                m_pFrameBuffer[line_width + x] = 0;
+            int line_width = (line * GAMEBOY_WIDTH);
+            if (m_bCGB)
+            {
+                GB_Color black;
+                black.red = 0;
+                black.green = 0;
+                black.blue = 0;
+                black.alpha = 0xFF;
+                for (int x = 0; x < GAMEBOY_WIDTH; x++)
+                    m_pColorFrameBuffer[line_width + x] = black;
+            }
+            else
+            {
+                for (int x = 0; x < GAMEBOY_WIDTH; x++)
+                    m_pFrameBuffer[line_width + x] = 0;
+            }
         }
     }
 }
@@ -670,7 +673,7 @@ void Video::RenderSprites(int line)
 
         if ((sprite_x < -7) || (sprite_x >= GAMEBOY_WIDTH))
             continue;
-        
+
         int sprite_tile_16 = (m_pMemory->Retrieve(0xFE00 + sprite_4 + 2)
                 & ((sprite_height == 16) ? 0xFE : 0xFF)) * 16;
         u8 sprite_flags = m_pMemory->Retrieve(0xFE00 + sprite_4 + 3);

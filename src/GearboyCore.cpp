@@ -133,7 +133,7 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
             m_pCartridge->UpdateCurrentRTC();
         }
 
-        if (!m_bCGB)
+        if (!m_bCGB && IsValidPointer(pFrameBuffer))
             RenderDMGFrame(pFrameBuffer);
     }
 }
