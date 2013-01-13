@@ -18,11 +18,8 @@ Compiling Instructions
 ----------------------
 
 ### Raspberry Pi - Raspbian
-- Install OpenGL development dependencies (<code>sudo apt-get install freeglut3-dev</code>).
 - Install SDL development dependencies (<code>sudo apt-get install libsdl1.2-dev</code>).
-- In order to use OpenGL extensions I used GLEW dependencies (<code>sudo apt-get install libglew-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.
-- Use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .clean-conf</code> to clean the project.
-- Use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
+- Use <code>make</code> to build the project.
 
 License
 -------
