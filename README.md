@@ -34,7 +34,7 @@ Features
 - Multi platform. Compiles and runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
 - Uses OpenGL for rendering on all platforms.
 - Uses Qt framework for Mac, Windows and Linux. Uses Cocoa Touch for iPad, iPhone and iPod touch.
-- Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux, Raspbian and Mac OS X. Xcode project for iOS.
+- Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS X. Xcode project for iOS.
 
 Todo List
 -----------
