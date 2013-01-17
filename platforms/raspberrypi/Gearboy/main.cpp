@@ -48,7 +48,7 @@ const float kGB_Height = 144.0f;
 const float kGB_TexWidth = kGB_Width / 256.0f;
 const float kGB_TexHeight = kGB_Height / 256.0f;
 const GLfloat kQuadTex[8] = { 0, 0, kGB_TexWidth, 0, kGB_TexWidth, kGB_TexHeight, 0, kGB_TexHeight};
-GLshort quadVerts[8];// = { display_offset_x, display_offset_y, display_width, display_offset_y, display_width, display_height, display_offset_x, display_height};
+GLshort quadVerts[8];
 
 GearboyCore* theGearboyCore;
 GB_Color* theFrameBuffer;
@@ -131,10 +131,6 @@ void init_ogl(void)
     // Create an EGL window surface
     success = graphics_get_display_size(0 /* LCD */, &screen_width, &screen_height);
     assert( success >= 0 );
-
-
-//screen_width = 1024;
-//screen_height = 1024;
 
     int32_t zoom = screen_width / GAMEBOY_WIDTH;
     int32_t zoom2 = screen_height / GAMEBOY_HEIGHT;
@@ -258,28 +254,12 @@ int main(int argc, char** argv)
 
     init();
 
-    int frames = 0;
-    timeval t1, t2;
-    double elapsedTime;
-    gettimeofday(&t1, NULL);
-
     if (theGearboyCore->LoadROM(argv[1], false))
     {
         while (!terminate)
         {
           update();
           draw();
-          frames++;
-          gettimeofday(&t2, NULL);
-          elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
-    	  elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
-	  elapsedTime /= 1000.0;
-    	  if (elapsedTime > 1.0)
-    	  {
-    	  	Log("FPS %f", frames / elapsedTime);
-    	  	frames = 0;
-    	  	t1=t2;
-	  }
         }
     }
 
