@@ -10,7 +10,7 @@ The emulator is focused on readability of source code, but nevertheless it has g
 
 A lot of effort has gone into this in order to follow OOP and keep it as simple as possible.
 
-For any comments or questions I can be reached at: http://twitter.com/drhelius
+Don't forget to send me your comments or questions at: http://twitter.com/drhelius
 
 ----------
 
@@ -38,6 +38,8 @@ Features
 
 Todo List
 -----------
+- iPhone 5 UI.
+- iOS landscape mode.
 - Saving and loading game states.
 - Pixel precision scan line timing (https://gist.github.com/3730564).
 - Debugger.
