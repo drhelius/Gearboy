@@ -18,6 +18,7 @@ Downloads
 --------
 - Windows: [Gearboy-0.5-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-0.5-Windows.zip)
 - Linux: [Gearboy-0.5-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.5-Linux.tar.gz)
+- Intructions for running Gearboy on iOS [here](http://jailbreakerra.blogspot.com.es/2013/01/build-app-with-xcode-project-files.html).
 
 Features
 --------
