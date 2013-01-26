@@ -54,7 +54,7 @@
         
         if ([dirContents count] > 0)
         {
-            NSArray *extensions = [NSArray arrayWithObjects:@"zip", @"gbc", @"gb", @"rom", @"ZIP", @"GB", @"GBC", @"ROM", nil];
+            NSArray *extensions = [NSArray arrayWithObjects:@"zip", @"gb", @"sgb", @"gbc", @"rom", @"ZIP", @"GB", @"SGB", @"GBC", @"ROM", nil];
             files = [dirContents filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"pathExtension IN %@", extensions]];
         }
     }
