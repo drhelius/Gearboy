@@ -39,7 +39,6 @@ Features
 
 Todo List
 -----------
-- iPhone 5 UI.
 - iOS landscape mode.
 - Saving and loading game states.
 - Pixel precision scan line timing (https://gist.github.com/3730564).
