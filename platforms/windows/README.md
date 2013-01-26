@@ -19,8 +19,8 @@ Compiling Instructions
 
 ### Windows
 - You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
-- Install the [Qt SDK for Windows](http://qt.nokia.com/downloads/sdk-windows-cpp).
-- Install the Qt Visual Studio Add-in and point it to the [Qt SDK](http://qt.nokia.com/downloads/visual-studio-add-in).
+- Install the [Qt SDK for Windows](http://qt-project.org/downloads).
+- Install the [Qt Visual Studio Add-in](http://qt-project.org/downloads) and point it to the Qt SDK.
 - Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
 - In order to use OpenGL extensions I used [GLEW](http://glew.sourceforge.net/). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions. Make sure the GLEW headers and libs are configured within VC++.
 - Open the Gearboy Visual Studio project and build.
