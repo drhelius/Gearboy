@@ -64,9 +64,12 @@
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
+    {
         return (interfaceOrientation == UIInterfaceOrientationPortrait) || (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown);
-    } else {
+    }
+    else
+    {
         return (interfaceOrientation == UIInterfaceOrientationPortrait) || (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown);
     }
 }
@@ -83,6 +86,20 @@
         self.theGLViewController.pauseOnWillResignActive = NO;
         
         [self.view addSubview:self.theGLViewController.view];
+        
+        CGRect screenBounds = [[UIScreen mainScreen] bounds];
+        if (screenBounds.size.height == 568)
+        {
+            // 4-inch screen (iPhone 5)
+            for (UIView* subview in self.view.subviews)
+            {
+                if ([subview isKindOfClass:[UIImageView class]])
+                {
+                    UIImageView* background = (UIImageView*)subview;
+                    background.image = [UIImage imageNamed:@"gb-568h.jpg"];
+                }
+            }
+        }
     }
     return self;
 }

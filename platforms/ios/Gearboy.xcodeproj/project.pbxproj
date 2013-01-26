@@ -46,6 +46,7 @@
 		667CEFDE15FD43720078A433 /* GLViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CEFDC15FD43720078A433 /* GLViewController.mm */; };
 		667CEFDF15FD43720078A433 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 667CEFDD15FD43720078A433 /* GLViewController.xib */; };
 		667CF01915FD5E320078A433 /* Emulator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CF01815FD5E320078A433 /* Emulator.mm */; };
+		667ED35316B3640200FD2545 /* gb-568h@2x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 667ED35216B3640200FD2545 /* gb-568h@2x.jpg */; };
 		66D34FE815FFDF410046912E /* inputmanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FE515FFDF410046912E /* inputmanager.mm */; };
 		66D34FE915FFDF410046912E /* timer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FE715FFDF410046912E /* timer.mm */; };
 		66D34FF115FFEC480046912E /* EmulatorInput.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FEF15FFEC470046912E /* EmulatorInput.mm */; };
@@ -146,6 +147,7 @@
 		667CEFDD15FD43720078A433 /* GLViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = GLViewController.xib; sourceTree = "<group>"; };
 		667CF01715FD5E320078A433 /* Emulator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Emulator.h; sourceTree = "<group>"; };
 		667CF01815FD5E320078A433 /* Emulator.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Emulator.mm; sourceTree = "<group>"; };
+		667ED35216B3640200FD2545 /* gb-568h@2x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = "gb-568h@2x.jpg"; path = "img/gb-568h@2x.jpg"; sourceTree = "<group>"; };
 		66D34FE315FFDF400046912E /* inputcallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inputcallback.h; sourceTree = "<group>"; };
 		66D34FE415FFDF400046912E /* inputmanager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inputmanager.h; sourceTree = "<group>"; };
 		66D34FE515FFDF410046912E /* inputmanager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = inputmanager.mm; sourceTree = "<group>"; };
@@ -208,6 +210,7 @@
 		660F501815F9614300617A2D /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				667ED35216B3640200FD2545 /* gb-568h@2x.jpg */,
 				66EB653B160FD1A200972E75 /* Default-568h@2x.png */,
 				6648B4F816053ECC00E7A377 /* Default-Portrait@2x~ipad.png */,
 				6648B4F916053ECC00E7A377 /* Default-Portrait~ipad.png */,
@@ -456,6 +459,7 @@
 				6648B50616053ECC00E7A377 /* gb_icon.png in Resources */,
 				6648B50716053ECC00E7A377 /* gb_icon@2x.png in Resources */,
 				66EB653C160FD1A200972E75 /* Default-568h@2x.png in Resources */,
+				667ED35316B3640200FD2545 /* gb-568h@2x.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

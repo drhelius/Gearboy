@@ -74,3 +74,5 @@ platforms/raspberrypi/Gearboy/gearboy.ini
 platforms/ios/Gearboy.xcodeproj/xcuserdata/*
 
 *.gb
+
+*.xcexplist
