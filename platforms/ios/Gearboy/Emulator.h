@@ -50,6 +50,7 @@
 -(void)resume;
 -(BOOL)paused;
 -(void)reset;
+-(void)save;
 -(void)initGL;
 -(void)renderFrame;
 -(void)renderMixFrames;

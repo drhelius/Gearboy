@@ -266,4 +266,9 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     firstFrame = YES;
 }
 
+-(void)save
+{
+    theGearboyCore->SaveRam();
+}
+
 @end
