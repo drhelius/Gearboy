@@ -50,8 +50,6 @@
         NSLog(@"Failed to create ES context");
     }
     
-    //self.theEmulator.context = self.context;
-    
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
     
@@ -138,6 +136,22 @@
 {
     
     [self.theEmulator draw];
+}
+
+-(void) releaseContext
+{
+    [self.theEmulator shutdownGL];
+    self.context = nil;
+    GLKView *view = (GLKView *)self.view;
+    view.context = nil;
+    [EAGLContext setCurrentContext:nil];
+}
+
+-(void) acquireContext
+{
+    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1];
+    GLKView *view = (GLKView *)self.view;
+    view.context = self.context;
 }
 
 @end

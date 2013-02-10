@@ -97,11 +97,17 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     SafeDeleteArray(theTexture);
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearboyCore);
+    [self shutdownGL];
+}
+
+-(void)shutdownGL
+{
     glDeleteTextures(1, &intermediateTexture);
     glDeleteTextures(1, &accumulationTexture);
     glDeleteTextures(1, &GBTexture);
     glDeleteFramebuffers(1, &intermediateFramebuffer);
     glDeleteFramebuffers(1, &accumulationFramebuffer);
+    initialized = NO;
 }
 
 -(void)update

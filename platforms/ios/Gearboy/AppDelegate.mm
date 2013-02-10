@@ -18,43 +18,39 @@
  */
 
 #import "AppDelegate.h"
-#import "MasterViewController.h"
 #import "DetailViewController.h"
-
-
+#import "MasterViewController.h"
 
 @implementation AppDelegate
-
-@synthesize detailViewController;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        MasterViewController *masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController_iPhone" bundle:nil];
-        self.navigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
-        self.navigationController.navigationBar.tintColor = [UIColor blackColor];
-        self.window.rootViewController = self.navigationController;
+        masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController_iPhone" bundle:nil];
+        UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
+        navigationController.navigationBar.tintColor = [UIColor blackColor];
+        self.window.rootViewController = navigationController;
     } else {
-        MasterViewController *masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController_iPad" bundle:nil];
+        masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController_iPad" bundle:nil];
         UINavigationController *masterNavigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
         
         masterNavigationController.navigationBar.tintColor = [UIColor blackColor];
         
-        self.detailViewController = [[DetailViewController alloc] initWithNibName:@"DetailViewController_iPad" bundle:nil];
-        UINavigationController *detailNavigationController = [[UINavigationController alloc] initWithRootViewController:self.detailViewController];
+        DetailViewController *detailViewController = [[DetailViewController alloc] initWithNibName:@"DetailViewController_iPad" bundle:nil];
+        UINavigationController *detailNavigationController = [[UINavigationController alloc] initWithRootViewController:detailViewController];
         
         detailNavigationController.navigationBar.tintColor = [UIColor blackColor];
     	
-    	masterViewController.detailViewController = self.detailViewController;
+    	masterViewController.detailViewController = detailViewController;
     	
-        self.splitViewController = [[UISplitViewController alloc] init];
-        self.splitViewController.presentsWithGesture = NO;
-        self.splitViewController.delegate = self.detailViewController;
-        self.splitViewController.viewControllers = @[masterNavigationController, detailNavigationController];
+        UISplitViewController *splitViewController = [[UISplitViewController alloc] init];
+        splitViewController.presentsWithGesture = NO;
+        splitViewController.delegate = detailViewController;
+        splitViewController.viewControllers = @[masterNavigationController, detailNavigationController];
         
-        self.window.rootViewController = self.splitViewController;
+        self.window.rootViewController = splitViewController;
     }
     [self.window makeKeyAndVisible];
     return YES;
@@ -64,15 +60,16 @@
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
-    self.detailViewController.theGLViewController.paused = YES;
+    masterViewController.detailViewController.theGLViewController.paused = YES;
+    [masterViewController.detailViewController.theGLViewController releaseContext];
+    [masterViewController.detailViewController.theGLViewController.theEmulator save];
     [NSThread sleepForTimeInterval:1.5];
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
+    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-    [self.detailViewController.theGLViewController.theEmulator save];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
@@ -83,7 +80,8 @@
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-    self.detailViewController.theGLViewController.paused = NO;
+    [masterViewController.detailViewController.theGLViewController acquireContext];
+    masterViewController.detailViewController.theGLViewController.paused = NO;
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application

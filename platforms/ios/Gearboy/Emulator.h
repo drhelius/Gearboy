@@ -52,6 +52,7 @@
 -(void)reset;
 -(void)save;
 -(void)initGL;
+-(void)shutdownGL;
 -(void)renderFrame;
 -(void)renderMixFrames;
 -(void)setupTextureWithData: (GLvoid*) data;

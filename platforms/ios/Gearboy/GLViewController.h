@@ -27,5 +27,7 @@
 @property (strong, nonatomic) Emulator* theEmulator;
 
 - (void)loadRomWithName: (NSString*) path;
+-(void) releaseContext;
+-(void) acquireContext;
 
 @end
