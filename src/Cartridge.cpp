@@ -38,6 +38,7 @@ Cartridge::Cartridge()
     m_RTCCurrentTime = 0;
     m_bBattery = false;
     m_szFilePath[0] = 0;
+    m_szFileName[0] = 0;
     m_bRTCPresent = false;
     m_bRumblePresent = false;
     m_iRAMBankCount = 0;
@@ -70,6 +71,7 @@ void Cartridge::Reset()
     m_RTCCurrentTime = 0;
     m_bBattery = false;
     m_szFilePath[0] = 0;
+    m_szFileName[0] = 0;
     m_bRTCPresent = false;
     m_bRumblePresent = false;
     m_iRAMBankCount = 0;
@@ -119,6 +121,11 @@ const char* Cartridge::GetName() const
 const char* Cartridge::GetFilePath() const
 {
     return m_szFilePath;
+}
+
+const char* Cartridge::GetFileName() const
+{
+    return m_szFileName;
 }
 
 int Cartridge::GetTotalSize() const
@@ -200,6 +207,29 @@ bool Cartridge::LoadFromFile(const char* path)
     Reset();
 
     strcpy(m_szFilePath, path);
+
+    std::string pathstr(path);
+    std::string filename;
+
+    size_t pos = pathstr.find_last_of("\\");
+    if (pos != std::string::npos)
+    {
+        filename.assign(pathstr.begin() + pos + 1, pathstr.end());
+    }
+    else
+    {
+        pos = pathstr.find_last_of("/");
+        if (pos != std::string::npos)
+        {
+            filename.assign(pathstr.begin() + pos + 1, pathstr.end());
+        }
+        else
+        {
+            filename = pathstr;
+        }
+    }
+    
+    strcpy(m_szFileName, filename.c_str());
 
     ifstream file(path, ios::in | ios::binary | ios::ate);
 
