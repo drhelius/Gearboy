@@ -243,6 +243,11 @@ void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& co
 
 void GearboyCore::SaveRam()
 {
+    SaveRam(NULL);
+}
+
+void GearboyCore::SaveRam(const char* szPath)
+{
     if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pCurrentMapper))
     {
         Log("Saving RAM...");
@@ -251,7 +256,17 @@ void GearboyCore::SaveRam()
 
         char path[512];
 
-        strcpy(path, m_pCartridge->GetFilePath());
+        if (IsValidPointer(szPath))
+        {
+            strcpy(path, szPath);
+            strcat(path, "/");
+            strcat(path, m_pCartridge->GetFileName());
+        }
+        else
+        {
+            strcpy(path, m_pCartridge->GetFilePath());
+        }
+        
         strcat(path, ".gearboy");
 
         Log("Save file: %s", path);
@@ -289,6 +304,11 @@ void GearboyCore::SaveRam()
 
 void GearboyCore::LoadRam()
 {
+    LoadRam(NULL);
+}
+
+void GearboyCore::LoadRam(const char* szPath)
+{
     if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pCurrentMapper))
     {
         Log("Loading RAM...");
@@ -297,7 +317,17 @@ void GearboyCore::LoadRam()
 
         char path[512];
 
-        strcpy(path, m_pCartridge->GetFilePath());
+        if (IsValidPointer(szPath))
+        {
+            strcpy(path, szPath);
+            strcat(path, "/");
+            strcat(path, m_pCartridge->GetFileName());
+        }
+        else
+        {
+            strcpy(path, m_pCartridge->GetFilePath());
+        }
+        
         strcat(path, ".gearboy");
 
         Log("Save file: %s", path);

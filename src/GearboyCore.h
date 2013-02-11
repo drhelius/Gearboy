@@ -57,7 +57,9 @@ public:
     void SetSoundSampleRate(int rate);
     void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
     void SaveRam();
+    void SaveRam(const char* szPath);
     void LoadRam();
+    void LoadRam(const char* szPath);
 
 private:
     void InitDMGPalette();
