@@ -12,13 +12,15 @@ A lot of effort has gone into this in order to follow OOP and keep it as simple 
 
 Don't forget to send me your comments or questions at: http://twitter.com/drhelius
 
+Gearboy is free but it's a lot of work, donations are really appreciated, thanks! :) [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9Q68LLUL59US8)
+
 ----------
 
 Downloads
 --------
 - Windows: [Gearboy-0.5-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-0.5-Windows.zip)
 - Linux: [Gearboy-0.5-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.5-Linux.tar.gz)
-- Intructions for running Gearboy on iOS [here](http://jailbreakerra.blogspot.com.es/2013/01/build-app-with-xcode-project-files.html).
+- iOS (for jailbroken devices use the jailbreak branch): [guide](http://jailbreakerra.blogspot.com.es/2013/01/build-app-with-xcode-project-files.html).
 
 Features
 --------
