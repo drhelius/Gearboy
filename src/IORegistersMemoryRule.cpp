@@ -26,9 +26,15 @@
 
 IORegistersMemoryRule::IORegistersMemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+        Cartridge* pCartridge, Audio* pAudio)
 {
+    m_pProcessor = pProcessor;
+    m_pMemory = pMemory;
+    m_pVideo = pVideo;
+    m_pInput = pInput;
+    m_pCartridge = pCartridge;
+    m_pAudio = pAudio;
+    m_bCGB = false;
 }
 
 IORegistersMemoryRule::~IORegistersMemoryRule()

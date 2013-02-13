@@ -50,7 +50,6 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC2MemoryRule);
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
-    InitPointer(m_pCurrentMapper);
     m_bCGB = false;
     m_bPaused = true;
     m_bForceDMG = false;
@@ -248,7 +247,7 @@ void GearboyCore::SaveRam()
 
 void GearboyCore::SaveRam(const char* szPath)
 {
-    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pCurrentMapper))
+    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
         Log("Saving RAM...");
 
@@ -276,7 +275,7 @@ void GearboyCore::SaveRam(const char* szPath)
         u8 romType = m_pCartridge->GetType();
         u8 romSize = m_pCartridge->GetROMSize();
         u8 ramSize = m_pCartridge->GetRAMSize();
-        u8 ramBanksSize = m_pCurrentMapper->GetRamBanksSize();
+        u8 ramBanksSize = m_pMemory->GetCurrentRule()->GetRamBanksSize();
         u8 ramBanksStart = 39;
         u8 saveStateSize = 0;
         u8 saveStateStart = 0;
@@ -296,7 +295,7 @@ void GearboyCore::SaveRam(const char* szPath)
 
         Log("Header saved");
 
-        m_pCurrentMapper->SaveRam(file);
+        m_pMemory->GetCurrentRule()->SaveRam(file);
 
         Log("RAM saved");
     }
@@ -309,7 +308,7 @@ void GearboyCore::LoadRam()
 
 void GearboyCore::LoadRam(const char* szPath)
 {
-    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pCurrentMapper))
+    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
         Log("Loading RAM...");
 
@@ -364,7 +363,7 @@ void GearboyCore::LoadRam(const char* szPath)
                     (version == SAVE_FILE_VERSION) && (romType == m_pCartridge->GetType()) &&
                     (romSize == m_pCartridge->GetROMSize()) && (ramSize == m_pCartridge->GetRAMSize()))
             {
-                m_pCurrentMapper->LoadRam(file);
+                m_pMemory->GetCurrentRule()->LoadRam(file);
 
                 Log("RAM loaded");
             }
@@ -407,48 +406,33 @@ void GearboyCore::InitMemoryRules()
 {
     m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pIORegistersMemoryRule->AddAddressRange(0xFF00, 0xFFFF);
 
     m_pCommonMemoryRule = new CommonMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pCommonMemoryRule->AddAddressRange(0x8000, 0x9FFF);
-    m_pCommonMemoryRule->AddAddressRange(0xC000, 0xFEFF);
 
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pRomOnlyMemoryRule->AddAddressRange(0x0000, 0x7FFF);
-    m_pRomOnlyMemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC1MemoryRule = new MBC1MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC1MemoryRule->AddAddressRange(0x0000, 0x7FFF);
-    m_pMBC1MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMultiMBC1MemoryRule = new MultiMBC1MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMultiMBC1MemoryRule->AddAddressRange(0x0000, 0x7FFF);
-    m_pMultiMBC1MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC2MemoryRule = new MBC2MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC2MemoryRule->AddAddressRange(0x0000, 0x7FFF);
-    m_pMBC2MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC3MemoryRule = new MBC3MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC3MemoryRule->AddAddressRange(0x0000, 0x7FFF);
-    m_pMBC3MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 
     m_pMBC5MemoryRule = new MBC5MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC5MemoryRule->AddAddressRange(0x0000, 0x7FFF);
-    m_pMBC5MemoryRule->AddAddressRange(0xA000, 0xBFFF);
 }
 
 bool GearboyCore::AddMemoryRules()
 {
-    m_pMemory->AddRule(m_pIORegistersMemoryRule);
-    m_pMemory->AddRule(m_pCommonMemoryRule);
+    m_pMemory->SetIORule(m_pIORegistersMemoryRule);
+    m_pMemory->SetCommonRule(m_pCommonMemoryRule);
 
     Cartridge::CartridgeTypes type = m_pCartridge->GetType();
 
@@ -457,31 +441,24 @@ bool GearboyCore::AddMemoryRules()
     switch (type)
     {
         case Cartridge::CartridgeNoMBC:
-            m_pCurrentMapper = m_pRomOnlyMemoryRule;
-            m_pMemory->AddRule(m_pRomOnlyMemoryRule);
+            m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
             break;
         case Cartridge::CartridgeMBC1:
-            m_pCurrentMapper = m_pMBC1MemoryRule;
-            m_pMemory->AddRule(m_pMBC1MemoryRule);
+            m_pMemory->SetCurrentRule(m_pMBC1MemoryRule);
             break;
         case Cartridge::CartridgeMBC1Multi:
-            m_pCurrentMapper = m_pMultiMBC1MemoryRule;
-            m_pMemory->AddRule(m_pMultiMBC1MemoryRule);
+            m_pMemory->SetCurrentRule(m_pMultiMBC1MemoryRule);
             break;
         case Cartridge::CartridgeMBC2:
-            m_pCurrentMapper = m_pMBC2MemoryRule;
-            m_pMemory->AddRule(m_pMBC2MemoryRule);
+            m_pMemory->SetCurrentRule(m_pMBC2MemoryRule);
             break;
         case Cartridge::CartridgeMBC3:
-            m_pCurrentMapper = m_pMBC3MemoryRule;
-            m_pMemory->AddRule(m_pMBC3MemoryRule);
+            m_pMemory->SetCurrentRule(m_pMBC3MemoryRule);
             break;
         case Cartridge::CartridgeMBC5:
-            m_pCurrentMapper = m_pMBC5MemoryRule;
-            m_pMemory->AddRule(m_pMBC5MemoryRule);
+            m_pMemory->SetCurrentRule(m_pMBC5MemoryRule);
             break;
         case Cartridge::CartridgeNotSupported:
-            InitPointer(m_pCurrentMapper);
             notSupported = true;
             break;
         default:
@@ -520,8 +497,6 @@ void GearboyCore::Reset(bool bCGB)
     m_pMBC3MemoryRule->Reset(m_bCGB);
     m_pMBC5MemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
-
-    InitPointer(m_pCurrentMapper);
 
     m_bPaused = false;
 }

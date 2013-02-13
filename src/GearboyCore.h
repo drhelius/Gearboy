@@ -83,7 +83,6 @@ private:
     MBC3MemoryRule* m_pMBC3MemoryRule;
     MBC5MemoryRule* m_pMBC5MemoryRule;
     MultiMBC1MemoryRule* m_pMultiMBC1MemoryRule;
-    MemoryRule* m_pCurrentMapper;
     bool m_bCGB;
     bool m_bPaused;
     GB_Color m_DMGPalette[4];

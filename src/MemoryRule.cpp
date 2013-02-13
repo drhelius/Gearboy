@@ -50,30 +50,3 @@ int MemoryRule::GetRamBanksSize()
 {
     return 0;
 }
-
-void MemoryRule::AddAddressRange(u16 minAddress, u16 maxAddress)
-{
-    stAddressRange range;
-    range.maxAddress = maxAddress;
-    range.minAddress = minAddress;
-    m_Ranges.push_back(range);
-}
-
-void MemoryRule::ClearAddressRanges()
-{
-    m_Ranges.clear();
-}
-
-bool MemoryRule::IsAddressInRanges(u16 address)
-{
-    AddressRangeVectorIterator it;
-    AddressRangeVectorIterator end = m_Ranges.end();
-
-    for (it = m_Ranges.begin(); it < end; it++)
-    {
-        if ((address >= (*it).minAddress) && (address <= (*it).maxAddress))
-            return true;
-    }
-
-    return false;
-}

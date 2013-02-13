@@ -21,6 +21,8 @@
 #include <fstream>
 #include "Memory.h"
 #include "MemoryRule.h"
+#include "CommonMemoryRule.h"
+#include "IORegistersMemoryRule.h"
 #include "Processor.h"
 #include "Video.h"
 
@@ -32,6 +34,9 @@ Memory::Memory()
     InitPointer(m_pDisassembledMap);
     InitPointer(m_pWRAMBanks);
     InitPointer(m_pLCDRAMBank1);
+    InitPointer(m_pCommonMemoryRule);
+    InitPointer(m_pIORegistersMemoryRule);
+    InitPointer(m_pCurrentMemoryRule);
     m_bCGB = false;
     m_iCurrentWRAMBank = 1;
     m_iCurrentLCDRAMBank = 0;
@@ -51,6 +56,9 @@ Memory::~Memory()
     SafeDeleteArray(m_pDisassembledMap);
     SafeDeleteArray(m_pWRAMBanks);
     SafeDeleteArray(m_pLCDRAMBank1);
+    InitPointer(m_pCommonMemoryRule);
+    InitPointer(m_pIORegistersMemoryRule);
+    InitPointer(m_pCurrentMemoryRule);
 }
 
 void Memory::SetProcessor(Processor* pProcessor)
@@ -75,7 +83,9 @@ void Memory::Init()
 void Memory::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
-    m_Rules.clear();
+    InitPointer(m_pCommonMemoryRule);
+    InitPointer(m_pIORegistersMemoryRule);
+    InitPointer(m_pCurrentMemoryRule);
     m_iCurrentWRAMBank = 1;
     m_iCurrentLCDRAMBank = 0;
     m_bHDMAEnabled = false;
@@ -161,46 +171,97 @@ void Memory::Reset(bool bCGB)
     }
 }
 
-void Memory::AddRule(MemoryRule* pRule)
+void Memory::SetCurrentRule(MemoryRule* pRule)
 {
-    m_Rules.push_back(pRule);
+    m_pCurrentMemoryRule = pRule;
+}
+
+void Memory::SetCommonRule(CommonMemoryRule* pRule)
+{
+    m_pCommonMemoryRule = pRule;
+}
+
+void Memory::SetIORule(IORegistersMemoryRule* pRule)
+{
+    m_pIORegistersMemoryRule = pRule;
+}
+
+MemoryRule* Memory::GetCurrentRule()
+{
+    return m_pCurrentMemoryRule;
 }
 
 u8 Memory::Read(u16 address)
 {
-    RulesVectorIterator it;
-    RulesVectorIterator end = m_Rules.end();
-    MemoryRule* pRule = NULL;
-
-    for (it = m_Rules.begin(); it < end; it++)
+    switch (address & 0xE000)
     {
-        pRule = *it;
-        if (pRule->IsAddressInRanges(address))
+        case 0x0000:
+        case 0x2000:
+        case 0x4000:
+        case 0x6000:
         {
-            return pRule->PerformRead(address);
+            return m_pCurrentMemoryRule->PerformRead(address);
+        }
+        case 0x8000:
+        {
+            return m_pCommonMemoryRule->PerformRead(address);
+        }
+        case 0xA000:
+        {
+            return m_pCurrentMemoryRule->PerformRead(address);
+        }
+        case 0xC000:
+        case 0xE000:
+        {
+            if (address < 0xFF00)
+                return m_pCommonMemoryRule->PerformRead(address);
+            else
+                return m_pIORegistersMemoryRule->PerformRead(address);
+        }
+        default:
+        {
+            return Retrieve(address);
         }
     }
-
-    return Retrieve(address);
 }
 
 void Memory::Write(u16 address, u8 value)
 {
-    RulesVectorIterator it;
-    RulesVectorIterator end = m_Rules.end();
-    MemoryRule* pRule = NULL;
-
-    for (it = m_Rules.begin(); it < end; it++)
+    switch (address & 0xE000)
     {
-        pRule = *it;
-        if (pRule->IsAddressInRanges(address))
+        case 0x0000:
+        case 0x2000:
+        case 0x4000:
+        case 0x6000:
         {
-            pRule->PerformWrite(address, value);
-            return;
+            m_pCurrentMemoryRule->PerformWrite(address, value);
+            break;
+        }
+        case 0x8000:
+        {
+            m_pCommonMemoryRule->PerformWrite(address, value);
+            break;
+        }
+        case 0xA000:
+        {
+            m_pCurrentMemoryRule->PerformWrite(address, value);
+            break;
+        }
+        case 0xC000:
+        case 0xE000:
+        {
+            if (address < 0xFF00)
+                m_pCommonMemoryRule->PerformWrite(address, value);
+            else
+                m_pIORegistersMemoryRule->PerformWrite(address, value);
+            break;
+        }
+        default:
+        {
+            Load(address, value);
+            break;
         }
     }
-
-    Load(address, value);
 }
 
 u8 Memory::ReadCGBWRAM(u16 address)

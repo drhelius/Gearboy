@@ -20,17 +20,33 @@
 #ifndef IOREGISTERSMEMORYRULE_H
 #define	IOREGISTERSMEMORYRULE_H
 
-#include "MemoryRule.h"
+#include "definitions.h"
 
-class IORegistersMemoryRule : public MemoryRule
+class Memory;
+class Video;
+class Processor;
+class Input;
+class Cartridge;
+class Audio;
+
+class IORegistersMemoryRule
 {
 public:
     IORegistersMemoryRule(Processor* pProcessor, Memory* pMemory,
             Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
-    virtual ~IORegistersMemoryRule();
-    virtual u8 PerformRead(u16 address);
-    virtual void PerformWrite(u16 address, u8 value);
-    virtual void Reset(bool bCGB);
+    ~IORegistersMemoryRule();
+    u8 PerformRead(u16 address);
+    void PerformWrite(u16 address, u8 value);
+    void Reset(bool bCGB);
+    
+private:
+    Processor* m_pProcessor;
+    Memory* m_pMemory;
+    Video* m_pVideo;
+    Input* m_pInput;
+    Cartridge* m_pCartridge;
+    Audio* m_pAudio;
+    bool m_bCGB;
 };
 
 #endif	/* IOREGISTERSMEMORYRULE_H */

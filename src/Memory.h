@@ -26,6 +26,8 @@
 class MemoryRule;
 class Processor;
 class Video;
+class CommonMemoryRule;
+class IORegistersMemoryRule;
 
 class Memory
 {
@@ -36,7 +38,10 @@ public:
     void SetVideo(Video* pVideo);
     void Init();
     void Reset(bool bCGB);
-    void AddRule(MemoryRule* pRule);
+    void SetCurrentRule(MemoryRule* pRule);
+    void SetCommonRule(CommonMemoryRule* pRule);
+    void SetIORule(IORegistersMemoryRule* pRule);
+    MemoryRule* GetCurrentRule();
     u8 Read(u16 address);
     void Write(u16 address, u8 value);
     u8 ReadCGBWRAM(u16 address);
@@ -69,10 +74,11 @@ private:
 private:
     Processor* m_pProcessor;
     Video* m_pVideo;
+    CommonMemoryRule* m_pCommonMemoryRule;
+    IORegistersMemoryRule* m_pIORegistersMemoryRule;
+    MemoryRule* m_pCurrentMemoryRule;
     u8* m_pMap;
     stDisassemble* m_pDisassembledMap;
-    std::vector<MemoryRule*> m_Rules;
-    typedef std::vector<MemoryRule*>::iterator RulesVectorIterator;
     bool m_bCGB;
     int m_iCurrentWRAMBank;
     int m_iCurrentLCDRAMBank;

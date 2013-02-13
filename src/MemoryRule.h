@@ -42,9 +42,6 @@ public:
     virtual void SaveRam(std::ofstream &file);
     virtual void LoadRam(std::ifstream &file);
     virtual int GetRamBanksSize();
-    void AddAddressRange(u16 minAddress, u16 maxAddress);
-    void ClearAddressRanges();
-    bool IsAddressInRanges(u16 address);
 
 protected:
     Processor* m_pProcessor;
@@ -54,15 +51,6 @@ protected:
     Cartridge* m_pCartridge;
     Audio* m_pAudio;
     bool m_bCGB;
-
-private:
-    struct stAddressRange
-    {
-        u16 minAddress;
-        u16 maxAddress;
-    };
-    std::vector<stAddressRange> m_Ranges;
-    typedef std::vector<stAddressRange>::iterator AddressRangeVectorIterator;
 };
 
 #endif	/* MEMORYRULE_H */
