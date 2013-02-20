@@ -29,8 +29,6 @@
     GB_Color* theTexture;
     EmulatorInput* theInput;
     GLint iOSFrameBuffer;
-    GLuint intermediateFramebuffer;
-    GLuint intermediateTexture;
     GLuint accumulationFramebuffer;
     GLuint accumulationTexture;
     GLuint GBTexture;
@@ -56,6 +54,6 @@
 -(void)renderFrame;
 -(void)renderMixFrames;
 -(void)setupTextureWithData: (GLvoid*) data;
--(void)renderQuadWithViewportWidth: (int)viewportWidth andHeight: (int)viewportHeight;
+-(void)renderQuadWithViewportWidth: (int)viewportWidth andHeight: (int)viewportHeight andMirrorY: (BOOL)mirrorY;
 
 @end

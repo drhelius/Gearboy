@@ -34,8 +34,6 @@ RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
     m_bFiltering = false;
     m_bMixFrames = true;
     m_bResizeEvent = false;
-    m_IntermediateFramebuffer = 0;
-    m_IntermediateTexture = 0;
     m_AccumulationFramebuffer = 0;
     m_AccumulationTexture = 0;
     m_GBTexture = 0;
@@ -46,10 +44,8 @@ RenderThread::~RenderThread()
 {
     m_pGLFrame->makeCurrent();
     SafeDeleteArray(m_pFrameBuffer);
-    glDeleteTextures(1, &m_IntermediateTexture);
     glDeleteTextures(1, &m_AccumulationTexture);
     glDeleteTextures(1, &m_GBTexture);
-    glDeleteFramebuffers(1, &m_IntermediateFramebuffer);
     glDeleteFramebuffers(1, &m_AccumulationFramebuffer);
 }
 
@@ -136,22 +132,13 @@ void RenderThread::Init()
     Log("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 #endif
 
-    glGenFramebuffers(1, &m_IntermediateFramebuffer);
     glGenFramebuffers(1, &m_AccumulationFramebuffer);
-    glGenTextures(1, &m_IntermediateTexture);
     glGenTextures(1, &m_AccumulationTexture);
     glGenTextures(1, &m_GBTexture);
 
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, m_GBTexture);
     SetupTexture((GLvoid*) m_pFrameBuffer);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, m_IntermediateFramebuffer);
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, m_IntermediateTexture);
-    SetupTexture(NULL);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-            m_IntermediateTexture, 0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFramebuffer);
     glEnable(GL_TEXTURE_2D);
@@ -188,29 +175,27 @@ void RenderThread::RenderFrame()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
-    RenderQuad(m_iWidth, m_iHeight);
+    RenderQuad(m_iWidth, m_iHeight, false);
 }
 
 void RenderThread::RenderMixFrames()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, m_IntermediateFramebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFramebuffer);
     glBindTexture(GL_TEXTURE_2D, m_GBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
             GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
-    RenderQuad(GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFramebuffer);
-    glBindTexture(GL_TEXTURE_2D, m_IntermediateTexture);
     float alpha = kMixFrameAlpha;
     if (m_bFirstFrame)
     {
         m_bFirstFrame = false;
         alpha = 1.0f;
     }
+    
     glEnable(GL_BLEND);
     glColor4f(1.0f, 1.0f, 1.0f, alpha);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    RenderQuad(GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
+    RenderQuad(GAMEBOY_WIDTH, GAMEBOY_HEIGHT, false);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDisable(GL_BLEND);
 
@@ -226,14 +211,17 @@ void RenderThread::RenderMixFrames()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
-    RenderQuad(m_iWidth, m_iHeight);
+    RenderQuad(m_iWidth, m_iHeight, true);
 }
 
-void RenderThread::RenderQuad(int viewportWidth, int viewportHeight)
+void RenderThread::RenderQuad(int viewportWidth, int viewportHeight, bool mirrorY)
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0, viewportWidth, viewportHeight, 0);
+    if (mirrorY)
+        gluOrtho2D(0, viewportWidth, 0, viewportHeight);
+    else
+        gluOrtho2D(0, viewportWidth, viewportHeight, 0);
     glMatrixMode(GL_MODELVIEW);
     glViewport(0, 0, viewportWidth, viewportHeight);
 

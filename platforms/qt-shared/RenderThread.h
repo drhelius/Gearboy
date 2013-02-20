@@ -54,7 +54,7 @@ protected:
     void Init();
     void RenderFrame();
     void RenderMixFrames();
-    void RenderQuad(int viewportWidth, int viewportHeight);
+    void RenderQuad(int viewportWidth, int viewportHeight, bool mirrorY);
     void SetupTexture(GLvoid* data);
 
 private:
@@ -66,8 +66,6 @@ private:
     bool m_bFiltering;
     bool m_bMixFrames;
     bool m_bResizeEvent;
-    GLuint m_IntermediateFramebuffer;
-    GLuint m_IntermediateTexture;
     GLuint m_AccumulationFramebuffer;
     GLuint m_AccumulationTexture;
     GLuint m_GBTexture;
