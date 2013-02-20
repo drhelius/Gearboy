@@ -27,7 +27,6 @@
       <itemPath>../../../src/Cartridge.h</itemPath>
       <itemPath>../../../src/CommonMemoryRule.cpp</itemPath>
       <itemPath>../../../src/CommonMemoryRule.h</itemPath>
-      <itemPath>../../../src/EightBitRegister.cpp</itemPath>
       <itemPath>../../../src/EightBitRegister.h</itemPath>
       <itemPath>../../../src/GearboyCore.cpp</itemPath>
       <itemPath>../../../src/GearboyCore.h</itemPath>
@@ -47,13 +46,14 @@
       <itemPath>../../../src/Memory.h</itemPath>
       <itemPath>../../../src/MemoryRule.cpp</itemPath>
       <itemPath>../../../src/MemoryRule.h</itemPath>
+      <itemPath>../../../src/Memory_inline.h</itemPath>
       <itemPath>../../../src/MultiMBC1MemoryRule.cpp</itemPath>
       <itemPath>../../../src/MultiMBC1MemoryRule.h</itemPath>
       <itemPath>../../../src/Processor.cpp</itemPath>
       <itemPath>../../../src/Processor.h</itemPath>
+      <itemPath>../../../src/Processor_inline.h</itemPath>
       <itemPath>../../../src/RomOnlyMemoryRule.cpp</itemPath>
       <itemPath>../../../src/RomOnlyMemoryRule.h</itemPath>
-      <itemPath>../../../src/SixteenBitRegister.cpp</itemPath>
       <itemPath>../../../src/SixteenBitRegister.h</itemPath>
       <itemPath>../../../src/Video.cpp</itemPath>
       <itemPath>../../../src/Video.h</itemPath>
