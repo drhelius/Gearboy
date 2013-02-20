@@ -92,7 +92,6 @@
     <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp" />
     <ClCompile Include="..\..\..\src\Cartridge.cpp" />
     <ClCompile Include="..\..\..\src\CommonMemoryRule.cpp" />
-    <ClCompile Include="..\..\..\src\EightBitRegister.cpp" />
     <ClCompile Include="..\..\..\src\GearboyCore.cpp" />
     <ClCompile Include="..\..\..\src\Input.cpp" />
     <ClCompile Include="..\..\..\src\IORegistersMemoryRule.cpp" />
@@ -107,7 +106,6 @@
     <ClCompile Include="..\..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\..\src\Processor.cpp" />
     <ClCompile Include="..\..\..\src\RomOnlyMemoryRule.cpp" />
-    <ClCompile Include="..\..\..\src\SixteenBitRegister.cpp" />
     <ClCompile Include="..\..\..\src\Video.cpp" />
     <ClCompile Include="..\..\qt-shared\About.cpp" />
     <ClCompile Include="..\..\qt-shared\Emulator.cpp" />
@@ -193,6 +191,7 @@
     <ClInclude Include="..\..\..\src\audio\Multi_Buffer.h" />
     <ClInclude Include="..\..\..\src\audio\Sound_Queue.h" />
     <ClInclude Include="..\..\..\src\CommonMemoryRule.h" />
+    <ClInclude Include="..\..\..\src\Memory_inline.h" />
     <ClInclude Include="..\..\..\src\MultiMBC1MemoryRule.h" />
     <CustomBuild Include="..\..\qt-shared\About.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
@@ -204,6 +203,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I.\..\..\qt-shared"</Command>
     </CustomBuild>
+    <ClInclude Include="..\..\..\src\Processor_inline.h" />
     <ClInclude Include="GeneratedFiles\ui_About.h" />
     <ClInclude Include="GeneratedFiles\ui_SoundSettings.h" />
     <ClInclude Include="GeneratedFiles\ui_VideoSettings.h" />

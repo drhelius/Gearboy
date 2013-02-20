@@ -77,9 +77,6 @@
     <ClCompile Include="..\..\..\src\Cartridge.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\EightBitRegister.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\GearboyCore.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -117,9 +114,6 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\RomOnlyMemoryRule.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\SixteenBitRegister.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Video.cpp">
@@ -347,6 +341,12 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_About.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Memory_inline.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Processor_inline.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
