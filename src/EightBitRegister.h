@@ -25,7 +25,7 @@
 class EightBitRegister
 {
 public:
-    EightBitRegister();
+    EightBitRegister() : m_Value(0) { }
     void SetValue(u8 value);
     u8 GetValue() const;
     void Increment();
@@ -34,6 +34,27 @@ public:
 private:
     u8 m_Value;
 };
+
+
+inline void EightBitRegister::SetValue(u8 value)
+{
+    this->m_Value = value;
+}
+
+inline u8 EightBitRegister::GetValue() const
+{
+    return m_Value;
+}
+
+inline void EightBitRegister::Increment()
+{
+    m_Value++;
+}
+
+inline void EightBitRegister::Decrement()
+{
+    m_Value--;
+}
 
 #endif	/* EIGHTBITREGISTER_H */
 

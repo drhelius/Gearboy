@@ -23,8 +23,7 @@
 #include "definitions.h"
 #include "SixteenBitRegister.h"
 #include "boot_roms.h"
-
-class Memory;
+#include "Memory.h"
 
 class Processor
 {
@@ -650,6 +649,8 @@ private:
     void OPCodeCB0xFE();
     void OPCodeCB0xFF();
 };
+
+#include "Processor_inline.h"
 
 #endif	/* PROCESSOR_H */
 

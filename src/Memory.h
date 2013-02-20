@@ -21,6 +21,9 @@
 #define	MEMORY_H
 
 #include "definitions.h"
+#include "MemoryRule.h"
+#include "CommonMemoryRule.h"
+#include "IORegistersMemoryRule.h"
 #include <vector>
 
 class MemoryRule;
@@ -91,6 +94,7 @@ private:
     u16 m_HDMADestination;
 };
 
+#include "Memory_inline.h"
 
 // From Gambatte emulator
 const u8 kInitialValuesForFFXX[256] = {
