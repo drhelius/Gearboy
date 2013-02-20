@@ -118,9 +118,11 @@ const GLfloat tex[] = {0.0f, 0.0f, kGB_TexWidth, 0.0f, 0.0f, kGB_TexHeight, kGB_
     
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
     {
+        int y_256 = y * 256;
+        int y_gb_width = y * GAMEBOY_WIDTH;
         for (int x = 0; x < GAMEBOY_WIDTH; ++x)
         {
-            theTexture[(y * 256) + x] = theFrameBuffer[(y * GAMEBOY_WIDTH) + x];
+            theTexture[y_256 + x] = theFrameBuffer[y_gb_width + x];
         }
     }
 }
