@@ -192,8 +192,11 @@ void RenderThread::RenderMixFrames()
         alpha = 1.0f;
     }
     
+    static bool round_error = false; 
+    float round_color = 1.0f - (round_error ? 0.06f : 0.0f);
+    round_error = !round_error;
     glEnable(GL_BLEND);
-    glColor4f(1.0f, 1.0f, 1.0f, alpha);
+    glColor4f(round_color, round_color, round_color, alpha);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     RenderQuad(GAMEBOY_WIDTH, GAMEBOY_HEIGHT, false);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
