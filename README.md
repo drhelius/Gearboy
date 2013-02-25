@@ -19,7 +19,7 @@ Donations
 --------
 Gearboy is free but it's a lot of work, donations are really appreciated, thanks! :)
 
-[![PayPal - The safer, easier way to pay online!](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9Q68LLUL59US8 "PayPal - The safer, easier way to pay online!")
+[![PayPal - The safer, easier way to pay online!](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=28YUTJVAH7JH8 "PayPal - The safer, easier way to pay online!")
 
 Downloads
 --------
