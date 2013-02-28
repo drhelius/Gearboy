@@ -25,7 +25,7 @@ Downloads
 --------
 - Windows: [Gearboy-0.5-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-0.5-Windows.zip)
 - Linux: [Gearboy-0.5-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.5-Linux.tar.gz)
-- iOS (for jailbroken devices use the jailbreak branch): [guide](http://jailbreakerra.blogspot.com.es/2013/01/build-app-with-xcode-project-files.html).
+- iOS: [Cydia](http://modmyi.com/info/gearboygameboy.d.php)
 
 Features
 --------
@@ -90,7 +90,7 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 ### iOS
 - Install Xcode for Mac OS X. iOS SDK 5.1 or later is needed. 
 - Open the Gearboy Xcode project and build.
-- In order to run it on real hardware you will need an iOS developer certificate.
+- In order to run it on real hardware you will need an iOS developer certificate. For jailbroken devices use the jailbreak branch.
 
 ### Raspberry Pi - Raspbian
 - Install SDL development dependencies (<code>sudo apt-get install libsdl1.2-dev</code>).
