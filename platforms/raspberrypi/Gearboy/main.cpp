@@ -30,13 +30,6 @@
 #include "EGL/eglext.h"
 #include "gearboy.h"
 
-struct Tex_Color
-{
-    u8 red;
-    u8 green;
-    u8 blue;
-};
-
 bool keys[256];
 bool terminate = false;
 EGLDisplay display;
@@ -52,36 +45,18 @@ GLshort quadVerts[8];
 
 GearboyCore* theGearboyCore;
 GB_Color* theFrameBuffer;
-Tex_Color* theTexture;
 GLuint theGBTexture;
 
 uint32_t screen_width, screen_height;
 
-void draw(void)
-{
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 144, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    eglSwapBuffers(display, surface);
-}
-
 void update(void)
 {
-    theGearboyCore->RunToVBlank(NULL);
+    theGearboyCore->RunToVBlank(NULL); // this is to force 30 FPS
     theGearboyCore->RunToVBlank(theFrameBuffer);
 
-    for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
-    {
-        int y_offset_tex = y * 256;
-        int y_offset_gb = y * GAMEBOY_WIDTH;
-        for (int x = 0; x < GAMEBOY_WIDTH; ++x)
-        {
-            int tex_offset = y_offset_tex + x;
-            int buff_offset = y_offset_gb + x;
-            theTexture[tex_offset].red = theFrameBuffer[buff_offset].red;
-            theTexture[tex_offset].green = theFrameBuffer[buff_offset].green;
-            theTexture[tex_offset].blue = theFrameBuffer[buff_offset].blue;
-        }
-    }
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    eglSwapBuffers(display, surface);
 }
 
 void init_ogl(void)
@@ -183,7 +158,7 @@ void init_ogl(void)
 
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, theGBTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -218,7 +193,6 @@ void init(void)
     theGearboyCore->Init();
 
     theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
-    theTexture = new Tex_Color[256 * 256];
 
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
     {
@@ -227,15 +201,6 @@ void init(void)
             int pixel = (y * GAMEBOY_WIDTH) + x;
             theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
             theFrameBuffer[pixel].alpha = 0xFF;
-        }
-    }
-
-    for (int y = 0; y < 256; ++y)
-    {
-        for (int x = 0; x < 256; ++x)
-        {
-            int pixel = (y * 256) + x;
-            theTexture[pixel].red = theTexture[pixel].green = theTexture[pixel].blue = 0x00;
         }
     }
 
@@ -257,7 +222,6 @@ int main(int argc, char** argv)
         while (!terminate)
         {
           update();
-          draw();
         }
     }
 
