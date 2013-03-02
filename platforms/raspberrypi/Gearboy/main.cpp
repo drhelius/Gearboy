@@ -67,7 +67,6 @@ void draw(void)
 void update(void)
 {
     theGearboyCore->RunToVBlank(NULL);
-    theGearboyCore->RunToVBlank(NULL);
     theGearboyCore->RunToVBlank(theFrameBuffer);
 
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
@@ -217,7 +216,6 @@ void init(void)
 {
     theGearboyCore = new GearboyCore();
     theGearboyCore->Init();
-    theGearboyCore->EnableSound(false);
 
     theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     theTexture = new Tex_Color[256 * 256];
