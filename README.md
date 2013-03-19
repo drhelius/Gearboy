@@ -34,7 +34,7 @@ Features
 - Memory Bank Controllers (MBC1, MBC2, MBC3 with RTC, MBC5), ROM + RAM and multicart cartridges.
 - Accurate LCD controller emulation. Background, window and sprites, with correct timings and priorities.
 - Mix frames: Mimics the LCD ghosting effect seen in the original Game Boy.
-- Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://www.slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
+- Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
 - Game Boy Color support.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Saves battery powered RAM cartridges to file.
@@ -99,7 +99,7 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 Passed Tests
 ------------
 
-This tests are from [blargg's test roms](http://www.slack.net/~ant/gb-tests/).
+This tests are from [blargg's test roms](http://slack.net/~ant/old/gb-tests/).
 
 ![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_1.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_2.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_3.png)
 ![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_32.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_33.png)
