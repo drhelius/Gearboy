@@ -33,6 +33,7 @@
 
 bool keys[256];
 bool running = true;
+bool paused = false;
 EGLDisplay display;
 EGLSurface surface;
 EGLContext context;
@@ -58,6 +59,9 @@ void update(void)
     {
         switch(keyevent.type)
         {
+            case SDL_QUIT:
+            running = false;
+            break;
             case SDL_KEYDOWN:
             switch(keyevent.key.keysym.sym)
             {
@@ -78,6 +82,10 @@ void update(void)
                 break;
                 case SDLK_s:
                 theGearboyCore->KeyPressed(A_Key);
+                break;
+                case SDLK_p:
+                paused = !paused;
+                theGearboyCore->Pause(paused);
                 break;
                 case SDLK_SPACE:
                 theGearboyCore->KeyPressed(Select_Key);
@@ -301,24 +309,57 @@ void init(void)
 
 void end(void)
 {
+    SafeDeleteArray(theFrameBuffer);
+    SafeDelete(theGearboyCore);
     SDL_Quit();
     bcm_host_deinit();
 }
 
 int main(int argc, char** argv)
 {
+    if (argc < 2 || argc > 4)
+    {
+        printf("usage: %s rom_path [options]\n", argv[0]);
+        printf("options:\n-nosound\n-forcedmg\n");
+        return -1;
+    }
+
     init();
 
-    if (theGearboyCore->LoadROM(argv[1], false))
+    bool forcedmg = false;
+
+    if (argc > 2)
     {
+        for (int i = 2; i < argc; i++)
+        {
+            if (strcmp("-nosound", argv[i]) == 0)
+            {
+                theGearboyCore->EnableSound(false);
+            }
+            else if (strcmp("-forcedmg", argv[i]) == 0)
+            {
+                forcedmg = true;
+            }
+            else
+            {
+                end();
+                printf("invalid option: %s\n", argv[i])
+                return -1;
+            }
+        }
+    }
+
+    if (theGearboyCore->LoadROM(argv[1], forcedmg))
+    {
+        theGearboyCore->LoadRam();
+
         while (running)
         {
             update();
         }
-    }
 
-    SafeDeleteArray(theFrameBuffer);
-    SafeDelete(theGearboyCore);
+        theGearboyCore->SaveRam();
+    }
 
     end();
 
