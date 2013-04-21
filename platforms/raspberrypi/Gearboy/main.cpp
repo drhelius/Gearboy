@@ -23,7 +23,8 @@
 #include <math.h>
 #include <assert.h>
 #include <unistd.h>
-#include <sys/time.h> 
+#include <sys/time.h>
+#include <SDL/SDL.h>
 #include "bcm_host.h"
 #include "GLES/gl.h"
 #include "EGL/egl.h"
@@ -31,7 +32,7 @@
 #include "gearboy.h"
 
 bool keys[256];
-bool terminate = false;
+bool running = true;
 EGLDisplay display;
 EGLSurface surface;
 EGLContext context;
@@ -51,12 +52,98 @@ uint32_t screen_width, screen_height;
 
 void update(void)
 {
+    SDL_Event keyevent;
+
+    while (SDL_PollEvent(&keyevent))
+    {
+        switch(keyevent.type)
+        {
+            case SDL_KEYDOWN:
+            switch(keyevent.key.keysym.sym)
+            {
+                case SDLK_LEFT:
+                theGearboyCore->KeyPressed(Left_Key);
+                break;
+                case SDLK_RIGHT:
+                theGearboyCore->KeyPressed(Right_Key);
+                break;
+                case SDLK_UP:
+                theGearboyCore->KeyPressed(Up_Key);
+                break;
+                case SDLK_DOWN:
+                theGearboyCore->KeyPressed(Down_Key);
+                break;
+                case SDLK_a:
+                theGearboyCore->KeyPressed(B_Key);
+                break;
+                case SDLK_s:
+                theGearboyCore->KeyPressed(A_Key);
+                break;
+                case SDLK_SPACE:
+                theGearboyCore->KeyPressed(Select_Key);
+                break;
+                case SDLK_RETURN:
+                theGearboyCore->KeyPressed(Start_Key);
+                break;
+                case SDLK_ESCAPE:
+                running = false;
+                break;
+                default:
+                break;
+            }
+            break;
+            case SDL_KEYUP:
+            switch(keyevent.key.keysym.sym)
+            {
+                case SDLK_LEFT:
+                theGearboyCore->KeyReleased(Left_Key);
+                break;
+                case SDLK_RIGHT:
+                theGearboyCore->KeyReleased(Right_Key);
+                break;
+                case SDLK_UP:
+                theGearboyCore->KeyReleased(Up_Key);
+                break;
+                case SDLK_DOWN:
+                theGearboyCore->KeyReleased(Down_Key);
+                break;
+                case SDLK_a:
+                theGearboyCore->KeyReleased(B_Key);
+                break;
+                case SDLK_s:
+                theGearboyCore->KeyReleased(A_Key);
+                break;
+                case SDLK_SPACE:
+                theGearboyCore->KeyReleased(Select_Key);
+                break;
+                case SDLK_RETURN:
+                theGearboyCore->KeyReleased(Start_Key);
+                break;
+                default:
+                break;
+            }
+        }
+    }
+
     theGearboyCore->RunToVBlank(NULL); // this is to force 30 FPS
     theGearboyCore->RunToVBlank(theFrameBuffer);
 
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     eglSwapBuffers(display, surface);
+}
+
+void init_sdl(void)
+{
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        Log("SDL Error Init: %s", SDL_GetError());
+    }
+
+    if (SDL_SetVideoMode(0, 0, 32, SDL_SWSURFACE) == NULL)
+    {
+        Log("SDL Error Video: %s", SDL_GetError());
+    }
 }
 
 void init_ogl(void)
@@ -207,26 +294,33 @@ void init(void)
     for (int i = 0; i < 256; i++)
     	keys[i] = false;
 
+    bcm_host_init();
+    init_sdl();
     init_ogl();
 }
 
+void end(void)
+{
+    SDL_Quit();
+    bcm_host_deinit();
+}
 
 int main(int argc, char** argv)
 {
-    bcm_host_init();
-
     init();
 
     if (theGearboyCore->LoadROM(argv[1], false))
     {
-        while (!terminate)
+        while (running)
         {
-          update();
+            update();
         }
     }
 
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearboyCore);
+
+    end();
 
     return 0;
 }
