@@ -343,7 +343,7 @@ int main(int argc, char** argv)
             else
             {
                 end();
-                printf("invalid option: %s\n", argv[i])
+                printf("invalid option: %s\n", argv[i]);
                 return -1;
             }
         }
