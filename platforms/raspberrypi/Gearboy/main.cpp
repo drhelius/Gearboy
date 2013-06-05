@@ -31,7 +31,6 @@
 #include "EGL/eglext.h"
 #include "gearboy.h"
 
-bool keys[256];
 bool running = true;
 bool paused = false;
 EGLDisplay display;
@@ -298,9 +297,6 @@ void init(void)
             theFrameBuffer[pixel].alpha = 0xFF;
         }
     }
-
-    for (int i = 0; i < 256; i++)
-    	keys[i] = false;
 
     bcm_host_init();
     init_sdl();
