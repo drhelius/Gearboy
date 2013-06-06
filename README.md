@@ -25,7 +25,8 @@ Downloads
 --------
 - Windows: [Gearboy-0.5-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-0.5-Windows.zip)
 - Linux: [Gearboy-0.5-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.5-Linux.tar.gz)
-- iOS: [Cydia](http://modmyi.com/info/gearboygameboy.d.php)
+- iOS (jailbroken): [Cydia](http://modmyi.com/info/gearboygameboy.d.php)
+- iOS (non-jailbroken): <a class="macbuildserver-button" href="http://macbuildserver.com/project/github/build/?xcode_project=platforms%2Fios%2FGearboy.xcodeproj&amp;target=Gearboy&amp;repo_url=git%3A%2F%2Fgithub.com%2Fdrhelius%2FGearboy.git&amp;build_conf=Release" target="_blank"><img src="http://com.macbuildserver.github.s3-website-us-east-1.amazonaws.com/button_up.png"/></a>
 
 Features
 --------
