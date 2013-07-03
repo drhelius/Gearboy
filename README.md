@@ -41,9 +41,9 @@ Features
 - Saves battery powered RAM cartridges to file.
 - Compressed rom support (ZIP deflate).
 - Multi platform. Compiles and runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
-- Uses OpenGL for rendering on all platforms.
-- Uses Qt framework for Mac, Windows and Linux. Uses Cocoa Touch for iPad, iPhone and iPod touch.
-- Visual Studio 2010 project provided for Windows. Netbeans 7.2 project provided for Linux and Mac OS X. Xcode project for iOS.
+- OpenGL rendering on all platforms.
+- Qt 4 for Mac, Windows and Linux UI. Cocoa Touch for iPad, iPhone and iPod touch.
+- Visual Studio 2010 project provided for Windows. Netbeans project provided for Linux and Mac OS X. Xcode project for iOS.
 
 Todo List
 -----------
@@ -57,20 +57,20 @@ Compiling Instructions
 
 The best way of compiling Gearboy is by using one of the IDE projects provided for each platform.
 
-For all desktop platforms you will need SDL and Qt Framework SDKs installed and configured. SDL is provided as a framework for iOS project.
+For all desktop platforms you will need SDL and Qt 4 SDKs installed and configured. SDL is provided as a framework for iOS.
 
 There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt-applications.html).
 
 ### Windows
 - You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
-- Install the [Qt SDK for Windows](http://qt-project.org/downloads).
-- Install the [Qt Visual Studio Add-in](http://qt-project.org/downloads) and point it to the Qt SDK.
+- Install the [Qt 4 SDK for Windows](http://qt-project.org/downloads).
+- Install the [Qt 4 Visual Studio Add-in](http://qt-project.org/downloads) and point it to the Qt SDK.
 - Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
 - In order to use OpenGL extensions I used [GLEW](http://glew.sourceforge.net/). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions. Make sure the GLEW headers and libs are configured within VC++.
 - Open the Gearboy Visual Studio project and build.
 
 ### Linux
-- You need at least Netbeans 7.2 for C++.
+- You need at least Netbeans 7.3.
 - Install Qt development dependencies (Ubuntu: <code>sudo apt-get install qt4-dev-tools</code>).
 - Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
 - Install SDL development dependencies (Ubuntu: <code>sudo apt-get install libsdl1.2-dev</code>).
@@ -80,13 +80,13 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - In Ubuntu 12.04 I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
 
 ### Mac OS X
-- You need at least Netbeans 7.2 for C++.
+- You need at least Netbeans 7.3.
 - Install Xcode for the compiler to be available on the command line.
-- Install the [Qt SDK for Mac OS](http://qt-project.org/downloads).
+- Install the [Qt 4 SDK for Mac OS](http://qt-project.org/downloads).
 - Add <code>qmake</code> to the PATH (You can find qmake in the bin directory where you have Qt SDK installed).
 - Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
 - Open the Gearboy Netbeans project and build. This project is configured for using <code>clang</code>.
-- Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
+- Alternatively, you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
 
 ### iOS
 - Install Xcode for Mac OS X. iOS SDK 5.1 or later is needed. 
