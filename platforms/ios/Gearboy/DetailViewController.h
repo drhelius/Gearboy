@@ -27,6 +27,6 @@
 @property (strong, nonatomic) id detailItem;
 @property (weak, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
 
--(void) _handleTouch : (UITouch *) touch;
+-(void)_handleTouch : (UITouch *) touch;
 
 @end
