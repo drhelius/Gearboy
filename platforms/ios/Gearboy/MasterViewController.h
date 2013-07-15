@@ -31,4 +31,6 @@
 @property (strong, nonatomic) NSArray *listData;
 @property (strong, nonatomic) NSMutableDictionary *sections;
 
+-(void)loadWithROM:(NSString *)rom;
+
 @end
