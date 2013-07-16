@@ -210,18 +210,6 @@
             NSLog(@"ERROR %@", [error localizedDescription]);
         }
         
-        
-        //[self.dataArray removeObjectAtIndex:indexPath.row];
-        //[controller removeObjectFromListAtIndex:indexPath.row];
-        //[tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
-        
-            
-        //NSString* rom = [[self.sections valueForKey:[[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:indexPath.section]] objectAtIndex:indexPath.row];
-        
-        //NSLog(@"%@", rom);
-        
-        //[[self.sections objectForKey:[[rom substringToIndex:1] uppercaseString]] removeObject:rom];
-        
         [tableView reloadData];
     }
 }
