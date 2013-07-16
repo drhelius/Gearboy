@@ -39,21 +39,21 @@
 @property (nonatomic) BOOL retina;
 @property (nonatomic) BOOL iPad;
 
--(void)update;
--(void)draw;
--(void)loadRomWithPath: (NSString *)filePath;
--(void)keyPressed: (Gameboy_Keys)key;
--(void)keyReleased: (Gameboy_Keys)key;
--(void)pause;
--(void)resume;
--(BOOL)paused;
--(void)reset;
--(void)save;
--(void)initGL;
--(void)shutdownGL;
--(void)renderFrame;
--(void)renderMixFrames;
--(void)setupTextureWithData: (GLvoid*) data;
--(void)renderQuadWithViewportWidth: (int)viewportWidth andHeight: (int)viewportHeight andMirrorY: (BOOL)mirrorY;
+- (void)update;
+- (void)draw;
+- (void)loadRomWithPath: (NSString *)filePath;
+- (void)keyPressed: (Gameboy_Keys)key;
+- (void)keyReleased: (Gameboy_Keys)key;
+- (void)pause;
+- (void)resume;
+- (BOOL)paused;
+- (void)reset;
+- (void)save;
+- (void)initGL;
+- (void)shutdownGL;
+- (void)renderFrame;
+- (void)renderMixFrames;
+- (void)setupTextureWithData: (GLvoid*) data;
+- (void)renderQuadWithViewportWidth: (int)viewportWidth andHeight: (int)viewportHeight andMirrorY: (BOOL)mirrorY;
 
 @end

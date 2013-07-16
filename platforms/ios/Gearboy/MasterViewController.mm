@@ -42,7 +42,25 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+    [self reloadTableView];
+}
+
+- (void)viewDidUnload
+{
+    [super viewDidUnload];
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+{
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+        return (interfaceOrientation == UIInterfaceOrientationPortrait) || (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown);
+    } else {
+        return (interfaceOrientation == UIInterfaceOrientationPortrait) || (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown);
+    }
+}
+
+- (void)reloadTableView
+{
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     
     NSArray *files = nil;
@@ -59,13 +77,15 @@
         }
     }
     
-    self.listData = files;    
+    self.listData = files;
     self.sections = [[NSMutableDictionary alloc] init];
     
     BOOL found;
     
     for (NSString* rom in self.listData)
     {
+        NSLog(@"open file %@", rom);
+
         NSString* c = [[rom substringToIndex:1] uppercaseString];
         
         found = NO;
@@ -86,21 +106,27 @@
     
     for (NSString* rom in self.listData)
     {
+        NSLog(@"open file %@", rom);
         [[self.sections objectForKey:[[rom substringToIndex:1] uppercaseString]] addObject:rom];
     }
+    
+    [self.tableView reloadData];
 }
 
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+- (void)loadWithROM:(NSString *)rom
 {
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        return (interfaceOrientation == UIInterfaceOrientationPortrait) || (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown);
+	    if (!self.detailViewController) {
+	        self.detailViewController = [[DetailViewController alloc] initWithNibName:@"DetailViewController_iPhone" bundle:nil];
+	    }
+	    self.detailViewController.detailItem = rom;
+        
+        if (self.navigationController.topViewController != self.detailViewController)
+        {
+            [self.navigationController pushViewController:self.detailViewController animated:YES];
+        }
     } else {
-        return (interfaceOrientation == UIInterfaceOrientationPortrait) || (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown);
+        self.detailViewController.detailItem = rom;
     }
 }
 
@@ -149,7 +175,13 @@
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    return NO;
+    return YES;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        //[self.dataArray removeObjectAtIndex:indexPath.row];
+    }
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
@@ -167,19 +199,6 @@
 - (void)viewWillDisappear:(BOOL)animated
 {
     [self.detailViewController.theGLViewController.theEmulator resume];
-}
-
-- (void)loadWithROM:(NSString *)rom
-{
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-	    if (!self.detailViewController) {
-	        self.detailViewController = [[DetailViewController alloc] initWithNibName:@"DetailViewController_iPhone" bundle:nil];
-	    }
-	    self.detailViewController.detailItem = rom;
-        [self.navigationController pushViewController:self.detailViewController animated:YES];
-    } else {
-        self.detailViewController.detailItem = rom;
-    }
 }
 
 @end
