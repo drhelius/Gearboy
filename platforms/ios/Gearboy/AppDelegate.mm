@@ -108,7 +108,7 @@
             return YES;
         }
         
-        NSLog(@"%@", [error localizedDescription]);
+        NSLog(@"ERROR %@", [error localizedDescription]);
     }
     
     return NO;

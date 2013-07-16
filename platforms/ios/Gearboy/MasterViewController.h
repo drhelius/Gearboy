@@ -23,7 +23,6 @@
 
 @interface MasterViewController : UITableViewController
 {
-    NSArray* listData;
     NSMutableDictionary *sections;  
 }
 

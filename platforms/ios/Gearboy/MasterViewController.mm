@@ -23,7 +23,6 @@
 
 @implementation MasterViewController
 
-@synthesize listData;
 @synthesize sections = _sections;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -77,15 +76,12 @@
         }
     }
     
-    self.listData = files;
     self.sections = [[NSMutableDictionary alloc] init];
     
     BOOL found;
     
-    for (NSString* rom in self.listData)
+    for (NSString* rom in files)
     {
-        NSLog(@"open file %@", rom);
-
         NSString* c = [[rom substringToIndex:1] uppercaseString];
         
         found = NO;
@@ -104,9 +100,8 @@
         }
     }
     
-    for (NSString* rom in self.listData)
+    for (NSString* rom in files)
     {
-        NSLog(@"open file %@", rom);
         [[self.sections objectForKey:[[rom substringToIndex:1] uppercaseString]] addObject:rom];
     }
     
@@ -178,9 +173,56 @@
     return YES;
 }
 
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (editingStyle == UITableViewCellEditingStyleDelete)
+    {
+        NSString* rom = [[self.sections valueForKey:[[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:indexPath.section]] objectAtIndex:indexPath.row];
+        
+        NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+        NSError* error;
+        NSFileManager *fileManager = [[NSFileManager alloc] init];
+        
+        NSString* deletePath = [NSString stringWithFormat:@"%@/%@", documentsDirectory, rom];
+        
+        if ([fileManager removeItemAtPath:deletePath error:&error])
+        {        
+            [tableView beginUpdates];
+            
+            [[self.sections objectForKey:[[rom substringToIndex:1] uppercaseString]] removeObject:rom];
+        
+            if ([[self.sections objectForKey:[[rom substringToIndex:1] uppercaseString]] count] > 0)
+            {
+                [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            }
+            else
+            {
+                [self.sections removeObjectForKey:[[rom substringToIndex:1] uppercaseString]];
+
+                [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                [tableView deleteSections:[NSIndexSet indexSetWithIndex:indexPath.section]withRowAnimation:UITableViewRowAnimationFade];
+            }
+        
+            [tableView endUpdates];
+        }
+        else
+        {
+            NSLog(@"ERROR %@", [error localizedDescription]);
+        }
+        
+        
         //[self.dataArray removeObjectAtIndex:indexPath.row];
+        //[controller removeObjectFromListAtIndex:indexPath.row];
+        //[tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+        
+            
+        //NSString* rom = [[self.sections valueForKey:[[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:indexPath.section]] objectAtIndex:indexPath.row];
+        
+        //NSLog(@"%@", rom);
+        
+        //[[self.sections objectForKey:[[rom substringToIndex:1] uppercaseString]] removeObject:rom];
+        
+        [tableView reloadData];
     }
 }
 
