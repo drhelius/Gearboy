@@ -61,6 +61,15 @@ For all desktop platforms you will need SDL and Qt 4 SDKs installed and configur
 
 There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt-applications.html).
 
+### iOS
+- Install Xcode for Mac OS X. You need iOS SDK 5.1 or later. 
+- Open the Gearboy Xcode project and build.
+- Run it on real hardware using your iOS developer certificate. For jailbroken devices use the jailbreak branch.
+
+### Raspberry Pi - Raspbian
+- Install SDL development dependencies (<code>sudo apt-get install libsdl1.2-dev</code>).
+- Use <code>make</code> to build the project.
+
 ### Windows
 - You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
 - Install the [Qt 4 SDK for Windows](http://qt-project.org/downloads).
@@ -69,8 +78,17 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - In order to use OpenGL extensions I used [GLEW](http://glew.sourceforge.net/). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions. Make sure the GLEW headers and libs are configured within VC++.
 - Open the Gearboy Visual Studio project and build.
 
+### Mac OS X
+- You need Netbeans 7.3 or later.
+- Install Xcode for the compiler to be available on the command line.
+- Install the [Qt 4 SDK for Mac OS](http://qt-project.org/downloads).
+- Add <code>qmake</code> to the PATH (You can find qmake in the bin directory where you have Qt SDK installed).
+- Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
+- Open the Gearboy Netbeans project and build. The project will use <code>clang</code>.
+- Alternatively, you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
+
 ### Linux
-- You need at least Netbeans 7.3.
+- You need Netbeans 7.3 or later.
 - Install Qt development dependencies (Ubuntu: <code>sudo apt-get install qt4-dev-tools</code>).
 - Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
 - Install SDL development dependencies (Ubuntu: <code>sudo apt-get install libsdl1.2-dev</code>).
@@ -79,28 +97,11 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
 - In Ubuntu 12.04 I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
 
-### Mac OS X
-- You need at least Netbeans 7.3.
-- Install Xcode for the compiler to be available on the command line.
-- Install the [Qt 4 SDK for Mac OS](http://qt-project.org/downloads).
-- Add <code>qmake</code> to the PATH (You can find qmake in the bin directory where you have Qt SDK installed).
-- Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
-- Open the Gearboy Netbeans project and build. This project is configured for using <code>clang</code>.
-- Alternatively, you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
-
-### iOS
-- Install Xcode for Mac OS X. iOS SDK 5.1 or later is needed. 
-- Open the Gearboy Xcode project and build.
-- In order to run it on real hardware you will need an iOS developer certificate. For jailbroken devices use the jailbreak branch.
-
-### Raspberry Pi - Raspbian
-- Install SDL development dependencies (<code>sudo apt-get install libsdl1.2-dev</code>).
-- Use <code>make</code> to build the project.
-
-Passed Tests
+Accuracy Tests
 ------------
+Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/GBAccuracyTests.html). 
 
-This tests are from [blargg's test roms](http://slack.net/~ant/old/gb-tests/).
+Tests from [blargg's test roms](http://slack.net/~ant/old/gb-tests/).
 
 ![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_1.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_2.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_3.png)
 ![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_32.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_33.png)
