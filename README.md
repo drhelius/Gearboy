@@ -8,25 +8,20 @@ Gearboy is a Nintendo Game Boy / GameBoy Color emulator written in C++ that runs
 
 The main focus of this emulator is readability of source code with a high compatibility ratio.
 
-A lot of effort has gone into this in order to follow OOP and keep it as simple and efficient as possible.
+Send your comments or questions to http://twitter.com/drhelius
 
-Don't forget sending me your comments or questions at: http://twitter.com/drhelius
-
-
-----------
-
-Donations
---------
-Gearboy is free but it's a lot of work, donations are really appreciated, thanks! :)
+If you want new features ask for them but don't forget donating, thanks :)
 
 [![PayPal - The safer, easier way to pay online!](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=28YUTJVAH7JH8 "PayPal - The safer, easier way to pay online!")
 
+----------
+
 Downloads
 --------
+- iOS (Non-Jailbroken): [Download now](http://macbuildserver.com/project/github/build/?xcode_project=platforms%2Fios%2FGearboy.xcodeproj&amp;target=Gearboy&amp;repo_url=git%3A%2F%2Fgithub.com%2Fdrhelius%2FGearboy.git&amp;build_conf=Release) and use [iTunes file sharing](http://support.apple.com/kb/ht4094) to transfer roms. You can also open roms from other apps like Safari or Dropbox.
+- iOS (Jailbroken): [Cydia](http://modmyi.com/info/gearboygameboy.d.php)
 - Windows: [Gearboy-0.5-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-0.5-Windows.zip)
 - Linux: [Gearboy-0.5-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.5-Linux.tar.gz)
-- iOS (jailbroken): [Cydia](http://modmyi.com/info/gearboygameboy.d.php)
-- iOS (non-jailbroken): [Install now](http://macbuildserver.com/project/github/build/?xcode_project=platforms%2Fios%2FGearboy.xcodeproj&amp;target=Gearboy&amp;repo_url=git%3A%2F%2Fgithub.com%2Fdrhelius%2FGearboy.git&amp;build_conf=Release) and use [iTunes file sharing](http://support.apple.com/kb/ht4094) to transfer roms. You can also open roms from other apps like Safari or Dropbox.
 
 Features
 --------
@@ -40,10 +35,7 @@ Features
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Saves battery powered RAM cartridges to file.
 - Compressed rom support (ZIP deflate).
-- Multi platform. Compiles and runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
-- OpenGL rendering on all platforms.
-- Qt 4 for Mac, Windows and Linux UI. Cocoa Touch for iPad, iPhone and iPod touch.
-- Visual Studio 2010 project provided for Windows. Netbeans project provided for Linux and Mac OS X. Xcode project for iOS.
+- Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
 
 Todo List
 -----------
@@ -101,7 +93,7 @@ Accuracy Tests
 ------------
 Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/GBAccuracyTests.html). 
 
-Tests from [blargg's test roms](http://slack.net/~ant/old/gb-tests/).
+Tests from [blargg's test roms](http://slack.net/~ant/old/gb-tests/):
 
 ![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_1.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_2.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_3.png)
 ![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_32.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_33.png)
