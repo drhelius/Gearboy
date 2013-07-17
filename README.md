@@ -20,7 +20,7 @@ Downloads
 --------
 - iOS (Non-Jailbroken): [Download now](http://macbuildserver.com/project/github/build/?xcode_project=platforms%2Fios%2FGearboy.xcodeproj&amp;target=Gearboy&amp;repo_url=git%3A%2F%2Fgithub.com%2Fdrhelius%2FGearboy.git&amp;build_conf=Release) and use [iTunes file sharing](http://support.apple.com/kb/ht4094) to transfer roms. You can also open roms from other apps like Safari or Dropbox.
 - iOS (Jailbroken): [Cydia](http://modmyi.com/info/gearboygameboy.d.php)
-- Windows: [Gearboy-0.5-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-0.5-Windows.zip)
+- Windows: [Gearboy-0.7-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-0.7-Windows.zip)
 - Linux: [Gearboy-0.5-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.5-Linux.tar.gz)
 
 Features
