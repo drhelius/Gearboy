@@ -6,9 +6,9 @@ Gearboy
 
 Gearboy is a Nintendo Game Boy / GameBoy Color emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows and Linux.
 
-The main focus of this emulator is readability of source code with a high compatibility ratio.
+The main focus of this emulator is readability of source code with a high compatibility.
 
-Send your comments or questions to http://twitter.com/drhelius
+Follow me on Twitter for updates: http://twitter.com/drhelius
 
 If you want new features ask for them but don't forget donating, thanks :)
 
@@ -18,8 +18,8 @@ If you want new features ask for them but don't forget donating, thanks :)
 
 Downloads
 --------
-- iOS 1.2 Non-Jailbroken: [Download now](http://macbuildserver.com/project/github/build/?xcode_project=platforms%2Fios%2FGearboy.xcodeproj&amp;target=Gearboy&amp;repo_url=git%3A%2F%2Fgithub.com%2Fdrhelius%2FGearboy.git&amp;build_conf=Release) and use [iTunes file sharing](http://support.apple.com/kb/ht4094) to transfer roms. You can also open roms from other apps like Safari or Dropbox.
 - iOS 1.2 Jailbroken: [Cydia](http://modmyi.com/info/gearboygameboy.d.php)
+- iOS 1.2 Non-Jailbroken: Use your developer certificate to compile and install it, then use [iTunes file sharing](http://support.apple.com/kb/ht4094) to transfer roms. You can also open roms from other apps like Safari or Dropbox
 - Windows 0.7: [Gearboy-0.7-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-0.7-Windows.zip)
 - Linux 0.7: [Gearboy-0.7-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.5-Linux.tar.gz)
 
