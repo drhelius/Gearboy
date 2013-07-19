@@ -18,8 +18,8 @@ If you want new features ask for them but don't forget donating, thanks :)
 
 Downloads
 --------
-- iOS 1.2 Jailbroken: [Cydia](http://modmyi.com/info/gearboygameboy.d.php)
-- iOS 1.2 Non-Jailbroken: Use your developer certificate to compile and install it, then use [iTunes file sharing](http://support.apple.com/kb/ht4094) to transfer roms. You can also open roms from other apps like Safari or Dropbox
+- iOS 1.2 Jailbroken: [Cydia](http://modmyi.com/info/gearboygameboy.d.php). You can open rom files from other apps like Safari or Dropbox.
+- iOS 1.2 Non-Jailbroken: Use your developer certificate to compile and install it, then use [iTunes file sharing](http://support.apple.com/kb/ht4094) to transfer roms. 
 - Windows 0.7: [Gearboy-0.7-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-0.7-Windows.zip)
 - Linux 0.7: [Gearboy-0.7-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.5-Linux.tar.gz)
 
