@@ -41,6 +41,8 @@ Processor::Processor(Memory* pMemory)
     m_iUnhaltCycles = 0;
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
+    m_bEndOfBootROM = false;
+    m_bDuringBootROM = false;
 }
 
 Processor::~Processor()
@@ -49,12 +51,13 @@ Processor::~Processor()
 
 void Processor::Init()
 {
-    Reset(false);
+    Reset(false, false);
 }
 
-void Processor::Reset(bool bCGB)
+void Processor::Reset(bool bCGB, bool bootROM)
 {
     m_bCGB = bCGB;
+    m_bDuringBootROM = bootROM;
     m_bIME = false;
     m_bHalt = false;
     m_bCGBSpeed = false;
@@ -67,7 +70,10 @@ void Processor::Reset(bool bCGB)
     m_iSerialBit = 0;
     m_iSerialCycles = 0;
     m_iUnhaltCycles = 0;
-    PC.SetValue(0x100);
+    if (m_bDuringBootROM)
+        PC.SetValue(0x0);
+    else
+        PC.SetValue(0x100);
     SP.SetValue(0xFFFE);
     if (m_bCGB)
         AF.SetValue(0x11B0);
@@ -78,6 +84,7 @@ void Processor::Reset(bool bCGB)
     HL.SetValue(0x014D);
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
+	m_bEndOfBootROM = false;
 }
 
 u8 Processor::Tick()
@@ -108,7 +115,19 @@ u8 Processor::Tick()
     if (!m_bHalt)
     {
         ServeInterrupt(InterruptPending());
-        ExecuteOPCode(FetchOPCode());
+        
+        if (m_bDuringBootROM)
+        {
+            u16 pc_before = PC.GetValue();
+            ExecuteOPCode(FetchOPCode());
+            u16 pc_after = PC.GetValue();
+            if ((pc_before == 0xFE) && (pc_after == 0x100))
+            {
+                m_bEndOfBootROM = true;
+            }
+        }
+        else
+            ExecuteOPCode(FetchOPCode());		
     }
 
     UpdateDelayedInterrupts();
@@ -237,6 +256,11 @@ bool Processor::InterruptIsAboutToRaise()
     u8 if_reg = m_pMemory->Retrieve(0xFF0F);
 
     return (if_reg & ie_reg & 0x1F);
+}
+
+bool Processor::BootROMfinished() const
+{
+    return m_bEndOfBootROM;
 }
 
 Processor::Interrupts Processor::InterruptPending()

@@ -42,7 +42,7 @@ public:
     Processor(Memory* pMemory);
     ~Processor();
     void Init();
-    void Reset(bool bCGB);
+    void Reset(bool bCGB, bool bootROM);
     u8 Tick();
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
@@ -51,6 +51,7 @@ public:
     bool CGBSpeed() const;
     void AddCycles(unsigned int cycles);
     bool InterruptIsAboutToRaise();
+    bool BootROMfinished() const;
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -77,6 +78,8 @@ private:
     bool m_bCGB;
     int m_InterruptDelayCycles[5];
     int m_bCGBSpeed;
+    bool m_bEndOfBootROM;
+    bool m_bDuringBootROM;
 
 private:
     u8 FetchOPCode();

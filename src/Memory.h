@@ -24,6 +24,7 @@
 #include "MemoryRule.h"
 #include "CommonMemoryRule.h"
 #include "IORegistersMemoryRule.h"
+#include "boot_roms.h"
 #include <vector>
 
 class MemoryRule;
@@ -40,7 +41,7 @@ public:
     void SetProcessor(Processor* pProcessor);
     void SetVideo(Video* pVideo);
     void Init();
-    void Reset(bool bCGB);
+    void Reset(bool bCGB, bool bootROM);
     void SetCurrentRule(MemoryRule* pRule);
     void SetCommonRule(CommonMemoryRule* pRule);
     void SetIORule(IORegistersMemoryRule* pRule);
@@ -92,6 +93,7 @@ private:
     u8 m_HDMA[5];
     u16 m_HDMASource;
     u16 m_HDMADestination;
+    bool m_bDuringBootROM;
 };
 
 #include "Memory_inline.h"

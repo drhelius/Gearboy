@@ -54,6 +54,7 @@ GearboyCore::GearboyCore()
     m_bPaused = true;
     m_bForceDMG = false;
     m_bRTCUpdateCount = 0;
+    m_bDuringBootROM = false;
 }
 
 GearboyCore::~GearboyCore()
@@ -123,6 +124,15 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
+
+            if (m_bDuringBootROM && m_pProcessor->BootROMfinished())
+            {
+                m_bDuringBootROM = false;
+                Reset(m_bCGB);
+                m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
+                AddMemoryRules();
+                break;
+            }
         }
 
         m_bRTCUpdateCount++;
@@ -160,6 +170,7 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)
     bool loaded = m_pCartridge->LoadFromFile(szFilePath);
     if (loaded)
     {
+        m_bDuringBootROM = true;
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
@@ -481,8 +492,8 @@ void GearboyCore::Reset(bool bCGB)
         Log("Defaulting to Game Boy DMG");
     }
 
-    m_pMemory->Reset(m_bCGB);
-    m_pProcessor->Reset(m_bCGB);
+    m_pMemory->Reset(m_bCGB, m_bDuringBootROM);
+    m_pProcessor->Reset(m_bCGB, m_bDuringBootROM);
     m_pVideo->Reset(m_bCGB);
     m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();

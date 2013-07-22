@@ -43,6 +43,7 @@ Memory::Memory()
         m_HDMA[i] = 0;
     m_HDMASource = 0;
     m_HDMADestination = 0;
+    m_bDuringBootROM = false;
 }
 
 Memory::~Memory()
@@ -74,12 +75,13 @@ void Memory::Init()
     m_pWRAMBanks = new u8[0x8000];
     m_pLCDRAMBank1 = new u8[0x2000];
     m_pDisassembledMap = new stDisassemble[65536];
-    Reset(false);
+    Reset(false, false);
 }
 
-void Memory::Reset(bool bCGB)
+void Memory::Reset(bool bCGB, bool bootROM)
 {
     m_bCGB = bCGB;
+    m_bDuringBootROM = bootROM;
     InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pCurrentMemoryRule);

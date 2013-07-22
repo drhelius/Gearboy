@@ -88,6 +88,7 @@ private:
     GB_Color m_DMGPalette[4];
     bool m_bForceDMG;
     int m_bRTCUpdateCount;
+    bool m_bDuringBootROM;
 };
 
 #endif	/* CORE_H */
