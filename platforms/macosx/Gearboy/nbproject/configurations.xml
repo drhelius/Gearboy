@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="84">
+<configurationDescriptor version="89">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f2" displayName="Audio" projectFiles="true">
       <itemPath>../../../src/audio/Blip_Buffer.cpp</itemPath>
@@ -117,6 +117,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <qt>
         <modules>core gui opengl</modules>
@@ -128,11 +130,198 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="../../../src/Audio.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Audio.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Cartridge.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Cartridge.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/CommonMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/CommonMemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/EightBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/GearboyCore.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/GearboyCore.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/IORegistersMemoryRule.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/IORegistersMemoryRule.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/Input.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Input.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MBC1MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MBC1MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MBC2MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MBC2MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MBC3MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MBC3MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MBC5MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MBC5MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Memory.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Memory.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Memory_inline.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MultiMBC1MemoryRule.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/MultiMBC1MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Processor.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Processor.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Processor_inline.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/RomOnlyMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/RomOnlyMemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SixteenBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Video.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Video.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Buffer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Buffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Synth.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Effects_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Effects_Buffer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Gb_Apu.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Gb_Apu.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Gb_Apu_State.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Gb_Oscs.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Gb_Oscs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sound_Queue.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sound_Queue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_common.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_config.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_source.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/boot_roms.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/gearboy.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcode_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcode_timing.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/opcodes_cb.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/About.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/About.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/About.ui" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/Emulator.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/Emulator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/GLFrame.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/GLFrame.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/InputSettings.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/InputSettings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/InputSettings.ui" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/MainWindow.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/MainWindow.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/MainWindow.ui" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/RenderThread.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/RenderThread.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/SoundSettings.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/SoundSettings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/SoundSettings.ui" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/VideoSettings.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/VideoSettings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/VideoSettings.ui" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="4">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <qt>
         <buildMode>1</buildMode>
@@ -157,6 +346,191 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="../../../src/Audio.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Audio.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Cartridge.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Cartridge.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/CommonMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/CommonMemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/EightBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/GearboyCore.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/GearboyCore.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/IORegistersMemoryRule.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/IORegistersMemoryRule.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/Input.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Input.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MBC1MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MBC1MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MBC2MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MBC2MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MBC3MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MBC3MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MBC5MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MBC5MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Memory.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Memory.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Memory_inline.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MultiMBC1MemoryRule.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/MultiMBC1MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Processor.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Processor.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Processor_inline.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/RomOnlyMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/RomOnlyMemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SixteenBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/Video.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Video.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Buffer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Buffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Synth.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Effects_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Effects_Buffer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Gb_Apu.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Gb_Apu.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Gb_Apu_State.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Gb_Oscs.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Gb_Oscs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sound_Queue.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sound_Queue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_common.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_config.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_source.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/boot_roms.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/gearboy.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcode_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcode_timing.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/opcodes_cb.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/About.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/About.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/About.ui" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/Emulator.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/Emulator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/GLFrame.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/GLFrame.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/InputSettings.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/InputSettings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/InputSettings.ui" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/MainWindow.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/MainWindow.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/MainWindow.ui" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/RenderThread.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/RenderThread.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/SoundSettings.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/SoundSettings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/SoundSettings.ui" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/VideoSettings.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../qt-shared/VideoSettings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/VideoSettings.ui" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../qt-shared/main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
     </conf>
   </confs>
 </configurationDescriptor>
