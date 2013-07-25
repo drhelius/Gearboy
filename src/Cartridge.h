@@ -60,7 +60,7 @@ public:
     bool IsSGB() const;
     bool IsCGB() const;
     void UpdateCurrentRTC();
-    size_t GetCurrentRTC();
+    time_t GetCurrentRTC();
     bool IsRTCPresent() const;
     bool IsRumblePresent() const;
 
@@ -82,7 +82,7 @@ private:
     bool m_bSGB;
     int m_iVersion;
     bool m_bLoaded;
-    size_t m_RTCCurrentTime;
+    time_t m_RTCCurrentTime;
     bool m_bBattery;
     char m_szFilePath[512];
     char m_szFileName[512];

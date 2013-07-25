@@ -475,10 +475,10 @@ bool Cartridge::IsCGB() const
 
 void Cartridge::UpdateCurrentRTC()
 {
-    m_RTCCurrentTime = time(NULL);
+    time(&m_RTCCurrentTime);
 }
 
-size_t Cartridge::GetCurrentRTC()
+time_t Cartridge::GetCurrentRTC()
 {
     return m_RTCCurrentTime;
 }
