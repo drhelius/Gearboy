@@ -131,12 +131,9 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else if (value <= 0x03)
             {
-                if (m_bRamEnabled)
-                {
-                    m_iCurrentRAMBank = value;
-                    m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
-                    m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
-                }
+                m_iCurrentRAMBank = value;
+                m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
+                m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
             }
             break;
         }
