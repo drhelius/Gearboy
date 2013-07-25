@@ -228,6 +228,7 @@ void GearboyCore::ResetROM(bool forceDMG)
 {
     if (m_pCartridge->IsLoadedROM())
     {
+        m_bDuringBootROM = true;
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
