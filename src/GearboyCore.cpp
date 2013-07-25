@@ -55,6 +55,8 @@ GearboyCore::GearboyCore()
     m_bForceDMG = false;
     m_bRTCUpdateCount = 0;
     m_bDuringBootROM = false;
+    m_bLoadRamPending = false;
+    m_szLoadRamPendingPath[0] = 0;
 }
 
 GearboyCore::~GearboyCore()
@@ -131,6 +133,11 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
                 Reset(m_bCGB);
                 m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
                 AddMemoryRules();
+                if (m_bLoadRamPending)
+                {
+                    m_bLoadRamPending = false;
+                    LoadRam((m_szLoadRamPendingPath[0] == 0) ? NULL : m_szLoadRamPendingPath);
+                }
                 break;
             }
         }
@@ -276,35 +283,12 @@ void GearboyCore::SaveRam(const char* szPath)
         {
             strcpy(path, m_pCartridge->GetFilePath());
         }
-        
+
         strcat(path, ".gearboy");
 
         Log("Save file: %s", path);
 
-        char signature[16] = SAVE_FILE_SIGNATURE;
-        u8 version = SAVE_FILE_VERSION;
-        u8 romType = m_pCartridge->GetType();
-        u8 romSize = m_pCartridge->GetROMSize();
-        u8 ramSize = m_pCartridge->GetRAMSize();
-        u8 ramBanksSize = m_pMemory->GetCurrentRule()->GetRamBanksSize();
-        u8 ramBanksStart = 39;
-        u8 saveStateSize = 0;
-        u8 saveStateStart = 0;
-
         ofstream file(path, ios::out | ios::binary);
-
-        file.write(signature, 16);
-        file.write(reinterpret_cast<const char*> (&version), 1);
-        file.write(m_pCartridge->GetName(), 16);
-        file.write(reinterpret_cast<const char*> (&romType), 1);
-        file.write(reinterpret_cast<const char*> (&romSize), 1);
-        file.write(reinterpret_cast<const char*> (&ramSize), 1);
-        file.write(reinterpret_cast<const char*> (&ramBanksSize), 1);
-        file.write(reinterpret_cast<const char*> (&ramBanksStart), 1);
-        file.write(reinterpret_cast<const char*> (&saveStateSize), 1);
-        file.write(reinterpret_cast<const char*> (&saveStateStart), 1);
-
-        Log("Header saved");
 
         m_pMemory->GetCurrentRule()->SaveRam(file);
 
@@ -319,6 +303,16 @@ void GearboyCore::LoadRam()
 
 void GearboyCore::LoadRam(const char* szPath)
 {
+    if (m_bDuringBootROM)
+    {
+        m_bLoadRamPending = true;
+        if (IsValidPointer(szPath))
+            strcpy(m_szLoadRamPendingPath, szPath);
+        else 
+            m_szLoadRamPendingPath[0] = 0;
+        return;
+    }
+    
     if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
         Log("Loading RAM...");
@@ -337,50 +331,63 @@ void GearboyCore::LoadRam(const char* szPath)
         {
             strcpy(path, m_pCartridge->GetFilePath());
         }
-        
+
         strcat(path, ".gearboy");
 
-        Log("Save file: %s", path);
+        Log("Opening save file: %s", path);
 
         ifstream file(path, ios::in | ios::binary);
 
         if (!file.fail())
         {
             char signature[16];
-            u8 version;
-            char romName[16];
-            u8 romType;
-            u8 romSize;
-            u8 ramSize;
-            u8 ramBanksSize;
-            u8 ramBanksStart;
-            u8 saveStateSize;
-            u8 saveStateStart;
 
             file.read(signature, 16);
-            file.read(reinterpret_cast<char*> (&version), 1);
-            file.read(romName, 16);
-            file.read(reinterpret_cast<char*> (&romType), 1);
-            file.read(reinterpret_cast<char*> (&romSize), 1);
-            file.read(reinterpret_cast<char*> (&ramSize), 1);
-            file.read(reinterpret_cast<char*> (&ramBanksSize), 1);
-            file.read(reinterpret_cast<char*> (&ramBanksStart), 1);
-            file.read(reinterpret_cast<char*> (&saveStateSize), 1);
-            file.read(reinterpret_cast<char*> (&saveStateStart), 1);
 
-            Log("Header loaded");
-
-            if ((strcmp(signature, SAVE_FILE_SIGNATURE) == 0) && (strcmp(romName, m_pCartridge->GetName()) == 0) &&
-                    (version == SAVE_FILE_VERSION) && (romType == m_pCartridge->GetType()) &&
-                    (romSize == m_pCartridge->GetROMSize()) && (ramSize == m_pCartridge->GetRAMSize()))
+            if (strcmp(signature, SAVE_FILE_SIGNATURE) == 0)
             {
-                m_pMemory->GetCurrentRule()->LoadRam(file);
+                Log("Old save format: loading header...");
+
+                u8 version;
+                char romName[16];
+                u8 romType;
+                u8 romSize;
+                u8 ramSize;
+                u8 ramBanksSize;
+                u8 ramBanksStart;
+                u8 saveStateSize;
+                u8 saveStateStart;
+
+                file.read(reinterpret_cast<char*> (&version), 1);
+                file.read(romName, 16);
+                file.read(reinterpret_cast<char*> (&romType), 1);
+                file.read(reinterpret_cast<char*> (&romSize), 1);
+                file.read(reinterpret_cast<char*> (&ramSize), 1);
+                file.read(reinterpret_cast<char*> (&ramBanksSize), 1);
+                file.read(reinterpret_cast<char*> (&ramBanksStart), 1);
+                file.read(reinterpret_cast<char*> (&saveStateSize), 1);
+                file.read(reinterpret_cast<char*> (&saveStateStart), 1);
+
+                Log("Header loaded");
+
+                m_pMemory->GetCurrentRule()->LoadRam(file, 0);
 
                 Log("RAM loaded");
             }
             else
             {
-                Log("Integrity check failed loading save file");
+                file.seekg(0, file.end);
+                s32 fileSize = file.tellg();
+                file.seekg(0, file.beg);
+
+                if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
+                {
+                    Log("RAM loaded");
+                }
+                else
+                {
+                    Log("Save file size incorrect: %d", fileSize);
+                }
             }
         }
         else
@@ -485,11 +492,16 @@ void GearboyCore::Reset(bool bCGB)
 
     if (m_bCGB)
     {
-        Log("Switching to Game Boy Color");
+        Log("Reset: Switching to Game Boy Color");
     }
     else
     {
-        Log("Defaulting to Game Boy DMG");
+        Log("Reset: Defaulting to Game Boy DMG");
+    }
+    
+    if (m_bDuringBootROM)
+    {
+        Log("Boot rom mode");
     }
 
     m_pMemory->Reset(m_bCGB, m_bDuringBootROM);

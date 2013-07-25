@@ -32,8 +32,7 @@ public:
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset(bool bCGB);
     virtual void SaveRam(std::ofstream &file);
-    virtual void LoadRam(std::ifstream &file);
-    virtual int GetRamBanksSize();
+    virtual bool LoadRam(std::ifstream &file, s32 fileSize);
 
 private:
     void UpdateRTC();
@@ -56,8 +55,8 @@ private:
     s32 m_iRTCLatchedControl;
     s32 m_iRTCLatch;
     u8 m_RTCRegister;
-    time_t m_RTCLastTime;
-    time_t m_RTCLastTimeCache;
+    s32 m_RTCLastTime;
+    s32 m_RTCLastTimeCache;
     int m_CurrentROMAddress;
     int m_CurrentRAMAddress;
 };

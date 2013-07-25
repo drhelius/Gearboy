@@ -32,8 +32,7 @@ public:
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset(bool bCGB);
     virtual void SaveRam(std::ofstream &file);
-    virtual void LoadRam(std::ifstream &file);
-    virtual int GetRamBanksSize();
+    virtual bool LoadRam(std::ifstream &file, s32 fileSize);
 
 private:
     int m_iCurrentROMBank;

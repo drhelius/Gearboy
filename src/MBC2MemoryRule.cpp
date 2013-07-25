@@ -142,17 +142,22 @@ void MBC2MemoryRule::SaveRam(std::ofstream & file)
 
     for (int i = 0xA000; i < 0xA200; i++)
     {
-        u8 ram_byte = 0;
-        ram_byte = m_pMemory->Retrieve(i);
+        u8 ram_byte = m_pMemory->Retrieve(i);
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
 
     Log("MBC2MemoryRule save RAM done");
 }
 
-void MBC2MemoryRule::LoadRam(std::ifstream & file)
+bool MBC2MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
 {
     Log("MBC2MemoryRule load RAM...");
+    
+    if ((fileSize > 0) && (fileSize != 512))
+    {
+        Log("MBC2MemoryRule incorrect size. Expected: 512 Found: %d", fileSize);
+        return false;
+    }
 
     for (int i = 0xA000; i < 0xA200; i++)
     {
@@ -162,12 +167,6 @@ void MBC2MemoryRule::LoadRam(std::ifstream & file)
     }
 
     Log("MBC2MemoryRule load RAM done");
+    
+    return true;
 }
-
-int MBC2MemoryRule::GetRamBanksSize()
-{
-    return 0x200;
-}
-
-
-

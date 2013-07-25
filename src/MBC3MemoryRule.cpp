@@ -246,32 +246,54 @@ void MBC3MemoryRule::SaveRam(std::ofstream & file)
 
     for (int i = 0; i < 0x8000; i++)
     {
-        u8 ram_byte = 0;
-        ram_byte = m_pRAMBanks[i];
+        u8 ram_byte = m_pRAMBanks[i];
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
 
-    file.write(reinterpret_cast<const char*> (&m_iRTCSeconds), sizeof (s32));
-    file.write(reinterpret_cast<const char*> (&m_iRTCMinutes), sizeof (s32));
-    file.write(reinterpret_cast<const char*> (&m_iRTCHours), sizeof (s32));
-    file.write(reinterpret_cast<const char*> (&m_iRTCDays), sizeof (s32));
-    file.write(reinterpret_cast<const char*> (&m_iRTCControl), sizeof (s32));
-    file.write(reinterpret_cast<const char*> (&m_iRTCLatchedSeconds), sizeof (s32));
-    file.write(reinterpret_cast<const char*> (&m_iRTCLatchedMinutes), sizeof (s32));
-    file.write(reinterpret_cast<const char*> (&m_iRTCLatchedHours), sizeof (s32));
-    file.write(reinterpret_cast<const char*> (&m_iRTCLatchedDays), sizeof (s32));
-    file.write(reinterpret_cast<const char*> (&m_iRTCLatchedControl), sizeof (s32));
-    file.write(reinterpret_cast<const char*> (&m_RTCLastTime), sizeof (time_t));
-    file.write(reinterpret_cast<const char*> (&m_RTCLastTimeCache), sizeof (time_t));
-    file.write(reinterpret_cast<const char*> (&m_iRTCLatch), sizeof (s32));
-    file.write(reinterpret_cast<const char*> (&m_RTCRegister), sizeof (u8));
+    if (m_pCartridge->IsRTCPresent())
+    {
+        file.write(reinterpret_cast<const char*> (&m_iRTCSeconds), 4);
+        file.write(reinterpret_cast<const char*> (&m_iRTCMinutes), 4);
+        file.write(reinterpret_cast<const char*> (&m_iRTCHours), 4);
+        file.write(reinterpret_cast<const char*> (&m_iRTCDays), 4);
+        file.write(reinterpret_cast<const char*> (&m_iRTCControl), 4);
+        file.write(reinterpret_cast<const char*> (&m_iRTCLatchedSeconds), 4);
+        file.write(reinterpret_cast<const char*> (&m_iRTCLatchedMinutes), 4);
+        file.write(reinterpret_cast<const char*> (&m_iRTCLatchedHours), 4);
+        file.write(reinterpret_cast<const char*> (&m_iRTCLatchedDays), 4);
+        file.write(reinterpret_cast<const char*> (&m_iRTCLatchedControl), 4);
+        file.write(reinterpret_cast<const char*> (&m_RTCLastTime), 4);
+    }
 
     Log("MBC3MemoryRule save RAM done");
 }
 
-void MBC3MemoryRule::LoadRam(std::ifstream & file)
+bool MBC3MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
 {
     Log("MBC3MemoryRule load RAM...");
+
+    if (fileSize > 0)
+    {
+        if (m_pCartridge->IsRTCPresent())
+        {
+            s32 minExpectedSize = 0x8000 + 44;
+            s32 maxExpectedSize = 0x8000 + 48;
+            
+            if ((fileSize != minExpectedSize) && (fileSize != maxExpectedSize))
+            {
+                Log("MBC3MemoryRule incorrect size. MinExpected: %d MaxExpected: %d Found: %d", minExpectedSize, maxExpectedSize, fileSize);
+                return false;
+            }
+        }
+        else
+        {
+            if (fileSize != 0x8000)
+            {
+                Log("MBC3MemoryRule incorrect size. Expected: %d Found: %d", 0x8000, fileSize);
+                return false;
+            }
+        }   
+    }
 
     for (int i = 0; i < 0x8000; i++)
     {
@@ -280,43 +302,44 @@ void MBC3MemoryRule::LoadRam(std::ifstream & file)
         m_pRAMBanks[i] = ram_byte;
     }
 
-    file.read(reinterpret_cast<char*> (&m_iRTCSeconds), sizeof (s32));
-    file.read(reinterpret_cast<char*> (&m_iRTCMinutes), sizeof (s32));
-    file.read(reinterpret_cast<char*> (&m_iRTCHours), sizeof (s32));
-    file.read(reinterpret_cast<char*> (&m_iRTCDays), sizeof (s32));
-    file.read(reinterpret_cast<char*> (&m_iRTCControl), sizeof (s32));
-    file.read(reinterpret_cast<char*> (&m_iRTCLatchedSeconds), sizeof (s32));
-    file.read(reinterpret_cast<char*> (&m_iRTCLatchedMinutes), sizeof (s32));
-    file.read(reinterpret_cast<char*> (&m_iRTCLatchedHours), sizeof (s32));
-    file.read(reinterpret_cast<char*> (&m_iRTCLatchedDays), sizeof (s32));
-    file.read(reinterpret_cast<char*> (&m_iRTCLatchedControl), sizeof (s32));
-    file.read(reinterpret_cast<char*> (&m_RTCLastTime), sizeof (time_t));
-    file.read(reinterpret_cast<char*> (&m_RTCLastTimeCache), sizeof (time_t));
-    file.read(reinterpret_cast<char*> (&m_iRTCLatch), sizeof (s32));
-    file.read(reinterpret_cast<char*> (&m_RTCRegister), sizeof (u8));
+    if (m_pCartridge->IsRTCPresent() || (fileSize == 0))
+    {   
+        file.read(reinterpret_cast<char*> (&m_iRTCSeconds), 4);
+        file.read(reinterpret_cast<char*> (&m_iRTCMinutes), 4);
+        file.read(reinterpret_cast<char*> (&m_iRTCHours), 4);
+        file.read(reinterpret_cast<char*> (&m_iRTCDays), 4);
+        file.read(reinterpret_cast<char*> (&m_iRTCControl), 4);
+        file.read(reinterpret_cast<char*> (&m_iRTCLatchedSeconds), 4);
+        file.read(reinterpret_cast<char*> (&m_iRTCLatchedMinutes), 4);
+        file.read(reinterpret_cast<char*> (&m_iRTCLatchedHours), 4);
+        file.read(reinterpret_cast<char*> (&m_iRTCLatchedDays), 4);
+        file.read(reinterpret_cast<char*> (&m_iRTCLatchedControl), 4);
+        file.read(reinterpret_cast<char*> (&m_RTCLastTime), 4);
 
-    m_iRTCControl &= 0x01;
-    m_iRTCLatchedControl &= 0x01;
+        m_iRTCControl &= 0x01;
+        m_iRTCLatchedControl &= 0x01;
+
+        m_RTCLastTimeCache = 0;
+        m_iRTCLatch = 0;
+        m_RTCRegister = 0;
+    }
 
     Log("MBC3MemoryRule load RAM done");
-}
 
-int MBC3MemoryRule::GetRamBanksSize()
-{
-    return 0x8000 + (sizeof (s32) * 11) + (sizeof (time_t) * 2) + 1;
+    return true;
 }
 
 void MBC3MemoryRule::UpdateRTC()
 {
-    time_t now = m_pCartridge->GetCurrentRTC();
+    s32 now = m_pCartridge->GetCurrentRTC();
 
     if (m_RTCLastTimeCache != now)
     {
         m_RTCLastTimeCache = now;
-        time_t difference = now - m_RTCLastTime;
+        s32 difference = now - m_RTCLastTime;
         if (difference > 0)
         {
-            m_iRTCSeconds += (int) (difference % 60);
+            m_iRTCSeconds += (s32) (difference % 60);
             if (m_iRTCSeconds > 59)
             {
                 m_iRTCSeconds -= 60;
@@ -325,7 +348,7 @@ void MBC3MemoryRule::UpdateRTC()
 
             difference /= 60;
 
-            m_iRTCMinutes += (int) (difference % 60);
+            m_iRTCMinutes += (s32) (difference % 60);
             if (m_iRTCMinutes > 59)
             {
                 m_iRTCMinutes -= 60;
@@ -334,7 +357,7 @@ void MBC3MemoryRule::UpdateRTC()
 
             difference /= 60;
 
-            m_iRTCHours += (int) (difference % 24);
+            m_iRTCHours += (s32) (difference % 24);
             if (m_iRTCHours > 23)
             {
                 m_iRTCHours -= 24;
@@ -342,7 +365,7 @@ void MBC3MemoryRule::UpdateRTC()
             }
             difference /= 24;
 
-            m_iRTCDays += (int) (difference & 0xffffffff);
+            m_iRTCDays += (s32) (difference & 0xffffffff);
             if (m_iRTCDays > 0xFF)
             {
                 if (m_iRTCDays > 511)
