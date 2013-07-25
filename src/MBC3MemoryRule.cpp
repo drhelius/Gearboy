@@ -128,12 +128,20 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                     m_RTCRegister = value;
                     m_iCurrentRAMBank = -1;
                 }
+                else
+                {
+                    Log("--> ** Attempting to select RTC register when RTC is disabled or not present %X %X", address, value);
+                }
             }
             else if (value <= 0x03)
             {
                 m_iCurrentRAMBank = value;
                 m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
                 m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
+            }
+            else
+            {
+                Log("--> ** Attempting to select unkwon register %X %X", address, value);
             }
             break;
         }
@@ -198,7 +206,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else
             {
-                Log("--> ** Attempting to write on RTC when RTC is disabled %X %X", address, value);
+                Log("--> ** Attempting to write on RTC when RTC is disabled or not present %X %X", address, value);
             }
             break;
         }
