@@ -59,7 +59,7 @@ u8 MBC1MemoryRule::PerformRead(u16 address)
                     if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
                     {
                         // only 2KB of ram
-                        Log("--> ** Attempting to read from non usable address %X", address);
+                        Log("--> ** Attempting to read from invalid RAM %X", address);
                     }
                     return m_pRAMBanks[address - 0xA000];
                 }
@@ -151,7 +151,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
                     if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
                     {
                         // only 2KB of ram
-                        Log("--> ** Attempting to write on non usable address %X %X", address, value);
+                        Log("--> ** Attempting to write on invalid RAM %X %X", address, value);
                     }
 
                     m_pRAMBanks[address - 0xA000] = value;
@@ -190,6 +190,7 @@ void MBC1MemoryRule::Reset(bool bCGB)
 void MBC1MemoryRule::SaveRam(std::ofstream &file)
 {
     Log("MBC1MemoryRule save RAM...");
+    Log("MBC1MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
     
     u32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
 
@@ -205,22 +206,20 @@ void MBC1MemoryRule::SaveRam(std::ofstream &file)
 bool MBC1MemoryRule::LoadRam(std::ifstream &file, s32 fileSize)
 {
     Log("MBC1MemoryRule load RAM...");
+    Log("MBC1MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
 
     s32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
 
-    if (fileSize > 0)
+    if ((fileSize > 0) && (fileSize != ramSize))
     {
-        if (fileSize != ramSize)
-        {
-            Log("MBC1MemoryRule incorrect size. Expected: %d Found: %d", ramSize, fileSize);
-            return false;
-        }
+        Log("MBC1MemoryRule incorrect size. Expected: %d Found: %d", ramSize, fileSize);
+        return false;
     }
     else if (fileSize == 0)
     {
+        // compatibility with old saves
         u8 mode;
         file.read(reinterpret_cast<char*> (&mode), 1);
-
         Log("MBC1MemoryRule load RAM mode %d", mode);
     }
 

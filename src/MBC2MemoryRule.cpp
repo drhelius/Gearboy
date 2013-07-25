@@ -60,7 +60,7 @@ u8 MBC2MemoryRule::PerformRead(u16 address)
             }
             else
             {
-                Log("--> ** Attempting to read from non usable address %X", address);
+                Log("--> ** Attempting to read from ivalid RAM %X", address);
                 return 0x00;
             }
         }
@@ -81,6 +81,10 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
             {
                 m_bRamEnabled = (value & 0x0F) == 0x0A;
             }
+            else
+            {
+                Log("--> ** Attempting to write on invalid register %X %X", address, value);
+            }
             break;
         }
         case 0x2000:
@@ -93,12 +97,16 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
                 m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
                 m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
             }
+            else
+            {
+                Log("--> ** Attempting to write on invalid register %X %X", address, value);
+            }
             break;
         }
         case 0x4000:
         case 0x6000:
         {
-            Log("--> ** Attempting to write on non usable address %X %X", address, value);
+            Log("--> ** Attempting to write on invalid address %X %X", address, value);
             break;
         }
         case 0xA000:
@@ -116,7 +124,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else
             {
-                Log("--> ** Attempting to write on non usable address %X %X", address, value);
+                Log("--> ** Attempting to write on invalid RAM %X %X", address, value);
             }
             break;
         }
