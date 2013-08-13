@@ -162,9 +162,7 @@
 
     cell.textLabel.text = [rom stringByDeletingPathExtension];
     cell.textLabel.adjustsFontSizeToFitWidth = YES;
-    UIView* blackColorView = [[UIView alloc] init];
-    blackColorView.backgroundColor = [UIColor blackColor];
-    cell.selectedBackgroundView = blackColorView;
+    cell.selectionStyle = UITableViewCellSelectionStyleGray;
     return cell;
 }
 

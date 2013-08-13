@@ -78,3 +78,5 @@ platforms/ios/Gearboy.xcodeproj/xcuserdata/*
 *.xcexplist
 
 *.xcsettings
+
+*.xccheckout
