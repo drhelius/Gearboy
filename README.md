@@ -39,7 +39,7 @@ Features
 
 Todo List
 -----------
-- Saving and loading game states.
+- Saving and loading game states (only desktop).
 - Pixel precision scan line timing (https://gist.github.com/3730564).
 - Debugger.
 
