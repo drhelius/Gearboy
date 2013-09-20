@@ -378,7 +378,7 @@ void GearboyCore::LoadRam(const char* szPath)
             else
             {
                 file.seekg(0, file.end);
-                s32 fileSize = file.tellg();
+                s32 fileSize = (s32)file.tellg();
                 file.seekg(0, file.beg);
 
                 if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
