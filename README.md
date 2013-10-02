@@ -6,7 +6,7 @@ Gearboy
 
 Gearboy is a Nintendo Game Boy / GameBoy Color emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows and Linux.
 
-The main focus of this emulator is readability of source code with a high compatibility.
+The main focus of this emulator is readability of source code with very high compatibility.
 
 Follow me on Twitter for updates: http://twitter.com/drhelius
 
@@ -25,7 +25,7 @@ Downloads
 
 Features
 --------
-- Accurate CPU emulation, passes cpu_instrs.gb from blargg's tests.
+- Highly accurate CPU emulation, passes cpu_instrs.gb from blargg's tests.
 - Accurate instruction timing, passes instr_timing.gb from blargg's tests.
 - Memory Bank Controllers (MBC1, MBC2, MBC3 with RTC, MBC5), ROM + RAM and multicart cartridges.
 - Accurate LCD controller emulation. Background, window and sprites, with correct timings and priorities.
