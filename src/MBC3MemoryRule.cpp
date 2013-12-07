@@ -276,28 +276,33 @@ void MBC3MemoryRule::SaveRam(std::ofstream & file)
 bool MBC3MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
 {
     Log("MBC3MemoryRule load RAM...");
+    
+    bool loadRTC = m_pCartridge->IsRTCPresent();
 
     if (fileSize > 0)
-    {
-        if (m_pCartridge->IsRTCPresent())
+    {  
+        if (fileSize < 0x8000)
+        {
+            Log("MBC3MemoryRule incorrect RAM size. Expected: %d Found: %d", 0x8000, fileSize);
+            return false;
+        }
+        
+        if (loadRTC)
         {
             s32 minExpectedSize = 0x8000 + 44;
             s32 maxExpectedSize = 0x8000 + 48;
             
             if ((fileSize != minExpectedSize) && (fileSize != maxExpectedSize))
             {
-                Log("MBC3MemoryRule incorrect size. MinExpected: %d MaxExpected: %d Found: %d", minExpectedSize, maxExpectedSize, fileSize);
-                return false;
+                Log("MBC3MemoryRule incorrect RTC size. MinExpected: %d MaxExpected: %d Found: %d", minExpectedSize, maxExpectedSize, fileSize);
             }
-        }
-        else
-        {
-            if (fileSize != 0x8000)
+            
+            if (fileSize < minExpectedSize)
             {
-                Log("MBC3MemoryRule incorrect size. Expected: %d Found: %d", 0x8000, fileSize);
-                return false;
+                Log("MBC3MemoryRule ignoring RTC data");
+                loadRTC = false;
             }
-        }   
+        } 
     }
 
     for (int i = 0; i < 0x8000; i++)
@@ -307,7 +312,7 @@ bool MBC3MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
         m_pRAMBanks[i] = ram_byte;
     }
 
-    if (m_pCartridge->IsRTCPresent() || (fileSize == 0))
+    if (loadRTC)
     {   
         file.read(reinterpret_cast<char*> (&m_iRTCSeconds), 4);
         file.read(reinterpret_cast<char*> (&m_iRTCMinutes), 4);
@@ -384,4 +389,3 @@ void MBC3MemoryRule::UpdateRTC()
         m_RTCLastTime = now;
     }
 }
-
