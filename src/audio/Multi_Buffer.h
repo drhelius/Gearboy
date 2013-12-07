@@ -158,7 +158,6 @@ private:
 	buf_t bufs [bufs_size];
 	Stereo_Mixer mixer;
 	channel_t chan;
-	long samples_avail_;
 };
 
 // Silent_Buffer generates no samples, useful where no sound is wanted
