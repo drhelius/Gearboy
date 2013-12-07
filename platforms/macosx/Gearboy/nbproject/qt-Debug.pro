@@ -21,4 +21,4 @@ QMAKE_CC = clang
 QMAKE_CXX = clang++
 DEFINES += 
 INCLUDEPATH += 
-LIBS += -lSDLmain -lSDL -Wl,-framework,Cocoa  
+LIBS += -lSDL2main -lSDL2 -Wl,-framework,Cocoa  

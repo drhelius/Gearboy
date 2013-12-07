@@ -52,7 +52,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lSDLmain -lSDL -Wl,-framework,Cocoa
+LDLIBSOPTIONS=-lSDL2main -lSDL2 -Wl,-framework,Cocoa
 
 nbproject/qt-${CND_CONF}.mk: nbproject/qt-${CND_CONF}.pro FORCE
 	${QMAKE} VPATH=. -spec macx-llvm -o qttmp-${CND_CONF}.mk nbproject/qt-${CND_CONF}.pro

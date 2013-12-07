@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="89">
+<configurationDescriptor version="90">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f2" displayName="Audio" projectFiles="true">
       <itemPath>../../../src/audio/Blip_Buffer.cpp</itemPath>
@@ -115,7 +115,6 @@
   <confs>
     <conf name="Debug" type="4">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>CLang|CLang</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -126,7 +125,7 @@
       <compileType>
         <linkerTool>
           <linkerLibItems>
-            <linkerOptionItem>-lSDLmain -lSDL -Wl,-framework,Cocoa</linkerOptionItem>
+            <linkerOptionItem>-lSDL2main -lSDL2 -Wl,-framework,Cocoa</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
@@ -318,7 +317,6 @@
     </conf>
     <conf name="Release" type="4">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>CLang|CLang</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -342,7 +340,7 @@
         </asmTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerOptionItem>-lSDLmain -lSDL -Wl,-framework,Cocoa</linkerOptionItem>
+            <linkerOptionItem>-lSDL2main -lSDL2 -Wl,-framework,Cocoa</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
