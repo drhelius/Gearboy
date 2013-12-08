@@ -52,7 +52,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lGLU -lSDL -lGLEW -lX11
+LDLIBSOPTIONS=-lGLU -lSDL2 -lGLEW -lX11
 
 nbproject/qt-${CND_CONF}.mk: nbproject/qt-${CND_CONF}.pro FORCE
 	${QMAKE} VPATH=. -o qttmp-${CND_CONF}.mk nbproject/qt-${CND_CONF}.pro

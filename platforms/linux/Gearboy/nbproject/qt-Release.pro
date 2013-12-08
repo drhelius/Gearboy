@@ -21,4 +21,4 @@ QMAKE_CC = gcc
 QMAKE_CXX = g++
 DEFINES += 
 INCLUDEPATH += 
-LIBS += -lGLU -lSDL -lGLEW -lX11  
+LIBS += -lGLU -lSDL2 -lGLEW -lX11  
