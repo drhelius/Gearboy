@@ -73,7 +73,6 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - You need Netbeans 7.3 or later.
 - Install Xcode for the compiler to be available on the command line.
 - Install the [Qt 4 SDK for Mac OS](http://qt-project.org/downloads).
-- Add <code>qmake</code> to the PATH (You can find qmake in the bin directory where you have Qt SDK installed).
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
 - Open the Gearboy Netbeans project and build. The project will use <code>clang</code>.
 - Alternatively, you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
@@ -83,7 +82,7 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Install Qt 4 development dependencies (Ubuntu: <code>sudo apt-get install qt4-dev-tools</code>).
 - Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
 - Install SDL 2 development dependencies (Ubuntu: <code>sudo apt-get install libsdl2-dev</code>).
-- In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew1.6-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.
+- In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew1.8-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.
 - Open the Gearboy Netbeans project and build.
 - Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
 - In Ubuntu 13.10 I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
