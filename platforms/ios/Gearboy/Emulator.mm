@@ -191,7 +191,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     }
     
     static bool round_error = false;
-    float round_color = 1.0f - (round_error ? 0.06f : 0.0f);
+    float round_color = 1.0f - (round_error ? 0.04f : 0.0f);
     round_error = !round_error;
     glEnable(GL_BLEND);
     glColor4f(round_color, round_color, round_color, alpha);
