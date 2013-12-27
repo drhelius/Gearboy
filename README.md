@@ -38,10 +38,16 @@ Features
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
 
 Todo List
------------
+---------
 - Saving and loading game states (only desktop).
 - Pixel precision scan line timing (https://gist.github.com/3730564).
 - Debugger.
+
+Save Files Note
+---------------
+If you don't have access to an Apple developer account and are using older versions of Gearboy (such as from emu4ios), you can use a hex editor to convert between a .gearboy file and a .sav file. 
+In particular, a .gearboy file has about 40 extra bytes at the beginning of the file. If you remove these 40 bytes and rename to a .sav extension the file should be compatible with other emulators. You can also reinsert the 40 bytes to convert a .sav file to .gearboy. This should work for Pokemon RBY. 
+If you are still having problems, see if you can find an SRAM map for your game and double check that the offset matches.
 
 Compiling Instructions
 ----------------------
