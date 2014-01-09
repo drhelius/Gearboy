@@ -24,7 +24,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include "bcm_host.h"
 #include "GLES/gl.h"
 #include "EGL/egl.h"
