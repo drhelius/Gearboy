@@ -33,6 +33,7 @@
 
 bool running = true;
 bool paused = false;
+
 EGLDisplay display;
 EGLSurface surface;
 EGLContext context;
@@ -50,12 +51,15 @@ GLuint theGBTexture;
 
 uint32_t screen_width, screen_height;
 
+SDL_Window* theWindow;
+
 void update(void)
 {
     SDL_Event keyevent;
 
     while (SDL_PollEvent(&keyevent))
     {
+Log("%d", keyevent.type);
         switch(keyevent.type)
         {
             case SDL_QUIT:
@@ -147,7 +151,9 @@ void init_sdl(void)
         Log("SDL Error Init: %s", SDL_GetError());
     }
 
-    if (SDL_SetVideoMode(0, 0, 32, SDL_SWSURFACE) == NULL)
+    theWindow = SDL_CreateWindow("Gearboy", 0, 0, 0, 0, 0);
+
+    if (theWindow == NULL)
     {
         Log("SDL Error Video: %s", SDL_GetError());
     }
@@ -307,6 +313,7 @@ void end(void)
 {
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearboyCore);
+    SDL_DestroyWindow(theWindow);
     SDL_Quit();
     bcm_host_deinit();
 }
