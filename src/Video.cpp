@@ -223,7 +223,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
             case 3:
             {
                 // During transfering data to LCD driver
-                if (!m_bScanLineTransfered && (m_iStatusModeCounter >= 48))
+                if (!m_bScanLineTransfered && (m_iStatusModeCounter >= (m_iStatusModeLYCounter == 0 ? 160: 48)))
                 {
                     m_bScanLineTransfered = true;
                     ScanLine(m_iStatusModeLYCounter);
