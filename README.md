@@ -99,21 +99,21 @@ Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/G
 
 Tests from [blargg's test roms](http://slack.net/~ant/old/gb-tests/):
 
-![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_1.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_2.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_3.png)
-![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_32.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_33.png)
+![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_001.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_002.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_003.png)
+![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_032.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_033.png)
 
 Screenshots
 -----------
 
-![Screenshot](http://www.geardome.com/files/gearboy/gearboy_4.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_5.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_6.png)
-![Screenshot](http://www.geardome.com/files/gearboy/gearboy_7.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_8.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_9.png)
-![Screenshot](http://www.geardome.com/files/gearboy/gearboy_10.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_11.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_12.png)
-![Screenshot](http://www.geardome.com/files/gearboy/gearboy_13.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_14.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_15.png)
-![Screenshot](http://www.geardome.com/files/gearboy/gearboy_16.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_17.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_18.png)
-![Screenshot](http://www.geardome.com/files/gearboy/gearboy_19.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_20.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_21.png)
-![Screenshot](http://www.geardome.com/files/gearboy/gearboy_22.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_23.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_24.png)
-![Screenshot](http://www.geardome.com/files/gearboy/gearboy_25.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_26.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_27.png)
-![Screenshot](http://www.geardome.com/files/gearboy/gearboy_28.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_29.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_31.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_34.png)
+![Screenshot](http://www.geardome.com/files/gearboy/gearboy_004.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_005.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_006.png)
+![Screenshot](http://www.geardome.com/files/gearboy/gearboy_007.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_008.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_009.png)
+![Screenshot](http://www.geardome.com/files/gearboy/gearboy_010.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_011.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_012.png)
+![Screenshot](http://www.geardome.com/files/gearboy/gearboy_013.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_014.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_015.png)
+![Screenshot](http://www.geardome.com/files/gearboy/gearboy_016.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_017.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_018.png)
+![Screenshot](http://www.geardome.com/files/gearboy/gearboy_019.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_020.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_021.png)
+![Screenshot](http://www.geardome.com/files/gearboy/gearboy_022.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_023.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_024.png)
+![Screenshot](http://www.geardome.com/files/gearboy/gearboy_025.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_026.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_027.png)
+![Screenshot](http://www.geardome.com/files/gearboy/gearboy_028.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_029.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_031.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_034.png)
 
 License
 -------
