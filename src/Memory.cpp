@@ -195,11 +195,6 @@ void Memory::Disassemble(u16 address, const char* szDisassembled)
     strcpy(m_pDisassembledMap[address].szDisString, szDisassembled);
 }
 
-bool Memory::IsDisassembled(u16 address)
-{
-    return m_pDisassembledMap[address].szDisString[0] != 0;
-}
-
 void Memory::LoadBank0and1FromROM(u8* pTheROM)
 {
     // loads the first 32KB only (bank 0 and 1)
