@@ -17,7 +17,7 @@
  * 
  */
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include "MainWindow.h"
 #ifdef Q_WS_X11
 #include <X11/Xlib.h>

@@ -33,6 +33,7 @@ GLFrame::~GLFrame()
 void GLFrame::InitRenderThread(Emulator* pEmulator)
 {
     doneCurrent();
+    context()->moveToThread(&m_RenderThread);
     m_RenderThread.SetEmulator(pEmulator);
     m_RenderThread.start();
 }

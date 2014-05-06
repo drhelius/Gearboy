@@ -20,5 +20,6 @@ UI_DIR =
 QMAKE_CC = clang
 QMAKE_CXX = clang++
 DEFINES += 
-INCLUDEPATH += 
+INCLUDEPATH += /usr/local/include 
 LIBS += -lSDL2main -lSDL2 -Wl,-framework,Cocoa  
+QMAKE_LIBDIR += /usr/local/lib

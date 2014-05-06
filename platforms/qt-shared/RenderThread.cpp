@@ -42,11 +42,6 @@ RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 
 RenderThread::~RenderThread()
 {
-    m_pGLFrame->makeCurrent();
-    SafeDeleteArray(m_pFrameBuffer);
-    glDeleteTextures(1, &m_AccumulationTexture);
-    glDeleteTextures(1, &m_GBTexture);
-    glDeleteFramebuffers(1, &m_AccumulationFramebuffer);
 }
 
 void RenderThread::ResizeViewport(const QSize &size)
@@ -84,6 +79,7 @@ void RenderThread::SetEmulator(Emulator* pEmulator)
 void RenderThread::run()
 {
     m_pGLFrame->makeCurrent();
+    
     Init();
 
     while (m_bDoRendering)
@@ -105,6 +101,11 @@ void RenderThread::run()
             m_pGLFrame->swapBuffers();
         }
     }
+    
+    SafeDeleteArray(m_pFrameBuffer);
+    glDeleteTextures(1, &m_AccumulationTexture);
+    glDeleteTextures(1, &m_GBTexture);
+    glDeleteFramebuffers(1, &m_AccumulationFramebuffer);
 }
 
 void RenderThread::Init()

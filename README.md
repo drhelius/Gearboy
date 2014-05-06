@@ -54,7 +54,7 @@ Compiling Instructions
 
 The best way of compiling Gearboy is by using one of the IDE projects provided for each platform.
 
-For all desktop platforms you will need SDL 2 and Qt 4 SDKs installed and configured. SDL is provided as a framework for iOS.
+For all desktop platforms you will need SDL 2 and Qt 5 SDKs installed and configured. SDL is provided as a framework for iOS.
 
 There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt-applications.html).
 
@@ -69,8 +69,8 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 
 ### Windows
 - You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
-- Install the [Qt 4 SDK for Windows](http://qt-project.org/downloads).
-- Install the [Qt 4 Visual Studio Add-in](http://qt-project.org/downloads) and point it to the Qt SDK.
+- Install the [Qt 5 SDK for Windows](http://qt-project.org/downloads).
+- Install the [Qt 5 Visual Studio Add-in](http://qt-project.org/downloads) and point it to the Qt SDK.
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
 - In order to use OpenGL extensions I used [GLEW](http://glew.sourceforge.net/). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions. Make sure the GLEW headers and libs are configured within VC++.
 - Open the Gearboy Visual Studio project and build.
@@ -78,14 +78,14 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 ### Mac OS X
 - You need Netbeans 7.3 or later.
 - Install Xcode for the compiler to be available on the command line.
-- Install the [Qt 4 SDK for Mac OS](http://qt-project.org/downloads).
+- Install the [Qt 5 SDK for Mac OS](http://qt-project.org/downloads).
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
 - Open the Gearboy Netbeans project and build. The project will use <code>clang</code>.
 - Alternatively, you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
 
 ### Linux
 - You need Netbeans 7.3 or later.
-- Install Qt 4 development dependencies (Ubuntu: <code>sudo apt-get install qt4-dev-tools</code>).
+- Install Qt 5 development dependencies (Ubuntu: <code>sudo apt-get install qt5-default qttools5-dev-tools</code>).
 - Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
 - Install SDL 2 development dependencies (Ubuntu: <code>sudo apt-get install libsdl2-dev</code>).
 - In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew1.8-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.

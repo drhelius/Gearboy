@@ -200,7 +200,7 @@ void InputSettings::PrintKey(QKeyEvent& pEvent, char* buffer)
             strcpy(buffer, "DELETE");
             break;
         default:
-            strcpy(buffer, pEvent.text().toUpper().toAscii());
+            strcpy(buffer, pEvent.text().toUpper().toLatin1());
     }
 }
 
@@ -236,14 +236,14 @@ void InputSettings::LoadSettings(QSettings& settings)
     m_Keys[6].keyCode = settings.value("KeySTART", Qt::Key_Return).toInt();
     m_Keys[7].keyCode = settings.value("KeySELECT", Qt::Key_Space).toInt();
 
-    strcpy(m_Keys[0].text, settings.value("KeyNameUP", "UP").toString().toAscii().constData());
-    strcpy(m_Keys[1].text, settings.value("KeyNameRIGHT", "RIGHT").toString().toAscii().constData());
-    strcpy(m_Keys[2].text, settings.value("KeyNameDOWN", "DOWN").toString().toAscii().constData());
-    strcpy(m_Keys[3].text, settings.value("KeyNameLEFT", "LEFT").toString().toAscii().constData());
-    strcpy(m_Keys[4].text, settings.value("KeyNameA", "S").toString().toAscii().constData());
-    strcpy(m_Keys[5].text, settings.value("KeyNameB", "A").toString().toAscii().constData());
-    strcpy(m_Keys[6].text, settings.value("KeyNameSTART", "RETURN").toString().toAscii().constData());
-    strcpy(m_Keys[7].text, settings.value("KeyNameSELECT", "SPACE").toString().toAscii().constData());
+    strcpy(m_Keys[0].text, settings.value("KeyNameUP", "UP").toString().toLatin1().constData());
+    strcpy(m_Keys[1].text, settings.value("KeyNameRIGHT", "RIGHT").toString().toLatin1().constData());
+    strcpy(m_Keys[2].text, settings.value("KeyNameDOWN", "DOWN").toString().toLatin1().constData());
+    strcpy(m_Keys[3].text, settings.value("KeyNameLEFT", "LEFT").toString().toLatin1().constData());
+    strcpy(m_Keys[4].text, settings.value("KeyNameA", "S").toString().toLatin1().constData());
+    strcpy(m_Keys[5].text, settings.value("KeyNameB", "A").toString().toLatin1().constData());
+    strcpy(m_Keys[6].text, settings.value("KeyNameSTART", "RETURN").toString().toLatin1().constData());
+    strcpy(m_Keys[7].text, settings.value("KeyNameSELECT", "SPACE").toString().toLatin1().constData());
 
     widget.lineEditUp->setText(m_Keys[0].text);
     widget.lineEditRight->setText(m_Keys[1].text);
