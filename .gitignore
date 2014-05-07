@@ -1,15 +1,7 @@
 # Netbeans files
-/dist/
-/build/
-/nbproject/private/
-private.xml
-Makefile-variables.mk
-
-platforms/macosx/Gearboy/nbproject/private/configurations.xml
-/platforms/linux/Gearboy/dist/
-/platforms/linux/Gearboy/build/
-/platforms/linux/Gearboy/nbproject/private/
-/platforms/raspberry/Gearboy/nbproject/private/
+dist/
+build/
+private/
 
 # Mac files
 *.DS_Store
@@ -49,10 +41,13 @@ Thumbs.db
 _UpgradeReport_Files/
 _ReSharper.*/
 
-# Gearboy Memory Dump
-
-output.txt
-
+# Misc files
+*.txt
+*.ini
+*.gen
+*.md
+*.bin
+*.zip
 
 # Qt Ignores
 moc_*.cpp
@@ -61,25 +56,8 @@ qt-Release.mk
 ui_*.h
 .qmake.stash
 
-*.txt
-/platforms/macosx/Gearboy/build/
-/platforms/macosx/Gearboy/dist/
-
-platforms/macosx/Gearboy/gearboy.ini
-platforms/windows/Gearboy/gearboy.ini
-platforms/linux/Gearboy/gearboy.ini
-platforms/raspberrypi/Gearboy/gearboy.ini
-
+#Xcode
 *.xcuserstate
-
-platforms/ios/Gearboy.xcodeproj/xcuserdata/*
-
-*.gb
-
+xcuserdata/
 *.xcexplist
-
 *.xcsettings
-
-*.xccheckout
-
-platforms/macosx/Gearboy/nbproject/private/launcher.properties
