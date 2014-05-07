@@ -59,6 +59,7 @@ moc_*.cpp
 qt-Debug.mk
 qt-Release.mk
 ui_*.h
+.qmake.stash
 
 *.txt
 /platforms/macosx/Gearboy/build/
