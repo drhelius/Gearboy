@@ -20,7 +20,6 @@
 #include "Audio.h"
 #include "Memory.h"
 #include "audio/Sound_Queue.h"
-#include "audio/Gb_Apu.h"
 
 Audio::Audio()
 {

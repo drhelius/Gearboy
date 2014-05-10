@@ -135,7 +135,7 @@ void update(void)
         }
     }
 
-    theGearboyCore->RunToVBlank(NULL); // this is to force 30 FPS
+    //theGearboyCore->RunToVBlank(NULL); // this is to force 30 FPS
     theGearboyCore->RunToVBlank(theFrameBuffer);
 
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
@@ -251,7 +251,7 @@ void init_ogl(void)
     result = eglMakeCurrent(display, surface, surface, context);
     assert(EGL_FALSE != result);
 
-    eglSwapInterval(display, 0);
+    eglSwapInterval(display, 1);
 
     glGenTextures(1, &theGBTexture);
 
