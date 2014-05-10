@@ -106,16 +106,6 @@ void Audio::SetSampleRate(int rate)
     }
 }
 
-u8 Audio::ReadAudioRegister(u16 address)
-{
-    return m_pApu->read_register(m_Time, address);
-}
-
-void Audio::WriteAudioRegister(u16 address, u8 value)
-{
-    m_pApu->write_register(m_Time, address, value);
-}
-
 void Audio::EndFrame()
 {
     m_pApu->end_frame(kSoundFrameLength);
@@ -128,17 +118,5 @@ void Audio::EndFrame()
         {
             m_pSound->write(m_pSampleBuffer, count);
         }
-    }
-}
-
-void Audio::Tick(unsigned int clockCycles)
-{
-    m_Time += clockCycles;
-
-    if (m_Time >= kSoundFrameLength)
-    {
-        m_Time -= kSoundFrameLength;
-
-        EndFrame();
     }
 }

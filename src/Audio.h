@@ -66,4 +66,26 @@ const u8 kSoundMask[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // WaveRAM - (0xFF38-0xFF3F)
 };
 
+inline void Audio::Tick(unsigned int clockCycles)
+{
+    m_Time += clockCycles;
+
+    if (m_Time >= kSoundFrameLength)
+    {
+        m_Time -= kSoundFrameLength;
+
+        EndFrame();
+    }
+}
+
+inline u8 Audio::ReadAudioRegister(u16 address)
+{
+    return m_pApu->read_register(m_Time, address);
+}
+
+inline void Audio::WriteAudioRegister(u16 address, u8 value)
+{
+    m_pApu->write_register(m_Time, address, value);
+}
+
 #endif	/* AUDIO_H */

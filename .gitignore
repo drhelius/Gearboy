@@ -48,6 +48,7 @@ _ReSharper.*/
 *.md
 *.bin
 *.zip
+*.gearboy
 
 # Qt Ignores
 moc_*.cpp

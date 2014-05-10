@@ -42,18 +42,6 @@ void Input::Reset()
     m_iInputCycles = 0;
 }
 
-void Input::Tick(unsigned int clockCycles)
-{
-    m_iInputCycles += clockCycles;
-
-    // Joypad Poll Speed (64 Hz)
-    if (m_iInputCycles >= 65536)
-    {
-        m_iInputCycles -= 65536;
-        Update();
-    }
-}
-
 void Input::KeyPressed(Gameboy_Keys key)
 {
     m_JoypadState = UnsetBit(m_JoypadState, key);
@@ -62,17 +50,6 @@ void Input::KeyPressed(Gameboy_Keys key)
 void Input::KeyReleased(Gameboy_Keys key)
 {
     m_JoypadState = SetBit(m_JoypadState, key);
-}
-
-void Input::Write(u8 value)
-{
-    m_P1 = (m_P1 & 0xCF) | (value & 0x30);
-    Update();
-}
-
-u8 Input::Read()
-{
-    return m_P1;
 }
 
 void Input::Update()

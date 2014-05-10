@@ -48,5 +48,28 @@ private:
     int m_iInputCycles;
 };
 
+inline void Input::Tick(unsigned int clockCycles)
+{
+    m_iInputCycles += clockCycles;
+
+    // Joypad Poll Speed (64 Hz)
+    if (m_iInputCycles >= 65536)
+    {
+        m_iInputCycles -= 65536;
+        Update();
+    }
+}
+
+inline void Input::Write(u8 value)
+{
+    m_P1 = (m_P1 & 0xCF) | (value & 0x30);
+    Update();
+}
+
+inline u8 Input::Read()
+{
+    return m_P1;
+}
+
 #endif	/* INPUT_H */
 
