@@ -21,32 +21,107 @@
 #define	COMMONMEMORYRULE_H
 
 #include "definitions.h"
-
-class Memory;
-class Video;
-class Processor;
-class Input;
-class Cartridge;
-class Audio;
+#include "Memory.h"
 
 class CommonMemoryRule
 {
 public:
-    CommonMemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    CommonMemoryRule(Memory* pMemory);
     ~CommonMemoryRule();
     u8 PerformRead(u16 address);
     void PerformWrite(u16 address, u8 value);
     void Reset(bool bCGB);
     
 private:
-    Processor* m_pProcessor;
     Memory* m_pMemory;
-    Video* m_pVideo;
-    Input* m_pInput;
-    Cartridge* m_pCartridge;
-    Audio* m_pAudio;
     bool m_bCGB;
 };
+
+inline u8 CommonMemoryRule::PerformRead(u16 address)
+{
+    if (m_bCGB)
+    {
+        switch (address & 0xF000)
+        {
+            case 0x8000:
+            case 0x9000:
+            {
+                return m_pMemory->ReadCGBLCDRAM(address, false);
+            }
+            case 0xD000:
+            {
+                return m_pMemory->ReadCGBLCDRAM(address, false);
+            }
+        }
+    }
+    else if (address >= 0xFEA0 && address < 0xFF00)
+    {
+        return ((((address + ((address >> 4) - 0x0FEA)) >> 2) & 1) ? 0x00 : 0xFF);
+    }
+    
+    return m_pMemory->Retrieve(address);
+}
+
+inline void CommonMemoryRule::PerformWrite(u16 address, u8 value)
+{
+    switch (address & 0xE000)
+    {
+        case 0x8000:
+        {
+            if (m_bCGB)
+                m_pMemory->WriteCGBLCDRAM(address, value);
+            else
+                m_pMemory->Load(address, value);
+            break;
+        }
+        case 0xC000:
+        {
+            if (address < 0xDE00)
+            {
+                if (m_bCGB && (address >= 0xD000))
+                {
+                    m_pMemory->WriteCGBWRAM(address, value);
+                    m_pMemory->Load(address + 0x2000, value);
+                }
+                else
+                {
+                    m_pMemory->Load(address, value);
+                    m_pMemory->Load(address + 0x2000, value);
+                }
+            }
+            else if (m_bCGB)
+            {
+                m_pMemory->WriteCGBWRAM(address, value);
+            }
+            break;
+        }
+        case 0xE000:
+        {
+            if (address < 0xFE00)
+            {
+                if (m_bCGB && (address >= 0xF000))
+                {
+                    m_pMemory->WriteCGBWRAM(address - 0x2000, value);
+                    m_pMemory->Load(address, value);
+                }
+                else
+                {
+                    m_pMemory->Load(address, value);
+                    m_pMemory->Load(address - 0x2000, value);
+                }
+            }
+            else
+            {
+                m_pMemory->Load(address, value);
+            }
+            break;
+        }
+        default:
+        {
+            Log("--> ** Writing to invalid area %X %X", address, value);
+            m_pMemory->Load(address, value);
+        }
+    }
+}
 
 #endif	/* COMMONMEMORYRULE_H */

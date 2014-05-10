@@ -423,11 +423,9 @@ void GearboyCore::InitDMGPalette()
 
 void GearboyCore::InitMemoryRules()
 {
-    m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor, m_pMemory, m_pVideo, m_pInput, m_pAudio);
 
-    m_pCommonMemoryRule = new CommonMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pCommonMemoryRule = new CommonMemoryRule(m_pMemory);
 
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
