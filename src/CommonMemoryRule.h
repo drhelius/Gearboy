@@ -61,7 +61,7 @@ inline u8 CommonMemoryRule::PerformRead(u16 address)
     {
         return ((((address + ((address >> 4) - 0x0FEA)) >> 2) & 1) ? 0x00 : 0xFF);
     }
-    
+
     return m_pMemory->Retrieve(address);
 }
 
@@ -95,6 +95,10 @@ inline void CommonMemoryRule::PerformWrite(u16 address, u8 value)
             else if (m_bCGB)
             {
                 m_pMemory->WriteCGBWRAM(address, value);
+            }
+            else
+            {
+                m_pMemory->Load(address, value);
             }
             break;
         }
