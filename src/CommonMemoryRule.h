@@ -21,7 +21,8 @@
 #define	COMMONMEMORYRULE_H
 
 #include "definitions.h"
-#include "Memory.h"
+
+class Memory;
 
 class CommonMemoryRule
 {
@@ -36,6 +37,8 @@ private:
     Memory* m_pMemory;
     bool m_bCGB;
 };
+
+#include "Memory.h"
 
 inline u8 CommonMemoryRule::PerformRead(u16 address)
 {

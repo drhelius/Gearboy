@@ -1,6 +1,9 @@
 #ifndef MEMORY_INLINE_H
 #define	MEMORY_INLINE_H
 
+#include "CommonMemoryRule.h"
+#include "IORegistersMemoryRule.h"
+
 inline u8 Memory::Read(u16 address)
 {
     switch (address & 0xE000)

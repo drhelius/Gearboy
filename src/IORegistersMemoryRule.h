@@ -21,11 +21,12 @@
 #define	IOREGISTERSMEMORYRULE_H
 
 #include "definitions.h"
-#include "Video.h"
-#include "Memory.h"
-#include "Processor.h"
-#include "Input.h"
-#include "Audio.h"
+
+class Video;
+class Processor;
+class Input;
+class Audio;
+class Memory;
 
 class IORegistersMemoryRule
 {
@@ -44,6 +45,12 @@ private:
     Audio* m_pAudio;
     bool m_bCGB;
 };
+
+#include "Video.h"
+#include "Processor.h"
+#include "Input.h"
+#include "Audio.h"
+#include "Memory.h"
 
 inline u8 IORegistersMemoryRule::PerformRead(u16 address)
 {

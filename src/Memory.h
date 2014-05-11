@@ -21,13 +21,10 @@
 #define	MEMORY_H
 
 #include "definitions.h"
-#include "MemoryRule.h"
-#include "CommonMemoryRule.h"
-#include "IORegistersMemoryRule.h"
 #include "boot_roms.h"
+#include "MemoryRule.h"
 #include <vector>
 
-class MemoryRule;
 class Processor;
 class Video;
 class CommonMemoryRule;

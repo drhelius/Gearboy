@@ -19,7 +19,7 @@
 
 #include "CommonMemoryRule.h"
 
-CommonMemoryRule::CommonMemoryRule(Memory* pMemory, Video* pVideo, Input* pInput, Audio* pAudio)
+CommonMemoryRule::CommonMemoryRule(Memory* pMemory)
 {
     m_pMemory = pMemory;
     m_bCGB = false;

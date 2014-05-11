@@ -2,6 +2,7 @@
 #define	PROCESSOR_INLINE_H
 
 #include "definitions.h"
+#include "Memory.h"
 
 inline void Processor::ClearAllFlags()
 {

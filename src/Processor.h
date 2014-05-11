@@ -23,7 +23,8 @@
 #include "definitions.h"
 #include "SixteenBitRegister.h"
 #include "boot_roms.h"
-#include "Memory.h"
+
+class Memory;
 
 class Processor
 {
