@@ -66,6 +66,7 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 ### Raspberry Pi - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
 - Use <code>make</code> to build the project.
+- Sound emulation in the Pi is awfully slow. Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator and over clock your Raspberry as much as you can for the best performance.
 
 ### Windows
 - You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
@@ -125,5 +126,4 @@ License
 
 <i>You should have received a copy of the GNU General Public License</i>
 <i>along with this program.  If not, see http://www.gnu.org/licenses/</i>
-
 
