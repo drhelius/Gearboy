@@ -445,8 +445,6 @@ void Blip_Buffer::mix_samples( blip_sample_t const* in, long count )
 	*out -= prev;
 }
 
-blip_ulong const subsample_mask = (1L << BLIP_BUFFER_ACCURACY) - 1;
-
 void Blip_Buffer::save_state( blip_buffer_state_t* out )
 {
 	assert( samples_avail() == 0 );
