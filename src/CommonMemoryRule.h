@@ -53,7 +53,7 @@ inline u8 CommonMemoryRule::PerformRead(u16 address)
             }
             case 0xD000:
             {
-                return m_pMemory->ReadCGBLCDRAM(address, false);
+                return m_pMemory->ReadCGBWRAM(address);
             }
         }
     }
