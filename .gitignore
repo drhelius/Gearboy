@@ -33,12 +33,12 @@ ipch/
 *.ilk
 *.log
 *.zip
-[Dd]ebug*/
+*[Dd]ebug*/
 *.lib
 *.sbr
 *.app
 Thumbs.db
-[Rr]elease*/
+*[Rr]elease*/
 [Tt]est[Rr]esults/
 _UpgradeReport_Files/
 _ReSharper.*/
