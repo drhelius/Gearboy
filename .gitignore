@@ -36,6 +36,7 @@ ipch/
 [Dd]ebug*/
 *.lib
 *.sbr
+*.app
 Thumbs.db
 [Rr]elease*/
 [Tt]est[Rr]esults/
