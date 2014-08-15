@@ -12,6 +12,7 @@ ipch/
 [Bb]in
 *.[Cc]ache
 *.obj
+*.o
 *.exe
 *.exp
 *.pdb
@@ -40,6 +41,7 @@ Thumbs.db
 [Tt]est[Rr]esults/
 _UpgradeReport_Files/
 _ReSharper.*/
+desktop.ini
 
 # Misc files
 *.txt
@@ -56,6 +58,7 @@ qt-Debug.mk
 qt-Release.mk
 ui_*.h
 .qmake.stash
+qrc_*.cpp
 
 #Xcode
 *.xcuserstate
