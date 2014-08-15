@@ -10,7 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 QT += opengl
 
-TARGET = gearboy
+TARGET = Gearboy
 TEMPLATE = app
 
 INCLUDEPATH += /usr/local/include
