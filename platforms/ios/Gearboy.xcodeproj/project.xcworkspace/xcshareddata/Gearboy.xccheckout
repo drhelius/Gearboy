@@ -10,29 +10,29 @@
 	<string>Gearboy</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>D5E3CC10-2A48-46A9-8B08-9C591FD49D27</key>
+		<key>ECBB7D49AE3E178D3186C96C64366DEA22E5F2E9</key>
 		<string>https://github.com/drhelius/Gearboy.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>platforms/ios/Gearboy.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>D5E3CC10-2A48-46A9-8B08-9C591FD49D27</key>
+		<key>ECBB7D49AE3E178D3186C96C64366DEA22E5F2E9</key>
 		<string>../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/drhelius/Gearboy.git</string>
 	<key>IDESourceControlProjectVersion</key>
-	<integer>110</integer>
+	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>D5E3CC10-2A48-46A9-8B08-9C591FD49D27</string>
+	<string>ECBB7D49AE3E178D3186C96C64366DEA22E5F2E9</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>D5E3CC10-2A48-46A9-8B08-9C591FD49D27</string>
+			<string>ECBB7D49AE3E178D3186C96C64366DEA22E5F2E9</string>
 			<key>IDESourceControlWCCName</key>
 			<string>Gearboy</string>
 		</dict>
