@@ -352,7 +352,7 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                     {
                         m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
                     }
-                    signal = SetBit(signal, 2);
+                    //signal = SetBit(signal, 2);
                 }
                 m_pVideo->CompareLYToLYC();
             }
