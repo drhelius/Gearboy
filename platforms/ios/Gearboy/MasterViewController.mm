@@ -221,11 +221,13 @@
 
 - (void)viewDidAppear:(BOOL)animated
 {
+    [super viewDidAppear:animated];
     [self.detailViewController.theGLViewController.theEmulator pause];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
+    [super viewWillDisappear:animated];
     [self.detailViewController.theGLViewController.theEmulator resume];
 }
 
