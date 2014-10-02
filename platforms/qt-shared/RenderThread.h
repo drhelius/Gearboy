@@ -40,7 +40,7 @@ class RenderThread : public QThread
 public:
     explicit RenderThread(GLFrame *pGLFrame = 0);
     virtual ~RenderThread();
-    void ResizeViewport(const QSize &size);
+    void ResizeViewport(const QSize &size, int pixel_ratio);
     void run();
     void Stop();
     void Pause();

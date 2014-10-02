@@ -44,10 +44,10 @@ RenderThread::~RenderThread()
 {
 }
 
-void RenderThread::ResizeViewport(const QSize &size)
+void RenderThread::ResizeViewport(const QSize &size, int pixel_ratio)
 {
-    m_iWidth = size.width();
-    m_iHeight = size.height();
+    m_iWidth = size.width() * pixel_ratio;
+    m_iHeight = size.height() * pixel_ratio;
     m_bResizeEvent = true;
 }
 
