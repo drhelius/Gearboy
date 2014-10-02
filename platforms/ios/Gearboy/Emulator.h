@@ -18,17 +18,16 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <GLKit/GLKit.h>
 #import "../../src/gearboy.h"
 #import "EmulatorInput.h"
 
 @interface Emulator : NSObject
 {
     GearboyCore* theGearboyCore;
-    BOOL initialized;
     GB_Color* theFrameBuffer;
     GB_Color* theTexture;
     EmulatorInput* theInput;
-    GLint iOSFrameBuffer;
     GLuint accumulationFramebuffer;
     GLuint accumulationTexture;
     GLuint GBTexture;
@@ -38,6 +37,8 @@
 @property (nonatomic) BOOL multiplier;
 @property (nonatomic) BOOL retina;
 @property (nonatomic) BOOL iPad;
+@property (nonatomic) GLKView* glview;
+
 
 - (void)update;
 - (void)draw;

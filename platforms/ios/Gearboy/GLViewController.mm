@@ -44,22 +44,14 @@
 {
     [super viewDidLoad];
     
-    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1];
-    
-    if (!self.context) {
-        NSLog(@"Failed to create ES context");
-    }
-    
-    GLKView *view = (GLKView *)self.view;
-    view.context = self.context;
-    
     CGFloat scale;
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
         scale=[[UIScreen mainScreen] scale];
     } else {
         scale=1; 
     }
-    
+    GLKView *view = (GLKView *)self.view;
+    self.theEmulator.glview = view;
     BOOL retina, iPad;
     retina = (scale != 1);
     
@@ -134,7 +126,6 @@
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-    
     [self.theEmulator draw];
 }
 
@@ -150,8 +141,14 @@
 -(void) acquireContext
 {
     self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1];
+    
+    if (!self.context) {
+        NSLog(@"Failed to create ES context");
+    }
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
+    [EAGLContext setCurrentContext:self.context];
+    [self.theEmulator initGL];
 }
 
 @end

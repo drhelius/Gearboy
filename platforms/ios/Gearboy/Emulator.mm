@@ -64,7 +64,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         
         theInput = new EmulatorInput(self);
         theInput->Init();
-        initialized = NO;
         theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
         theTexture = new GB_Color[256 * 256];
         
@@ -105,7 +104,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glDeleteTextures(1, &accumulationTexture);
     glDeleteTextures(1, &GBTexture);
     glDeleteFramebuffers(1, &accumulationFramebuffer);
-    initialized = NO;
 }
 
 -(void)update
@@ -127,12 +125,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)draw
 {
-    if (!initialized)
-    {
-        initialized = YES;
-        [self initGL];     
-    }
-    
     if ((retina || iPad) && !theGearboyCore->GetCartridge()->IsCGB())
     {
         [self renderMixFrames];
@@ -145,8 +137,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)initGL
 {
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &iOSFrameBuffer);
-    
     glGenFramebuffers(1, &accumulationFramebuffer);
     glGenTextures(1, &accumulationTexture);
     glGenTextures(1, &GBTexture);
@@ -171,7 +161,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)renderFrame
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, iOSFrameBuffer);
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
     [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier) andMirrorY:NO];
@@ -200,7 +189,8 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDisable(GL_BLEND);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, iOSFrameBuffer);
+    [self.glview bindDrawable];
+    
     glClear(GL_COLOR_BUFFER_BIT);
     glBindTexture(GL_TEXTURE_2D, accumulationTexture);
     [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier) andMirrorY:YES];
@@ -224,7 +214,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glViewport(0, 0, viewportWidth, viewportHeight);
-    
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
