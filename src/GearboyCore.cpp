@@ -241,6 +241,11 @@ void GearboyCore::EnableSound(bool enabled)
     m_pAudio->Enable(enabled);
 }
 
+void GearboyCore::ResetSound()
+{
+    m_pAudio->Reset(m_bCGB);
+}
+
 void GearboyCore::SetSoundSampleRate(int rate)
 {
     m_pAudio->SetSampleRate(rate);

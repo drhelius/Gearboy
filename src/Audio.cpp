@@ -80,6 +80,9 @@ void Audio::Reset(bool bCGB)
         u8 value = m_bCGB ? kInitialValuesForColorFFXX[reg - 0xFF00] : kInitialValuesForFFXX[reg - 0xFF00];
         m_pApu->write_register(0, reg, value);
     }
+    
+    m_pSound->stop();
+    m_pSound->start(m_iSampleRate, 2);
 
     m_Time = 0;
 }
