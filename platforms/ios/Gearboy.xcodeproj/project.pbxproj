@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		660F501B15F9615800617A2D /* gb~ipad.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 660F501915F9615800617A2D /* gb~ipad.jpg */; };
 		660F501C15F9615800617A2D /* gb@2x~ipad.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 660F501A15F9615800617A2D /* gb@2x~ipad.jpg */; };
+		661B4FFD19DF4A290084FAA0 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 661B4FFC19DF4A290084FAA0 /* MediaPlayer.framework */; };
 		662E1E1F15F9499600C7FF66 /* Audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1DF315F9499600C7FF66 /* Audio.cpp */; };
 		662E1E2015F9499600C7FF66 /* Cartridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1DF615F9499600C7FF66 /* Cartridge.cpp */; };
 		662E1E2115F9499600C7FF66 /* CommonMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 662E1DF815F9499600C7FF66 /* CommonMemoryRule.cpp */; };
@@ -74,6 +75,7 @@
 /* Begin PBXFileReference section */
 		660F501915F9615800617A2D /* gb~ipad.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = "gb~ipad.jpg"; path = "img/gb~ipad.jpg"; sourceTree = "<group>"; };
 		660F501A15F9615800617A2D /* gb@2x~ipad.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = "gb@2x~ipad.jpg"; path = "img/gb@2x~ipad.jpg"; sourceTree = "<group>"; };
+		661B4FFC19DF4A290084FAA0 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
 		662E1DF315F9499600C7FF66 /* Audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Audio.cpp; path = ../../src/Audio.cpp; sourceTree = "<group>"; };
 		662E1DF415F9499600C7FF66 /* Audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Audio.h; path = ../../src/Audio.h; sourceTree = "<group>"; };
 		662E1DF515F9499600C7FF66 /* boot_roms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = boot_roms.h; path = ../../src/boot_roms.h; sourceTree = "<group>"; };
@@ -191,6 +193,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				661B4FFD19DF4A290084FAA0 /* MediaPlayer.framework in Frameworks */,
 				66D4BA7F15FABBC500D4937F /* QuartzCore.framework in Frameworks */,
 				66D4BA7D15FABB9100D4937F /* OpenGLES.framework in Frameworks */,
 				66D4BA7B15FABB8600D4937F /* AudioToolbox.framework in Frameworks */,
@@ -334,6 +337,7 @@
 		66DCB34A15F940CC0076F6F6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				661B4FFC19DF4A290084FAA0 /* MediaPlayer.framework */,
 				66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */,
 				66D4BA7815FABB7B00D4937F /* CoreAudio.framework */,
 				66DCB34F15F940CC0076F6F6 /* CoreGraphics.framework */,

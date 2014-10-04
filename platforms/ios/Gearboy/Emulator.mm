@@ -263,4 +263,14 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     theGearboyCore->SaveRam();
 }
 
+- (void)setAudio: (BOOL)enabled
+{
+    theGearboyCore->EnableSound(enabled);
+}
+
+- (void)resetAudio
+{
+    theGearboyCore->ResetSound();
+}
+
 @end

@@ -18,6 +18,7 @@
  */
 
 #import "GLViewController.h"
+#import <MediaPlayer/MediaPlayer.h>
 
 @interface GLViewController ()
 
@@ -149,6 +150,14 @@
     view.context = self.context;
     [EAGLContext setCurrentContext:self.context];
     [self.theEmulator initGL];
+    
+    if ([[MPMusicPlayerController iPodMusicPlayer] playbackState] == MPMusicPlaybackStatePlaying)
+        [self.theEmulator setAudio:NO];
+    else
+    {
+        [self.theEmulator setAudio:YES];
+        [self.theEmulator resetAudio];
+    }
 }
 
 @end

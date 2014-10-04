@@ -56,5 +56,7 @@
 - (void)renderMixFrames;
 - (void)setupTextureWithData: (GLvoid*) data;
 - (void)renderQuadWithViewportWidth: (int)viewportWidth andHeight: (int)viewportHeight andMirrorY: (BOOL)mirrorY;
+- (void)setAudio: (BOOL)enabled;
+- (void)resetAudio;
 
 @end
