@@ -105,10 +105,12 @@
         
         if ([fileManager copyItemAtPath:srcPath toPath:destPath error:&error])
         {
-            [masterViewController reloadTableView];
-            [masterViewController loadWithROM:[[url path] lastPathComponent]];
-                
-            return YES;
+            if ([fileManager removeItemAtPath:[url path] error:&error])
+            {
+                [masterViewController reloadTableView];
+                [masterViewController loadWithROM:[[url path] lastPathComponent]];
+                return YES;
+            }
         }
         
         NSLog(@"ERROR %@", [error localizedDescription]);
