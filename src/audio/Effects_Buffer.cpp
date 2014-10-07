@@ -25,7 +25,7 @@ int const max_read = 2560; // determines minimum delay
 
 Effects_Buffer::Effects_Buffer( int max_bufs, long echo_size_ ) : Multi_Buffer( stereo )
 {
-	echo_size   = max( max_read * (long) stereo, echo_size_ & ~1 );
+	echo_size   = (int)max( max_read * (long) stereo, echo_size_ & ~1 );
 	clock_rate_ = 0;
 	bass_freq_  = 90;
 	bufs        = 0;
@@ -116,7 +116,7 @@ blargg_err_t Effects_Buffer::set_channel_count( int count, int const* types )
 	for ( int i = bufs_size; --i >= 0; )
 		RETURN_ERR( bufs [i].set_sample_rate( sample_rate(), length() ) );
 
-	for ( int i = chans.size(); --i >= 0; )
+	for ( int i = (int)chans.size(); --i >= 0; )
 	{
 		chan_t& ch = chans [i];
 		ch.cfg.vol      = 1.0f;
@@ -279,7 +279,7 @@ void Effects_Buffer::apply_config()
 	}
 
 	// convert volumes
-	for ( i = chans.size(); --i >= 0; )
+	for ( i = (int)chans.size(); --i >= 0; )
 	{
 		chan_t& ch = chans [i];
 		ch.vol [0] = TO_FIXED( ch.cfg.vol - ch.cfg.vol * ch.cfg.pan );
@@ -291,7 +291,7 @@ void Effects_Buffer::apply_config()
 	assign_buffers();
 
 	// set side channels
-	for ( i = chans.size(); --i >= 0; )
+	for ( i = (int)chans.size(); --i >= 0; )
 	{
 		chan_t& ch = chans [i];
 		ch.channel.left  = chans [ch.cfg.echo*2  ].channel.center;
@@ -303,7 +303,7 @@ void Effects_Buffer::apply_config()
 	// determine whether effects and echo are needed at all
 	no_effects = true;
 	no_echo    = true;
-	for ( i = chans.size(); --i >= extra_chans; )
+	for ( i = (int)chans.size(); --i >= extra_chans; )
 	{
 		chan_t& ch = chans [i];
 		if ( ch.cfg.echo && s.feedback )
@@ -326,7 +326,7 @@ void Effects_Buffer::apply_config()
 
 	if ( no_effects )
 	{
-		for ( i = chans.size(); --i >= 0; )
+		for ( i = (int)chans.size(); --i >= 0; )
 		{
 			chan_t& ch = chans [i];
 			ch.channel.center = &bufs [2];
@@ -560,7 +560,7 @@ void Effects_Buffer::mix_effects( blip_sample_t* out_, int pair_count )
 
 				fixed_t* echo_end = &echo [echo_size + i];
 				fixed_t const* BLIP_RESTRICT in_pos = &echo [echo_pos + i];
-				blargg_long out_offset = echo_pos + i + s.delay [i];
+				blargg_long out_offset = (int)(echo_pos + i + s.delay [i]);
 				if ( out_offset >= echo_size )
 					out_offset -= echo_size;
 				assert( out_offset < echo_size );

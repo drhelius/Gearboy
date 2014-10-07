@@ -187,7 +187,7 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
                 return false;
             }
 
-            bool ok = LoadFromBuffer((const u8*) p, uncomp_size);
+            bool ok = LoadFromBuffer((const u8*) p, static_cast<int>(uncomp_size));
 
             free(p);
             mz_zip_reader_end(&zip_archive);

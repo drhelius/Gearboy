@@ -105,12 +105,12 @@ Blip_Buffer::blargg_err_t Blip_Buffer::set_sample_rate( long new_rate, int msec 
 		buffer_ = (buf_t_*) p;
 	}
 
-	buffer_size_ = new_size;
+	buffer_size_ = (int)new_size;
 	assert( buffer_size_ != silent_buf_size ); // size should never happen to match this
 
 	// update things based on the sample rate
 	sample_rate_ = new_rate;
-	length_ = new_size * 1000 / new_rate - 1;
+	length_ = (int)(new_size * 1000 / new_rate - 1);
 	if ( msec )
 		assert( length_ == msec ); // ensure length is same as that passed in
 

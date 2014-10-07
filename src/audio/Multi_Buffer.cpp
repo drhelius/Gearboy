@@ -80,7 +80,7 @@ void Tracked_Blip_Buffer::end_frame( blip_time_t t )
 {
 	Blip_Buffer::end_frame( t );
 	if ( clear_modified() )
-		last_non_silence = samples_avail() + blip_buffer_extra_;
+		last_non_silence = (int)samples_avail() + blip_buffer_extra_;
 }
 
 blip_ulong Tracked_Blip_Buffer::non_silent() const

@@ -60,7 +60,7 @@ const char* Sound_Queue::start( long sample_rate, int chan_count )
 		return sdl_error( "Couldn't create semaphore" );
 	
 	SDL_AudioSpec as;
-	as.freq = sample_rate;
+	as.freq = (int)sample_rate;
 	as.format = AUDIO_S16SYS;
 	as.channels = chan_count;
 	as.silence = 0;

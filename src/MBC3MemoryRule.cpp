@@ -181,7 +181,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else if (m_pCartridge->IsRTCPresent() && m_bRTCEnabled)
             {
-                m_RTCLastTime = m_pCartridge->GetCurrentRTC();
+                m_RTCLastTime = static_cast<s32>(m_pCartridge->GetCurrentRTC());
                 switch (m_RTCRegister)
                 {
                     case 0x08:
@@ -341,7 +341,7 @@ bool MBC3MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
 
 void MBC3MemoryRule::UpdateRTC()
 {
-    s32 now = m_pCartridge->GetCurrentRTC();
+    s32 now = static_cast<s32>(m_pCartridge->GetCurrentRTC());
 
     if (m_RTCLastTimeCache != now)
     {

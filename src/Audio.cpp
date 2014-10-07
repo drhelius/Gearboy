@@ -118,7 +118,7 @@ void Audio::EndFrame()
         long count = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
         if (m_bEnabled)
         {
-            m_pSound->write(m_pSampleBuffer, count);
+            m_pSound->write(m_pSampleBuffer, (int)count);
         }
     }
 }

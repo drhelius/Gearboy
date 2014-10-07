@@ -45,7 +45,7 @@ private:
     bool m_bEnabled;
     Gb_Apu* m_pApu;
     Stereo_Buffer* m_pBuffer;
-    long m_Time;
+    int m_Time;
     Sound_Queue* m_pSound;
     int m_iSampleRate;
     blip_sample_t* m_pSampleBuffer;
