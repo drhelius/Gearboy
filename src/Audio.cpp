@@ -43,9 +43,18 @@ Audio::~Audio()
 
 void Audio::Init()
 {
-    if (SDL_Init(SDL_INIT_AUDIO) < 0)
+    
+#ifdef __APPLE__
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
+    SDL_SetMainReady();
+#endif
+#endif
+    
+    int error = SDL_Init(SDL_INIT_AUDIO);
+    
+    if (error < 0)
     {
-        Log("--> ** SDL Audio not initialized");
+        Log("--> ** (%d) SDL Audio not initialized: %s", error, SDL_GetError());
     }
 
     atexit(SDL_Quit);

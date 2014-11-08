@@ -8,6 +8,9 @@
 
 #ifdef __APPLE__
 #define MAC_OS_X_VERSION_MIN_REQUIRED MAC_OS_X_VERSION_10_5
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
+#define SDL_MAIN_HANDLED
+#endif
 #endif
 
 #include "SDL.h"
