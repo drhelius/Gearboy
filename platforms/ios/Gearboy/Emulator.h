@@ -19,7 +19,7 @@
 
 #import <Foundation/Foundation.h>
 #import <GLKit/GLKit.h>
-#import "../../src/gearboy.h"
+#import "../../../src/gearboy.h"
 #import "EmulatorInput.h"
 
 @interface Emulator : NSObject
@@ -34,7 +34,7 @@
     BOOL firstFrame;
 }
 
-@property (nonatomic) BOOL multiplier;
+@property (nonatomic) int multiplier;
 @property (nonatomic) BOOL retina;
 @property (nonatomic) BOOL iPad;
 @property (nonatomic) GLKView* glview;
