@@ -108,32 +108,30 @@
 }
 
 - (void)loadWithROM:(NSString *)rom
-{/*
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        if (!self.detailViewController) {
-            self.detailViewController = [[DetailViewController alloc] initWithNibName:@"DetailViewController_iPhone" bundle:nil];
-        }
-        self.detailViewController.detailItem = rom;
-        
-        if (self.navigationController.topViewController != self.detailViewController)
-        {
-            [self.navigationController pushViewController:self.detailViewController animated:YES];
-        }
-    } else {
-        self.detailViewController.detailItem = rom;
-    }*/
-    
-    //self.detailViewController.detailItem = rom;
+{
+    _openedFromOtherApp = YES;
+    _openedFromOtherAppRom = rom;
+    [self performSegueWithIdentifier: @"showDetail" sender: self];
 }
 
 #pragma mark - Segues
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([[segue identifier] isEqualToString:@"showDetail"]) {
-        NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-        NSString* rom = [[self.sections valueForKey:[[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:indexPath.section]] objectAtIndex:indexPath.row];
         
-        [self loadWithROM:rom];
+        NSString* rom;
+        
+        if (_openedFromOtherApp)
+        {
+            _openedFromOtherApp = NO;
+            rom = _openedFromOtherAppRom;
+        }
+        else
+        {
+            NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
+            rom = [[self.sections valueForKey:[[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:indexPath.section]] objectAtIndex:indexPath.row];
+        }
+
         DetailViewController *controller = (DetailViewController *)[[segue destinationViewController] topViewController];
         [controller setDetailItem:rom];
         [controller setTheGLViewController:self.theGLViewController];

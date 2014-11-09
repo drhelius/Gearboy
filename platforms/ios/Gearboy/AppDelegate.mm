@@ -81,7 +81,8 @@
             if ([fileManager removeItemAtPath:[url path] error:&error])
             {
                 [masterViewController reloadTableView];
-                //[masterViewController loadWithROM:[[url path] lastPathComponent]];
+                [masterViewController loadWithROM:[[url path] lastPathComponent]];
+                
                 return YES;
             }
         }
