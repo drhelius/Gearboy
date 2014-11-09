@@ -54,12 +54,12 @@ Compiling Instructions
 
 The best way of compiling Gearboy is by using one of the IDE projects provided for each platform.
 
-For all desktop platforms you will need SDL 2 and Qt 5 SDKs installed and configured. SDL is provided as a framework for iOS.
+For all desktop platforms you will need SDL 2 and Qt 5 SDKs installed and configured.
 
 ### iOS
-- Install Xcode for Mac OS X. You need iOS SDK 5.1 or later. 
-- Open the Gearboy Xcode project and build.
-- Run it on real hardware using your iOS developer certificate. For jailbroken devices use the jailbreak branch.
+- Install Xcode for Mac OS X. You need iOS SDK 8 or later. 
+- Download SDL 2.0.4 or later (currently in development: https://www.libsdl.org/hg.php) and replace the SDL project inside Gearboy project with the one in your SDL insatallation <code>[SDL dir]/Xcode-iOS/SDL/SDL.xcodeproj</code>
+- Run it on real hardware using your iOS developer certificate. Be sure to compile it on Release for extra optimizations. For jailbroken devices use the jailbreak branch.
 
 ### Raspberry Pi - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
