@@ -45,12 +45,7 @@
 {
     [super viewDidLoad];
     
-    CGFloat scale;
-    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
-        scale=[[UIScreen mainScreen] scale];
-    } else {
-        scale=1; 
-    }
+    CGFloat scale =[[UIScreen mainScreen] scale];
     GLKView *view = (GLKView *)self.view;
     
     self.theEmulator.glview = view;
@@ -64,7 +59,16 @@
         iPad = NO;
         if (retina)
         {
-            multiplier = 3;
+            CGRect screenBounds = [[UIScreen mainScreen] bounds];
+            int h = (int)screenBounds.size.height;
+            
+            if (h == 667)
+                multiplier = 4;
+            else if (h == 736)
+                multiplier = 4;
+            else
+                multiplier = 3;
+
             view.frame = CGRectMake(40, 28, 80 * multiplier, 72 * multiplier);
         }
         else
@@ -86,9 +90,10 @@
             multiplier = 4;
             view.frame = CGRectMake(222, 82, 80 * multiplier, 72 * multiplier);
         }
+        
     }
     
-    self.theEmulator.multiplier = multiplier * (retina ? 2 : 1);
+    self.theEmulator.multiplier = multiplier * scale;
     self.theEmulator.retina = retina;
     self.theEmulator.iPad = iPad;
 }

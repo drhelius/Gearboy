@@ -14,7 +14,7 @@
 		<string>https://github.com/drhelius/Gearboy.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>platforms/ios_new/Gearboy.xcodeproj</string>
+	<string>platforms/ios/Gearboy.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>ECBB7D49AE3E178D3186C96C64366DEA22E5F2E9</key>

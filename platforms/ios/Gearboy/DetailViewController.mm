@@ -33,22 +33,70 @@
     
     self.view.multipleTouchEnabled = YES;
     
-    [self.view addSubview:self.theGLViewController.view];
+    CGRect screenBounds = [[UIScreen mainScreen] bounds];
     
-    /*
-     CGRect screenBounds = [[UIScreen mainScreen] bounds];
-     if (screenBounds.size.height == 568)
-     {
-     // 4-inch screen (iPhone 5)
-     for (UIView* subview in self.view.subviews)
-     {
-     if ([subview isKindOfClass:[UIImageView class]])
-     {
-     UIImageView* background = (UIImageView*)subview;
-     background.image = [UIImage imageNamed:@"gb_1008.jpg"];
-     }
-     }
-     }*/
+    int scrW = 480;
+    int scrH = 640;
+    NSString* imageName = @"gb_832.jpg";
+    
+    switch ((int)screenBounds.size.height)
+    {
+        case 480:
+        {
+            // iPhone 4
+            scrW = 320;
+            scrH = 416;
+            imageName = @"gb_832.jpg";
+            break;
+        }
+        case 568:
+        {
+            // iPhone 5
+            scrW = 320;
+            scrH = 504;
+            imageName = @"gb_1008.jpg";
+            break;
+        }
+        case 667:
+        {
+            // iPhone 6
+            scrW = 375;
+            scrH = 603;
+            imageName = @"gb_1008.jpg";
+            break;
+        }
+        case 736:
+        {
+            // iPhone 6 Plus
+            scrW = 414;
+            scrH = 672;
+            imageName = @"gb_1008.jpg";
+            break;
+        }
+        case 1024:
+        {
+            scrW = 768;
+            scrH = 960;
+            if ([[UIScreen mainScreen] scale] != 1)
+            {
+                // iPad Air
+                imageName = @"gb_ipad_1920.jpg";
+            }
+            else
+            {
+                // iPad 2
+                imageName = @"gb_ipad_960.jpg";
+            }
+            break;
+        }
+    }
+    
+    UIImageView *imgView = [[UIImageView alloc] init];
+    imgView.image = [UIImage imageNamed:imageName];
+    imgView.frame = CGRectMake(0, 0, scrW, scrH);
+    
+    [self.view addSubview:imgView];
+    [self.view addSubview:self.theGLViewController.view];
     
     if (self.detailItem)
     {
