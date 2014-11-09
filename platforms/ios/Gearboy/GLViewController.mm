@@ -52,6 +52,7 @@
         scale=1; 
     }
     GLKView *view = (GLKView *)self.view;
+    
     self.theEmulator.glview = view;
     BOOL retina, iPad;
     retina = (scale != 1);
@@ -151,7 +152,7 @@
     [EAGLContext setCurrentContext:self.context];
     [self.theEmulator initGL];
     
-    if ([[MPMusicPlayerController iPodMusicPlayer] playbackState] == MPMusicPlaybackStatePlaying)
+    if ([[MPMusicPlayerController systemMusicPlayer] playbackState] == MPMusicPlaybackStatePlaying)
         [self.theEmulator setAudio:NO];
     else
     {
