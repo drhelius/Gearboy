@@ -63,13 +63,20 @@
             int h = (int)screenBounds.size.height;
             
             if (h == 667)
+            {
                 multiplier = 4;
+                view.frame = CGRectMake(27, 26, 80 * multiplier, 72 * multiplier);
+            }
             else if (h == 736)
+            {
                 multiplier = 4;
+                view.frame = CGRectMake(45, 35, 80 * multiplier, 72 * multiplier);
+            }
             else
+            {
                 multiplier = 3;
-
-            view.frame = CGRectMake(40, 28, 80 * multiplier, 72 * multiplier);
+                view.frame = CGRectMake(40, 28, 80 * multiplier, 72 * multiplier);
+            }
         }
         else
         {

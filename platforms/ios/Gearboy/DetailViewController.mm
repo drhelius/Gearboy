@@ -62,7 +62,7 @@
             // iPhone 6
             scrW = 375;
             scrH = 603;
-            imageName = @"gb_1008.jpg";
+            imageName = @"gb_1206.jpg";
             break;
         }
         case 736:
@@ -70,7 +70,7 @@
             // iPhone 6 Plus
             scrW = 414;
             scrH = 672;
-            imageName = @"gb_1008.jpg";
+            imageName = @"gb_2016.jpg";
             break;
         }
         case 1024:

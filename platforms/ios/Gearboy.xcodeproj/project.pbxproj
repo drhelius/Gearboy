@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6636357A1A0F8360003CFCDF /* gb_1206.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 663635791A0F8360003CFCDF /* gb_1206.jpg */; };
+		6636357E1A0F897A003CFCDF /* gb_2016.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 6636357D1A0F897A003CFCDF /* gb_2016.jpg */; };
 		6648A60219E078C4005A0B40 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6648A60119E078C4005A0B40 /* main.m */; };
 		6648A60519E078C4005A0B40 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6648A60419E078C4005A0B40 /* AppDelegate.mm */; };
 		6648A60819E078C4005A0B40 /* MasterViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6648A60719E078C4005A0B40 /* MasterViewController.mm */; };
@@ -79,6 +81,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		663635791A0F8360003CFCDF /* gb_1206.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = gb_1206.jpg; path = img/gb_1206.jpg; sourceTree = "<group>"; };
+		6636357D1A0F897A003CFCDF /* gb_2016.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = gb_2016.jpg; path = img/gb_2016.jpg; sourceTree = "<group>"; };
 		6648A5FC19E078C4005A0B40 /* Gearboy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gearboy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6648A60019E078C4005A0B40 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6648A60119E078C4005A0B40 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -393,6 +397,8 @@
 		6693952419E07CEF003FB4F4 /* img */ = {
 			isa = PBXGroup;
 			children = (
+				6636357D1A0F897A003CFCDF /* gb_2016.jpg */,
+				663635791A0F8360003CFCDF /* gb_1206.jpg */,
 				6693952E19E07D02003FB4F4 /* gb_1008.jpg */,
 				6693953019E07D02003FB4F4 /* gb_832.jpg */,
 				6693953119E07D02003FB4F4 /* gb_ipad_1920.jpg */,
@@ -508,6 +514,8 @@
 				6648A60E19E078C4005A0B40 /* Main.storyboard in Resources */,
 				6693953C19E07D02003FB4F4 /* gb_1008.jpg in Resources */,
 				6693953F19E07D02003FB4F4 /* gb_ipad_1920.jpg in Resources */,
+				6636357A1A0F8360003CFCDF /* gb_1206.jpg in Resources */,
+				6636357E1A0F897A003CFCDF /* gb_2016.jpg in Resources */,
 				6676CEC31A08063E007D48F9 /* GLViewController.xib in Resources */,
 				6648A61019E078C4005A0B40 /* Images.xcassets in Resources */,
 				6693954019E07D02003FB4F4 /* gb_ipad_960.jpg in Resources */,
