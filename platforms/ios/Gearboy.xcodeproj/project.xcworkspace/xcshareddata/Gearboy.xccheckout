@@ -5,7 +5,7 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>F07F8DB8-45F7-4698-9F39-4F9DF589E850</string>
+	<string>FB976FDA-D412-4400-BFC1-2F2E8581B488</string>
 	<key>IDESourceControlProjectName</key>
 	<string>Gearboy</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
@@ -14,7 +14,7 @@
 		<string>https://github.com/drhelius/Gearboy.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>platforms/ios/Gearboy.xcodeproj/project.xcworkspace</string>
+	<string>platforms/ios_new/Gearboy.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>ECBB7D49AE3E178D3186C96C64366DEA22E5F2E9</key>

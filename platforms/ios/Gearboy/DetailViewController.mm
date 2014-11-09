@@ -18,48 +18,42 @@
  */
 
 #import "DetailViewController.h"
+#include "inputmanager.h"
 
 @interface DetailViewController ()
-@property (strong, nonatomic) UIPopoverController *masterPopoverController;
-- (void)configureView;
+
 @end
 
 @implementation DetailViewController
 
 #pragma mark - Managing the detail item
 
-- (void)setDetailItem:(id)newDetailItem
-{
-    _detailItem = newDetailItem;
-    [self configureView];
+- (void)viewDidLoad {
+    [super viewDidLoad];
     
-    if (self.masterPopoverController != nil)
-    {
-        [self.theGLViewController.theEmulator resume];
-        [self.masterPopoverController dismissPopoverAnimated:YES];
-    }        
-}
-
-- (void)configureView
-{
+    self.view.multipleTouchEnabled = YES;
+    
+    [self.view addSubview:self.theGLViewController.view];
+    
+    /*
+     CGRect screenBounds = [[UIScreen mainScreen] bounds];
+     if (screenBounds.size.height == 568)
+     {
+     // 4-inch screen (iPhone 5)
+     for (UIView* subview in self.view.subviews)
+     {
+     if ([subview isKindOfClass:[UIImageView class]])
+     {
+     UIImageView* background = (UIImageView*)subview;
+     background.image = [UIImage imageNamed:@"gb_1008.jpg"];
+     }
+     }
+     }*/
+    
     if (self.detailItem)
     {
         [self.theGLViewController loadRomWithName:self.detailItem];
     }
-}
-
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-    
-    self.view.multipleTouchEnabled = YES;
-
-    [self configureView];
-}
-
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
@@ -72,52 +66,6 @@
     {
         return (interfaceOrientation == UIInterfaceOrientationPortrait) || (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown);
     }
-}
-
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-    if (self) {
-        self.title = @"Gearboy";
-        
-        self.theGLViewController = [[GLViewController alloc] initWithNibName:@"GLViewController" bundle:nil];
-        self.theGLViewController.preferredFramesPerSecond = 60;
-        self.theGLViewController.resumeOnDidBecomeActive = NO;
-        self.theGLViewController.pauseOnWillResignActive = NO;
-        
-        [self.view addSubview:self.theGLViewController.view];
-        
-        CGRect screenBounds = [[UIScreen mainScreen] bounds];
-        if (screenBounds.size.height == 568)
-        {
-            // 4-inch screen (iPhone 5)
-            for (UIView* subview in self.view.subviews)
-            {
-                if ([subview isKindOfClass:[UIImageView class]])
-                {
-                    UIImageView* background = (UIImageView*)subview;
-                    background.image = [UIImage imageNamed:@"gb-568h.jpg"];
-                }
-            }
-        }
-    }
-    return self;
-}
-							
-#pragma mark - Split view
-
-- (void)splitViewController:(UISplitViewController *)splitController willHideViewController:(UIViewController *)viewController withBarButtonItem:(UIBarButtonItem *)barButtonItem forPopoverController:(UIPopoverController *)popoverController
-{
-    barButtonItem.title = @"Games";
-    [self.navigationItem setLeftBarButtonItem:barButtonItem animated:YES];
-    self.masterPopoverController = popoverController;
-}
-
-- (void)splitViewController:(UISplitViewController *)splitController willShowViewController:(UIViewController *)viewController invalidatingBarButtonItem:(UIBarButtonItem *)barButtonItem
-{
-    // Called when the view is shown again in the split view, invalidating the button and popover controller.
-    [self.navigationItem setLeftBarButtonItem:nil animated:YES];
-    self.masterPopoverController = nil;
 }
 
 -(void) _handleTouch : (UITouch *) touch

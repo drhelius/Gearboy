@@ -23,7 +23,7 @@
 
 #include <mach/mach.h>
 #include <mach/mach_time.h>
-#include "../../src/definitions.h"
+#include "../../../src/definitions.h"
 
 #define FPS_REFRESH_TIME	0.5f
 

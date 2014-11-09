@@ -18,35 +18,33 @@
  */
 
 #import "MasterViewController.h"
-
 #import "DetailViewController.h"
+
+@interface MasterViewController ()
+
+@property NSMutableArray *objects;
+@end
 
 @implementation MasterViewController
 
-@synthesize sections = _sections;
-
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-    if (self) {
-        self.title = @"Games";
-        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-            self.clearsSelectionOnViewWillAppear = NO;
-            self.contentSizeForViewInPopover = CGSizeMake(320.0, 600.0);
-        }
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    self.title = @"Games";
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        self.clearsSelectionOnViewWillAppear = NO;
+        self.preferredContentSize = CGSizeMake(320.0, 600.0);
     }
-    return self;
-}
-							
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-    [self reloadTableView];
+    
+    self.theGLViewController = [[GLViewController alloc] initWithNibName:@"GLViewController" bundle:nil];
+    self.theGLViewController.preferredFramesPerSecond = 60;
+    self.theGLViewController.resumeOnDidBecomeActive = NO;
+    self.theGLViewController.pauseOnWillResignActive = NO;
 }
 
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.detailViewController = (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
+    [self reloadTableView];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
@@ -106,15 +104,16 @@
     }
     
     [self.tableView reloadData];
+    
 }
 
 - (void)loadWithROM:(NSString *)rom
-{
+{/*
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-	    if (!self.detailViewController) {
-	        self.detailViewController = [[DetailViewController alloc] initWithNibName:@"DetailViewController_iPhone" bundle:nil];
-	    }
-	    self.detailViewController.detailItem = rom;
+        if (!self.detailViewController) {
+            self.detailViewController = [[DetailViewController alloc] initWithNibName:@"DetailViewController_iPhone" bundle:nil];
+        }
+        self.detailViewController.detailItem = rom;
         
         if (self.navigationController.topViewController != self.detailViewController)
         {
@@ -122,13 +121,31 @@
         }
     } else {
         self.detailViewController.detailItem = rom;
+    }*/
+    
+    //self.detailViewController.detailItem = rom;
+}
+
+#pragma mark - Segues
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([[segue identifier] isEqualToString:@"showDetail"]) {
+        NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
+        NSString* rom = [[self.sections valueForKey:[[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:indexPath.section]] objectAtIndex:indexPath.row];
+        
+        [self loadWithROM:rom];
+        DetailViewController *controller = (DetailViewController *)[[segue destinationViewController] topViewController];
+        [controller setDetailItem:rom];
+        [controller setTheGLViewController:self.theGLViewController];
+        controller.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
+        controller.navigationItem.leftItemsSupplementBackButton = YES;
+        [self.popover dismissPopoverAnimated:YES];
     }
 }
 
 #pragma mark - Table View
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return [[self.sections allKeys] count];
 }
 
@@ -137,8 +154,7 @@
     return [[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:section];
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     return [[self.sections valueForKey:[[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:section]] count];
 }
 
@@ -146,8 +162,7 @@
     return [[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"Cell";
     
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
@@ -159,20 +174,18 @@
     }
     
     NSString* rom = [[self.sections valueForKey:[[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:indexPath.section]] objectAtIndex:indexPath.row];
-
+    
     cell.textLabel.text = [rom stringByDeletingPathExtension];
     cell.textLabel.adjustsFontSizeToFitWidth = YES;
     cell.selectionStyle = UITableViewCellSelectionStyleGray;
     return cell;
 }
 
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     return YES;
 }
 
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete)
     {
         NSString* rom = [[self.sections valueForKey:[[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:indexPath.section]] objectAtIndex:indexPath.row];
@@ -184,11 +197,11 @@
         NSString* deletePath = [NSString stringWithFormat:@"%@/%@", documentsDirectory, rom];
         
         if ([fileManager removeItemAtPath:deletePath error:&error])
-        {        
+        {
             [tableView beginUpdates];
             
             [[self.sections objectForKey:[[rom substringToIndex:1] uppercaseString]] removeObject:rom];
-        
+            
             if ([[self.sections objectForKey:[[rom substringToIndex:1] uppercaseString]] count] > 0)
             {
                 [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
@@ -196,11 +209,11 @@
             else
             {
                 [self.sections removeObjectForKey:[[rom substringToIndex:1] uppercaseString]];
-
+                
                 [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
                 [tableView deleteSections:[NSIndexSet indexSetWithIndex:indexPath.section]withRowAnimation:UITableViewRowAnimationFade];
             }
-        
+            
             [tableView endUpdates];
         }
         else
@@ -212,23 +225,16 @@
     }
 }
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    NSString* rom = [[self.sections valueForKey:[[[self.sections allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] objectAtIndex:indexPath.section]] objectAtIndex:indexPath.row];
-    
-    [self loadWithROM:rom];
-}
-
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    [self.detailViewController.theGLViewController.theEmulator pause];
+    [self.theGLViewController.theEmulator pause];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
-    [self.detailViewController.theGLViewController.theEmulator resume];
+    [self.theGLViewController.theEmulator resume];
 }
 
 @end

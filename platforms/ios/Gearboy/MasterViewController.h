@@ -18,17 +18,17 @@
  */
 
 #import <UIKit/UIKit.h>
+#import "GLViewController.h"
 
 @class DetailViewController;
 
 @interface MasterViewController : UITableViewController
-{
-    NSMutableDictionary *sections;  
-}
 
 @property (strong, nonatomic) DetailViewController *detailViewController;
 @property (strong, nonatomic) NSArray *listData;
 @property (strong, nonatomic) NSMutableDictionary *sections;
+@property (strong, nonatomic) GLViewController* theGLViewController;
+@property (strong, nonatomic) UIPopoverController* popover;
 
 - (void)reloadTableView;
 - (void)loadWithROM:(NSString *)rom;

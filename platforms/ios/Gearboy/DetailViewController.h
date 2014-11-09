@@ -18,14 +18,13 @@
  */
 
 #import <UIKit/UIKit.h>
-#import <GLKit/GLKit.h>
 #import "GLViewController.h"
 
-@interface DetailViewController : UIViewController <UISplitViewControllerDelegate>
+@interface DetailViewController : UIViewController
 
-@property (strong, nonatomic) GLViewController* theGLViewController;
 @property (strong, nonatomic) id detailItem;
 @property (weak, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
+@property (strong, nonatomic) GLViewController* theGLViewController;
 
 - (void)_handleTouch : (UITouch *) touch;
 
