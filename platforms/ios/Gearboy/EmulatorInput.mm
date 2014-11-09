@@ -136,7 +136,7 @@ void EmulatorInput::InputController(stInputCallbackParameter parameter, int id)
         {
             m_bController[i] = bNewController[i];
             
-            Gameboy_Keys key;
+            Gameboy_Keys key = Gameboy_Keys::Select_Key;
             
             switch (i)
             {
