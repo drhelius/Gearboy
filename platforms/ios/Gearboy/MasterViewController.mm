@@ -111,6 +111,18 @@
 {
     _openedFromOtherApp = YES;
     _openedFromOtherAppRom = rom;
+    
+    if (self.splitViewController.collapsed)
+    {
+        id vc = [[self.splitViewController.viewControllers lastObject] topViewController];
+        if ([vc isMemberOfClass:[UINavigationController class]])
+        {
+            _openedFromOtherApp = NO;
+            [self.theGLViewController loadRomWithName:_openedFromOtherAppRom];
+            return;
+        }
+    }
+    
     [self performSegueWithIdentifier: @"showDetail" sender: self];
 }
 
