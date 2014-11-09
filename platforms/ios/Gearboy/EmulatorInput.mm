@@ -90,11 +90,11 @@ void EmulatorInput::Init()
                 case 736:
                 {
                     // iPhone 6 Plus
-                    InputManager::Instance().AddCircleRegionEvent(257.0f, 354.0f, 35.0f, m_pInputCallbackButtons, 1, false);
-                    InputManager::Instance().AddCircleRegionEvent(203.0f, 380.0f, 35.0f, m_pInputCallbackButtons, 2, false);
-                    InputManager::Instance().AddCircleRegionEvent(181.0f, 462.0f, 30.0f, m_pInputCallbackButtons, 3, false);
-                    InputManager::Instance().AddCircleRegionEvent(129.0f, 462.0f, 30.0f, m_pInputCallbackButtons, 4, false);
-                    InputManager::Instance().AddCircleRegionEvent(76.0f, 370.0f, 52.0f, m_pInputCallbackController, 0, true);
+                    InputManager::Instance().AddCircleRegionEvent(334.0f, 470.0f, 45.0f, m_pInputCallbackButtons, 1, false);
+                    InputManager::Instance().AddCircleRegionEvent(262.0f, 503.0f, 45.0f, m_pInputCallbackButtons, 2, false);
+                    InputManager::Instance().AddCircleRegionEvent(235.0f, 613.0f, 40.0f, m_pInputCallbackButtons, 3, false);
+                    InputManager::Instance().AddCircleRegionEvent(163.0f, 613.0f, 40.0f, m_pInputCallbackButtons, 4, false);
+                    InputManager::Instance().AddCircleRegionEvent(94.0f, 491.0f, 65.0f, m_pInputCallbackController, 0, true);
                     break;
                 }
             }
