@@ -72,7 +72,7 @@ void InputManager::AddRectRegionEvent(float x, float y, float width, float heigh
 
 void InputManager::ClearRegionEvents(void)
 {
-    int size = (int)m_RegionEventVector.size();
+    int size = static_cast<int>(m_RegionEventVector.size());
 
     for (int i = 0; i < size; i++)
     {
