@@ -76,24 +76,27 @@ void Audio::Init()
     m_pSound->start(m_iSampleRate, 2);
 }
 
-void Audio::Reset(bool bCGB)
+void Audio::Reset(bool bCGB, bool soft)
 {
     m_bCGB = bCGB;
     m_bEnabled = true;
-    Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
-    m_pApu->reset(mode);
-    m_pBuffer->clear();
-
-    for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
+    
+    if(!soft)
     {
-        u8 value = m_bCGB ? kInitialValuesForColorFFXX[reg - 0xFF00] : kInitialValuesForFFXX[reg - 0xFF00];
-        m_pApu->write_register(0, reg, value);
+        Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
+        m_pApu->reset(mode);
+        m_pBuffer->clear();
+        
+        for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
+        {
+            u8 value = m_bCGB ? kInitialValuesForColorFFXX[reg - 0xFF00] : kInitialValuesForFFXX[reg - 0xFF00];
+            m_pApu->write_register(0, reg, value);
+        }
+        m_Time = 0;
     }
     
     m_pSound->stop();
     m_pSound->start(m_iSampleRate, 2);
-
-    m_Time = 0;
 }
 
 void Audio::Enable(bool enabled)

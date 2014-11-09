@@ -32,7 +32,7 @@ public:
     Audio();
     ~Audio();
     void Init();
-    void Reset(bool bCGB);
+    void Reset(bool bCGB, bool soft=false);
     void Enable(bool enabled);
     bool IsEnabled() const;
     void SetSampleRate(int rate);
