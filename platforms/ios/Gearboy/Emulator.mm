@@ -270,7 +270,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 - (void)resetAudio
 {
-    theGearboyCore->ResetSound();
+    theGearboyCore->ResetSound(true);
 }
 
 @end
