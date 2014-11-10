@@ -58,7 +58,7 @@ For all desktop platforms you will need SDL 2 and Qt 5 SDKs installed and config
 
 ### iOS
 - Install Xcode for Mac OS X. You need iOS SDK 8 or later. 
-- Download SDL 2.0.4 or later (currently in development: https://www.libsdl.org/hg.php) and replace the SDL project inside Gearboy project with the one in your SDL insatallation <code>[SDL dir]/Xcode-iOS/SDL/SDL.xcodeproj</code>
+- Build the project. 
 - Run it on real hardware using your iOS developer certificate. Be sure to compile it on Release for extra optimizations. For jailbroken devices use the jailbreak branch.
 
 ### Raspberry Pi - Raspbian
