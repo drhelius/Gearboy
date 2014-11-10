@@ -19,6 +19,13 @@
 
 #import <Foundation/Foundation.h>
 #import <GLKit/GLKit.h>
+
+#ifdef __APPLE__
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
+#define SDL_MAIN_HANDLED
+#endif
+#endif
+
 #import "../../../src/gearboy.h"
 #import "EmulatorInput.h"
 

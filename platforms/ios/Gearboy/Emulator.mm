@@ -39,6 +39,12 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     {
         firstFrame = YES;
         
+#ifdef __APPLE__
+#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
+        SDL_SetMainReady();
+#endif
+#endif
+        
         theGearboyCore = new GearboyCore();
         theGearboyCore->Init();
         
