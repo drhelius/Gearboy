@@ -23,8 +23,7 @@
 #include "definitions.h"
 #include "audio/Multi_Buffer.h"
 #include "audio/Gb_Apu.h"
-
-class Sound_Queue;
+#include "audio/Sound_Queue.h"
 
 class Audio
 {

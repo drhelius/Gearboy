@@ -19,7 +19,6 @@
 
 #include "Audio.h"
 #include "Memory.h"
-#include "audio/Sound_Queue.h"
 
 Audio::Audio()
 {
@@ -43,13 +42,6 @@ Audio::~Audio()
 
 void Audio::Init()
 {
-    
-#ifdef __APPLE__
-#if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
-    SDL_SetMainReady();
-#endif
-#endif
-    
     int error = SDL_Init(SDL_INIT_AUDIO);
     
     if (error < 0)
