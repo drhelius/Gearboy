@@ -16,6 +16,7 @@
 		6648A60E19E078C4005A0B40 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6648A60C19E078C4005A0B40 /* Main.storyboard */; };
 		6648A61019E078C4005A0B40 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6648A60F19E078C4005A0B40 /* Images.xcassets */; };
 		6648A61F19E078C4005A0B40 /* GearboyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6648A61E19E078C4005A0B40 /* GearboyTests.m */; };
+		666A29851A10ABF00036E71A /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 666A29811A10AB930036E71A /* libSDL2.a */; };
 		6676CEC31A08063E007D48F9 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6676CEC11A08063E007D48F9 /* GLViewController.xib */; };
 		669394AF19E079AC003FB4F4 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 669394A719E079AC003FB4F4 /* AudioToolbox.framework */; };
 		669394B019E079AC003FB4F4 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 669394A819E079AC003FB4F4 /* CoreGraphics.framework */; };
@@ -59,7 +60,6 @@
 		6693953E19E07D02003FB4F4 /* gb_832.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 6693953019E07D02003FB4F4 /* gb_832.jpg */; };
 		6693953F19E07D02003FB4F4 /* gb_ipad_1920.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 6693953119E07D02003FB4F4 /* gb_ipad_1920.jpg */; };
 		6693954019E07D02003FB4F4 /* gb_ipad_960.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 6693953219E07D02003FB4F4 /* gb_ipad_960.jpg */; };
-		66942E4E19E45AC7009E020A /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66942E4D19E45A5D009E020A /* libSDL2.a */; };
 		66942E5019E45AE9009E020A /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66942E4F19E45AE9009E020A /* CoreMotion.framework */; };
 /* End PBXBuildFile section */
 
@@ -71,9 +71,9 @@
 			remoteGlobalIDString = 6648A5FB19E078C4005A0B40;
 			remoteInfo = Gearboy;
 		};
-		66942E4C19E45A5D009E020A /* PBXContainerItemProxy */ = {
+		666A29801A10AB930036E71A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 66942E4719E45A5D009E020A /* SDL.xcodeproj */;
+			containerPortal = 666A297B1A10AB930036E71A /* SDL.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = FD6526630DE8FCCB002AD96B;
 			remoteInfo = libSDL;
@@ -97,6 +97,7 @@
 		6648A61819E078C4005A0B40 /* GearboyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GearboyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6648A61D19E078C4005A0B40 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6648A61E19E078C4005A0B40 /* GearboyTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GearboyTests.m; sourceTree = "<group>"; };
+		666A297B1A10AB930036E71A /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "dependencies/SDL-2.0.4-9174/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		6676CEC21A08063E007D48F9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/GLViewController.xib; sourceTree = "<group>"; };
 		669394A719E079AC003FB4F4 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		669394A819E079AC003FB4F4 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -184,7 +185,6 @@
 		6693953019E07D02003FB4F4 /* gb_832.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = gb_832.jpg; path = img/gb_832.jpg; sourceTree = "<group>"; };
 		6693953119E07D02003FB4F4 /* gb_ipad_1920.jpg */ = {isa = PBXFileReference; explicitFileType = image.jpeg; name = gb_ipad_1920.jpg; path = img/gb_ipad_1920.jpg; sourceTree = "<group>"; };
 		6693953219E07D02003FB4F4 /* gb_ipad_960.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = gb_ipad_960.jpg; path = img/gb_ipad_960.jpg; sourceTree = "<group>"; };
-		66942E4719E45A5D009E020A /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "../../../../../SDL2-2.0.4-SN/SDL/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = "<group>"; };
 		66942E4F19E45AE9009E020A /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -193,8 +193,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				666A29851A10ABF00036E71A /* libSDL2.a in Frameworks */,
 				66942E5019E45AE9009E020A /* CoreMotion.framework in Frameworks */,
-				66942E4E19E45AC7009E020A /* libSDL2.a in Frameworks */,
 				669394AF19E079AC003FB4F4 /* AudioToolbox.framework in Frameworks */,
 				669394B019E079AC003FB4F4 /* CoreGraphics.framework in Frameworks */,
 				669394B119E079AC003FB4F4 /* Foundation.framework in Frameworks */,
@@ -240,7 +240,7 @@
 		6648A5FE19E078C4005A0B40 /* Gearboy */ = {
 			isa = PBXGroup;
 			children = (
-				66942E4719E45A5D009E020A /* SDL.xcodeproj */,
+				666A297B1A10AB930036E71A /* SDL.xcodeproj */,
 				667FC3ED1A06A7F6002F3098 /* GUI */,
 				6693952419E07CEF003FB4F4 /* img */,
 				6648A5FF19E078C4005A0B40 /* Supporting Files */,
@@ -292,6 +292,14 @@
 				6648A61D19E078C4005A0B40 /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		666A297C1A10AB930036E71A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				666A29811A10AB930036E71A /* libSDL2.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		667FC3ED1A06A7F6002F3098 /* GUI */ = {
@@ -407,14 +415,6 @@
 			name = img;
 			sourceTree = "<group>";
 		};
-		66942E4819E45A5D009E020A /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				66942E4D19E45A5D009E020A /* libSDL2.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -484,8 +484,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 66942E4819E45A5D009E020A /* Products */;
-					ProjectRef = 66942E4719E45A5D009E020A /* SDL.xcodeproj */;
+					ProductGroup = 666A297C1A10AB930036E71A /* Products */;
+					ProjectRef = 666A297B1A10AB930036E71A /* SDL.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -497,11 +497,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		66942E4D19E45A5D009E020A /* libSDL2.a */ = {
+		666A29811A10AB930036E71A /* libSDL2.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libSDL2.a;
-			remoteRef = 66942E4C19E45A5D009E020A /* PBXContainerItemProxy */;
+			remoteRef = 666A29801A10AB930036E71A /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -696,14 +696,19 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libstdc++";
+				CLANG_CXX_LIBRARY = "libc++";
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"dependencies/SDL-2.0.4-9174/include",
+				);
 				INFOPLIST_FILE = Gearboy/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "/Users/nacho/Development/SDL2-2.0.4-SN/SDL/include";
+				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "armv7 armv7s arm64";
 			};
 			name = Debug;
@@ -714,15 +719,20 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libstdc++";
+				CLANG_CXX_LIBRARY = "libc++";
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_OPTIMIZATION_LEVEL = 2;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"dependencies/SDL-2.0.4-9174/include",
+				);
 				INFOPLIST_FILE = Gearboy/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "/Users/nacho/Development/SDL2-2.0.4-SN/SDL/include";
+				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "armv7 armv7s arm64";
 			};
 			name = Release;
