@@ -59,7 +59,8 @@ For all desktop platforms you will need SDL 2 and Qt 5 SDKs installed and config
 ### iOS
 - Install Xcode for Mac OS X. You need iOS SDK 8 or later. 
 - Build the project. 
-- Run it on real hardware using your iOS developer certificate. Be sure to compile it on Release for extra optimizations. For jailbroken devices use the jailbreak branch.
+- Run it on real hardware using your iOS developer certificate. Maku sure it compiles on Release for extra optimizations.
+- For jailbroken devices use the jailbreak branch.
 
 ### Raspberry Pi - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
