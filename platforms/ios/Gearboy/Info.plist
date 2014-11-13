@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -28,7 +30,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.0</string>
+	<string>2.1</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -36,6 +38,10 @@
 	<key>LSApplicationCategoryType</key>
 	<string></string>
 	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2012 by Ignacio Sanchez</string>
+	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
@@ -61,12 +67,6 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>CFBundleDisplayName</key>
-	<string>$(PRODUCT_NAME)</string>
-	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2012 by Ignacio Sanchez</string>
-	<key>UIFileSharingEnabled</key>
-	<true/>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict>
