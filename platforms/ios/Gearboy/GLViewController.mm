@@ -45,7 +45,7 @@
 {
     [super viewDidLoad];
     
-    CGFloat scale =[[UIScreen mainScreen] scale];
+    int scale =[[UIScreen mainScreen] nativeScale];
     GLKView *view = (GLKView *)self.view;
     
     self.theEmulator.glview = view;
