@@ -45,14 +45,14 @@
 {
     [super viewDidLoad];
     
-    int scale =[[UIScreen mainScreen] nativeScale];
+    float scale =[[UIScreen mainScreen] scale];
     GLKView *view = (GLKView *)self.view;
     
     self.theEmulator.glview = view;
     BOOL retina, iPad;
-    retina = (scale != 1);
+    retina = (scale != 1.0);
     
-    int multiplier = 0;
+    float multiplier = 0;
     
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
     {
@@ -64,23 +64,23 @@
             
             if (h == 667)
             {
-                multiplier = 4;
+                multiplier = 4.0;
                 view.frame = CGRectMake(27, 26, 80 * multiplier, 72 * multiplier);
             }
             else if (h == 736)
             {
-                multiplier = 4;
+                multiplier = 4.0;
                 view.frame = CGRectMake(45, 35, 80 * multiplier, 72 * multiplier);
             }
             else
             {
-                multiplier = 3;
+                multiplier = 3.0;
                 view.frame = CGRectMake(40, 28, 80 * multiplier, 72 * multiplier);
             }
         }
         else
         {
-            multiplier = 4;
+            multiplier = 4.0;
             view.frame = CGRectMake(0, 0, 80 * multiplier, 72 * multiplier);
         }
     }
@@ -89,12 +89,12 @@
         iPad = YES;
         if (retina)
         {
-            multiplier = 5;
+            multiplier = 5.0;
             view.frame = CGRectMake(187, 53, 80 * multiplier, 72 * multiplier);
         }
         else
         {
-            multiplier = 4;
+            multiplier = 4.0;
             view.frame = CGRectMake(222, 82, 80 * multiplier, 72 * multiplier);
         }
         
