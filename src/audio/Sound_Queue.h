@@ -32,7 +32,7 @@ public:
 	void stop();
 	
 private:
-	enum { buf_size = 8192 };
+	enum { buf_size = 2048 };
 	enum { buf_count = 3 };
 	sample_t* volatile bufs;
 	SDL_sem* volatile free_sem;

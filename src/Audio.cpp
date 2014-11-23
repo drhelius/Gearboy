@@ -25,6 +25,7 @@ Audio::Audio()
     m_bCGB = false;
     m_bEnabled = true;
     m_Time = 0;
+    m_AbsoluteTime = 0;
     m_iSampleRate = 44100;
     InitPointer(m_pApu);
     InitPointer(m_pBuffer);
@@ -85,6 +86,7 @@ void Audio::Reset(bool bCGB, bool soft)
             m_pApu->write_register(0, reg, value);
         }
         m_Time = 0;
+        m_AbsoluteTime = 0;
     }
     
     m_pSound->stop();
@@ -114,8 +116,8 @@ void Audio::SetSampleRate(int rate)
 
 void Audio::EndFrame()
 {
-    m_pApu->end_frame(kSoundFrameLength);
-    m_pBuffer->end_frame(kSoundFrameLength);
+    m_pApu->end_frame(m_AbsoluteTime);
+    m_pBuffer->end_frame(m_AbsoluteTime);
 
     if (m_pBuffer->samples_avail() >= kSampleBufferSize)
     {

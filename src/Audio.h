@@ -45,14 +45,15 @@ private:
     Gb_Apu* m_pApu;
     Stereo_Buffer* m_pBuffer;
     int m_Time;
+    int m_AbsoluteTime;
     Sound_Queue* m_pSound;
     int m_iSampleRate;
     blip_sample_t* m_pSampleBuffer;
     bool m_bCGB;
 };
 
-const int kSampleBufferSize = 8192;
-const long kSoundFrameLength = 20000;
+const int kSampleBufferSize = 4096;
+const long kSoundFrameLength = 10000;
 const u8 kSoundMask[] = {
     0x80, 0x3F, 0x00, 0xFF, 0xBF,                       // NR10-NR14 (0xFF10-0xFF14)
     0xFF, 0x3F, 0x00, 0xFF, 0xBF,                       // NR20-NR24 (0xFF15-0xFF19)
@@ -68,12 +69,13 @@ const u8 kSoundMask[] = {
 inline void Audio::Tick(unsigned int clockCycles)
 {
     m_Time += clockCycles;
+    m_AbsoluteTime += clockCycles;
 
     if (m_Time >= kSoundFrameLength)
     {
-        m_Time -= kSoundFrameLength;
-
         EndFrame();
+        m_Time -= kSoundFrameLength;
+        m_AbsoluteTime = 0;
     }
 }
 
