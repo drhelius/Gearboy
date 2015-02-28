@@ -1,0 +1,22 @@
+CFLAGS+=-Wall -O3 -march=armv7-a --mfpu=neon-vfpv4 -mfloat-abi=hard
+
+LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lGLESv2 -lEGL -lopenmaxil -lvcos -lvchiq_arm -lm -lrt -lbcm_host `sdl2-config --libs`
+
+INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/ -I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux  -I../../../src/ -I./
+
+.SECONDARY: $(OBJS)
+
+all: $(BIN) $(LIB)
+
+%.o: %.cpp
+	@rm -f $@ 
+	$(CXX) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+%.bin: $(OBJS)
+	$(CC) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) -lstdc++ -Wl,--no-whole-archive -rdynamic
+
+clean:
+	for i in $(OBJS); do (if test -e "$$i"; then ( rm $$i ); fi ); done
+	@rm -f $(BIN) $(LIB)
+
+
