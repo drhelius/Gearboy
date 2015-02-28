@@ -1,4 +1,4 @@
-CFLAGS+=-Wall -O3 -march=armv7-a --mfpu=neon-vfpv4 -mfloat-abi=hard
+CFLAGS+=-Wall -O3 -march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard
 
 LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lGLESv2 -lEGL -lopenmaxil -lvcos -lvchiq_arm -lm -lrt -lbcm_host `sdl2-config --libs`
 
