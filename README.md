@@ -62,10 +62,23 @@ For all desktop platforms you will need SDL 2 and Qt 5 SDKs installed and config
 - Run it on real hardware using your iOS developer certificate. Make sure it compiles on Release for extra optimizations.
 - For jailbroken devices use the jailbreak branch.
 
-### Raspberry Pi - Raspbian
-- Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
-- Use <code>make</code> to build the project.
-- Sound emulation in the Pi is awfully slow. Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator and over clock your Raspberry as much as you can for the best performance.
+### Raspberry Pi 2 - Raspbian
+- Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
+``` shell
+sudo apt-get update
+sudo apt-get upgrade
+sudo rpi-update
+sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg8-dev libtiff5-dev libwebp-dev automake
+cd ~
+wget https://www.libsdl.org/release/SDL2-2.0.3.tar.gz
+tar zxvf SDL2-2.0.3.tar.gz
+cd SDL2-2.0.3 && mkdir build && cd build
+../configure --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl --host=armv7l-raspberry-linux-gnueabihf
+make -j 4
+sudo make install
+```
+- Use <code>make -j 4</code> to build the project.
+- Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
 
 ### Windows
 - You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
