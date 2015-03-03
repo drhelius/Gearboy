@@ -77,6 +77,7 @@ cd SDL2-2.0.3 && mkdir build && cd build
 make -j 4
 sudo make install
 ```
+- Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>).
 - Use <code>make -j 4</code> to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
 
