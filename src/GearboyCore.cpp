@@ -405,24 +405,24 @@ void GearboyCore::LoadRam(const char* szPath)
 
 void GearboyCore::InitDMGPalette()
 {
-    m_DMGPalette[0].red = 0xEF;
-    m_DMGPalette[0].green = 0xF3;
-    m_DMGPalette[0].blue = 0xD5;
+    m_DMGPalette[0].red = 0x87;
+    m_DMGPalette[0].green = 0x96;
+    m_DMGPalette[0].blue = 0x03;
     m_DMGPalette[0].alpha = 0xFF;
 
-    m_DMGPalette[1].red = 0xA3;
-    m_DMGPalette[1].green = 0xB6;
-    m_DMGPalette[1].blue = 0x7A;
+    m_DMGPalette[1].red = 0x4d;
+    m_DMGPalette[1].green = 0x6b;
+    m_DMGPalette[1].blue = 0x03;
     m_DMGPalette[1].alpha = 0xFF;
 
-    m_DMGPalette[2].red = 0x37;
-    m_DMGPalette[2].green = 0x61;
-    m_DMGPalette[2].blue = 0x3B;
+    m_DMGPalette[2].red = 0x2b;
+    m_DMGPalette[2].green = 0x55;
+    m_DMGPalette[2].blue = 0x03;
     m_DMGPalette[2].alpha = 0xFF;
 
-    m_DMGPalette[3].red = 0x04;
-    m_DMGPalette[3].green = 0x1C;
-    m_DMGPalette[3].blue = 0x16;
+    m_DMGPalette[3].red = 0x14;
+    m_DMGPalette[3].green = 0x44;
+    m_DMGPalette[3].blue = 0x03;
     m_DMGPalette[3].alpha = 0xFF;
 }
 
