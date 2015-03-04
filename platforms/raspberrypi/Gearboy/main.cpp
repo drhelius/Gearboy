@@ -23,13 +23,20 @@
 #include <math.h>
 #include <assert.h>
 #include <unistd.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdlib>
 #include <sys/time.h>
 #include <SDL2/SDL.h>
+#include <libconfig.h++>
 #include "bcm_host.h"
 #include "GLES/gl.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "gearboy.h"
+
+using namespace std;
+using namespace libconfig;
 
 bool running = true;
 bool paused = false;
@@ -37,6 +44,8 @@ bool paused = false;
 EGLDisplay display;
 EGLSurface surface;
 EGLContext context;
+
+static const char *output_file = "gearboy.cfg";
 
 const float kGB_Width = 160.0f;
 const float kGB_Height = 144.0f;
@@ -48,6 +57,8 @@ GLshort quadVerts[8];
 GearboyCore* theGearboyCore;
 GB_Color* theFrameBuffer;
 GLuint theGBTexture;
+
+SDL_Keycode kc_keypad_left, kc_keypad_right, kc_keypad_up, kc_keypad_down, kc_keypad_a, kc_keypad_b, kc_keypad_start, kc_keypad_select, kc_emulator_pause, kc_emulator_quit;
 
 uint32_t screen_width, screen_height;
 
@@ -65,77 +76,51 @@ void update(void)
             running = false;
             break;
             case SDL_KEYDOWN:
-            switch(keyevent.key.keysym.sym)
-            {
-                case SDLK_LEFT:
+            if (keyevent.key.keysym.sym == kc_keypad_left)
                 theGearboyCore->KeyPressed(Left_Key);
-                break;
-                case SDLK_RIGHT:
+            else if (keyevent.key.keysym.sym == kc_keypad_right)
                 theGearboyCore->KeyPressed(Right_Key);
-                break;
-                case SDLK_UP:
+            else if (keyevent.key.keysym.sym == kc_keypad_up)
                 theGearboyCore->KeyPressed(Up_Key);
-                break;
-                case SDLK_DOWN:
+            else if (keyevent.key.keysym.sym == kc_keypad_down)
                 theGearboyCore->KeyPressed(Down_Key);
-                break;
-                case SDLK_a:
+            else if (keyevent.key.keysym.sym == kc_keypad_b)
                 theGearboyCore->KeyPressed(B_Key);
-                break;
-                case SDLK_s:
+            else if (keyevent.key.keysym.sym == kc_keypad_a)
                 theGearboyCore->KeyPressed(A_Key);
-                break;
-                case SDLK_p:
+            else if (keyevent.key.keysym.sym == kc_emulator_pause)
+            {
                 paused = !paused;
                 theGearboyCore->Pause(paused);
-                break;
-                case SDLK_SPACE:
-                theGearboyCore->KeyPressed(Select_Key);
-                break;
-                case SDLK_RETURN:
-                theGearboyCore->KeyPressed(Start_Key);
-                break;
-                case SDLK_ESCAPE:
-                running = false;
-                break;
-                default:
-                break;
             }
+            else if (keyevent.key.keysym.sym == kc_keypad_select)
+                theGearboyCore->KeyPressed(Select_Key);
+            else if (keyevent.key.keysym.sym == kc_keypad_start)
+                theGearboyCore->KeyPressed(Start_Key);
+            else if (keyevent.key.keysym.sym == kc_emulator_quit)
+                running = false;
             break;
             case SDL_KEYUP:
-            switch(keyevent.key.keysym.sym)
-            {
-                case SDLK_LEFT:
+            if (keyevent.key.keysym.sym == kc_keypad_left)
                 theGearboyCore->KeyReleased(Left_Key);
-                break;
-                case SDLK_RIGHT:
+            else if (keyevent.key.keysym.sym == kc_keypad_right)
                 theGearboyCore->KeyReleased(Right_Key);
-                break;
-                case SDLK_UP:
+            else if (keyevent.key.keysym.sym == kc_keypad_up)
                 theGearboyCore->KeyReleased(Up_Key);
-                break;
-                case SDLK_DOWN:
+            else if (keyevent.key.keysym.sym == kc_keypad_down)
                 theGearboyCore->KeyReleased(Down_Key);
-                break;
-                case SDLK_a:
+            else if (keyevent.key.keysym.sym == kc_keypad_b)
                 theGearboyCore->KeyReleased(B_Key);
-                break;
-                case SDLK_s:
+            else if (keyevent.key.keysym.sym == kc_keypad_a)
                 theGearboyCore->KeyReleased(A_Key);
-                break;
-                case SDLK_SPACE:
+            else if (keyevent.key.keysym.sym == kc_keypad_select)
                 theGearboyCore->KeyReleased(Select_Key);
-                break;
-                case SDLK_RETURN:
+            else if (keyevent.key.keysym.sym == kc_keypad_start)
                 theGearboyCore->KeyReleased(Start_Key);
-                break;
-                default:
-                break;
-            }
+            break;
         }
     }
 
-    //theGearboyCore->RunToVBlank(NULL); // this is to force 30 FPS
     theGearboyCore->RunToVBlank(theFrameBuffer);
 
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
@@ -158,6 +143,69 @@ void init_sdl(void)
     }
 
     SDL_ShowCursor(SDL_DISABLE);
+
+    kc_keypad_left = SDLK_LEFT;
+    kc_keypad_right = SDLK_RIGHT;
+    kc_keypad_up = SDLK_UP;
+    kc_keypad_down = SDLK_DOWN;
+    kc_keypad_a = SDLK_a;
+    kc_keypad_b = SDLK_s;
+    kc_keypad_start = SDLK_RETURN;
+    kc_keypad_select = SDLK_SPACE;
+    kc_emulator_pause = SDLK_p;
+    kc_emulator_quit = SDLK_ESCAPE;
+
+    Config cfg;
+
+    try
+    {
+        cfg.readFile(output_file);
+
+        try
+        {
+            const Setting& root = cfg.getRoot();
+            const Setting &gearboy = root["Gearboy"];
+
+            string keypad_left, keypad_right, keypad_up, keypad_down, keypad_a, keypad_b, 
+            keypad_start, keypad_select, emulator_pause, emulator_quit;
+            gearboy.lookupValue("keypad_left", keypad_left);
+            gearboy.lookupValue("keypad_right", keypad_right);
+            gearboy.lookupValue("keypad_up", keypad_up);
+            gearboy.lookupValue("keypad_down", keypad_down);
+            gearboy.lookupValue("keypad_a", keypad_a);
+            gearboy.lookupValue("keypad_b", keypad_b);
+            gearboy.lookupValue("keypad_start", keypad_start);
+            gearboy.lookupValue("keypad_select", keypad_select);
+
+            gearboy.lookupValue("emulator_pause", emulator_pause);
+            gearboy.lookupValue("emulator_quit", emulator_quit);
+
+            kc_keypad_left = SDL_GetKeyFromName(keypad_left.c_str());
+            kc_keypad_right = SDL_GetKeyFromName(keypad_right.c_str());
+            kc_keypad_up = SDL_GetKeyFromName(keypad_up.c_str());
+            kc_keypad_down = SDL_GetKeyFromName(keypad_down.c_str());
+            kc_keypad_a = SDL_GetKeyFromName(keypad_a.c_str());
+            kc_keypad_b = SDL_GetKeyFromName(keypad_b.c_str());
+            kc_keypad_start = SDL_GetKeyFromName(keypad_start.c_str());
+            kc_keypad_select = SDL_GetKeyFromName(keypad_select.c_str());
+
+            kc_emulator_pause = SDL_GetKeyFromName(emulator_pause.c_str());
+            kc_emulator_quit = SDL_GetKeyFromName(emulator_quit.c_str());
+        }
+        catch(const SettingNotFoundException &nfex)
+        {
+            std::cerr << "Setting not found" << std::endl;
+        }
+    }
+    catch(const FileIOException &fioex)
+    {
+        Log("I/O error while reading file: %s", output_file);
+    }
+    catch(const ParseException &pex)
+    {
+        std::cerr << "Parse error at " << pex.getFile() << ":" << pex.getLine()
+              << " - " << pex.getError() << std::endl;
+    } 
 }
 
 void init_ogl(void)
@@ -312,6 +360,32 @@ void init(void)
 
 void end(void)
 {
+    Config cfg;
+
+    Setting &root = cfg.getRoot();
+    Setting &address = root.add("Gearboy", Setting::TypeGroup);
+
+    address.add("keypad_left", Setting::TypeString) = SDL_GetKeyName(kc_keypad_left);
+    address.add("keypad_right", Setting::TypeString) = SDL_GetKeyName(kc_keypad_right);
+    address.add("keypad_up", Setting::TypeString) = SDL_GetKeyName(kc_keypad_up);
+    address.add("keypad_down", Setting::TypeString) = SDL_GetKeyName(kc_keypad_down);
+    address.add("keypad_a", Setting::TypeString) = SDL_GetKeyName(kc_keypad_a);
+    address.add("keypad_b", Setting::TypeString) = SDL_GetKeyName(kc_keypad_b);
+    address.add("keypad_start", Setting::TypeString) = SDL_GetKeyName(kc_keypad_start);
+    address.add("keypad_select", Setting::TypeString) = SDL_GetKeyName(kc_keypad_select);
+
+    address.add("emulator_pause", Setting::TypeString) = SDL_GetKeyName(kc_emulator_pause);
+    address.add("emulator_quit", Setting::TypeString) = SDL_GetKeyName(kc_emulator_quit);
+
+    try
+    {
+        cfg.writeFile(output_file);
+    }
+    catch(const FileIOException &fioex)
+    {
+        Log("I/O error while writing file: %s", output_file);
+    }
+
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearboyCore);
     SDL_DestroyWindow(theWindow);
@@ -321,14 +395,15 @@ void end(void)
 
 int main(int argc, char** argv)
 {
+    init();
+
     if (argc < 2 || argc > 4)
     {
+        end();
         printf("usage: %s rom_path [options]\n", argv[0]);
         printf("options:\n-nosound\n-forcedmg\n");
         return -1;
     }
-
-    init();
 
     bool forcedmg = false;
 

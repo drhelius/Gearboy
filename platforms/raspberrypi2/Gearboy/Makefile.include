@@ -1,6 +1,6 @@
 CFLAGS+=-Wall -O3 -march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard
 
-LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lGLESv2 -lEGL -lopenmaxil -lvcos -lvchiq_arm -lm -lrt -lbcm_host `sdl2-config --libs`
+LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lGLESv2 -lEGL -lopenmaxil -lvcos -lvchiq_arm -lm -lrt -lconfig++ -lbcm_host `sdl2-config --libs`
 
 INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/ -I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux  -I../../../src/ -I./
 
