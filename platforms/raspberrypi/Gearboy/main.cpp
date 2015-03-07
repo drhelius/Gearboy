@@ -58,7 +58,10 @@ GearboyCore* theGearboyCore;
 GB_Color* theFrameBuffer;
 GLuint theGBTexture;
 
+SDL_Joystick* game_pad = NULL;
 SDL_Keycode kc_keypad_left, kc_keypad_right, kc_keypad_up, kc_keypad_down, kc_keypad_a, kc_keypad_b, kc_keypad_start, kc_keypad_select, kc_emulator_pause, kc_emulator_quit;
+bool jg_enable, jg_x_axis_invert, jg_y_axis_invert;
+int jg_a, jg_b, jg_start, jg_select, jg_x_axis, jg_y_axis;
 
 uint32_t screen_width, screen_height;
 
@@ -75,48 +78,116 @@ void update(void)
             case SDL_QUIT:
             running = false;
             break;
+
+            case SDL_JOYBUTTONDOWN:
+            if (jg_enable)
+            {
+                if (keyevent.jbutton.button == jg_b)
+                    theGearboyCore->KeyPressed(B_Key);
+                else if (keyevent.jbutton.button == jg_a)
+                    theGearboyCore->KeyPressed(A_Key);
+                else if (keyevent.jbutton.button == jg_select)
+                    theGearboyCore->KeyPressed(Select_Key);
+                else if (keyevent.jbutton.button == jg_start)
+                    theGearboyCore->KeyPressed(Start_Key);
+            }
+            break;
+
+            case SDL_JOYBUTTONUP:
+            if (jg_enable)
+            {
+                if (keyevent.jbutton.button == jg_b)
+                    theGearboyCore->KeyReleased(B_Key);
+                else if (keyevent.jbutton.button == jg_a)
+                    theGearboyCore->KeyReleased(A_Key);
+                else if (keyevent.jbutton.button == jg_select)
+                    theGearboyCore->KeyReleased(Select_Key);
+                else if (keyevent.jbutton.button == jg_start)
+                    theGearboyCore->KeyReleased(Start_Key);
+            }
+            break;
+
+            case SDL_JOYAXISMOTION:  
+            if (jg_enable)
+            {
+                if(keyevent.jaxis.axis == jg_x_axis)
+                {
+                    int x_motion = keyevent.jaxis.value * (jg_x_axis_invert ? -1 : 1);
+                    if (x_motion < 0)
+                        theGearboyCore->KeyPressed(Left_Key);
+                    else if (x_motion > 0)
+                        theGearboyCore->KeyPressed(Right_Key);
+                    else 
+                    {
+                        theGearboyCore->KeyReleased(Left_Key);
+                        theGearboyCore->KeyReleased(Right_Key);
+                    }
+                }
+                else if(keyevent.jaxis.axis == jg_y_axis)
+                {
+                    int y_motion = keyevent.jaxis.value * (jg_y_axis_invert ? -1 : 1);
+                    if (y_motion < 0)
+                        theGearboyCore->KeyPressed(Up_Key);
+                    else if (y_motion > 0)
+                        theGearboyCore->KeyPressed(Down_Key);
+                    else 
+                    {
+                        theGearboyCore->KeyReleased(Up_Key);
+                        theGearboyCore->KeyReleased(Down_Key);
+                    }
+                }
+            }
+            break;
+
             case SDL_KEYDOWN:
-            if (keyevent.key.keysym.sym == kc_keypad_left)
-                theGearboyCore->KeyPressed(Left_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_right)
-                theGearboyCore->KeyPressed(Right_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_up)
-                theGearboyCore->KeyPressed(Up_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_down)
-                theGearboyCore->KeyPressed(Down_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_b)
-                theGearboyCore->KeyPressed(B_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_a)
-                theGearboyCore->KeyPressed(A_Key);
+            if (!jg_enable)
+            {
+                if (keyevent.key.keysym.sym == kc_keypad_left)
+                    theGearboyCore->KeyPressed(Left_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_right)
+                    theGearboyCore->KeyPressed(Right_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_up)
+                    theGearboyCore->KeyPressed(Up_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_down)
+                    theGearboyCore->KeyPressed(Down_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_b)
+                    theGearboyCore->KeyPressed(B_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_a)
+                    theGearboyCore->KeyPressed(A_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_select)
+                    theGearboyCore->KeyPressed(Select_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_start)
+                    theGearboyCore->KeyPressed(Start_Key);
+            }
+            if (keyevent.key.keysym.sym == kc_emulator_quit)
+                running = false;
             else if (keyevent.key.keysym.sym == kc_emulator_pause)
             {
                 paused = !paused;
                 theGearboyCore->Pause(paused);
             }
-            else if (keyevent.key.keysym.sym == kc_keypad_select)
-                theGearboyCore->KeyPressed(Select_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_start)
-                theGearboyCore->KeyPressed(Start_Key);
-            else if (keyevent.key.keysym.sym == kc_emulator_quit)
-                running = false;
             break;
+
             case SDL_KEYUP:
-            if (keyevent.key.keysym.sym == kc_keypad_left)
-                theGearboyCore->KeyReleased(Left_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_right)
-                theGearboyCore->KeyReleased(Right_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_up)
-                theGearboyCore->KeyReleased(Up_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_down)
-                theGearboyCore->KeyReleased(Down_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_b)
-                theGearboyCore->KeyReleased(B_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_a)
-                theGearboyCore->KeyReleased(A_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_select)
-                theGearboyCore->KeyReleased(Select_Key);
-            else if (keyevent.key.keysym.sym == kc_keypad_start)
-                theGearboyCore->KeyReleased(Start_Key);
+            if (!jg_enable)
+            {
+                if (keyevent.key.keysym.sym == kc_keypad_left)
+                    theGearboyCore->KeyReleased(Left_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_right)
+                    theGearboyCore->KeyReleased(Right_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_up)
+                    theGearboyCore->KeyReleased(Up_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_down)
+                    theGearboyCore->KeyReleased(Down_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_b)
+                    theGearboyCore->KeyReleased(B_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_a)
+                    theGearboyCore->KeyReleased(A_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_select)
+                    theGearboyCore->KeyReleased(Select_Key);
+                else if (keyevent.key.keysym.sym == kc_keypad_start)
+                    theGearboyCore->KeyReleased(Start_Key);
+            }
             break;
         }
     }
@@ -130,7 +201,7 @@ void update(void)
 
 void init_sdl(void)
 {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
     {
         Log("SDL Error Init: %s", SDL_GetError());
     }
@@ -144,6 +215,13 @@ void init_sdl(void)
 
     SDL_ShowCursor(SDL_DISABLE);
 
+    game_pad = SDL_JoystickOpen(0);
+        
+    if(game_pad == NULL)
+    {
+        Log("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
+    }
+
     kc_keypad_left = SDLK_LEFT;
     kc_keypad_right = SDLK_RIGHT;
     kc_keypad_up = SDLK_UP;
@@ -154,6 +232,15 @@ void init_sdl(void)
     kc_keypad_select = SDLK_SPACE;
     kc_emulator_pause = SDLK_p;
     kc_emulator_quit = SDLK_ESCAPE;
+    jg_enable = false;
+    jg_x_axis_invert = false;
+    jg_y_axis_invert = false;
+    jg_a = 1;
+    jg_b = 2;
+    jg_start = 9;
+    jg_select = 8;
+    jg_x_axis = 0;
+    jg_y_axis = 1;
 
     Config cfg;
 
@@ -176,6 +263,16 @@ void init_sdl(void)
             gearboy.lookupValue("keypad_b", keypad_b);
             gearboy.lookupValue("keypad_start", keypad_start);
             gearboy.lookupValue("keypad_select", keypad_select);
+
+            gearboy.lookupValue("joystick_gamepad_enable", jg_enable);
+            gearboy.lookupValue("joystick_gamepad_a", jg_a);
+            gearboy.lookupValue("joystick_gamepad_b", jg_b);
+            gearboy.lookupValue("joystick_gamepad_start", jg_start);
+            gearboy.lookupValue("joystick_gamepad_select", jg_select);
+            gearboy.lookupValue("joystick_gamepad_x_axis", jg_x_axis);
+            gearboy.lookupValue("joystick_gamepad_y_axis", jg_y_axis);
+            gearboy.lookupValue("joystick_gamepad_x_axis_invert", jg_x_axis_invert);
+            gearboy.lookupValue("joystick_gamepad_y_axis_invert", jg_y_axis_invert);
 
             gearboy.lookupValue("emulator_pause", emulator_pause);
             gearboy.lookupValue("emulator_quit", emulator_quit);
@@ -374,6 +471,16 @@ void end(void)
     address.add("keypad_start", Setting::TypeString) = SDL_GetKeyName(kc_keypad_start);
     address.add("keypad_select", Setting::TypeString) = SDL_GetKeyName(kc_keypad_select);
 
+    address.add("joystick_gamepad_enable", Setting::TypeBoolean) = jg_enable;
+    address.add("joystick_gamepad_a", Setting::TypeInt) = jg_a;
+    address.add("joystick_gamepad_b", Setting::TypeInt) = jg_b;
+    address.add("joystick_gamepad_start", Setting::TypeInt) = jg_start;
+    address.add("joystick_gamepad_select", Setting::TypeInt) = jg_select;
+    address.add("joystick_gamepad_x_axis", Setting::TypeInt) = jg_x_axis;
+    address.add("joystick_gamepad_y_axis", Setting::TypeInt) = jg_y_axis;
+    address.add("joystick_gamepad_x_axis_invert", Setting::TypeBoolean) = jg_x_axis_invert;
+    address.add("joystick_gamepad_y_axis_invert", Setting::TypeBoolean) = jg_y_axis_invert;
+
     address.add("emulator_pause", Setting::TypeString) = SDL_GetKeyName(kc_emulator_pause);
     address.add("emulator_quit", Setting::TypeString) = SDL_GetKeyName(kc_emulator_quit);
 
@@ -385,6 +492,8 @@ void end(void)
     {
         Log("I/O error while writing file: %s", output_file);
     }
+
+    SDL_JoystickClose(game_pad);
 
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearboyCore);
@@ -406,19 +515,16 @@ int main(int argc, char** argv)
     }
 
     bool forcedmg = false;
+    bool nosound = false;
 
     if (argc > 2)
     {
         for (int i = 2; i < argc; i++)
         {
             if (strcmp("-nosound", argv[i]) == 0)
-            {
-                theGearboyCore->EnableSound(false);
-            }
+                nosound = true;
             else if (strcmp("-forcedmg", argv[i]) == 0)
-            {
                 forcedmg = true;
-            }
             else
             {
                 end();
@@ -430,6 +536,7 @@ int main(int argc, char** argv)
 
     if (theGearboyCore->LoadROM(argv[1], forcedmg))
     {
+        theGearboyCore->EnableSound(!nosound);
         theGearboyCore->LoadRam();
 
         while (running)
