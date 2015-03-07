@@ -58,6 +58,16 @@ GearboyCore* theGearboyCore;
 GB_Color* theFrameBuffer;
 GLuint theGBTexture;
 
+struct palette_color
+{
+    int red;
+    int green;
+    int blue;
+    int alpha;
+};
+
+palette_color dmg_palette[4];
+
 SDL_Joystick* game_pad = NULL;
 SDL_Keycode kc_keypad_left, kc_keypad_right, kc_keypad_up, kc_keypad_down, kc_keypad_a, kc_keypad_b, kc_keypad_start, kc_keypad_select, kc_emulator_pause, kc_emulator_quit;
 bool jg_enable, jg_x_axis_invert, jg_y_axis_invert;
@@ -232,6 +242,7 @@ void init_sdl(void)
     kc_keypad_select = SDLK_SPACE;
     kc_emulator_pause = SDLK_p;
     kc_emulator_quit = SDLK_ESCAPE;
+
     jg_enable = false;
     jg_x_axis_invert = false;
     jg_y_axis_invert = false;
@@ -241,6 +252,26 @@ void init_sdl(void)
     jg_select = 8;
     jg_x_axis = 0;
     jg_y_axis = 1;
+
+    dmg_palette[0].red = 0xEF;
+    dmg_palette[0].green = 0xF3;
+    dmg_palette[0].blue = 0xD5;
+    dmg_palette[0].alpha = 0xFF;
+
+    dmg_palette[1].red = 0xA3;
+    dmg_palette[1].green = 0xB6;
+    dmg_palette[1].blue = 0x7A;
+    dmg_palette[1].alpha = 0xFF;
+
+    dmg_palette[2].red = 0x37;
+    dmg_palette[2].green = 0x61;
+    dmg_palette[2].blue = 0x3B;
+    dmg_palette[2].alpha = 0xFF;
+
+    dmg_palette[3].red = 0x04;
+    dmg_palette[3].green = 0x1C;
+    dmg_palette[3].blue = 0x16;
+    dmg_palette[3].alpha = 0xFF;
 
     Config cfg;
 
@@ -276,6 +307,19 @@ void init_sdl(void)
 
             gearboy.lookupValue("emulator_pause", emulator_pause);
             gearboy.lookupValue("emulator_quit", emulator_quit);
+
+            gearboy.lookupValue("emulator_pal0_red", dmg_palette[0].red);
+            gearboy.lookupValue("emulator_pal0_green", dmg_palette[0].green);
+            gearboy.lookupValue("emulator_pal0_blue", dmg_palette[0].blue);
+            gearboy.lookupValue("emulator_pal1_red", dmg_palette[1].red);
+            gearboy.lookupValue("emulator_pal1_green", dmg_palette[1].green);
+            gearboy.lookupValue("emulator_pal1_blue", dmg_palette[1].blue);
+            gearboy.lookupValue("emulator_pal2_red", dmg_palette[2].red);
+            gearboy.lookupValue("emulator_pal2_green", dmg_palette[2].green);
+            gearboy.lookupValue("emulator_pal2_blue", dmg_palette[2].blue);
+            gearboy.lookupValue("emulator_pal3_red", dmg_palette[3].red);
+            gearboy.lookupValue("emulator_pal3_green", dmg_palette[3].green);
+            gearboy.lookupValue("emulator_pal3_blue", dmg_palette[3].blue);
 
             kc_keypad_left = SDL_GetKeyFromName(keypad_left.c_str());
             kc_keypad_right = SDL_GetKeyFromName(keypad_right.c_str());
@@ -484,6 +528,19 @@ void end(void)
     address.add("emulator_pause", Setting::TypeString) = SDL_GetKeyName(kc_emulator_pause);
     address.add("emulator_quit", Setting::TypeString) = SDL_GetKeyName(kc_emulator_quit);
 
+    address.add("emulator_pal0_red", Setting::TypeInt) = dmg_palette[0].red;
+    address.add("emulator_pal0_green", Setting::TypeInt) = dmg_palette[0].green;
+    address.add("emulator_pal0_blue", Setting::TypeInt) = dmg_palette[0].blue;
+    address.add("emulator_pal1_red", Setting::TypeInt) = dmg_palette[1].red;
+    address.add("emulator_pal1_green", Setting::TypeInt) = dmg_palette[1].green;
+    address.add("emulator_pal1_blue", Setting::TypeInt) = dmg_palette[1].blue;
+    address.add("emulator_pal2_red", Setting::TypeInt) = dmg_palette[2].red;
+    address.add("emulator_pal2_green", Setting::TypeInt) = dmg_palette[2].green;
+    address.add("emulator_pal2_blue", Setting::TypeInt) = dmg_palette[2].blue;
+    address.add("emulator_pal3_red", Setting::TypeInt) = dmg_palette[3].red;
+    address.add("emulator_pal3_green", Setting::TypeInt) = dmg_palette[3].green;
+    address.add("emulator_pal3_blue", Setting::TypeInt) = dmg_palette[3].blue;
+
     try
     {
         cfg.writeFile(output_file);
@@ -536,6 +593,25 @@ int main(int argc, char** argv)
 
     if (theGearboyCore->LoadROM(argv[1], forcedmg))
     {
+        GB_Color color1;
+        GB_Color color2;
+        GB_Color color3;
+        GB_Color color4;
+        
+        color1.red = dmg_palette[0].red;
+        color1.green = dmg_palette[0].green;
+        color1.blue = dmg_palette[0].blue;
+        color2.red = dmg_palette[1].red;
+        color2.green = dmg_palette[1].green;
+        color2.blue = dmg_palette[1].blue;
+        color3.red = dmg_palette[2].red;
+        color3.green = dmg_palette[2].green;
+        color3.blue = dmg_palette[2].blue;
+        color4.red = dmg_palette[3].red;
+        color4.green = dmg_palette[3].green;
+        color4.blue = dmg_palette[3].blue;
+        
+        theGearboyCore->SetDMGPalette(color1, color2, color3, color4);
         theGearboyCore->EnableSound(!nosound);
         theGearboyCore->LoadRam();
 
