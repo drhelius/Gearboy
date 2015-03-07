@@ -72,7 +72,6 @@ void Audio::Init()
 void Audio::Reset(bool bCGB, bool soft)
 {
     m_bCGB = bCGB;
-    m_bEnabled = true;
     
     if(!soft)
     {
