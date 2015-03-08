@@ -18,8 +18,8 @@ If you want new features ask for them but don't forget donating, thanks :)
 
 Downloads
 --------
-- Gearboy 2.0 for Jailbroken iOS: [Cydia](http://modmyi.com/info/gearboygameboy.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/GAMEBOY</code> too. Save files are placed in <code>/var/mobile/Library/Gearboy</code>
-- Gearboy 2.0 for Non-Jailbroken iOS: You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
+- Gearboy 2.1 for Jailbroken iOS: [Cydia](http://modmyi.com/info/gearboygameboy.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/GAMEBOY</code> too. Save files are placed in <code>/var/mobile/Library/Gearboy</code>
+- Gearboy 2.1 for Non-Jailbroken iOS: You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
 - Gearboy 1.6 for Windows: [Gearboy-1.6-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-1.6-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Gearboy 1.6 for Linux: [Gearboy-1.6-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.8-Linux.tar.gz)
 
@@ -36,18 +36,6 @@ Features
 - Saves battery powered RAM cartridges to file.
 - Compressed rom support (ZIP deflate).
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
-
-Todo List
----------
-- Saving and loading game states (only desktop).
-- Pixel precision scan line timing (https://gist.github.com/3730564).
-- Debugger.
-
-Save Files Note
----------------
-If you don't have access to an Apple developer account and are using older versions of Gearboy (such as from emu4ios), you can use a hex editor to convert between a .gearboy file and a .sav file. 
-In particular, a .gearboy file has about 40 extra bytes at the beginning of the file. If you remove these 40 bytes and rename to a .sav extension the file should be compatible with other emulators. You can also reinsert the 40 bytes to convert a .sav file to .gearboy. This should work for Pokemon RBY. 
-If you are still having problems, see if you can find an SRAM map for your game and double check that the offset matches.
 
 Compiling Instructions
 ----------------------
@@ -78,8 +66,9 @@ make -j 4
 sudo make install
 ```
 - Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>.
-- Use <code>make -j 4</code> to build the project.
+- Use <code>make -j 4</code> in the <code>platforms/raspberrypi2/Gearboy/</code> folder to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
+- The emulator generates a <code>gearboy.cfg</code> configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ### Windows
 - You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
