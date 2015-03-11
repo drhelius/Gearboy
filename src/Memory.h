@@ -24,6 +24,7 @@
 #include "boot_roms.h"
 #include "MemoryRule.h"
 #include <vector>
+#include "SixteenBitRegister.h"
 
 class Processor;
 class Video;
@@ -57,6 +58,8 @@ public:
     bool IsDisassembled(u16 address);
     void LoadBank0and1FromROM(u8* pTheROM);
     void MemoryDump(const char* szFilePath);
+    void MemorySaveState(std::string szFilePath);
+    void MemoryLoadState(std::string szFilePath);
     void PerformDMA(u8 value);
     void SwitchCGBDMA(u8 value);
     unsigned int PerformHDMA();

@@ -53,18 +53,18 @@ public:
     void AddCycles(unsigned int cycles);
     bool InterruptIsAboutToRaise();
     bool BootROMfinished() const;
-
-private:
-    typedef void (Processor::*OPCptr) (void);
-    OPCptr m_OPCodes[256];
-    OPCptr m_OPCodesCB[256];
-    Memory* m_pMemory;
     SixteenBitRegister AF;
     SixteenBitRegister BC;
     SixteenBitRegister DE;
     SixteenBitRegister HL;
     SixteenBitRegister SP;
     SixteenBitRegister PC;
+
+private:
+    typedef void (Processor::*OPCptr) (void);
+    OPCptr m_OPCodes[256];
+    OPCptr m_OPCodesCB[256];
+    Memory* m_pMemory;
     bool m_bIME;
     bool m_bHalt;
     bool m_bBranchTaken;

@@ -93,6 +93,7 @@ private:
     bool m_bMenuPressed[3];
     int m_iScreenSize;
     bool m_bFullscreen;
+    std::string stateFile;
     QShortcut* m_pExitShortcut;
     InputSettings* m_pInputSettings;
     SoundSettings* m_pSoundSettings;
