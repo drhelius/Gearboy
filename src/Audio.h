@@ -52,7 +52,7 @@ private:
     bool m_bCGB;
 };
 
-const int kSampleBufferSize = 4096;
+const int kSampleBufferSize = 2048;
 const long kSoundFrameLength = 10000;
 const u8 kSoundMask[] = {
     0x80, 0x3F, 0x00, 0xFF, 0xBF,                       // NR10-NR14 (0xFF10-0xFF14)
