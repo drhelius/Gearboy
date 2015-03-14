@@ -61,6 +61,9 @@
 		6693953F19E07D02003FB4F4 /* gb_ipad_1920.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 6693953119E07D02003FB4F4 /* gb_ipad_1920.jpg */; };
 		6693954019E07D02003FB4F4 /* gb_ipad_960.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 6693953219E07D02003FB4F4 /* gb_ipad_960.jpg */; };
 		66942E5019E45AE9009E020A /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66942E4F19E45AE9009E020A /* CoreMotion.framework */; };
+		66C52AB11AAE031D00F19C9A /* texturemanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66C52AB01AAE031D00F19C9A /* texturemanager.mm */; };
+		66C52AB61AAE040400F19C9A /* scanlines_dmg_2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 66C52AB41AAE040400F19C9A /* scanlines_dmg_2x.png */; };
+		66C52AB71AAE040400F19C9A /* scanlines_gbc_2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 66C52AB51AAE040400F19C9A /* scanlines_gbc_2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -186,6 +189,11 @@
 		6693953119E07D02003FB4F4 /* gb_ipad_1920.jpg */ = {isa = PBXFileReference; explicitFileType = image.jpeg; name = gb_ipad_1920.jpg; path = img/gb_ipad_1920.jpg; sourceTree = "<group>"; };
 		6693953219E07D02003FB4F4 /* gb_ipad_960.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = gb_ipad_960.jpg; path = img/gb_ipad_960.jpg; sourceTree = "<group>"; };
 		66942E4F19E45AE9009E020A /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		66C52AAE1AAE031D00F19C9A /* texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
+		66C52AAF1AAE031D00F19C9A /* texturemanager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texturemanager.h; sourceTree = "<group>"; };
+		66C52AB01AAE031D00F19C9A /* texturemanager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = texturemanager.mm; sourceTree = "<group>"; };
+		66C52AB41AAE040400F19C9A /* scanlines_dmg_2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = scanlines_dmg_2x.png; path = img/scanlines_dmg_2x.png; sourceTree = "<group>"; };
+		66C52AB51AAE040400F19C9A /* scanlines_gbc_2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = scanlines_gbc_2x.png; path = img/scanlines_gbc_2x.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -261,6 +269,9 @@
 				6693951919E07CE9003FB4F4 /* inputmanager.mm */,
 				6693951A19E07CE9003FB4F4 /* regions.h */,
 				6693951B19E07CE9003FB4F4 /* singleton.h */,
+				66C52AAE1AAE031D00F19C9A /* texture.h */,
+				66C52AAF1AAE031D00F19C9A /* texturemanager.h */,
+				66C52AB01AAE031D00F19C9A /* texturemanager.mm */,
 				6693951C19E07CE9003FB4F4 /* timer.h */,
 				6693951D19E07CE9003FB4F4 /* timer.mm */,
 				6693951E19E07CE9003FB4F4 /* Vector.h */,
@@ -411,6 +422,8 @@
 				6693953019E07D02003FB4F4 /* gb_832.jpg */,
 				6693953119E07D02003FB4F4 /* gb_ipad_1920.jpg */,
 				6693953219E07D02003FB4F4 /* gb_ipad_960.jpg */,
+				66C52AB41AAE040400F19C9A /* scanlines_dmg_2x.png */,
+				66C52AB51AAE040400F19C9A /* scanlines_gbc_2x.png */,
 			);
 			name = img;
 			sourceTree = "<group>";
@@ -519,7 +532,9 @@
 				6676CEC31A08063E007D48F9 /* GLViewController.xib in Resources */,
 				6648A61019E078C4005A0B40 /* Images.xcassets in Resources */,
 				6693954019E07D02003FB4F4 /* gb_ipad_960.jpg in Resources */,
+				66C52AB71AAE040400F19C9A /* scanlines_gbc_2x.png in Resources */,
 				6693953E19E07D02003FB4F4 /* gb_832.jpg in Resources */,
+				66C52AB61AAE040400F19C9A /* scanlines_dmg_2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -553,6 +568,7 @@
 				6693952119E07CE9003FB4F4 /* GLViewController.mm in Sources */,
 				6693950019E07B60003FB4F4 /* Cartridge.cpp in Sources */,
 				6693952019E07CE9003FB4F4 /* EmulatorInput.mm in Sources */,
+				66C52AB11AAE031D00F19C9A /* texturemanager.mm in Sources */,
 				6693951F19E07CE9003FB4F4 /* Emulator.mm in Sources */,
 				6648A60819E078C4005A0B40 /* MasterViewController.mm in Sources */,
 				669394CD19E07B47003FB4F4 /* Blip_Buffer.cpp in Sources */,

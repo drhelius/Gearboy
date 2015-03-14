@@ -28,6 +28,7 @@
 
 #import "../../../src/gearboy.h"
 #import "EmulatorInput.h"
+#include "texturemanager.h"
 
 @interface Emulator : NSObject
 {
@@ -38,6 +39,8 @@
     GLuint accumulationFramebuffer;
     GLuint accumulationTexture;
     GLuint GBTexture;
+    Texture* dotMatrixDMGTexture;
+    Texture* dotMatrixCGBTexture;
     BOOL firstFrame;
 }
 
@@ -61,6 +64,7 @@
 - (void)shutdownGL;
 - (void)renderFrame;
 - (void)renderMixFrames;
+- (void)renderDotMatrix;
 - (void)setupTextureWithData: (GLvoid*) data;
 - (void)renderQuadWithViewportWidth: (float)viewportWidth andHeight: (float)viewportHeight andMirrorY: (BOOL)mirrorY;
 - (void)setAudio: (BOOL)enabled;

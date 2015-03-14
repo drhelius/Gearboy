@@ -107,6 +107,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)shutdownGL
 {
+    TextureManager::Instance().UnloadAll();
     glDeleteTextures(1, &accumulationTexture);
     glDeleteTextures(1, &GBTexture);
     glDeleteFramebuffers(1, &accumulationFramebuffer);
@@ -162,7 +163,10 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glBindFramebuffer(GL_FRAMEBUFFER, accumulationFramebuffer);
     glBindTexture(GL_TEXTURE_2D, accumulationTexture);
     [self setupTextureWithData: NULL];
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accumulationTexture, 0);  
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accumulationTexture, 0);
+    
+    dotMatrixDMGTexture = TextureManager::Instance().GetTexture("/scanlines_dmg_2x");
+    dotMatrixCGBTexture = TextureManager::Instance().GetTexture("/scanlines_gbc_2x");
 }
 
 -(void)renderFrame
@@ -170,6 +174,8 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
     [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier) andMirrorY:NO];
+    
+    [self renderDotMatrix];
 }
 
 -(void)renderMixFrames
@@ -200,6 +206,23 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glClear(GL_COLOR_BUFFER_BIT);
     glBindTexture(GL_TEXTURE_2D, accumulationTexture);
     [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier) andMirrorY:YES];
+    
+    [self renderDotMatrix];
+}
+
+-(void)renderDotMatrix
+{
+    if (IsValidPointer(dotMatrixDMGTexture) && IsValidPointer(dotMatrixCGBTexture))
+    {
+        glBindTexture(GL_TEXTURE_2D,
+                      theGearboyCore->GetCartridge()->IsCGB() ? dotMatrixCGBTexture->GetID() : dotMatrixDMGTexture->GetID());
+        glEnable(GL_BLEND);
+        glColor4f(1.0f, 1.0f, 1.0f, 0.30f);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier) andMirrorY:NO];
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        glDisable(GL_BLEND);
+    }
 }
 
 -(void)setupTextureWithData: (GLvoid*) data
