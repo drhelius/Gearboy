@@ -70,7 +70,7 @@ palette_color dmg_palette[4];
 
 SDL_Joystick* game_pad = NULL;
 SDL_Keycode kc_keypad_left, kc_keypad_right, kc_keypad_up, kc_keypad_down, kc_keypad_a, kc_keypad_b, kc_keypad_start, kc_keypad_select, kc_emulator_pause, kc_emulator_quit;
-bool jg_enable, jg_x_axis_invert, jg_y_axis_invert;
+bool jg_x_axis_invert, jg_y_axis_invert;
 int jg_a, jg_b, jg_start, jg_select, jg_x_axis, jg_y_axis;
 
 uint32_t screen_width, screen_height;
@@ -90,7 +90,6 @@ void update(void)
             break;
 
             case SDL_JOYBUTTONDOWN:
-            if (jg_enable)
             {
                 if (keyevent.jbutton.button == jg_b)
                     theGearboyCore->KeyPressed(B_Key);
@@ -104,7 +103,6 @@ void update(void)
             break;
 
             case SDL_JOYBUTTONUP:
-            if (jg_enable)
             {
                 if (keyevent.jbutton.button == jg_b)
                     theGearboyCore->KeyReleased(B_Key);
@@ -118,7 +116,6 @@ void update(void)
             break;
 
             case SDL_JOYAXISMOTION:  
-            if (jg_enable)
             {
                 if(keyevent.jaxis.axis == jg_x_axis)
                 {
@@ -150,7 +147,6 @@ void update(void)
             break;
 
             case SDL_KEYDOWN:
-            if (!jg_enable)
             {
                 if (keyevent.key.keysym.sym == kc_keypad_left)
                     theGearboyCore->KeyPressed(Left_Key);
@@ -168,18 +164,18 @@ void update(void)
                     theGearboyCore->KeyPressed(Select_Key);
                 else if (keyevent.key.keysym.sym == kc_keypad_start)
                     theGearboyCore->KeyPressed(Start_Key);
-            }
-            if (keyevent.key.keysym.sym == kc_emulator_quit)
-                running = false;
-            else if (keyevent.key.keysym.sym == kc_emulator_pause)
-            {
-                paused = !paused;
-                theGearboyCore->Pause(paused);
+
+                if (keyevent.key.keysym.sym == kc_emulator_quit)
+                    running = false;
+                else if (keyevent.key.keysym.sym == kc_emulator_pause)
+                {
+                    paused = !paused;
+                    theGearboyCore->Pause(paused);
+                }
             }
             break;
 
             case SDL_KEYUP:
-            if (!jg_enable)
             {
                 if (keyevent.key.keysym.sym == kc_keypad_left)
                     theGearboyCore->KeyReleased(Left_Key);
@@ -226,7 +222,7 @@ void init_sdl(void)
     SDL_ShowCursor(SDL_DISABLE);
 
     game_pad = SDL_JoystickOpen(0);
-        
+
     if(game_pad == NULL)
     {
         Log("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
@@ -243,7 +239,6 @@ void init_sdl(void)
     kc_emulator_pause = SDLK_p;
     kc_emulator_quit = SDLK_ESCAPE;
 
-    jg_enable = false;
     jg_x_axis_invert = false;
     jg_y_axis_invert = false;
     jg_a = 1;
@@ -295,7 +290,6 @@ void init_sdl(void)
             gearboy.lookupValue("keypad_start", keypad_start);
             gearboy.lookupValue("keypad_select", keypad_select);
 
-            gearboy.lookupValue("joystick_gamepad_enable", jg_enable);
             gearboy.lookupValue("joystick_gamepad_a", jg_a);
             gearboy.lookupValue("joystick_gamepad_b", jg_b);
             gearboy.lookupValue("joystick_gamepad_start", jg_start);
@@ -515,7 +509,6 @@ void end(void)
     address.add("keypad_start", Setting::TypeString) = SDL_GetKeyName(kc_keypad_start);
     address.add("keypad_select", Setting::TypeString) = SDL_GetKeyName(kc_keypad_select);
 
-    address.add("joystick_gamepad_enable", Setting::TypeBoolean) = jg_enable;
     address.add("joystick_gamepad_a", Setting::TypeInt) = jg_a;
     address.add("joystick_gamepad_b", Setting::TypeInt) = jg_b;
     address.add("joystick_gamepad_start", Setting::TypeInt) = jg_start;
@@ -597,7 +590,7 @@ int main(int argc, char** argv)
         GB_Color color2;
         GB_Color color3;
         GB_Color color4;
-        
+
         color1.red = dmg_palette[0].red;
         color1.green = dmg_palette[0].green;
         color1.blue = dmg_palette[0].blue;
@@ -610,7 +603,7 @@ int main(int argc, char** argv)
         color4.red = dmg_palette[3].red;
         color4.green = dmg_palette[3].green;
         color4.blue = dmg_palette[3].blue;
-        
+
         theGearboyCore->SetDMGPalette(color1, color2, color3, color4);
         theGearboyCore->EnableSound(!nosound);
         theGearboyCore->LoadRam();
