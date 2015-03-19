@@ -217,7 +217,10 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         glBindTexture(GL_TEXTURE_2D,
                       theGearboyCore->GetCartridge()->IsCGB() ? dotMatrixCGBTexture->GetID() : dotMatrixDMGTexture->GetID());
         glEnable(GL_BLEND);
-        glColor4f(1.0f, 1.0f, 1.0f, 0.30f);
+        if (theGearboyCore->GetCartridge()->IsCGB())
+            glColor4f(1.0f, 1.0f, 1.0f, 0.20f);
+        else
+            glColor4f(1.0f, 1.0f, 1.0f, 0.30f);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier) andMirrorY:NO];
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
