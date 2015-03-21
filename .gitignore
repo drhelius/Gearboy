@@ -47,6 +47,7 @@ desktop.ini
 # Misc files
 *.txt
 *.ini
+*.cfg
 *.gen
 *.md
 *.bin
