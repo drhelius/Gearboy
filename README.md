@@ -52,8 +52,7 @@ For all desktop platforms you will need SDL 2 and Qt 5 SDKs installed and config
 ``` shell
 sudo apt-get update
 sudo apt-get upgrade
-sudo rpi-update
-sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg8-dev libtiff5-dev libwebp-dev automake
+sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg-dev libtiff5-dev libwebp-dev automake
 cd ~
 wget https://www.libsdl.org/release/SDL2-2.0.3.tar.gz
 tar zxvf SDL2-2.0.3.tar.gz
