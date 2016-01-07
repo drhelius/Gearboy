@@ -1,0 +1,12 @@
+language: cpp
+compiler:
+- gcc
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev
+  - cd platforms/linux/Gearboy
+os:
+- linux
+sudo: false
+script:
+  - make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf
