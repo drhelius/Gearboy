@@ -11,3 +11,4 @@ os:
 sudo: required
 script:
   - make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf
+dist: trusty
