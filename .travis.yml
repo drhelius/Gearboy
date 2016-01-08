@@ -1,14 +1,17 @@
-language: cpp
-compiler:
-- gcc
-before_install:
-  - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe"
-  - sudo apt-get update -qq
-  - sudo apt-get install -y qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev
-  - cd platforms/linux/Gearboy
-os:
-- linux
-sudo: required
-script:
-  - make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf
-dist: trusty
+language: objective-c
+script: xctool -project platforms/ios/Gearboy.xcodeproj -scheme Gearboy build  CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+
+#language: cpp
+#compiler:
+#- gcc
+#before_install:
+#  - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe"
+#  - sudo apt-get update -qq
+#  - sudo apt-get install -y qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev
+#  - cd platforms/linux/Gearboy
+#os:
+#- linux
+#sudo: required
+#script:
+#  - make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf
+#dist: trusty
