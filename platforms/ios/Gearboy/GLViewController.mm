@@ -147,8 +147,6 @@
 {
     [self.theEmulator shutdownGL];
     self.context = nil;
-    GLKView *view = (GLKView *)self.view;
-    view.context = nil;
     [EAGLContext setCurrentContext:nil];
 }
 
