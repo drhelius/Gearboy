@@ -3,7 +3,7 @@ Gearboy
 <b>Copyright &copy; 2012 by Ignacio Sanchez</b>
 
 ----------
-[![Build Status](https://travis-ci.org/drhelius/Gearboy.svg?branch=master)](https://travis-ci.org/drhelius/Gearboy) [![Build Status](https://www.bitrise.io/app/52e7a52f81de031e.svg?token=h_1nvhnsB_CxY3CMrXkKaQ)](https://www.bitrise.io/app/52e7a52f81de031e)
+[![Build Status](https://travis-ci.org/drhelius/Gearboy.svg?branch=master)](https://travis-ci.org/drhelius/Gearboy)
 
 Gearboy is a Nintendo Game Boy / GameBoy Color emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows and Linux.
 
