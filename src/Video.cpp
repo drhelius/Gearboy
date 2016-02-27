@@ -183,6 +183,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                 {
                     m_iStatusModeLYCounter = 0;
                     m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
+                    CompareLYToLYC();
                 }
 
                 if (m_iStatusModeCounter >= 4560)
@@ -191,7 +192,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                     m_iStatusMode = 2;
                     UpdateStatRegister();
                     m_IRQ48Signal &= 0x07;
-                    CompareLYToLYC();
+
 
                     m_IRQ48Signal &= 0x0A;
                     u8 stat = m_pMemory->Retrieve(0xFF41);
@@ -223,7 +224,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
             case 3:
             {
                 // During transfering data to LCD driver
-                if (!m_bScanLineTransfered && (m_iStatusModeCounter >= (m_iStatusModeLYCounter == 0 ? 160: 48)))
+                if (!m_bScanLineTransfered && m_iStatusModeCounter >= 120)
                 {
                     m_bScanLineTransfered = true;
                     ScanLine(m_iStatusModeLYCounter);
