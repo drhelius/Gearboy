@@ -37,6 +37,8 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iScreenEnableDelayCycles = 0;
     m_iStatusVBlankLine = 0;
     m_iWindowLine = 0;
+    m_iTileCounter = 0;
+    m_iTileCycleCounter = 0;
     m_bScreenEnabled = true;
     m_bCGB = false;
     m_bScanLineTransfered = false;
@@ -77,6 +79,8 @@ void Video::Reset(bool bCGB)
     m_iScreenEnableDelayCycles = 0;
     m_iStatusVBlankLine = 0;
     m_iWindowLine = 0;
+    m_iTileCounter = 0;
+    m_iTileCycleCounter = 0;
     m_bScreenEnabled = true;
     m_bScanLineTransfered = false;
     m_bCGB = bCGB;
@@ -96,9 +100,9 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
 
         switch (m_iStatusMode)
         {
+            // During H-BLANK
             case 0:
-            {
-                // During H-BLANK
+            {                
                 if (m_iStatusModeCounter >= 204)
                 {
                     m_iStatusModeCounter -= 204;
@@ -161,9 +165,9 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                 }
                 break;
             }
+            // During V-BLANK
             case 1:
             {
-                // During V-BLANK
                 m_iStatusModeCounterAux += clockCycles;
 
                 if (m_iStatusModeCounterAux >= 456)
@@ -208,9 +212,9 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                 }
                 break;
             }
+            // During searching OAM RAM
             case 2:
-            {
-                // During searching OAM RAM
+            {       
                 if (m_iStatusModeCounter >= 80)
                 {
                     m_iStatusModeCounter -= 80;
@@ -221,19 +225,41 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                 }
                 break;
             }
+            // During transfering data to LCD driver
             case 3:
             {
-                // During transfering data to LCD driver
-                if (!m_bScanLineTransfered && m_iStatusModeCounter >= 120)
+                if (!m_bScanLineTransfered && IsValidPointer(m_pColorFrameBuffer))
                 {
-                    m_bScanLineTransfered = true;
-                    ScanLine(m_iStatusModeLYCounter);
+                    m_iTileCycleCounter += clockCycles;
+
+                    while (m_iTileCycleCounter >= 6)
+                    {
+                        int xstart = m_iTileCounter * 8;
+                        int xend = xstart + 8;
+                        u8 lcdc = m_pMemory->Retrieve(0xFF40);
+
+                        if (m_bScreenEnabled && IsSetBit(lcdc, 7))
+                        {
+                            RenderBG(m_iStatusModeLYCounter, xstart, xend);
+                        }
+
+                        m_iTileCycleCounter -= 6;
+                        m_iTileCounter++;
+                        if (m_iTileCounter >= 20)
+                        {
+                            ScanLine(m_iStatusModeLYCounter);
+                            m_iTileCounter = 0;
+                            m_bScanLineTransfered = true;
+                            break;
+                        }
+                    }
                 }
 
                 if (m_iStatusModeCounter >= 172)
                 {
                     m_iStatusModeCounter -= 172;
                     m_iStatusMode = 0;
+                    m_iTileCycleCounter = 0;
                     UpdateStatRegister();
 
                     m_IRQ48Signal &= 0x08;
@@ -251,6 +277,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
             }
         }
     }
+    // Screen disabled
     else
     {
         if (m_iScreenEnableDelayCycles > 0)
@@ -268,6 +295,8 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                 m_iStatusModeLYCounter = 0;
                 m_iWindowLine = 0;
                 m_iStatusVBlankLine = 0;
+                m_iTileCounter = 0;
+                m_iTileCycleCounter = 0;
                 m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
                 m_IRQ48Signal = 0;
 
@@ -422,7 +451,6 @@ void Video::ScanLine(int line)
 
         if (m_bScreenEnabled && IsSetBit(lcdc, 7))
         {
-            RenderBG(line);
             RenderWindow(line);
             RenderSprites(line);
         }
@@ -448,7 +476,7 @@ void Video::ScanLine(int line)
     }
 }
 
-void Video::RenderBG(int line)
+void Video::RenderBG(int line, int xstart, int xend)
 {
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
     int line_width = (line * GAMEBOY_WIDTH);
@@ -507,7 +535,7 @@ void Video::RenderBG(int line)
             {
                 u8 bufferX = (mapOffsetX + pixelx - scx);
 
-                if (bufferX >= GAMEBOY_WIDTH)
+                if (bufferX < xstart || bufferX >= xend)
                     continue;
 
                 int pixelx_pos = pixelx;
