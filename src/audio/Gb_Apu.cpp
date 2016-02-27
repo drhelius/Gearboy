@@ -239,7 +239,7 @@ void Gb_Apu::run_until_( blip_time_t end_time )
 
 inline void Gb_Apu::run_until( blip_time_t time )
 {
-	require( time >= last_time ); // end_time must not be before previous time
+    //require( time >= last_time ); // end_time must not be before previous time
 	if ( time > last_time )
 		run_until_( time );
 }
