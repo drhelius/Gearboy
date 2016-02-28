@@ -47,7 +47,7 @@ public:
 
 private:
     void ScanLine(int line);
-    void RenderBG(int line, int xstart, int xend);
+    void RenderBG(int line, int screen_tile);
     void RenderWindow(int line);
     void RenderSprites(int line);
     void UpdateStatRegister();
