@@ -228,21 +228,19 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
             // During transfering data to LCD driver
             case 3:
             {
-                if (m_iTileCounter < 20 && m_iStatusModeCounter >= 0)
+                if (m_iTileCounter < 20)
                 {
                     m_iTileCycleCounter += clockCycles;
                     u8 lcdc = m_pMemory->Retrieve(0xFF40);
 
-                    int cycles = ((m_iTileCounter % 4) == 0) ? 4 : 4;
-
-                    while (m_iTileCycleCounter >= cycles)
+                    while (m_iTileCycleCounter >= 4)
                     {
                         if (m_bScreenEnabled && IsSetBit(lcdc, 7))
                         {
                             RenderBG(m_iStatusModeLYCounter, m_iTileCounter);
                         }
 
-                        m_iTileCycleCounter -= cycles;
+                        m_iTileCycleCounter -= 4;
                         m_iTileCounter++;
 
                         if (m_iTileCounter >= 20)
