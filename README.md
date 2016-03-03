@@ -79,7 +79,7 @@ sudo make install
 - You need Qt Creator, included in the Qt 5 SDK.
 - Install Xcode and run <code>xcode-select --install</code> in the terminal for the compiler to be available on the command line.
 - Install the [Qt 5 SDK for Mac OS](http://qt-project.org/downloads).
-- Download [SDL 2](http://www.libsdl.org/download-2.0.php) source code. Then run this three commands <code>.configure</code> <code>make</code> <code>sudo make install</code> on the terminal.
+- Download [SDL 2](http://www.libsdl.org/download-2.0.php) source code. Then run this three commands <code>./configure</code> <code>make</code> <code>sudo make install</code> on the terminal.
 - Open the Gearboy Qt project and build.
 
 ### Linux
@@ -90,7 +90,7 @@ sudo make install
 - In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.
 - Open the Gearboy Netbeans project and build.
 - Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
-- In Ubuntu 13.10 I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
+- In Ubuntu I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
 
 Accuracy Tests
 ------------
