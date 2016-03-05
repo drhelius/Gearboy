@@ -81,6 +81,7 @@ private:
     int m_bCGBSpeed;
     bool m_bEndOfBootROM;
     bool m_bDuringBootROM;
+    int m_iDuringIntermediateOpcode;
 
 private:
     u8 FetchOPCode();

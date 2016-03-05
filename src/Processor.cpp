@@ -43,6 +43,7 @@ Processor::Processor(Memory* pMemory)
         m_InterruptDelayCycles[i] = 0;
     m_bEndOfBootROM = false;
     m_bDuringBootROM = false;
+    m_iDuringIntermediateOpcode = 0;
 }
 
 Processor::~Processor()
@@ -85,13 +86,14 @@ void Processor::Reset(bool bCGB, bool bootROM)
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
 	m_bEndOfBootROM = false;
+    m_iDuringIntermediateOpcode = 0;
 }
 
 u8 Processor::Tick()
 {
     m_iCurrentClockCycles = 0;
 
-    if (m_bHalt)
+    if (m_iDuringIntermediateOpcode == 0 && m_bHalt)
     {
         m_iCurrentClockCycles += (m_bCGBSpeed ? 2 : 4);
 
@@ -114,7 +116,8 @@ u8 Processor::Tick()
 
     if (!m_bHalt)
     {
-        ServeInterrupt(InterruptPending());
+        if (m_iDuringIntermediateOpcode == 0)
+            ServeInterrupt(InterruptPending());
         
         if (m_bDuringBootROM)
         {
@@ -134,7 +137,7 @@ u8 Processor::Tick()
     UpdateTimers();
     UpdateSerial();
 
-    if (m_iIMECycles > 0)
+    if (m_iDuringIntermediateOpcode == 0 && m_iIMECycles > 0)
     {
         m_iIMECycles -= m_iCurrentClockCycles;
 
@@ -220,7 +223,21 @@ void Processor::ExecuteOPCode(u8 opcode)
     {
         opcode = FetchOPCode();
         u16 opcode_address = PC.GetValue() - 1;
-        
+
+        if (m_iDuringIntermediateOpcode == 0)
+        {
+            if (kOPCodeIntermediateCBMachineCycles[opcode] == 1)
+            {
+                PC.Decrement();
+                PC.Decrement();
+
+                m_iCurrentClockCycles += (kOPCodeCBMachineCycles[opcode] - 2) * (m_bCGBSpeed ? 2 : 4);
+                m_iDuringIntermediateOpcode = 1;
+
+                return;
+            }
+        }
+
         if (!m_pMemory->IsDisassembled(opcode_address))
         {
             m_pMemory->Disassemble(opcode_address, kOPCodeCBNames[opcode]);
@@ -228,10 +245,31 @@ void Processor::ExecuteOPCode(u8 opcode)
 
         (this->*m_OPCodesCB[opcode])();
 
-        m_iCurrentClockCycles += kOPCodeCBMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
+        if (m_iDuringIntermediateOpcode == 1)
+        {
+            m_iCurrentClockCycles += 2 * (m_bCGBSpeed ? 2 : 4);
+            m_iDuringIntermediateOpcode = 0;
+        }
+        else
+        {
+            m_iCurrentClockCycles += kOPCodeCBMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
+        }
     }
     else
     {
+        if (m_iDuringIntermediateOpcode == 0)
+        {
+            if (kOPCodeIntermediateMachineCycles[opcode] == 1 || kOPCodeIntermediateMachineCycles[opcode] == 2)
+            {
+                PC.Decrement();
+
+                m_iCurrentClockCycles += (kOPCodeMachineCycles[opcode] - 2) * (m_bCGBSpeed ? 2 : 4);
+                m_iDuringIntermediateOpcode = 1;
+
+                return;
+            }
+        }
+
         u16 opcode_address = PC.GetValue() - 1;
         if (!m_pMemory->IsDisassembled(opcode_address))
         {
@@ -246,7 +284,17 @@ void Processor::ExecuteOPCode(u8 opcode)
             m_iCurrentClockCycles += kOPCodeConditionalsMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
         }
         else
-            m_iCurrentClockCycles += kOPCodeMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
+        {
+            if (m_iDuringIntermediateOpcode == 1)
+            {
+                m_iCurrentClockCycles += 2 * (m_bCGBSpeed ? 2 : 4);
+                m_iDuringIntermediateOpcode = 0;
+            }
+            else
+            {
+                m_iCurrentClockCycles += kOPCodeMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
+            }
+        }
     }
 }
 
