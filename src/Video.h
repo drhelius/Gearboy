@@ -47,7 +47,7 @@ public:
 
 private:
     void ScanLine(int line);
-    void RenderBG(int line, int screen_tile);
+    void RenderBG(int line, int pixel, int count);
     void RenderWindow(int line);
     void RenderSprites(int line);
     void UpdateStatRegister();
@@ -66,7 +66,7 @@ private:
     int m_iStatusModeLYCounter;
     int m_iScreenEnableDelayCycles;
     int m_iStatusVBlankLine;
-    int m_iTileCounter;
+    int m_iPixelCounter;
     int m_iTileCycleCounter;
     bool m_bScreenEnabled;
     bool m_bCGB;
