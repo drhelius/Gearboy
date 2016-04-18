@@ -87,7 +87,7 @@ sudo make install
 - Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
 - Install SDL 2 development dependencies (Ubuntu: <code>sudo apt-get install libsdl2-dev</code>).
 - In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.
-- Move to the correct platform folder and run <code>qmake -o Makefile Gearboy.pro && make</code> to build the project.
+- Move to the <code>platforms/linux/Gearboy/</code> folder and run <code>qmake -o Makefile Gearboy.pro && make</code> to build the project.
 - In Ubuntu I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
 
 Accuracy Tests
