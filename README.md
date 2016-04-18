@@ -34,12 +34,8 @@ Features
 - Compressed rom support (ZIP deflate).
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
 
-Compiling Instructions
+Build Instructions
 ----------------------
-
-The best way of compiling Gearboy is by using one of the IDE projects provided for each platform.
-
-For all desktop platforms you will need SDL 2 and Qt 5 SDKs installed and configured.
 
 ### iOS
 - Install Xcode for Mac OS X. You need iOS SDK 8 or later. 
@@ -47,7 +43,7 @@ For all desktop platforms you will need SDL 2 and Qt 5 SDKs installed and config
 - Run it on real hardware using your iOS developer certificate. Make sure it compiles on Release for extra optimizations.
 - For jailbroken devices use the jailbreak branch.
 
-### Raspberry Pi 2 - Raspbian
+### Raspberry Pi 2 & 3 - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
 ``` shell
 sudo apt-get update
@@ -67,7 +63,7 @@ sudo make install
 - The emulator generates a <code>gearboy.cfg</code> configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ### Windows
-- You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
+- You need Visual Studio 2010 or better.
 - Install the [Qt 5 SDK for Windows](http://qt-project.org/downloads).
 - Install the [Qt 5 Visual Studio Add-in](http://qt-project.org/downloads) and point it to the Qt SDK.
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
@@ -78,17 +74,20 @@ sudo make install
 - You need Qt Creator, included in the Qt 5 SDK.
 - Install Xcode and run <code>xcode-select --install</code> in the terminal for the compiler to be available on the command line.
 - Install the [Qt 5 SDK for Mac OS](http://qt-project.org/downloads).
-- Download [SDL 2](http://www.libsdl.org/download-2.0.php) source code. Then run this three commands <code>./configure</code> <code>make</code> <code>sudo make install</code> on the terminal.
-- Open the Gearboy Qt project and build.
+- Download [SDL 2](http://www.libsdl.org/download-2.0.php) source code. Then run this commands:
+``` shell
+./configure
+make
+sudo make install
+```
+- Open the Gearboy Qt project with Qt Creator and build.
 
 ### Linux
-- You need Netbeans 7.3 or later.
 - Install Qt 5 development dependencies (Ubuntu: <code>sudo apt-get install qt5-default qttools5-dev-tools</code>).
 - Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
 - Install SDL 2 development dependencies (Ubuntu: <code>sudo apt-get install libsdl2-dev</code>).
 - In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.
-- Open the Gearboy Netbeans project and build.
-- Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
+- Move to the correct platform folder and run <code>qmake -o Makefile Gearboy.pro && make</code> to build the project.
 - In Ubuntu I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
 
 Accuracy Tests
