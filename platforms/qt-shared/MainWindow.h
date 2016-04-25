@@ -46,6 +46,7 @@ public:
     ~MainWindow();
     bool event(QEvent *ev);
     bool eventFilter(QObject * watched, QEvent * event);
+    void InitalGameBoyLoadROM(const char* szFilePath);
 
 public slots:
     void Exit();

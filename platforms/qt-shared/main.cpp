@@ -29,7 +29,21 @@ int main(int argc, char *argv[])
     XInitThreads();
 #endif
     QApplication a(argc, argv);
+
+    if (argc > 2)
+    {
+        printf("Unexpected number of arguments\n");
+        a.quit();
+        return -1;
+    }
+
     MainWindow w;
     w.show();
+
+    if (argc == 2)
+    {
+        w.InitalGameBoyLoadROM(argv[1]);
+    }
+
     return a.exec();
 }
