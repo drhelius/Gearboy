@@ -115,7 +115,7 @@ void update(void)
             }
             break;
 
-            case SDL_JOYAXISMOTION:  
+            case SDL_JOYAXISMOTION:
             {
                 if(keyevent.jaxis.axis == jg_x_axis)
                 {
@@ -124,7 +124,7 @@ void update(void)
                         theGearboyCore->KeyPressed(Left_Key);
                     else if (x_motion > 0)
                         theGearboyCore->KeyPressed(Right_Key);
-                    else 
+                    else
                     {
                         theGearboyCore->KeyReleased(Left_Key);
                         theGearboyCore->KeyReleased(Right_Key);
@@ -137,7 +137,7 @@ void update(void)
                         theGearboyCore->KeyPressed(Up_Key);
                     else if (y_motion > 0)
                         theGearboyCore->KeyPressed(Down_Key);
-                    else 
+                    else
                     {
                         theGearboyCore->KeyReleased(Up_Key);
                         theGearboyCore->KeyReleased(Down_Key);
@@ -279,7 +279,7 @@ void init_sdl(void)
             const Setting& root = cfg.getRoot();
             const Setting &gearboy = root["Gearboy"];
 
-            string keypad_left, keypad_right, keypad_up, keypad_down, keypad_a, keypad_b, 
+            string keypad_left, keypad_right, keypad_up, keypad_down, keypad_a, keypad_b,
             keypad_start, keypad_select, emulator_pause, emulator_quit;
             gearboy.lookupValue("keypad_left", keypad_left);
             gearboy.lookupValue("keypad_right", keypad_right);
@@ -340,7 +340,7 @@ void init_sdl(void)
     {
         std::cerr << "Parse error at " << pex.getFile() << ":" << pex.getLine()
               << " - " << pex.getError() << std::endl;
-    } 
+    }
 }
 
 void init_ogl(void)
@@ -473,6 +473,11 @@ void init_ogl(void)
 
 void init(void)
 {
+
+    bcm_host_init();
+    init_ogl();
+    init_sdl();
+
     theGearboyCore = new GearboyCore();
     theGearboyCore->Init();
 
@@ -487,10 +492,6 @@ void init(void)
             theFrameBuffer[pixel].alpha = 0xFF;
         }
     }
-
-    bcm_host_init();
-    init_sdl();
-    init_ogl();
 }
 
 void end(void)
