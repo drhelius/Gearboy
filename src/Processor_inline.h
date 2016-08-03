@@ -58,6 +58,7 @@ inline void Processor::StackPop(SixteenBitRegister* reg)
 
 inline int Processor::AdjustedCycles(int cycles)
 {
+    if (!cycles) return cycles;
     return cycles >> m_iSpeedMultiplier;
 }
 
