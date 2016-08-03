@@ -238,7 +238,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                         while (m_iTileCycleCounter >= 3)
                         {
                             RenderBG(m_iStatusModeLYCounter, m_iPixelCounter, 4);
-                            m_iPixelCounter+=4;
+                            m_iPixelCounter += 4;
                             m_iTileCycleCounter -= 3;
 
                             if (m_iPixelCounter >= 160)

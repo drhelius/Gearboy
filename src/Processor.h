@@ -83,7 +83,7 @@ private:
     bool m_bEndOfBootROM;
     bool m_bDuringBootROM;
     int m_iDuringIntermediateOpcode;
-    u8 global_result;
+    u8 m_iReadCache;
 
 private:
     u8 FetchOPCode();

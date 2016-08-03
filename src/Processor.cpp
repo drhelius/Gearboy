@@ -45,7 +45,7 @@ Processor::Processor(Memory* pMemory)
     m_bEndOfBootROM = false;
     m_bDuringBootROM = false;
     m_iDuringIntermediateOpcode = 0;
-    global_result = 0;
+    m_iReadCache = 0;
 }
 
 Processor::~Processor()
@@ -90,7 +90,7 @@ void Processor::Reset(bool bCGB, bool bootROM)
         m_InterruptDelayCycles[i] = 0;
 	m_bEndOfBootROM = false;
     m_iDuringIntermediateOpcode = 0;
-    global_result = 0;
+    m_iReadCache = 0;
 }
 
 u8 Processor::Tick()
