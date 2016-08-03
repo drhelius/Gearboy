@@ -82,7 +82,7 @@ private:
     int m_iSpeedMultiplier;
     bool m_bEndOfBootROM;
     bool m_bDuringBootROM;
-    int m_iDuringIntermediateOpcode;
+    int m_iAccurateOPCodeState;
     u8 m_iReadCache;
 
 private:

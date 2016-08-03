@@ -44,7 +44,7 @@ Processor::Processor(Memory* pMemory)
         m_InterruptDelayCycles[i] = 0;
     m_bEndOfBootROM = false;
     m_bDuringBootROM = false;
-    m_iDuringIntermediateOpcode = 0;
+    m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
 }
 
@@ -89,7 +89,7 @@ void Processor::Reset(bool bCGB, bool bootROM)
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
 	m_bEndOfBootROM = false;
-    m_iDuringIntermediateOpcode = 0;
+    m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
 }
 
@@ -97,7 +97,7 @@ u8 Processor::Tick()
 {
     m_iCurrentClockCycles = 0;
 
-    if (m_iDuringIntermediateOpcode == 0 && m_bHalt)
+    if (m_iAccurateOPCodeState == 0 && m_bHalt)
     {
         m_iCurrentClockCycles += AdjustedCycles(4);
 
@@ -120,7 +120,7 @@ u8 Processor::Tick()
 
     if (!m_bHalt)
     {
-        if (m_iDuringIntermediateOpcode == 0)
+        if (m_iAccurateOPCodeState == 0)
             ServeInterrupt(InterruptPending());
 
         if (m_bDuringBootROM)
@@ -141,7 +141,7 @@ u8 Processor::Tick()
     UpdateTimers();
     UpdateSerial();
 
-    if (m_iDuringIntermediateOpcode == 0 && m_iIMECycles > 0)
+    if (m_iAccurateOPCodeState == 0 && m_iIMECycles > 0)
     {
         m_iIMECycles -= m_iCurrentClockCycles;
 
@@ -223,131 +223,77 @@ u8 Processor::FetchOPCode()
 
 void Processor::ExecuteOPCode(u8 opcode)
 {
-    if (opcode == 0xCB)
+    const u8* accurateOPcodes;
+    const u8* machineCycles;
+    OPCptr* opcodeTable;
+    bool isCB = (opcode == 0xCB);
+
+    if (isCB)
     {
+        accurateOPcodes = kOPCodeCBAccurate;
+        machineCycles = kOPCodeCBMachineCycles;
+        opcodeTable = m_OPCodesCB;
         opcode = FetchOPCode();
-        u16 opcode_address = PC.GetValue() - 1;
-
-        if (m_iDuringIntermediateOpcode == 0)
-        {            
-            if (kOPCodeIntermediateCBMachineCycles[opcode] == 1 || kOPCodeIntermediateCBMachineCycles[opcode] == 2)
-            {
-                PC.Decrement();
-                PC.Decrement();
-
-                m_iCurrentClockCycles += (kOPCodeCBMachineCycles[opcode] - 2) * AdjustedCycles(4);
-                m_iDuringIntermediateOpcode = 1;
-
-                return;
-            }
-            else if (kOPCodeIntermediateCBMachineCycles[opcode] == 3)
-            {
-                PC.Decrement();
-                PC.Decrement();
-
-                m_iCurrentClockCycles += (kOPCodeCBMachineCycles[opcode] - 3) * AdjustedCycles(4);
-                m_iDuringIntermediateOpcode = 1;
-
-                return;
-            }
-        }
-
-        if (!m_pMemory->IsDisassembled(opcode_address))
-        {
-            m_pMemory->Disassemble(opcode_address, kOPCodeCBNames[opcode]);
-        }
-
-        (this->*m_OPCodesCB[opcode])();
-
-        if (m_iDuringIntermediateOpcode == 1)
-        {
-            if (kOPCodeIntermediateCBMachineCycles[opcode] == 3)
-            {
-                m_iCurrentClockCycles += 1 * AdjustedCycles(4);
-                m_iDuringIntermediateOpcode = 2;
-                PC.Decrement();
-                PC.Decrement();
-            }
-            else
-            {
-                m_iCurrentClockCycles += 2 * AdjustedCycles(4);
-                m_iDuringIntermediateOpcode = 0;
-            }
-        }
-        else if (m_iDuringIntermediateOpcode == 2)
-        {
-                m_iCurrentClockCycles += 2 * AdjustedCycles(4);
-                m_iDuringIntermediateOpcode = 0;
-
-        }
-        else
-        {
-            m_iCurrentClockCycles += kOPCodeCBMachineCycles[opcode] * AdjustedCycles(4);
-        }
     }
     else
     {
-        if (m_iDuringIntermediateOpcode == 0)
+        accurateOPcodes = kOPCodeAccurate;
+        machineCycles = kOPCodeMachineCycles;
+        opcodeTable = m_OPCodes;
+    }
+
+    if ((accurateOPcodes[opcode] != 0) && (m_iAccurateOPCodeState == 0))
+    {
+        int left_cycles = (accurateOPcodes[opcode] < 3 ? 2 : 3);
+        m_iCurrentClockCycles += (machineCycles[opcode] - left_cycles) * AdjustedCycles(4);
+        m_iAccurateOPCodeState = 1;
+        PC.Decrement();
+        if (isCB)
+            PC.Decrement();
+        return;
+    }
+
+#ifdef DEBUG_GEARBOY
+    u16 opcode_address = PC.GetValue() - 1;
+    if (!m_pMemory->IsDisassembled(opcode_address))
+    {
+        m_pMemory->Disassemble(opcode_address, kOPCodeNames[opcode]);
+    }
+#endif
+
+    (this->*opcodeTable[opcode])();
+
+    if (m_bBranchTaken)
+    {
+        m_bBranchTaken = false;
+        m_iCurrentClockCycles += kOPCodeBranchMachineCycles[opcode] * AdjustedCycles(4);
+    }
+    else
+    {
+        switch (m_iAccurateOPCodeState)
         {
-            if (kOPCodeIntermediateMachineCycles[opcode] == 1 || kOPCodeIntermediateMachineCycles[opcode] == 2)
+        case 0:
+            m_iCurrentClockCycles += machineCycles[opcode] * AdjustedCycles(4);
+            break;
+        case 1:
+            if (accurateOPcodes[opcode] == 3)
             {
+                m_iCurrentClockCycles += 1 * AdjustedCycles(4);
+                m_iAccurateOPCodeState = 2;
                 PC.Decrement();
-
-                m_iCurrentClockCycles += (kOPCodeMachineCycles[opcode] - 2) * AdjustedCycles(4);
-                m_iDuringIntermediateOpcode = 1;
-
-                return;
-            }
-            else if (kOPCodeIntermediateMachineCycles[opcode] == 3)
-            {
-                PC.Decrement();
-
-                m_iCurrentClockCycles += (kOPCodeMachineCycles[opcode] - 3) * AdjustedCycles(4);
-                m_iDuringIntermediateOpcode = 1;
-
-                return;
-            }
-        }
-
-        u16 opcode_address = PC.GetValue() - 1;
-        if (!m_pMemory->IsDisassembled(opcode_address))
-        {
-            m_pMemory->Disassemble(opcode_address, kOPCodeNames[opcode]);
-        }
-
-        (this->*m_OPCodes[opcode])();
-
-        if (m_bBranchTaken)
-        {
-            m_bBranchTaken = false;
-            m_iCurrentClockCycles += kOPCodeConditionalsMachineCycles[opcode] * AdjustedCycles(4);
-        }
-        else
-        {
-            if (m_iDuringIntermediateOpcode == 1)
-            {
-                if (kOPCodeIntermediateMachineCycles[opcode] == 3)
-                {
-                    m_iCurrentClockCycles += 1 * AdjustedCycles(4);
-                    m_iDuringIntermediateOpcode = 2;
+                if (isCB)
                     PC.Decrement();
-                }
-                else
-                {
-                    m_iCurrentClockCycles += 2 * AdjustedCycles(4);
-                    m_iDuringIntermediateOpcode = 0;
-                }
-            }
-            else if (m_iDuringIntermediateOpcode == 2)
-            {
-                    m_iCurrentClockCycles += 2 * AdjustedCycles(4);
-                    m_iDuringIntermediateOpcode = 0;
-
             }
             else
             {
-                m_iCurrentClockCycles += kOPCodeMachineCycles[opcode] * AdjustedCycles(4);
+                m_iCurrentClockCycles += 2 * AdjustedCycles(4);
+                m_iAccurateOPCodeState = 0;
             }
+            break;
+        case 2:
+            m_iCurrentClockCycles += 2 * AdjustedCycles(4);
+            m_iAccurateOPCodeState = 0;
+            break;
         }
     }
 }
