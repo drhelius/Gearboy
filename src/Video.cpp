@@ -37,6 +37,8 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iScreenEnableDelayCycles = 0;
     m_iStatusVBlankLine = 0;
     m_iWindowLine = 0;
+    m_iPixelCounter = 0;
+    m_iTileCycleCounter = 0;
     m_bScreenEnabled = true;
     m_bCGB = false;
     m_bScanLineTransfered = false;
@@ -77,6 +79,8 @@ void Video::Reset(bool bCGB)
     m_iScreenEnableDelayCycles = 0;
     m_iStatusVBlankLine = 0;
     m_iWindowLine = 0;
+    m_iPixelCounter = 0;
+    m_iTileCycleCounter = 0;
     m_bScreenEnabled = true;
     m_bScanLineTransfered = false;
     m_bCGB = bCGB;
@@ -96,9 +100,9 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
 
         switch (m_iStatusMode)
         {
+            // During H-BLANK
             case 0:
-            {
-                // During H-BLANK
+            {                
                 if (m_iStatusModeCounter >= 204)
                 {
                     m_iStatusModeCounter -= 204;
@@ -161,9 +165,9 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                 }
                 break;
             }
+            // During V-BLANK
             case 1:
             {
-                // During V-BLANK
                 m_iStatusModeCounterAux += clockCycles;
 
                 if (m_iStatusModeCounterAux >= 456)
@@ -183,6 +187,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                 {
                     m_iStatusModeLYCounter = 0;
                     m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
+                    CompareLYToLYC();
                 }
 
                 if (m_iStatusModeCounter >= 4560)
@@ -191,7 +196,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                     m_iStatusMode = 2;
                     UpdateStatRegister();
                     m_IRQ48Signal &= 0x07;
-                    CompareLYToLYC();
+
 
                     m_IRQ48Signal &= 0x0A;
                     u8 stat = m_pMemory->Retrieve(0xFF41);
@@ -207,9 +212,9 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                 }
                 break;
             }
+            // During searching OAM RAM
             case 2:
-            {
-                // During searching OAM RAM
+            {       
                 if (m_iStatusModeCounter >= 80)
                 {
                     m_iStatusModeCounter -= 80;
@@ -220,19 +225,42 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                 }
                 break;
             }
+            // During transfering data to LCD driver
             case 3:
             {
-                // During transfering data to LCD driver
-                if (!m_bScanLineTransfered && (m_iStatusModeCounter >= (m_iStatusModeLYCounter == 0 ? 160: 48)))
+                if (m_iPixelCounter < 160)
                 {
-                    m_bScanLineTransfered = true;
+                    m_iTileCycleCounter += clockCycles;
+                    u8 lcdc = m_pMemory->Retrieve(0xFF40);
+
+                    if (m_bScreenEnabled && IsSetBit(lcdc, 7))
+                    {
+                        while (m_iTileCycleCounter >= 3)
+                        {
+                            RenderBG(m_iStatusModeLYCounter, m_iPixelCounter, 4);
+                            m_iPixelCounter += 4;
+                            m_iTileCycleCounter -= 3;
+
+                            if (m_iPixelCounter >= 160)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (m_iStatusModeCounter >= 160 && !m_bScanLineTransfered)
+                {
                     ScanLine(m_iStatusModeLYCounter);
+                    m_bScanLineTransfered = true;
                 }
 
                 if (m_iStatusModeCounter >= 172)
                 {
+                    m_iPixelCounter = 0;
                     m_iStatusModeCounter -= 172;
                     m_iStatusMode = 0;
+                    m_iTileCycleCounter = 0;
                     UpdateStatRegister();
 
                     m_IRQ48Signal &= 0x08;
@@ -250,6 +278,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
             }
         }
     }
+    // Screen disabled
     else
     {
         if (m_iScreenEnableDelayCycles > 0)
@@ -267,6 +296,8 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                 m_iStatusModeLYCounter = 0;
                 m_iWindowLine = 0;
                 m_iStatusVBlankLine = 0;
+                m_iPixelCounter = 0;
+                m_iTileCycleCounter = 0;
                 m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
                 m_IRQ48Signal = 0;
 
@@ -421,7 +452,6 @@ void Video::ScanLine(int line)
 
         if (m_bScreenEnabled && IsSetBit(lcdc, 7))
         {
-            RenderBG(line);
             RenderWindow(line);
             RenderSprites(line);
         }
@@ -447,49 +477,56 @@ void Video::ScanLine(int line)
     }
 }
 
-void Video::RenderBG(int line)
+void Video::RenderBG(int line, int pixel, int count)
 {
+    int offset_x_init = pixel % 8;
+    int offset_x_end = offset_x_init + count;
+    int screen_tile = pixel / 8;
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
     int line_width = (line * GAMEBOY_WIDTH);
 
     if (m_bCGB || IsSetBit(lcdc, 0))
     {
-        int tiles = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
-        int map = IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
-        u8 scx = m_pMemory->Retrieve(0xFF43);
-        u8 scy = m_pMemory->Retrieve(0xFF42);
-        u8 lineAdjusted = line + scy;
-        int y_32 = (lineAdjusted / 8) * 32;
-        int pixely = lineAdjusted % 8;
-        int pixely_2 = pixely * 2;
-        int pixely_2_flip = (7 - pixely) * 2;
+        int tile_start_addr = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
+        int map_start_addr = IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
+        u8 scroll_x = m_pMemory->Retrieve(0xFF43);
+        u8 scroll_y = m_pMemory->Retrieve(0xFF42);
+        u8 line_scrolled = line + scroll_y;
+        int line_scrolled_32 = (line_scrolled / 8) * 32;
+        int tile_pixel_y = line_scrolled % 8;
+        int tile_pixel_y_2 = tile_pixel_y * 2;
+        int tile_pixel_y_flip_2 = (7 - tile_pixel_y) * 2;
 
-        for (int x = 0; x < 32; x++)
+        for (int offset_x = offset_x_init; offset_x < offset_x_end; offset_x++)
         {
-            int tile = 0;
+            int screen_pixel_x = (screen_tile * 8) + offset_x;
+            u8 map_pixel_x = screen_pixel_x + scroll_x;
+            int map_tile_x = map_pixel_x / 8;
+            int map_tile_offset_x = map_pixel_x % 8;
+            u16 map_tile_addr = map_start_addr + line_scrolled_32 + map_tile_x;
+            int map_tile = 0;
 
-            if (tiles == 0x8800)
+            if (tile_start_addr == 0x8800)
             {
-                tile = static_cast<s8> (m_pMemory->Retrieve(map + y_32 + x));
-                tile += 128;
+                map_tile = static_cast<s8> (m_pMemory->Retrieve(map_tile_addr));
+                map_tile += 128;
             }
             else
             {
-                tile = m_pMemory->Retrieve(map + y_32 + x);
+                map_tile = m_pMemory->Retrieve(map_tile_addr);
             }
-
-            u8 cgb_tile_attr = m_bCGB ? m_pMemory->ReadCGBLCDRAM(map + y_32 + x, true) : 0;
+            
+            u8 cgb_tile_attr = m_bCGB ? m_pMemory->ReadCGBLCDRAM(map_tile_addr, true) : 0;
             u8 cgb_tile_pal = m_bCGB ? (cgb_tile_attr & 0x07) : 0;
             bool cgb_tile_bank = m_bCGB ? IsSetBit(cgb_tile_attr, 3) : false;
             bool cgb_tile_xflip = m_bCGB ? IsSetBit(cgb_tile_attr, 5) : false;
             bool cgb_tile_yflip = m_bCGB ? IsSetBit(cgb_tile_attr, 6) : false;
             bool cgb_tile_priority = m_bCGB ? IsSetBit(cgb_tile_attr, 7) : false;
-            int mapOffsetX = x * 8;
-            int tile_16 = tile * 16;
+            int map_tile_16 = map_tile * 16;
             u8 byte1 = 0;
             u8 byte2 = 0;
-            int final_pixely_2 = (m_bCGB && cgb_tile_yflip) ? pixely_2_flip : pixely_2;
-            int tile_address = tiles + tile_16 + final_pixely_2;
+            int final_pixely_2 = (m_bCGB && cgb_tile_yflip) ? tile_pixel_y_flip_2 : tile_pixel_y_2;
+            int tile_address = tile_start_addr + map_tile_16 + final_pixely_2;
 
             if (m_bCGB && cgb_tile_bank)
             {
@@ -502,39 +539,31 @@ void Video::RenderBG(int line)
                 byte2 = m_pMemory->Retrieve(tile_address + 1);
             }
 
-            for (int pixelx = 0; pixelx < 8; pixelx++)
+            int pixel_x_in_tile = map_tile_offset_x;
+
+            if (m_bCGB && cgb_tile_xflip)
             {
-                u8 bufferX = (mapOffsetX + pixelx - scx);
+                pixel_x_in_tile = 7 - pixel_x_in_tile;
+            }
+            int pixel_x_in_tile_bit = 0x1 << (7 - pixel_x_in_tile);
+            int pixel_data = (byte1 & pixel_x_in_tile_bit) ? 1 : 0;
+            pixel_data |= (byte2 & pixel_x_in_tile_bit) ? 2 : 0;
 
-                if (bufferX >= GAMEBOY_WIDTH)
-                    continue;
+            int index = line_width + screen_pixel_x;
+            m_pColorCacheBuffer[index] = pixel_data & 0x03;
 
-                int pixelx_pos = pixelx;
-
-                if (m_bCGB && cgb_tile_xflip)
-                {
-                    pixelx_pos = 7 - pixelx_pos;
-                }
-
-                int pixel = (byte1 & (0x1 << (7 - pixelx_pos))) ? 1 : 0;
-                pixel |= (byte2 & (0x1 << (7 - pixelx_pos))) ? 2 : 0;
-
-                int position = line_width + bufferX;
-                m_pColorCacheBuffer[position] = pixel & 0x03;
-
-                if (m_bCGB)
-                {
-                    if (cgb_tile_priority && (pixel != 0))
-                        m_pColorCacheBuffer[position] = SetBit(m_pColorCacheBuffer[position], 2);
-                    GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel];
-                    m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
-                }
-                else
-                {
-                    u8 palette = m_pMemory->Retrieve(0xFF47);
-                    u8 color = (palette >> (pixel * 2)) & 0x03;
-                    m_pFrameBuffer[position] = color;
-                }
+            if (m_bCGB)
+            {
+                if (cgb_tile_priority && (pixel_data != 0))
+                    m_pColorCacheBuffer[index] = SetBit(m_pColorCacheBuffer[index], 2);
+                GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel_data];
+                m_pColorFrameBuffer[index] = ConvertTo8BitColor(color);
+            }
+            else
+            {
+                u8 palette = m_pMemory->Retrieve(0xFF47);
+                u8 color = (palette >> (pixel_data * 2)) & 0x03;
+                m_pFrameBuffer[index] = color;
             }
         }
     }

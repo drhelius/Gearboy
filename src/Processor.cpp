@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "Processor.h"
@@ -29,6 +29,7 @@ Processor::Processor(Memory* pMemory)
     m_bIME = false;
     m_bHalt = false;
     m_bCGBSpeed = false;
+    m_iSpeedMultiplier = 0;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_iCurrentClockCycles = 0;
@@ -43,6 +44,8 @@ Processor::Processor(Memory* pMemory)
         m_InterruptDelayCycles[i] = 0;
     m_bEndOfBootROM = false;
     m_bDuringBootROM = false;
+    m_iAccurateOPCodeState = 0;
+    m_iReadCache = 0;
 }
 
 Processor::~Processor()
@@ -61,6 +64,7 @@ void Processor::Reset(bool bCGB, bool bootROM)
     m_bIME = false;
     m_bHalt = false;
     m_bCGBSpeed = false;
+    m_iSpeedMultiplier = 0;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_iCurrentClockCycles = 0;
@@ -85,15 +89,17 @@ void Processor::Reset(bool bCGB, bool bootROM)
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
 	m_bEndOfBootROM = false;
+    m_iAccurateOPCodeState = 0;
+    m_iReadCache = 0;
 }
 
 u8 Processor::Tick()
 {
     m_iCurrentClockCycles = 0;
 
-    if (m_bHalt)
+    if (m_iAccurateOPCodeState == 0 && m_bHalt)
     {
-        m_iCurrentClockCycles += (m_bCGBSpeed ? 2 : 4);
+        m_iCurrentClockCycles += AdjustedCycles(4);
 
         if (m_iUnhaltCycles > 0)
         {
@@ -108,14 +114,15 @@ u8 Processor::Tick()
 
         if (m_bHalt && (InterruptPending() != None_Interrupt) && (m_iUnhaltCycles == 0))
         {
-            m_iUnhaltCycles = (m_bCGBSpeed ? 6 : 12);
+            m_iUnhaltCycles = AdjustedCycles(12);
         }
     }
 
     if (!m_bHalt)
     {
-        ServeInterrupt(InterruptPending());
-        
+        if (m_iAccurateOPCodeState == 0)
+            ServeInterrupt(InterruptPending());
+
         if (m_bDuringBootROM)
         {
             u16 pc_before = PC.GetValue();
@@ -127,14 +134,14 @@ u8 Processor::Tick()
             }
         }
         else
-            ExecuteOPCode(FetchOPCode());		
+            ExecuteOPCode(FetchOPCode());
     }
 
     UpdateDelayedInterrupts();
     UpdateTimers();
     UpdateSerial();
 
-    if (m_iIMECycles > 0)
+    if (m_iAccurateOPCodeState == 0 && m_iIMECycles > 0)
     {
         m_iIMECycles -= m_iCurrentClockCycles;
 
@@ -216,37 +223,78 @@ u8 Processor::FetchOPCode()
 
 void Processor::ExecuteOPCode(u8 opcode)
 {
-    if (opcode == 0xCB)
+    const u8* accurateOPcodes;
+    const u8* machineCycles;
+    OPCptr* opcodeTable;
+    bool isCB = (opcode == 0xCB);
+
+    if (isCB)
     {
+        accurateOPcodes = kOPCodeCBAccurate;
+        machineCycles = kOPCodeCBMachineCycles;
+        opcodeTable = m_OPCodesCB;
         opcode = FetchOPCode();
-        u16 opcode_address = PC.GetValue() - 1;
-        
-        if (!m_pMemory->IsDisassembled(opcode_address))
-        {
-            m_pMemory->Disassemble(opcode_address, kOPCodeCBNames[opcode]);
-        }
-
-        (this->*m_OPCodesCB[opcode])();
-
-        m_iCurrentClockCycles += kOPCodeCBMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
     }
     else
     {
-        u16 opcode_address = PC.GetValue() - 1;
-        if (!m_pMemory->IsDisassembled(opcode_address))
-        {
-            m_pMemory->Disassemble(opcode_address, kOPCodeNames[opcode]);
-        }
+        accurateOPcodes = kOPCodeAccurate;
+        machineCycles = kOPCodeMachineCycles;
+        opcodeTable = m_OPCodes;
+    }
 
-        (this->*m_OPCodes[opcode])();
+    if ((accurateOPcodes[opcode] != 0) && (m_iAccurateOPCodeState == 0))
+    {
+        int left_cycles = (accurateOPcodes[opcode] < 3 ? 2 : 3);
+        m_iCurrentClockCycles += (machineCycles[opcode] - left_cycles) * AdjustedCycles(4);
+        m_iAccurateOPCodeState = 1;
+        PC.Decrement();
+        if (isCB)
+            PC.Decrement();
+        return;
+    }
 
-        if (m_bBranchTaken)
+#ifdef DEBUG_GEARBOY
+    u16 opcode_address = PC.GetValue() - 1;
+    if (!m_pMemory->IsDisassembled(opcode_address))
+    {
+        m_pMemory->Disassemble(opcode_address, kOPCodeNames[opcode]);
+    }
+#endif
+
+    (this->*opcodeTable[opcode])();
+
+    if (m_bBranchTaken)
+    {
+        m_bBranchTaken = false;
+        m_iCurrentClockCycles += kOPCodeBranchMachineCycles[opcode] * AdjustedCycles(4);
+    }
+    else
+    {
+        switch (m_iAccurateOPCodeState)
         {
-            m_bBranchTaken = false;
-            m_iCurrentClockCycles += kOPCodeConditionalsMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
+        case 0:
+            m_iCurrentClockCycles += machineCycles[opcode] * AdjustedCycles(4);
+            break;
+        case 1:
+            if (accurateOPcodes[opcode] == 3)
+            {
+                m_iCurrentClockCycles += 1 * AdjustedCycles(4);
+                m_iAccurateOPCodeState = 2;
+                PC.Decrement();
+                if (isCB)
+                    PC.Decrement();
+            }
+            else
+            {
+                m_iCurrentClockCycles += 2 * AdjustedCycles(4);
+                m_iAccurateOPCodeState = 0;
+            }
+            break;
+        case 2:
+            m_iCurrentClockCycles += 2 * AdjustedCycles(4);
+            m_iAccurateOPCodeState = 0;
+            break;
         }
-        else
-            m_iCurrentClockCycles += kOPCodeMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
     }
 }
 
@@ -306,7 +354,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0040);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case LCDSTAT_Interrupt:
                 m_InterruptDelayCycles[1] = 0;
@@ -314,7 +362,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0048);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case Timer_Interrupt:
                 m_InterruptDelayCycles[2] = 0;
@@ -322,7 +370,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0050);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case Serial_Interrupt:
                 m_InterruptDelayCycles[3] = 0;
@@ -330,7 +378,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0058);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case Joypad_Interrupt:
                 m_InterruptDelayCycles[4] = 0;
@@ -338,7 +386,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0060);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case None_Interrupt:
                 break;
@@ -350,7 +398,7 @@ void Processor::UpdateTimers()
 {
     m_iDIVCycles += m_iCurrentClockCycles;
 
-    unsigned int div_cycles = (m_bCGBSpeed ? 128 : 256);
+    unsigned int div_cycles = AdjustedCycles(256);
 
     while (m_iDIVCycles >= div_cycles)
     {
@@ -372,16 +420,16 @@ void Processor::UpdateTimers()
         switch (tac & 0x03)
         {
             case 0:
-                freq = (m_bCGBSpeed ? 512 : 1024);
+                freq = AdjustedCycles(1024);
                 break;
             case 1:
-                freq = (m_bCGBSpeed ? 8 : 16);
+                freq = AdjustedCycles(16);
                 break;
             case 2:
-                freq = (m_bCGBSpeed ? 32 : 64);
+                freq = AdjustedCycles(64);
                 break;
             case 3:
-                freq = (m_bCGBSpeed ? 128 : 256);
+                freq = AdjustedCycles(256);
                 break;
         }
 
@@ -418,7 +466,7 @@ void Processor::UpdateSerial()
             return;
         }
 
-        int serial_cycles = (m_bCGBSpeed ? 256 : 512);
+        int serial_cycles = AdjustedCycles(512);
 
         if (m_iSerialCycles >= serial_cycles)
         {
@@ -1000,4 +1048,3 @@ void Processor::InitOPCodeFunctors()
     m_OPCodesCB[0xFE] = &Processor::OPCodeCB0xFE;
     m_OPCodesCB[0xFF] = &Processor::OPCodeCB0xFF;
 }
-

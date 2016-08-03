@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef PROCESSOR_H
@@ -78,9 +78,12 @@ private:
     int m_iUnhaltCycles;
     bool m_bCGB;
     int m_InterruptDelayCycles[5];
-    int m_bCGBSpeed;
+    bool m_bCGBSpeed;
+    int m_iSpeedMultiplier;
     bool m_bEndOfBootROM;
     bool m_bDuringBootROM;
+    int m_iAccurateOPCodeState;
+    u8 m_iReadCache;
 
 private:
     u8 FetchOPCode();
@@ -99,6 +102,7 @@ private:
     bool IsSetFlag(u8 flag);
     void StackPush(SixteenBitRegister* reg);
     void StackPop(SixteenBitRegister* reg);
+    int AdjustedCycles(int cycles);
     void InvalidOPCode();
     void OPCodes_LD(EightBitRegister* reg1, u8 reg2);
     void OPCodes_LD(EightBitRegister* reg, u16 address);
@@ -657,4 +661,3 @@ private:
 #include "Processor_inline.h"
 
 #endif	/* PROCESSOR_H */
-
