@@ -58,7 +58,7 @@ make -j 4
 sudo make install
 ```
 - Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>.
-- Use <code>make -j 4</code> in the <code>platforms/raspberrypi2/Gearboy/</code> folder to build the project.
+- Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/Gearboy/</code> folder to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
 - The emulator generates a <code>gearboy.cfg</code> configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
@@ -83,10 +83,7 @@ sudo make install
 - Open the Gearboy Qt project with Qt Creator and build.
 
 ### Linux
-- Install Qt 5 development dependencies (Ubuntu: <code>sudo apt-get install qt5-default qttools5-dev-tools</code>).
-- Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
-- Install SDL 2 development dependencies (Ubuntu: <code>sudo apt-get install libsdl2-dev</code>).
-- In order to use OpenGL extensions I used GLEW dependencies (Ubuntu: <code>sudo apt-get install libglew-dev</code>). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions.
+- Install dependencies (Ubuntu: <code>sudo apt-get install build-essential qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev</code>).
 - Move to the <code>platforms/linux/Gearboy/</code> folder and run <code>qmake -o Makefile Gearboy.pro && make</code> to build the project.
 - In Ubuntu I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
 
