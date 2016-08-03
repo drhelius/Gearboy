@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "Processor.h"
@@ -44,6 +44,7 @@ Processor::Processor(Memory* pMemory)
     m_bEndOfBootROM = false;
     m_bDuringBootROM = false;
     m_iDuringIntermediateOpcode = 0;
+    global_result = 0;
 }
 
 Processor::~Processor()
@@ -87,6 +88,7 @@ void Processor::Reset(bool bCGB, bool bootROM)
         m_InterruptDelayCycles[i] = 0;
 	m_bEndOfBootROM = false;
     m_iDuringIntermediateOpcode = 0;
+    global_result = 0;
 }
 
 u8 Processor::Tick()
@@ -118,7 +120,7 @@ u8 Processor::Tick()
     {
         if (m_iDuringIntermediateOpcode == 0)
             ServeInterrupt(InterruptPending());
-        
+
         if (m_bDuringBootROM)
         {
             u16 pc_before = PC.GetValue();
@@ -130,7 +132,7 @@ u8 Processor::Tick()
             }
         }
         else
-            ExecuteOPCode(FetchOPCode());		
+            ExecuteOPCode(FetchOPCode());
     }
 
     UpdateDelayedInterrupts();
@@ -268,6 +270,15 @@ void Processor::ExecuteOPCode(u8 opcode)
 
                 return;
             }
+            else if (kOPCodeIntermediateMachineCycles[opcode] == 3)
+            {
+                PC.Decrement();
+
+                m_iCurrentClockCycles += (kOPCodeMachineCycles[opcode] - 3) * (m_bCGBSpeed ? 2 : 4);
+                m_iDuringIntermediateOpcode = 1;
+
+                return;
+            }
         }
 
         u16 opcode_address = PC.GetValue() - 1;
@@ -287,8 +298,23 @@ void Processor::ExecuteOPCode(u8 opcode)
         {
             if (m_iDuringIntermediateOpcode == 1)
             {
-                m_iCurrentClockCycles += 2 * (m_bCGBSpeed ? 2 : 4);
-                m_iDuringIntermediateOpcode = 0;
+                if (kOPCodeIntermediateMachineCycles[opcode] == 3)
+                {
+                    m_iCurrentClockCycles += 1 * (m_bCGBSpeed ? 2 : 4);
+                    m_iDuringIntermediateOpcode = 2;
+                    PC.Decrement();
+                }
+                else
+                {
+                    m_iCurrentClockCycles += 2 * (m_bCGBSpeed ? 2 : 4);
+                    m_iDuringIntermediateOpcode = 0;
+                }
+            }
+            else if (m_iDuringIntermediateOpcode == 2)
+            {
+                    m_iCurrentClockCycles += 2 * (m_bCGBSpeed ? 2 : 4);
+                    m_iDuringIntermediateOpcode = 0;
+
             }
             else
             {
@@ -1048,4 +1074,3 @@ void Processor::InitOPCodeFunctors()
     m_OPCodesCB[0xFE] = &Processor::OPCodeCB0xFE;
     m_OPCodesCB[0xFF] = &Processor::OPCodeCB0xFF;
 }
-

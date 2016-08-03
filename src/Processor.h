@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef PROCESSOR_H
@@ -82,6 +82,7 @@ private:
     bool m_bEndOfBootROM;
     bool m_bDuringBootROM;
     int m_iDuringIntermediateOpcode;
+    u8 global_result;
 
 private:
     u8 FetchOPCode();
@@ -658,4 +659,3 @@ private:
 #include "Processor_inline.h"
 
 #endif	/* PROCESSOR_H */
-

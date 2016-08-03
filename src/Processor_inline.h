@@ -131,11 +131,15 @@ inline void Processor::OPCodes_INC(EightBitRegister* reg)
 
 inline void Processor::OPCodes_INC_HL()
 {
-    u8 result = m_pMemory->Read(HL.GetValue()) + 1;
-    m_pMemory->Write(HL.GetValue(), result);
+    if (m_iDuringIntermediateOpcode == 1)
+    {
+        global_result = m_pMemory->Read(HL.GetValue()) + 1;
+        return;
+    }
+    m_pMemory->Write(HL.GetValue(), global_result);
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
-    ToggleZeroFlagFromResult(result);
-    if ((result & 0x0F) == 0x00)
+    ToggleZeroFlagFromResult(global_result);
+    if ((global_result & 0x0F) == 0x00)
     {
         ToggleFlag(FLAG_HALF);
     }
@@ -156,12 +160,16 @@ inline void Processor::OPCodes_DEC(EightBitRegister* reg)
 
 inline void Processor::OPCodes_DEC_HL()
 {
-    u8 result = m_pMemory->Read(HL.GetValue()) - 1;
-    m_pMemory->Write(HL.GetValue(), result);
+    if (m_iDuringIntermediateOpcode == 1)
+    {
+        global_result = m_pMemory->Read(HL.GetValue()) - 1;
+        return;
+    }
+    m_pMemory->Write(HL.GetValue(), global_result);
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleFlag(FLAG_SUB);
-    ToggleZeroFlagFromResult(result);
-    if ((result & 0x0F) == 0x0F)
+    ToggleZeroFlagFromResult(global_result);
+    if ((global_result & 0x0F) == 0x0F)
     {
         ToggleFlag(FLAG_HALF);
     }
