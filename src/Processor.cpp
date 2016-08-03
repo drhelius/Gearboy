@@ -29,6 +29,7 @@ Processor::Processor(Memory* pMemory)
     m_bIME = false;
     m_bHalt = false;
     m_bCGBSpeed = false;
+    m_iSpeedMultiplier = 0;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_iCurrentClockCycles = 0;
@@ -63,6 +64,7 @@ void Processor::Reset(bool bCGB, bool bootROM)
     m_bIME = false;
     m_bHalt = false;
     m_bCGBSpeed = false;
+    m_iSpeedMultiplier = 0;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_iCurrentClockCycles = 0;
@@ -97,7 +99,7 @@ u8 Processor::Tick()
 
     if (m_iDuringIntermediateOpcode == 0 && m_bHalt)
     {
-        m_iCurrentClockCycles += (m_bCGBSpeed ? 2 : 4);
+        m_iCurrentClockCycles += AdjustedCycles(4);
 
         if (m_iUnhaltCycles > 0)
         {
@@ -112,7 +114,7 @@ u8 Processor::Tick()
 
         if (m_bHalt && (InterruptPending() != None_Interrupt) && (m_iUnhaltCycles == 0))
         {
-            m_iUnhaltCycles = (m_bCGBSpeed ? 6 : 12);
+            m_iUnhaltCycles = AdjustedCycles(12);
         }
     }
 
@@ -233,7 +235,7 @@ void Processor::ExecuteOPCode(u8 opcode)
                 PC.Decrement();
                 PC.Decrement();
 
-                m_iCurrentClockCycles += (kOPCodeCBMachineCycles[opcode] - 2) * (m_bCGBSpeed ? 2 : 4);
+                m_iCurrentClockCycles += (kOPCodeCBMachineCycles[opcode] - 2) * AdjustedCycles(4);
                 m_iDuringIntermediateOpcode = 1;
 
                 return;
@@ -249,12 +251,12 @@ void Processor::ExecuteOPCode(u8 opcode)
 
         if (m_iDuringIntermediateOpcode == 1)
         {
-            m_iCurrentClockCycles += 2 * (m_bCGBSpeed ? 2 : 4);
+            m_iCurrentClockCycles += 2 * AdjustedCycles(4);
             m_iDuringIntermediateOpcode = 0;
         }
         else
         {
-            m_iCurrentClockCycles += kOPCodeCBMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
+            m_iCurrentClockCycles += kOPCodeCBMachineCycles[opcode] * AdjustedCycles(4);
         }
     }
     else
@@ -265,7 +267,7 @@ void Processor::ExecuteOPCode(u8 opcode)
             {
                 PC.Decrement();
 
-                m_iCurrentClockCycles += (kOPCodeMachineCycles[opcode] - 2) * (m_bCGBSpeed ? 2 : 4);
+                m_iCurrentClockCycles += (kOPCodeMachineCycles[opcode] - 2) * AdjustedCycles(4);
                 m_iDuringIntermediateOpcode = 1;
 
                 return;
@@ -274,7 +276,7 @@ void Processor::ExecuteOPCode(u8 opcode)
             {
                 PC.Decrement();
 
-                m_iCurrentClockCycles += (kOPCodeMachineCycles[opcode] - 3) * (m_bCGBSpeed ? 2 : 4);
+                m_iCurrentClockCycles += (kOPCodeMachineCycles[opcode] - 3) * AdjustedCycles(4);
                 m_iDuringIntermediateOpcode = 1;
 
                 return;
@@ -292,7 +294,7 @@ void Processor::ExecuteOPCode(u8 opcode)
         if (m_bBranchTaken)
         {
             m_bBranchTaken = false;
-            m_iCurrentClockCycles += kOPCodeConditionalsMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
+            m_iCurrentClockCycles += kOPCodeConditionalsMachineCycles[opcode] * AdjustedCycles(4);
         }
         else
         {
@@ -300,25 +302,25 @@ void Processor::ExecuteOPCode(u8 opcode)
             {
                 if (kOPCodeIntermediateMachineCycles[opcode] == 3)
                 {
-                    m_iCurrentClockCycles += 1 * (m_bCGBSpeed ? 2 : 4);
+                    m_iCurrentClockCycles += 1 * AdjustedCycles(4);
                     m_iDuringIntermediateOpcode = 2;
                     PC.Decrement();
                 }
                 else
                 {
-                    m_iCurrentClockCycles += 2 * (m_bCGBSpeed ? 2 : 4);
+                    m_iCurrentClockCycles += 2 * AdjustedCycles(4);
                     m_iDuringIntermediateOpcode = 0;
                 }
             }
             else if (m_iDuringIntermediateOpcode == 2)
             {
-                    m_iCurrentClockCycles += 2 * (m_bCGBSpeed ? 2 : 4);
+                    m_iCurrentClockCycles += 2 * AdjustedCycles(4);
                     m_iDuringIntermediateOpcode = 0;
 
             }
             else
             {
-                m_iCurrentClockCycles += kOPCodeMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
+                m_iCurrentClockCycles += kOPCodeMachineCycles[opcode] * AdjustedCycles(4);
             }
         }
     }
@@ -380,7 +382,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0040);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case LCDSTAT_Interrupt:
                 m_InterruptDelayCycles[1] = 0;
@@ -388,7 +390,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0048);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case Timer_Interrupt:
                 m_InterruptDelayCycles[2] = 0;
@@ -396,7 +398,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0050);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case Serial_Interrupt:
                 m_InterruptDelayCycles[3] = 0;
@@ -404,7 +406,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0058);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case Joypad_Interrupt:
                 m_InterruptDelayCycles[4] = 0;
@@ -412,7 +414,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0060);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case None_Interrupt:
                 break;
@@ -424,7 +426,7 @@ void Processor::UpdateTimers()
 {
     m_iDIVCycles += m_iCurrentClockCycles;
 
-    unsigned int div_cycles = (m_bCGBSpeed ? 128 : 256);
+    unsigned int div_cycles = AdjustedCycles(256);
 
     while (m_iDIVCycles >= div_cycles)
     {
@@ -446,16 +448,16 @@ void Processor::UpdateTimers()
         switch (tac & 0x03)
         {
             case 0:
-                freq = (m_bCGBSpeed ? 512 : 1024);
+                freq = AdjustedCycles(1024);
                 break;
             case 1:
-                freq = (m_bCGBSpeed ? 8 : 16);
+                freq = AdjustedCycles(16);
                 break;
             case 2:
-                freq = (m_bCGBSpeed ? 32 : 64);
+                freq = AdjustedCycles(64);
                 break;
             case 3:
-                freq = (m_bCGBSpeed ? 128 : 256);
+                freq = AdjustedCycles(256);
                 break;
         }
 
@@ -492,7 +494,7 @@ void Processor::UpdateSerial()
             return;
         }
 
-        int serial_cycles = (m_bCGBSpeed ? 256 : 512);
+        int serial_cycles = AdjustedCycles(512);
 
         if (m_iSerialCycles >= serial_cycles)
         {

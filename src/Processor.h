@@ -78,7 +78,8 @@ private:
     int m_iUnhaltCycles;
     bool m_bCGB;
     int m_InterruptDelayCycles[5];
-    int m_bCGBSpeed;
+    bool m_bCGBSpeed;
+    int m_iSpeedMultiplier;
     bool m_bEndOfBootROM;
     bool m_bDuringBootROM;
     int m_iDuringIntermediateOpcode;
@@ -101,6 +102,7 @@ private:
     bool IsSetFlag(u8 flag);
     void StackPush(SixteenBitRegister* reg);
     void StackPop(SixteenBitRegister* reg);
+    int AdjustedCycles(int cycles);
     void InvalidOPCode();
     void OPCodes_LD(EightBitRegister* reg1, u8 reg2);
     void OPCodes_LD(EightBitRegister* reg, u16 address);

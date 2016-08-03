@@ -141,9 +141,15 @@ void Processor::OPCode0x10()
             m_bCGBSpeed = !m_bCGBSpeed;
 
             if (m_bCGBSpeed)
+            {
+                m_iSpeedMultiplier = 1;
                 m_pMemory->Load(0xFF4D, 0x80);
+            }
             else
+            {
+                m_iSpeedMultiplier = 0;
                 m_pMemory->Load(0xFF4D, 0x00);
+            }
         }
     }
 }
@@ -1830,7 +1836,7 @@ void Processor::OPCode0xFA()
 void Processor::OPCode0xFB()
 {
     // EI
-    int ei_cycles = kOPCodeMachineCycles[0xFB] * (m_bCGBSpeed ? 2 : 4);
+    int ei_cycles = kOPCodeMachineCycles[0xFB] * AdjustedCycles(4);
     m_iIMECycles = ei_cycles + 1;
 }
 

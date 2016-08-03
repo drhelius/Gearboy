@@ -56,6 +56,11 @@ inline void Processor::StackPop(SixteenBitRegister* reg)
     SP.Increment();
 }
 
+inline int Processor::AdjustedCycles(int cycles)
+{
+    return cycles >> m_iSpeedMultiplier;
+}
+
 inline void Processor::InvalidOPCode()
 {
     Log("--> ** INVALID OP Code");
