@@ -229,13 +229,23 @@ void Processor::ExecuteOPCode(u8 opcode)
         u16 opcode_address = PC.GetValue() - 1;
 
         if (m_iDuringIntermediateOpcode == 0)
-        {
-            if (kOPCodeIntermediateCBMachineCycles[opcode] == 1)
+        {            
+            if (kOPCodeIntermediateCBMachineCycles[opcode] == 1 || kOPCodeIntermediateCBMachineCycles[opcode] == 2)
             {
                 PC.Decrement();
                 PC.Decrement();
 
                 m_iCurrentClockCycles += (kOPCodeCBMachineCycles[opcode] - 2) * AdjustedCycles(4);
+                m_iDuringIntermediateOpcode = 1;
+
+                return;
+            }
+            else if (kOPCodeIntermediateCBMachineCycles[opcode] == 3)
+            {
+                PC.Decrement();
+                PC.Decrement();
+
+                m_iCurrentClockCycles += (kOPCodeCBMachineCycles[opcode] - 3) * AdjustedCycles(4);
                 m_iDuringIntermediateOpcode = 1;
 
                 return;
@@ -251,8 +261,24 @@ void Processor::ExecuteOPCode(u8 opcode)
 
         if (m_iDuringIntermediateOpcode == 1)
         {
-            m_iCurrentClockCycles += 2 * AdjustedCycles(4);
-            m_iDuringIntermediateOpcode = 0;
+            if (kOPCodeIntermediateCBMachineCycles[opcode] == 3)
+            {
+                m_iCurrentClockCycles += 1 * AdjustedCycles(4);
+                m_iDuringIntermediateOpcode = 2;
+                PC.Decrement();
+                PC.Decrement();
+            }
+            else
+            {
+                m_iCurrentClockCycles += 2 * AdjustedCycles(4);
+                m_iDuringIntermediateOpcode = 0;
+            }
+        }
+        else if (m_iDuringIntermediateOpcode == 2)
+        {
+                m_iCurrentClockCycles += 2 * AdjustedCycles(4);
+                m_iDuringIntermediateOpcode = 0;
+
         }
         else
         {
