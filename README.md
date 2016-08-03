@@ -23,7 +23,7 @@ Downloads
 Features
 --------
 - Highly accurate CPU emulation, passes cpu_instrs.gb from blargg's tests.
-- Accurate instruction timing, passes instr_timing.gb from blargg's tests.
+- Accurate instruction and memory timing, passes instr_timing.gb and mem_timing.gb from blargg's tests.
 - Memory Bank Controllers (MBC1, MBC2, MBC3 with RTC, MBC5), ROM + RAM and multicart cartridges.
 - Accurate LCD controller emulation. Background, window and sprites, with correct timings and priorities.
 - Mix frames: Mimics the LCD ghosting effect seen in the original Game Boy.
@@ -96,7 +96,7 @@ Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/G
 
 Tests from [blargg's test roms](http://slack.net/~ant/old/gb-tests/):
 
-![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_001.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_002.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_003.png)![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_032.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_033.png)
+![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_001.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_002.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_003.png)![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_032.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_033.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_memtiming.png)
 
 Screenshots
 -----------
