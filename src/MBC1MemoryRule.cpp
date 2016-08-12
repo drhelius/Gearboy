@@ -86,7 +86,15 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         case 0x0000:
         {
             if (m_pCartridge->GetRAMSize() > 0)
+            {
+                bool previous = m_bRamEnabled;
                 m_bRamEnabled = ((value & 0x0F) == 0x0A);
+
+                if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
+                {
+                    (*m_pRamChangedCallback)();
+                }
+            }
             break;
         }
         case 0x2000:

@@ -29,6 +29,7 @@ MemoryRule::MemoryRule(Processor* pProcessor, Memory* pMemory,
     m_pCartridge = pCartridge;
     m_pAudio = pAudio;
     m_bCGB = false;
+    InitPointer(m_pRamChangedCallback);
 }
 
 MemoryRule::~MemoryRule()
@@ -45,4 +46,9 @@ bool MemoryRule::LoadRam(std::ifstream&, s32)
 {
     Log("Load RAM not implemented");
     return false;
+}
+
+void MemoryRule::SetRamChangedCallback(RamChangedCallback callback)
+{
+    m_pRamChangedCallback = callback;
 }

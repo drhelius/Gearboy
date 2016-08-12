@@ -57,6 +57,7 @@ GearboyCore::GearboyCore()
     m_bDuringBootROM = false;
     m_bLoadRamPending = false;
     m_szLoadRamPendingPath[0] = 0;
+    InitPointer(m_pRamChangedCallback);
 }
 
 GearboyCore::~GearboyCore()
@@ -403,6 +404,11 @@ void GearboyCore::LoadRam(const char* szPath)
     }
 }
 
+void GearboyCore::SetRamModificationCallback(RamChangedCallback callback)
+{
+    m_pRamChangedCallback = callback;
+}
+
 void GearboyCore::InitDMGPalette()
 {
     m_DMGPalette[0].red = 0x87;
@@ -485,6 +491,11 @@ bool GearboyCore::AddMemoryRules()
             break;
         default:
             notSupported = true;
+    }
+
+    if (!notSupported)
+    {
+        m_pMemory->GetCurrentRule()->SetRamChangedCallback(m_pRamChangedCallback);
     }
 
     return !notSupported;

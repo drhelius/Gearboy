@@ -79,7 +79,13 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
         {
             if (!(address & 0x0100))
             {
-                m_bRamEnabled = (value & 0x0F) == 0x0A;
+                bool previous = m_bRamEnabled;
+                m_bRamEnabled = ((value & 0x0F) == 0x0A);
+
+                if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
+                {
+                    (*m_pRamChangedCallback)();
+                }
             }
             else
             {

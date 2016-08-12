@@ -61,6 +61,7 @@ public:
     void SaveRam(const char* szPath);
     void LoadRam();
     void LoadRam(const char* szPath);
+    void SetRamModificationCallback(RamChangedCallback callback);
 
 private:
     void InitDMGPalette();
@@ -92,6 +93,7 @@ private:
     bool m_bDuringBootROM;
     bool m_bLoadRamPending;
     char m_szLoadRamPendingPath[512];
+    RamChangedCallback m_pRamChangedCallback;
 };
 
 #endif	/* CORE_H */

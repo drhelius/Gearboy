@@ -41,6 +41,7 @@ public:
     virtual void Reset(bool bCGB) = 0;
     virtual void SaveRam(std::ofstream &file);
     virtual bool LoadRam(std::ifstream &file, s32 fileSize);
+    virtual void SetRamChangedCallback(RamChangedCallback callback);
 
 protected:
     Processor* m_pProcessor;
@@ -50,6 +51,7 @@ protected:
     Cartridge* m_pCartridge;
     Audio* m_pAudio;
     bool m_bCGB;
+    RamChangedCallback m_pRamChangedCallback;
 };
 
 #endif	/* MEMORYRULE_H */

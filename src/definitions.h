@@ -56,6 +56,8 @@ typedef int32_t s32;
 typedef uint64_t u64;
 typedef int64_t s64;
 
+typedef void (*RamChangedCallback) (void);
+
 #define FLAG_ZERO 0x80
 #define FLAG_SUB 0x40
 #define FLAG_HALF 0x20
