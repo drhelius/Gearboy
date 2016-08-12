@@ -20,6 +20,7 @@
 #ifndef OPCODE_NAMES_H
 #define	OPCODE_NAMES_H
 
+#ifdef DEBUG_GEARBOY
 static const char* kOPCodeNames[256] = {
     "NOP",
     "LD BC,nn",
@@ -567,6 +568,8 @@ static const char* kOPCodeCBNames[256] = {
     "SET 7 (HL)",
     "SET 7 A"
 };
+
+#endif
 
 #endif	/* OPCODE_NAMES_H */
 
