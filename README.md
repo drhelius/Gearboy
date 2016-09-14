@@ -17,8 +17,8 @@ Downloads
 - iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
 - Mac OS X: <code>brew install homebrew/games/gearboy</code>
 - Windows: [Gearboy-1.6-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-1.6-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
-- Linux: [Gearboy-1.6-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.8-Linux.tar.
-- Raspberry Pi: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1 and 2/3.
+- Linux: [Gearboy-1.6-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-0.8-Linux.tar.gz)
+- Raspberry Pi: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
 
 Features
 --------
