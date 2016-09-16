@@ -15,7 +15,6 @@
 		6648A60B19E078C4005A0B40 /* DetailViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6648A60A19E078C4005A0B40 /* DetailViewController.mm */; };
 		6648A60E19E078C4005A0B40 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6648A60C19E078C4005A0B40 /* Main.storyboard */; };
 		6648A61019E078C4005A0B40 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6648A60F19E078C4005A0B40 /* Images.xcassets */; };
-		6648A61F19E078C4005A0B40 /* GearboyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6648A61E19E078C4005A0B40 /* GearboyTests.m */; };
 		666A29851A10ABF00036E71A /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 666A29811A10AB930036E71A /* libSDL2.a */; };
 		6676CEC31A08063E007D48F9 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6676CEC11A08063E007D48F9 /* GLViewController.xib */; };
 		669394AF19E079AC003FB4F4 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 669394A719E079AC003FB4F4 /* AudioToolbox.framework */; };
@@ -67,13 +66,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		6648A61919E078C4005A0B40 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 6648A5F419E078C4005A0B40 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 6648A5FB19E078C4005A0B40;
-			remoteInfo = Gearboy;
-		};
 		666A29801A10AB930036E71A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 666A297B1A10AB930036E71A /* SDL.xcodeproj */;
@@ -97,9 +89,6 @@
 		6648A60A19E078C4005A0B40 /* DetailViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DetailViewController.mm; sourceTree = "<group>"; };
 		6648A60D19E078C4005A0B40 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		6648A60F19E078C4005A0B40 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		6648A61819E078C4005A0B40 /* GearboyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GearboyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		6648A61D19E078C4005A0B40 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		6648A61E19E078C4005A0B40 /* GearboyTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GearboyTests.m; sourceTree = "<group>"; };
 		666A297B1A10AB930036E71A /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "dependencies/SDL-2.0.4-9174/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		6676CEC21A08063E007D48F9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/GLViewController.xib; sourceTree = "<group>"; };
 		669394A719E079AC003FB4F4 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -214,13 +203,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		6648A61519E078C4005A0B40 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -231,7 +213,6 @@
 				669394BA19E079E0003FB4F4 /* Core */,
 				669394B919E079C8003FB4F4 /* Frameworks */,
 				6648A5FE19E078C4005A0B40 /* Gearboy */,
-				6648A61B19E078C4005A0B40 /* GearboyTests */,
 				6648A5FD19E078C4005A0B40 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -240,7 +221,6 @@
 			isa = PBXGroup;
 			children = (
 				6648A5FC19E078C4005A0B40 /* Gearboy.app */,
-				6648A61819E078C4005A0B40 /* GearboyTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -284,23 +264,6 @@
 			children = (
 				6648A60019E078C4005A0B40 /* Info.plist */,
 				6648A60119E078C4005A0B40 /* main.m */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		6648A61B19E078C4005A0B40 /* GearboyTests */ = {
-			isa = PBXGroup;
-			children = (
-				6648A61E19E078C4005A0B40 /* GearboyTests.m */,
-				6648A61C19E078C4005A0B40 /* Supporting Files */,
-			);
-			path = GearboyTests;
-			sourceTree = "<group>";
-		};
-		6648A61C19E078C4005A0B40 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				6648A61D19E078C4005A0B40 /* Info.plist */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -448,40 +411,18 @@
 			productReference = 6648A5FC19E078C4005A0B40 /* Gearboy.app */;
 			productType = "com.apple.product-type.application";
 		};
-		6648A61719E078C4005A0B40 /* GearboyTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 6648A62519E078C4005A0B40 /* Build configuration list for PBXNativeTarget "GearboyTests" */;
-			buildPhases = (
-				6648A61419E078C4005A0B40 /* Sources */,
-				6648A61519E078C4005A0B40 /* Frameworks */,
-				6648A61619E078C4005A0B40 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				6648A61A19E078C4005A0B40 /* PBXTargetDependency */,
-			);
-			name = GearboyTests;
-			productName = GearboyTests;
-			productReference = 6648A61819E078C4005A0B40 /* GearboyTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		6648A5F419E078C4005A0B40 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = "Ignacio Sánchez Ginés";
 				TargetAttributes = {
 					6648A5FB19E078C4005A0B40 = {
 						CreatedOnToolsVersion = 6.0.1;
 						DevelopmentTeam = V3F66RFMSJ;
-					};
-					6648A61719E078C4005A0B40 = {
-						CreatedOnToolsVersion = 6.0.1;
-						TestTargetID = 6648A5FB19E078C4005A0B40;
 					};
 				};
 			};
@@ -505,7 +446,6 @@
 			projectRoot = "";
 			targets = (
 				6648A5FB19E078C4005A0B40 /* Gearboy */,
-				6648A61719E078C4005A0B40 /* GearboyTests */,
 			);
 		};
 /* End PBXProject section */
@@ -536,13 +476,6 @@
 				66C52AB71AAE040400F19C9A /* scanlines_gbc_2x.png in Resources */,
 				6693953E19E07D02003FB4F4 /* gb_832.jpg in Resources */,
 				66C52AB61AAE040400F19C9A /* scanlines_dmg_2x.png in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		6648A61619E078C4005A0B40 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -591,23 +524,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		6648A61419E078C4005A0B40 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				6648A61F19E078C4005A0B40 /* GearboyTests.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		6648A61A19E078C4005A0B40 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 6648A5FB19E078C4005A0B40 /* Gearboy */;
-			targetProxy = 6648A61919E078C4005A0B40 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		6648A60C19E078C4005A0B40 /* Main.storyboard */ = {
@@ -642,8 +559,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -652,6 +571,7 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -685,8 +605,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -694,6 +616,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -757,42 +680,6 @@
 			};
 			name = Release;
 		};
-		6648A62619E078C4005A0B40 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
-					"$(inherited)",
-				);
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = GearboyTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.geardome.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Gearboy.app/Gearboy";
-			};
-			name = Debug;
-		};
-		6648A62719E078C4005A0B40 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = GearboyTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.geardome.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Gearboy.app/Gearboy";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -810,15 +697,6 @@
 			buildConfigurations = (
 				6648A62319E078C4005A0B40 /* Debug */,
 				6648A62419E078C4005A0B40 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		6648A62519E078C4005A0B40 /* Build configuration list for PBXNativeTarget "GearboyTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				6648A62619E078C4005A0B40 /* Debug */,
-				6648A62719E078C4005A0B40 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
