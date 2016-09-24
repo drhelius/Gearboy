@@ -16,7 +16,6 @@ ipch/
 *.exe
 *.exp
 *.pdb
-*.dll
 *.user
 *.aps
 *.pch
@@ -34,7 +33,6 @@ ipch/
 *.log
 *.zip
 *[Dd]ebug*/
-*.lib
 *.sbr
 *.app
 Thumbs.db
