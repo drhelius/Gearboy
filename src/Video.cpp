@@ -93,11 +93,10 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
     m_pColorFrameBuffer = pColorFrameBuffer;
 
     bool vblank = false;
+    m_iStatusModeCounter += clockCycles;
 
     if (m_bScreenEnabled)
     {
-        m_iStatusModeCounter += clockCycles;
-
         switch (m_iStatusMode)
         {
             // During H-BLANK
@@ -280,7 +279,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
     }
     // Screen disabled
     else
-    {
+    {   
         if (m_iScreenEnableDelayCycles > 0)
         {
             m_iScreenEnableDelayCycles -= clockCycles;
@@ -310,6 +309,11 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
 
                 CompareLYToLYC();
             }
+        }
+        else if (m_iStatusModeCounter >= 70224)
+        {
+            m_iStatusModeCounter -= 70224;
+            vblank = true;
         }
     }
     return vblank;
