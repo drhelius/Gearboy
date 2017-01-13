@@ -16,7 +16,7 @@ TEMPLATE = app
 INCLUDEPATH += /usr/local/include
 DEPENDPATH += /usr/local/lib
 
-LIBS += -L/usr/local/lib -lSDL2main -lSDL2 \
+LIBS += -L/usr/local/lib -lSDL2 \
 -lGLEW -lGLU -lGL
 
 SOURCES += \

@@ -13,5 +13,5 @@ script: xctool -project platforms/ios/Gearboy.xcodeproj -scheme Gearboy build  C
 #- linux
 #sudo: required
 #script:
-#  - make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf
+#  - qmake -o Makefile Gearboy.pro && make
 #dist: trusty
