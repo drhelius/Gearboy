@@ -28,6 +28,7 @@
 #include "SoundSettings.h"
 #include "VideoSettings.h"
 #include "About.h"
+#include <unistd.h>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -62,6 +63,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_pUI->actionX_3->setData(3);
     m_pUI->actionX_4->setData(4);
     m_pUI->actionX_5->setData(5);
+
+    stateFile = "slot1.gbs";
 
     m_pEmulator = new Emulator();
     m_pEmulator->Init();
@@ -170,18 +173,64 @@ void MainWindow::MenuGameBoySelectStateSlot()
 
 void MainWindow::MenuGameBoySaveState()
 {
+    // Pause emulation, to not cause havok while dumping memory
+    m_pEmulator->Pause();
+    m_pEmulator->MemorySaveState(stateFile);
+    m_pEmulator->Resume();
 }
 
 void MainWindow::MenuGameBoyLoadState()
 {
+    // Pause emulation, to not cause havok while overwriting memory
+    m_pEmulator->Pause();
+    m_pEmulator->MemoryLoadState(stateFile);
+    m_pEmulator->Resume();
 }
 
 void MainWindow::MenuGameBoySaveStateAs()
 {
+    m_pGLFrame->PauseRenderThread();
+
+    QString filename = QFileDialog::getSaveFileName(
+            this,
+            tr("Save State"),
+            QDir::currentPath(),
+            tr("All files (*.*)"));
+
+    if (!filename.isNull())
+    {
+        m_pEmulator->Pause();
+        m_pEmulator->MemorySaveState(filename.toStdString().c_str());
+        m_pEmulator->Resume();
+    }
+
+    setFocus();
+    activateWindow();
+
+    m_pGLFrame->ResumeRenderThread();
 }
 
 void MainWindow::MenuGameBoyLoadStateFrom()
 {
+    m_pGLFrame->PauseRenderThread();
+
+    QString filename = QFileDialog::getOpenFileName(
+            this,
+            tr("Save State"),
+            QDir::currentPath(),
+            tr("All files (*.*)"));
+
+    if (!filename.isNull())
+    {
+        m_pEmulator->Pause();
+        m_pEmulator->MemoryLoadState(filename.toStdString().c_str());
+        m_pEmulator->Resume();
+    }
+
+    setFocus();
+    activateWindow();
+
+    m_pGLFrame->ResumeRenderThread();
 }
 
 void MainWindow::MenuSettingsInput()

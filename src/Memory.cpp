@@ -228,6 +228,74 @@ void Memory::MemoryDump(const char* szFilePath)
     }
 }
 
+void Memory::MemorySaveState(std::string szFilePath)
+{
+    using namespace std;
+
+    // Open file to save the current state to
+    ofstream myfile(szFilePath.c_str(), ios::out | ios::trunc);
+
+    if (myfile.is_open())
+    {
+        // Save CPU registers using comma separation
+        myfile << (u16) m_pProcessor->AF.GetValue() << ",";
+        myfile << (u16) m_pProcessor->BC.GetValue() << ",";
+        myfile << (u16) m_pProcessor->DE.GetValue() << ",";
+        myfile << (u16) m_pProcessor->HL.GetValue() << ",";
+        myfile << (u16) m_pProcessor->SP.GetValue() << ",";
+        myfile << (u16) m_pProcessor->PC.GetValue() << ",";
+
+        // Save RAM using comma separation
+        for (int i = 0; i < 65536; i++)
+        {
+            myfile << (int) m_pMap[i] << ",";
+        }
+
+        myfile.close();
+    }
+    // File is inaccessible
+    // Else: Maybe show an appropriate message to the user
+}
+
+// Auxiliary function to read next u16 from csv file
+u16 getNextValueFromFile(std::ifstream &myfile)
+{
+    using namespace std;
+    string astring;
+    getline( myfile, astring, ',' );
+
+    return (u16) atoi(astring.c_str());
+}
+
+void Memory::MemoryLoadState(std::string szFilePath)
+{
+    using namespace std;
+
+    // Open file to load the current state from
+    ifstream myfile(szFilePath.c_str(), fstream::in);
+
+    if (myfile.is_open())
+    {
+        // Load CPU registers from csv file
+        m_pProcessor->AF.SetValue(getNextValueFromFile(myfile));
+        m_pProcessor->BC.SetValue(getNextValueFromFile(myfile));
+        m_pProcessor->DE.SetValue(getNextValueFromFile(myfile));
+        m_pProcessor->HL.SetValue(getNextValueFromFile(myfile));
+        m_pProcessor->SP.SetValue(getNextValueFromFile(myfile));
+        m_pProcessor->PC.SetValue(getNextValueFromFile(myfile));
+
+        // Load RAM from csv file
+        for (int i = 0; i < 65536; i++)
+        {
+            m_pMap[i] = getNextValueFromFile(myfile);
+        }
+
+        myfile.close();
+    }
+    // File not found or inaccessible
+    // Else: Maybe show an appropriate message to the user
+}
+
 void Memory::PerformDMA(u8 value)
 {
     if (m_bCGB)

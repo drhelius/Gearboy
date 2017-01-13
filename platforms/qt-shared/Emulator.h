@@ -38,6 +38,8 @@ public:
     bool IsPaused();
     void Reset(bool forceDMG);
     void MemoryDump();
+    void MemorySaveState(std::string filename);
+    void MemoryLoadState(std::string filename);
     void SetSoundSettings(bool enabled, int rate);
     void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
     void SaveRam();

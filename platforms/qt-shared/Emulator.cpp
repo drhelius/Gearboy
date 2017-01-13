@@ -103,6 +103,21 @@ void Emulator::MemoryDump()
     m_Mutex.unlock();
 }
 
+void Emulator::MemorySaveState(std::string filename)
+{
+    m_Mutex.lock();
+    m_pGearboyCore->GetMemory()->MemorySaveState(filename);
+    m_Mutex.unlock();
+}
+
+void Emulator::MemoryLoadState(std::string filename)
+{
+    m_Mutex.lock();
+    m_pGearboyCore->GetMemory()->MemoryLoadState(filename);
+    m_Mutex.unlock();
+}
+
+
 void Emulator::SetSoundSettings(bool enabled, int rate)
 {
     m_Mutex.lock();
