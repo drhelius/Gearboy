@@ -16,7 +16,7 @@ TEMPLATE = app
 INCLUDEPATH += /usr/local/include
 DEPENDPATH += /usr/local/lib
 
-LIBS += -stdlib=libc++ -L/usr/local/lib -lSDL2main -lSDL2
+LIBS += -stdlib=libc++ -L/usr/local/lib -lSDL2
 
 QMAKE_CXXFLAGS += -stdlib=libc++
 QMAKE_CXXFLAGS += -std=c++11
