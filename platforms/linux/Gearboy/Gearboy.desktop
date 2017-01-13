@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Gearboy
+Comment=Game Boy and Game Boy Color Emulator
+Exec=Gearboy
+Terminal=false
+Type=Application
+Categories=Game;Emulator;
