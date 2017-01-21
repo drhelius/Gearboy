@@ -18,7 +18,9 @@ Downloads
 - Mac OS X: <code>brew install homebrew/games/gearboy</code>
 - Windows: [Gearboy-2.3-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-2.3-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Linux: [Gearboy-2.3-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-2.3-Linux.tar.gz)
+ - Fedora: [copr package](https://copr.fedorainfracloud.org/coprs/dmoerner/Gearboy/)
 - Raspberry Pi: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
+- Ubuntu Touch version by Ryan Pattison: [here](https://uappexplorer.com/app/gearboy.rpattison)
 
 Features
 --------
@@ -81,13 +83,13 @@ sudo make install
 - Open the Gearboy Qt project with Qt Creator and build.
 
 ### Linux
-- Ubuntu or Debian: Compile from source:
+- Ubuntu or Debian:
 ``` shell
 sudo apt-get install build-essential qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev
 cd platforms/linux/Gearboy
 qmake Gearboy.pro && make
 ```
-- Fedora: There is a [copr](https://copr.fedorainfracloud.org/coprs/dmoerner/Gearboy/) available. Or you can compile from source:
+- Fedora:
 ``` shell
 sudo dnf install qt5-devel freeglut-devel SDL2-devel glew-devel
 cd platforms/linux/Gearboy
