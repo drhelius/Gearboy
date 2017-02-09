@@ -15,7 +15,7 @@ Downloads
 --------
 - iOS (Jailbreak): [Cydia](http://modmyi.com/info/gearboygameboy.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/GAMEBOY</code> too. Save files are placed in <code>/var/mobile/Library/Gearboy</code>
 - iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
-- Mac OS X: <code>brew install homebrew/games/gearboy</code>
+- Mac OS X: <code>brew install gearboy</code>
 - Windows: [Gearboy-2.3-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-2.3-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Linux: [Gearboy-2.3-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-2.3-Linux.tar.gz)
  - Fedora: [copr package](https://copr.fedorainfracloud.org/coprs/dmoerner/Gearboy/)
