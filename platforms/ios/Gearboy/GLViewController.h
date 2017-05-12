@@ -25,6 +25,7 @@
 
 @property (strong, nonatomic) EAGLContext* context;
 @property (strong, nonatomic) Emulator* theEmulator;
+@property (strong, nonatomic) CADisplayLink* displayLink;
 
 - (void) loadRomWithName: (NSString*) path;
 - (void) releaseContext;

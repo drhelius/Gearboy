@@ -47,8 +47,8 @@
 
     self.paused = YES;
     
-    CADisplayLink *displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(step)];
-    [displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+    self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(step)];
+    [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
     
     float scale =[[UIScreen mainScreen] nativeScale];
     GLKView *view = (GLKView *)self.view;
@@ -120,6 +120,8 @@
     [self.theEmulator loadRomWithPath:path];
     
     self.view.hidden = NO;
+    self.displayLink.paused = NO;
+    self.paused = NO;
 }
 
 - (void)viewDidUnload
