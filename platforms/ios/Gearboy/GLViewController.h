@@ -26,8 +26,9 @@
 @property (strong, nonatomic) EAGLContext* context;
 @property (strong, nonatomic) Emulator* theEmulator;
 
-- (void)loadRomWithName: (NSString*) path;
-- (void)releaseContext;
-- (void)acquireContext;
+- (void) loadRomWithName: (NSString*) path;
+- (void) releaseContext;
+- (void) acquireContext;
+- (void) step;
 
 @end

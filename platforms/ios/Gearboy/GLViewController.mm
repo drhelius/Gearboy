@@ -44,6 +44,11 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+
+    self.paused = YES;
+    
+    CADisplayLink *displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(step)];
+    [displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
     
     float scale =[[UIScreen mainScreen] nativeScale];
     GLKView *view = (GLKView *)self.view;
@@ -115,7 +120,6 @@
     [self.theEmulator loadRomWithPath:path];
     
     self.view.hidden = NO;
-    self.paused = NO;
 }
 
 - (void)viewDidUnload
@@ -133,13 +137,9 @@
 	return (interfaceOrientation == UIInterfaceOrientationPortrait) || (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown);
 }
 
-- (void)update
+- (void) step
 {
     [self.theEmulator update];
-}
-
-- (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
-{
     [self.theEmulator draw];
 }
 
