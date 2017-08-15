@@ -1,13 +1,14 @@
 Gearboy
 =======
-<b>Copyright &copy; 2012 by Ignacio Sanchez</b>
+**Copyright &copy; 2012 by Ignacio Sanchez**
 
 ----------
 [![Build Status](https://travis-ci.org/drhelius/Gearboy.svg?branch=master)](https://travis-ci.org/drhelius/Gearboy)
 
-Gearboy is a Nintendo Game Boy / GameBoy Color emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows and Linux.
+Gearboy is a Nintendo Game Boy / GameBoy Color emulator written in C++.
+It runs on iOS, Raspberry Pi, Mac, Windows and Linux.
 
-Follow me on Twitter for updates: http://twitter.com/drhelius
+Follow me on Twitter for updates: https://twitter.com/drhelius
 
 ----------
 
@@ -15,7 +16,7 @@ Downloads
 --------
 - iOS (Jailbreak): [Cydia](http://modmyi.com/info/gearboygameboy.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/GAMEBOY</code> too. Save files are placed in <code>/var/mobile/Library/Gearboy</code>
 - iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
-- Mac OS X: <code>brew install gearboy</code>
+- Mac OS X: `brew install gearboy`
 - Windows: [Gearboy-2.3-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-2.3-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Linux: [Gearboy-2.3-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-2.3-Linux.tar.gz)
  - Fedora: [copr package](https://copr.fedorainfracloud.org/coprs/dmoerner/Gearboy/)
@@ -46,7 +47,7 @@ Build Instructions
 - For jailbroken devices use the jailbreak branch.
 
 ### Raspberry Pi 2 & 3 - Raspbian
-- Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
+- Install and configure [SDL 2](https://www.libsdl.org/download-2.0.php) for development:
 ``` shell
 sudo apt-get update
 sudo apt-get upgrade
@@ -59,10 +60,10 @@ cd SDL2-2.0.4 && mkdir build && cd build
 make -j 4
 sudo make install
 ```
-- Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>.
-- Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/Gearboy/</code> folder to build the project.
-- Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
-- The emulator generates a <code>gearboy.cfg</code> configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
+- Install libconfig library dependencies for development: `sudo apt-get install libconfig++-dev`.
+- Use `make -j 4` in the `platforms/raspberrypi3/Gearboy/` folder to build the project.
+- Use `export SDL_AUDIODRIVER=ALSA` before running the emulator for the best performance.
+- The emulator generates a `gearboy.cfg` configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ### Windows
 - You need Visual Studio 2015.
@@ -74,7 +75,7 @@ sudo make install
 - You need Qt Creator, included in the Qt 5 SDK.
 - Install Xcode and run <code>xcode-select --install</code> in the terminal for the compiler to be available on the command line.
 - Install the [Qt 5 SDK for Mac OS](http://qt-project.org/downloads).
-- Download [SDL 2](http://www.libsdl.org/download-2.0.php) source code. Then run this commands:
+- Download [SDL 2](https://www.libsdl.org/download-2.0.php) source code. Then run this commands:
 ``` shell
 ./configure
 make
@@ -107,7 +108,7 @@ Tests from [blargg's test roms](http://slack.net/~ant/old/gb-tests/):
 Screenshots
 -----------
 
-![Screenshot](http://www.geardome.com/files/gearboy/gearboy_004.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_006.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_008.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_022.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_013.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_023.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_015.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_029.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_011.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_024.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_017.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_016.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_034.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_026.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_018.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_025.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_021.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_027.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_019.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_020.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_031.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_028.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_007.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_009.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_010.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_005.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_012.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_014.png)
+![Screenshot](http://www.geardome.com/files/gearboy/gearboy_004.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_006.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_008.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_022.png)![Screenshot of Pokemon](http://www.geardome.com/files/gearboy/gearboy_013.png)![Screenshot of Pokemon Yellow](http://www.geardome.com/files/gearboy/gearboy_023.png)![Screenshot of Zelda Link's Awakening](http://www.geardome.com/files/gearboy/gearboy_015.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_029.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_011.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_024.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_017.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_016.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_034.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_026.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_018.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_025.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_021.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_027.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_019.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_020.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_031.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_028.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_007.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_009.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_010.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_005.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_012.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_014.png)
 
 License
 -------
@@ -127,5 +128,4 @@ License
 <i>GNU General Public License for more details.</i>
 
 <i>You should have received a copy of the GNU General Public License</i>
-<i>along with this program.  If not, see http://www.gnu.org/licenses/</i>
-
+<i>along with this program.  If not, see https://www.gnu.org/licenses/</i>
