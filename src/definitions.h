@@ -13,8 +13,7 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see https://www.gnu.org/licenses/
  */
 
 #ifndef DEFINITIONS_H
@@ -66,6 +65,7 @@ typedef void (*RamChangedCallback) (void);
 
 #define GAMEBOY_WIDTH 160
 #define GAMEBOY_HEIGHT 144
+#define GAMEBOY_NB_PIXELS (GAMEBOY_WIDTH * GAMEBOY_HEIGHT)
 
 struct GB_Color
 {
@@ -124,4 +124,3 @@ inline bool IsSetBit(const u8 value, const u8 bit)
 }
 
 #endif	/* DEFINITIONS_H */
-
