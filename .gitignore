@@ -1,3 +1,17 @@
+# Temp files
+*~
+*.bak
+*.backup
+\#*
+.\#*
+*\#
+*.swp
+*.swap
+*.sav
+*.save
+*.autosav
+*.autosave
+
 # Netbeans files
 dist/
 build/
@@ -50,7 +64,12 @@ desktop.ini
 *.md
 *.bin
 *.zip
+*.deb
+*.rpm
 *.gearboy
+Gearboy
+Makefile
+description-pak
 
 # Qt Ignores
 moc_*.cpp
