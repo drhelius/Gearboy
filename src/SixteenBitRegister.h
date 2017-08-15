@@ -103,4 +103,3 @@ inline void SixteenBitRegister::Decrement()
 }
 
 #endif	/* SIXTEENBITREGISTER_H */
-

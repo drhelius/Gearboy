@@ -321,19 +321,19 @@ Processor::Interrupts Processor::InterruptPending()
     {
         return VBlank_Interrupt;
     }
-    else if ((ie_if & 0x02) && (m_InterruptDelayCycles[1] <= 0))
+    if ((ie_if & 0x02) && (m_InterruptDelayCycles[1] <= 0))
     {
         return LCDSTAT_Interrupt;
     }
-    else if ((ie_if & 0x04) && (m_InterruptDelayCycles[2] <= 0))
+    if ((ie_if & 0x04) && (m_InterruptDelayCycles[2] <= 0))
     {
         return Timer_Interrupt;
     }
-    else if ((ie_if & 0x08) && (m_InterruptDelayCycles[3] <= 0))
+    if ((ie_if & 0x08) && (m_InterruptDelayCycles[3] <= 0))
     {
         return Serial_Interrupt;
     }
-    else if ((ie_if & 0x10) && (m_InterruptDelayCycles[4] <= 0))
+    if ((ie_if & 0x10) && (m_InterruptDelayCycles[4] <= 0))
     {
         return Joypad_Interrupt;
     }

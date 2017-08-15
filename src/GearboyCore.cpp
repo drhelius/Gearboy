@@ -541,10 +541,10 @@ void GearboyCore::Reset(bool bCGB)
 
 void GearboyCore::RenderDMGFrame(GB_Color* pFrameBuffer) const
 {
-    int pixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
+    unsigned int pixels = GAMEBOY_NB_PIXELS;
     const u8* pGameboyFrameBuffer = m_pVideo->GetFrameBuffer();
 
-    for (int i = 0; i < pixels; i++)
+    for (unsigned int i = 0; i < pixels; i++)
     {
         pFrameBuffer[i] = m_DMGPalette[pGameboyFrameBuffer[i]];
     }

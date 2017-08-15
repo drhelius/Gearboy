@@ -145,8 +145,6 @@ u8* Cartridge::GetTheROM() const
 
 bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
 {
-    using namespace std;
-
     mz_zip_archive zip_archive;
     mz_bool status;
     memset(&zip_archive, 0, sizeof (zip_archive));
@@ -170,9 +168,9 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
 
         Log("ZIP Content - Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u", file_stat.m_filename, file_stat.m_comment, (unsigned int) file_stat.m_uncomp_size, (unsigned int) file_stat.m_comp_size);
 
-        string fn((const char*) file_stat.m_filename);
-        transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
-        string extension = fn.substr(fn.find_last_of(".") + 1);
+        std::string fn((const char*) file_stat.m_filename);
+        std::transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
+        std::string extension = fn.substr(fn.find_last_of(".") + 1);
 
         if ((extension == "gb") || (extension == "dmg") || (extension == "gbc") || (extension == "cgb") || (extension == "sgb"))
         {
@@ -200,8 +198,6 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
 
 bool Cartridge::LoadFromFile(const char* path)
 {
-    using namespace std;
-
     Log("Loading %s...", path);
 
     Reset();
@@ -231,19 +227,19 @@ bool Cartridge::LoadFromFile(const char* path)
     
     strcpy(m_szFileName, filename.c_str());
 
-    ifstream file(path, ios::in | ios::binary | ios::ate);
+    std::ifstream file(path, std::ios::in | std::ios::binary | std::ios::ate);
 
     if (file.is_open())
     {
         int size = static_cast<int> (file.tellg());
         char* memblock = new char[size];
-        file.seekg(0, ios::beg);
+        file.seekg(0, std::ios::beg);
         file.read(memblock, size);
         file.close();
 
-        string fn(path);
+        std::string fn(path);
         transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
-        string extension = fn.substr(fn.find_last_of(".") + 1);
+        std::string extension = fn.substr(fn.find_last_of(".") + 1);
 
         if (extension == "zip")
         {
@@ -289,8 +285,7 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
         memcpy(m_pTheROM, buffer, m_iTotalSize);
         return GatherMetadata();
     }
-    else
-        return false;
+    return false;
 }
 
 void Cartridge::CheckCartridgeType(int type)
@@ -632,4 +627,3 @@ bool Cartridge::GatherMetadata()
 
     return (m_Type != CartridgeNotSupported);
 }
-

@@ -55,15 +55,15 @@ Video::~Video()
 
 void Video::Init()
 {
-    m_pFrameBuffer = new u8[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
-    m_pSpriteXCacheBuffer = new int[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
-    m_pColorCacheBuffer = new u8[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+    m_pFrameBuffer = new u8[GAMEBOY_NB_PIXELS];
+    m_pSpriteXCacheBuffer = new int[GAMEBOY_NB_PIXELS];
+    m_pColorCacheBuffer = new u8[GAMEBOY_NB_PIXELS];
     Reset(false);
 }
 
 void Video::Reset(bool bCGB)
 {
-    for (int i = 0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+    for (int i = 0; i < GAMEBOY_NB_PIXELS; i++)
         m_pSpriteXCacheBuffer[i] = m_pFrameBuffer[i] = m_pColorCacheBuffer[i] = 0;
 
     for (int p = 0; p < 8; p++)
@@ -608,7 +608,7 @@ void Video::RenderWindow(int line)
     int pixely_2_flip = (7 - pixely) * 2;
     int line_width = (line * GAMEBOY_WIDTH);
 
-    for (int x = 0; x < 32; x++)
+    for (char x = 0; x < 32; x++)
     {
         int tile = 0;
 
@@ -646,7 +646,7 @@ void Video::RenderWindow(int line)
             byte2 = m_pMemory->Retrieve(tile_address + 1);
         }
 
-        for (int pixelx = 0; pixelx < 8; pixelx++)
+        for (char pixelx = 0; pixelx < 8; pixelx++)
         {
             int bufferX = (mapOffsetX + pixelx + wx);
 
@@ -694,7 +694,7 @@ void Video::RenderSprites(int line)
     int sprite_height = IsSetBit(lcdc, 2) ? 16 : 8;
     int line_width = (line * GAMEBOY_WIDTH);
 
-    for (int sprite = 39; sprite >= 0; sprite--)
+    for (signed char sprite = 39; sprite >= 0; sprite--)
     {
         int sprite_4 = sprite * 4;
         int sprite_y = m_pMemory->Retrieve(0xFE00 + sprite_4) - 16;
@@ -844,6 +844,5 @@ GB_Color Video::ConvertTo8BitColor(GB_Color color)
     color.green = (color.green * 255) / 31;
     color.blue = (color.blue * 255) / 31;
     color.alpha = 0xFF;
-
     return color;
 }
