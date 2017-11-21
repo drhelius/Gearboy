@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/ 
  * 
  */
 
@@ -69,6 +69,9 @@ private:
     bool AddMemoryRules();
     void Reset(bool bCGB);
     void RenderDMGFrame(GB_Color* pFrameBuffer) const;
+    bool LoadSaveFile(std::ifstream& file);
+    bool LoadSaveFileFromPath(const char* path);
+    bool LoadSave(const char* szPath);
 
 private:
     Memory* m_pMemory;

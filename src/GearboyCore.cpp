@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
+ * along with this program.  If not, see https://www.gnu.org/licenses/ 
  * 
  */
 
@@ -308,6 +308,113 @@ void GearboyCore::LoadRam()
     LoadRam(NULL);
 }
 
+bool GearboyCore::LoadSaveFile(std::ifstream& file)
+{
+    if (file.fail() || file.eof())
+    {
+        return false;
+    }
+
+    char signature[16];
+
+    file.read(signature, 16);
+    if (!file)
+    {
+        return false;
+    }
+
+    if (strcmp(signature, SAVE_FILE_SIGNATURE) == 0)
+    {
+        Log("Old save format: loading header...");
+
+        u8 version;
+        char romName[16];
+        u8 romType;
+        u8 romSize;
+        u8 ramSize;
+        u8 ramBanksSize;
+        u8 ramBanksStart;
+        u8 saveStateSize;
+        u8 saveStateStart;
+
+        file.read(reinterpret_cast<char*> (&version), 1);
+        file.read(romName, 16);
+        file.read(reinterpret_cast<char*> (&romType), 1);
+        file.read(reinterpret_cast<char*> (&romSize), 1);
+        file.read(reinterpret_cast<char*> (&ramSize), 1);
+        file.read(reinterpret_cast<char*> (&ramBanksSize), 1);
+        file.read(reinterpret_cast<char*> (&ramBanksStart), 1);
+        file.read(reinterpret_cast<char*> (&saveStateSize), 1);
+        file.read(reinterpret_cast<char*> (&saveStateStart), 1);
+
+        Log("Header loaded");
+
+        m_pMemory->GetCurrentRule()->LoadRam(file, 0);
+
+        Log("RAM loaded");
+        return true;
+    }
+
+    file.seekg(0, file.end);
+    s32 fileSize = (s32)file.tellg();
+    file.seekg(0, file.beg);
+
+    if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
+    {
+        Log("RAM loaded");
+        return true;
+    }
+    Log("Save file size incorrect: %d", fileSize);
+    return false;
+}
+
+bool GearboyCore::LoadSaveFileFromPath(const char* path)
+{
+    Log("Opening save file: %s", path);
+    std::ifstream file(path, std::ios::in | std::ios::binary);
+    return LoadSaveFile(file);
+}
+
+bool GearboyCore::LoadSave(const char* szPath)
+{
+    char path[512];
+
+    if (IsValidPointer(szPath))
+    {
+        strcpy(path, szPath);
+        strcat(path, "/");
+        strcat(path, m_pCartridge->GetFileName());
+    }
+    else
+    {
+        strcpy(path, m_pCartridge->GetFilePath());
+    }
+
+    strcat(path, ".gearboy");
+    if(LoadSaveFileFromPath(path))
+    {
+        return true;
+    }
+
+    char* ptr;
+    ptr = strrchr(path, '.');
+    if (ptr == NULL)
+    {
+        return false;
+    }
+    *ptr = '\0';
+    ptr = strrchr(path, '.');
+    if (ptr == NULL)
+    {
+        return false;
+    }
+    *(++ptr) = 's';
+    *(++ptr) = 'a';
+    *(++ptr) = 'v';
+    *(++ptr) = '\0';
+    return LoadSaveFileFromPath(path);
+}
+
 void GearboyCore::LoadRam(const char* szPath)
 {
     if (m_bDuringBootROM)
@@ -324,80 +431,7 @@ void GearboyCore::LoadRam(const char* szPath)
     {
         Log("Loading RAM...");
 
-        using namespace std;
-
-        char path[512];
-
-        if (IsValidPointer(szPath))
-        {
-            strcpy(path, szPath);
-            strcat(path, "/");
-            strcat(path, m_pCartridge->GetFileName());
-        }
-        else
-        {
-            strcpy(path, m_pCartridge->GetFilePath());
-        }
-
-        strcat(path, ".gearboy");
-
-        Log("Opening save file: %s", path);
-
-        ifstream file(path, ios::in | ios::binary);
-
-        if (!file.fail())
-        {
-            char signature[16];
-
-            file.read(signature, 16);
-
-            if (strcmp(signature, SAVE_FILE_SIGNATURE) == 0)
-            {
-                Log("Old save format: loading header...");
-
-                u8 version;
-                char romName[16];
-                u8 romType;
-                u8 romSize;
-                u8 ramSize;
-                u8 ramBanksSize;
-                u8 ramBanksStart;
-                u8 saveStateSize;
-                u8 saveStateStart;
-
-                file.read(reinterpret_cast<char*> (&version), 1);
-                file.read(romName, 16);
-                file.read(reinterpret_cast<char*> (&romType), 1);
-                file.read(reinterpret_cast<char*> (&romSize), 1);
-                file.read(reinterpret_cast<char*> (&ramSize), 1);
-                file.read(reinterpret_cast<char*> (&ramBanksSize), 1);
-                file.read(reinterpret_cast<char*> (&ramBanksStart), 1);
-                file.read(reinterpret_cast<char*> (&saveStateSize), 1);
-                file.read(reinterpret_cast<char*> (&saveStateStart), 1);
-
-                Log("Header loaded");
-
-                m_pMemory->GetCurrentRule()->LoadRam(file, 0);
-
-                Log("RAM loaded");
-            }
-            else
-            {
-                file.seekg(0, file.end);
-                s32 fileSize = (s32)file.tellg();
-                file.seekg(0, file.beg);
-
-                if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
-                {
-                    Log("RAM loaded");
-                }
-                else
-                {
-                    Log("Save file size incorrect: %d", fileSize);
-                }
-            }
-        }
-        else
+        if(!LoadSave(szPath))
         {
             Log("Save file doesn't exist");
         }
@@ -434,7 +468,8 @@ void GearboyCore::InitDMGPalette()
 
 void GearboyCore::InitMemoryRules()
 {
-    m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor, m_pMemory, m_pVideo, m_pInput, m_pAudio);
+    m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor,
+            m_pMemory, m_pVideo, m_pInput, m_pAudio);
 
     m_pCommonMemoryRule = new CommonMemoryRule(m_pMemory);
 
