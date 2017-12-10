@@ -77,7 +77,8 @@ void retro_init(void)
 
 void retro_deinit(void)
 {
-
+   SafeDeleteArray(gearboy_frame_buf);
+   SafeDelete(core);
 }
 
 unsigned retro_api_version(void)
@@ -255,7 +256,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
 void retro_unload_game(void)
 {
-
+   core->SaveRam();
 }
 
 unsigned retro_get_region(void)
