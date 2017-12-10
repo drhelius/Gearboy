@@ -119,8 +119,8 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.max_width    = VIDEO_WIDTH;
    info->geometry.max_height   = VIDEO_HEIGHT;
    info->geometry.aspect_ratio = aspect;
+   info->timing.fps            = 4194304.0 / 70224.0;
    info->timing.sample_rate    = 44100.0f;
-   info->timing.fps            = 59.72f;
 
 }
 
@@ -231,7 +231,13 @@ static void check_variables(void)
 static void audio_callback(void)
 {
    core->GetSamples(&audio_buf, &count);
-   audio_batch_cb(audio_buf, count);
+
+   if (audio_buf && count)
+      audio_batch_cb(audio_buf, count);
+
+   audio_buf = NULL;
+   count = 0;
+
    return;
 }
 
