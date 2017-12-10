@@ -22,8 +22,6 @@ GB_Color *gearboy_frame_buf;
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
 static bool use_audio_cb;
-static float last_aspect;
-static float last_sample_rate;
 char retro_base_directory[4096];
 char retro_game_path[4096];
 
@@ -108,18 +106,16 @@ static retro_input_state_t input_state_cb;
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-   float aspect                = 0.0f;
-   float sampling_rate         = 30000.0f;
-
+   float aspect                = (float)VIDEO_WIDTH/VIDEO_HEIGHT;
 
    info->geometry.base_width   = VIDEO_WIDTH;
    info->geometry.base_height  = VIDEO_HEIGHT;
    info->geometry.max_width    = VIDEO_WIDTH;
    info->geometry.max_height   = VIDEO_HEIGHT;
    info->geometry.aspect_ratio = aspect;
+   info->timing.sample_rate    = 44100.0f;
+   info->timing.fps            = 59.72f;
 
-   last_aspect                 = aspect;
-   last_sample_rate            = sampling_rate;
 }
 
 static struct retro_rumble_interface rumble;
