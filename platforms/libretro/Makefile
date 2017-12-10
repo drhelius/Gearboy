@@ -106,7 +106,7 @@ else
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
 endif
 
-LDFLAGS += $(LIBM) -lSDL2
+LDFLAGS += $(LIBM)
 
 ifeq ($(DEBUG), 1)
    CXXFLAGS += -O0 -g

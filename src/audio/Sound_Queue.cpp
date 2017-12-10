@@ -44,6 +44,7 @@ Sound_Queue::~Sound_Queue()
 
 const char* Sound_Queue::start( long sample_rate, int chan_count )
 {
+#ifndef __LIBRETRO__
 	assert( !bufs ); // can only be initialized once
 	
 	write_buf = 0;
@@ -72,12 +73,13 @@ const char* Sound_Queue::start( long sample_rate, int chan_count )
 		return sdl_error( "Couldn't open SDL audio" );
 	SDL_PauseAudio( false );
 	sound_open = true;
-	
+#endif
 	return NULL;
 }
 
 void Sound_Queue::stop()
 {
+#ifndef __LIBRETRO__
 	if ( sound_open )
 	{
 		sound_open = false;
@@ -92,23 +94,29 @@ void Sound_Queue::stop()
 	}
 	
 	delete [] bufs;
+#endif
 	bufs = NULL;
 }
 
 int Sound_Queue::sample_count() const
 {
+#ifndef __LIBRETRO__
 	int buf_free = SDL_SemValue( free_sem ) * buf_size + (buf_size - write_pos);
 	return buf_size * buf_count - buf_free;
+#endif
 }
 
 inline Sound_Queue::sample_t* Sound_Queue::buf( int index )
 {
+#ifndef __LIBRETRO__
 	assert( (unsigned) index < buf_count );
 	return bufs + (long) index * buf_size;
+#endif
 }
 
 void Sound_Queue::write( const sample_t* in, int count )
 {
+#ifndef __LIBRETRO__
 	while ( count )
 	{
 		int n = buf_size - write_pos;
@@ -127,10 +135,12 @@ void Sound_Queue::write( const sample_t* in, int count )
 			SDL_SemWait( free_sem );
 		}
 	}
+#endif
 }
 
 void Sound_Queue::fill_buffer( Uint8* out, int count )
 {
+#ifndef __LIBRETRO__
 	if ( SDL_SemValue( free_sem ) < buf_count - 1 )
 	{
 		currently_playing_ = buf( read_buf );
@@ -142,10 +152,13 @@ void Sound_Queue::fill_buffer( Uint8* out, int count )
 	{
 		memset( out, 0, count );
 	}
+#endif
 }
 
 void Sound_Queue::fill_buffer_( void* user_data, Uint8* out, int count )
 {
+#ifndef __LIBRETRO__
 	((Sound_Queue*) user_data)->fill_buffer( out, count );
+#endif
 }
 

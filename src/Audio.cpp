@@ -43,8 +43,8 @@ Audio::~Audio()
 
 void Audio::Init()
 {
+#ifndef __LIBRETRO__
 	std::string platform = SDL_GetPlatform();
-
 	if (platform == "Linux")
 	{
 	    if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
@@ -67,7 +67,7 @@ void Audio::Init()
 	}
 
     atexit(SDL_Quit);
-
+#endif
     m_pSampleBuffer = new blip_sample_t[kSampleBufferSize];
 
     m_pApu = new Gb_Apu();
