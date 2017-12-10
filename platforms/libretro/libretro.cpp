@@ -276,7 +276,7 @@ void retro_run(void)
       check_variables();
    core->RunToVBlank(gearboy_frame_buf);
 
-   video_cb((uint8_t*)gearboy_frame_buf, VIDEO_WIDTH, VIDEO_HEIGHT, 0);
+   video_cb((uint8_t*)gearboy_frame_buf, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_WIDTH * sizeof(GB_Color));
 
 }
 
