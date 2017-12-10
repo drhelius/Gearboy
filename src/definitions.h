@@ -69,10 +69,17 @@ typedef void (*RamChangedCallback) (void);
 
 struct GB_Color
 {
+#ifdef __LIBRETRO__
+    u8 blue;
+    u8 green;
+    u8 red;
+    u8 alpha;
+#else
     u8 red;
     u8 green;
     u8 blue;
     u8 alpha;
+#endif
 };
 
 enum Gameboy_Keys
