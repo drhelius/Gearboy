@@ -1,2 +1,27 @@
 SOURCES_C   := 
-SOURCES_CXX := $(CORE_DIR)/libretro.c
+SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
+               $(SOURCE_DIR)/GearboyCore.cpp \
+               $(SOURCE_DIR)/Memory.cpp \
+               $(SOURCE_DIR)/Processor.cpp \
+               $(SOURCE_DIR)/Video.cpp \
+               $(SOURCE_DIR)/Audio.cpp \
+               $(SOURCE_DIR)/Input.cpp \
+               $(SOURCE_DIR)/Cartridge.cpp \
+               $(SOURCE_DIR)/MemoryRule.cpp \
+               $(SOURCE_DIR)/CommonMemoryRule.cpp \
+               $(SOURCE_DIR)/IORegistersMemoryRule.cpp \
+               $(SOURCE_DIR)/RomOnlyMemoryRule.cpp \
+               $(SOURCE_DIR)/MBC1MemoryRule.cpp \
+               $(SOURCE_DIR)/MBC2MemoryRule.cpp \
+               $(SOURCE_DIR)/MBC3MemoryRule.cpp \
+               $(SOURCE_DIR)/MBC5MemoryRule.cpp \
+               $(SOURCE_DIR)/MultiMBC1MemoryRule.cpp \
+               $(SOURCE_DIR)/opcodes.cpp \
+               $(SOURCE_DIR)/opcodes_cb.cpp \
+               $(SOURCE_DIR)/audio/Blip_Buffer.cpp \
+               $(SOURCE_DIR)/audio/Effects_Buffer.cpp \
+               $(SOURCE_DIR)/audio/Gb_Apu.cpp \
+               $(SOURCE_DIR)/audio/Gb_Apu_State.cpp \
+               $(SOURCE_DIR)/audio/Gb_Oscs.cpp \
+               $(SOURCE_DIR)/audio/Multi_Buffer.cpp \
+               $(SOURCE_DIR)/audio/Sound_Queue.cpp

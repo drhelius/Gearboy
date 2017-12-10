@@ -11,8 +11,8 @@
 #endif
 #include "libretro.h"
 
-#define VIDEO_WIDTH 256
-#define VIDEO_HEIGHT 384
+#define VIDEO_WIDTH 160
+#define VIDEO_HEIGHT 144
 #define VIDEO_PIXELS VIDEO_WIDTH * VIDEO_HEIGHT
 
 static uint8_t *frame_buf;
@@ -66,10 +66,10 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 void retro_get_system_info(struct retro_system_info *info)
 {
    memset(info, 0, sizeof(*info));
-   info->library_name     = "skeleton";
-   info->library_version  = "0.1";
+   info->library_name     = "Gearboy";
+   info->library_version  = "2.3.1";
    info->need_fullpath    = true;
-   info->valid_extensions = "";
+   info->valid_extensions = "gb|gbc";
 }
 
 static retro_video_refresh_t video_cb;

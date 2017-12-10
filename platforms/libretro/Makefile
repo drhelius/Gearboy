@@ -31,7 +31,8 @@ endif
 
 
 CORE_DIR    += .
-TARGET_NAME := skeleton
+SOURCE_DIR  += ../../src
+TARGET_NAME := gearboy
 LIBM		    = -lm
 
 ifeq ($(ARCHFLAGS),)
@@ -105,7 +106,7 @@ else
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
 endif
 
-LDFLAGS += $(LIBM)
+LDFLAGS += $(LIBM) -lSDL2
 
 ifeq ($(DEBUG), 1)
    CXXFLAGS += -O0 -g
@@ -116,6 +117,8 @@ endif
 include Makefile.common
 
 OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
+
+INCLUDES += -I$(SOURCE_DIR)
 
 CFLAGS   += -Wall -D__LIBRETRO__ $(fpic)
 CXXFLAGS += -Wall -D__LIBRETRO__ $(fpic)
