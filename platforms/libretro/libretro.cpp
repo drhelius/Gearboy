@@ -22,8 +22,11 @@ GB_Color *gearboy_frame_buf;
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
 static bool use_audio_cb;
-char retro_base_directory[4096];
-char retro_game_path[4096];
+static char retro_base_directory[4096];
+static char retro_game_path[4096];
+
+static short *audio_buf;
+static long count;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -34,7 +37,6 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
    va_end(va);
 }
 
-
 GearboyCore* core;
 
 static retro_environment_t environ_cb;
@@ -42,10 +44,12 @@ static retro_environment_t environ_cb;
 void retro_init(void)
 {
    const char *dir = NULL;
+
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
    {
       snprintf(retro_base_directory, sizeof(retro_base_directory), "%s", dir);
    }
+
    core = new GearboyCore();
    core->Init();
 
@@ -55,7 +59,7 @@ void retro_init(void)
    GB_Color color2;
    GB_Color color3;
    GB_Color color4;
-        
+
    color1.red = 0x87;
    color1.green = 0x96;
    color1.blue = 0x03;
@@ -71,6 +75,8 @@ void retro_init(void)
 
    core->SetDMGPalette(color1, color2, color3, color4);
 
+   audio_buf = NULL;
+   count = 0;
 }
 
 void retro_deinit(void)
@@ -174,8 +180,7 @@ static int mouse_rel_y;
 
 void retro_reset(void)
 {
-   x_coord = 0;
-   y_coord = 0;
+
 }
 
 static void update_input(void)
@@ -225,13 +230,9 @@ static void check_variables(void)
 
 static void audio_callback(void)
 {
-   for (unsigned i = 0; i < 30000 / 60; i++, phase++)
-   {
-      int16_t val = 0x800 * sinf(2.0f * M_PI * phase * 300.0f / 30000.0f);
-      audio_cb(val, val);
-   }
-
-   phase %= 100;
+   core->GetSamples(&audio_buf, &count);
+   audio_batch_cb(audio_buf, count);
+   return;
 }
 
 static void audio_set_state(bool enable)
@@ -241,7 +242,6 @@ static void audio_set_state(bool enable)
 
 void retro_run(void)
 {
-   unsigned i;
    update_input();
 
    bool updated = false;

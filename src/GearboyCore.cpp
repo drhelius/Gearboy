@@ -58,6 +58,8 @@ GearboyCore::GearboyCore()
     m_bLoadRamPending = false;
     m_szLoadRamPendingPath[0] = 0;
     InitPointer(m_pRamChangedCallback);
+    m_SampleCount = 0;
+    m_SampleBuffer = NULL;
 }
 
 GearboyCore::~GearboyCore()
@@ -126,6 +128,7 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
             unsigned int clockCycles = m_pProcessor->Tick();
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
             m_pAudio->Tick(clockCycles);
+            m_pAudio->GetSamples(&m_SampleBuffer, &m_SampleCount);
             m_pInput->Tick(clockCycles);
 
             if (m_bDuringBootROM && m_pProcessor->BootROMfinished())
@@ -153,6 +156,14 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
         if (!m_bCGB && IsValidPointer(pFrameBuffer))
             RenderDMGFrame(pFrameBuffer);
     }
+}
+
+void GearboyCore::GetSamples(short** buffer, long* count)
+{
+   if (buffer)
+      *buffer = m_SampleBuffer;
+   if (count)
+      *count = m_SampleCount;
 }
 
 bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)

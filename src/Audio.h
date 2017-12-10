@@ -39,6 +39,9 @@ public:
     void WriteAudioRegister(u16 address, u8 value);
     void EndFrame();
     void Tick(unsigned int clockCycles);
+#ifdef __LIBRETRO__
+    void GetSamples(short** buffer, long *count);
+#endif
 
 private:
     bool m_bEnabled;
@@ -49,6 +52,9 @@ private:
     Sound_Queue* m_pSound;
     int m_iSampleRate;
     blip_sample_t* m_pSampleBuffer;
+#ifdef __LIBRETRO__
+    long m_SampleCount;
+#endif
     bool m_bCGB;
 };
 

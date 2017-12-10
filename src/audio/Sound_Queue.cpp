@@ -24,10 +24,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 // Return current SDL_GetError() string, or str if SDL didn't have a string
 static const char* sdl_error( const char* str )
 {
+#ifndef __LIBRETRO__
 	const char* sdl_str = SDL_GetError();
 	if ( sdl_str && *sdl_str )
 		str = sdl_str;
 	return str;
+#endif
 }
 
 Sound_Queue::Sound_Queue()
