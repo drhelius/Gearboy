@@ -11,11 +11,14 @@
 #endif
 #include "libretro.h"
 
+#include "../../src/gearboy.h"
+
 #define VIDEO_WIDTH 160
 #define VIDEO_HEIGHT 144
 #define VIDEO_PIXELS VIDEO_WIDTH * VIDEO_HEIGHT
 
-static uint8_t *frame_buf;
+GB_Color *gearboy_frame_buf;
+
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
 static bool use_audio_cb;
@@ -34,23 +37,47 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 }
 
 
+GearboyCore* core;
+
 static retro_environment_t environ_cb;
 
 void retro_init(void)
 {
-   frame_buf = (uint8_t*)malloc(VIDEO_PIXELS * sizeof(uint32_t));
    const char *dir = NULL;
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
    {
       snprintf(retro_base_directory, sizeof(retro_base_directory), "%s", dir);
    }
-   
+   core = new GearboyCore();
+   core->Init();
+
+   gearboy_frame_buf = new GB_Color[VIDEO_WIDTH * VIDEO_HEIGHT];
+
+   GB_Color color1;
+   GB_Color color2;
+   GB_Color color3;
+   GB_Color color4;
+        
+   color1.red = 0x87;
+   color1.green = 0x96;
+   color1.blue = 0x03;
+   color2.red = 0x4d;
+   color2.green = 0x6b;
+   color2.blue = 0x03;
+   color3.red = 0x2b;
+   color3.green = 0x55;
+   color3.blue = 0x03;
+   color4.red = 0x14;
+   color4.green = 0x44;
+   color4.blue = 0x03;
+
+   core->SetDMGPalette(color1, color2, color3, color4);
+
 }
 
 void retro_deinit(void)
 {
-   free(frame_buf);
-   frame_buf = NULL;
+
 }
 
 unsigned retro_api_version(void)
@@ -186,15 +213,19 @@ void retro_run(void)
    unsigned i;
    update_input();
 
-
-
    bool updated = false;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables();
+   core->RunToVBlank(gearboy_frame_buf);
+
+   video_cb((uint8_t*)gearboy_frame_buf, VIDEO_WIDTH, VIDEO_HEIGHT, 0);
+
 }
 
 bool retro_load_game(const struct retro_game_info *info)
 {
+   core->LoadROM(info->path, false);
+
    struct retro_input_descriptor desc[] = {
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Left" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Up" },
