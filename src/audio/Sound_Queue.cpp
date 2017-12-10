@@ -21,6 +21,7 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#ifndef __LIBRETRO__
 // Return current SDL_GetError() string, or str if SDL didn't have a string
 static const char* sdl_error( const char* str )
 {
@@ -31,11 +32,14 @@ static const char* sdl_error( const char* str )
 #endif
   return str;
 }
+#endif
 
 Sound_Queue::Sound_Queue()
 {
   bufs = NULL;
+#ifndef __LIBRETRO__
   free_sem = NULL;
+#endif
   sound_open = false;
 }
 
@@ -144,9 +148,10 @@ void Sound_Queue::write( const sample_t* in, int count )
 #endif
 }
 
+#ifndef __LIBRETRO__
 void Sound_Queue::fill_buffer( Uint8* out, int count )
 {
-#ifndef __LIBRETRO__
+
   if ( SDL_SemValue( free_sem ) < buf_count - 1 )
   {
     currently_playing_ = buf( read_buf );
@@ -158,13 +163,12 @@ void Sound_Queue::fill_buffer( Uint8* out, int count )
   {
     memset( out, 0, count );
   }
-#endif
 }
+#endif
 
+#ifndef __LIBRETRO__
 void Sound_Queue::fill_buffer_( void* user_data, Uint8* out, int count )
 {
-#ifndef __LIBRETRO__
   ((Sound_Queue*) user_data)->fill_buffer( out, count );
-#endif
 }
-
+#endif

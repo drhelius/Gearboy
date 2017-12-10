@@ -37,7 +37,9 @@ private:
 	enum { buf_size = 2048 };
 	enum { buf_count = 3 };
 	sample_t* volatile bufs;
+#ifndef __LIBRETRO__
 	SDL_sem* volatile free_sem;
+#endif
 	sample_t* volatile currently_playing_;
 	int volatile read_buf;
 	int write_buf;
@@ -45,8 +47,10 @@ private:
 	bool sound_open;
 	
 	sample_t* buf( int index );
+#ifndef __LIBRETRO__   
 	void fill_buffer( Uint8*, int );
 	static void fill_buffer_( void*, Uint8*, int );
+#endif
 };
 
 #endif
