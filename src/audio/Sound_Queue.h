@@ -6,7 +6,9 @@
 #ifndef SOUND_QUEUE_H
 #define SOUND_QUEUE_H
 
+#ifndef __LIBRETRO__
 #include <SDL2/SDL.h>
+#endif
 
 // Simple SDL sound wrapper that has a synchronous interface
 class Sound_Queue {
