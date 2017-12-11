@@ -48,9 +48,9 @@
 #define IsValidPointer(pointer) ((pointer) != NULL)
 
 #if defined(MSB_FIRST) || defined(__BIG_ENDIAN__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-#define IS_LITTLE_ENDIAN 0
+#define IS_BIG_ENDIAN
 #else
-#define IS_LITTLE_ENDIAN 1
+#define IS_LITTLE_ENDIAN
 #endif
 
 typedef uint8_t u8;
@@ -75,11 +75,18 @@ typedef void (*RamChangedCallback) (void);
 
 struct GB_Color
 {
-#if defined(__LIBRETRO__) && IS_LITTLE_ENDIAN
+#if defined(__LIBRETRO__)
+#ifdef IS_LITTLE_ENDIAN
     u8 blue;
     u8 green;
     u8 red;
     u8 alpha;
+#elif IS_BIG_ENDIAN
+    u8 alpha;
+    u8 red;
+    u8 green;
+    u8 blue;
+#endif
 #else
     u8 red;
     u8 green;
