@@ -76,12 +76,12 @@ typedef void (*RamChangedCallback) (void);
 struct GB_Color
 {
 #if defined(__LIBRETRO__)
-#ifdef IS_LITTLE_ENDIAN
+#if defined(IS_LITTLE_ENDIAN)
     u8 blue;
     u8 green;
     u8 red;
     u8 alpha;
-#elif IS_BIG_ENDIAN
+#elif defined(IS_BIG_ENDIAN)
     u8 alpha;
     u8 red;
     u8 green;
