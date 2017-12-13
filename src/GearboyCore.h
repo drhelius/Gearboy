@@ -56,6 +56,7 @@ public:
     void EnableSound(bool enabled);
     void ResetSound(bool soft = false);
     void SetSoundSampleRate(int rate);
+    void GetSamples (short** buffer, long* count);
     void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
     void SaveRam();
     void SaveRam(const char* szPath);
@@ -94,6 +95,10 @@ private:
     bool m_bLoadRamPending;
     char m_szLoadRamPendingPath[512];
     RamChangedCallback m_pRamChangedCallback;
+#ifdef __LIBRETRO__
+    long m_SampleCount;
+    short *m_SampleBuffer;
+#endif
 };
 
 #endif	/* CORE_H */

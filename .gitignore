@@ -13,6 +13,7 @@ ipch/
 *.[Cc]ache
 *.obj
 *.o
+*.dll
 *.exe
 *.exp
 *.pdb

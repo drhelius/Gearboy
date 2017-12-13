@@ -47,6 +47,12 @@
 #define InitPointer(pointer) ((pointer) = NULL)
 #define IsValidPointer(pointer) ((pointer) != NULL)
 
+#if defined(MSB_FIRST) || defined(__BIG_ENDIAN__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#define IS_BIG_ENDIAN
+#else
+#define IS_LITTLE_ENDIAN
+#endif
+
 typedef uint8_t u8;
 typedef int8_t s8;
 typedef uint16_t u16;
@@ -69,10 +75,24 @@ typedef void (*RamChangedCallback) (void);
 
 struct GB_Color
 {
+#if defined(__LIBRETRO__)
+#if defined(IS_LITTLE_ENDIAN)
+    u8 blue;
+    u8 green;
+    u8 red;
+    u8 alpha;
+#elif defined(IS_BIG_ENDIAN)
+    u8 alpha;
+    u8 red;
+    u8 green;
+    u8 blue;
+#endif
+#else
     u8 red;
     u8 green;
     u8 blue;
     u8 alpha;
+#endif
 };
 
 enum Gameboy_Keys
