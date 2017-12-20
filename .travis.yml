@@ -1,5 +1,8 @@
 language: objective-c
-script: xctool -project platforms/ios/Gearboy.xcodeproj -scheme Gearboy build  CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+script:
+    - xcodebuild clean build -sdk iphonesimulator -project platforms/ios/Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO
+
+
 
 #language: cpp
 #compiler:
