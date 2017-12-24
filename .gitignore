@@ -5,6 +5,7 @@ private/
 
 # Mac files
 *.DS_Store
+*.dylib
 
 # Visual Studio files
 ipch/
