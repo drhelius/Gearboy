@@ -1,6 +1,6 @@
-display_name = "Game Boy / Gameboy Color (Gearboy)"
+display_name = "Game Boy / Game Boy Color (Gearboy)"
 authors = "Ignacio Sanchez"
-supported_extensions = "gb|gbc"
+supported_extensions = "gb|dmg|gbc|cgb|sgb"
 corename = "Gearboy"
 manufacturer = "Nintendo"
 categories = "Emulator"
