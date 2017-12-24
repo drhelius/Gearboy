@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "GearboyCore.h"
@@ -54,9 +54,6 @@ GearboyCore::GearboyCore()
     m_bPaused = true;
     m_bForceDMG = false;
     m_bRTCUpdateCount = 0;
-    m_bDuringBootROM = false;
-    m_bLoadRamPending = false;
-    m_szLoadRamPendingPath[0] = 0;
     InitPointer(m_pRamChangedCallback);
 #ifdef __LIBRETRO__
     m_SampleCount = 0;
@@ -134,20 +131,6 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
 			m_pAudio->GetSamples(&m_SampleBuffer, &m_SampleCount);
 #endif
             m_pInput->Tick(clockCycles);
-
-            if (m_bDuringBootROM && m_pProcessor->BootROMfinished())
-            {
-                m_bDuringBootROM = false;
-                Reset(m_bCGB);
-                m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
-                AddMemoryRules();
-                if (m_bLoadRamPending)
-                {
-                    m_bLoadRamPending = false;
-                    LoadRam((m_szLoadRamPendingPath[0] == 0) ? NULL : m_szLoadRamPendingPath);
-                }
-                break;
-            }
         }
 
         m_bRTCUpdateCount++;
@@ -195,10 +178,8 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)
     }
 #endif
 
-    bool loaded = m_pCartridge->LoadFromFile(szFilePath);
-    if (loaded)
+    if (m_pCartridge->LoadFromFile(szFilePath))
     {
-        m_bDuringBootROM = true;
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
@@ -249,7 +230,6 @@ void GearboyCore::ResetROM(bool forceDMG)
 {
     if (m_pCartridge->IsLoadedROM())
     {
-        m_bDuringBootROM = true;
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
@@ -330,16 +310,6 @@ void GearboyCore::LoadRam()
 
 void GearboyCore::LoadRam(const char* szPath)
 {
-    if (m_bDuringBootROM)
-    {
-        m_bLoadRamPending = true;
-        if (IsValidPointer(szPath))
-            strcpy(m_szLoadRamPendingPath, szPath);
-        else 
-            m_szLoadRamPendingPath[0] = 0;
-        return;
-    }
-    
     if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
         Log("Loading RAM...");
@@ -533,14 +503,9 @@ void GearboyCore::Reset(bool bCGB)
     {
         Log("Reset: Defaulting to Game Boy DMG");
     }
-    
-    if (m_bDuringBootROM)
-    {
-        Log("Boot rom mode");
-    }
 
-    m_pMemory->Reset(m_bCGB, m_bDuringBootROM);
-    m_pProcessor->Reset(m_bCGB, m_bDuringBootROM);
+    m_pMemory->Reset(m_bCGB);
+    m_pProcessor->Reset(m_bCGB);
     m_pVideo->Reset(m_bCGB);
     m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();

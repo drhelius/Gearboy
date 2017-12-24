@@ -22,7 +22,6 @@
 
 #include "definitions.h"
 #include "SixteenBitRegister.h"
-#include "boot_roms.h"
 
 class Memory;
 
@@ -43,7 +42,7 @@ public:
     Processor(Memory* pMemory);
     ~Processor();
     void Init();
-    void Reset(bool bCGB, bool bootROM);
+    void Reset(bool bCGB);
     u8 Tick();
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
@@ -52,7 +51,6 @@ public:
     bool CGBSpeed() const;
     void AddCycles(unsigned int cycles);
     bool InterruptIsAboutToRaise();
-    bool BootROMfinished() const;
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -80,8 +78,6 @@ private:
     int m_InterruptDelayCycles[5];
     bool m_bCGBSpeed;
     int m_iSpeedMultiplier;
-    bool m_bEndOfBootROM;
-    bool m_bDuringBootROM;
     int m_iAccurateOPCodeState;
     u8 m_iReadCache;
 

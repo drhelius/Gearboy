@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef CORE_H
@@ -91,9 +91,6 @@ private:
     GB_Color m_DMGPalette[4];
     bool m_bForceDMG;
     int m_bRTCUpdateCount;
-    bool m_bDuringBootROM;
-    bool m_bLoadRamPending;
-    char m_szLoadRamPendingPath[512];
     RamChangedCallback m_pRamChangedCallback;
 #ifdef __LIBRETRO__
     long m_SampleCount;
@@ -102,4 +99,3 @@ private:
 };
 
 #endif	/* CORE_H */
-

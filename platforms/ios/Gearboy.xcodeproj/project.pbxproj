@@ -118,7 +118,6 @@
 		669394CC19E07B47003FB4F4 /* Sound_Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound_Queue.h; path = ../../src/audio/Sound_Queue.h; sourceTree = "<group>"; };
 		669394D419E07B60003FB4F4 /* Audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Audio.cpp; path = ../../src/Audio.cpp; sourceTree = "<group>"; };
 		669394D519E07B60003FB4F4 /* Audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Audio.h; path = ../../src/Audio.h; sourceTree = "<group>"; };
-		669394D619E07B60003FB4F4 /* boot_roms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = boot_roms.h; path = ../../src/boot_roms.h; sourceTree = "<group>"; };
 		669394D719E07B60003FB4F4 /* Cartridge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Cartridge.cpp; path = ../../src/Cartridge.cpp; sourceTree = "<group>"; };
 		669394D819E07B60003FB4F4 /* Cartridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Cartridge.h; path = ../../src/Cartridge.h; sourceTree = "<group>"; };
 		669394D919E07B60003FB4F4 /* CommonMemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CommonMemoryRule.cpp; path = ../../src/CommonMemoryRule.cpp; sourceTree = "<group>"; };
@@ -307,7 +306,6 @@
 			children = (
 				669394D419E07B60003FB4F4 /* Audio.cpp */,
 				669394D519E07B60003FB4F4 /* Audio.h */,
-				669394D619E07B60003FB4F4 /* boot_roms.h */,
 				669394D719E07B60003FB4F4 /* Cartridge.cpp */,
 				669394D819E07B60003FB4F4 /* Cartridge.h */,
 				669394D919E07B60003FB4F4 /* CommonMemoryRule.cpp */,

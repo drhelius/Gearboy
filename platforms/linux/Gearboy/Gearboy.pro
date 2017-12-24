@@ -68,7 +68,6 @@ HEADERS  += \
     ../../../src/audio/Multi_Buffer.h \
     ../../../src/audio/Sound_Queue.h \
     ../../../src/Audio.h \
-    ../../../src/boot_roms.h \
     ../../../src/Cartridge.h \
     ../../../src/CommonMemoryRule.h \
     ../../../src/definitions.h \

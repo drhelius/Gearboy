@@ -307,9 +307,6 @@
     <ClInclude Include="..\..\..\src\audio\blargg_source.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\boot_roms.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\definitions.h">
       <Filter>Header Files</Filter>
     </ClInclude>

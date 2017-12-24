@@ -13,15 +13,14 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef MEMORY_H
 #define	MEMORY_H
 
 #include "definitions.h"
-#include "boot_roms.h"
 #include "MemoryRule.h"
 #include <vector>
 
@@ -38,7 +37,7 @@ public:
     void SetProcessor(Processor* pProcessor);
     void SetVideo(Video* pVideo);
     void Init();
-    void Reset(bool bCGB, bool bootROM);
+    void Reset(bool bCGB);
     void SetCurrentRule(MemoryRule* pRule);
     void SetCommonRule(CommonMemoryRule* pRule);
     void SetIORule(IORegistersMemoryRule* pRule);
@@ -90,7 +89,6 @@ private:
     u8 m_HDMA[5];
     u16 m_HDMASource;
     u16 m_HDMADestination;
-    bool m_bDuringBootROM;
 };
 
 #include "Memory_inline.h"
@@ -135,4 +133,3 @@ const u8 kInitialValuesForColorFFXX[256] = {
 };
 
 #endif	/* MEMORY_H */
-

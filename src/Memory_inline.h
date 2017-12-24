@@ -9,23 +9,6 @@ inline u8 Memory::Read(u16 address)
     switch (address & 0xE000)
     {
         case 0x0000:
-        {
-            if (m_bDuringBootROM)
-            {
-                if (m_bCGB)
-                {
-                    if(address < 0x0100)
-                        return kBootRomCGB[address];
-                    if (address < 0x0900 && address > 0x01FF)
-                        return kBootRomCGB[address - 0x100];
-                }
-                else
-                {
-                    if(address < 0x0100)
-                        return kBootRomDMG[address];
-                }
-            }
-        }
         case 0x2000:
         case 0x4000:
         case 0x6000:
@@ -149,4 +132,3 @@ inline bool Memory::IsDisassembled(u16 address)
 }
 
 #endif	/* MEMORY_INLINE_H */
-

@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include <iostream>
@@ -43,7 +43,6 @@ Memory::Memory()
         m_HDMA[i] = 0;
     m_HDMASource = 0;
     m_HDMADestination = 0;
-    m_bDuringBootROM = false;
 }
 
 Memory::~Memory()
@@ -75,13 +74,12 @@ void Memory::Init()
     m_pWRAMBanks = new u8[0x8000];
     m_pLCDRAMBank1 = new u8[0x2000];
     m_pDisassembledMap = new stDisassemble[65536];
-    Reset(false, false);
+    Reset(false);
 }
 
-void Memory::Reset(bool bCGB, bool bootROM)
+void Memory::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
-    m_bDuringBootROM = bootROM;
     InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pCurrentMemoryRule);
@@ -418,4 +416,3 @@ u8 Memory::GetHDMARegister(int reg)
 {
     return m_HDMA[reg - 1];
 }
-

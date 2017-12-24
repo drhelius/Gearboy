@@ -282,7 +282,6 @@
     <ClInclude Include="..\..\..\src\audio\blargg_common.h" />
     <ClInclude Include="..\..\..\src\audio\blargg_config.h" />
     <ClInclude Include="..\..\..\src\audio\blargg_source.h" />
-    <ClInclude Include="..\..\..\src\boot_roms.h" />
     <ClInclude Include="..\..\..\src\definitions.h" />
     <ClInclude Include="..\..\..\src\gearboy.h" />
     <ClInclude Include="..\..\..\src\opcode_names.h" />
