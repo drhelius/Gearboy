@@ -22,6 +22,7 @@
 
 #include <QMutex>
 #include "../../../src/gearboy.h"
+#include "../../../platforms/audio-shared/Sound_Queue.h"
 
 class Emulator
 {
@@ -45,6 +46,7 @@ public:
 
 private:
     GearboyCore* m_pGearboyCore;
+    Sound_Queue* m_pSoundQueue;
     QMutex m_Mutex;
 };
 
