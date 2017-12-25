@@ -55,10 +55,8 @@ GearboyCore::GearboyCore()
     m_bForceDMG = false;
     m_bRTCUpdateCount = 0;
     InitPointer(m_pRamChangedCallback);
-#ifdef __LIBRETRO__
     m_SampleCount = 0;
     m_SampleBuffer = NULL;
-#endif
 }
 
 GearboyCore::~GearboyCore()
@@ -127,11 +125,10 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
             unsigned int clockCycles = m_pProcessor->Tick();
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
             m_pAudio->Tick(clockCycles);
-#ifdef __LIBRETRO__
-			m_pAudio->GetSamples(&m_SampleBuffer, &m_SampleCount);
-#endif
             m_pInput->Tick(clockCycles);
         }
+
+        m_pAudio->EndFrame(&m_SampleBuffer, &m_SampleCount);
 
         m_bRTCUpdateCount++;
         if (m_bRTCUpdateCount == 50)
@@ -147,15 +144,10 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
 
 void GearboyCore::GetSamples(short** buffer, long* count)
 {
-#ifdef __LIBRETRO__
-   if (buffer)
-      *buffer = m_SampleBuffer;
-   if (count)
-      *count = m_SampleCount;
-#else
-   (void)buffer;
-   (void)count;
-#endif
+    if (buffer)
+        *buffer = m_SampleBuffer;
+    if (count)
+        *count = m_SampleCount;
 }
 
 bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)
@@ -237,14 +229,9 @@ void GearboyCore::ResetROM(bool forceDMG)
     }
 }
 
-void GearboyCore::EnableSound(bool enabled)
+void GearboyCore::ResetSound()
 {
-    m_pAudio->Enable(enabled);
-}
-
-void GearboyCore::ResetSound(bool soft)
-{
-    m_pAudio->Reset(m_bCGB, soft);
+    m_pAudio->Reset(m_bCGB);
 }
 
 void GearboyCore::SetSoundSampleRate(int rate)
@@ -337,54 +324,17 @@ void GearboyCore::LoadRam(const char* szPath)
 
         if (!file.fail())
         {
-            char signature[16];
+            file.seekg(0, file.end);
+            s32 fileSize = (s32)file.tellg();
+            file.seekg(0, file.beg);
 
-            file.read(signature, 16);
-
-            if (strcmp(signature, SAVE_FILE_SIGNATURE) == 0)
+            if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
             {
-                Log("Old save format: loading header...");
-
-                u8 version;
-                char romName[16];
-                u8 romType;
-                u8 romSize;
-                u8 ramSize;
-                u8 ramBanksSize;
-                u8 ramBanksStart;
-                u8 saveStateSize;
-                u8 saveStateStart;
-
-                file.read(reinterpret_cast<char*> (&version), 1);
-                file.read(romName, 16);
-                file.read(reinterpret_cast<char*> (&romType), 1);
-                file.read(reinterpret_cast<char*> (&romSize), 1);
-                file.read(reinterpret_cast<char*> (&ramSize), 1);
-                file.read(reinterpret_cast<char*> (&ramBanksSize), 1);
-                file.read(reinterpret_cast<char*> (&ramBanksStart), 1);
-                file.read(reinterpret_cast<char*> (&saveStateSize), 1);
-                file.read(reinterpret_cast<char*> (&saveStateStart), 1);
-
-                Log("Header loaded");
-
-                m_pMemory->GetCurrentRule()->LoadRam(file, 0);
-
                 Log("RAM loaded");
             }
             else
             {
-                file.seekg(0, file.end);
-                s32 fileSize = (s32)file.tellg();
-                file.seekg(0, file.beg);
-
-                if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
-                {
-                    Log("RAM loaded");
-                }
-                else
-                {
-                    Log("Save file size incorrect: %d", fileSize);
-                }
+                Log("Save file size incorrect: %d", fileSize);
             }
         }
         else
