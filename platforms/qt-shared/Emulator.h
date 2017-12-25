@@ -48,6 +48,7 @@ private:
     GearboyCore* m_pGearboyCore;
     Sound_Queue* m_pSoundQueue;
     QMutex m_Mutex;
+    bool m_bAudioEnabled;
 };
 
 #endif	/* EMULATOR_H */

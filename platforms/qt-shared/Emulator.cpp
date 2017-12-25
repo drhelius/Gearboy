@@ -23,6 +23,7 @@ Emulator::Emulator()
 {
     InitPointer(m_pGearboyCore);
     InitPointer(m_pSoundQueue);
+    m_bAudioEnabled = true;
 }
 
 Emulator::~Emulator()
@@ -59,7 +60,7 @@ void Emulator::RunToVBlank(GB_Color* pFrameBuffer)
     long count = 0;
     m_pGearboyCore->GetSamples(&audio_buf, &count);
 
-    if (IsValidPointer(audio_buf) && (count > 0))
+    if (m_bAudioEnabled && IsValidPointer(audio_buf) && (count > 0))
         m_pSoundQueue->write(audio_buf, (int)count);
 
     m_Mutex.unlock();
@@ -83,6 +84,7 @@ void Emulator::Pause()
 {
     m_Mutex.lock();
     m_pGearboyCore->Pause(true);
+    m_bAudioEnabled = false;
     m_Mutex.unlock();
 }
 
@@ -90,6 +92,7 @@ void Emulator::Resume()
 {
     m_Mutex.lock();
     m_pGearboyCore->Pause(false);
+    m_bAudioEnabled = true;
     m_Mutex.unlock();
 }
 
@@ -120,8 +123,10 @@ void Emulator::MemoryDump()
 void Emulator::SetSoundSettings(bool enabled, int rate)
 {
     m_Mutex.lock();
-    //m_pGearboyCore->EnableSound(enabled);
+    m_bAudioEnabled = enabled;
     m_pGearboyCore->SetSoundSampleRate(rate);
+    m_pSoundQueue->stop();
+    m_pSoundQueue->start(rate, 2);
     m_Mutex.unlock();
 }
 
