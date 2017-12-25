@@ -19,6 +19,7 @@
 
 #import <GLKit/GLKit.h>
 #import "Emulator.h"
+#include <SDL2/SDL.h>
 #include "inputmanager.h"
 
 const float kMixFrameAlpha = 0.35f;
@@ -47,6 +48,11 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         
         theGearboyCore = new GearboyCore();
         theGearboyCore->Init();
+        
+        theSoundQueue = new Sound_Queue();
+        theSoundQueue->start(44100, 2);
+        
+        audioEnabled = YES;
         
         GB_Color color1;
         GB_Color color2;
@@ -101,6 +107,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     theGearboyCore->SaveRam();
     SafeDeleteArray(theTexture);
     SafeDeleteArray(theFrameBuffer);
+    SafeDelete(theSoundQueue);
     SafeDelete(theGearboyCore);
     [self shutdownGL];
 }
@@ -118,6 +125,14 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     InputManager::Instance().Update();
     
     theGearboyCore->RunToVBlank(theFrameBuffer);
+    
+    if (audioEnabled)
+    {
+        short *audio_buf = NULL;
+        long count = 0;
+        theGearboyCore->GetSamples(&audio_buf, &count);
+        theSoundQueue->write(audio_buf, (int)count);
+    }
     
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
     {
@@ -270,11 +285,13 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 -(void)pause
 {
     theGearboyCore->Pause(true);
+    audioEnabled = NO;
 }
 
 -(void)resume
 {
     theGearboyCore->Pause(false);
+    audioEnabled = YES;
 }
 
 -(BOOL)paused
@@ -297,12 +314,13 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 - (void)setAudio: (BOOL)enabled
 {
-    theGearboyCore->EnableSound(enabled);
+    audioEnabled = enabled;
 }
 
 - (void)resetAudio
 {
-    theGearboyCore->ResetSound(true);
+    theSoundQueue->stop();
+    theSoundQueue->start(44100, 2);
 }
 
 @end

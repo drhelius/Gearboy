@@ -27,12 +27,14 @@
 #endif
 
 #import "../../../src/gearboy.h"
+#import "../../../platforms/audio-shared/Sound_Queue.h"
 #import "EmulatorInput.h"
 #include "texturemanager.h"
 
 @interface Emulator : NSObject
 {
     GearboyCore* theGearboyCore;
+    Sound_Queue* theSoundQueue;
     GB_Color* theFrameBuffer;
     GB_Color* theTexture;
     EmulatorInput* theInput;
@@ -42,6 +44,7 @@
     Texture* dotMatrixDMGTexture;
     Texture* dotMatrixCGBTexture;
     BOOL firstFrame;
+    BOOL audioEnabled;
 }
 
 @property (nonatomic) float multiplier;
