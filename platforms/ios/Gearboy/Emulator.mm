@@ -1,17 +1,17 @@
 /*
  * Gearboy - Nintendo Game Boy Emulator
  * Copyright (C) 2012  Ignacio Sanchez
- 
+
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * any later version.
- 
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- 
+
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  *
@@ -39,26 +39,26 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     if (self = [super init])
     {
         firstFrame = YES;
-        
+
 #ifdef __APPLE__
 #if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
         SDL_SetMainReady();
 #endif
 #endif
-        
+
         theGearboyCore = new GearboyCore();
         theGearboyCore->Init();
-        
+
         theSoundQueue = new Sound_Queue();
         theSoundQueue->start(44100, 2);
-        
+
         audioEnabled = YES;
-        
+
         GB_Color color1;
         GB_Color color2;
         GB_Color color3;
         GB_Color color4;
-        
+
         color1.red = 0x87;
         color1.green = 0x96;
         color1.blue = 0x03;
@@ -71,14 +71,14 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         color4.red = 0x14;
         color4.green = 0x44;
         color4.blue = 0x03;
-        
+
         theGearboyCore->SetDMGPalette(color1, color2, color3, color4);
-        
+
         theInput = new EmulatorInput(self);
         theInput->Init();
         theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
         theTexture = new GB_Color[256 * 256];
-        
+
         for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
         {
             for (int x = 0; x < GAMEBOY_WIDTH; ++x)
@@ -88,7 +88,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
                 theFrameBuffer[pixel].alpha = 0xFF;
             }
         }
-        
+
         for (int y = 0; y < 256; ++y)
         {
             for (int x = 0; x < 256; ++x)
@@ -123,16 +123,16 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 -(void)update
 {
     InputManager::Instance().Update();
-    
+
     int sampleCount = 0;
-    
+
     theGearboyCore->RunToVBlank(theFrameBuffer, theSampleBufffer, &sampleCount);
-    
-    if (audioEnabled)
+
+    if (audioEnabled && (sampleCount > 0))
     {
         theSoundQueue->write(theSampleBufffer, sampleCount);
     }
-    
+
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
     {
         int y_256 = y * 256;
@@ -161,15 +161,15 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glGenFramebuffers(1, &accumulationFramebuffer);
     glGenTextures(1, &accumulationTexture);
     glGenTextures(1, &GBTexture);
-    
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    
+
     glVertexPointer(3, GL_FLOAT, 0, box);
     glTexCoordPointer(2, GL_FLOAT, 0, tex);
-    
+
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    
+
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     [self setupTextureWithData: (GLvoid*) theTexture];
@@ -178,7 +178,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glBindTexture(GL_TEXTURE_2D, accumulationTexture);
     [self setupTextureWithData: NULL];
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accumulationTexture, 0);
-    
+
     dotMatrixDMGTexture = TextureManager::Instance().GetTexture("/scanlines_dmg_2x");
     dotMatrixCGBTexture = TextureManager::Instance().GetTexture("/scanlines_gbc_2x");
 }
@@ -188,7 +188,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
     [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier) andMirrorY:NO];
-    
+
     [self renderDotMatrix];
 }
 
@@ -204,7 +204,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         firstFrame = NO;
         alpha = 1.0f;
     }
-    
+
     static bool round_error = false;
     float round_color = 1.0f - (round_error ? 0.02f : 0.0f);
     round_error = !round_error;
@@ -216,11 +216,11 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glDisable(GL_BLEND);
 
     [self.glview bindDrawable];
-    
+
     glClear(GL_COLOR_BUFFER_BIT);
     glBindTexture(GL_TEXTURE_2D, accumulationTexture);
     [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier) andMirrorY:YES];
-    
+
     [self renderDotMatrix];
 }
 
