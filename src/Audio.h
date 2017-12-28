@@ -35,33 +35,30 @@ public:
     u8 ReadAudioRegister(u16 address);
     void WriteAudioRegister(u16 address, u8 value);
     void Tick(unsigned int clockCycles);
-    void EndFrame(short** pBuffer, long *pCount);
+    void EndFrame(s16* pSampleBuffer, int* pSampleCount);
 
 private:
     Gb_Apu* m_pApu;
     Stereo_Buffer* m_pBuffer;
-    int m_Time;
+    int m_ElapsedCycles;
     int m_SampleRate;
     blip_sample_t* m_pSampleBuffer;
-    long m_SampleCount;
     bool m_bCGB;
 };
 
-const int kSampleBufferSize = 2048;
-
 inline void Audio::Tick(unsigned int clockCycles)
 {
-    m_Time += clockCycles;
+    m_ElapsedCycles += clockCycles;
 }
 
 inline u8 Audio::ReadAudioRegister(u16 address)
 {
-    return m_pApu->read_register(m_Time, address);
+    return m_pApu->read_register(m_ElapsedCycles, address);
 }
 
 inline void Audio::WriteAudioRegister(u16 address, u8 value)
 {
-    m_pApu->write_register(m_Time, address, value);
+    m_pApu->write_register(m_ElapsedCycles, address, value);
 }
 
 #endif	/* AUDIO_H */

@@ -35,6 +35,7 @@
 {
     GearboyCore* theGearboyCore;
     Sound_Queue* theSoundQueue;
+    s16 theSampleBufffer[AUDIO_BUFFER_SIZE];
     GB_Color* theFrameBuffer;
     GB_Color* theTexture;
     EmulatorInput* theInput;

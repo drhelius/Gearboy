@@ -50,13 +50,11 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC2MemoryRule);
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
+    InitPointer(m_pRamChangedCallback);
     m_bCGB = false;
     m_bPaused = true;
     m_bForceDMG = false;
     m_bRTCUpdateCount = 0;
-    InitPointer(m_pRamChangedCallback);
-    m_SampleCount = 0;
-    m_SampleBuffer = NULL;
 }
 
 GearboyCore::~GearboyCore()
@@ -115,7 +113,7 @@ void GearboyCore::Init()
     InitDMGPalette();
 }
 
-void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
+void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount)
 {
     if (!m_bPaused && m_pCartridge->IsLoadedROM())
     {
@@ -128,7 +126,7 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
             m_pInput->Tick(clockCycles);
         }
 
-        m_pAudio->EndFrame(&m_SampleBuffer, &m_SampleCount);
+        m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
 
         m_bRTCUpdateCount++;
         if (m_bRTCUpdateCount == 50)
@@ -137,17 +135,11 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer)
             m_pCartridge->UpdateCurrentRTC();
         }
 
-        if (!m_bCGB && IsValidPointer(pFrameBuffer))
+        if (!m_bCGB)
+        {
             RenderDMGFrame(pFrameBuffer);
+        }
     }
-}
-
-void GearboyCore::GetSamples(short** buffer, long* count)
-{
-    if (buffer)
-        *buffer = m_SampleBuffer;
-    if (count)
-        *count = m_SampleCount;
 }
 
 bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)
@@ -476,11 +468,14 @@ void GearboyCore::Reset(bool bCGB)
 
 void GearboyCore::RenderDMGFrame(GB_Color* pFrameBuffer) const
 {
-    int pixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
-    const u8* pGameboyFrameBuffer = m_pVideo->GetFrameBuffer();
-
-    for (int i = 0; i < pixels; i++)
+    if (IsValidPointer(pFrameBuffer))
     {
-        pFrameBuffer[i] = m_DMGPalette[pGameboyFrameBuffer[i]];
+        int pixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
+        const u8* pGameboyFrameBuffer = m_pVideo->GetFrameBuffer();
+
+        for (int i = 0; i < pixels; i++)
+        {
+            pFrameBuffer[i] = m_DMGPalette[pGameboyFrameBuffer[i]];
+        }
     }
 }

@@ -23,9 +23,8 @@
 Audio::Audio()
 {
     m_bCGB = false;
-    m_Time = 0;
+    m_ElapsedCycles = 0;
     m_SampleRate = 44100;
-    m_SampleCount = 0;
     InitPointer(m_pApu);
     InitPointer(m_pBuffer);
     InitPointer(m_pSampleBuffer);
@@ -40,7 +39,7 @@ Audio::~Audio()
 
 void Audio::Init()
 {
-    m_pSampleBuffer = new blip_sample_t[kSampleBufferSize];
+    m_pSampleBuffer = new blip_sample_t[AUDIO_BUFFER_SIZE];
 
     m_pApu = new Gb_Apu();
     m_pBuffer = new Stereo_Buffer();
@@ -68,8 +67,7 @@ void Audio::Reset(bool bCGB)
         m_pApu->write_register(0, reg, value);
     }
 
-    m_Time = 0;
-    m_SampleCount = 0;
+    m_ElapsedCycles = 0;
 }
 
 void Audio::SetSampleRate(int rate)
@@ -81,12 +79,22 @@ void Audio::SetSampleRate(int rate)
     }
 }
 
-void Audio::EndFrame(short** pBuffer, long *pCount)
+void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 {
-    m_pApu->end_frame(m_Time);
-    m_pBuffer->end_frame(m_Time);
-    m_SampleCount = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
-    m_Time = 0;
-    *pBuffer = m_pSampleBuffer;
-    *pCount = m_SampleCount;
+    m_pApu->end_frame(m_ElapsedCycles);
+    m_pBuffer->end_frame(m_ElapsedCycles);
+
+    int count = static_cast<int>(m_pBuffer->read_samples(m_pSampleBuffer, AUDIO_BUFFER_SIZE));
+
+    if (IsValidPointer(pSampleBuffer) && IsValidPointer(pSampleCount))
+    {
+        *pSampleCount = count;
+
+        for (int i=0; i<count; i++)
+        {
+            pSampleBuffer[i] = m_pSampleBuffer[i];
+        }
+    }
+
+    m_ElapsedCycles = 0;
 }

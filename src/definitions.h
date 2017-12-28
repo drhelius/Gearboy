@@ -29,6 +29,7 @@
 #include <fstream>
 
 //#define DEBUG_GEARBOY 1
+#define GEARBOY_VERSION "2.4.0"
 
 #ifndef NULL
 #define NULL 0
@@ -69,6 +70,8 @@ typedef void (*RamChangedCallback) (void);
 
 #define GAMEBOY_WIDTH 160
 #define GAMEBOY_HEIGHT 144
+
+#define AUDIO_BUFFER_SIZE 2048
 
 struct GB_Color
 {

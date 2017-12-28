@@ -54,14 +54,15 @@ void Emulator::RunToVBlank(GB_Color* pFrameBuffer)
 {
     m_Mutex.lock();
 
-    m_pGearboyCore->RunToVBlank(pFrameBuffer);
+    s16 sampleBufer[AUDIO_BUFFER_SIZE];
+    int sampleCount = 0;
 
-    short *audio_buf = NULL;
-    long count = 0;
-    m_pGearboyCore->GetSamples(&audio_buf, &count);
+    m_pGearboyCore->RunToVBlank(pFrameBuffer, sampleBufer, &sampleCount);
 
-    if (m_bAudioEnabled && IsValidPointer(audio_buf) && (count > 0))
-        m_pSoundQueue->write(audio_buf, (int)count);
+    if (m_bAudioEnabled && (sampleCount > 0))
+    {
+        m_pSoundQueue->write(sampleBufer, sampleCount);
+    }
 
     m_Mutex.unlock();
 }

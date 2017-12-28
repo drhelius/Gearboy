@@ -124,14 +124,13 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 {
     InputManager::Instance().Update();
     
-    theGearboyCore->RunToVBlank(theFrameBuffer);
+    int sampleCount = 0;
+    
+    theGearboyCore->RunToVBlank(theFrameBuffer, theSampleBufffer, &sampleCount);
     
     if (audioEnabled)
     {
-        short *audio_buf = NULL;
-        long count = 0;
-        theGearboyCore->GetSamples(&audio_buf, &count);
-        theSoundQueue->write(audio_buf, (int)count);
+        theSoundQueue->write(theSampleBufffer, sampleCount);
     }
     
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
