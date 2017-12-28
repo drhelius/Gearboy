@@ -34,6 +34,7 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "gearboy.h"
+#include "../../platforms/audio-shared/Sound_Queue.h"
 
 using namespace std;
 using namespace libconfig;
