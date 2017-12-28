@@ -91,7 +91,7 @@ qmake Gearboy.pro && make
 ```
 - Fedora:
 ``` shell
-sudo dnf install qt5-devel freeglut-devel SDL2-devel glew-devel
+sudo dnf install @development-tools gcc-c++ qt5-devel freeglut-devel SDL2-devel glew-devel
 cd platforms/linux/Gearboy
 qmake-qt5 Gearboy.pro && make
 ```
