@@ -1,20 +1,17 @@
-language: objective-c
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+    - os: osx
+
+before_install:
+
+   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe" ; fi
+   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; sudo apt-get update -qq ; fi
+   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; sudo apt-get install -y build-essential qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev ; fi
+   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; cd platforms/linux/Gearboy ; fi
+
 script:
-    - xcodebuild clean build -sdk iphonesimulator -project platforms/ios/Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO
-
-
-
-#language: cpp
-#compiler:
-#- gcc
-#before_install:
-#  - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe"
-#  - sudo apt-get update -qq
-#  - sudo apt-get install -y qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev
-#  - cd platforms/linux/Gearboy
-#os:
-#- linux
-#sudo: required
-#script:
-#  - qmake -o Makefile Gearboy.pro && make
-#dist: trusty
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild clean build -sdk iphonesimulator -project platforms/ios/Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; qmake Gearboy.pro && make ; fi
