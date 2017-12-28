@@ -131,7 +131,7 @@
     <ClCompile Include="..\..\qt-shared\SoundSettings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp">
+    <ClCompile Include="..\..\audio-shared\Sound_Queue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Video.cpp">
@@ -289,7 +289,7 @@
     <CustomBuild Include="..\..\qt-shared\SoundSettings.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <ClInclude Include="..\..\..\src\audio\Sound_Queue.h">
+    <ClInclude Include="..\..\audio-shared\Sound_Queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\Video.h">
