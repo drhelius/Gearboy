@@ -39,7 +39,7 @@
      <x>0</x>
      <y>0</y>
      <width>342</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -47,6 +47,15 @@
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
+   </property>
+   <property name="locale">
+    <locale language="English" country="UnitedStates"/>
+   </property>
+   <property name="defaultUp">
+    <bool>false</bool>
+   </property>
+   <property name="nativeMenuBar">
+    <bool>true</bool>
    </property>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -567,22 +576,6 @@
     <hint type="destinationlabel">
      <x>159</x>
      <y>156</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>menuWindow_Size</sender>
-   <signal>triggered(QAction*)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>MenuSettingsWindowSize(QAction*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>69</x>
-     <y>83</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>37</x>
-     <y>24</y>
     </hint>
    </hints>
   </connection>
