@@ -17,6 +17,7 @@
  * 
  */
 
+#include <QMainWindow>
 #include "RenderThread.h"
 #include "GLFrame.h"
 #include "Emulator.h"
@@ -84,25 +85,33 @@ void RenderThread::run()
 
     while (m_bDoRendering)
     {
-        m_pGLFrame->makeCurrent();
-
-        if (!m_bPaused)
+        if (m_pGLFrame->parentWidget()->window()->isVisible())
         {
-            m_pEmulator->RunToVBlank(m_pFrameBuffer);
 
-            if (m_bResizeEvent)
+            m_pGLFrame->makeCurrent();
+
+            if (m_bPaused)
             {
-                m_bResizeEvent = false;
-                m_bFirstFrame = true;
+                msleep(200);
+            }
+            else
+            {
+                m_pEmulator->RunToVBlank(m_pFrameBuffer);
+
+                if (m_bResizeEvent)
+                {
+                    m_bResizeEvent = false;
+                    m_bFirstFrame = true;
+                }
+
+                if (m_bMixFrames && !m_pEmulator->IsCGBRom())
+                    RenderMixFrames();
+                else
+                    RenderFrame();
             }
 
-            if (m_bMixFrames && !m_pEmulator->IsCGBRom())
-                RenderMixFrames();
-            else
-                RenderFrame();
+            m_pGLFrame->swapBuffers();
         }
-
-        m_pGLFrame->swapBuffers();
     }
     
     SafeDeleteArray(m_pFrameBuffer);
