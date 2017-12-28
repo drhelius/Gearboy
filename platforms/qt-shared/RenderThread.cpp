@@ -225,10 +225,12 @@ void RenderThread::RenderQuad(int viewportWidth, int viewportHeight, bool mirror
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+
     if (mirrorY)
-        gluOrtho2D(0, viewportWidth, 0, viewportHeight);
+        glOrtho(0, viewportWidth, 0, viewportHeight, -1, 1);
     else
-        gluOrtho2D(0, viewportWidth, viewportHeight, 0);
+        glOrtho(0, viewportWidth, viewportHeight, 0, -1, 1);
+
     glMatrixMode(GL_MODELVIEW);
     glViewport(0, 0, viewportWidth, viewportHeight);
 
