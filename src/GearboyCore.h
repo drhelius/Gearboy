@@ -44,25 +44,23 @@ public:
     GearboyCore();
     ~GearboyCore();
     void Init();
-    void RunToVBlank(GB_Color* pFrameBuffer);
+    void RunToVBlank(GB_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount);
     bool LoadROM(const char* szFilePath, bool forceDMG);
-    Memory* GetMemory();
-    Cartridge* GetCartridge();
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause(bool paused);
     bool IsPaused();
     void ResetROM(bool forceDMG);
-    void EnableSound(bool enabled);
-    void ResetSound(bool soft = false);
+    void ResetSound();
     void SetSoundSampleRate(int rate);
-    void GetSamples (short** buffer, long* count);
     void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
     void SaveRam();
     void SaveRam(const char* szPath);
     void LoadRam();
     void LoadRam(const char* szPath);
     void SetRamModificationCallback(RamChangedCallback callback);
+    Memory* GetMemory();
+    Cartridge* GetCartridge();
 
 private:
     void InitDMGPalette();
@@ -92,10 +90,6 @@ private:
     bool m_bForceDMG;
     int m_bRTCUpdateCount;
     RamChangedCallback m_pRamChangedCallback;
-#ifdef __LIBRETRO__
-    long m_SampleCount;
-    short *m_SampleBuffer;
-#endif
 };
 
 #endif	/* CORE_H */

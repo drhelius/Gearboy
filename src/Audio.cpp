@@ -23,13 +23,10 @@
 Audio::Audio()
 {
     m_bCGB = false;
-    m_bEnabled = true;
-    m_Time = 0;
-    m_AbsoluteTime = 0;
-    m_iSampleRate = 44100;
+    m_ElapsedCycles = 0;
+    m_SampleRate = 44100;
     InitPointer(m_pApu);
     InitPointer(m_pBuffer);
-    InitPointer(m_pSound);
     InitPointer(m_pSampleBuffer);
 }
 
@@ -37,123 +34,67 @@ Audio::~Audio()
 {
     SafeDelete(m_pApu);
     SafeDelete(m_pBuffer);
-    SafeDelete(m_pSound);
     SafeDeleteArray(m_pSampleBuffer);
 }
 
 void Audio::Init()
 {
-#ifndef __LIBRETRO__
-  std::string platform = SDL_GetPlatform();
-  if (platform == "Linux")
-  {
-      if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
-    {
-      Log("--> ** Error initalizing audio subsystem: %s", error, SDL_GetError());
-      }
-
-      if (SDL_AudioInit("alsa") !=0 )
-    {
-      Log("--> ** Error initalizing audio using ALSA: %s", error, SDL_GetError());
-      }
-
-  }
-  else
-  {
-      if(SDL_Init(SDL_INIT_AUDIO) < 0)
-      {
-      Log("--> ** SDL Audio not initialized: %s", SDL_GetError());
-      }
-  }
-
-    atexit(SDL_Quit);
-#endif
-    m_pSampleBuffer = new blip_sample_t[kSampleBufferSize];
+    m_pSampleBuffer = new blip_sample_t[AUDIO_BUFFER_SIZE];
 
     m_pApu = new Gb_Apu();
     m_pBuffer = new Stereo_Buffer();
-    m_pSound = new Sound_Queue();
 
     m_pBuffer->clock_rate(4194304);
-    m_pBuffer->set_sample_rate(m_iSampleRate);
+    m_pBuffer->set_sample_rate(m_SampleRate);
 
     m_pApu->treble_eq(-15.0);
     m_pBuffer->bass_freq(100);
 
     m_pApu->set_output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
-
-    m_pSound->start(m_iSampleRate, 2);
 }
 
-void Audio::Reset(bool bCGB, bool soft)
+void Audio::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
 
-    if(!soft)
-    {
-        Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
-        m_pApu->reset(mode);
-        m_pBuffer->clear();
+    Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
+    m_pApu->reset(mode);
+    m_pBuffer->clear();
 
-        for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
-        {
-            u8 value = m_bCGB ? kInitialValuesForColorFFXX[reg - 0xFF00] : kInitialValuesForFFXX[reg - 0xFF00];
-            m_pApu->write_register(0, reg, value);
-        }
-        m_Time = 0;
-        m_AbsoluteTime = 0;
+    for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
+    {
+        u8 value = m_bCGB ? kInitialValuesForColorFFXX[reg - 0xFF00] : kInitialValuesForFFXX[reg - 0xFF00];
+        m_pApu->write_register(0, reg, value);
     }
 
-    m_pSound->stop();
-    m_pSound->start(m_iSampleRate, 2);
-}
-
-void Audio::Enable(bool enabled)
-{
-    m_bEnabled = enabled;
-}
-
-bool Audio::IsEnabled() const
-{
-    return m_bEnabled;
+    m_ElapsedCycles = 0;
 }
 
 void Audio::SetSampleRate(int rate)
 {
-    if (rate != m_iSampleRate)
+    if (rate != m_SampleRate)
     {
-        m_iSampleRate = rate;
-        m_pBuffer->set_sample_rate(m_iSampleRate);
-        m_pSound->stop();
-        m_pSound->start(m_iSampleRate, 2);
+        m_SampleRate = rate;
+        m_pBuffer->set_sample_rate(m_SampleRate);
     }
 }
 
-void Audio::EndFrame()
+void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 {
-    m_pApu->end_frame(m_AbsoluteTime);
-    m_pBuffer->end_frame(m_AbsoluteTime);
+    m_pApu->end_frame(m_ElapsedCycles);
+    m_pBuffer->end_frame(m_ElapsedCycles);
 
-    if (m_pBuffer->samples_avail() >= kSampleBufferSize)
+    int count = static_cast<int>(m_pBuffer->read_samples(m_pSampleBuffer, AUDIO_BUFFER_SIZE));
+
+    if (IsValidPointer(pSampleBuffer) && IsValidPointer(pSampleCount))
     {
-        long count = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
-#ifdef __LIBRETRO__
-        m_SampleCount = count;
-#endif
-        if (m_bEnabled)
+        *pSampleCount = count;
+
+        for (int i=0; i<count; i++)
         {
-            m_pSound->write(m_pSampleBuffer, (int)count);
+            pSampleBuffer[i] = m_pSampleBuffer[i];
         }
     }
-}
 
-#ifdef __LIBRETRO__
-   void Audio::GetSamples(short** buffer, long *count)
-   {
-      if (buffer)
-         *buffer = m_pSampleBuffer;
-      if (count)
-         *count = m_SampleCount;
-      return;
-   }
-#endif
+    m_ElapsedCycles = 0;
+}

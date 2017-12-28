@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef DEFINITIONS_H
@@ -29,6 +29,7 @@
 #include <fstream>
 
 //#define DEBUG_GEARBOY 1
+#define GEARBOY_VERSION "2.4.0"
 
 #ifndef NULL
 #define NULL 0
@@ -37,9 +38,6 @@
 #ifdef _WIN32
 #define BLARGG_USE_NAMESPACE 1
 #endif
-
-#define SAVE_FILE_SIGNATURE "GearboySaveFile"
-#define SAVE_FILE_VERSION 5
 
 #define SafeDelete(pointer) if(pointer != NULL) {delete pointer; pointer = NULL;}
 #define SafeDeleteArray(pointer) if(pointer != NULL) {delete [] pointer; pointer = NULL;}
@@ -73,20 +71,22 @@ typedef void (*RamChangedCallback) (void);
 #define GAMEBOY_WIDTH 160
 #define GAMEBOY_HEIGHT 144
 
+#define AUDIO_BUFFER_SIZE 2048
+
 struct GB_Color
 {
 #if defined(__LIBRETRO__)
-#if defined(IS_LITTLE_ENDIAN)
+    #if defined(IS_LITTLE_ENDIAN)
     u8 blue;
     u8 green;
     u8 red;
     u8 alpha;
-#elif defined(IS_BIG_ENDIAN)
+    #elif defined(IS_BIG_ENDIAN)
     u8 alpha;
     u8 red;
     u8 green;
     u8 blue;
-#endif
+    #endif
 #else
     u8 red;
     u8 green;
@@ -110,7 +110,7 @@ enum Gameboy_Keys
 #ifdef DEBUG_GEARBOY
 #define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
 #else
-#define Log(msg, ...)  
+#define Log(msg, ...)
 #endif
 
 inline void Log_func(const char* const msg, ...)
@@ -144,4 +144,3 @@ inline bool IsSetBit(const u8 value, const u8 bit)
 }
 
 #endif	/* DEFINITIONS_H */
-

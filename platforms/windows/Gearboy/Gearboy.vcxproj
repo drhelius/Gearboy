@@ -165,7 +165,7 @@
     <ClCompile Include="..\..\qt-shared\RenderThread.cpp" />
     <ClCompile Include="..\..\..\src\RomOnlyMemoryRule.cpp" />
     <ClCompile Include="..\..\qt-shared\SoundSettings.cpp" />
-    <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp" />
+    <ClCompile Include="..\..\audio-shared\Sound_Queue.cpp" />
     <ClCompile Include="..\..\..\src\Video.cpp" />
     <ClCompile Include="..\..\qt-shared\VideoSettings.cpp" />
     <ClCompile Include="..\..\qt-shared\main.cpp" />
@@ -267,7 +267,7 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
     </CustomBuild>
-    <ClInclude Include="..\..\..\src\audio\Sound_Queue.h" />
+    <ClInclude Include="..\..\audio-shared\Sound_Queue.h" />
     <ClInclude Include="..\..\..\src\Video.h" />
     <CustomBuild Include="..\..\qt-shared\VideoSettings.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_NO_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\..\Gearboy\sdl\include" "-I.\..\Gearboy\glew\include" "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtANGLE" "-I$(QTDIR)\include\QtCore" "-I.\release" "-I$(QTDIR)\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>

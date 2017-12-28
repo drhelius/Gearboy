@@ -42,12 +42,11 @@ GB_Color *gearboy_frame_buf;
 
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
-static bool use_audio_cb;
 static char retro_base_directory[4096];
 static char retro_game_path[4096];
 
-static short *audio_buf;
-static long count;
+static s16 audio_buf[AUDIO_BUFFER_SIZE];
+static int audio_sample_count;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -74,30 +73,7 @@ void retro_init(void)
    core = new GearboyCore();
    core->Init();
 
-   gearboy_frame_buf = new GB_Color[VIDEO_WIDTH * VIDEO_HEIGHT];
-
-   GB_Color color1;
-   GB_Color color2;
-   GB_Color color3;
-   GB_Color color4;
-
-   color1.red = 0x87;
-   color1.green = 0x96;
-   color1.blue = 0x03;
-   color2.red = 0x4d;
-   color2.green = 0x6b;
-   color2.blue = 0x03;
-   color3.red = 0x2b;
-   color3.green = 0x55;
-   color3.blue = 0x03;
-   color4.red = 0x14;
-   color4.green = 0x44;
-   color4.blue = 0x03;
-
-   core->SetDMGPalette(color1, color2, color3, color4);
-
-   audio_buf = NULL;
-   count = 0;
+   audio_sample_count = 0;
 }
 
 void retro_deinit(void)
@@ -120,9 +96,9 @@ void retro_get_system_info(struct retro_system_info *info)
 {
    memset(info, 0, sizeof(*info));
    info->library_name     = "Gearboy";
-   info->library_version  = "2.3.1";
+   info->library_version  = GEARBOY_VERSION;
    info->need_fullpath    = true;
-   info->valid_extensions = "gb|gbc";
+   info->valid_extensions = "gb|dmg|gbc|cgb|sgb";
 }
 
 static retro_video_refresh_t video_cb;
@@ -207,7 +183,7 @@ void retro_reset(void)
 static void update_input(void)
 {
    input_poll_cb();
-   
+
    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
       core->KeyPressed(Up_Key);
    else
@@ -240,31 +216,13 @@ static void update_input(void)
       core->KeyPressed(Select_Key);
    else
       core->KeyReleased(Select_Key);
-   
+
 }
 
 
 static void check_variables(void)
 {
 
-}
-
-static void audio_callback(void)
-{
-   core->GetSamples(&audio_buf, &count);
-
-   if (audio_buf && count)
-      audio_batch_cb(audio_buf, count);
-
-   audio_buf = NULL;
-   count = 0;
-
-   return;
-}
-
-static void audio_set_state(bool enable)
-{
-   (void)enable;
 }
 
 void retro_run(void)
@@ -274,10 +232,15 @@ void retro_run(void)
    bool updated = false;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables();
-   core->RunToVBlank(gearboy_frame_buf);
+
+   core->RunToVBlank(gearboy_frame_buf, audio_buf, &audio_sample_count);
 
    video_cb((uint8_t*)gearboy_frame_buf, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_WIDTH * sizeof(GB_Color));
 
+   if (audio_sample_count > 0)
+      audio_batch_cb(audio_buf, audio_sample_count / 2);
+
+   audio_sample_count = 0;
 }
 
 bool retro_load_game(const struct retro_game_info *info)
@@ -306,8 +269,6 @@ bool retro_load_game(const struct retro_game_info *info)
    }
 
    snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
-   struct retro_audio_callback audio_cb = { audio_callback, audio_set_state };
-   use_audio_cb = environ_cb(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &audio_cb);
 
    check_variables();
 
@@ -366,4 +327,3 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
    (void)enabled;
    (void)code;
 }
-

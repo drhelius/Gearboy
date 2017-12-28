@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "Video.h"
@@ -101,7 +101,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
         {
             // During H-BLANK
             case 0:
-            {                
+            {
                 if (m_iStatusModeCounter >= 204)
                 {
                     m_iStatusModeCounter -= 204;
@@ -213,7 +213,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
             }
             // During searching OAM RAM
             case 2:
-            {       
+            {
                 if (m_iStatusModeCounter >= 80)
                 {
                     m_iStatusModeCounter -= 80;
@@ -236,7 +236,10 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                     {
                         while (m_iTileCycleCounter >= 3)
                         {
-                            RenderBG(m_iStatusModeLYCounter, m_iPixelCounter, 4);
+                            if (IsValidPointer(m_pColorFrameBuffer))
+                            {
+                                RenderBG(m_iStatusModeLYCounter, m_iPixelCounter, 4);
+                            }
                             m_iPixelCounter += 4;
                             m_iTileCycleCounter -= 3;
 
@@ -279,7 +282,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
     }
     // Screen disabled
     else
-    {   
+    {
         if (m_iScreenEnableDelayCycles > 0)
         {
             m_iScreenEnableDelayCycles -= clockCycles;
@@ -519,7 +522,7 @@ void Video::RenderBG(int line, int pixel, int count)
             {
                 map_tile = m_pMemory->Retrieve(map_tile_addr);
             }
-            
+
             u8 cgb_tile_attr = m_bCGB ? m_pMemory->ReadCGBLCDRAM(map_tile_addr, true) : 0;
             u8 cgb_tile_pal = m_bCGB ? (cgb_tile_attr & 0x07) : 0;
             bool cgb_tile_bank = m_bCGB ? IsSetBit(cgb_tile_attr, 3) : false;

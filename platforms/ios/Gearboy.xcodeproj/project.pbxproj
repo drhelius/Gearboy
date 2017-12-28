@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		6636357A1A0F8360003CFCDF /* gb_1206.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 663635791A0F8360003CFCDF /* gb_1206.jpg */; };
 		6636357E1A0F897A003CFCDF /* gb_2016.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 6636357D1A0F897A003CFCDF /* gb_2016.jpg */; };
+		664653E81FEFE98F00053EBB /* Sound_Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 664653E71FEFE98F00053EBB /* Sound_Queue.cpp */; };
 		6648A60219E078C4005A0B40 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6648A60119E078C4005A0B40 /* main.m */; };
 		6648A60519E078C4005A0B40 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6648A60419E078C4005A0B40 /* AppDelegate.mm */; };
 		6648A60819E078C4005A0B40 /* MasterViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6648A60719E078C4005A0B40 /* MasterViewController.mm */; };
@@ -31,7 +32,6 @@
 		669394D019E07B47003FB4F4 /* Gb_Apu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394C519E07B47003FB4F4 /* Gb_Apu.cpp */; };
 		669394D119E07B47003FB4F4 /* Gb_Oscs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394C719E07B47003FB4F4 /* Gb_Oscs.cpp */; };
 		669394D219E07B47003FB4F4 /* Multi_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394C919E07B47003FB4F4 /* Multi_Buffer.cpp */; };
-		669394D319E07B47003FB4F4 /* Sound_Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394CB19E07B47003FB4F4 /* Sound_Queue.cpp */; };
 		669394FF19E07B60003FB4F4 /* Audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394D419E07B60003FB4F4 /* Audio.cpp */; };
 		6693950019E07B60003FB4F4 /* Cartridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394D719E07B60003FB4F4 /* Cartridge.cpp */; };
 		6693950119E07B60003FB4F4 /* CommonMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394D919E07B60003FB4F4 /* CommonMemoryRule.cpp */; };
@@ -78,6 +78,8 @@
 /* Begin PBXFileReference section */
 		663635791A0F8360003CFCDF /* gb_1206.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = gb_1206.jpg; path = img/gb_1206.jpg; sourceTree = "<group>"; };
 		6636357D1A0F897A003CFCDF /* gb_2016.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = gb_2016.jpg; path = img/gb_2016.jpg; sourceTree = "<group>"; };
+		664653E61FEFE98F00053EBB /* Sound_Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound_Queue.h; path = "../audio-shared/Sound_Queue.h"; sourceTree = "<group>"; };
+		664653E71FEFE98F00053EBB /* Sound_Queue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound_Queue.cpp; path = "../audio-shared/Sound_Queue.cpp"; sourceTree = "<group>"; };
 		6648A5FC19E078C4005A0B40 /* Gearboy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gearboy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6648A60019E078C4005A0B40 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6648A60119E078C4005A0B40 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -114,8 +116,6 @@
 		669394C819E07B47003FB4F4 /* Gb_Oscs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Gb_Oscs.h; path = ../../src/audio/Gb_Oscs.h; sourceTree = "<group>"; };
 		669394C919E07B47003FB4F4 /* Multi_Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Multi_Buffer.cpp; path = ../../src/audio/Multi_Buffer.cpp; sourceTree = "<group>"; };
 		669394CA19E07B47003FB4F4 /* Multi_Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Multi_Buffer.h; path = ../../src/audio/Multi_Buffer.h; sourceTree = "<group>"; };
-		669394CB19E07B47003FB4F4 /* Sound_Queue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound_Queue.cpp; path = ../../src/audio/Sound_Queue.cpp; sourceTree = "<group>"; };
-		669394CC19E07B47003FB4F4 /* Sound_Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound_Queue.h; path = ../../src/audio/Sound_Queue.h; sourceTree = "<group>"; };
 		669394D419E07B60003FB4F4 /* Audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Audio.cpp; path = ../../src/Audio.cpp; sourceTree = "<group>"; };
 		669394D519E07B60003FB4F4 /* Audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Audio.h; path = ../../src/Audio.h; sourceTree = "<group>"; };
 		669394D719E07B60003FB4F4 /* Cartridge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Cartridge.cpp; path = ../../src/Cartridge.cpp; sourceTree = "<group>"; };
@@ -353,6 +353,8 @@
 		669394BB19E07B34003FB4F4 /* Audio */ = {
 			isa = PBXGroup;
 			children = (
+				664653E71FEFE98F00053EBB /* Sound_Queue.cpp */,
+				664653E61FEFE98F00053EBB /* Sound_Queue.h */,
 				669394BC19E07B47003FB4F4 /* blargg_common.h */,
 				669394BD19E07B47003FB4F4 /* blargg_config.h */,
 				669394BE19E07B47003FB4F4 /* blargg_source.h */,
@@ -368,8 +370,6 @@
 				669394C819E07B47003FB4F4 /* Gb_Oscs.h */,
 				669394C919E07B47003FB4F4 /* Multi_Buffer.cpp */,
 				669394CA19E07B47003FB4F4 /* Multi_Buffer.h */,
-				669394CB19E07B47003FB4F4 /* Sound_Queue.cpp */,
-				669394CC19E07B47003FB4F4 /* Sound_Queue.h */,
 			);
 			name = Audio;
 			sourceTree = "<group>";
@@ -489,12 +489,12 @@
 				6693950719E07B60003FB4F4 /* MBC3MemoryRule.cpp in Sources */,
 				669394D119E07B47003FB4F4 /* Gb_Oscs.cpp in Sources */,
 				669394D019E07B47003FB4F4 /* Gb_Apu.cpp in Sources */,
-				669394D319E07B47003FB4F4 /* Sound_Queue.cpp in Sources */,
 				6693950819E07B60003FB4F4 /* MBC5MemoryRule.cpp in Sources */,
 				6693950F19E07B60003FB4F4 /* RomOnlyMemoryRule.cpp in Sources */,
 				6693950B19E07B60003FB4F4 /* MultiMBC1MemoryRule.cpp in Sources */,
 				6693950E19E07B60003FB4F4 /* Processor.cpp in Sources */,
 				6648A60519E078C4005A0B40 /* AppDelegate.mm in Sources */,
+				664653E81FEFE98F00053EBB /* Sound_Queue.cpp in Sources */,
 				6693951019E07B60003FB4F4 /* Video.cpp in Sources */,
 				669394CF19E07B47003FB4F4 /* Gb_Apu_State.cpp in Sources */,
 				6693952119E07CE9003FB4F4 /* GLViewController.mm in Sources */,

@@ -22,10 +22,13 @@
 Emulator::Emulator()
 {
     InitPointer(m_pGearboyCore);
+    InitPointer(m_pSoundQueue);
+    m_bAudioEnabled = true;
 }
 
 Emulator::~Emulator()
 {
+    SafeDelete(m_pSoundQueue);
     SafeDelete(m_pGearboyCore);
 }
 
@@ -33,6 +36,9 @@ void Emulator::Init()
 {
     m_pGearboyCore = new GearboyCore();
     m_pGearboyCore->Init();
+
+    m_pSoundQueue = new Sound_Queue();
+    m_pSoundQueue->start(44100, 2);
 }
 
 void Emulator::LoadRom(const char* szFilePath, bool forceDMG)
@@ -47,7 +53,17 @@ void Emulator::LoadRom(const char* szFilePath, bool forceDMG)
 void Emulator::RunToVBlank(GB_Color* pFrameBuffer)
 {
     m_Mutex.lock();
-    m_pGearboyCore->RunToVBlank(pFrameBuffer);
+
+    s16 sampleBufer[AUDIO_BUFFER_SIZE];
+    int sampleCount = 0;
+
+    m_pGearboyCore->RunToVBlank(pFrameBuffer, sampleBufer, &sampleCount);
+
+    if (m_bAudioEnabled && (sampleCount > 0))
+    {
+        m_pSoundQueue->write(sampleBufer, sampleCount);
+    }
+
     m_Mutex.unlock();
 }
 
@@ -69,6 +85,7 @@ void Emulator::Pause()
 {
     m_Mutex.lock();
     m_pGearboyCore->Pause(true);
+    m_bAudioEnabled = false;
     m_Mutex.unlock();
 }
 
@@ -76,6 +93,7 @@ void Emulator::Resume()
 {
     m_Mutex.lock();
     m_pGearboyCore->Pause(false);
+    m_bAudioEnabled = true;
     m_Mutex.unlock();
 }
 
@@ -106,8 +124,10 @@ void Emulator::MemoryDump()
 void Emulator::SetSoundSettings(bool enabled, int rate)
 {
     m_Mutex.lock();
-    m_pGearboyCore->EnableSound(enabled);
+    m_bAudioEnabled = enabled;
     m_pGearboyCore->SetSoundSampleRate(rate);
+    m_pSoundQueue->stop();
+    m_pSoundQueue->start(rate, 2);
     m_Mutex.unlock();
 }
 

@@ -17,6 +17,7 @@
  * 
  */
 
+#include <QMainWindow>
 #include "RenderThread.h"
 #include "GLFrame.h"
 #include "Emulator.h"
@@ -84,25 +85,33 @@ void RenderThread::run()
 
     while (m_bDoRendering)
     {
-        m_pGLFrame->makeCurrent();
-
-        if (!m_bPaused)
+        if (m_pGLFrame->parentWidget()->window()->isVisible())
         {
-            m_pEmulator->RunToVBlank(m_pFrameBuffer);
 
-            if (m_bResizeEvent)
+            m_pGLFrame->makeCurrent();
+
+            if (m_bPaused)
             {
-                m_bResizeEvent = false;
-                m_bFirstFrame = true;
+                msleep(200);
+            }
+            else
+            {
+                m_pEmulator->RunToVBlank(m_pFrameBuffer);
+
+                if (m_bResizeEvent)
+                {
+                    m_bResizeEvent = false;
+                    m_bFirstFrame = true;
+                }
+
+                if (m_bMixFrames && !m_pEmulator->IsCGBRom())
+                    RenderMixFrames();
+                else
+                    RenderFrame();
             }
 
-            if (m_bMixFrames && !m_pEmulator->IsCGBRom())
-                RenderMixFrames();
-            else
-                RenderFrame();
+            m_pGLFrame->swapBuffers();
         }
-
-        m_pGLFrame->swapBuffers();
     }
     
     SafeDeleteArray(m_pFrameBuffer);
@@ -225,10 +234,12 @@ void RenderThread::RenderQuad(int viewportWidth, int viewportHeight, bool mirror
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+
     if (mirrorY)
-        gluOrtho2D(0, viewportWidth, 0, viewportHeight);
+        glOrtho(0, viewportWidth, 0, viewportHeight, -1, 1);
     else
-        gluOrtho2D(0, viewportWidth, viewportHeight, 0);
+        glOrtho(0, viewportWidth, viewportHeight, 0, -1, 1);
+
     glMatrixMode(GL_MODELVIEW);
     glViewport(0, 0, viewportWidth, viewportHeight);
 

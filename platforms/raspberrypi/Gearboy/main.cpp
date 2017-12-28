@@ -55,8 +55,12 @@ const GLfloat kQuadTex[8] = { 0, 0, kGB_TexWidth, 0, kGB_TexWidth, kGB_TexHeight
 GLshort quadVerts[8];
 
 GearboyCore* theGearboyCore;
+Sound_Queue* theSoundQueue;
 GB_Color* theFrameBuffer;
 GLuint theGBTexture;
+s16 theSampleBufffer[AUDIO_BUFFER_SIZE];
+
+bool audioEnabled = true;
 
 struct palette_color
 {
@@ -198,7 +202,14 @@ void update(void)
         }
     }
 
-    theGearboyCore->RunToVBlank(theFrameBuffer);
+    int sampleCount = 0;
+
+    theGearboyCore->RunToVBlank(theFrameBuffer, theSampleBufffer, &sampleCount);
+
+    if (audioEnabled && (sampleCount > 0))
+    {
+        theSoundQueue->write(theSampleBufffer, sampleCount);
+    }
 
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -481,6 +492,9 @@ void init(void)
     theGearboyCore = new GearboyCore();
     theGearboyCore->Init();
 
+    theSoundQueue = new Sound_Queue();
+    theSoundQueue->start(44100, 2);
+
     theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
 
     for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
@@ -547,6 +561,7 @@ void end(void)
     SDL_JoystickClose(game_pad);
 
     SafeDeleteArray(theFrameBuffer);
+    SafeDelete(theSoundQueue);
     SafeDelete(theGearboyCore);
     SDL_DestroyWindow(theWindow);
     SDL_Quit();
@@ -566,14 +581,13 @@ int main(int argc, char** argv)
     }
 
     bool forcedmg = false;
-    bool nosound = false;
 
     if (argc > 2)
     {
         for (int i = 2; i < argc; i++)
         {
             if (strcmp("-nosound", argv[i]) == 0)
-                nosound = true;
+                audioEnabled = false;
             else if (strcmp("-forcedmg", argv[i]) == 0)
                 forcedmg = true;
             else
@@ -606,7 +620,6 @@ int main(int argc, char** argv)
         color4.blue = dmg_palette[3].blue;
 
         theGearboyCore->SetDMGPalette(color1, color2, color3, color4);
-        theGearboyCore->EnableSound(!nosound);
         theGearboyCore->LoadRam();
 
         while (running)
