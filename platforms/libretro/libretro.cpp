@@ -73,6 +73,8 @@ void retro_init(void)
    core = new GearboyCore();
    core->Init();
 
+   gearboy_frame_buf = new GB_Color[VIDEO_WIDTH * VIDEO_HEIGHT];
+
    audio_sample_count = 0;
 }
 
