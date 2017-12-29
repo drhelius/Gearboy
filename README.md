@@ -41,9 +41,9 @@ Build Instructions
 
 ### iOS
 - Install Xcode for Mac OS X. You need iOS SDK 8 or later. 
-- Build the project. 
-- Run it on real hardware using your iOS developer certificate. Make sure it compiles on Release for extra optimizations.
-- For jailbroken devices use the jailbreak branch.
+- Build the project <code>platforms/ios/Gearboy.xcodeproj</code> 
+- Run it on real hardware using your iOS developer certificate. Make sure it builds on Release for better performance.
+- For jailbroken devices use the <code>jailbreak</code> branch.
 
 ### Raspberry Pi 2 & 3 - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
@@ -59,16 +59,17 @@ cd SDL2-2.0.4 && mkdir build && cd build
 make -j 4
 sudo make install
 ```
-- Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>.
+- Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>
 - Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/Gearboy/</code> folder to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
 - The emulator generates a <code>gearboy.cfg</code> configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ### Windows
-- You need Visual Studio 2015.
+- You need Visual Studio 2015 or later.
 - Install the [Qt 5 Open Source SDK for Windows](https://www.qt.io/download/).
 - Install the [QtPackage Extension](https://visualstudiogallery.msdn.microsoft.com/c89ff880-8509-47a4-a262-e4fa07168408) and point it to the Qt SDK.
-- Open the Gearboy Visual Studio project and build.
+- Open the Gearboy Visual Studio solution <code>platforms/windows/Gearboy/Gearboy.sln</code> and build.
+- You may want to use the <code>platforms/windows/Gearboy/Gearboy.pro</code> project file with Qt Creator instead.
 
 ### Mac OS X
 - You need Qt Creator, included in the Qt 5 SDK.
@@ -80,7 +81,7 @@ sudo make install
 make
 sudo make install
 ```
-- Open the Gearboy Qt project with Qt Creator and build.
+- Open the <code>platforms/macosx/Gearboy/Gearboy.pro</code> project file with Qt Creator and build.
 
 ### Linux
 - Ubuntu or Debian:
