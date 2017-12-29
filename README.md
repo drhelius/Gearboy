@@ -65,10 +65,11 @@ sudo make install
 - The emulator generates a <code>gearboy.cfg</code> configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ### Windows
-- You need Visual Studio 2015.
+- You need Visual Studio 2015 or later.
 - Install the [Qt 5 Open Source SDK for Windows](https://www.qt.io/download/).
 - Install the [QtPackage Extension](https://visualstudiogallery.msdn.microsoft.com/c89ff880-8509-47a4-a262-e4fa07168408) and point it to the Qt SDK.
 - Open the Gearboy Visual Studio project and build.
+- You may want to use the <code>.pro</code> project file with Qt Creator instead.
 
 ### Mac OS X
 - You need Qt Creator, included in the Qt 5 SDK.
@@ -80,7 +81,7 @@ sudo make install
 make
 sudo make install
 ```
-- Open the Gearboy Qt project with Qt Creator and build.
+- Open the <code>.pro</code> project file with Qt Creator and build.
 
 ### Linux
 - Ubuntu or Debian:
