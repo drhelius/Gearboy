@@ -4,9 +4,15 @@ matrix:
       dist: trusty
       sudo: required
       language: cpp
-      compiler: gcc
+      env: BUILD_TYPE=desktop
+    - os: linux
+      dist: trusty
+      sudo: required
+      language: cpp
+      env: BUILD_TYPE=libretro
     - os: osx
       language: cpp
+      env: BUILD_TYPE=ios
 
 before_install:
 
@@ -17,5 +23,6 @@ before_install:
 
 
 script:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild clean build -sdk iphonesimulator -project platforms/ios/Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then qmake Gearboy.pro && make; fi
+    - if [[ "$BUILD_TYPE" == "ios" ]]; then xcodebuild clean build -sdk iphonesimulator -project platforms/ios/Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO; fi
+    - if [[ "$BUILD_TYPE" == "linux" ]]; then cd platforms/linux/Gearboy && qmake Gearboy.pro && make; fi
+    - if [[ "$BUILD_TYPE" == "libretro" ]]; then cd platforms/libretro && make; fi
