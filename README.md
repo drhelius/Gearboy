@@ -5,7 +5,7 @@ Gearboy
 ----------
 [![Build Status](https://travis-ci.org/drhelius/Gearboy.svg?branch=master)](https://travis-ci.org/drhelius/Gearboy)
 
-Gearboy is a Nintendo Game Boy / GameBoy Color emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows and Linux.
+Gearboy is a Nintendo Game Boy / GameBoy Color emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows, Linux and RetroArch.
 
 Follow me on Twitter for updates: http://twitter.com/drhelius
 
@@ -18,7 +18,7 @@ Downloads
 - Mac OS X: <code>brew install gearboy</code>
 - Windows: [Gearboy-2.3-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-2.3-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Linux: [Gearboy-2.3-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-2.3-Linux.tar.gz)
- - Fedora: [copr package](https://copr.fedorainfracloud.org/coprs/dmoerner/Gearboy/)
+- Libretro / RetroArch: [docs](https://docs.libretro.com/library/gearboy/)
 - Raspberry Pi: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
 - Ubuntu Touch version by Ryan Pattison: [here](https://uappexplorer.com/app/gearboy.rpattison)
 
@@ -34,7 +34,7 @@ Features
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Saves battery powered RAM cartridges to file.
 - Compressed rom support (ZIP deflate).
-- Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
+- Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi, iOS and as a libretro core (RetroArch).
 
 Build Instructions
 ----------------------
