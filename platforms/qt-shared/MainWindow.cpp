@@ -13,13 +13,14 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include <QFileDialog>
 #include <QDesktopWidget>
 #include <QSettings>
+#include <QStandardPaths>
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "GLFrame.h"
@@ -434,7 +435,7 @@ bool MainWindow::event(QEvent *ev)
 
 void MainWindow::LoadSettings()
 {
-    QSettings settings("gearboy.ini", QSettings::IniFormat);
+    QSettings settings(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/gearboy.ini", QSettings::IniFormat);
 
     settings.beginGroup("Gearboy");
     m_iScreenSize = settings.value("ScreenSize", 2).toInt();
@@ -478,7 +479,7 @@ void MainWindow::LoadSettings()
 
 void MainWindow::SaveSettings()
 {
-    QSettings settings("gearboy.ini", QSettings::IniFormat);
+    QSettings settings(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/gearboy.ini", QSettings::IniFormat);
 
     settings.beginGroup("Gearboy");
     settings.setValue("ScreenSize", m_iScreenSize);
@@ -498,4 +499,3 @@ void MainWindow::SaveSettings()
 
     m_pEmulator->SaveRam();
 }
-
