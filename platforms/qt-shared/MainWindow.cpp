@@ -439,7 +439,7 @@ bool MainWindow::event(QEvent *ev)
 
 void MainWindow::LoadSettings()
 {
-    QSettings settings(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/gearboy.ini", QSettings::IniFormat);
+    QSettings settings(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/gearboy.ini", QSettings::IniFormat);
 
     settings.beginGroup("Gearboy");
     m_iScreenSize = settings.value("ScreenSize", 2).toInt();
@@ -484,7 +484,7 @@ void MainWindow::LoadSettings()
 
 void MainWindow::SaveSettings()
 {
-    QSettings settings(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/gearboy.ini", QSettings::IniFormat);
+    QSettings settings(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/gearboy.ini", QSettings::IniFormat);
 
     settings.beginGroup("Gearboy");
     settings.setValue("ScreenSize", m_iScreenSize);
