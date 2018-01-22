@@ -157,7 +157,7 @@ void Emulator::SaveRam()
     if (m_bSaveInROMFolder)
         m_pGearboyCore->SaveRam();
     else
-        m_pGearboyCore->SaveRam(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation).toStdString().c_str());
+        m_pGearboyCore->SaveRam(QStandardPaths::writableLocation(QStandardPaths::DataLocation).toStdString().c_str());
 }
 
 void Emulator::LoadRam()
@@ -165,5 +165,5 @@ void Emulator::LoadRam()
     if (m_bSaveInROMFolder)
         m_pGearboyCore->LoadRam();
     else
-        m_pGearboyCore->LoadRam(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation).toStdString().c_str());
+        m_pGearboyCore->LoadRam(QStandardPaths::writableLocation(QStandardPaths::DataLocation).toStdString().c_str());
 }
