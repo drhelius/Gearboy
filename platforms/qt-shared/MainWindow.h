@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef MAINWINDOW_H
@@ -64,6 +64,7 @@ public slots:
     void MenuSettingsWindowSize(QAction* action);
     void MenuSettingsFullscreen();
     void MenuSettingsForceDMG();
+    void MenuSettingsSaveRAMInROMFolder();
     void MenuDebugDisassembler();
     void MenuDebugOAM();
     void MenuDebugMap();

@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef EMULATOR_H
@@ -31,25 +31,28 @@ public:
     ~Emulator();
     void Init();
     void RunToVBlank(GB_Color* pFrameBuffer);
-    void LoadRom(const char* szFilePath, bool forceDMG);
+    void LoadRom(const char* szFilePath, bool forceDMG, bool saveInROMFolder);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause();
     void Resume();
     bool IsPaused();
-    void Reset(bool forceDMG);
+    void Reset(bool forceDMG, bool saveInROMFolder);
     void MemoryDump();
     void SetSoundSettings(bool enabled, int rate);
     void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
-    void SaveRam();
     bool IsCGBRom();
+
+private:
+    void SaveRam();
+    void LoadRam();
 
 private:
     GearboyCore* m_pGearboyCore;
     Sound_Queue* m_pSoundQueue;
     QMutex m_Mutex;
     bool m_bAudioEnabled;
+    bool m_bSaveInROMFolder;
 };
 
 #endif	/* EMULATOR_H */
-

@@ -119,7 +119,7 @@ void MainWindow::InitalGameBoyLoadROM(const char* szFilePath)
     {
         m_pGLFrame->PauseRenderThread();
 
-        m_pEmulator->LoadRom(szFilePath, m_pUI->actionForce_Game_Boy_DMG->isChecked());
+        m_pEmulator->LoadRom(szFilePath, m_pUI->actionForce_Game_Boy_DMG->isChecked(), m_pUI->actionSave_RAM_in_ROM_folder->isChecked());
         m_pUI->actionPause->setChecked(false);
 
         setFocus();
@@ -141,7 +141,7 @@ void MainWindow::MenuGameBoyLoadROM()
 
     if (!filename.isNull())
     {
-        m_pEmulator->LoadRom(filename.toUtf8().data(), m_pUI->actionForce_Game_Boy_DMG->isChecked());
+        m_pEmulator->LoadRom(filename.toUtf8().data(), m_pUI->actionForce_Game_Boy_DMG->isChecked(), m_pUI->actionSave_RAM_in_ROM_folder->isChecked());
         m_pUI->actionPause->setChecked(false);
     }
 
@@ -162,7 +162,7 @@ void MainWindow::MenuGameBoyPause()
 void MainWindow::MenuGameBoyReset()
 {
     m_pUI->actionPause->setChecked(false);
-    m_pEmulator->Reset(m_pUI->actionForce_Game_Boy_DMG->isChecked());
+    m_pEmulator->Reset(m_pUI->actionForce_Game_Boy_DMG->isChecked(), m_pUI->actionSave_RAM_in_ROM_folder->isChecked());
 }
 
 void MainWindow::MenuGameBoySelectStateSlot()
@@ -254,6 +254,10 @@ void MainWindow::MenuSettingsFullscreen()
 }
 
 void MainWindow::MenuSettingsForceDMG()
+{
+}
+
+void MainWindow::MenuSettingsSaveRAMInROMFolder()
 {
 }
 
@@ -464,6 +468,7 @@ void MainWindow::LoadSettings()
     MenuSettingsFullscreen();
 
     m_pUI->actionForce_Game_Boy_DMG->setChecked(settings.value("ForceDMG", false).toBool());
+    m_pUI->actionSave_RAM_in_ROM_folder->setChecked(settings.value("SaveInROMFolder", false).toBool());
     settings.endGroup();
 
     settings.beginGroup("Input");
@@ -485,6 +490,7 @@ void MainWindow::SaveSettings()
     settings.setValue("ScreenSize", m_iScreenSize);
     settings.setValue("FullScreen", m_bFullscreen);
     settings.setValue("ForceDMG", m_pUI->actionForce_Game_Boy_DMG->isChecked());
+    settings.setValue("SaveInROMFolder", m_pUI->actionSave_RAM_in_ROM_folder->isChecked());
     settings.endGroup();
 
     settings.beginGroup("Input");
@@ -496,6 +502,4 @@ void MainWindow::SaveSettings()
     settings.beginGroup("Sound");
     m_pSoundSettings->SaveSettings(settings);
     settings.endGroup();
-
-    m_pEmulator->SaveRam();
 }

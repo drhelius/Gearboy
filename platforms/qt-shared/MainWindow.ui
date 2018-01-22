@@ -39,7 +39,7 @@
      <x>0</x>
      <y>0</y>
      <width>342</width>
-     <height>22</height>
+     <height>30</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -79,6 +79,7 @@
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
     <addaction name="actionForce_Game_Boy_DMG"/>
+    <addaction name="actionSave_RAM_in_ROM_folder"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -318,6 +319,14 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionSave_RAM_in_ROM_folder">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save RAM in ROM folder</string>
    </property>
   </action>
  </widget>
@@ -595,6 +604,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionSave_RAM_in_ROM_folder</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>MenuSettingsSaveRAMInROMFolder()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>170</x>
+     <y>160</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>MenuGameBoyLoadROM()</slot>
@@ -610,6 +635,7 @@
   <slot>MenuSettingsSound()</slot>
   <slot>MenuSettingsFullscreen()</slot>
   <slot>MenuSettingsForceDMG()</slot>
+  <slot>MenuSettingsSaveRAMInROMFolder()</slot>
   <slot>MenuDebugDisassembler()</slot>
   <slot>MenuDebugOAM()</slot>
   <slot>MenuDebugMap()</slot>

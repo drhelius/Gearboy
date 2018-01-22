@@ -13,10 +13,11 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
+#include <QStandardPaths>
 #include "Emulator.h"
 
 Emulator::Emulator()
@@ -24,10 +25,12 @@ Emulator::Emulator()
     InitPointer(m_pGearboyCore);
     InitPointer(m_pSoundQueue);
     m_bAudioEnabled = true;
+    m_bSaveInROMFolder = false;
 }
 
 Emulator::~Emulator()
 {
+    SaveRam();
     SafeDelete(m_pSoundQueue);
     SafeDelete(m_pGearboyCore);
 }
@@ -41,12 +44,13 @@ void Emulator::Init()
     m_pSoundQueue->start(44100, 2);
 }
 
-void Emulator::LoadRom(const char* szFilePath, bool forceDMG)
+void Emulator::LoadRom(const char* szFilePath, bool forceDMG, bool saveInROMFolder)
 {
     m_Mutex.lock();
-    m_pGearboyCore->SaveRam();
+    m_bSaveInROMFolder = saveInROMFolder;
+    SaveRam();
     m_pGearboyCore->LoadROM(szFilePath, forceDMG);
-    m_pGearboyCore->LoadRam();
+    LoadRam();
     m_Mutex.unlock();
 }
 
@@ -105,12 +109,13 @@ bool Emulator::IsPaused()
     return paused;
 }
 
-void Emulator::Reset(bool forceDMG)
+void Emulator::Reset(bool forceDMG, bool saveInROMFolder)
 {
     m_Mutex.lock();
-    m_pGearboyCore->SaveRam();
+    m_bSaveInROMFolder = saveInROMFolder;
+    SaveRam();
     m_pGearboyCore->ResetROM(forceDMG);
-    m_pGearboyCore->LoadRam();
+    LoadRam();
     m_Mutex.unlock();
 }
 
@@ -139,17 +144,26 @@ void Emulator::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color
     m_Mutex.unlock();
 }
 
-void Emulator::SaveRam()
-{
-    m_Mutex.lock();
-    m_pGearboyCore->SaveRam();
-    m_Mutex.unlock();
-}
-
 bool Emulator::IsCGBRom()
 {
     m_Mutex.lock();
     bool cgb = m_pGearboyCore->GetCartridge()->IsCGB();
     m_Mutex.unlock();
     return cgb;
+}
+
+void Emulator::SaveRam()
+{
+    if (m_bSaveInROMFolder)
+        m_pGearboyCore->SaveRam();
+    else
+        m_pGearboyCore->SaveRam(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation).toStdString().c_str());
+}
+
+void Emulator::LoadRam()
+{
+    if (m_bSaveInROMFolder)
+        m_pGearboyCore->LoadRam();
+    else
+        m_pGearboyCore->LoadRam(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation).toStdString().c_str());
 }
