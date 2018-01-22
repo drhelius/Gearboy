@@ -257,24 +257,28 @@ void GearboyCore::SaveRam(const char* szPath)
 
         using namespace std;
 
-        char path[512];
+        string path = "";
 
         if (IsValidPointer(szPath))
         {
-            strcpy(path, szPath);
-            strcat(path, "/");
-            strcat(path, m_pCartridge->GetFileName());
+            path += szPath;
+            path += "/";
+            path += m_pCartridge->GetFileName();
         }
         else
         {
-            strcpy(path, m_pCartridge->GetFilePath());
+            path = m_pCartridge->GetFilePath();
         }
 
-        strcat(path, ".gearboy");
+        string::size_type i = path.rfind('.', path.length());
 
-        Log("Save file: %s", path);
+        if (i != string::npos) {
+            path.replace(i + 1, 3, "sav");
+        }
 
-        ofstream file(path, ios::out | ios::binary);
+        Log("Save file: %s", path.c_str());
+
+        ofstream file(path.c_str(), ios::out | ios::binary);
 
         m_pMemory->GetCurrentRule()->SaveRam(file);
 
@@ -295,24 +299,28 @@ void GearboyCore::LoadRam(const char* szPath)
 
         using namespace std;
 
-        char path[512];
+        string path = "";
 
         if (IsValidPointer(szPath))
         {
-            strcpy(path, szPath);
-            strcat(path, "/");
-            strcat(path, m_pCartridge->GetFileName());
+            path += szPath;
+            path += "/";
+            path += m_pCartridge->GetFileName();
         }
         else
         {
-            strcpy(path, m_pCartridge->GetFilePath());
+            path = m_pCartridge->GetFilePath();
         }
 
-        strcat(path, ".gearboy");
+        string::size_type i = path.rfind('.', path.length());
 
-        Log("Opening save file: %s", path);
+        if (i != string::npos) {
+            path.replace(i + 1, 3, "sav");
+        }
 
-        ifstream file(path, ios::in | ios::binary);
+        Log("Opening save file: %s", path.c_str());
+
+        ifstream file(path.c_str(), ios::in | ios::binary);
 
         if (!file.fail())
         {

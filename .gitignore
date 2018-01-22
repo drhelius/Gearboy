@@ -54,6 +54,7 @@ desktop.ini
 *.zip
 *.gearboy
 *.so
+*.sav
 
 # Qt Ignores
 moc_*.cpp
