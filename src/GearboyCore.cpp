@@ -299,28 +299,42 @@ void GearboyCore::LoadRam(const char* szPath)
 
         using namespace std;
 
-        string path = "";
+        string sav_path = "";
 
         if (IsValidPointer(szPath))
         {
-            path += szPath;
-            path += "/";
-            path += m_pCartridge->GetFileName();
+            sav_path += szPath;
+            sav_path += "/";
+            sav_path += m_pCartridge->GetFileName();
         }
         else
         {
-            path = m_pCartridge->GetFilePath();
+            sav_path = m_pCartridge->GetFilePath();
         }
 
-        string::size_type i = path.rfind('.', path.length());
+        string rom_path = sav_path;
+
+        string::size_type i = sav_path.rfind('.', sav_path.length());
 
         if (i != string::npos) {
-            path.replace(i + 1, 3, "sav");
+            sav_path.replace(i + 1, 3, "sav");
         }
 
-        Log("Opening save file: %s", path.c_str());
+        Log("Opening save file: %s", sav_path.c_str());
 
-        ifstream file(path.c_str(), ios::in | ios::binary);
+        ifstream file;
+
+        file.open(sav_path.c_str(), ios::in | ios::binary);
+
+        // check for old .gearboy saves
+        if (file.fail())
+        {
+            Log("Save file doesn't exist");
+            string old_sav_file = rom_path + ".gearboy";
+
+            Log("Opening old save file: %s", old_sav_file.c_str());
+            file.open(old_sav_file.c_str(), ios::in | ios::binary);
+        }
 
         if (!file.fail())
         {
