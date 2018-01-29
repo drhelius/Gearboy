@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "MBC3MemoryRule.h"
@@ -284,33 +284,33 @@ void MBC3MemoryRule::SaveRam(std::ofstream & file)
 bool MBC3MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
 {
     Log("MBC3MemoryRule load RAM...");
-    
+
     bool loadRTC = m_pCartridge->IsRTCPresent();
 
     if (fileSize > 0)
-    {  
+    {
         if (fileSize < 0x8000)
         {
             Log("MBC3MemoryRule incorrect RAM size. Expected: %d Found: %d", 0x8000, fileSize);
             return false;
         }
-        
+
         if (loadRTC)
         {
             s32 minExpectedSize = 0x8000 + 44;
             s32 maxExpectedSize = 0x8000 + 48;
-            
+
             if ((fileSize != minExpectedSize) && (fileSize != maxExpectedSize))
             {
                 Log("MBC3MemoryRule incorrect RTC size. MinExpected: %d MaxExpected: %d Found: %d", minExpectedSize, maxExpectedSize, fileSize);
             }
-            
+
             if (fileSize < minExpectedSize)
             {
                 Log("MBC3MemoryRule ignoring RTC data");
                 loadRTC = false;
             }
-        } 
+        }
     }
 
     for (int i = 0; i < 0x8000; i++)
@@ -321,7 +321,7 @@ bool MBC3MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
     }
 
     if (loadRTC)
-    {   
+    {
         file.read(reinterpret_cast<char*> (&m_iRTCSeconds), 4);
         file.read(reinterpret_cast<char*> (&m_iRTCMinutes), 4);
         file.read(reinterpret_cast<char*> (&m_iRTCHours), 4);
@@ -396,4 +396,14 @@ void MBC3MemoryRule::UpdateRTC()
         }
         m_RTCLastTime = now;
     }
+}
+
+size_t MBC3MemoryRule::GetRamSize()
+{
+    return 0x8000;
+}
+
+u8* MBC3MemoryRule::GetRamBanks()
+{
+    return m_pRAMBanks;
 }

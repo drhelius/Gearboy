@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "MBC5MemoryRule.h"
@@ -149,7 +149,7 @@ void MBC5MemoryRule::SaveRam(std::ofstream & file)
 {
     Log("MBC5MemoryRule save RAM...");
     Log("MBC5MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
-    
+
     s32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
 
     for (s32 i = 0; i < ramSize; i++)
@@ -182,6 +182,16 @@ bool MBC5MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
     }
 
     Log("MBC5MemoryRule load RAM done");
-    
+
     return true;
+}
+
+size_t MBC5MemoryRule::GetRamSize()
+{
+    return m_pCartridge->GetRAMBankCount() * 0x2000;
+}
+
+u8* MBC5MemoryRule::GetRamBanks()
+{
+    return m_pRAMBanks;
 }

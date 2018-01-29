@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "MemoryRule.h"
@@ -51,4 +51,28 @@ bool MemoryRule::LoadRam(std::ifstream&, s32)
 void MemoryRule::SetRamChangedCallback(RamChangedCallback callback)
 {
     m_pRamChangedCallback = callback;
+}
+
+size_t MemoryRule::GetRamSize()
+{
+    Log("GetRamSize not implemented");
+    return 0;
+}
+
+size_t MemoryRule::GetRTCSize()
+{
+    Log("GetRTCSize not implemented");
+    return 0;
+}
+
+u8* MemoryRule::GetRamBanks()
+{
+    Log("GetRamBanks not implemented");
+    return NULL;
+}
+
+u8* MemoryRule::GetRTCMemory()
+{
+    Log("GetRTCMemory not implemented");
+    return NULL;
 }

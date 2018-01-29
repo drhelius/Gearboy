@@ -179,7 +179,7 @@ static int mouse_rel_y;
 
 void retro_reset(void)
 {
-
+    core->ResetROM(false);
 }
 
 static void update_input(void)
@@ -220,7 +220,6 @@ static void update_input(void)
       core->KeyReleased(Select_Key);
 
 }
-
 
 static void check_variables(void)
 {
@@ -280,7 +279,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
 void retro_unload_game(void)
 {
-   core->SaveRam();
+
 }
 
 unsigned retro_get_region(void)
@@ -310,14 +309,32 @@ bool retro_unserialize(const void *data_, size_t size)
 
 void *retro_get_memory_data(unsigned id)
 {
-   (void)id;
-   return NULL;
+    switch (id)
+    {
+       case RETRO_MEMORY_SAVE_RAM:
+          return core->GetMemory()->GetCurrentRule()->GetRamBanks();
+       case RETRO_MEMORY_RTC:
+          return core->GetMemory()->GetCurrentRule()->GetRTCMemory();
+       case RETRO_MEMORY_SYSTEM_RAM:
+          return core->GetMemory()->GetMemoryMap();
+    }
+
+    return NULL;
 }
 
 size_t retro_get_memory_size(unsigned id)
 {
-   (void)id;
-   return 0;
+    switch (id)
+    {
+        case RETRO_MEMORY_SAVE_RAM:
+           return core->GetMemory()->GetCurrentRule()->GetRamSize();
+        case RETRO_MEMORY_RTC:
+           return core->GetMemory()->GetCurrentRule()->GetRTCSize();
+        case RETRO_MEMORY_SYSTEM_RAM:
+           return 0;
+    }
+
+    return 0;
 }
 
 void retro_cheat_reset(void)

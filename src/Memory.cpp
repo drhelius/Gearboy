@@ -188,6 +188,11 @@ MemoryRule* Memory::GetCurrentRule()
     return m_pCurrentMemoryRule;
 }
 
+u8* Memory::GetMemoryMap()
+{
+    return m_pMap;
+}
+
 void Memory::Disassemble(u16 address, const char* szDisassembled)
 {
     strcpy(m_pDisassembledMap[address].szDisString, szDisassembled);

@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "RomOnlyMemoryRule.h"
@@ -95,7 +95,7 @@ void RomOnlyMemoryRule::SaveRam(std::ofstream &file)
 bool RomOnlyMemoryRule::LoadRam(std::ifstream &file, s32 fileSize)
 {
     Log("RomOnlyMemoryRule load RAM...");
-    
+
     if ((fileSize > 0) && (fileSize != 0x2000))
     {
         Log("RomOnlyMemoryRule incorrect size. Expected: %d Found: %d", 0x2000, fileSize);
@@ -110,6 +110,16 @@ bool RomOnlyMemoryRule::LoadRam(std::ifstream &file, s32 fileSize)
     }
 
     Log("RomOnlyMemoryRule load RAM done");
-    
+
     return true;
+}
+
+size_t RomOnlyMemoryRule::GetRamSize()
+{
+    return m_pCartridge->GetRAMBankCount() * 0x2000;
+}
+
+u8* RomOnlyMemoryRule::GetRamBanks()
+{
+    return m_pMemory->GetMemoryMap() + 0xA000;
 }

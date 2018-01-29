@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef ROMONLYMEMORYRULE_H
@@ -33,7 +33,8 @@ public:
     virtual void Reset(bool bCGB);
     virtual void SaveRam(std::ofstream &file);
     virtual bool LoadRam(std::ifstream &file, s32 fileSize);
+    virtual size_t GetRamSize();
+    virtual u8* GetRamBanks();
 };
 
 #endif	/* ROMONLYMEMORYRULE_H */
-

@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "MBC2MemoryRule.h"
@@ -166,7 +166,7 @@ void MBC2MemoryRule::SaveRam(std::ofstream & file)
 bool MBC2MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
 {
     Log("MBC2MemoryRule load RAM...");
-    
+
     if ((fileSize > 0) && (fileSize != 512))
     {
         Log("MBC2MemoryRule incorrect size. Expected: 512 Found: %d", fileSize);
@@ -181,6 +181,16 @@ bool MBC2MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
     }
 
     Log("MBC2MemoryRule load RAM done");
-    
+
     return true;
+}
+
+size_t MBC2MemoryRule::GetRamSize()
+{
+    return 0x200;
+}
+
+u8* MBC2MemoryRule::GetRamBanks()
+{
+    return m_pMemory->GetMemoryMap() + 0xA000;
 }

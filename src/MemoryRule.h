@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef MEMORYRULE_H
@@ -42,6 +42,11 @@ public:
     virtual void SaveRam(std::ofstream &file);
     virtual bool LoadRam(std::ifstream &file, s32 fileSize);
     virtual void SetRamChangedCallback(RamChangedCallback callback);
+    virtual size_t GetRamSize();
+    virtual size_t GetRTCSize();
+    virtual u8* GetRamBanks();
+    virtual u8* GetRTCMemory();
+
 
 protected:
     Processor* m_pProcessor;
@@ -55,4 +60,3 @@ protected:
 };
 
 #endif	/* MEMORYRULE_H */
-
