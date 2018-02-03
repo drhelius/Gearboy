@@ -22,6 +22,21 @@
 
 #include "MemoryRule.h"
 
+struct RTC_Registers
+{
+    s32 Seconds;
+    s32 Minutes;
+    s32 Hours;
+    s32 Days;
+    s32 Control;
+    s32 LatchedSeconds;
+    s32 LatchedMinutes;
+    s32 LatchedHours;
+    s32 LatchedDays;
+    s32 LatchedControl;
+    s32 LastTime;
+};
+
 class MBC3MemoryRule : public MemoryRule
 {
 public:
@@ -45,22 +60,12 @@ private:
     bool m_bRamEnabled;
     bool m_bRTCEnabled;
     u8* m_pRAMBanks;
-    s32 m_iRTCSeconds;
-    s32 m_iRTCMinutes;
-    s32 m_iRTCHours;
-    s32 m_iRTCDays;
-    s32 m_iRTCControl;
-    s32 m_iRTCLatchedSeconds;
-    s32 m_iRTCLatchedMinutes;
-    s32 m_iRTCLatchedHours;
-    s32 m_iRTCLatchedDays;
-    s32 m_iRTCLatchedControl;
     s32 m_iRTCLatch;
     u8 m_RTCRegister;
-    s32 m_RTCLastTime;
     s32 m_RTCLastTimeCache;
     int m_CurrentROMAddress;
     int m_CurrentRAMAddress;
+    RTC_Registers m_RTC;
 };
 
 #endif	/* MBC3MEMORYRULE_H */

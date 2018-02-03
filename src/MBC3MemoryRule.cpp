@@ -67,19 +67,19 @@ u8 MBC3MemoryRule::PerformRead(u16 address)
                 switch (m_RTCRegister)
                 {
                     case 0x08:
-                        return m_iRTCLatchedSeconds;
+                        return m_RTC.LatchedSeconds;
                         break;
                     case 0x09:
-                        return m_iRTCLatchedMinutes;
+                        return m_RTC.LatchedMinutes;
                         break;
                     case 0x0A:
-                        return m_iRTCLatchedHours;
+                        return m_RTC.LatchedHours;
                         break;
                     case 0x0B:
-                        return m_iRTCLatchedDays;
+                        return m_RTC.LatchedDays;
                         break;
                     case 0x0C:
-                        return m_iRTCLatchedControl;
+                        return m_RTC.LatchedControl;
                         break;
                     default:
                         return 0xFF;
@@ -161,11 +161,11 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                 if ((m_iRTCLatch == 0x00) && (value == 0x01))
                 {
                     UpdateRTC();
-                    m_iRTCLatchedSeconds = m_iRTCSeconds;
-                    m_iRTCLatchedMinutes = m_iRTCMinutes;
-                    m_iRTCLatchedHours = m_iRTCHours;
-                    m_iRTCLatchedDays = m_iRTCDays;
-                    m_iRTCLatchedControl = m_iRTCControl;
+                    m_RTC.LatchedSeconds = m_RTC.Seconds;
+                    m_RTC.LatchedMinutes = m_RTC.Minutes;
+                    m_RTC.LatchedHours = m_RTC.Hours;
+                    m_RTC.LatchedDays = m_RTC.Days;
+                    m_RTC.LatchedControl = m_RTC.Control;
                 }
                 if ((value == 0x00) || (value == 0x01))
                 {
@@ -189,26 +189,26 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else if (m_pCartridge->IsRTCPresent() && m_bRTCEnabled)
             {
-                m_RTCLastTime = static_cast<s32>(m_pCartridge->GetCurrentRTC());
+                m_RTC.LastTime = static_cast<s32>(m_pCartridge->GetCurrentRTC());
                 switch (m_RTCRegister)
                 {
                     case 0x08:
-                        m_iRTCSeconds = value;
+                        m_RTC.Seconds = value;
                         break;
                     case 0x09:
-                        m_iRTCMinutes = value;
+                        m_RTC.Minutes = value;
                         break;
                     case 0x0A:
-                        m_iRTCHours = value;
+                        m_RTC.Hours = value;
                         break;
                     case 0x0B:
-                        m_iRTCDays = value;
+                        m_RTC.Days = value;
                         break;
                     case 0x0C:
-                        if (m_iRTCControl & 0x80)
-                            m_iRTCControl = 0x80 | value;
+                        if (m_RTC.Control & 0x80)
+                            m_RTC.Control = 0x80 | value;
                         else
-                            m_iRTCControl = value;
+                            m_RTC.Control = value;
                         break;
                 }
             }
@@ -235,19 +235,19 @@ void MBC3MemoryRule::Reset(bool bCGB)
     m_bRTCEnabled = false;
     for (int i = 0; i < 0x8000; i++)
         m_pRAMBanks[i] = 0xFF;
-    m_iRTCSeconds = 0;
-    m_iRTCMinutes = 0;
-    m_iRTCHours = 0;
-    m_iRTCDays = 0;
-    m_iRTCControl = 0;
-    m_iRTCLatchedSeconds = 0;
-    m_iRTCLatchedMinutes = 0;
-    m_iRTCLatchedHours = 0;
-    m_iRTCLatchedDays = 0;
-    m_iRTCLatchedControl = 0;
+    m_RTC.Seconds = 0;
+    m_RTC.Minutes = 0;
+    m_RTC.Hours = 0;
+    m_RTC.Days = 0;
+    m_RTC.Control = 0;
+    m_RTC.LatchedSeconds = 0;
+    m_RTC.LatchedMinutes = 0;
+    m_RTC.LatchedHours = 0;
+    m_RTC.LatchedDays = 0;
+    m_RTC.LatchedControl = 0;
+    m_RTC.LastTime = -1;
     m_iRTCLatch = 0;
     m_RTCRegister = 0;
-    m_RTCLastTime = -1;
     m_RTCLastTimeCache = 0;
     m_CurrentROMAddress = 0x4000;
     m_CurrentRAMAddress = 0;
@@ -265,17 +265,7 @@ void MBC3MemoryRule::SaveRam(std::ofstream & file)
 
     if (m_pCartridge->IsRTCPresent())
     {
-        file.write(reinterpret_cast<const char*> (&m_iRTCSeconds), 4);
-        file.write(reinterpret_cast<const char*> (&m_iRTCMinutes), 4);
-        file.write(reinterpret_cast<const char*> (&m_iRTCHours), 4);
-        file.write(reinterpret_cast<const char*> (&m_iRTCDays), 4);
-        file.write(reinterpret_cast<const char*> (&m_iRTCControl), 4);
-        file.write(reinterpret_cast<const char*> (&m_iRTCLatchedSeconds), 4);
-        file.write(reinterpret_cast<const char*> (&m_iRTCLatchedMinutes), 4);
-        file.write(reinterpret_cast<const char*> (&m_iRTCLatchedHours), 4);
-        file.write(reinterpret_cast<const char*> (&m_iRTCLatchedDays), 4);
-        file.write(reinterpret_cast<const char*> (&m_iRTCLatchedControl), 4);
-        file.write(reinterpret_cast<const char*> (&m_RTCLastTime), 4);
+        file.write(reinterpret_cast<const char*> (&m_RTC), 4*11);
     }
 
     Log("MBC3MemoryRule save RAM done");
@@ -322,20 +312,10 @@ bool MBC3MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
 
     if (loadRTC)
     {
-        file.read(reinterpret_cast<char*> (&m_iRTCSeconds), 4);
-        file.read(reinterpret_cast<char*> (&m_iRTCMinutes), 4);
-        file.read(reinterpret_cast<char*> (&m_iRTCHours), 4);
-        file.read(reinterpret_cast<char*> (&m_iRTCDays), 4);
-        file.read(reinterpret_cast<char*> (&m_iRTCControl), 4);
-        file.read(reinterpret_cast<char*> (&m_iRTCLatchedSeconds), 4);
-        file.read(reinterpret_cast<char*> (&m_iRTCLatchedMinutes), 4);
-        file.read(reinterpret_cast<char*> (&m_iRTCLatchedHours), 4);
-        file.read(reinterpret_cast<char*> (&m_iRTCLatchedDays), 4);
-        file.read(reinterpret_cast<char*> (&m_iRTCLatchedControl), 4);
-        file.read(reinterpret_cast<char*> (&m_RTCLastTime), 4);
+        file.read(reinterpret_cast<char*> (&m_RTC), 4 * 11);
 
-        m_iRTCControl &= 0x01;
-        m_iRTCLatchedControl &= 0x01;
+        m_RTC.Control &= 0x01;
+        m_RTC.LatchedControl &= 0x01;
 
         m_RTCLastTimeCache = 0;
         m_iRTCLatch = 0;
@@ -354,47 +334,47 @@ void MBC3MemoryRule::UpdateRTC()
     if (m_RTCLastTimeCache != now)
     {
         m_RTCLastTimeCache = now;
-        s32 difference = now - m_RTCLastTime;
+        s32 difference = now - m_RTC.LastTime;
         if (difference > 0)
         {
-            m_iRTCSeconds += (s32) (difference % 60);
-            if (m_iRTCSeconds > 59)
+            m_RTC.Seconds += (s32) (difference % 60);
+            if (m_RTC.Seconds > 59)
             {
-                m_iRTCSeconds -= 60;
-                m_iRTCMinutes++;
+                m_RTC.Seconds -= 60;
+                m_RTC.Minutes++;
             }
 
             difference /= 60;
 
-            m_iRTCMinutes += (s32) (difference % 60);
-            if (m_iRTCMinutes > 59)
+            m_RTC.Minutes += (s32) (difference % 60);
+            if (m_RTC.Minutes > 59)
             {
-                m_iRTCMinutes -= 60;
-                m_iRTCHours++;
+                m_RTC.Minutes -= 60;
+                m_RTC.Hours++;
             }
 
             difference /= 60;
 
-            m_iRTCHours += (s32) (difference % 24);
-            if (m_iRTCHours > 23)
+            m_RTC.Hours += (s32) (difference % 24);
+            if (m_RTC.Hours > 23)
             {
-                m_iRTCHours -= 24;
-                m_iRTCDays++;
+                m_RTC.Hours -= 24;
+                m_RTC.Days++;
             }
             difference /= 24;
 
-            m_iRTCDays += (s32) (difference & 0xffffffff);
-            if (m_iRTCDays > 0xFF)
+            m_RTC.Days += (s32) (difference & 0xffffffff);
+            if (m_RTC.Days > 0xFF)
             {
-                if (m_iRTCDays > 511)
+                if (m_RTC.Days > 511)
                 {
-                    m_iRTCDays %= 512;
-                    m_iRTCControl |= 0x80;
+                    m_RTC.Days %= 512;
+                    m_RTC.Control |= 0x80;
                 }
-                m_iRTCControl = (m_iRTCControl & 0xFF) | (m_iRTCDays > 0xFF ? 1 : 0);
+                m_RTC.Control = (m_RTC.Control & 0xFF) | (m_RTC.Days > 0xFF ? 1 : 0);
             }
         }
-        m_RTCLastTime = now;
+        m_RTC.LastTime = now;
     }
 }
 
