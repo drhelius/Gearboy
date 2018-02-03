@@ -79,12 +79,18 @@ inline void Memory::Write(u16 address, u8 value)
 
 inline u8 Memory::ReadCGBWRAM(u16 address)
 {
-    return m_pWRAMBanks[(address - 0xD000) + (0x1000 * m_iCurrentWRAMBank)];
+    if (address < 0xD000)
+        return m_pWRAMBanks[(address - 0xC000)];
+    else
+        return m_pWRAMBanks[(address - 0xD000) + (0x1000 * m_iCurrentWRAMBank)];
 }
 
 inline void Memory::WriteCGBWRAM(u16 address, u8 value)
 {
-    m_pWRAMBanks[(address - 0xD000) + (0x1000 * m_iCurrentWRAMBank)] = value;
+    if (address < 0xD000)
+        m_pWRAMBanks[(address - 0xC000)] = value;
+    else
+        m_pWRAMBanks[(address - 0xD000) + (0x1000 * m_iCurrentWRAMBank)] = value;
 }
 
 inline void Memory::SwitchCGBWRAM(u8 value)
