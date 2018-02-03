@@ -421,3 +421,8 @@ u8 Memory::GetHDMARegister(int reg)
 {
     return m_HDMA[reg - 1];
 }
+
+u8* Memory::GetCGBRAM()
+{
+    return m_pWRAMBanks;
+}

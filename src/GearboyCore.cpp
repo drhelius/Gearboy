@@ -363,6 +363,11 @@ void GearboyCore::SetRamModificationCallback(RamChangedCallback callback)
     m_pRamChangedCallback = callback;
 }
 
+bool GearboyCore::IsCGB()
+{
+    return m_bCGB;
+}
+
 void GearboyCore::InitDMGPalette()
 {
     m_DMGPalette[0].red = 0x87;

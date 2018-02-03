@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef COMMONMEMORYRULE_H
@@ -32,7 +32,7 @@ public:
     u8 PerformRead(u16 address);
     void PerformWrite(u16 address, u8 value);
     void Reset(bool bCGB);
-    
+
 private:
     Memory* m_pMemory;
     bool m_bCGB;
@@ -44,14 +44,13 @@ inline u8 CommonMemoryRule::PerformRead(u16 address)
 {
     if (m_bCGB)
     {
-        switch (address & 0xF000)
+        switch (address & 0xE000)
         {
             case 0x8000:
-            case 0x9000:
             {
                 return m_pMemory->ReadCGBLCDRAM(address, false);
             }
-            case 0xD000:
+            case 0xC000:
             {
                 return m_pMemory->ReadCGBWRAM(address);
             }
@@ -81,7 +80,7 @@ inline void CommonMemoryRule::PerformWrite(u16 address, u8 value)
         {
             if (address < 0xDE00)
             {
-                if (m_bCGB && (address >= 0xD000))
+                if (m_bCGB)
                 {
                     m_pMemory->WriteCGBWRAM(address, value);
                     m_pMemory->Load(address + 0x2000, value);

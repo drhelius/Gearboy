@@ -316,7 +316,7 @@ void *retro_get_memory_data(unsigned id)
        case RETRO_MEMORY_RTC:
           return core->GetMemory()->GetCurrentRule()->GetRTCMemory();
        case RETRO_MEMORY_SYSTEM_RAM:
-          return core->GetMemory()->GetMemoryMap();
+          return core->IsCGB() ? core->GetMemory()->GetCGBRAM() : core->GetMemory()->GetMemoryMap() + 0xC000;
     }
 
     return NULL;
@@ -331,7 +331,7 @@ size_t retro_get_memory_size(unsigned id)
         case RETRO_MEMORY_RTC:
            return core->GetMemory()->GetCurrentRule()->GetRTCSize();
         case RETRO_MEMORY_SYSTEM_RAM:
-           return 0;
+           return core->IsCGB() ? 0x8000 : 0x2000;
     }
 
     return 0;

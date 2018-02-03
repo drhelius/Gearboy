@@ -59,6 +59,7 @@ public:
     void LoadRam();
     void LoadRam(const char* szPath);
     void SetRamModificationCallback(RamChangedCallback callback);
+    bool IsCGB();
     Memory* GetMemory();
     Cartridge* GetCartridge();
 

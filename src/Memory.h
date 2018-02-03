@@ -64,6 +64,7 @@ public:
     bool IsHDMAEnabled();
     void SetHDMARegister(int reg, u8 value);
     u8 GetHDMARegister(int reg);
+    u8* GetCGBRAM();
 
 private:
 
