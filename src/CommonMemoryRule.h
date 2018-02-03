@@ -81,15 +81,11 @@ inline void CommonMemoryRule::PerformWrite(u16 address, u8 value)
             if (address < 0xDE00)
             {
                 if (m_bCGB)
-                {
                     m_pMemory->WriteCGBWRAM(address, value);
-                    m_pMemory->Load(address + 0x2000, value);
-                }
                 else
-                {
                     m_pMemory->Load(address, value);
-                    m_pMemory->Load(address + 0x2000, value);
-                }
+
+                m_pMemory->Load(address + 0x2000, value);
             }
             else if (m_bCGB)
             {
@@ -105,16 +101,12 @@ inline void CommonMemoryRule::PerformWrite(u16 address, u8 value)
         {
             if (address < 0xFE00)
             {
-                if (m_bCGB && (address >= 0xF000))
-                {
+                if (m_bCGB)
                     m_pMemory->WriteCGBWRAM(address - 0x2000, value);
-                    m_pMemory->Load(address, value);
-                }
                 else
-                {
-                    m_pMemory->Load(address, value);
                     m_pMemory->Load(address - 0x2000, value);
-                }
+
+                m_pMemory->Load(address, value);
             }
             else
             {
