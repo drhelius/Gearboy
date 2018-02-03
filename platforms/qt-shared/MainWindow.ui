@@ -620,6 +620,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>menuWindow_Size</sender>
+   <signal>triggered(QAction*)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>MenuSettingsWindowSize(QAction*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>69</x>
+     <y>83</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>37</x>
+     <y>24</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>MenuGameBoyLoadROM()</slot>
