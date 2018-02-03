@@ -100,6 +100,13 @@ else ifeq ($(platform), vita)
    AR = arm-vita-eabi-ar
    CXXFLAGS += -Wl,-q -Wall -O3
 	STATIC_LINKING = 1
+# Nintendo Switch (libtransistor)
+else ifeq ($(platform), switch)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   include $(LIBTRANSISTOR_HOME)/libtransistor.mk
+   CFLAGS +=-DMINIZ_NO_TIME
+   CXXFLAGS += -DMINIZ_NO_TIME
+   STATIC_LINKING=1
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
