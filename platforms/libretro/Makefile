@@ -112,6 +112,18 @@ else
    TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
 endif
+# CTR(3DS)
+else ifeq ($(platform), ctr)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
+   CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
+   AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT)
+   PLATFORM_DEFINES := -DARM11 -D_3DS -DCC_RESAMPLER -DCC_RESAMPLER_NO_HIGHPASS
+   CFLAGS += -march=armv6k -mtune=mpcore -mfloat-abi=hard
+   CFLAGS += -Wall -mword-relocations
+   CFLAGS += -fomit-frame-pointer -ffast-math
+   CXXFLAGS += $(CFLAGS)
+STATIC_LINKING = 1
 
 LDFLAGS += $(LIBM)
 
