@@ -107,11 +107,6 @@ else ifeq ($(platform), switch)
    CFLAGS +=-DMINIZ_NO_TIME
    CXXFLAGS += -DMINIZ_NO_TIME
    STATIC_LINKING=1
-else
-   CC = gcc
-   TARGET := $(TARGET_NAME)_libretro.dll
-   SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
-endif
 # CTR(3DS)
 else ifeq ($(platform), ctr)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
@@ -123,7 +118,12 @@ else ifeq ($(platform), ctr)
    CFLAGS += -Wall -mword-relocations
    CFLAGS += -fomit-frame-pointer -ffast-math
    CXXFLAGS += $(CFLAGS)
-STATIC_LINKING = 1
+   STATIC_LINKING = 1
+else
+   CC = gcc
+   TARGET := $(TARGET_NAME)_libretro.dll
+   SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+endif
 
 LDFLAGS += $(LIBM)
 
