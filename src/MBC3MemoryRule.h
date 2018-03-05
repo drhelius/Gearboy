@@ -35,6 +35,7 @@ struct RTC_Registers
     s32 LatchedDays;
     s32 LatchedControl;
     s32 LastTime;
+    s32 padding;
 };
 
 class MBC3MemoryRule : public MemoryRule
@@ -49,7 +50,9 @@ public:
     virtual void SaveRam(std::ofstream &file);
     virtual bool LoadRam(std::ifstream &file, s32 fileSize);
     virtual size_t GetRamSize();
+    virtual size_t GetRTCSize();
     virtual u8* GetRamBanks();
+    virtual u8* GetRTCMemory();
 
 private:
     void UpdateRTC();
