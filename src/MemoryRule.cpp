@@ -39,12 +39,12 @@ MemoryRule::~MemoryRule()
 
 void MemoryRule::SaveRam(std::ofstream&)
 {
-    Log("Save RAM not implemented");
+    Log("MemoryRule::SaveRam not implemented");
 }
 
 bool MemoryRule::LoadRam(std::ifstream&, s32)
 {
-    Log("Load RAM not implemented");
+    Log("MemoryRule::LoadRam not implemented");
     return false;
 }
 
@@ -55,24 +55,24 @@ void MemoryRule::SetRamChangedCallback(RamChangedCallback callback)
 
 size_t MemoryRule::GetRamSize()
 {
-    Log("GetRamSize not implemented");
+    Log("MemoryRule::GetRamSize not implemented");
     return 0;
 }
 
 size_t MemoryRule::GetRTCSize()
 {
-    Log("GetRTCSize not implemented");
+    Log("MemoryRule::GetRTCSize not implemented");
     return 0;
 }
 
 u8* MemoryRule::GetRamBanks()
 {
-    Log("GetRamBanks not implemented");
+    Log("MemoryRule::GetRamBanks not implemented");
     return NULL;
 }
 
 u8* MemoryRule::GetRTCMemory()
 {
-    Log("GetRTCMemory not implemented");
+    Log("MemoryRule::GetRTCMemory not implemented");
     return NULL;
 }
