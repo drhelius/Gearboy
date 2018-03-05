@@ -55,7 +55,7 @@ EXT := a
 endif
 
 ifeq ($(platform), unix)
-	EXT ?= so
+   EXT ?= so
    TARGET := $(TARGET_NAME)_libretro.$(EXT)
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
@@ -64,6 +64,20 @@ else ifeq ($(platform), linux-portable)
    fpic := -fPIC -nostdlib
    SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T
 	LIBM :=
+# Nintendo Switch (libtransistor)
+else ifeq ($(platform), switch)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   include $(LIBTRANSISTOR_HOME)/libtransistor.mk
+   CXXFLAGS += -DMINIZ_NO_TIME -Wall
+   STATIC_LINKING=1
+# Nintendo WiiU
+else ifeq ($(platform), wiiu)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
+   AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
+   CXXFLAGS += -DMINIZ_NO_TIME -DGEKKO -DHW_RVL -DWIIU -mwup -mcpu=750 -meabi -mhard-float -D__ppc__ -DMSB_FIRST -I$(DEVKITPRO)/libogc/include
+   CXXFLAGS += -U__INT32_TYPE__ -U __UINT32_TYPE__ -D__INT32_TYPE__=int
+   STATIC_LINKING = 1
 else ifneq (,$(findstring osx,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.dylib
    fpic := -fPIC
@@ -78,8 +92,12 @@ ifeq ($(IOSSDK),)
 endif
 
 	DEFINES := -DIOS
+ifeq ($(platform),ios-arm64)
+   CC = cc -arch armv64 -isysroot $(IOSSDK)
+else
 	CC = cc -arch armv7 -isysroot $(IOSSDK)
-ifeq ($(platform),ios9)
+endif
+ifeq ($(platform),$(filter $(platform),ios9 ios-arm64))
 CC     += -miphoneos-version-min=8.0
 CXXFLAGS += -miphoneos-version-min=8.0
 else
@@ -98,15 +116,8 @@ else ifeq ($(platform), vita)
    TARGET := $(TARGET_NAME)_vita.a
    CC = arm-vita-eabi-gcc
    AR = arm-vita-eabi-ar
-   CXXFLAGS += -Wl,-q -Wall -O3
+   CXXFLAGS += -Wl,-q -Wall
 	STATIC_LINKING = 1
-# Nintendo Switch (libtransistor)
-else ifeq ($(platform), switch)
-   TARGET := $(TARGET_NAME)_libretro_$(platform).a
-   include $(LIBTRANSISTOR_HOME)/libtransistor.mk
-   CFLAGS +=-DMINIZ_NO_TIME
-   CXXFLAGS += -DMINIZ_NO_TIME
-   STATIC_LINKING=1
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
