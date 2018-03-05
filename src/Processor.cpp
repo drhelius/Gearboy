@@ -224,6 +224,14 @@ void Processor::ExecuteOPCode(u8 opcode)
         opcodeTable = m_OPCodes;
     }
 
+    #ifdef DEBUG_GEARBOY
+        u16 opcode_address = PC.GetValue() - 1;
+        if (!m_pMemory->IsDisassembled(opcode_address))
+        {
+            m_pMemory->Disassemble(opcode_address, isCB ? kOPCodeCBNames[opcode] : kOPCodeNames[opcode]);
+        }
+    #endif
+
     if ((accurateOPcodes[opcode] != 0) && (m_iAccurateOPCodeState == 0))
     {
         int left_cycles = (accurateOPcodes[opcode] < 3 ? 2 : 3);
@@ -234,14 +242,6 @@ void Processor::ExecuteOPCode(u8 opcode)
             PC.Decrement();
         return;
     }
-
-#ifdef DEBUG_GEARBOY
-    u16 opcode_address = PC.GetValue() - 1;
-    if (!m_pMemory->IsDisassembled(opcode_address))
-    {
-        m_pMemory->Disassemble(opcode_address, kOPCodeNames[opcode]);
-    }
-#endif
 
     (this->*opcodeTable[opcode])();
 
