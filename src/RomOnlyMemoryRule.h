@@ -35,6 +35,7 @@ public:
     virtual bool LoadRam(std::ifstream &file, s32 fileSize);
     virtual size_t GetRamSize();
     virtual u8* GetRamBanks();
+    virtual u8* GetCurrentRamBank();
 };
 
 #endif	/* ROMONLYMEMORYRULE_H */

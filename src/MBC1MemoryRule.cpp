@@ -252,3 +252,11 @@ u8* MBC1MemoryRule::GetRamBanks()
 {
     return m_pRAMBanks;
 }
+
+u8* MBC1MemoryRule::GetCurrentRamBank()
+{
+    if (m_pCartridge->GetRAMSize() > 0)
+        return &m_pRAMBanks[m_iCurrentRAMBank * 0x2000];
+    else
+        return NULL;
+}

@@ -261,6 +261,44 @@ bool retro_load_game(const struct retro_game_info *info)
 
     check_variables();
 
+    struct retro_memory_descriptor descs[7];
+
+    memset(descs, 0, sizeof(descs));
+
+    // IE
+    descs[0].ptr   = core->GetMemory()->GetMemoryMap() + 0xFFFF;
+    descs[0].start = 0xFFFF;
+    descs[0].len   = 1;
+    // HRAM
+    descs[1].ptr   = core->GetMemory()->GetMemoryMap() + 0xFF80;
+    descs[1].start = 0xFF80;
+    descs[1].len   = 0x0080;
+    // RAM
+    descs[2].ptr   = core->GetMemory()->GetMemoryMap() + 0xC000; // todo: fix GBC
+    descs[2].start = 0xC000;
+    descs[2].len   = 0x2000;
+    // CART RAM
+    descs[3].ptr   = core->GetMemory()->GetCurrentRule()->GetCurrentRamBank();
+    descs[3].start = 0xA000;
+    descs[3].len   = 0x2000;
+    // VRAM
+    descs[4].ptr   = core->GetMemory()->GetMemoryMap() + 0x8000; // todo: fix GBC
+    descs[4].start = 0x8000;
+    descs[4].len   = 0x2000;
+    // ROM
+    descs[5].ptr   = 0; // todo
+    descs[5].start = 0x0000;
+    descs[5].len   = 0x4000;
+    // OAM
+    descs[6].ptr   = core->GetMemory()->GetMemoryMap() + 0xFE00;
+    descs[6].start = 0xFE00;
+    descs[6].len   = 0x00A0;
+
+    struct retro_memory_map mmaps;
+    mmaps.descriptors = descs;
+    mmaps.num_descriptors = sizeof(descs) / sizeof(descs[0]);
+    environ_cb(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &mmaps);
+
     bool achievements = true;
     environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
 
