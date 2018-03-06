@@ -48,6 +48,8 @@ static char retro_game_path[4096];
 static s16 audio_buf[AUDIO_BUFFER_SIZE];
 static int audio_sample_count;
 
+static bool force_dmg = false;
+
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
     (void)level;
@@ -60,6 +62,31 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 GearboyCore* core;
 
 static retro_environment_t environ_cb;
+
+static const struct retro_variable vars[] = {
+    { "gearboy_model", "Emulated Model; Auto|Game Boy DMG" },
+    { "gearboy_palette", "Palette; Original|Sharp|B/W|Autumn|Soft|Slime" },
+    { NULL }
+};
+#if defined(IS_LITTLE_ENDIAN)
+// blue, green, red, alpha
+static GB_Color original_palette[4] = {{0x03, 0x96, 0x87, 0xFF},{0x03, 0x6B, 0x4D, 0xFF},{0x03, 0x55, 0x2B, 0xFF},{0x03, 0x44, 0x14, 0xFF}};
+static GB_Color sharp_palette[4] = {{0xEF, 0xFA, 0xF5, 0xFF},{0x70, 0xC2, 0x86, 0xFF},{0x57, 0x69, 0x2F, 0xFF},{0x20, 0x19, 0x0B, 0xFF}};
+static GB_Color bw_palette[4] = {{0xFF, 0xFF, 0xFF, 0xFF},{0xC0, 0xC0, 0xC0, 0xFF},{0x68, 0x68, 0x68, 0xFF},{0x09, 0x09, 0x09, 0xFF}};
+static GB_Color autumn_palette[4] = {{0xC8, 0xE8, 0xF8, 0xFF},{0x48, 0x90, 0xD8, 0xFF},{0x20, 0x34, 0xA8, 0xFF},{0x50, 0x18, 0x30, 0xFF}};
+static GB_Color soft_palette[4] = {{0xAA, 0xE0, 0xE0, 0xFF},{0x7C, 0xB8, 0xB0, 0xFF},{0x5B, 0x82, 0x72, 0xFF},{0x17, 0x34, 0x39, 0xFF}};
+static GB_Color slime_palette[4] = {{0xA5, 0xEB, 0xD4, 0xFF},{0x7C, 0xB8, 0x62, 0xFF},{0x5D, 0x76, 0x27, 0xFF},{0x39, 0x39, 0x1D, 0xFF}};
+#elif defined(IS_BIG_ENDIAN)
+// alpha, red, green, blue
+static GB_Color original_palette[4] = {{0xFF, 0x87, 0x96, 0x03},{0xFF, 0x4D, 0x6B, 0x03},{0xFF, 0x2B, 0x55, 0x03},{0xFF, 0x14, 0x44, 0x03}};
+static GB_Color sharp_palette[4] = {{0xFF, 0xF5, 0xFA, 0xEF},{0xFF, 0x86, 0xC2, 0x70},{0xFF, 0x2F, 0x69, 0x57},{0xFF, 0x0B, 0x19, 0x20}};
+static GB_Color bw_palette[4] = {{0xFF, 0xFF, 0xFF, 0xFF},{0xFF, 0xC0, 0xC0, 0xC0},{0xFF, 0x68, 0x68, 0x68},{0xFF, 0x09, 0x09, 0x09}};
+static GB_Color autumn_palette[4] = {{0xFF, 0xF8, 0xE8, 0xC8},{0xFF, 0xD8, 0x90, 0x48},{0xFF, 0xA8, 0x34, 0x20},{0xFF, 0x30, 0x18, 0x50}};
+static GB_Color soft_palette[4] = {{0xFF, 0xE0, 0xE0, 0xAA},{0xFF, 0xB0, 0xB8, 0x7C},{0xFF, 0x72, 0x82, 0x5B},{0xFF, 0x39, 0x34, 0x17}};
+static GB_Color slime_palette[4] = {{0xFF, 0xD4, 0xEB, 0xA5},{0xFF, 0x62, 0xB8, 0x7C},{0xFF, 0x27, 0x76, 0x5D},{0xFF, 0x1D, 0x39, 0x39}};
+#endif
+
+static GB_Color* current_palette = original_palette;
 
 void retro_init(void)
 {
@@ -140,6 +167,8 @@ void retro_set_environment(retro_environment_t cb)
     };
 
     cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+
+    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void *)vars);
 }
 
 void retro_set_audio_sample(retro_audio_sample_t cb)
@@ -165,11 +194,6 @@ void retro_set_input_state(retro_input_state_t cb)
 void retro_set_video_refresh(retro_video_refresh_t cb)
 {
     video_cb = cb;
-}
-
-void retro_reset(void)
-{
-    core->ResetROM(false);
 }
 
 static void update_input(void)
@@ -212,15 +236,51 @@ static void update_input(void)
 
 static void check_variables(void)
 {
+    struct retro_variable var = {0};
+
+    var.key = "gearboy_model";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Game Boy DMG") == 0)
+            force_dmg = true;
+        else
+            force_dmg = false;
+    }
+
+    var.key = "gearboy_palette";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Original") == 0)
+            current_palette = original_palette;
+        else if (strcmp(var.value, "Sharp") == 0)
+            current_palette = sharp_palette;
+        else if (strcmp(var.value, "B/W") == 0)
+            current_palette = bw_palette;
+        else if (strcmp(var.value, "Autumn") == 0)
+            current_palette = autumn_palette;
+        else if (strcmp(var.value, "Soft") == 0)
+            current_palette = soft_palette;
+        else if (strcmp(var.value, "Slime") == 0)
+            current_palette = slime_palette;
+        else
+            current_palette = original_palette;
+    }
 }
 
 void retro_run(void)
 {
-    update_input();
-
     bool updated = false;
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+    {
         check_variables();
+        core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
+    }
+
+    update_input();
 
     core->RunToVBlank(gearboy_frame_buf, audio_buf, &audio_sample_count);
 
@@ -232,9 +292,23 @@ void retro_run(void)
     audio_sample_count = 0;
 }
 
+void retro_reset(void)
+{
+    check_variables();
+
+    core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
+
+    core->ResetROM(force_dmg);
+}
+
+
 bool retro_load_game(const struct retro_game_info *info)
 {
-    core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, false);
+    check_variables();
+
+    core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
+
+    core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, force_dmg);
 
     struct retro_input_descriptor desc[] = {
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left" },
@@ -258,8 +332,6 @@ bool retro_load_game(const struct retro_game_info *info)
     }
 
     snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
-
-    check_variables();
 
     struct retro_memory_descriptor descs[8];
 
