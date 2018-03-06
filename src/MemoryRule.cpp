@@ -77,6 +77,18 @@ u8* MemoryRule::GetCurrentRamBank()
     return NULL;
 }
 
+u8* MemoryRule::GetRomBank0()
+{
+    Log("MemoryRule::GetRomBank0 not implemented");
+    return NULL;
+}
+
+u8* MemoryRule::GetCurrentRomBank1()
+{
+    Log("MemoryRule::GetCurrentRomBank1 not implemented");
+    return NULL;
+}
+
 u8* MemoryRule::GetRTCMemory()
 {
     Log("MemoryRule::GetRTCMemory not implemented");

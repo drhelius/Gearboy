@@ -36,6 +36,8 @@ public:
     virtual size_t GetRamSize();
     virtual u8* GetRamBanks();
     virtual u8* GetCurrentRamBank();
+    virtual u8* GetRomBank0();
+    virtual u8* GetCurrentRomBank1();
 
 private:
     int m_iMode;

@@ -386,6 +386,25 @@ u8* MBC3MemoryRule::GetRamBanks()
     return m_pRAMBanks;
 }
 
+u8* MBC3MemoryRule::GetCurrentRamBank()
+{
+    if (m_iCurrentRAMBank >= 0)
+        return &m_pRAMBanks[m_CurrentRAMAddress];
+    else
+        return NULL;
+}
+
+u8* MBC3MemoryRule::GetRomBank0()
+{
+    return m_pMemory->GetMemoryMap() + 0x0000;
+}
+
+u8* MBC3MemoryRule::GetCurrentRomBank1()
+{
+    u8* pROM = m_pCartridge->GetTheROM();
+    return &pROM[m_CurrentROMAddress];
+}
+
 u8* MBC3MemoryRule::GetRTCMemory()
 {
     return m_pCartridge->IsRTCPresent() ? reinterpret_cast<u8*>(&m_RTC) : NULL;

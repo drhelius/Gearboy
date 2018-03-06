@@ -36,6 +36,14 @@ MBC2MemoryRule::~MBC2MemoryRule()
 {
 }
 
+void MBC2MemoryRule::Reset(bool bCGB)
+{
+    m_bCGB = bCGB;
+    m_iCurrentROMBank = 1;
+    m_CurrentROMAddress = 0x4000;
+    m_bRamEnabled = false;
+}
+
 u8 MBC2MemoryRule::PerformRead(u16 address)
 {
     switch (address & 0xE000)
@@ -142,14 +150,6 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MBC2MemoryRule::Reset(bool bCGB)
-{
-    m_bCGB = bCGB;
-    m_iCurrentROMBank = 1;
-    m_CurrentROMAddress = 0x4000;
-    m_bRamEnabled = false;
-}
-
 void MBC2MemoryRule::SaveRam(std::ofstream & file)
 {
     Log("MBC2MemoryRule save RAM...");
@@ -193,4 +193,20 @@ size_t MBC2MemoryRule::GetRamSize()
 u8* MBC2MemoryRule::GetRamBanks()
 {
     return m_pMemory->GetMemoryMap() + 0xA000;
+}
+
+u8* MBC2MemoryRule::GetCurrentRamBank()
+{
+    return m_pMemory->GetMemoryMap() + 0xA000;
+}
+
+u8* MBC2MemoryRule::GetCurrentRomBank1()
+{
+    u8* pROM = m_pCartridge->GetTheROM();
+    return &pROM[m_CurrentROMAddress];
+}
+
+u8* MBC2MemoryRule::GetRomBank0()
+{
+    return m_pMemory->GetMemoryMap() + 0x0000;
 }

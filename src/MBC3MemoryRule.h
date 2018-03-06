@@ -52,6 +52,9 @@ public:
     virtual size_t GetRamSize();
     virtual size_t GetRTCSize();
     virtual u8* GetRamBanks();
+    virtual u8* GetCurrentRamBank();
+    virtual u8* GetRomBank0();
+    virtual u8* GetCurrentRomBank1();
     virtual u8* GetRTCMemory();
 
 private:

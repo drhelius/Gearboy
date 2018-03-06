@@ -261,7 +261,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
     check_variables();
 
-    struct retro_memory_descriptor descs[7];
+    struct retro_memory_descriptor descs[8];
 
     memset(descs, 0, sizeof(descs));
 
@@ -285,14 +285,18 @@ bool retro_load_game(const struct retro_game_info *info)
     descs[4].ptr   = core->GetMemory()->GetMemoryMap() + 0x8000; // todo: fix GBC
     descs[4].start = 0x8000;
     descs[4].len   = 0x2000;
-    // ROM
-    descs[5].ptr   = 0; // todo
+    // ROM bank 0
+    descs[5].ptr   = core->GetMemory()->GetCurrentRule()->GetRomBank0();
     descs[5].start = 0x0000;
     descs[5].len   = 0x4000;
+    // ROM bank x
+    descs[6].ptr   = core->GetMemory()->GetCurrentRule()->GetCurrentRomBank1();
+    descs[6].start = 0x4000;
+    descs[6].len   = 0x4000;
     // OAM
-    descs[6].ptr   = core->GetMemory()->GetMemoryMap() + 0xFE00;
-    descs[6].start = 0xFE00;
-    descs[6].len   = 0x00A0;
+    descs[7].ptr   = core->GetMemory()->GetMemoryMap() + 0xFE00;
+    descs[7].start = 0xFE00;
+    descs[7].len   = 0x00A0;
 
     struct retro_memory_map mmaps;
     mmaps.descriptors = descs;

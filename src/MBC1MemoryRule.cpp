@@ -40,6 +40,20 @@ MBC1MemoryRule::~MBC1MemoryRule()
     SafeDeleteArray(m_pRAMBanks);
 }
 
+void MBC1MemoryRule::Reset(bool bCGB)
+{
+    m_bCGB = bCGB;
+    m_iMode = 0;
+    m_iCurrentRAMBank = 0;
+    m_iCurrentROMBank = 1;
+    m_HigherRomBankBits = 0;
+    m_bRamEnabled = false;
+    for (int i = 0; i < kMBC1RamBanksSize; i++)
+        m_pRAMBanks[i] = 0xFF;
+    m_CurrentROMAddress = 0x4000;
+    m_CurrentRAMAddress = 0;
+}
+
 u8 MBC1MemoryRule::PerformRead(u16 address)
 {
     switch (address & 0xE000)
@@ -181,20 +195,6 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MBC1MemoryRule::Reset(bool bCGB)
-{
-    m_bCGB = bCGB;
-    m_iMode = 0;
-    m_iCurrentRAMBank = 0;
-    m_iCurrentROMBank = 1;
-    m_HigherRomBankBits = 0;
-    m_bRamEnabled = false;
-    for (int i = 0; i < kMBC1RamBanksSize; i++)
-        m_pRAMBanks[i] = 0xFF;
-    m_CurrentROMAddress = 0x4000;
-    m_CurrentRAMAddress = 0;
-}
-
 void MBC1MemoryRule::SaveRam(std::ofstream &file)
 {
     Log("MBC1MemoryRule save RAM...");
@@ -256,7 +256,18 @@ u8* MBC1MemoryRule::GetRamBanks()
 u8* MBC1MemoryRule::GetCurrentRamBank()
 {
     if (m_pCartridge->GetRAMSize() > 0)
-        return &m_pRAMBanks[m_iCurrentRAMBank * 0x2000];
+        return &m_pRAMBanks[m_CurrentRAMAddress];
     else
         return NULL;
+}
+
+u8* MBC1MemoryRule::GetCurrentRomBank1()
+{
+    u8* pROM = m_pCartridge->GetTheROM();
+    return &pROM[m_CurrentROMAddress];
+}
+
+u8* MBC1MemoryRule::GetRomBank0()
+{
+    return m_pMemory->GetMemoryMap() + 0x0000;
 }

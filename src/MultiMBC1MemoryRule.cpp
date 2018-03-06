@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "MultiMBC1MemoryRule.h"
@@ -35,6 +35,16 @@ pMemory, pVideo, pInput, pCartridge, pAudio)
 MultiMBC1MemoryRule::~MultiMBC1MemoryRule()
 {
 
+}
+
+void MultiMBC1MemoryRule::Reset(bool bCGB)
+{
+    m_bCGB = bCGB;
+    m_iMode = 0;
+    m_iCurrentROMBank = 1;
+    m_iFinalROMBank0 = 0;
+    m_iFinalROMBank = 1;
+    m_bRamEnabled = false;
 }
 
 u8 MultiMBC1MemoryRule::PerformRead(u16 address)
@@ -133,16 +143,6 @@ void MultiMBC1MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MultiMBC1MemoryRule::Reset(bool bCGB)
-{
-    m_bCGB = bCGB;
-    m_iMode = 0;
-    m_iCurrentROMBank = 1;
-    m_iFinalROMBank0 = 0;
-    m_iFinalROMBank = 1;
-    m_bRamEnabled = false;
-}
-
 void MultiMBC1MemoryRule::SetRomBank()
 {
     if (m_iMode == 0)
@@ -159,4 +159,29 @@ void MultiMBC1MemoryRule::SetRomBank()
     }
 }
 
+size_t MultiMBC1MemoryRule::GetRamSize()
+{
+    return 0x2000;
+}
 
+u8* MultiMBC1MemoryRule::GetRamBanks()
+{
+    return m_pMemory->GetMemoryMap() + 0xA000;
+}
+
+u8* MultiMBC1MemoryRule::GetCurrentRamBank()
+{
+    return m_pMemory->GetMemoryMap() + 0xA000;
+}
+
+u8* MultiMBC1MemoryRule::GetRomBank0()
+{
+    u8* pROM = m_pCartridge->GetTheROM();
+    return &pROM[0x4000 * m_iFinalROMBank0];
+}
+
+u8* MultiMBC1MemoryRule::GetCurrentRomBank1()
+{
+    u8* pROM = m_pCartridge->GetTheROM();
+    return &pROM[0x4000 * m_iFinalROMBank];
+}

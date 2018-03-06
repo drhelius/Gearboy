@@ -36,6 +36,11 @@ RomOnlyMemoryRule::~RomOnlyMemoryRule()
 {
 }
 
+void RomOnlyMemoryRule::Reset(bool bCGB)
+{
+    m_bCGB = bCGB;
+}
+
 u8 RomOnlyMemoryRule::PerformRead(u16 address)
 {
     if (address >= 0xA000 && address < 0xC000)
@@ -72,11 +77,6 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
     }
     else
         m_pMemory->Load(address, value);
-}
-
-void RomOnlyMemoryRule::Reset(bool bCGB)
-{
-    m_bCGB = bCGB;
 }
 
 void RomOnlyMemoryRule::SaveRam(std::ofstream &file)
@@ -130,4 +130,14 @@ u8* RomOnlyMemoryRule::GetCurrentRamBank()
         return m_pMemory->GetMemoryMap() + 0xA000;
     else
         return NULL;
+}
+
+u8* RomOnlyMemoryRule::GetCurrentRomBank1()
+{
+    return m_pMemory->GetMemoryMap() + 0x4000;
+}
+
+u8* RomOnlyMemoryRule::GetRomBank0()
+{
+    return m_pMemory->GetMemoryMap() + 0x0000;
 }
