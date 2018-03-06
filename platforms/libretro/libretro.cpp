@@ -64,7 +64,7 @@ GearboyCore* core;
 static retro_environment_t environ_cb;
 
 static const struct retro_variable vars[] = {
-    { "gearboy_model", "Emulated Model; Auto|Game Boy DMG" },
+    { "gearboy_model", "Emulated Model (restart); Auto|Game Boy DMG" },
     { "gearboy_palette", "Palette; Original|Sharp|B/W|Autumn|Soft|Slime" },
     { NULL }
 };
