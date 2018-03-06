@@ -145,7 +145,7 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MBC5MemoryRule::SaveRam(std::ofstream & file)
+void MBC5MemoryRule::SaveRam(std::ostream & file)
 {
     Log("MBC5MemoryRule save RAM...");
     Log("MBC5MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
@@ -161,7 +161,7 @@ void MBC5MemoryRule::SaveRam(std::ofstream & file)
     Log("MBC5MemoryRule save RAM done");
 }
 
-bool MBC5MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
+bool MBC5MemoryRule::LoadRam(std::istream & file, s32 fileSize)
 {
     Log("MBC5MemoryRule load RAM...");
     Log("MBC5MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());

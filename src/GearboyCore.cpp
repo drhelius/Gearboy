@@ -241,6 +241,27 @@ void GearboyCore::ResetROM(bool forceDMG)
     }
 }
 
+void GearboyCore::ResetROMPreservingRAM(bool forceDMG)
+{
+    if (m_pCartridge->IsLoadedROM())
+    {
+        Log("Resetting preserving RAM...");
+
+        using namespace std;
+        stringstream stream;
+
+        m_pMemory->GetCurrentRule()->SaveRam(stream);
+
+        ResetROM(forceDMG);
+
+        stream.seekg(0, stream.end);
+        s32 size = (s32)stream.tellg();
+        stream.seekg(0, stream.beg);
+
+        m_pMemory->GetCurrentRule()->LoadRam(stream, size);
+    }
+}
+
 void GearboyCore::ResetSound()
 {
     m_pAudio->Reset(m_bCGB);

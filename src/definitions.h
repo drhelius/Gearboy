@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 //#define DEBUG_GEARBOY 1
 #define GEARBOY_VERSION "2.5.0"

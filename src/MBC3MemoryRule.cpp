@@ -304,7 +304,7 @@ void MBC3MemoryRule::UpdateRTC()
     }
 }
 
-void MBC3MemoryRule::SaveRam(std::ofstream & file)
+void MBC3MemoryRule::SaveRam(std::ostream & file)
 {
     Log("MBC3MemoryRule save RAM...");
 
@@ -322,7 +322,7 @@ void MBC3MemoryRule::SaveRam(std::ofstream & file)
     Log("MBC3MemoryRule save RAM done");
 }
 
-bool MBC3MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
+bool MBC3MemoryRule::LoadRam(std::istream & file, s32 fileSize)
 {
     Log("MBC3MemoryRule load RAM...");
 

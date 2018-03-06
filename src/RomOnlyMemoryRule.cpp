@@ -79,7 +79,7 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
         m_pMemory->Load(address, value);
 }
 
-void RomOnlyMemoryRule::SaveRam(std::ofstream &file)
+void RomOnlyMemoryRule::SaveRam(std::ostream &file)
 {
     Log("RomOnlyMemoryRule save RAM...");
 
@@ -92,7 +92,7 @@ void RomOnlyMemoryRule::SaveRam(std::ofstream &file)
     Log("RomOnlyMemoryRule save RAM done");
 }
 
-bool RomOnlyMemoryRule::LoadRam(std::ifstream &file, s32 fileSize)
+bool RomOnlyMemoryRule::LoadRam(std::istream &file, s32 fileSize)
 {
     Log("RomOnlyMemoryRule load RAM...");
 

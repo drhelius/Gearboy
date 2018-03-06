@@ -298,7 +298,7 @@ void retro_reset(void)
 
     core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
 
-    core->ResetROM(force_dmg);
+    core->ResetROMPreservingRAM(force_dmg);
 }
 
 

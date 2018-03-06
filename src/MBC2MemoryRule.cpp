@@ -150,7 +150,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MBC2MemoryRule::SaveRam(std::ofstream & file)
+void MBC2MemoryRule::SaveRam(std::ostream & file)
 {
     Log("MBC2MemoryRule save RAM...");
 
@@ -163,7 +163,7 @@ void MBC2MemoryRule::SaveRam(std::ofstream & file)
     Log("MBC2MemoryRule save RAM done");
 }
 
-bool MBC2MemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
+bool MBC2MemoryRule::LoadRam(std::istream & file, s32 fileSize)
 {
     Log("MBC2MemoryRule load RAM...");
 

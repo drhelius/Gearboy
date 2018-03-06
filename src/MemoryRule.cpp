@@ -37,12 +37,12 @@ MemoryRule::~MemoryRule()
 
 }
 
-void MemoryRule::SaveRam(std::ofstream&)
+void MemoryRule::SaveRam(std::ostream&)
 {
     Log("MemoryRule::SaveRam not implemented");
 }
 
-bool MemoryRule::LoadRam(std::ifstream&, s32)
+bool MemoryRule::LoadRam(std::istream&, s32)
 {
     Log("MemoryRule::LoadRam not implemented");
     return false;

@@ -195,7 +195,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MBC1MemoryRule::SaveRam(std::ofstream &file)
+void MBC1MemoryRule::SaveRam(std::ostream &file)
 {
     Log("MBC1MemoryRule save RAM...");
     Log("MBC1MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
@@ -211,7 +211,7 @@ void MBC1MemoryRule::SaveRam(std::ofstream &file)
     Log("MBC1MemoryRule save RAM done");
 }
 
-bool MBC1MemoryRule::LoadRam(std::ifstream &file, s32 fileSize)
+bool MBC1MemoryRule::LoadRam(std::istream &file, s32 fileSize)
 {
     Log("MBC1MemoryRule load RAM...");
     Log("MBC1MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
