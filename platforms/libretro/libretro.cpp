@@ -99,7 +99,7 @@ void retro_get_system_info(struct retro_system_info *info)
     memset(info, 0, sizeof(*info));
     info->library_name     = "Gearboy";
     info->library_version  = GEARBOY_VERSION;
-    info->need_fullpath    = true;
+    info->need_fullpath    = false;
     info->valid_extensions = "gb|dmg|gbc|cgb|sgb";
 }
 
@@ -234,7 +234,7 @@ void retro_run(void)
 
 bool retro_load_game(const struct retro_game_info *info)
 {
-    core->LoadROM(info->path, false);
+    core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, false);
 
     struct retro_input_descriptor desc[] = {
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left" },

@@ -46,6 +46,7 @@ public:
     void Init();
     void RunToVBlank(GB_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount);
     bool LoadROM(const char* szFilePath, bool forceDMG);
+    bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause(bool paused);

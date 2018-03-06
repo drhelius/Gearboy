@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include <string>
@@ -228,7 +228,7 @@ bool Cartridge::LoadFromFile(const char* path)
             filename = pathstr;
         }
     }
-    
+
     strcpy(m_szFileName, filename.c_str());
 
     ifstream file(path, ios::in | ios::binary | ios::ate);
@@ -284,9 +284,11 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
 {
     if (IsValidPointer(buffer))
     {
+        Log("Loading from buffer... Size: %d", size);
         m_iTotalSize = size;
         m_pTheROM = new u8[m_iTotalSize];
         memcpy(m_pTheROM, buffer, m_iTotalSize);
+        m_bLoaded = true;
         return GatherMetadata();
     }
     else
@@ -303,8 +305,8 @@ void Cartridge::CheckCartridgeType(int type)
         case 0x00:
             // NO MBC
         case 0x08:
-            // ROM   
-            // SRAM 
+            // ROM
+            // SRAM
         case 0x09:
             // ROM
             // SRAM
@@ -380,8 +382,8 @@ void Cartridge::CheckCartridgeType(int type)
         case 0x0B:
             // MMMO1
         case 0x0C:
-            // MMM01   
-            // SRAM 
+            // MMM01
+            // SRAM
         case 0x0D:
             // MMM01
             // SRAM
@@ -390,7 +392,7 @@ void Cartridge::CheckCartridgeType(int type)
             // MBC4
         case 0x16:
             // MBC4
-            // SRAM 
+            // SRAM
         case 0x17:
             // MBC4
             // SRAM
@@ -632,4 +634,3 @@ bool Cartridge::GatherMetadata()
 
     return (m_Type != CartridgeNotSupported);
 }
-

@@ -60,7 +60,7 @@ GearboyCore::GearboyCore()
 GearboyCore::~GearboyCore()
 {
 #ifdef DEBUG_GEARBOY
-    if (m_pCartridge->IsLoadedROM())
+    if (m_pCartridge->IsLoadedROM() && (strlen(m_pCartridge->GetFilePath()) > 0))
     {
         Log("Saving Memory Dump...");
 
@@ -145,7 +145,7 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer, s16* pSampleBuffer, int* p
 bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)
 {
 #ifdef DEBUG_GEARBOY
-    if (m_pCartridge->IsLoadedROM())
+    if (m_pCartridge->IsLoadedROM() && (strlen(m_pCartridge->GetFilePath()) > 0))
     {
         Log("Saving Memory Dump...");
 
@@ -172,6 +172,26 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)
         if (!romTypeOK)
         {
             Log("There was a problem with the cartridge header. File: %s...", szFilePath);
+        }
+
+        return romTypeOK;
+    }
+    else
+        return false;
+}
+
+bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG)
+{
+    if (m_pCartridge->LoadFromBuffer(buffer, size))
+    {
+        m_bForceDMG = forceDMG;
+        Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
+        m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
+        bool romTypeOK = AddMemoryRules();
+
+        if (!romTypeOK)
+        {
+            Log("There was a problem with the cartridge header.");
         }
 
         return romTypeOK;
