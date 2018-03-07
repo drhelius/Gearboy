@@ -185,3 +185,25 @@ u8* MultiMBC1MemoryRule::GetCurrentRomBank1()
     u8* pROM = m_pCartridge->GetTheROM();
     return &pROM[0x4000 * m_iFinalROMBank];
 }
+
+void MultiMBC1MemoryRule::SaveState(std::stringstream& stream)
+{
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (&m_iMode), sizeof(m_iMode));
+    stream.write(reinterpret_cast<const char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
+    stream.write(reinterpret_cast<const char*> (&m_iFinalROMBank0), sizeof(m_iFinalROMBank0));
+    stream.write(reinterpret_cast<const char*> (&m_iFinalROMBank), sizeof(m_iFinalROMBank));
+    stream.write(reinterpret_cast<const char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
+}
+
+void MultiMBC1MemoryRule::LoadState(std::stringstream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (&m_iMode), sizeof(m_iMode));
+    stream.read(reinterpret_cast<char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
+    stream.read(reinterpret_cast<char*> (&m_iFinalROMBank0), sizeof(m_iFinalROMBank0));
+    stream.read(reinterpret_cast<char*> (&m_iFinalROMBank), sizeof(m_iFinalROMBank));
+    stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
+}

@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef INPUT_H
@@ -36,6 +36,8 @@ public:
     void KeyReleased(Gameboy_Keys key);
     void Write(u8 value);
     u8 Read();
+    void SaveState(std::stringstream& stream);
+    void LoadState(std::stringstream& stream);
 
 private:
     void Update();
@@ -72,4 +74,3 @@ inline u8 Input::Read()
 }
 
 #endif	/* INPUT_H */
-

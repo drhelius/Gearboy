@@ -94,3 +94,13 @@ u8* MemoryRule::GetRTCMemory()
     Log("MemoryRule::GetRTCMemory not implemented");
     return NULL;
 }
+
+void MemoryRule::SaveState(std::stringstream& stream)
+{
+    Log("MemoryRule::SaveState not implemented");
+}
+
+void MemoryRule::LoadState(std::stringstream& stream)
+{
+    Log("MemoryRule::LoadState not implemented");
+}

@@ -60,6 +60,8 @@ public:
     void SaveRam(const char* szPath);
     void LoadRam();
     void LoadRam(const char* szPath);
+    void SaveState(u8* buffer, size_t& size);
+    void LoadState(const u8* buffer, size_t size);
     void SetRamModificationCallback(RamChangedCallback callback);
     bool IsCGB();
     Memory* GetMemory();
@@ -91,7 +93,7 @@ private:
     bool m_bPaused;
     GB_Color m_DMGPalette[4];
     bool m_bForceDMG;
-    int m_bRTCUpdateCount;
+    int m_iRTCUpdateCount;
     RamChangedCallback m_pRamChangedCallback;
 };
 

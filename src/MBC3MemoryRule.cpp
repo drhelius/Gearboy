@@ -409,3 +409,37 @@ u8* MBC3MemoryRule::GetRTCMemory()
 {
     return m_pCartridge->IsRTCPresent() ? reinterpret_cast<u8*>(&m_RTC) : NULL;
 }
+
+void MBC3MemoryRule::SaveState(std::stringstream& stream)
+{
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (&m_iCurrentRAMBank), sizeof(m_iCurrentRAMBank));
+    stream.write(reinterpret_cast<const char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
+    stream.write(reinterpret_cast<const char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
+    stream.write(reinterpret_cast<const char*> (&m_bRTCEnabled), sizeof(m_bRTCEnabled));
+    stream.write(reinterpret_cast<const char*> (m_pRAMBanks), 0x8000);
+    stream.write(reinterpret_cast<const char*> (&m_iRTCLatch), sizeof(m_iRTCLatch));
+    stream.write(reinterpret_cast<const char*> (&m_RTCRegister), sizeof(m_RTCRegister));
+    stream.write(reinterpret_cast<const char*> (&m_RTCLastTimeCache), sizeof(m_RTCLastTimeCache));
+    stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
+    stream.write(reinterpret_cast<const char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
+    stream.write(reinterpret_cast<const char*> (&m_RTC), sizeof(m_RTC));
+}
+
+void MBC3MemoryRule::LoadState(std::stringstream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (&m_iCurrentRAMBank), sizeof(m_iCurrentRAMBank));
+    stream.read(reinterpret_cast<char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
+    stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
+    stream.read(reinterpret_cast<char*> (&m_bRTCEnabled), sizeof(m_bRTCEnabled));
+    stream.read(reinterpret_cast<char*> (m_pRAMBanks), 0x8000);
+    stream.read(reinterpret_cast<char*> (&m_iRTCLatch), sizeof(m_iRTCLatch));
+    stream.read(reinterpret_cast<char*> (&m_RTCRegister), sizeof(m_RTCRegister));
+    stream.read(reinterpret_cast<char*> (&m_RTCLastTimeCache), sizeof(m_RTCLastTimeCache));
+    stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
+    stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
+    stream.read(reinterpret_cast<char*> (&m_RTC), sizeof(m_RTC));
+}

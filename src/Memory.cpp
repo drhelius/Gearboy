@@ -426,3 +426,35 @@ u8* Memory::GetCGBRAM()
 {
     return m_pWRAMBanks;
 }
+
+void Memory::SaveState(std::stringstream& stream)
+{
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (m_pMap), 65536);
+    stream.write(reinterpret_cast<const char*> (&m_iCurrentWRAMBank), sizeof(m_iCurrentWRAMBank));
+    stream.write(reinterpret_cast<const char*> (&m_iCurrentLCDRAMBank), sizeof(m_iCurrentLCDRAMBank));
+    stream.write(reinterpret_cast<const char*> (m_pWRAMBanks), 0x8000);
+    stream.write(reinterpret_cast<const char*> (m_pLCDRAMBank1), 0x2000);
+    stream.write(reinterpret_cast<const char*> (&m_bHDMAEnabled), sizeof(m_bHDMAEnabled));
+    stream.write(reinterpret_cast<const char*> (&m_iHDMABytes), sizeof(m_iHDMABytes));
+    stream.write(reinterpret_cast<const char*> (m_HDMA), sizeof(m_HDMA));
+    stream.write(reinterpret_cast<const char*> (&m_HDMASource), sizeof(m_HDMASource));
+    stream.write(reinterpret_cast<const char*> (&m_HDMADestination), sizeof(m_HDMADestination));
+}
+
+void Memory::LoadState(std::stringstream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (m_pMap), 65536);
+    stream.read(reinterpret_cast<char*> (&m_iCurrentWRAMBank), sizeof(m_iCurrentWRAMBank));
+    stream.read(reinterpret_cast<char*> (&m_iCurrentLCDRAMBank), sizeof(m_iCurrentLCDRAMBank));
+    stream.read(reinterpret_cast<char*> (m_pWRAMBanks), 0x8000);
+    stream.read(reinterpret_cast<char*> (m_pLCDRAMBank1), 0x2000);
+    stream.read(reinterpret_cast<char*> (&m_bHDMAEnabled), sizeof(m_bHDMAEnabled));
+    stream.read(reinterpret_cast<char*> (&m_iHDMABytes), sizeof(m_iHDMABytes));
+    stream.read(reinterpret_cast<char*> (m_HDMA), sizeof(m_HDMA));
+    stream.read(reinterpret_cast<char*> (&m_HDMASource), sizeof(m_HDMASource));
+    stream.read(reinterpret_cast<char*> (&m_HDMADestination), sizeof(m_HDMADestination));
+}

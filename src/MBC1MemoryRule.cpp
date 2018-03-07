@@ -271,3 +271,31 @@ u8* MBC1MemoryRule::GetRomBank0()
 {
     return m_pMemory->GetMemoryMap() + 0x0000;
 }
+
+void MBC1MemoryRule::SaveState(std::stringstream& stream)
+{
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (&m_iMode), sizeof(m_iMode));
+    stream.write(reinterpret_cast<const char*> (&m_iCurrentRAMBank), sizeof(m_iCurrentRAMBank));
+    stream.write(reinterpret_cast<const char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
+    stream.write(reinterpret_cast<const char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
+    stream.write(reinterpret_cast<const char*> (&m_HigherRomBankBits), sizeof(m_HigherRomBankBits));
+    stream.write(reinterpret_cast<const char*> (m_pRAMBanks), kMBC1RamBanksSize);
+    stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
+    stream.write(reinterpret_cast<const char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
+}
+
+void MBC1MemoryRule::LoadState(std::stringstream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (&m_iMode), sizeof(m_iMode));
+    stream.read(reinterpret_cast<char*> (&m_iCurrentRAMBank), sizeof(m_iCurrentRAMBank));
+    stream.read(reinterpret_cast<char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
+    stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
+    stream.read(reinterpret_cast<char*> (&m_HigherRomBankBits), sizeof(m_HigherRomBankBits));
+    stream.read(reinterpret_cast<char*> (m_pRAMBanks), kMBC1RamBanksSize);
+    stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
+    stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
+}

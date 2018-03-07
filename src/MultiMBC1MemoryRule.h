@@ -36,6 +36,8 @@ public:
     virtual u8* GetCurrentRamBank();
     virtual u8* GetRomBank0();
     virtual u8* GetCurrentRomBank1();
+    virtual void SaveState(std::stringstream& stream);
+    virtual void LoadState(std::stringstream& stream);
 
 private:
     void SetRomBank();

@@ -54,7 +54,7 @@ GearboyCore::GearboyCore()
     m_bCGB = false;
     m_bPaused = true;
     m_bForceDMG = false;
-    m_bRTCUpdateCount = 0;
+    m_iRTCUpdateCount = 0;
 }
 
 GearboyCore::~GearboyCore()
@@ -128,10 +128,10 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer, s16* pSampleBuffer, int* p
 
         m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
 
-        m_bRTCUpdateCount++;
-        if (m_bRTCUpdateCount == 50)
+        m_iRTCUpdateCount++;
+        if (m_iRTCUpdateCount == 20)
         {
-            m_bRTCUpdateCount = 0;
+            m_iRTCUpdateCount = 0;
             m_pCartridge->UpdateCurrentRTC();
         }
 
@@ -399,6 +399,56 @@ void GearboyCore::LoadRam(const char* szPath)
     }
 }
 
+void GearboyCore::SaveState(u8* buffer, size_t& size)
+{
+    Log("Save state...");
+
+    using namespace std;
+
+    stringstream stream;
+
+    m_pMemory->SaveState(stream);
+    m_pProcessor->SaveState(stream);
+    m_pVideo->SaveState(stream);
+    m_pInput->SaveState(stream);
+    m_pAudio->SaveState(stream);
+    m_pMemory->GetCurrentRule()->SaveState(stream);
+
+    stream.seekg(0, stream.end);
+    size = stream.tellg();
+    stream.seekg(0, stream.beg);
+
+    if (IsValidPointer(buffer))
+    {
+        memcpy(buffer, stream.str().c_str(), size);
+    }
+
+    Log("Save state OK");
+}
+
+void GearboyCore::LoadState(const u8* buffer, size_t size)
+{
+    Log("Load state...");
+
+    if (IsValidPointer(buffer))
+    {
+        using namespace std;
+
+        stringstream stream;
+
+        stream.write(reinterpret_cast<const char*> (buffer), size);
+
+        m_pMemory->LoadState(stream);
+        m_pProcessor->LoadState(stream);
+        m_pVideo->LoadState(stream);
+        m_pInput->LoadState(stream);
+        m_pAudio->LoadState(stream);
+        m_pMemory->GetCurrentRule()->LoadState(stream);
+    }
+
+    Log("Load state OK");
+}
+
 void GearboyCore::SetRamModificationCallback(RamChangedCallback callback)
 {
     m_pRamChangedCallback = callback;
@@ -520,7 +570,7 @@ void GearboyCore::Reset(bool bCGB)
     m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();
     m_pCartridge->UpdateCurrentRTC();
-    m_bRTCUpdateCount = 0;
+    m_iRTCUpdateCount = 0;
 
     m_pCommonMemoryRule->Reset(m_bCGB);
     m_pRomOnlyMemoryRule->Reset(m_bCGB);
