@@ -372,7 +372,7 @@ void Memory::PerformGDMA(u8 value)
     m_pProcessor->AddCycles(clock_cycles * 4);
 }
 
-bool Memory::IsHDMAEnabled()
+bool Memory::IsHDMAEnabled() const
 {
     return m_bHDMAEnabled;
 }
@@ -417,7 +417,7 @@ void Memory::SetHDMARegister(int reg, u8 value)
     m_HDMA[reg - 1] = value;
 }
 
-u8 Memory::GetHDMARegister(int reg)
+u8 Memory::GetHDMARegister(int reg) const
 {
     return m_HDMA[reg - 1];
 }
