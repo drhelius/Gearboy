@@ -36,8 +36,8 @@ public:
     void KeyReleased(Gameboy_Keys key);
     void Write(u8 value);
     u8 Read();
-    void SaveState(std::stringstream& stream);
-    void LoadState(std::stringstream& stream);
+    void SaveState(std::ostream& stream);
+    void LoadState(std::istream& stream);
 
 private:
     void Update();

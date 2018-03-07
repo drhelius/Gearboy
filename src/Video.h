@@ -44,8 +44,8 @@ public:
     void CompareLYToLYC();
     u8 GetIRQ48Signal() const;
     void SetIRQ48Signal(u8 signal);
-    void SaveState(std::stringstream& stream);
-    void LoadState(std::stringstream& stream);
+    void SaveState(std::ostream& stream);
+    void LoadState(std::istream& stream);
 
 private:
     void ScanLine(int line);

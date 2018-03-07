@@ -427,7 +427,7 @@ u8* Memory::GetCGBRAM()
     return m_pWRAMBanks;
 }
 
-void Memory::SaveState(std::stringstream& stream)
+void Memory::SaveState(std::ostream& stream)
 {
     using namespace std;
 
@@ -443,7 +443,7 @@ void Memory::SaveState(std::stringstream& stream)
     stream.write(reinterpret_cast<const char*> (&m_HDMADestination), sizeof(m_HDMADestination));
 }
 
-void Memory::LoadState(std::stringstream& stream)
+void Memory::LoadState(std::istream& stream)
 {
     using namespace std;
 

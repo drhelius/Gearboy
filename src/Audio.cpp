@@ -99,36 +99,31 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
     m_ElapsedCycles = 0;
 }
 
-void Audio::SaveState(std::stringstream& stream)
+void Audio::SaveState(std::ostream& stream)
 {
     using namespace std;
 
     gb_apu_state_t apu_state;
-    //blip_buffer_state_t buffer_state;
 
     m_pApu->save_state(&apu_state);
-    //m_pBuffer->save_state(&buffer_state);
 
     stream.write(reinterpret_cast<const char*> (&m_ElapsedCycles), sizeof(m_ElapsedCycles));
     stream.write(reinterpret_cast<const char*> (m_pSampleBuffer), sizeof(blip_sample_t) * AUDIO_BUFFER_SIZE);
     stream.write(reinterpret_cast<const char*> (&apu_state), sizeof(apu_state));
-    //stream.write(reinterpret_cast<const char*> (&buffer_state), sizeof(buffer_state));
 }
 
-void Audio::LoadState(std::stringstream& stream)
+void Audio::LoadState(std::istream& stream)
 {
     using namespace std;
 
     gb_apu_state_t apu_state;
-    //blip_buffer_state_t buffer_state;
 
     stream.read(reinterpret_cast<char*> (&m_ElapsedCycles), sizeof(m_ElapsedCycles));
     stream.read(reinterpret_cast<char*> (m_pSampleBuffer), sizeof(blip_sample_t) * AUDIO_BUFFER_SIZE);
     stream.read(reinterpret_cast<char*> (&apu_state), sizeof(apu_state));
-    //stream.write(reinterpret_cast<const char*> (&buffer_state), sizeof(buffer_state));
 
     Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
     m_pApu->reset(mode);
     m_pApu->load_state(apu_state);
-    m_pBuffer->clear();//load_state(buffer_state);
+    m_pBuffer->clear();
 }

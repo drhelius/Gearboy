@@ -81,7 +81,7 @@ void Input::Update()
     m_P1 = current;
 }
 
-void Input::SaveState(std::stringstream& stream)
+void Input::SaveState(std::ostream& stream)
 {
     using namespace std;
 
@@ -90,7 +90,7 @@ void Input::SaveState(std::stringstream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iInputCycles), sizeof(m_iInputCycles));
 }
 
-void Input::LoadState(std::stringstream& stream)
+void Input::LoadState(std::istream& stream)
 {
     using namespace std;
 

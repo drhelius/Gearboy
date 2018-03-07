@@ -74,6 +74,8 @@ typedef void (*RamChangedCallback) (void);
 
 #define AUDIO_BUFFER_SIZE 4096
 
+#define SAVESTATE_MAGIC 0x28011983
+
 struct GB_Color
 {
 #if defined(__LIBRETRO__)

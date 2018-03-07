@@ -60,8 +60,14 @@ public:
     void SaveRam(const char* szPath);
     void LoadRam();
     void LoadRam(const char* szPath);
-    void SaveState(u8* buffer, size_t& size);
-    void LoadState(const u8* buffer, size_t size);
+    void SaveState(int index);
+    void SaveState(const char* szPath, int index);
+    bool SaveState(u8* buffer, size_t& size);
+    bool SaveState(std::ostream& stream, size_t& size);
+    void LoadState(int index);
+    void LoadState(const char* szPath, int index);
+    bool LoadState(const u8* buffer, size_t size);
+    bool LoadState(std::istream& stream);
     void SetRamModificationCallback(RamChangedCallback callback);
     bool IsCGB();
     Memory* GetMemory();

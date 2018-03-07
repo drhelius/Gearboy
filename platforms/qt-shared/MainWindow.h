@@ -53,11 +53,9 @@ public slots:
     void MenuGameBoyLoadROM();
     void MenuGameBoyPause();
     void MenuGameBoyReset();
-    void MenuGameBoySelectStateSlot();
+    void MenuGameBoySelectStateSlot(QAction* action);
     void MenuGameBoySaveState();
     void MenuGameBoyLoadState();
-    void MenuGameBoySaveStateAs();
-    void MenuGameBoyLoadStateFrom();
     void MenuSettingsInput();
     void MenuSettingsVideo();
     void MenuSettingsSound();
@@ -76,6 +74,8 @@ public slots:
     void MenuSettingsReleased();
     void MenuDebugPressed();
     void MenuDebugReleased();
+    void MenuAboutPressed();
+    void MenuAboutReleased();
 
 protected:
     void closeEvent(QCloseEvent *evt);
@@ -92,9 +92,10 @@ private:
     Ui::MainWindow *m_pUI;
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;
-    bool m_bMenuPressed[3];
+    bool m_bMenuPressed[4];
     int m_iScreenSize;
     bool m_bFullscreen;
+    int m_iSelectedSlot;
     QShortcut* m_pExitShortcut;
     InputSettings* m_pInputSettings;
     SoundSettings* m_pSoundSettings;

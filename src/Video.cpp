@@ -851,7 +851,7 @@ GB_Color Video::ConvertTo8BitColor(GB_Color color)
     return color;
 }
 
-void Video::SaveState(std::stringstream& stream)
+void Video::SaveState(std::ostream& stream)
 {
     using namespace std;
 
@@ -875,7 +875,7 @@ void Video::SaveState(std::stringstream& stream)
     stream.write(reinterpret_cast<const char*> (&m_IRQ48Signal), sizeof(m_IRQ48Signal));
 }
 
-void Video::LoadState(std::stringstream& stream)
+void Video::LoadState(std::istream& stream)
 {
     using namespace std;
 

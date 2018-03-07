@@ -410,7 +410,7 @@ u8* MBC3MemoryRule::GetRTCMemory()
     return m_pCartridge->IsRTCPresent() ? reinterpret_cast<u8*>(&m_RTC) : NULL;
 }
 
-void MBC3MemoryRule::SaveState(std::stringstream& stream)
+void MBC3MemoryRule::SaveState(std::ostream& stream)
 {
     using namespace std;
 
@@ -427,7 +427,7 @@ void MBC3MemoryRule::SaveState(std::stringstream& stream)
     stream.write(reinterpret_cast<const char*> (&m_RTC), sizeof(m_RTC));
 }
 
-void MBC3MemoryRule::LoadState(std::stringstream& stream)
+void MBC3MemoryRule::LoadState(std::istream& stream)
 {
     using namespace std;
 

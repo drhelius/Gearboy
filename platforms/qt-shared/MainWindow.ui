@@ -117,9 +117,6 @@
     <addaction name="menuSelect_State_Slot"/>
     <addaction name="actionSave_State"/>
     <addaction name="actionLoad_State"/>
-    <addaction name="separator"/>
-    <addaction name="actionSave_State_as"/>
-    <addaction name="actionLad_State_from"/>
    </widget>
    <addaction name="menuGame_Boy"/>
    <addaction name="menuSettings"/>
@@ -413,38 +410,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionSave_State_as</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>MenuGameBoySaveStateAs()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>159</x>
-     <y>156</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionLad_State_from</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>MenuGameBoyLoadStateFrom()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>159</x>
-     <y>156</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionInput</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
@@ -636,6 +601,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>menuSelect_State_Slot</sender>
+   <signal>triggered(QAction*)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>MenuGameBoySelectStateSlot(QAction*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>84</x>
+     <y>113</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>170</x>
+     <y>160</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>MenuGameBoyLoadROM()</slot>
@@ -643,7 +624,7 @@
   <slot>MenuGameBoyReset()</slot>
   <slot>MenuGameBoySaveState()</slot>
   <slot>MenuGameBoyLoadState()</slot>
-  <slot>MenuGameBoySelectStateSlot()</slot>
+  <slot>MenuGameBoySelectStateSlot(QAction*)</slot>
   <slot>MenuGameBoySaveStateAs()</slot>
   <slot>MenuGameBoyLoadStateFrom()</slot>
   <slot>MenuSettingsInput()</slot>

@@ -186,7 +186,7 @@ u8* MultiMBC1MemoryRule::GetCurrentRomBank1()
     return &pROM[0x4000 * m_iFinalROMBank];
 }
 
-void MultiMBC1MemoryRule::SaveState(std::stringstream& stream)
+void MultiMBC1MemoryRule::SaveState(std::ostream& stream)
 {
     using namespace std;
 
@@ -197,7 +197,7 @@ void MultiMBC1MemoryRule::SaveState(std::stringstream& stream)
     stream.write(reinterpret_cast<const char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
 }
 
-void MultiMBC1MemoryRule::LoadState(std::stringstream& stream)
+void MultiMBC1MemoryRule::LoadState(std::istream& stream)
 {
     using namespace std;
 

@@ -51,8 +51,8 @@ public:
     bool CGBSpeed() const;
     void AddCycles(unsigned int cycles);
     bool InterruptIsAboutToRaise();
-    void SaveState(std::stringstream& stream);
-    void LoadState(std::stringstream& stream);
+    void SaveState(std::ostream& stream);
+    void LoadState(std::istream& stream);
 
 private:
     typedef void (Processor::*OPCptr) (void);

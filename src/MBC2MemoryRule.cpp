@@ -211,7 +211,7 @@ u8* MBC2MemoryRule::GetRomBank0()
     return m_pMemory->GetMemoryMap() + 0x0000;
 }
 
-void MBC2MemoryRule::SaveState(std::stringstream& stream)
+void MBC2MemoryRule::SaveState(std::ostream& stream)
 {
     using namespace std;
 
@@ -220,7 +220,7 @@ void MBC2MemoryRule::SaveState(std::stringstream& stream)
     stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
 }
 
-void MBC2MemoryRule::LoadState(std::stringstream& stream)
+void MBC2MemoryRule::LoadState(std::istream& stream)
 {
     using namespace std;
 

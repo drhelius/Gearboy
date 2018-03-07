@@ -399,54 +399,218 @@ void GearboyCore::LoadRam(const char* szPath)
     }
 }
 
-void GearboyCore::SaveState(u8* buffer, size_t& size)
+void GearboyCore::SaveState(int index)
 {
-    Log("Save state...");
+    SaveState(NULL, index);
+}
+
+void GearboyCore::SaveState(const char* szPath, int index)
+{
+    Log("Creating save state...");
 
     using namespace std;
 
-    stringstream stream;
+    size_t size;
+    SaveState(NULL, size);
 
-    m_pMemory->SaveState(stream);
-    m_pProcessor->SaveState(stream);
-    m_pVideo->SaveState(stream);
-    m_pInput->SaveState(stream);
-    m_pAudio->SaveState(stream);
-    m_pMemory->GetCurrentRule()->SaveState(stream);
+    u8* buffer = new u8[size];
+    string path = "";
 
-    stream.seekg(0, stream.end);
-    size = stream.tellg();
-    stream.seekg(0, stream.beg);
-
-    if (IsValidPointer(buffer))
+    if (IsValidPointer(szPath))
     {
-        memcpy(buffer, stream.str().c_str(), size);
+        path += szPath;
+        path += "/";
+        path += m_pCartridge->GetFileName();
+    }
+    else
+    {
+        path = m_pCartridge->GetFilePath();
     }
 
-    Log("Save state OK");
+    string::size_type i = path.rfind('.', path.length());
+
+    if (i != string::npos) {
+        path.replace(i + 1, 3, "state");
+    }
+
+    std::stringstream sstm;
+    sstm << path << index;
+
+    Log("Save state file: %s", sstm.str().c_str());
+
+    ofstream file(sstm.str().c_str(), ios::out | ios::binary);
+
+    SaveState(file, size);
+
+    Log("Save state file created");
+
+    SafeDeleteArray(buffer);
 }
 
-void GearboyCore::LoadState(const u8* buffer, size_t size)
+bool GearboyCore::SaveState(u8* buffer, size_t& size)
 {
-    Log("Load state...");
+    bool ret = false;
 
-    if (IsValidPointer(buffer))
+    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
+        using namespace std;
+
+        stringstream stream;
+
+        if (SaveState(stream, size))
+            ret = true;
+
+        if (IsValidPointer(buffer))
+        {
+            Log("Saving state...");
+            memcpy(buffer, stream.str().c_str(), size);
+            ret = true;
+        }
+    }
+
+    return ret;
+}
+
+bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
+{
+    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    {
+        Log("Gathering save state data...");
+
+        using namespace std;
+
+        m_pMemory->SaveState(stream);
+        m_pProcessor->SaveState(stream);
+        m_pVideo->SaveState(stream);
+        m_pInput->SaveState(stream);
+        m_pAudio->SaveState(stream);
+        m_pMemory->GetCurrentRule()->SaveState(stream);
+
+        size = stream.tellp();
+        size += (sizeof(u32) * 2);
+
+        u32 header_magic = SAVESTATE_MAGIC;
+        u32 header_size = size;
+
+        stream.write(reinterpret_cast<const char*> (&header_magic), sizeof(header_magic));
+        stream.write(reinterpret_cast<const char*> (&header_size), sizeof(header_size));
+
+        return true;
+    }
+
+    return false;
+}
+
+void GearboyCore::LoadState(int index)
+{
+    LoadState(NULL, index);
+}
+
+void GearboyCore::LoadState(const char* szPath, int index)
+{
+    Log("Loading save state...");
+
+    using namespace std;
+
+    string sav_path = "";
+
+    if (IsValidPointer(szPath))
+    {
+        sav_path += szPath;
+        sav_path += "/";
+        sav_path += m_pCartridge->GetFileName();
+    }
+    else
+    {
+        sav_path = m_pCartridge->GetFilePath();
+    }
+
+    string rom_path = sav_path;
+
+    string::size_type i = sav_path.rfind('.', sav_path.length());
+
+    if (i != string::npos) {
+        sav_path.replace(i + 1, 3, "state");
+    }
+
+    std::stringstream sstm;
+    sstm << sav_path << index;
+
+    Log("Opening save file: %s", sstm.str().c_str());
+
+    ifstream file;
+
+    file.open(sstm.str().c_str(), ios::in | ios::binary);
+
+    if (!file.fail())
+    {
+        if (LoadState(file))
+        {
+            Log("Save state loaded");
+        }
+    }
+    else
+    {
+        Log("Save state file doesn't exist");
+    }
+}
+
+bool GearboyCore::LoadState(const u8* buffer, size_t size)
+{
+    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
+    {
+        Log("Gathering load state data...");
+
         using namespace std;
 
         stringstream stream;
 
         stream.write(reinterpret_cast<const char*> (buffer), size);
 
-        m_pMemory->LoadState(stream);
-        m_pProcessor->LoadState(stream);
-        m_pVideo->LoadState(stream);
-        m_pInput->LoadState(stream);
-        m_pAudio->LoadState(stream);
-        m_pMemory->GetCurrentRule()->LoadState(stream);
+        return LoadState(stream);
     }
 
-    Log("Load state OK");
+    return false;
+}
+
+bool GearboyCore::LoadState(std::istream& stream)
+{
+    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    {
+        using namespace std;
+
+        u32 header_magic = 0;
+        u32 header_size = 0;
+
+        stream.seekg(0, ios::end);
+        size_t size = stream.tellg();
+        stream.seekg(0, ios::beg);
+
+        stream.seekg(-2 * (sizeof(u32)), ios::end);
+        stream.read(reinterpret_cast<char*> (&header_magic), sizeof(header_magic));
+        stream.read(reinterpret_cast<char*> (&header_size), sizeof(header_size));
+        stream.seekg(0, ios::beg);
+
+        if ((header_magic == SAVESTATE_MAGIC) && (header_size == size))
+        {
+            Log("Loading state...");
+
+            m_pMemory->LoadState(stream);
+            m_pProcessor->LoadState(stream);
+            m_pVideo->LoadState(stream);
+            m_pInput->LoadState(stream);
+            m_pAudio->LoadState(stream);
+            m_pMemory->GetCurrentRule()->LoadState(stream);
+
+            return true;
+        }
+        else
+        {
+            Log("Invalid save state size or header");
+        }
+    }
+
+    return false;
 }
 
 void GearboyCore::SetRamModificationCallback(RamChangedCallback callback)

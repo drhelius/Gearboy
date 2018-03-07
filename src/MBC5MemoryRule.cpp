@@ -212,7 +212,7 @@ u8* MBC5MemoryRule::GetCurrentRomBank1()
     return &pROM[m_CurrentROMAddress];
 }
 
-void MBC5MemoryRule::SaveState(std::stringstream& stream)
+void MBC5MemoryRule::SaveState(std::ostream& stream)
 {
     using namespace std;
 
@@ -225,7 +225,7 @@ void MBC5MemoryRule::SaveState(std::stringstream& stream)
     stream.write(reinterpret_cast<const char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
 }
 
-void MBC5MemoryRule::LoadState(std::stringstream& stream)
+void MBC5MemoryRule::LoadState(std::istream& stream)
 {
     using namespace std;
 

@@ -397,27 +397,19 @@ bool retro_load_game_special(unsigned type, const struct retro_game_info *info, 
 
 size_t retro_serialize_size(void)
 {
-    Log("retro_serialize_size in");
     size_t size;
     core->SaveState(NULL, size);
-    Log("retro_serialize_size out %d", size);
     return size;
 }
 
 bool retro_serialize(void *data, size_t size)
 {
-    Log("retro_serialize in %d", size);
-    core->SaveState(reinterpret_cast<u8*>(data), size);
-    Log("retro_serialize out %d", size);
-    return true;
+    return core->SaveState(reinterpret_cast<u8*>(data), size);
 }
 
 bool retro_unserialize(const void *data, size_t size)
 {
-    Log("retro_unserialize in %d", size);
-    core->LoadState(reinterpret_cast<const u8*>(data), size);
-    Log("retro_unserialize out %d", size);
-    return true;
+    return core->LoadState(reinterpret_cast<const u8*>(data), size);
 }
 
 void *retro_get_memory_data(unsigned id)

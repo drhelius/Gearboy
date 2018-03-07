@@ -478,7 +478,7 @@ void Processor::UpdateDelayedInterrupts()
     }
 }
 
-void Processor::SaveState(std::stringstream& stream)
+void Processor::SaveState(std::ostream& stream)
 {
     using namespace std;
 
@@ -514,7 +514,7 @@ void Processor::SaveState(std::stringstream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iReadCache), sizeof(m_iReadCache));
 }
 
-void Processor::LoadState(std::stringstream& stream)
+void Processor::LoadState(std::istream& stream)
 {
     using namespace std;
 

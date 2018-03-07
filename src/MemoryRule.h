@@ -49,8 +49,8 @@ public:
     virtual u8* GetRomBank0();
     virtual u8* GetCurrentRomBank1();
     virtual u8* GetRTCMemory();
-    virtual void SaveState(std::stringstream& stream);
-    virtual void LoadState(std::stringstream& stream);
+    virtual void SaveState(std::ostream& stream);
+    virtual void LoadState(std::istream& stream);
 
 protected:
     Processor* m_pProcessor;
