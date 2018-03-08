@@ -33,6 +33,11 @@
     
     self.view.multipleTouchEnabled = YES;
     
+    UIBarButtonItem *save = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(saveState)];
+    UIBarButtonItem *load = [[UIBarButtonItem alloc] initWithTitle:@"Load" style:UIBarButtonItemStylePlain target:self action:@selector(loadState)];
+    
+    self.navigationItem.rightBarButtonItems = @[load, save];
+
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     
     int scrW = 480;
@@ -151,6 +156,16 @@
     {
         [self _handleTouch : touch];
     }
+}
+
+-(void)saveState
+{
+    [self.theGLViewController.theEmulator saveState];
+}
+
+-(void)loadState
+{
+     [self.theGLViewController.theEmulator loadState];
 }
 
 @end
