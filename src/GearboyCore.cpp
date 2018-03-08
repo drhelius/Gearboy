@@ -486,11 +486,11 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
         m_pAudio->SaveState(stream);
         m_pMemory->GetCurrentRule()->SaveState(stream);
 
-        size = stream.tellp();
+        size = static_cast<size_t>(stream.tellp());
         size += (sizeof(u32) * 2);
 
         u32 header_magic = SAVESTATE_MAGIC;
-        u32 header_size = size;
+        size_t header_size = size;
 
         stream.write(reinterpret_cast<const char*> (&header_magic), sizeof(header_magic));
         stream.write(reinterpret_cast<const char*> (&header_size), sizeof(header_size));
@@ -583,7 +583,7 @@ bool GearboyCore::LoadState(std::istream& stream)
         u32 header_size = 0;
 
         stream.seekg(0, ios::end);
-        size_t size = stream.tellg();
+        size_t size = static_cast<size_t>(stream.tellg());
         stream.seekg(0, ios::beg);
 
         stream.seekg(-2 * (sizeof(u32)), ios::end);
