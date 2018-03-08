@@ -490,7 +490,7 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
         size += (sizeof(u32) * 2);
 
         u32 header_magic = SAVESTATE_MAGIC;
-        size_t header_size = size;
+        u32 header_size = static_cast<u32>(size);
 
         stream.write(reinterpret_cast<const char*> (&header_magic), sizeof(header_magic));
         stream.write(reinterpret_cast<const char*> (&header_size), sizeof(header_size));
