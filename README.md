@@ -14,7 +14,7 @@ Follow me on Twitter for updates: http://twitter.com/drhelius
 Downloads
 --------
 - iOS (Jailbreak): [Cydia](http://modmyi.com/info/gearboygameboy.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/GAMEBOY</code> too. Save files are placed in <code>/var/mobile/Library/Gearboy</code>
-- iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
+- iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
 - Mac OS X: <code>brew install gearboy</code>
 - Windows: [Gearboy-2.3-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-2.3-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Linux: [Gearboy-2.3-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-2.3-Linux.tar.gz)
@@ -33,6 +33,7 @@ Features
 - Game Boy Color support.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Saves battery powered RAM cartridges to file.
+- Save states.
 - Compressed rom support (ZIP deflate).
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi, iOS and as a libretro core (RetroArch).
 
@@ -40,8 +41,8 @@ Build Instructions
 ----------------------
 
 ### iOS
-- Install Xcode for Mac OS X. You need iOS SDK 8 or later. 
-- Build the project <code>platforms/ios/Gearboy.xcodeproj</code> 
+- Install Xcode for Mac OS X. You need iOS SDK 8 or later.
+- Build the project <code>platforms/ios/Gearboy.xcodeproj</code>
 - Run it on real hardware using your iOS developer certificate. Make sure it builds on Release for better performance.
 - For jailbroken devices use the <code>jailbreak</code> branch.
 
@@ -99,7 +100,7 @@ qmake-qt5 Gearboy.pro && make
 
 Accuracy Tests
 ------------
-Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/GBAccuracyTests.html). 
+Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/GBAccuracyTests.html).
 
 Tests from [blargg's test roms](http://slack.net/~ant/old/gb-tests/):
 
@@ -129,4 +130,3 @@ License
 
 <i>You should have received a copy of the GNU General Public License</i>
 <i>along with this program.  If not, see http://www.gnu.org/licenses/</i>
-
