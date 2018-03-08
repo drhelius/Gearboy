@@ -27,5 +27,7 @@
 @property (strong, nonatomic) GLViewController* theGLViewController;
 
 - (void)_handleTouch : (UITouch *) touch;
+- (void)saveState;
+- (void)loadState;
 
 @end
