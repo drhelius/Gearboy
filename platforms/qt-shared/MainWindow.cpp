@@ -37,7 +37,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_iScreenSize = 2;
     m_iSelectedSlot = 1;
 
-    m_bMenuPressed[0] = m_bMenuPressed[1] = m_bMenuPressed[2] = false;
+    for (int i=0; i<4;i++)
+        m_bMenuPressed[i] = false;
+
     m_pUI = new Ui::MainWindow();
     m_pUI->setupUi(this);
 
