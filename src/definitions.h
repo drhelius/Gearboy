@@ -20,10 +20,10 @@
 #ifndef DEFINITIONS_H
 #define	DEFINITIONS_H
 
-#include <cstdarg>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <stdint.h>
 #include <iostream>
 #include <fstream>

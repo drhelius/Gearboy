@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <iomanip>
-#include <cstdlib>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <SDL2/SDL.h>
 #include <libconfig.h++>
