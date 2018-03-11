@@ -78,6 +78,14 @@ else ifeq ($(platform), wiiu)
    CXXFLAGS += -DMINIZ_NO_TIME -DGEKKO -DHW_RVL -DWIIU -mwup -mcpu=750 -meabi -mhard-float -D__ppc__ -DMSB_FIRST -I$(DEVKITPRO)/libogc/include
    CXXFLAGS += -U__INT32_TYPE__ -U __UINT32_TYPE__ -D__INT32_TYPE__=int
    STATIC_LINKING = 1
+# PS3
+else ifeq ($(platform), ps3)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
+   CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
+   AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
+   CXXFLAGS += -DMINIZ_NO_TIME -Wall
+STATIC_LINKING = 1
 else ifneq (,$(findstring osx,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.dylib
    fpic := -fPIC
