@@ -54,16 +54,27 @@ ifeq ($(STATIC_LINKING), 1)
 EXT := a
 endif
 
-ifeq ($(platform), unix)
-   EXT ?= so
-   TARGET := $(TARGET_NAME)_libretro.$(EXT)
+# Unix
+ifneq (,$(findstring unix,$(platform)))
+   TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
-   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
-else ifeq ($(platform), linux-portable)
-   TARGET := $(TARGET_NAME)_libretro.$(EXT)
-   fpic := -fPIC -nostdlib
-   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T
-	LIBM :=
+   SHARED := -shared -Wl,-version-script=$(CORE_DIR)/link.T
+   ifneq (,$(findstring Haiku,$(shell uname -s)))
+   LDFLAGS += -lnetwork -lroot
+   endif
+
+   # Raspberry Pi
+   ifneq (,$(findstring rpi,$(platform)))
+      CFLAGS += -fomit-frame-pointer -ffast-math -marm
+      CXXFLAGS += $(CFLAGS)
+      ifneq (,$(findstring rpi1,$(platform)))
+         CFLAGS += -march=armv6j -mfpu=vfp -mfloat-abi=hard
+      else ifneq (,$(findstring rpi2,$(platform)))
+         CFLAGS += -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
+      else ifneq (,$(findstring rpi3,$(platform)))
+         CFLAGS += -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
+      endif
+   endif
 # Nintendo Switch (libtransistor)
 else ifeq ($(platform), switch)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
@@ -86,32 +97,35 @@ else ifeq ($(platform), ps3)
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
    CXXFLAGS += -DMINIZ_NO_TIME -Wall
 STATIC_LINKING = 1
+# OSX
 else ifneq (,$(findstring osx,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.dylib
    fpic := -fPIC
    SHARED := -dynamiclib
+# iOS
 else ifneq (,$(findstring ios,$(platform)))
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
-	fpic := -fPIC
-	SHARED := -dynamiclib
-
-ifeq ($(IOSSDK),)
-   IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
-endif
-
-	DEFINES := -DIOS
-ifeq ($(platform),ios-arm64)
-   CC = cc -arch armv64 -isysroot $(IOSSDK)
-else
-	CC = cc -arch armv7 -isysroot $(IOSSDK)
-endif
-ifeq ($(platform),$(filter $(platform),ios9 ios-arm64))
-CC     += -miphoneos-version-min=8.0
-CXXFLAGS += -miphoneos-version-min=8.0
-else
-CC     += -miphoneos-version-min=5.0
-CXXFLAGS += -miphoneos-version-min=5.0
-endif
+   fpic := -fPIC
+   SHARED := -dynamiclib
+   ifeq ($(IOSSDK),)
+      IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
+   endif
+   ifeq ($(platform),ios-arm64)
+      CC = cc -arch arm64 -isysroot $(IOSSDK)
+      CXX = c++ -arch arm64 -isysroot $(IOSSDK)
+   else
+      CC = cc -arch armv7 -isysroot $(IOSSDK)
+      CXX = c++ -arch armv7 -isysroot $(IOSSDK)
+   endif
+   ifeq ($(platform),$(filter $(platform),ios9 ios-arm64))
+      CC += -miphoneos-version-min=8.0
+      CXX += -miphoneos-version-min=8.0
+      PLATFORM_DEFINES := -miphoneos-version-min=8.0
+   else
+      CC += -miphoneos-version-min=5.0
+      CXX += -miphoneos-version-min=5.0
+      PLATFORM_DEFINES := -miphoneos-version-min=5.0
+   endif
 else ifneq (,$(findstring qnx,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC
