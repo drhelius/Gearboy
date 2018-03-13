@@ -95,7 +95,7 @@ else ifeq ($(platform), ps3)
    CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
    CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
-   CXXFLAGS += -DMINIZ_NO_TIME -Wall
+   CXXFLAGS += -DMINIZ_NO_TIME -DMINIZ_NO_STDIO -Wall
 STATIC_LINKING = 1
 # OSX
 else ifneq (,$(findstring osx,$(platform)))
