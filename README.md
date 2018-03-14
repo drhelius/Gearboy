@@ -63,7 +63,7 @@ sudo make install
 - Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>
 - Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/Gearboy/</code> folder to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
-- The emulator generates a <code>gearboy.cfg</code> configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
+- Gearboy generates a <code>gearboy.cfg</code> configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ### Windows
 - You need Visual Studio 2015 or later.
@@ -85,7 +85,7 @@ sudo make install
 - Open the <code>platforms/macosx/Gearboy/Gearboy.pro</code> project file with Qt Creator and build.
 
 ### Linux
-- Ubuntu or Debian:
+- Ubuntu / Debian:
 ``` shell
 sudo apt-get install build-essential qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev
 cd platforms/linux/Gearboy
