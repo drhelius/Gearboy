@@ -17,6 +17,7 @@
  *
  */
 
+#include <algorithm>
 #include "Processor.h"
 #include "opcode_timing.h"
 #include "opcode_names.h"
@@ -84,6 +85,7 @@ void Processor::Reset(bool bCGB)
         m_InterruptDelayCycles[i] = 0;
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
+    m_GameSharkList.clear();
 }
 
 u8 Processor::Tick()
@@ -332,6 +334,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 StackPush(&PC);
                 PC.SetValue(0x0040);
                 m_iCurrentClockCycles += AdjustedCycles(20);
+                UpdateGameShark();
                 break;
             case LCDSTAT_Interrupt:
                 m_InterruptDelayCycles[1] = 0;
@@ -478,6 +481,19 @@ void Processor::UpdateDelayedInterrupts()
     }
 }
 
+void Processor::UpdateGameShark()
+{
+    std::list<GameSharkCode>::iterator it;
+
+    for (it = m_GameSharkList.begin(); it != m_GameSharkList.end(); it++)
+    {
+        if (it->type == 0x01)
+        {
+            m_pMemory->Write(it->address, it->value);
+        }
+    }
+}
+
 void Processor::SaveState(std::ostream& stream)
 {
     using namespace std;
@@ -555,6 +571,28 @@ void Processor::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iSpeedMultiplier), sizeof(m_iSpeedMultiplier));
     stream.read(reinterpret_cast<char*> (&m_iAccurateOPCodeState), sizeof(m_iAccurateOPCodeState));
     stream.read(reinterpret_cast<char*> (&m_iReadCache), sizeof(m_iReadCache));
+}
+
+void Processor::SetGameSharkCheat(const char* szCheat)
+{
+    std::string code(szCheat);
+    std::transform(code.begin(), code.end(), code.begin(), ::toupper);
+
+    if (code.length() == 8)
+    {
+        GameSharkCode gsc;
+
+        gsc.type = AsHex(code[0]) << 4 | AsHex(code[1]);
+        gsc.value = (AsHex(code[2]) << 4 | AsHex(code[3])) & 0xFF;
+        gsc.address = (AsHex(code[4]) << 4 | AsHex(code[5]) | AsHex(code[6]) << 12 | AsHex(code[7]) << 8) & 0xFFFF;
+
+        m_GameSharkList.push_back(gsc);
+    }
+}
+
+void Processor::ClearGameSharkCheats()
+{
+    m_GameSharkList.clear();
 }
 
 void Processor::InitOPCodeFunctors()

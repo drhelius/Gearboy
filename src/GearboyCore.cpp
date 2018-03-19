@@ -621,11 +621,16 @@ void GearboyCore::SetCheat(const char* szCheat)
         m_pCartridge->SetGameGenieCheat(szCheat);
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
     }
+    else
+    {
+        m_pProcessor->SetGameSharkCheat(szCheat);
+    }
 }
 
 void GearboyCore::ClearCheats()
 {
     m_pCartridge->ClearGameGenieCheats();
+    m_pProcessor->ClearGameSharkCheats();
     m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
 }
 

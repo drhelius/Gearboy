@@ -99,7 +99,6 @@ private:
     bool m_bRumblePresent;
     int m_iRAMBankCount;
     int m_iROMBankCount;
-
     std::list<GameGenieCode> m_GameGenieList;
 };
 
