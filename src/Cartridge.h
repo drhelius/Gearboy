@@ -20,6 +20,7 @@
 #ifndef CARTRIDGE_H
 #define	CARTRIDGE_H
 
+#include <list>
 #include "definitions.h"
 
 class Cartridge
@@ -34,6 +35,12 @@ public:
         CartridgeMBC5,
         CartridgeMBC1Multi,
         CartridgeNotSupported
+    };
+
+    struct GameGenieCode
+    {
+        int address;
+        u8 old_value;
     };
 
 public:
@@ -63,6 +70,8 @@ public:
     time_t GetCurrentRTC();
     bool IsRTCPresent() const;
     bool IsRumblePresent() const;
+    void SetGameGenieCheat(const char* szCheat);
+    void ClearGameGenieCheats();
 
 private:
     unsigned int Pow2Ceil(unsigned int n);
@@ -90,6 +99,8 @@ private:
     bool m_bRumblePresent;
     int m_iRAMBankCount;
     int m_iROMBankCount;
+
+    std::list<GameGenieCode> m_GameGenieList;
 };
 
 #endif	/* CARTRIDGE_H */

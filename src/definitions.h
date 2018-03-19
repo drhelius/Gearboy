@@ -146,4 +146,9 @@ inline bool IsSetBit(const u8 value, const u8 bit)
     return (value & (0x01 << bit)) != 0;
 }
 
+inline int AsHex(const char c)
+{
+  return c >= 'A' ? c - 'A' + 0xA : c - '0';
+}
+
 #endif	/* DEFINITIONS_H */

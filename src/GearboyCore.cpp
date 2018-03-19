@@ -613,6 +613,22 @@ bool GearboyCore::LoadState(std::istream& stream)
     return false;
 }
 
+void GearboyCore::SetCheat(const char* szCheat)
+{
+    std::string s = szCheat;
+    if (s.find("-") != std::string::npos)
+    {
+        m_pCartridge->SetGameGenieCheat(szCheat);
+        m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
+    }
+}
+
+void GearboyCore::ClearCheats()
+{
+    m_pCartridge->ClearGameGenieCheats();
+    m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
+}
+
 void GearboyCore::SetRamModificationCallback(RamChangedCallback callback)
 {
     m_pRamChangedCallback = callback;
