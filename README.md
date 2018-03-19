@@ -35,6 +35,7 @@ Features
 - Saves battery powered RAM cartridges to file.
 - Save states.
 - Compressed rom support (ZIP deflate).
+- Game Genie and GameShark cheat support.
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi, iOS and as a libretro core (RetroArch).
 
 Build Instructions
@@ -130,4 +131,3 @@ License
 
 <i>You should have received a copy of the GNU General Public License</i>
 <i>along with this program.  If not, see http://www.gnu.org/licenses/</i>
-
