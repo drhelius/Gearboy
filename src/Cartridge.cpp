@@ -501,14 +501,14 @@ void Cartridge::SetGameGenieCheat(const char* szCheat)
     std::string code(szCheat);
     std::transform(code.begin(), code.end(), code.begin(), ::toupper);
 
-    if (m_bLoaded && (code.length() > 6) && (code[3] == '-'))
+    if (m_bLoaded && (code.length() > 6) && ((code[3] < '0') || ((code[3] > '9') && (code[3] < 'A'))))
     {
         u8 new_value = (AsHex(code[0]) << 4 | AsHex(code[1])) & 0xFF;
         u16 cheat_address = (AsHex(code[2]) << 8 | AsHex(code[4]) << 4 | AsHex(code[5]) | (AsHex(code[6]) ^ 0xF) << 12) & 0x7FFF;
         bool avoid_compare = true;
         u8 compare_value = 0;
 
-        if ((code.length() == 11) && (code[7] == '-'))
+        if ((code.length() == 11) && ((code[7] < '0') || ((code[7] > '9') && (code[7] < 'A'))))
         {
             compare_value = (AsHex(code[8]) << 4 | AsHex(code[10])) ^ 0xFF;
             compare_value = ((compare_value >> 2 | compare_value << 6) ^ 0x45) & 0xFF;

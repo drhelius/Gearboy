@@ -616,7 +616,7 @@ bool GearboyCore::LoadState(std::istream& stream)
 void GearboyCore::SetCheat(const char* szCheat)
 {
     std::string s = szCheat;
-    if (s.find("-") != std::string::npos)
+    if ((s.length() == 7) || (s.length() == 11))
     {
         m_pCartridge->SetGameGenieCheat(szCheat);
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
