@@ -65,6 +65,7 @@ public:
     void SetHDMARegister(int reg, u8 value);
     u8 GetHDMARegister(int reg) const;
     u8* GetCGBRAM();
+    int GetCurrentCGBRAMBank();
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
 

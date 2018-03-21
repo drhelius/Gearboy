@@ -427,6 +427,11 @@ u8* Memory::GetCGBRAM()
     return m_pWRAMBanks;
 }
 
+int Memory::GetCurrentCGBRAMBank()
+{
+    return m_iCurrentWRAMBank;
+}
+
 void Memory::SaveState(std::ostream& stream)
 {
     using namespace std;

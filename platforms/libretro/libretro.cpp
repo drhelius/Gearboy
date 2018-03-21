@@ -333,7 +333,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
     snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
 
-    struct retro_memory_descriptor descs[8];
+    struct retro_memory_descriptor descs[9];
 
     memset(descs, 0, sizeof(descs));
 
@@ -345,30 +345,34 @@ bool retro_load_game(const struct retro_game_info *info)
     descs[1].ptr   = core->GetMemory()->GetMemoryMap() + 0xFF80;
     descs[1].start = 0xFF80;
     descs[1].len   = 0x0080;
-    // RAM
-    descs[2].ptr   = core->GetMemory()->GetMemoryMap() + 0xC000; // todo: fix GBC
+    // RAM bank 0
+    descs[2].ptr   = core->IsCGB() ? core->GetMemory()->GetCGBRAM() : (core->GetMemory()->GetMemoryMap() + 0xC000);
     descs[2].start = 0xC000;
-    descs[2].len   = 0x2000;
+    descs[2].len   = 0x1000;
+    // RAM bank 1
+    descs[3].ptr   = core->IsCGB() ? (core->GetMemory()->GetCGBRAM() + (0x1000 * core->GetMemory()->GetCurrentCGBRAMBank()) : (core->GetMemory()->GetMemoryMap() + 0xD000));
+    descs[3].start = 0xD000;
+    descs[3].len   = 0x1000;
     // CART RAM
-    descs[3].ptr   = core->GetMemory()->GetCurrentRule()->GetCurrentRamBank();
-    descs[3].start = 0xA000;
-    descs[3].len   = 0x2000;
-    // VRAM
-    descs[4].ptr   = core->GetMemory()->GetMemoryMap() + 0x8000; // todo: fix GBC
-    descs[4].start = 0x8000;
+    descs[4].ptr   = core->GetMemory()->GetCurrentRule()->GetCurrentRamBank();
+    descs[4].start = 0xA000;
     descs[4].len   = 0x2000;
+    // VRAM
+    descs[5].ptr   = core->GetMemory()->GetMemoryMap() + 0x8000; // todo: fix GBC
+    descs[5].start = 0x8000;
+    descs[5].len   = 0x2000;
     // ROM bank 0
-    descs[5].ptr   = core->GetMemory()->GetCurrentRule()->GetRomBank0();
-    descs[5].start = 0x0000;
-    descs[5].len   = 0x4000;
-    // ROM bank x
-    descs[6].ptr   = core->GetMemory()->GetCurrentRule()->GetCurrentRomBank1();
-    descs[6].start = 0x4000;
+    descs[6].ptr   = core->GetMemory()->GetCurrentRule()->GetRomBank0();
+    descs[6].start = 0x0000;
     descs[6].len   = 0x4000;
+    // ROM bank x
+    descs[7].ptr   = core->GetMemory()->GetCurrentRule()->GetCurrentRomBank1();
+    descs[7].start = 0x4000;
+    descs[7].len   = 0x4000;
     // OAM
-    descs[7].ptr   = core->GetMemory()->GetMemoryMap() + 0xFE00;
-    descs[7].start = 0xFE00;
-    descs[7].len   = 0x00A0;
+    descs[8].ptr   = core->GetMemory()->GetMemoryMap() + 0xFE00;
+    descs[8].start = 0xFE00;
+    descs[8].len   = 0x00A0;
 
     struct retro_memory_map mmaps;
     mmaps.descriptors = descs;
