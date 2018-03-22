@@ -54,9 +54,9 @@ sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg-dev libtiff5-dev libwebp-dev automake
 cd ~
-wget https://www.libsdl.org/release/SDL2-2.0.4.tar.gz
-tar zxvf SDL2-2.0.4.tar.gz
-cd SDL2-2.0.4 && mkdir build && cd build
+wget https://www.libsdl.org/release/SDL2-2.0.8.tar.gz
+tar zxvf SDL2-2.0.8.tar.gz
+cd SDL2-2.0.8 && mkdir build && cd build
 ../configure --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl --host=armv7l-raspberry-linux-gnueabihf
 make -j 4
 sudo make install
