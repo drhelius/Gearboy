@@ -137,8 +137,9 @@ else ifeq ($(platform), emscripten)
 else ifeq ($(platform), vita)
    TARGET := $(TARGET_NAME)_vita.a
    CC = arm-vita-eabi-gcc
+   CXX = arm-vita-eabi-g++
    AR = arm-vita-eabi-ar
-   CXXFLAGS += -Wl,-q -Wall
+   CXXFLAGS += -Wl,-q -Wall -DMINIZ_NO_TIME -mword-relocations -fno-optimize-sibling-calls
 	STATIC_LINKING = 1
 # CTR(3DS)
 else ifeq ($(platform), ctr)
