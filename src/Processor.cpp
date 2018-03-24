@@ -576,7 +576,8 @@ void Processor::LoadState(std::istream& stream)
 void Processor::SetGameSharkCheat(const char* szCheat)
 {
     std::string code(szCheat);
-    std::transform(code.begin(), code.end(), code.begin(), ::toupper);
+    for (std::string::iterator p = code.begin(); code.end() != p; ++p)
+        *p = toupper(*p);
 
     if (code.length() == 8)
     {
