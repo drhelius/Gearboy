@@ -499,7 +499,8 @@ bool Cartridge::IsRumblePresent() const
 void Cartridge::SetGameGenieCheat(const char* szCheat)
 {
     std::string code(szCheat);
-    std::transform(code.begin(), code.end(), code.begin(), [] ( char c ) { return ( toupper( c ) ); });
+    for (std::string::iterator p = code.begin(); code.end() != p; ++p)
+        *p = toupper(*p);
 
     if (m_bLoaded && (code.length() > 6) && ((code[3] < '0') || ((code[3] > '9') && (code[3] < 'A'))))
     {
