@@ -1,4 +1,4 @@
-CFLAGS+=-Wall -O3 -march=armv8-a+crc -mfpu=neon-fp-armv8 -mfloat-abi=hard
+CFLAGS+=-Wall -O3 -march=armv8-a+crc -mfpu=neon-fp-armv8 -mfloat-abi=hard -mtune=cortex-a53
 
 LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lbrcmEGL -lbrcmGLESv2 -lopenmaxil -lvcos -lvchiq_arm -lm -lrt -lconfig++ -lbcm_host `sdl2-config --libs`
 
