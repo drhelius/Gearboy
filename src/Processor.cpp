@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+#include <ctype.h>
 #include "Processor.h"
 #include "opcode_timing.h"
 #include "opcode_names.h"

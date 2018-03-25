@@ -19,6 +19,7 @@
 
 #include <string>
 #include <algorithm>
+#include <ctype.h>
 #include "Cartridge.h"
 #include "miniz/miniz.c"
 
