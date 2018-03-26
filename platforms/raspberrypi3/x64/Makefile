@@ -18,7 +18,7 @@ all: $(BIN) $(LIB)
 	@rm -f $@
 	$(CXX) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-%.bin: $(OBJS)
+$(BIN): $(OBJS)
 	$(CC) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) -lstdc++ -Wl,--no-whole-archive -rdynamic
 
 clean:
