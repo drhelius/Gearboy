@@ -1,8 +1,14 @@
-CFLAGS+=-Wall -O3 -march=armv8-a+crc -mfpu=neon-fp-armv8 -mfloat-abi=hard -mtune=cortex-a53
+GEARBOY_SRC=../../src
+GEARBOY_AUDIO_SRC=../audio-shared
+GEARBOY_RPI_SRC=../raspberrypi
+
+include $(GEARBOY_RPI_SRC)/Makefile.common
+
+CFLAGS+=-Wall -O3 -march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
 
 LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lbrcmEGL -lbrcmGLESv2 -lopenmaxil -lvcos -lvchiq_arm -lm -lrt -lconfig++ -lbcm_host `sdl2-config --libs`
 
-INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/ -I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux  -I../../../src/ -I./
+INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/ -I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux  -I$(GEARBOY_SRC) -I./
 
 .SECONDARY: $(OBJS)
 
