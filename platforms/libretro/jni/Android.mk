@@ -1,29 +1,16 @@
 LOCAL_PATH := $(call my-dir)
 
+ROOT_DIR   := $(LOCAL_PATH)/../../..
+CORE_DIR   := $(ROOT_DIR)/platforms/libretro
+SOURCE_DIR := $(ROOT_DIR)/src
+
+include $(CORE_DIR)/Makefile.common
+
+COREFLAGS := -DHAVE_STDINT_H -DHAVE_INTTYPES_H -D__LIBRETRO__
+
 include $(CLEAR_VARS)
-
-LOCAL_MODULE    := libretro
-
-ifeq ($(TARGET_ARCH),arm)
-LOCAL_CXXFLAGS += -DANDROID_ARM
-LOCAL_ARM_MODE := arm
-endif
-
-ifeq ($(TARGET_ARCH),x86)
-LOCAL_CXXFLAGS +=  -DANDROID_X86
-endif
-
-ifeq ($(TARGET_ARCH),mips)
-LOCAL_CXXFLAGS += -DANDROID_MIPS
-endif
-
-CORE_DIR := $(realpath ../)
-SOURCE_DIR := $(realpath ../../../src)
-
-include ../Makefile.common
-
-LOCAL_SRC_FILES := $(SOURCES_CXX) $(SOURCES_C)
-LOCAL_CXXFLAGS += -DINLINE=inline -DHAVE_STDINT_H -DHAVE_INTTYPES_H -D__LIBRETRO__ -DNDEBUG
-LOCAL_LDLIBS := -latomic
-
+LOCAL_MODULE    := retro
+LOCAL_SRC_FILES := $(SOURCES_CXX)
+LOCAL_CXXFLAGS  := $(COREFLAGS)
+LOCAL_LDFLAGS   := -Wl,-version-script=$(CORE_DIR)/link.T
 include $(BUILD_SHARED_LIBRARY)
