@@ -49,6 +49,7 @@ static s16 audio_buf[AUDIO_BUFFER_SIZE];
 static int audio_sample_count;
 
 static bool force_dmg = false;
+static bool allow_up_down = false;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -66,6 +67,8 @@ static retro_environment_t environ_cb;
 static const struct retro_variable vars[] = {
     { "gearboy_model", "Emulated Model (restart); Auto|Game Boy DMG" },
     { "gearboy_palette", "Palette; Original|Sharp|B/W|Autumn|Soft|Slime" },
+    { "gearboy_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
+
     { NULL }
 };
 #if defined(IS_LITTLE_ENDIAN)
@@ -201,21 +204,37 @@ static void update_input(void)
     input_poll_cb();
 
     if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
-        core->KeyPressed(Up_Key);
+    {
+        if (allow_up_down || !input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
+            core->KeyPressed(Up_Key);
+    }
     else
         core->KeyReleased(Up_Key);
+
     if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
-        core->KeyPressed(Down_Key);
+    {
+        if (allow_up_down || !input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
+            core->KeyPressed(Down_Key);
+    }
     else
         core->KeyReleased(Down_Key);
+
     if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
-        core->KeyPressed(Left_Key);
+    {
+        if (allow_up_down || !input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+            core->KeyPressed(Left_Key);
+    }
     else
         core->KeyReleased(Left_Key);
+
     if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
-        core->KeyPressed(Right_Key);
+    {
+        if (allow_up_down || !input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
+            core->KeyPressed(Right_Key);
+    }
     else
         core->KeyReleased(Right_Key);
+
     if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
         core->KeyPressed(B_Key);
     else
@@ -268,6 +287,17 @@ static void check_variables(void)
             current_palette = slime_palette;
         else
             current_palette = original_palette;
+    }
+
+    var.key = "gearboy_up_down_allowed";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Enabled") == 0)
+            allow_up_down = true;
+        else
+            allow_up_down = false;
     }
 }
 
