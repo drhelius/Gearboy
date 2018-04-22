@@ -115,9 +115,4 @@
     return YES;
 }
 
-- (void)splitViewController:(UISplitViewController *)splitController willHideViewController:(UIViewController *)viewController withBarButtonItem:(UIBarButtonItem *)barButtonItem forPopoverController:(UIPopoverController *)popoverController
-{
-    masterViewController.popover = popoverController;
-}
-
 @end
