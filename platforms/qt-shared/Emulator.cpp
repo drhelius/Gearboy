@@ -167,3 +167,17 @@ void Emulator::LoadRam()
     else
         m_pGearboyCore->LoadRam(QStandardPaths::writableLocation(QStandardPaths::DataLocation).toStdString().c_str());
 }
+
+void Emulator::SaveState(int index)
+{
+    m_Mutex.lock();
+    m_pGearboyCore->SaveState(index);
+    m_Mutex.unlock();
+}
+
+void Emulator::LoadState(int index)
+{
+    m_Mutex.lock();
+    m_pGearboyCore->LoadState(index);
+    m_Mutex.unlock();
+}

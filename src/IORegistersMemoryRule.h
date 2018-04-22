@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef IOREGISTERSMEMORYRULE_H
@@ -32,11 +32,11 @@ class IORegistersMemoryRule
 {
 public:
     IORegistersMemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Audio* pAudio);
-    ~IORegistersMemoryRule();
-    u8 PerformRead(u16 address);
-    void PerformWrite(u16 address, u8 value);
-    void Reset(bool bCGB);
-    
+    virtual ~IORegistersMemoryRule();
+    virtual u8 PerformRead(u16 address);
+    virtual void PerformWrite(u16 address, u8 value);
+    virtual void Reset(bool bCGB);
+
 private:
     Processor* m_pProcessor;
     Memory* m_pMemory;
@@ -527,4 +527,3 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
 }
 
 #endif	/* IOREGISTERSMEMORYRULE_H */
-

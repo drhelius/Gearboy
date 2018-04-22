@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef VIDEO_H
@@ -44,6 +44,8 @@ public:
     void CompareLYToLYC();
     u8 GetIRQ48Signal() const;
     void SetIRQ48Signal(u8 signal);
+    void SaveState(std::ostream& stream);
+    void LoadState(std::istream& stream);
 
 private:
     void ScanLine(int line);
@@ -79,4 +81,3 @@ private:
 };
 
 #endif	/* VIDEO_H */
-

@@ -61,9 +61,13 @@ public:
     void SwitchCGBDMA(u8 value);
     unsigned int PerformHDMA();
     void PerformGDMA(u8 value);
-    bool IsHDMAEnabled();
+    bool IsHDMAEnabled() const;
     void SetHDMARegister(int reg, u8 value);
-    u8 GetHDMARegister(int reg);
+    u8 GetHDMARegister(int reg) const;
+    u8* GetCGBRAM();
+    int GetCurrentCGBRAMBank();
+    void SaveState(std::ostream& stream);
+    void LoadState(std::istream& stream);
 
 private:
 

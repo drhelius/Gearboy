@@ -20,16 +20,17 @@
 #ifndef DEFINITIONS_H
 #define	DEFINITIONS_H
 
-#include <cstdarg>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <stdint.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 //#define DEBUG_GEARBOY 1
-#define GEARBOY_VERSION "2.4.0"
+#define GEARBOY_VERSION "2.6.0"
 
 #ifndef NULL
 #define NULL 0
@@ -71,7 +72,9 @@ typedef void (*RamChangedCallback) (void);
 #define GAMEBOY_WIDTH 160
 #define GAMEBOY_HEIGHT 144
 
-#define AUDIO_BUFFER_SIZE 2048
+#define AUDIO_BUFFER_SIZE 4096
+
+#define SAVESTATE_MAGIC 0x28011983
 
 struct GB_Color
 {
@@ -141,6 +144,11 @@ inline u8 UnsetBit(const u8 value, const u8 bit)
 inline bool IsSetBit(const u8 value, const u8 bit)
 {
     return (value & (0x01 << bit)) != 0;
+}
+
+inline int AsHex(const char c)
+{
+  return c >= 'A' ? c - 'A' + 0xA : c - '0';
 }
 
 #endif	/* DEFINITIONS_H */

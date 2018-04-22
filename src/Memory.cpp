@@ -372,7 +372,7 @@ void Memory::PerformGDMA(u8 value)
     m_pProcessor->AddCycles(clock_cycles * 4);
 }
 
-bool Memory::IsHDMAEnabled()
+bool Memory::IsHDMAEnabled() const
 {
     return m_bHDMAEnabled;
 }
@@ -417,7 +417,49 @@ void Memory::SetHDMARegister(int reg, u8 value)
     m_HDMA[reg - 1] = value;
 }
 
-u8 Memory::GetHDMARegister(int reg)
+u8 Memory::GetHDMARegister(int reg) const
 {
     return m_HDMA[reg - 1];
+}
+
+u8* Memory::GetCGBRAM()
+{
+    return m_pWRAMBanks;
+}
+
+int Memory::GetCurrentCGBRAMBank()
+{
+    return m_iCurrentWRAMBank;
+}
+
+void Memory::SaveState(std::ostream& stream)
+{
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (m_pMap), 65536);
+    stream.write(reinterpret_cast<const char*> (&m_iCurrentWRAMBank), sizeof(m_iCurrentWRAMBank));
+    stream.write(reinterpret_cast<const char*> (&m_iCurrentLCDRAMBank), sizeof(m_iCurrentLCDRAMBank));
+    stream.write(reinterpret_cast<const char*> (m_pWRAMBanks), 0x8000);
+    stream.write(reinterpret_cast<const char*> (m_pLCDRAMBank1), 0x2000);
+    stream.write(reinterpret_cast<const char*> (&m_bHDMAEnabled), sizeof(m_bHDMAEnabled));
+    stream.write(reinterpret_cast<const char*> (&m_iHDMABytes), sizeof(m_iHDMABytes));
+    stream.write(reinterpret_cast<const char*> (m_HDMA), sizeof(m_HDMA));
+    stream.write(reinterpret_cast<const char*> (&m_HDMASource), sizeof(m_HDMASource));
+    stream.write(reinterpret_cast<const char*> (&m_HDMADestination), sizeof(m_HDMADestination));
+}
+
+void Memory::LoadState(std::istream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (m_pMap), 65536);
+    stream.read(reinterpret_cast<char*> (&m_iCurrentWRAMBank), sizeof(m_iCurrentWRAMBank));
+    stream.read(reinterpret_cast<char*> (&m_iCurrentLCDRAMBank), sizeof(m_iCurrentLCDRAMBank));
+    stream.read(reinterpret_cast<char*> (m_pWRAMBanks), 0x8000);
+    stream.read(reinterpret_cast<char*> (m_pLCDRAMBank1), 0x2000);
+    stream.read(reinterpret_cast<char*> (&m_bHDMAEnabled), sizeof(m_bHDMAEnabled));
+    stream.read(reinterpret_cast<char*> (&m_iHDMABytes), sizeof(m_iHDMABytes));
+    stream.read(reinterpret_cast<char*> (m_HDMA), sizeof(m_HDMA));
+    stream.read(reinterpret_cast<char*> (&m_HDMASource), sizeof(m_HDMASource));
+    stream.read(reinterpret_cast<char*> (&m_HDMADestination), sizeof(m_HDMADestination));
 }

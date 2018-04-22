@@ -20,6 +20,7 @@
 #ifndef PROCESSOR_H
 #define	PROCESSOR_H
 
+#include <list>
 #include "definitions.h"
 #include "SixteenBitRegister.h"
 
@@ -51,6 +52,10 @@ public:
     bool CGBSpeed() const;
     void AddCycles(unsigned int cycles);
     bool InterruptIsAboutToRaise();
+    void SaveState(std::ostream& stream);
+    void LoadState(std::istream& stream);
+    void SetGameSharkCheat(const char* szCheat);
+    void ClearGameSharkCheats();
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -81,6 +86,14 @@ private:
     int m_iAccurateOPCodeState;
     u8 m_iReadCache;
 
+    struct GameSharkCode
+    {        
+        u8 type;
+        u16 address;
+        u8 value;
+    };
+    std::list<GameSharkCode> m_GameSharkList;
+
 private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);
@@ -89,6 +102,7 @@ private:
     void UpdateTimers();
     void UpdateSerial();
     void UpdateDelayedInterrupts();
+    void UpdateGameShark();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);
     void SetFlag(u8 flag);

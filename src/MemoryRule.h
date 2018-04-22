@@ -39,14 +39,18 @@ public:
     virtual u8 PerformRead(u16 address) = 0;
     virtual void PerformWrite(u16 address, u8 value) = 0;
     virtual void Reset(bool bCGB) = 0;
-    virtual void SaveRam(std::ofstream &file);
-    virtual bool LoadRam(std::ifstream &file, s32 fileSize);
+    virtual void SaveRam(std::ostream &file);
+    virtual bool LoadRam(std::istream &file, s32 fileSize);
     virtual void SetRamChangedCallback(RamChangedCallback callback);
     virtual size_t GetRamSize();
     virtual size_t GetRTCSize();
     virtual u8* GetRamBanks();
+    virtual u8* GetCurrentRamBank();
+    virtual u8* GetRomBank0();
+    virtual u8* GetCurrentRomBank1();
     virtual u8* GetRTCMemory();
-
+    virtual void SaveState(std::ostream& stream);
+    virtual void LoadState(std::istream& stream);
 
 protected:
     Processor* m_pProcessor;

@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <iomanip>
-#include <cstdlib>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <SDL2/SDL.h>
 #include <libconfig.h++>
@@ -34,7 +34,7 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "gearboy.h"
-#include "../../platforms/audio-shared/Sound_Queue.h"
+#include "../audio-shared/Sound_Queue.h"
 
 using namespace std;
 using namespace libconfig;

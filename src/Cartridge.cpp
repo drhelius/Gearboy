@@ -13,12 +13,13 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include <string>
 #include <algorithm>
+#include <ctype.h>
 #include "Cartridge.h"
 #include "miniz/miniz.c"
 
@@ -76,6 +77,7 @@ void Cartridge::Reset()
     m_bRumblePresent = false;
     m_iRAMBankCount = 0;
     m_iROMBankCount = 0;
+    m_GameGenieList.clear();
 }
 
 bool Cartridge::IsValidROM() const
@@ -228,7 +230,7 @@ bool Cartridge::LoadFromFile(const char* path)
             filename = pathstr;
         }
     }
-    
+
     strcpy(m_szFileName, filename.c_str());
 
     ifstream file(path, ios::in | ios::binary | ios::ate);
@@ -284,9 +286,11 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
 {
     if (IsValidPointer(buffer))
     {
+        Log("Loading from buffer... Size: %d", size);
         m_iTotalSize = size;
         m_pTheROM = new u8[m_iTotalSize];
         memcpy(m_pTheROM, buffer, m_iTotalSize);
+        m_bLoaded = true;
         return GatherMetadata();
     }
     else
@@ -303,8 +307,8 @@ void Cartridge::CheckCartridgeType(int type)
         case 0x00:
             // NO MBC
         case 0x08:
-            // ROM   
-            // SRAM 
+            // ROM
+            // SRAM
         case 0x09:
             // ROM
             // SRAM
@@ -380,8 +384,8 @@ void Cartridge::CheckCartridgeType(int type)
         case 0x0B:
             // MMMO1
         case 0x0C:
-            // MMM01   
-            // SRAM 
+            // MMM01
+            // SRAM
         case 0x0D:
             // MMM01
             // SRAM
@@ -390,7 +394,7 @@ void Cartridge::CheckCartridgeType(int type)
             // MBC4
         case 0x16:
             // MBC4
-            // SRAM 
+            // SRAM
         case 0x17:
             // MBC4
             // SRAM
@@ -491,6 +495,56 @@ bool Cartridge::IsRTCPresent() const
 bool Cartridge::IsRumblePresent() const
 {
     return m_bRumblePresent;
+}
+
+void Cartridge::SetGameGenieCheat(const char* szCheat)
+{
+    std::string code(szCheat);
+    for (std::string::iterator p = code.begin(); code.end() != p; ++p)
+        *p = toupper(*p);
+
+    if (m_bLoaded && (code.length() > 6) && ((code[3] < '0') || ((code[3] > '9') && (code[3] < 'A'))))
+    {
+        u8 new_value = (AsHex(code[0]) << 4 | AsHex(code[1])) & 0xFF;
+        u16 cheat_address = (AsHex(code[2]) << 8 | AsHex(code[4]) << 4 | AsHex(code[5]) | (AsHex(code[6]) ^ 0xF) << 12) & 0x7FFF;
+        bool avoid_compare = true;
+        u8 compare_value = 0;
+
+        if ((code.length() == 11) && ((code[7] < '0') || ((code[7] > '9') && (code[7] < 'A'))))
+        {
+            compare_value = (AsHex(code[8]) << 4 | AsHex(code[10])) ^ 0xFF;
+            compare_value = ((compare_value >> 2 | compare_value << 6) ^ 0x45) & 0xFF;
+            avoid_compare = false;
+        }
+
+        for (int bank = 0; bank < GetROMBankCount(); bank++)
+        {
+            int bank_address = (bank * 0x4000) + (cheat_address & 0x3FFF);
+
+            if (avoid_compare || (m_pTheROM[bank_address] == compare_value))
+            {
+                GameGenieCode undo_data;
+                undo_data.address = bank_address;
+                undo_data.old_value = m_pTheROM[bank_address];
+
+                m_pTheROM[bank_address] = new_value;
+
+                m_GameGenieList.push_back(undo_data);
+            }
+        }
+    }
+}
+
+void Cartridge::ClearGameGenieCheats()
+{
+    std::list<GameGenieCode>::iterator it;
+
+    for (it = m_GameGenieList.begin(); it != m_GameGenieList.end(); it++)
+    {
+        m_pTheROM[it->address] = it->old_value;
+    }
+
+    m_GameGenieList.clear();
 }
 
 unsigned int Cartridge::Pow2Ceil(unsigned int n)
@@ -632,4 +686,3 @@ bool Cartridge::GatherMetadata()
 
     return (m_Type != CartridgeNotSupported);
 }
-

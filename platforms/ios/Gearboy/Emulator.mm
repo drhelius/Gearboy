@@ -39,6 +39,8 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     if (self = [super init])
     {
         firstFrame = YES;
+        saveStatePending = NO;
+        loadStatePending = NO;
 
 #ifdef __APPLE__
 #if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
@@ -122,6 +124,17 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)update
 {
+    if (saveStatePending)
+    {
+        saveStatePending = NO;
+        theGearboyCore->SaveState(1);
+    }
+    else if (loadStatePending)
+    {
+        loadStatePending = NO;
+        theGearboyCore->LoadState(1);
+    }
+    
     InputManager::Instance().Update();
 
     int sampleCount = 0;
@@ -320,6 +333,16 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 {
     theSoundQueue->stop();
     theSoundQueue->start(44100, 2);
+}
+
+- (void)saveState
+{
+    saveStatePending = YES;
+}
+
+- (void)loadState
+{
+    loadStatePending = YES;
 }
 
 @end

@@ -71,3 +71,6 @@ xcuserdata/
 *.xcsettings
 
 *.xccheckout
+
+#rpi
+platforms/raspberry*/**/gearboy

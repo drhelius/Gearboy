@@ -40,6 +40,20 @@ MBC1MemoryRule::~MBC1MemoryRule()
     SafeDeleteArray(m_pRAMBanks);
 }
 
+void MBC1MemoryRule::Reset(bool bCGB)
+{
+    m_bCGB = bCGB;
+    m_iMode = 0;
+    m_iCurrentRAMBank = 0;
+    m_iCurrentROMBank = 1;
+    m_HigherRomBankBits = 0;
+    m_bRamEnabled = false;
+    for (int i = 0; i < kMBC1RamBanksSize; i++)
+        m_pRAMBanks[i] = 0xFF;
+    m_CurrentROMAddress = 0x4000;
+    m_CurrentRAMAddress = 0;
+}
+
 u8 MBC1MemoryRule::PerformRead(u16 address)
 {
     switch (address & 0xE000)
@@ -181,21 +195,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MBC1MemoryRule::Reset(bool bCGB)
-{
-    m_bCGB = bCGB;
-    m_iMode = 0;
-    m_iCurrentRAMBank = 0;
-    m_iCurrentROMBank = 1;
-    m_HigherRomBankBits = 0;
-    m_bRamEnabled = false;
-    for (int i = 0; i < kMBC1RamBanksSize; i++)
-        m_pRAMBanks[i] = 0xFF;
-    m_CurrentROMAddress = 0x4000;
-    m_CurrentRAMAddress = 0;
-}
-
-void MBC1MemoryRule::SaveRam(std::ofstream &file)
+void MBC1MemoryRule::SaveRam(std::ostream &file)
 {
     Log("MBC1MemoryRule save RAM...");
     Log("MBC1MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
@@ -211,7 +211,7 @@ void MBC1MemoryRule::SaveRam(std::ofstream &file)
     Log("MBC1MemoryRule save RAM done");
 }
 
-bool MBC1MemoryRule::LoadRam(std::ifstream &file, s32 fileSize)
+bool MBC1MemoryRule::LoadRam(std::istream &file, s32 fileSize)
 {
     Log("MBC1MemoryRule load RAM...");
     Log("MBC1MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
@@ -251,4 +251,51 @@ size_t MBC1MemoryRule::GetRamSize()
 u8* MBC1MemoryRule::GetRamBanks()
 {
     return m_pRAMBanks;
+}
+
+u8* MBC1MemoryRule::GetCurrentRamBank()
+{
+    if (m_pCartridge->GetRAMSize() > 0)
+        return &m_pRAMBanks[m_CurrentRAMAddress];
+    else
+        return NULL;
+}
+
+u8* MBC1MemoryRule::GetCurrentRomBank1()
+{
+    u8* pROM = m_pCartridge->GetTheROM();
+    return &pROM[m_CurrentROMAddress];
+}
+
+u8* MBC1MemoryRule::GetRomBank0()
+{
+    return m_pMemory->GetMemoryMap() + 0x0000;
+}
+
+void MBC1MemoryRule::SaveState(std::ostream& stream)
+{
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (&m_iMode), sizeof(m_iMode));
+    stream.write(reinterpret_cast<const char*> (&m_iCurrentRAMBank), sizeof(m_iCurrentRAMBank));
+    stream.write(reinterpret_cast<const char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
+    stream.write(reinterpret_cast<const char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
+    stream.write(reinterpret_cast<const char*> (&m_HigherRomBankBits), sizeof(m_HigherRomBankBits));
+    stream.write(reinterpret_cast<const char*> (m_pRAMBanks), kMBC1RamBanksSize);
+    stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
+    stream.write(reinterpret_cast<const char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
+}
+
+void MBC1MemoryRule::LoadState(std::istream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (&m_iMode), sizeof(m_iMode));
+    stream.read(reinterpret_cast<char*> (&m_iCurrentRAMBank), sizeof(m_iCurrentRAMBank));
+    stream.read(reinterpret_cast<char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
+    stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
+    stream.read(reinterpret_cast<char*> (&m_HigherRomBankBits), sizeof(m_HigherRomBankBits));
+    stream.read(reinterpret_cast<char*> (m_pRAMBanks), kMBC1RamBanksSize);
+    stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
+    stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
 }

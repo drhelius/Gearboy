@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef MULTIMBC1MEMORYRULE_H
@@ -31,6 +31,13 @@ public:
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset(bool bCGB);
+    virtual size_t GetRamSize();
+    virtual u8* GetRamBanks();
+    virtual u8* GetCurrentRamBank();
+    virtual u8* GetRomBank0();
+    virtual u8* GetCurrentRomBank1();
+    virtual void SaveState(std::ostream& stream);
+    virtual void LoadState(std::istream& stream);
 
 private:
     void SetRomBank();

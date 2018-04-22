@@ -31,10 +31,13 @@ public:
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset(bool bCGB);
-    virtual void SaveRam(std::ofstream &file);
-    virtual bool LoadRam(std::ifstream &file, s32 fileSize);
+    virtual void SaveRam(std::ostream &file);
+    virtual bool LoadRam(std::istream &file, s32 fileSize);
     virtual size_t GetRamSize();
     virtual u8* GetRamBanks();
+    virtual u8* GetCurrentRamBank();
+    virtual u8* GetRomBank0();
+    virtual u8* GetCurrentRomBank1();
 };
 
 #endif	/* ROMONLYMEMORYRULE_H */

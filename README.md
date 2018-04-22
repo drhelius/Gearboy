@@ -14,7 +14,7 @@ Follow me on Twitter for updates: http://twitter.com/drhelius
 Downloads
 --------
 - iOS (Jailbreak): [Cydia](http://modmyi.com/info/gearboygameboy.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/GAMEBOY</code> too. Save files are placed in <code>/var/mobile/Library/Gearboy</code>
-- iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
+- iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
 - Mac OS X: <code>brew install gearboy</code>
 - Windows: [Gearboy-2.3-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-2.3-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Linux: [Gearboy-2.3-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-2.3-Linux.tar.gz)
@@ -33,15 +33,17 @@ Features
 - Game Boy Color support.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Saves battery powered RAM cartridges to file.
+- Save states.
 - Compressed rom support (ZIP deflate).
+- Game Genie and GameShark cheat support.
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi, iOS and as a libretro core (RetroArch).
 
 Build Instructions
 ----------------------
 
 ### iOS
-- Install Xcode for Mac OS X. You need iOS SDK 8 or later. 
-- Build the project <code>platforms/ios/Gearboy.xcodeproj</code> 
+- Install Xcode for Mac OS X. You need iOS SDK 8 or later.
+- Build the project <code>platforms/ios/Gearboy.xcodeproj</code>
 - Run it on real hardware using your iOS developer certificate. Make sure it builds on Release for better performance.
 - For jailbroken devices use the <code>jailbreak</code> branch.
 
@@ -52,17 +54,17 @@ sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg-dev libtiff5-dev libwebp-dev automake
 cd ~
-wget https://www.libsdl.org/release/SDL2-2.0.4.tar.gz
-tar zxvf SDL2-2.0.4.tar.gz
-cd SDL2-2.0.4 && mkdir build && cd build
+wget https://www.libsdl.org/release/SDL2-2.0.8.tar.gz
+tar zxvf SDL2-2.0.8.tar.gz
+cd SDL2-2.0.8 && mkdir build && cd build
 ../configure --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl --host=armv7l-raspberry-linux-gnueabihf
 make -j 4
 sudo make install
 ```
 - Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>
-- Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/Gearboy/</code> folder to build the project.
+- Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/x64/</code> folder to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
-- The emulator generates a <code>gearboy.cfg</code> configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
+- Gearboy generates a <code>gearboy.cfg</code> configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ### Windows
 - You need Visual Studio 2015 or later.
@@ -84,7 +86,7 @@ sudo make install
 - Open the <code>platforms/macosx/Gearboy/Gearboy.pro</code> project file with Qt Creator and build.
 
 ### Linux
-- Ubuntu or Debian:
+- Ubuntu / Debian:
 ``` shell
 sudo apt-get install build-essential qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev
 cd platforms/linux/Gearboy
@@ -99,7 +101,7 @@ qmake-qt5 Gearboy.pro && make
 
 Accuracy Tests
 ------------
-Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/GBAccuracyTests.html). 
+Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/GBAccuracyTests.html).
 
 Tests from [blargg's test roms](http://slack.net/~ant/old/gb-tests/):
 
@@ -129,4 +131,3 @@ License
 
 <i>You should have received a copy of the GNU General Public License</i>
 <i>along with this program.  If not, see http://www.gnu.org/licenses/</i>
-

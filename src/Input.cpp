@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "Input.h"
@@ -79,4 +79,22 @@ void Input::Update()
         m_pProcessor->RequestInterrupt(Processor::Joypad_Interrupt);
 
     m_P1 = current;
+}
+
+void Input::SaveState(std::ostream& stream)
+{
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (&m_JoypadState), sizeof(m_JoypadState));
+    stream.write(reinterpret_cast<const char*> (&m_P1), sizeof(m_P1));
+    stream.write(reinterpret_cast<const char*> (&m_iInputCycles), sizeof(m_iInputCycles));
+}
+
+void Input::LoadState(std::istream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (&m_JoypadState), sizeof(m_JoypadState));
+    stream.read(reinterpret_cast<char*> (&m_P1), sizeof(m_P1));
+    stream.read(reinterpret_cast<char*> (&m_iInputCycles), sizeof(m_iInputCycles));
 }
