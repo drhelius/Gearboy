@@ -22,6 +22,9 @@
 @class MasterViewController;
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
+{
+    MasterViewController *masterViewController;
+}
 
 @property (strong, nonatomic) UIWindow *window;
 
