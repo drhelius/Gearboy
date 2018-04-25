@@ -32,7 +32,6 @@
     UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
     navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
     splitViewController.delegate = self;
-    splitViewController.presentsWithGesture = NO;
     masterViewController = (MasterViewController *)[[splitViewController.viewControllers firstObject] topViewController];
     return YES;
 }

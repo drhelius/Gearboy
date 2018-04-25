@@ -108,6 +108,43 @@
     }
 }
 
+// Makes it so that swiping left wont exit the detail view
+
+id savedGestureRecognizerDelegate1;
+id savedGestureRecognizerDelegate2;
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        savedGestureRecognizerDelegate1 = self.navigationController.interactivePopGestureRecognizer.delegate;
+        self.navigationController.interactivePopGestureRecognizer.delegate = self;
+    }
+    if ([self.navigationController.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        savedGestureRecognizerDelegate2 = self.navigationController.navigationController.interactivePopGestureRecognizer.delegate;
+        self.navigationController.navigationController.interactivePopGestureRecognizer.delegate = self;
+    }
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        self.navigationController.interactivePopGestureRecognizer.delegate = savedGestureRecognizerDelegate1;
+    }
+    if ([self.navigationController.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        self.navigationController.navigationController.interactivePopGestureRecognizer.delegate = savedGestureRecognizerDelegate2;
+    }
+}
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    if (gestureRecognizer == self.navigationController.interactivePopGestureRecognizer || gestureRecognizer == self.navigationController.navigationController.interactivePopGestureRecognizer) {
+        return NO;
+    }
+    return YES;
+}
+
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
