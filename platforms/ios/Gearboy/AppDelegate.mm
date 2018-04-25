@@ -32,13 +32,14 @@
     UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
     navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
     splitViewController.delegate = self;
-    masterViewController = (MasterViewController *)[[splitViewController.viewControllers firstObject] topViewController];
     return YES;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
+    UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
+    MasterViewController *masterViewController = (MasterViewController *)[[splitViewController.viewControllers firstObject] topViewController];
     masterViewController.theGLViewController.displayLink.paused = YES;
     masterViewController.theGLViewController.paused = YES;
     [masterViewController.theGLViewController releaseContext];
@@ -57,6 +58,8 @@
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
+    MasterViewController *masterViewController = (MasterViewController *)[[splitViewController.viewControllers firstObject] topViewController];
     [masterViewController.theGLViewController acquireContext];
     masterViewController.theGLViewController.paused = NO;
     masterViewController.theGLViewController.displayLink.paused = NO;
@@ -81,6 +84,8 @@
         {
             if ([fileManager removeItemAtPath:[url path] error:&error])
             {
+                UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
+                MasterViewController* masterViewController = (MasterViewController *)[[splitViewController.viewControllers firstObject] topViewController];
                 [masterViewController reloadTableView];
                 NSArray *extensions = [NSArray arrayWithObjects:@"zip", @"gb", @"sgb", @"gbc", @"rom", @"dmg", @"cgb", @"ZIP", @"GB", @"SGB", @"GBC", @"ROM", @"DMG", @"CGB", nil];
                 if ([extensions containsObject:[srcPath pathExtension]]) {
@@ -114,8 +119,9 @@
     return YES;
 }
 
-- (void)splitViewController:(UISplitViewController *)splitController willHideViewController:(UIViewController *)viewController withBarButtonItem:(UIBarButtonItem *)barButtonItem forPopoverController:(UIPopoverController *)popoverController
+- (void)splitViewController:(UISplitViewController *)splitViewController willHideViewController:(UIViewController *)viewController withBarButtonItem:(UIBarButtonItem *)barButtonItem forPopoverController:(UIPopoverController *)popoverController
 {
+    MasterViewController *masterViewController = (MasterViewController *)[[splitViewController.viewControllers firstObject] topViewController];
     masterViewController.popover = popoverController;
 }
 
