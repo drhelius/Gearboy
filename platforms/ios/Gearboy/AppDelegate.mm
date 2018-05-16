@@ -32,7 +32,6 @@
     UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
     navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
     splitViewController.delegate = self;
-    splitViewController.presentsWithGesture = NO;
     masterViewController = (MasterViewController *)[[splitViewController.viewControllers firstObject] topViewController];
     return YES;
 }
@@ -83,8 +82,10 @@
             if ([fileManager removeItemAtPath:[url path] error:&error])
             {
                 [masterViewController reloadTableView];
-                [masterViewController loadWithROM:[[url path] lastPathComponent]];
-                
+                NSArray *extensions = [NSArray arrayWithObjects:@"zip", @"gb", @"sgb", @"gbc", @"rom", @"dmg", @"cgb", @"ZIP", @"GB", @"SGB", @"GBC", @"ROM", @"DMG", @"CGB", nil];
+                if ([extensions containsObject:[srcPath pathExtension]]) {
+                    [masterViewController loadWithROM:[[url path] lastPathComponent]];
+                }
                 return YES;
             }
         }

@@ -18,6 +18,16 @@
 				<string>com.geardome.gearboy.rom</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeIconFiles</key>
+			<array/>
+			<key>CFBundleTypeName</key>
+			<string>Game Boy Save File</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.matthewdrill.gearboy.save</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
@@ -99,6 +109,24 @@
 					<string>CGB</string>
 					<string>sgb</string>
 					<string>SGB</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Game Boy Save File</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.matthewdrill.gearboy.save</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>sav</string>
+					<string>gearboy</string>
 				</array>
 			</dict>
 		</dict>

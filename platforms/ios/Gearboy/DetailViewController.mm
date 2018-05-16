@@ -33,10 +33,9 @@
     
     self.view.multipleTouchEnabled = YES;
     
-    UIBarButtonItem *save = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(saveState)];
-    UIBarButtonItem *load = [[UIBarButtonItem alloc] initWithTitle:@"Load" style:UIBarButtonItemStylePlain target:self action:@selector(loadState)];
+    UIBarButtonItem *menu = [[UIBarButtonItem alloc] initWithTitle:@"Menu" style:UIBarButtonItemStylePlain target:self action:@selector(menuButtonPressed)];
     
-    self.navigationItem.rightBarButtonItems = @[load, save];
+    self.navigationItem.rightBarButtonItems = @[menu];
 
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     
@@ -109,6 +108,43 @@
     }
 }
 
+// Makes it so that swiping left wont exit the detail view
+
+id savedGestureRecognizerDelegate1;
+id savedGestureRecognizerDelegate2;
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        savedGestureRecognizerDelegate1 = self.navigationController.interactivePopGestureRecognizer.delegate;
+        self.navigationController.interactivePopGestureRecognizer.delegate = self;
+    }
+    if ([self.navigationController.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        savedGestureRecognizerDelegate2 = self.navigationController.navigationController.interactivePopGestureRecognizer.delegate;
+        self.navigationController.navigationController.interactivePopGestureRecognizer.delegate = self;
+    }
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        self.navigationController.interactivePopGestureRecognizer.delegate = savedGestureRecognizerDelegate1;
+    }
+    if ([self.navigationController.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
+        self.navigationController.navigationController.interactivePopGestureRecognizer.delegate = savedGestureRecognizerDelegate2;
+    }
+}
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    if (gestureRecognizer == self.navigationController.interactivePopGestureRecognizer || gestureRecognizer == self.navigationController.navigationController.interactivePopGestureRecognizer) {
+        return NO;
+    }
+    return YES;
+}
+
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
@@ -158,6 +194,39 @@
     }
 }
 
+-(void)menuButtonPressed {
+    
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Menu"
+                                                            message:@"Menu options."
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    UIAlertAction *save = [UIAlertAction actionWithTitle:@"Save"
+                                                style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+                                                    [self saveState];
+                                                }];
+    UIAlertAction *load = [UIAlertAction actionWithTitle:@"Load"
+                                                style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+                                                    [self loadState];
+                                                }];
+    UIAlertAction *shareROM = [UIAlertAction actionWithTitle:@"Share ROM"
+                                                style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+                                                    [self airdropROM];
+                                                }];
+    UIAlertAction *shareSaveFile = [UIAlertAction actionWithTitle:@"Share Save File"
+                                                style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+                                                    [self airdropSaveFile];
+                                                }];
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel"
+                                                            style:UIAlertActionStyleCancel handler:NULL];
+    [alert addAction:save];
+    [alert addAction:load];
+    [alert addAction:shareROM];
+    [alert addAction:shareSaveFile];
+    [alert addAction:cancel];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
 -(void)saveState
 {
     [self.theGLViewController.theEmulator saveState];
@@ -166,6 +235,49 @@
 -(void)loadState
 {
      [self.theGLViewController.theEmulator loadState];
+}
+
+-(void)airdropROM
+{
+    NSArray* paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString* documentsDirectoryPath = [paths objectAtIndex:0];
+    NSString* romPath = [NSString stringWithFormat:@"%@/%@", documentsDirectoryPath, self.detailItem];
+    NSURL* romFile = [NSURL fileURLWithPath:romPath];
+    NSArray* objectsToAirdrop = @[romFile];
+    UIActivityViewController* controller = [[UIActivityViewController alloc] initWithActivityItems:objectsToAirdrop applicationActivities:nil];
+    
+    NSArray* excludedActivities = @[UIActivityTypePostToTwitter, UIActivityTypePostToFacebook,
+                                    UIActivityTypePostToWeibo,
+                                    UIActivityTypeMessage, UIActivityTypeMail,
+                                    UIActivityTypePrint, UIActivityTypeCopyToPasteboard,
+                                    UIActivityTypeAssignToContact, UIActivityTypeSaveToCameraRoll,
+                                    UIActivityTypeAddToReadingList, UIActivityTypePostToFlickr,
+                                    UIActivityTypePostToVimeo, UIActivityTypePostToTencentWeibo];
+    controller.excludedActivityTypes = excludedActivities;
+    
+    [self presentViewController:controller animated:YES completion:nil];
+}
+
+-(void)airdropSaveFile
+{
+    NSArray* paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString* documentsDirectoryPath = [paths objectAtIndex:0];
+    NSString* saveFilename = [self.detailItem stringByReplacingOccurrencesOfString:@".gbc" withString:@".sav"];
+    NSString* saveFilePath = [NSString stringWithFormat:@"%@/%@", documentsDirectoryPath, saveFilename];
+    NSURL* saveFile = [NSURL fileURLWithPath:saveFilePath];
+    NSArray* objectsToAirdrop = @[saveFile];
+    UIActivityViewController* controller = [[UIActivityViewController alloc] initWithActivityItems:objectsToAirdrop applicationActivities:nil];
+    
+    NSArray* excludedActivities = @[UIActivityTypePostToTwitter, UIActivityTypePostToFacebook,
+                                    UIActivityTypePostToWeibo,
+                                    UIActivityTypeMessage, UIActivityTypeMail,
+                                    UIActivityTypePrint, UIActivityTypeCopyToPasteboard,
+                                    UIActivityTypeAssignToContact, UIActivityTypeSaveToCameraRoll,
+                                    UIActivityTypeAddToReadingList, UIActivityTypePostToFlickr,
+                                    UIActivityTypePostToVimeo, UIActivityTypePostToTencentWeibo];
+    controller.excludedActivityTypes = excludedActivities;
+    
+    [self presentViewController:controller animated:YES completion:nil];
 }
 
 @end
