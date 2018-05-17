@@ -216,12 +216,17 @@ id savedGestureRecognizerDelegate2;
                                                 style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
                                                     [self airdropSaveFile];
                                                 }];
+    UIAlertAction *toggleMute = [UIAlertAction actionWithTitle:@"Toggle mute"
+                                                            style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+                                                                [self toggleMute];
+                                                }];
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel"
                                                             style:UIAlertActionStyleCancel handler:NULL];
     [alert addAction:save];
     [alert addAction:load];
     [alert addAction:shareROM];
     [alert addAction:shareSaveFile];
+    [alert addAction:toggleMute];
     [alert addAction:cancel];
     
     [self presentViewController:alert animated:YES completion:nil];
@@ -278,6 +283,15 @@ id savedGestureRecognizerDelegate2;
     controller.excludedActivityTypes = excludedActivities;
     
     [self presentViewController:controller animated:YES completion:nil];
+}
+
+-(void)toggleMute
+{
+    if (_theGLViewController.theEmulator.audioEnabled == YES) {
+        [_theGLViewController.theEmulator setAudioEnabled:NO];
+    } else {
+        [_theGLViewController.theEmulator setAudioEnabled:YES];
+    }
 }
 
 @end
