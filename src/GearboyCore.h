@@ -45,6 +45,7 @@ public:
     ~GearboyCore();
     void Init();
     void RunToVBlank(GB_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount);
+    void RenderDMGFrame(GB_Color* pFrameBuffer) const;
     bool LoadROM(const char* szFilePath, bool forceDMG);
     bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG);
     void KeyPressed(Gameboy_Keys key);
@@ -80,7 +81,6 @@ private:
     void InitMemoryRules();
     bool AddMemoryRules();
     void Reset(bool bCGB);
-    void RenderDMGFrame(GB_Color* pFrameBuffer) const;
 
 private:
     Memory* m_pMemory;
