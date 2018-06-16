@@ -54,7 +54,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         theSoundQueue = new Sound_Queue();
         theSoundQueue->start(44100, 2);
 
-        audioEnabled = YES;
+        _audioEnabled = YES;
 
         GB_Color color1;
         GB_Color color2;
@@ -141,7 +141,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
     theGearboyCore->RunToVBlank(theFrameBuffer, theSampleBufffer, &sampleCount);
 
-    if (audioEnabled && (sampleCount > 0))
+    if (_audioEnabled && (sampleCount > 0))
     {
         theSoundQueue->write(theSampleBufffer, sampleCount);
     }
@@ -297,13 +297,13 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 -(void)pause
 {
     theGearboyCore->Pause(true);
-    audioEnabled = NO;
+    _audioEnabled = NO;
 }
 
 -(void)resume
 {
     theGearboyCore->Pause(false);
-    audioEnabled = YES;
+    _audioEnabled = YES;
 }
 
 -(BOOL)paused
@@ -324,9 +324,9 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     theGearboyCore->SaveRam();
 }
 
-- (void)setAudio: (BOOL)enabled
+- (void)setAudioEnabled: (BOOL)enabled
 {
-    audioEnabled = enabled;
+    _audioEnabled = enabled;
 }
 
 - (void)resetAudio

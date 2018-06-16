@@ -45,11 +45,11 @@
     Texture* dotMatrixDMGTexture;
     Texture* dotMatrixCGBTexture;
     BOOL firstFrame;
-    BOOL audioEnabled;
     BOOL saveStatePending;
     BOOL loadStatePending;
 }
 
+@property (nonatomic) BOOL audioEnabled;
 @property (nonatomic) float multiplier;
 @property (nonatomic) BOOL retina;
 @property (nonatomic) BOOL iPad;
@@ -73,7 +73,7 @@
 - (void)renderDotMatrix;
 - (void)setupTextureWithData: (GLvoid*) data;
 - (void)renderQuadWithViewportWidth: (float)viewportWidth andHeight: (float)viewportHeight andMirrorY: (BOOL)mirrorY;
-- (void)setAudio: (BOOL)enabled;
+- (void)setAudioEnabled: (BOOL)enabled;
 - (void)resetAudio;
 - (void)saveState;
 - (void)loadState;

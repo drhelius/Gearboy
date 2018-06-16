@@ -165,10 +165,10 @@
     [self.theEmulator initGL];
     
     if ([[MPMusicPlayerController systemMusicPlayer] playbackState] == MPMusicPlaybackStatePlaying)
-        [self.theEmulator setAudio:NO];
+        [self.theEmulator setAudioEnabled:NO];
     else
     {
-        [self.theEmulator setAudio:YES];
+        [self.theEmulator setAudioEnabled:YES];
         [self.theEmulator resetAudio];
     }
 }
