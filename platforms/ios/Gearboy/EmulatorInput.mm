@@ -84,7 +84,7 @@ void EmulatorInput::Init()
                     InputManager::Instance().AddCircleRegionEvent(236.0f, 451.0f, 42.0f, m_pInputCallbackButtons, 2, false);
                     InputManager::Instance().AddCircleRegionEvent(214.0f, 550.0f, 35.0f, m_pInputCallbackButtons, 3, false);
                     InputManager::Instance().AddCircleRegionEvent(150.0f, 550.0f, 35.0f, m_pInputCallbackButtons, 4, false);
-                    InputManager::Instance().AddCircleRegionEvent(87.0f, 439.0f, 60.0f, m_pInputCallbackController, 0, true);
+                    InputManager::Instance().AddCircleRegionEvent(87.0f, 439.0f, 75.0f, m_pInputCallbackController, 0, true);
                     break;
                 }
                 case 736:
@@ -94,7 +94,7 @@ void EmulatorInput::Init()
                     InputManager::Instance().AddCircleRegionEvent(262.0f, 503.0f, 45.0f, m_pInputCallbackButtons, 2, false);
                     InputManager::Instance().AddCircleRegionEvent(235.0f, 613.0f, 40.0f, m_pInputCallbackButtons, 3, false);
                     InputManager::Instance().AddCircleRegionEvent(163.0f, 613.0f, 40.0f, m_pInputCallbackButtons, 4, false);
-                    InputManager::Instance().AddCircleRegionEvent(94.0f, 491.0f, 65.0f, m_pInputCallbackController, 0, true);
+                    InputManager::Instance().AddCircleRegionEvent(94.0f, 491.0f, 75.0f, m_pInputCallbackController, 0, true);
                     break;
                 }
             }

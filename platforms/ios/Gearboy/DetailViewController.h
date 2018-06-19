@@ -20,7 +20,7 @@
 #import <UIKit/UIKit.h>
 #import "GLViewController.h"
 
-@interface DetailViewController : UIViewController
+@interface DetailViewController : UIViewController <UIGestureRecognizerDelegate>
 
 @property (strong, nonatomic) id detailItem;
 @property (weak, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
