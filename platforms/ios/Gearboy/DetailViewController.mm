@@ -197,14 +197,14 @@ id savedGestureRecognizerDelegate2;
 -(void)menuButtonPressed {
     
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Menu"
-                                                            message:@"Menu options."
+                                                            message:@"Gearboy options"
                                                             preferredStyle:UIAlertControllerStyleActionSheet];
     
-    UIAlertAction *save = [UIAlertAction actionWithTitle:@"Save"
+    UIAlertAction *save = [UIAlertAction actionWithTitle:@"Save State"
                                                 style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
                                                     [self saveState];
                                                 }];
-    UIAlertAction *load = [UIAlertAction actionWithTitle:@"Load"
+    UIAlertAction *load = [UIAlertAction actionWithTitle:@"Load State"
                                                 style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
                                                     [self loadState];
                                                 }];
@@ -216,7 +216,7 @@ id savedGestureRecognizerDelegate2;
                                                 style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
                                                     [self airdropSaveFile];
                                                 }];
-    UIAlertAction *toggleMute = [UIAlertAction actionWithTitle:@"Toggle mute"
+    UIAlertAction *toggleMute = [UIAlertAction actionWithTitle:@"Toggle Mute"
                                                             style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
                                                                 [self toggleMute];
                                                 }];
@@ -228,6 +228,9 @@ id savedGestureRecognizerDelegate2;
     [alert addAction:shareSaveFile];
     [alert addAction:toggleMute];
     [alert addAction:cancel];
+    
+    alert.popoverPresentationController.sourceView = self.view;
+    alert.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[0];
     
     [self presentViewController:alert animated:YES completion:nil];
 }
@@ -244,45 +247,59 @@ id savedGestureRecognizerDelegate2;
 
 -(void)airdropROM
 {
-    NSArray* paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString* documentsDirectoryPath = [paths objectAtIndex:0];
-    NSString* romPath = [NSString stringWithFormat:@"%@/%@", documentsDirectoryPath, self.detailItem];
-    NSURL* romFile = [NSURL fileURLWithPath:romPath];
-    NSArray* objectsToAirdrop = @[romFile];
-    UIActivityViewController* controller = [[UIActivityViewController alloc] initWithActivityItems:objectsToAirdrop applicationActivities:nil];
-    
-    NSArray* excludedActivities = @[UIActivityTypePostToTwitter, UIActivityTypePostToFacebook,
-                                    UIActivityTypePostToWeibo,
-                                    UIActivityTypeMessage, UIActivityTypeMail,
-                                    UIActivityTypePrint, UIActivityTypeCopyToPasteboard,
-                                    UIActivityTypeAssignToContact, UIActivityTypeSaveToCameraRoll,
-                                    UIActivityTypeAddToReadingList, UIActivityTypePostToFlickr,
-                                    UIActivityTypePostToVimeo, UIActivityTypePostToTencentWeibo];
-    controller.excludedActivityTypes = excludedActivities;
-    
-    [self presentViewController:controller animated:YES completion:nil];
+    if (self.detailItem)
+    {
+        NSArray* paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString* documentsDirectoryPath = [paths objectAtIndex:0];
+        NSString* romPath = [NSString stringWithFormat:@"%@/%@", documentsDirectoryPath, self.detailItem];
+        NSURL* romFile = [NSURL fileURLWithPath:romPath];
+        NSArray* objectsToAirdrop = @[romFile];
+        UIActivityViewController* controller = [[UIActivityViewController alloc] initWithActivityItems:objectsToAirdrop applicationActivities:nil];
+        
+        NSArray* excludedActivities = @[UIActivityTypePostToTwitter, UIActivityTypePostToFacebook,
+                                        UIActivityTypePostToWeibo,
+                                        UIActivityTypeMessage,
+                                        UIActivityTypePrint, UIActivityTypeCopyToPasteboard,
+                                        UIActivityTypeAssignToContact, UIActivityTypeSaveToCameraRoll,
+                                        UIActivityTypeAddToReadingList, UIActivityTypePostToFlickr,
+                                        UIActivityTypePostToVimeo, UIActivityTypePostToTencentWeibo];
+        controller.excludedActivityTypes = excludedActivities;
+        controller.popoverPresentationController.sourceView = self.view;
+        controller.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[0];
+        
+        [self presentViewController:controller animated:YES completion:nil];
+    }
 }
 
 -(void)airdropSaveFile
 {
-    NSArray* paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString* documentsDirectoryPath = [paths objectAtIndex:0];
-    NSString* saveFilename = [self.detailItem stringByReplacingOccurrencesOfString:@".gbc" withString:@".sav"];
-    NSString* saveFilePath = [NSString stringWithFormat:@"%@/%@", documentsDirectoryPath, saveFilename];
-    NSURL* saveFile = [NSURL fileURLWithPath:saveFilePath];
-    NSArray* objectsToAirdrop = @[saveFile];
-    UIActivityViewController* controller = [[UIActivityViewController alloc] initWithActivityItems:objectsToAirdrop applicationActivities:nil];
-    
-    NSArray* excludedActivities = @[UIActivityTypePostToTwitter, UIActivityTypePostToFacebook,
-                                    UIActivityTypePostToWeibo,
-                                    UIActivityTypeMessage, UIActivityTypeMail,
-                                    UIActivityTypePrint, UIActivityTypeCopyToPasteboard,
-                                    UIActivityTypeAssignToContact, UIActivityTypeSaveToCameraRoll,
-                                    UIActivityTypeAddToReadingList, UIActivityTypePostToFlickr,
-                                    UIActivityTypePostToVimeo, UIActivityTypePostToTencentWeibo];
-    controller.excludedActivityTypes = excludedActivities;
-    
-    [self presentViewController:controller animated:YES completion:nil];
+    if (self.detailItem)
+    {
+        NSArray* paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString* documentsDirectoryPath = [paths objectAtIndex:0];
+        NSString* saveFilename = [self.detailItem stringByDeletingPathExtension];
+        NSString* saveFilePath = [NSString stringWithFormat:@"%@/%@.sav", documentsDirectoryPath, saveFilename];
+        NSURL* saveFile = [NSURL fileURLWithPath:saveFilePath];
+        NSArray* objectsToAirdrop = @[saveFile];
+        
+        if (objectsToAirdrop && objectsToAirdrop.count)
+        {
+            UIActivityViewController* controller = [[UIActivityViewController alloc] initWithActivityItems:objectsToAirdrop applicationActivities:nil];
+            
+            NSArray* excludedActivities = @[UIActivityTypePostToTwitter, UIActivityTypePostToFacebook,
+                                            UIActivityTypePostToWeibo,
+                                            UIActivityTypeMessage,
+                                            UIActivityTypePrint, UIActivityTypeCopyToPasteboard,
+                                            UIActivityTypeAssignToContact, UIActivityTypeSaveToCameraRoll,
+                                            UIActivityTypeAddToReadingList, UIActivityTypePostToFlickr,
+                                            UIActivityTypePostToVimeo, UIActivityTypePostToTencentWeibo];
+            controller.excludedActivityTypes = excludedActivities;
+            controller.popoverPresentationController.sourceView = self.view;
+            controller.popoverPresentationController.barButtonItem = self.navigationItem.rightBarButtonItems[0];
+            
+            [self presentViewController:controller animated:YES completion:nil];
+        }
+    }
 }
 
 -(void)toggleMute
