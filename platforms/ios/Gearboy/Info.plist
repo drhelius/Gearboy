@@ -126,8 +126,6 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>sav</string>
-					<string>srm</string>
-					<string>ram</string>
 					<string>gearboy</string>
 				</array>
 			</dict>
