@@ -25,7 +25,7 @@
 			<string>Game Boy Save File</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.matthewdrill.gearboy.save</string>
+				<string>com.geardome.gearboy.save</string>
 			</array>
 		</dict>
 	</array>
@@ -120,12 +120,14 @@
 			<key>UTTypeDescription</key>
 			<string>Game Boy Save File</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.matthewdrill.gearboy.save</string>
+			<string>com.geardome.gearboy.save</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
 				<array>
 					<string>sav</string>
+					<string>srm</string>
+					<string>ram</string>
 					<string>gearboy</string>
 				</array>
 			</dict>
