@@ -29,7 +29,7 @@ else ifneq ($(findstring MINGW,$(shell uname -a)),)
 	system_platform = win
 endif
 
-
+export DEPSDIR := $(CURDIR)/
 CORE_DIR    += .
 SOURCE_DIR  += ../../src
 TARGET_NAME := gearboy
@@ -80,6 +80,15 @@ else ifeq ($(platform), switch)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
    include $(LIBTRANSISTOR_HOME)/libtransistor.mk
    CXXFLAGS += -DMINIZ_NO_TIME -Wall
+   STATIC_LINKING=1
+# Nintendo Switch (libnx)
+else ifeq ($(platform), libnx)
+   include $(DEVKITPRO)/libnx/switch_rules
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   DEFINES := -D__SWITCH__ -DHAVE_LIBNX
+   CFLAGS := $(DEFINES) -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -specs=$(LIBNX)/switch.specs
+   CFLAGS += -march=armv8-a -mtune=cortex-a57 -mtp=soft -mcpu=cortex-a57+crc+fp+simd -ffast-math
+   CXXFLAGS := $(ASFLAGS) $(CFLAGS) -DMINIZ_NO_TIME -Wall
    STATIC_LINKING=1
 # Nintendo WiiU
 else ifeq ($(platform), wiiu)
