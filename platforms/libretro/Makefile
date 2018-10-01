@@ -63,6 +63,10 @@ ifneq (,$(findstring unix,$(platform)))
    LDFLAGS += -lnetwork -lroot
    endif
 
+   prefix := /usr
+   libdir := $(prefix)/lib
+   LIBRETRO_INSTALL_DIR := libretro
+
    # Raspberry Pi
    ifneq (,$(findstring rpi,$(platform)))
       CFLAGS += -fomit-frame-pointer -ffast-math -marm
@@ -200,4 +204,12 @@ endif
 clean:
 	rm -f $(OBJECTS) $(TARGET)
 
-.PHONY: clean
+install:
+	install -D -m 755 $(TARGET) $(DESTDIR)$(libdir)/$(LIBRETRO_INSTALL_DIR)/$(TARGET)
+	install -D -m 755 $(TARGET_NAME).libretro $(DESTDIR)$(libdir)/$(LIBRETRO_INSTALL_DIR)/$(TARGET_NAME).libretro
+
+uninstall:
+	rm $(DESTDIR)$(libdir)/$(LIBRETRO_INSTALL_DIR)/$(TARGET)
+	rm $(DESTDIR)$(libdir)/$(LIBRETRO_INSTALL_DIR)/$(TARGET_NAME).libretro
+
+.PHONY: clean install uninstall
