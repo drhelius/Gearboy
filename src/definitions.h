@@ -29,7 +29,7 @@
 #include <fstream>
 #include <sstream>
 
-//#define DEBUG_GEARBOY 1
+#define DEBUG_GEARBOY 1
 #define GEARBOY_VERSION "2.6.0"
 
 #ifndef NULL
@@ -133,7 +133,7 @@ inline void Log_func(const char* const msg, ...)
 
 inline u8 SetBit(const u8 value, const u8 bit)
 {
-    return value | (0x01 << bit);
+    return value | static_cast<u8>(0x01 << bit);
 }
 
 inline u8 UnsetBit(const u8 value, const u8 bit)
