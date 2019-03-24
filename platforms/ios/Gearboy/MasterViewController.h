@@ -28,7 +28,6 @@
 @property (strong, nonatomic) NSArray *listData;
 @property (strong, nonatomic) NSMutableDictionary *sections;
 @property (strong, nonatomic) GLViewController* theGLViewController;
-@property (strong, nonatomic) UIPopoverController* popover;
 @property (strong, nonatomic) NSString* openedFromOtherAppRom;
 @property (nonatomic) BOOL openedFromOtherApp;
 

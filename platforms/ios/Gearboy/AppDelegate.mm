@@ -33,7 +33,9 @@
     navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
     splitViewController.delegate = self;
     splitViewController.presentsWithGesture = NO;
+    splitViewController.preferredDisplayMode = UISplitViewControllerDisplayModePrimaryOverlay;
     masterViewController = (MasterViewController *)[[splitViewController.viewControllers firstObject] topViewController];
+    
     return YES;
 }
 
@@ -106,18 +108,6 @@
     } else {
         return NO;
     }
-}
-
-- (BOOL)splitViewController:(UISplitViewController*)svc
-   shouldHideViewController:(UIViewController *)vc
-              inOrientation:(UIInterfaceOrientation)orientation
-{
-    return YES;
-}
-
-- (void)splitViewController:(UISplitViewController *)splitController willHideViewController:(UIViewController *)viewController withBarButtonItem:(UIBarButtonItem *)barButtonItem forPopoverController:(UIPopoverController *)popoverController
-{
-    masterViewController.popover = popoverController;
 }
 
 @end

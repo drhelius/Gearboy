@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		6636357A1A0F8360003CFCDF /* gb_1206.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 663635791A0F8360003CFCDF /* gb_1206.jpg */; };
 		6636357E1A0F897A003CFCDF /* gb_2016.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 6636357D1A0F897A003CFCDF /* gb_2016.jpg */; };
+		663FB7FF2248084B00113707 /* Gb_Oscs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394C719E07B47003FB4F4 /* Gb_Oscs.cpp */; };
 		664653E81FEFE98F00053EBB /* Sound_Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 664653E71FEFE98F00053EBB /* Sound_Queue.cpp */; };
 		6648A60219E078C4005A0B40 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6648A60119E078C4005A0B40 /* main.m */; };
 		6648A60519E078C4005A0B40 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6648A60419E078C4005A0B40 /* AppDelegate.mm */; };
@@ -30,7 +31,6 @@
 		669394CE19E07B47003FB4F4 /* Effects_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394C219E07B47003FB4F4 /* Effects_Buffer.cpp */; };
 		669394CF19E07B47003FB4F4 /* Gb_Apu_State.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394C419E07B47003FB4F4 /* Gb_Apu_State.cpp */; };
 		669394D019E07B47003FB4F4 /* Gb_Apu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394C519E07B47003FB4F4 /* Gb_Apu.cpp */; };
-		669394D119E07B47003FB4F4 /* Gb_Oscs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394C719E07B47003FB4F4 /* Gb_Oscs.cpp */; };
 		669394D219E07B47003FB4F4 /* Multi_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394C919E07B47003FB4F4 /* Multi_Buffer.cpp */; };
 		669394FF19E07B60003FB4F4 /* Audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394D419E07B60003FB4F4 /* Audio.cpp */; };
 		6693950019E07B60003FB4F4 /* Cartridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 669394D719E07B60003FB4F4 /* Cartridge.cpp */; };
@@ -416,7 +416,7 @@
 		6648A5F419E078C4005A0B40 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0920;
+				LastUpgradeCheck = 0940;
 				ORGANIZATIONNAME = "Ignacio Sánchez Ginés";
 				TargetAttributes = {
 					6648A5FB19E078C4005A0B40 = {
@@ -485,10 +485,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				663FB7FF2248084B00113707 /* Gb_Oscs.cpp in Sources */,
 				669394CE19E07B47003FB4F4 /* Effects_Buffer.cpp in Sources */,
 				6693950A19E07B60003FB4F4 /* MemoryRule.cpp in Sources */,
 				6693950719E07B60003FB4F4 /* MBC3MemoryRule.cpp in Sources */,
-				669394D119E07B47003FB4F4 /* Gb_Oscs.cpp in Sources */,
 				669394D019E07B47003FB4F4 /* Gb_Apu.cpp in Sources */,
 				6693950819E07B60003FB4F4 /* MBC5MemoryRule.cpp in Sources */,
 				6693950F19E07B60003FB4F4 /* RomOnlyMemoryRule.cpp in Sources */,
@@ -557,12 +557,14 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = NO;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -609,12 +611,14 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = NO;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
