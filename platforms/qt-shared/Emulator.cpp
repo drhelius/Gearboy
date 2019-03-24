@@ -152,6 +152,11 @@ bool Emulator::IsCGBRom()
     return cgb;
 }
 
+bool Emulator::IsAudioEnabled()
+{
+    return m_bAudioEnabled;
+}
+
 void Emulator::SaveRam()
 {
     if (m_bSaveInROMFolder)

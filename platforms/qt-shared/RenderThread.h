@@ -26,6 +26,7 @@
 #include <GL/glew.h>
 #endif
 #include <QThread>
+#include <QElapsedTimer>
 #include "../../src/gearboy.h"
 
 class Emulator;
@@ -69,6 +70,7 @@ private:
     GLuint m_AccumulationTexture;
     GLuint m_GBTexture;
     bool m_bFirstFrame;
+    QElapsedTimer m_Timer;
 };
 
 #endif // MYRENDERTHREAD_H
