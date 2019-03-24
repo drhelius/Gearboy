@@ -67,9 +67,9 @@ sudo make install
 - Gearboy generates a <code>gearboy.cfg</code> configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ### Windows
-- You need Visual Studio 2015 or later.
+- You need Visual Studio 2017 or later.
 - Install the [Qt 5 Open Source SDK for Windows](https://www.qt.io/download/).
-- Install the [QtPackage Extension](https://visualstudiogallery.msdn.microsoft.com/c89ff880-8509-47a4-a262-e4fa07168408) and point it to the Qt SDK.
+- Install the [QtVisualStudioTools Extension](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123) and point it to the Qt SDK.
 - Open the Gearboy Visual Studio solution <code>platforms/windows/Gearboy/Gearboy.sln</code> and build.
 - You may want to use the <code>platforms/windows/Gearboy/Gearboy.pro</code> project file with Qt Creator instead.
 
