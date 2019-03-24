@@ -54,9 +54,9 @@ sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg-dev libtiff5-dev libwebp-dev automake
 cd ~
-wget https://www.libsdl.org/release/SDL2-2.0.8.tar.gz
-tar zxvf SDL2-2.0.8.tar.gz
-cd SDL2-2.0.8 && mkdir build && cd build
+wget https://www.libsdl.org/release/SDL2-2.0.9.tar.gz
+tar zxvf SDL2-2.0.9.tar.gz
+cd SDL2-2.0.9 && mkdir build && cd build
 ../configure --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl --host=armv7l-raspberry-linux-gnueabihf
 make -j 4
 sudo make install
@@ -76,7 +76,7 @@ sudo make install
 ### Mac OS X
 - You need Qt Creator, included in the Qt 5 SDK.
 - Install Xcode and run <code>xcode-select --install</code> in the terminal for the compiler to be available on the command line.
-- Install the [Qt 5 SDK for Mac OS](http://qt-project.org/downloads).
+- Install the [Qt 5 SDK for Mac OS](https://www.qt.io/download/).
 - Download [SDL 2](http://www.libsdl.org/download-2.0.php) source code. Then run this commands:
 ``` shell
 ./configure
