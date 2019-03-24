@@ -63,6 +63,7 @@ qt-Release.mk
 ui_*.h
 .qmake.stash
 qrc_*.cpp
+Gearboy.pro.user.*
 
 #Xcode
 *.xcuserstate
