@@ -16,9 +16,9 @@ Downloads
 - iOS (Jailbreak): [Cydia](http://modmyi.com/info/gearboygameboy.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/GAMEBOY</code> too. Save files are placed in <code>/var/mobile/Library/Gearboy</code>
 - iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
 - Mac OS X: <code>brew install gearboy</code>
-- Windows: [Gearboy-2.3-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-2.3-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
+- Windows: [Gearboy-2.3-Windows.zip](http://www.geardome.com/files/gearboy/Gearboy-2.3-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
 - Linux: [Gearboy-2.3-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-2.3-Linux.tar.gz)
-- Libretro / RetroArch: [docs](https://docs.libretro.com/library/gearboy/)
+- Libretro / RetroArch: [Core documentation](https://docs.libretro.com/library/gearboy/).
 - Raspberry Pi: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
 - Ubuntu Touch version by Ryan Pattison: [here](https://uappexplorer.com/app/gearboy.rpattison)
 
@@ -67,9 +67,9 @@ sudo make install
 - Gearboy generates a <code>gearboy.cfg</code> configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ### Windows
-- You need Visual Studio 2015 or later.
+- You need Visual Studio 2017 or later.
 - Install the [Qt 5 Open Source SDK for Windows](https://www.qt.io/download/).
-- Install the [QtPackage Extension](https://visualstudiogallery.msdn.microsoft.com/c89ff880-8509-47a4-a262-e4fa07168408) and point it to the Qt SDK.
+- Install the [QtVisualStudioTools Extension](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123) and point it to the Qt SDK.
 - Open the Gearboy Visual Studio solution <code>platforms/windows/Gearboy/Gearboy.sln</code> and build.
 - You may want to use the <code>platforms/windows/Gearboy/Gearboy.pro</code> project file with Qt Creator instead.
 
