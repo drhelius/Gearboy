@@ -78,3 +78,6 @@ platforms/raspberry*/**/gearboy
 #Switch
 *.a
 *.d
+
+#Android
+platforms/libretro/libs/

@@ -29,8 +29,8 @@
 #include <fstream>
 #include <sstream>
 
-//#define DEBUG_GEARBOY 1
-#define GEARBOY_VERSION "2.6.0"
+#define DEBUG_GEARBOY 1
+#define GEARBOY_VERSION "2.7.0"
 
 #ifndef NULL
 #define NULL 0
@@ -111,6 +111,10 @@ enum Gameboy_Keys
 };
 
 #ifdef DEBUG_GEARBOY
+    #ifdef __ANDROID__
+        #include <android/log.h>
+        #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "GEARBOY", __VA_ARGS__);
+    #endif
 #define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
 #else
 #define Log(msg, ...)
@@ -133,7 +137,7 @@ inline void Log_func(const char* const msg, ...)
 
 inline u8 SetBit(const u8 value, const u8 bit)
 {
-    return value | (0x01 << bit);
+    return value | static_cast<u8>(0x01 << bit);
 }
 
 inline u8 UnsetBit(const u8 value, const u8 bit)

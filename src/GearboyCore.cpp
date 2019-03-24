@@ -95,6 +95,8 @@ GearboyCore::~GearboyCore()
 
 void GearboyCore::Init()
 {
+    Log("--== Gearboy %s by Ignacio Sanchez ==--", GEARBOY_VERSION);
+
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
     m_pVideo = new Video(m_pMemory, m_pProcessor);
@@ -462,10 +464,14 @@ bool GearboyCore::SaveState(u8* buffer, size_t& size)
 
         if (IsValidPointer(buffer))
         {
-            Log("Saving state...");
+            Log("Saving state to buffer [%d bytes]...", size);
             memcpy(buffer, stream.str().c_str(), size);
             ret = true;
         }
+    }
+    else
+    {
+        Log("Invalid rom or memory rule.");
     }
 
     return ret;
@@ -487,6 +493,7 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
         m_pMemory->GetCurrentRule()->SaveState(stream);
 
         size = static_cast<size_t>(stream.tellp());
+
         size += (sizeof(u32) * 2);
 
         u32 header_magic = SAVESTATE_MAGIC;
@@ -495,8 +502,12 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
         stream.write(reinterpret_cast<const char*> (&header_magic), sizeof(header_magic));
         stream.write(reinterpret_cast<const char*> (&header_size), sizeof(header_size));
 
+        Log("Save state size: %d", static_cast<size_t>(stream.tellp()));
+
         return true;
     }
+
+    Log("Invalid rom or memory rule.");
 
     return false;
 }
@@ -559,7 +570,7 @@ bool GearboyCore::LoadState(const u8* buffer, size_t size)
 {
     if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
     {
-        Log("Gathering load state data...");
+        Log("Gathering load state data [%d bytes]...", size);
 
         using namespace std;
 
@@ -569,6 +580,8 @@ bool GearboyCore::LoadState(const u8* buffer, size_t size)
 
         return LoadState(stream);
     }
+
+    Log("Invalid rom or memory rule.");
 
     return false;
 }
@@ -584,14 +597,18 @@ bool GearboyCore::LoadState(std::istream& stream)
 
         stream.seekg(0, ios::end);
         size_t size = static_cast<size_t>(stream.tellg());
-        stream.seekg(0, ios::beg);
 
-        stream.seekg(-2 * (sizeof(u32)), ios::end);
+        Log("Load state stream size: %d", size);
+
+        stream.seekg(size - (2 * sizeof(u32)), ios::beg);
         stream.read(reinterpret_cast<char*> (&header_magic), sizeof(header_magic));
         stream.read(reinterpret_cast<char*> (&header_size), sizeof(header_size));
         stream.seekg(0, ios::beg);
 
-        if ((header_magic == SAVESTATE_MAGIC) && (header_size == size))
+        Log("Load state magic: 0x%08x", header_magic);
+        Log("Load state size: %d", header_size);
+
+        if ((header_size == size) && (header_magic == SAVESTATE_MAGIC))
         {
             Log("Loading state...");
 
@@ -606,8 +623,12 @@ bool GearboyCore::LoadState(std::istream& stream)
         }
         else
         {
-            Log("Invalid save state size or header");
+            Log("Invalid save state size");
         }
+    }
+    else
+    {
+        Log("Invalid rom or memory rule");
     }
 
     return false;
