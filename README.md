@@ -17,7 +17,7 @@ Downloads
 - **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
 - **Mac OS X**: <code>brew install gearboy</code>
 - **Windows**: [Gearboy-2.7.0-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-2.7.0/Gearboy-2.7.0-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
-- **Linux**: [Gearboy-2.3-Linux.tar.gz](http://www.geardome.com/files/gearboy/Gearboy-2.3-Linux.tar.gz)
+- **Linux**: [Gearboy-2.7.0-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-2.7.0/Gearboy-2.7.0-Linux.tar.xz)
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/).
 - **Raspberry Pi**: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
 - **Ubuntu Touch** version by Ryan Pattison: [here](https://uappexplorer.com/app/gearboy.rpattison)
