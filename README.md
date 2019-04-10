@@ -13,7 +13,6 @@ Follow me on Twitter for updates: http://twitter.com/drhelius
 
 Downloads
 --------
-- **iOS (Jailbreak)**: [Cydia](http://modmyi.com/info/gearboygameboy.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/GAMEBOY</code> too. Save files are placed in <code>/var/mobile/Library/Gearboy</code>
 - **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
 - **Mac OS X**: <code>brew install gearboy</code>
 - **Windows**: [Gearboy-2.7.0-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-2.7.0/Gearboy-2.7.0-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
@@ -45,7 +44,6 @@ Build Instructions
 - Install Xcode for Mac OS X. You need iOS SDK 8 or later.
 - Build the project <code>platforms/ios/Gearboy.xcodeproj</code>
 - Run it on real hardware using your iOS developer certificate. Make sure it builds on Release for better performance.
-- For jailbroken devices use the <code>jailbreak</code> branch.
 
 ### Raspberry Pi 2 & 3 - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:

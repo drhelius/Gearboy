@@ -39,6 +39,7 @@ ipch/
 *.app
 Thumbs.db
 *[Rr]elease*/
+*[Pp]rofile*/
 [Tt]est[Rr]esults/
 _UpgradeReport_Files/
 _ReSharper.*/
