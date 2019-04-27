@@ -380,7 +380,7 @@ bool retro_load_game(const struct retro_game_info *info)
     descs[2].start = 0xC000;
     descs[2].len   = 0x1000;
     // RAM bank 1
-    descs[3].ptr   = core->IsCGB() ? (core->GetMemory()->GetCGBRAM() + (0x1000 * core->GetMemory()->GetCurrentCGBRAMBank())) : (core->GetMemory()->GetMemoryMap() + 0xD000);
+    descs[3].ptr   = core->IsCGB() ? (core->GetMemory()->GetCGBRAM() + (0x1000)) : (core->GetMemory()->GetMemoryMap() + 0xD000);
     descs[3].start = 0xD000;
     descs[3].len   = 0x1000;
     // CART RAM
@@ -403,10 +403,10 @@ bool retro_load_game(const struct retro_game_info *info)
     descs[8].ptr   = core->GetMemory()->GetMemoryMap() + 0xFE00;
     descs[8].start = 0xFE00;
     descs[8].len   = 0x00A0;
-    // Static RAM banks
-    descs[9].ptr   = core->IsCGB() ? (core->GetMemory()->GetCGBRAM() + 0x1000) : (core->GetMemory()->GetMemoryMap() + 0xD000);
+    // CGB RAM banks 2-7
+    descs[9].ptr   = core->IsCGB() ? (core->GetMemory()->GetCGBRAM() + 0x2000) : (core->GetMemory()->GetMemoryMap() + 0xD000);
     descs[9].start = 0x10000;
-    descs[9].len   = core->IsCGB() ? 0x7000 : 0;
+    descs[9].len   = core->IsCGB() ? 0x6000 : 0;
 
     struct retro_memory_map mmaps;
     mmaps.descriptors = descs;
