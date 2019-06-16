@@ -28,7 +28,7 @@ Features
 - Memory Bank Controllers (MBC1, MBC2, MBC3 with RTC, MBC5), ROM + RAM and multicart cartridges.
 - Accurate LCD controller emulation. Background, window and sprites, with correct timings and priorities including mid-scanline timing.
 - Mix frames: Mimics the LCD ghosting effect seen in the original Game Boy.
-- Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
+- Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Gb_Snd_Emu).
 - Game Boy Color support.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Saves battery powered RAM cartridges to file.
@@ -101,7 +101,7 @@ Accuracy Tests
 ------------
 Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/GBAccuracyTests.html).
 
-Tests from [blargg's test roms](http://slack.net/~ant/old/gb-tests/):
+Tests from [blargg's test roms](http://blargg.8bitalley.com/old/gb-tests/):
 
 ![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_001.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_002.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_003.png)![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_032.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_033.png)![mem_timing.gb](http://www.geardome.com/files/gearboy/gearboy_memtiming2.png)
 
