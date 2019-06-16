@@ -101,7 +101,7 @@ Accuracy Tests
 ------------
 Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/GBAccuracyTests.html).
 
-Tests from [blargg's test roms](http://blargg.8bitalley.com/old/gb-tests/):
+Tests from [blargg's test roms](https://github.com/retrio/gb-test-roms):
 
 ![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_001.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_002.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_003.png)![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_032.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_033.png)![mem_timing.gb](http://www.geardome.com/files/gearboy/gearboy_memtiming2.png)
 
