@@ -1,5 +1,5 @@
 STATIC_LINKING := 0
-AR             := ar
+AR             ?= ar
 
 ifeq ($(platform),)
 platform = unix
@@ -200,7 +200,8 @@ else ifeq ($(platform), ctr)
    CXXFLAGS += $(CFLAGS)
    STATIC_LINKING = 1
 else
-   CC = gcc
+   CC ?= gcc
+   CXX ?= g++
    TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
 endif
