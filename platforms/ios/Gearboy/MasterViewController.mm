@@ -237,12 +237,16 @@
 {
     [super viewDidAppear:animated];
     [self.theGLViewController.theEmulator pause];
+    // disable screen sleep when in-game
+    [[UIApplication sharedApplication] setIdleTimerDisabled: NO];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
     [self.theGLViewController.theEmulator resume];
+    // disable screen sleep when in-game
+    [[UIApplication sharedApplication] setIdleTimerDisabled: YES];
 }
 
 @end

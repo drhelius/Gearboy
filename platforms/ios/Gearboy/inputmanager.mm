@@ -183,6 +183,9 @@ void InputManager::HandleTouch(UITouch* touch, UIView* view)
                     regionEvent.pressed = true;
                     m_RegionEventVector[i].pActualTouch = touch;
                     sendEvent = true;
+
+                    UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
+                    [generator impactOccurred];
                 }
             }
         }

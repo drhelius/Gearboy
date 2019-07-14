@@ -145,6 +145,11 @@ id savedGestureRecognizerDelegate2;
     return YES;
 }
 
+- (BOOL)prefersHomeIndicatorAutoHidden
+{
+    return YES;
+}
+
 - (BOOL)shouldAutorotate
 {
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
