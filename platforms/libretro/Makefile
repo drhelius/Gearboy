@@ -127,14 +127,22 @@ else ifeq ($(platform), libnx)
    CFLAGS += -march=armv8-a -mtune=cortex-a57 -mtp=soft -mcpu=cortex-a57+crc+fp+simd -ffast-math
    CXXFLAGS := $(ASFLAGS) $(CFLAGS) -DMINIZ_NO_TIME -Wall
    STATIC_LINKING=1
-# Nintendo WiiU
-else ifeq ($(platform), wiiu)
+# Nintendo Game Cube / Wii / WiiU
+else ifneq (,$(filter $(platform), ngc wii wiiu))
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
+   CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
    AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
-   CXXFLAGS += -DMINIZ_NO_TIME -DGEKKO -DHW_RVL -DWIIU -mwup -mcpu=750 -meabi -mhard-float -D__ppc__ -DMSB_FIRST -I$(DEVKITPRO)/libogc/include
+   CXXFLAGS += -DMINIZ_NO_TIME -DGEKKO -mcpu=750 -meabi -mhard-float -D__ppc__ -DMSB_FIRST -I$(DEVKITPRO)/libogc/include
    CXXFLAGS += -U__INT32_TYPE__ -U __UINT32_TYPE__ -D__INT32_TYPE__=int
    STATIC_LINKING = 1
+   ifneq (,$(findstring wiiu,$(platform)))
+      CXXFLAGS += -DWIIU -DHW_RVL
+   else ifneq (,$(findstring wii,$(platform)))
+      CXXFLAGS += -DHW_RVL -mrvl
+   else ifneq (,$(findstring ngc,$(platform)))
+      CXXFLAGS += -DHW_DOL -mrvl
+   endif
 # PS3
 else ifeq ($(platform), ps3)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
