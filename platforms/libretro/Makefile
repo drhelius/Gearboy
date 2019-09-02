@@ -180,6 +180,14 @@ else ifneq (,$(findstring ios,$(platform)))
       CXX += -miphoneos-version-min=5.0
       PLATFORM_DEFINES := -miphoneos-version-min=5.0
    endif
+else ifeq ($(platform), tvos-arm64)
+   TARGET := $(TARGET_NAME)_libretro_tvos.dylib
+   fpic := -fPIC
+   SHARED := -dynamiclib
+   ifeq ($(IOSSDK),)
+      IOSSDK := $(shell xcodebuild -version -sdk appletvos Path)
+   endif
+
 else ifneq (,$(findstring qnx,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC
