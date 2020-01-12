@@ -238,7 +238,7 @@ bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
                         {
                             if (IsValidPointer(m_pColorFrameBuffer))
                             {
-                                RenderBG(m_iStatusModeLYCounter, m_iPixelCounter, 4);
+                                RenderBG(m_iStatusModeLYCounter, m_iPixelCounter);
                             }
                             m_iPixelCounter += 4;
                             m_iTileCycleCounter -= 3;
@@ -484,32 +484,33 @@ void Video::ScanLine(int line)
     }
 }
 
-void Video::RenderBG(int line, int pixel, int count)
+void Video::RenderBG(int line, int pixel)
 {
-    int offset_x_init = pixel % 8;
-    int offset_x_end = offset_x_init + count;
-    int screen_tile = pixel / 8;
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
     int line_width = (line * GAMEBOY_WIDTH);
-
+    
     if (m_bCGB || IsSetBit(lcdc, 0))
     {
+        int offset_x_init = pixel & 0x7;
+        int offset_x_end = offset_x_init + 4;
+        int screen_tile = pixel >> 3;
         int tile_start_addr = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
         int map_start_addr = IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
         u8 scroll_x = m_pMemory->Retrieve(0xFF43);
         u8 scroll_y = m_pMemory->Retrieve(0xFF42);
         u8 line_scrolled = line + scroll_y;
-        int line_scrolled_32 = (line_scrolled / 8) * 32;
-        int tile_pixel_y = line_scrolled % 8;
-        int tile_pixel_y_2 = tile_pixel_y * 2;
-        int tile_pixel_y_flip_2 = (7 - tile_pixel_y) * 2;
+        int line_scrolled_32 = (line_scrolled >> 3) << 5;
+        int tile_pixel_y = line_scrolled & 0x7;
+        int tile_pixel_y_2 = tile_pixel_y << 1;
+        int tile_pixel_y_flip_2 = (7 - tile_pixel_y) << 1;
+        u8 palette = m_pMemory->Retrieve(0xFF47);
 
         for (int offset_x = offset_x_init; offset_x < offset_x_end; offset_x++)
         {
-            int screen_pixel_x = (screen_tile * 8) + offset_x;
+            int screen_pixel_x = (screen_tile << 3) + offset_x;
             u8 map_pixel_x = screen_pixel_x + scroll_x;
-            int map_tile_x = map_pixel_x / 8;
-            int map_tile_offset_x = map_pixel_x % 8;
+            int map_tile_x = map_pixel_x >> 3;
+            int map_tile_offset_x = map_pixel_x & 0x7;
             u16 map_tile_addr = map_start_addr + line_scrolled_32 + map_tile_x;
             int map_tile = 0;
 
@@ -529,7 +530,7 @@ void Video::RenderBG(int line, int pixel, int count)
             bool cgb_tile_xflip = m_bCGB ? IsSetBit(cgb_tile_attr, 5) : false;
             bool cgb_tile_yflip = m_bCGB ? IsSetBit(cgb_tile_attr, 6) : false;
             bool cgb_tile_priority = m_bCGB ? IsSetBit(cgb_tile_attr, 7) : false;
-            int map_tile_16 = map_tile * 16;
+            int map_tile_16 = map_tile << 4;
             u8 byte1 = 0;
             u8 byte2 = 0;
             int final_pixely_2 = (m_bCGB && cgb_tile_yflip) ? tile_pixel_y_flip_2 : tile_pixel_y_2;
@@ -568,8 +569,7 @@ void Video::RenderBG(int line, int pixel, int count)
             }
             else
             {
-                u8 palette = m_pMemory->Retrieve(0xFF47);
-                u8 color = (palette >> (pixel_data * 2)) & 0x03;
+                u8 color = (palette >> (pixel_data << 1)) & 0x03;
                 m_pFrameBuffer[index] = color;
             }
         }
@@ -605,11 +605,12 @@ void Video::RenderWindow(int line)
     int tiles = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
     int map = IsSetBit(lcdc, 6) ? 0x9C00 : 0x9800;
     int lineAdjusted = m_iWindowLine;
-    int y_32 = (lineAdjusted / 8) * 32;
-    int pixely = lineAdjusted % 8;
-    int pixely_2 = pixely * 2;
-    int pixely_2_flip = (7 - pixely) * 2;
+    int y_32 = (lineAdjusted >> 3) << 5;
+    int pixely = lineAdjusted & 0x7;
+    int pixely_2 = pixely << 1;
+    int pixely_2_flip = (7 - pixely) << 1;
     int line_width = (line * GAMEBOY_WIDTH);
+    u8 palette = m_pMemory->Retrieve(0xFF47);
 
     for (int x = 0; x < 32; x++)
     {
@@ -631,8 +632,8 @@ void Video::RenderWindow(int line)
         bool cgb_tile_xflip = m_bCGB ? IsSetBit(cgb_tile_attr, 5) : false;
         bool cgb_tile_yflip = m_bCGB ? IsSetBit(cgb_tile_attr, 6) : false;
         bool cgb_tile_priority = m_bCGB ? IsSetBit(cgb_tile_attr, 7) : false;
-        int mapOffsetX = x * 8;
-        int tile_16 = tile * 16;
+        int mapOffsetX = x << 3;
+        int tile_16 = tile << 4;
         u8 byte1 = 0;
         u8 byte2 = 0;
         int final_pixely_2 = (m_bCGB && cgb_tile_yflip) ? pixely_2_flip : pixely_2;
@@ -678,8 +679,7 @@ void Video::RenderWindow(int line)
             }
             else
             {
-                u8 palette = m_pMemory->Retrieve(0xFF47);
-                u8 color = (palette >> (pixel * 2)) & 0x03;
+                u8 color = (palette >> (pixel << 1)) & 0x03;
                 m_pFrameBuffer[position] = color;
             }
         }
@@ -699,7 +699,7 @@ void Video::RenderSprites(int line)
 
     for (int sprite = 39; sprite >= 0; sprite--)
     {
-        int sprite_4 = sprite * 4;
+        int sprite_4 = sprite << 2;
         int sprite_y = m_pMemory->Retrieve(0xFE00 + sprite_4) - 16;
 
         if ((sprite_y > line) || ((sprite_y + sprite_height) <= line))
@@ -711,9 +711,10 @@ void Video::RenderSprites(int line)
             continue;
 
         int sprite_tile_16 = (m_pMemory->Retrieve(0xFE00 + sprite_4 + 2)
-                & ((sprite_height == 16) ? 0xFE : 0xFF)) * 16;
+                & ((sprite_height == 16) ? 0xFE : 0xFF)) << 4;
         u8 sprite_flags = m_pMemory->Retrieve(0xFE00 + sprite_4 + 3);
         int sprite_pallette = IsSetBit(sprite_flags, 4) ? 1 : 0;
+        u8 palette = m_pMemory->Retrieve(sprite_pallette ? 0xFF49 : 0xFF48);
         bool xflip = IsSetBit(sprite_flags, 5);
         bool yflip = IsSetBit(sprite_flags, 6);
         bool aboveBG = !IsSetBit(sprite_flags, 7);
@@ -728,11 +729,11 @@ void Video::RenderSprites(int line)
 
         if (sprite_height == 16 && (pixel_y >= 8))
         {
-            pixel_y_2 = (pixel_y - 8) * 2;
+            pixel_y_2 = (pixel_y - 8) << 1;
             offset = 16;
         }
         else
-            pixel_y_2 = pixel_y * 2;
+            pixel_y_2 = pixel_y << 1;
 
         int tile_address = tiles + sprite_tile_16 + pixel_y_2 + offset;
 
@@ -787,8 +788,7 @@ void Video::RenderSprites(int line)
             }
             else
             {
-                u8 palette = m_pMemory->Retrieve(sprite_pallette ? 0xFF49 : 0xFF48);
-                u8 color = (palette >> (pixel * 2)) & 0x03;
+                u8 color = (palette >> (pixel << 1)) & 0x03;
                 m_pFrameBuffer[position] = color;
             }
         }
@@ -839,16 +839,6 @@ u8 Video::GetIRQ48Signal() const
 void Video::SetIRQ48Signal(u8 signal)
 {
     m_IRQ48Signal = signal;
-}
-
-GB_Color Video::ConvertTo8BitColor(GB_Color color)
-{
-    color.red = (color.red * 255) / 31;
-    color.green = (color.green * 255) / 31;
-    color.blue = (color.blue * 255) / 31;
-    color.alpha = 0xFF;
-
-    return color;
 }
 
 void Video::SaveState(std::ostream& stream)

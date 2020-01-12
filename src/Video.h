@@ -49,7 +49,7 @@ public:
 
 private:
     void ScanLine(int line);
-    void RenderBG(int line, int pixel, int count);
+    void RenderBG(int line, int pixel);
     void RenderWindow(int line);
     void RenderSprites(int line);
     void UpdateStatRegister();
@@ -79,5 +79,15 @@ private:
     int m_iHideFrames;
     u8 m_IRQ48Signal;
 };
+
+inline GB_Color Video::ConvertTo8BitColor(GB_Color color)
+{
+    color.red = (color.red << 3) | (color.red >> 2);
+    color.green = (color.green << 3) | (color.green >> 2);
+    color.blue = (color.blue << 3) | (color.blue >> 2);
+    color.alpha = 0xFF;
+
+    return color;
+}
 
 #endif	/* VIDEO_H */
