@@ -80,7 +80,7 @@ private:
     int m_iIMECycles;
     int m_iUnhaltCycles;
     bool m_bCGB;
-    int m_InterruptDelayCycles[5];
+    int m_InterruptDelayCycles;
     bool m_bCGBSpeed;
     int m_iSpeedMultiplier;
     int m_iAccurateOPCodeState;
@@ -101,7 +101,6 @@ private:
     void ServeInterrupt(Interrupts interrupt);
     void UpdateTimers();
     void UpdateSerial();
-    void UpdateDelayedInterrupts();
     void UpdateGameShark();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);

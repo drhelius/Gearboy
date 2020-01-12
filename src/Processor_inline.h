@@ -4,6 +4,98 @@
 #include "definitions.h"
 #include "Memory.h"
 
+inline u8 Processor::FetchOPCode()
+{
+    u8 opcode = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+
+    if (m_bSkipPCBug)
+    {
+        m_bSkipPCBug = false;
+        PC.Decrement();
+    }
+    return opcode;
+}
+
+inline bool Processor::InterruptIsAboutToRaise()
+{
+    u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
+    u8 if_reg = m_pMemory->Retrieve(0xFF0F);
+
+    return (if_reg & ie_reg & 0x1F) != 0;
+}
+
+inline Processor::Interrupts Processor::InterruptPending()
+{
+    u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
+    u8 if_reg = m_pMemory->Retrieve(0xFF0F);
+    u8 ie_if = if_reg & ie_reg;
+    
+    if ((ie_if & 0x1F) == 0)
+    {
+        return None_Interrupt;
+    }
+    else if ((ie_if & 0x01) && (m_InterruptDelayCycles <= 0))
+    {
+        return VBlank_Interrupt;
+    }
+    else if (ie_if & 0x02)
+    {
+        return LCDSTAT_Interrupt;
+    }
+    else if (ie_if & 0x04)
+    {
+        return Timer_Interrupt;
+    }
+    else if (ie_if & 0x08)
+    {
+        return Serial_Interrupt;
+    }
+    else if (ie_if & 0x10)
+    {
+        return Joypad_Interrupt;
+    }
+    
+    return None_Interrupt;
+}
+
+inline void Processor::RequestInterrupt(Interrupts interrupt)
+{
+    m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | interrupt);
+
+    if ((interrupt == VBlank_Interrupt) && !m_bCGBSpeed)
+    {
+        m_InterruptDelayCycles = 4;
+    }
+}
+
+inline void Processor::ResetTIMACycles()
+{
+    m_iTIMACycles = 0;
+    m_pMemory->Load(0xFF05, m_pMemory->Retrieve(0xFF06));
+}
+
+inline void Processor::ResetDIVCycles()
+{
+    m_iDIVCycles = 0;
+    m_pMemory->Load(0xFF04, 0x00);
+}
+
+inline bool Processor::Halted() const
+{
+    return m_bHalt;
+}
+
+inline bool Processor::CGBSpeed() const
+{
+    return m_bCGBSpeed;
+}
+
+inline void Processor::AddCycles(unsigned int cycles)
+{
+    m_iCurrentClockCycles += cycles;
+}
+
 inline void Processor::ClearAllFlags()
 {
     SetFlag(FLAG_NONE);

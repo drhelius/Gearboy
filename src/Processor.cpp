@@ -42,8 +42,7 @@ Processor::Processor(Memory* pMemory)
     m_iSerialCycles = 0;
     m_bCGB = false;
     m_iUnhaltCycles = 0;
-    for (int i = 0; i < 5; i++)
-        m_InterruptDelayCycles[i] = 0;
+    m_InterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
 }
@@ -82,8 +81,7 @@ void Processor::Reset(bool bCGB)
     BC.SetValue(0x0013);
     DE.SetValue(0x00D8);
     HL.SetValue(0x014D);
-    for (int i = 0; i < 5; i++)
-        m_InterruptDelayCycles[i] = 0;
+    m_InterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
     m_GameSharkList.clear();
@@ -121,8 +119,12 @@ u8 Processor::Tick()
 
         ExecuteOPCode(FetchOPCode());
     }
+    
+    if (m_InterruptDelayCycles > 0)
+    {
+        m_InterruptDelayCycles -= m_iCurrentClockCycles;
+    }
 
-    UpdateDelayedInterrupts();
     UpdateTimers();
     UpdateSerial();
 
@@ -138,72 +140,6 @@ u8 Processor::Tick()
     }
 
     return m_iCurrentClockCycles;
-}
-
-void Processor::RequestInterrupt(Interrupts interrupt)
-{
-    m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | interrupt);
-
-    switch (interrupt)
-    {
-        case VBlank_Interrupt:
-            m_InterruptDelayCycles[0] = (m_bCGBSpeed ? 0 : 4);
-            break;
-        case LCDSTAT_Interrupt:
-            m_InterruptDelayCycles[1] = 0;
-            break;
-        case Timer_Interrupt:
-            m_InterruptDelayCycles[2] = 0;
-            break;
-        case Serial_Interrupt:
-            m_InterruptDelayCycles[3] = 0;
-            break;
-        case Joypad_Interrupt:
-            m_InterruptDelayCycles[4] = 0;
-            break;
-        case None_Interrupt:
-            break;
-    }
-}
-
-void Processor::ResetTIMACycles()
-{
-    m_iTIMACycles = 0;
-    m_pMemory->Load(0xFF05, m_pMemory->Retrieve(0xFF06));
-}
-
-void Processor::ResetDIVCycles()
-{
-    m_iDIVCycles = 0;
-    m_pMemory->Load(0xFF04, 0x00);
-}
-
-bool Processor::Halted() const
-{
-    return m_bHalt;
-}
-
-bool Processor::CGBSpeed() const
-{
-    return m_bCGBSpeed;
-}
-
-void Processor::AddCycles(unsigned int cycles)
-{
-    m_iCurrentClockCycles += cycles;
-}
-
-u8 Processor::FetchOPCode()
-{
-    u8 opcode = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-
-    if (m_bSkipPCBug)
-    {
-        m_bSkipPCBug = false;
-        PC.Decrement();
-    }
-    return opcode;
 }
 
 void Processor::ExecuteOPCode(u8 opcode)
@@ -283,91 +219,38 @@ void Processor::ExecuteOPCode(u8 opcode)
     }
 }
 
-bool Processor::InterruptIsAboutToRaise()
-{
-    u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
-    u8 if_reg = m_pMemory->Retrieve(0xFF0F);
-
-    return (if_reg & ie_reg & 0x1F) != 0;
-}
-
-Processor::Interrupts Processor::InterruptPending()
-{
-    u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
-    u8 if_reg = m_pMemory->Retrieve(0xFF0F);
-    u8 ie_if = if_reg & ie_reg;
-
-    if ((ie_if & 0x01) && (m_InterruptDelayCycles[0] <= 0))
-    {
-        return VBlank_Interrupt;
-    }
-    else if ((ie_if & 0x02) && (m_InterruptDelayCycles[1] <= 0))
-    {
-        return LCDSTAT_Interrupt;
-    }
-    else if ((ie_if & 0x04) && (m_InterruptDelayCycles[2] <= 0))
-    {
-        return Timer_Interrupt;
-    }
-    else if ((ie_if & 0x08) && (m_InterruptDelayCycles[3] <= 0))
-    {
-        return Serial_Interrupt;
-    }
-    else if ((ie_if & 0x10) && (m_InterruptDelayCycles[4] <= 0))
-    {
-        return Joypad_Interrupt;
-    }
-
-    return None_Interrupt;
-}
-
 void Processor::ServeInterrupt(Interrupts interrupt)
 {
-    if (m_bIME)
+    if (m_bIME && (interrupt != None_Interrupt))
     {
         u8 if_reg = m_pMemory->Retrieve(0xFF0F);
+        m_bIME = false;
+        StackPush(&PC);
+        m_iCurrentClockCycles += AdjustedCycles(20);
+        
         switch (interrupt)
         {
             case VBlank_Interrupt:
-                m_InterruptDelayCycles[0] = 0;
+                m_InterruptDelayCycles= 0;
                 m_pMemory->Load(0xFF0F, if_reg & 0xFE);
-                m_bIME = false;
-                StackPush(&PC);
                 PC.SetValue(0x0040);
-                m_iCurrentClockCycles += AdjustedCycles(20);
                 UpdateGameShark();
                 break;
             case LCDSTAT_Interrupt:
-                m_InterruptDelayCycles[1] = 0;
                 m_pMemory->Load(0xFF0F, if_reg & 0xFD);
-                m_bIME = false;
-                StackPush(&PC);
                 PC.SetValue(0x0048);
-                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case Timer_Interrupt:
-                m_InterruptDelayCycles[2] = 0;
                 m_pMemory->Load(0xFF0F, if_reg & 0xFB);
-                m_bIME = false;
-                StackPush(&PC);
                 PC.SetValue(0x0050);
-                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case Serial_Interrupt:
-                m_InterruptDelayCycles[3] = 0;
                 m_pMemory->Load(0xFF0F, if_reg & 0xF7);
-                m_bIME = false;
-                StackPush(&PC);
                 PC.SetValue(0x0058);
-                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case Joypad_Interrupt:
-                m_InterruptDelayCycles[4] = 0;
                 m_pMemory->Load(0xFF0F, if_reg & 0xEF);
-                m_bIME = false;
-                StackPush(&PC);
                 PC.SetValue(0x0060);
-                m_iCurrentClockCycles += AdjustedCycles(20);
                 break;
             case None_Interrupt:
                 break;
@@ -467,17 +350,6 @@ void Processor::UpdateSerial()
 
             m_iSerialCycles -= serial_cycles;
             m_iSerialBit++;
-        }
-    }
-}
-
-void Processor::UpdateDelayedInterrupts()
-{
-    for (int i = 0; i < 5; i++)
-    {
-        if (m_InterruptDelayCycles[i] > 0)
-        {
-            m_InterruptDelayCycles[i] -= m_iCurrentClockCycles;
         }
     }
 }
