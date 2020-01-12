@@ -529,14 +529,13 @@ void Video::RenderBG(int line, int pixel)
             bool cgb_tile_bank = m_bCGB ? IsSetBit(cgb_tile_attr, 3) : false;
             bool cgb_tile_xflip = m_bCGB ? IsSetBit(cgb_tile_attr, 5) : false;
             bool cgb_tile_yflip = m_bCGB ? IsSetBit(cgb_tile_attr, 6) : false;
-            bool cgb_tile_priority = m_bCGB ? IsSetBit(cgb_tile_attr, 7) : false;
             int map_tile_16 = map_tile << 4;
             u8 byte1 = 0;
             u8 byte2 = 0;
-            int final_pixely_2 = (m_bCGB && cgb_tile_yflip) ? tile_pixel_y_flip_2 : tile_pixel_y_2;
+            int final_pixely_2 = cgb_tile_yflip ? tile_pixel_y_flip_2 : tile_pixel_y_2;
             int tile_address = tile_start_addr + map_tile_16 + final_pixely_2;
 
-            if (m_bCGB && cgb_tile_bank)
+            if (cgb_tile_bank)
             {
                 byte1 = m_pMemory->ReadCGBLCDRAM(tile_address, true);
                 byte2 = m_pMemory->ReadCGBLCDRAM(tile_address + 1, true);
@@ -549,7 +548,7 @@ void Video::RenderBG(int line, int pixel)
 
             int pixel_x_in_tile = map_tile_offset_x;
 
-            if (m_bCGB && cgb_tile_xflip)
+            if (cgb_tile_xflip)
             {
                 pixel_x_in_tile = 7 - pixel_x_in_tile;
             }
@@ -562,6 +561,7 @@ void Video::RenderBG(int line, int pixel)
 
             if (m_bCGB)
             {
+                bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7);
                 if (cgb_tile_priority && (pixel_data != 0))
                     m_pColorCacheBuffer[index] = SetBit(m_pColorCacheBuffer[index], 2);
                 GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel_data];
@@ -576,9 +576,9 @@ void Video::RenderBG(int line, int pixel)
     }
     else
     {
-        for (int x = 0; x < GAMEBOY_WIDTH; x++)
+        for (int x = 0; x < 4; x++)
         {
-            int position = line_width + x;
+            int position = line_width + pixel + x;
             m_pFrameBuffer[position] = 0;
             m_pColorCacheBuffer[position] = 0;
         }
