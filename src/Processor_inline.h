@@ -35,7 +35,7 @@ inline Processor::Interrupts Processor::InterruptPending()
     {
         return None_Interrupt;
     }
-    else if ((ie_if & 0x01) && (m_InterruptDelayCycles <= 0))
+    else if ((ie_if & 0x01) && (m_iInterruptDelayCycles <= 0))
     {
         return VBlank_Interrupt;
     }
@@ -65,7 +65,7 @@ inline void Processor::RequestInterrupt(Interrupts interrupt)
 
     if ((interrupt == VBlank_Interrupt) && !m_bCGBSpeed)
     {
-        m_InterruptDelayCycles = 4;
+        m_iInterruptDelayCycles = 4;
     }
 }
 

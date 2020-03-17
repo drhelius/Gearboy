@@ -80,7 +80,7 @@ private:
     int m_iIMECycles;
     int m_iUnhaltCycles;
     bool m_bCGB;
-    int m_InterruptDelayCycles;
+    int m_iInterruptDelayCycles;
     bool m_bCGBSpeed;
     int m_iSpeedMultiplier;
     int m_iAccurateOPCodeState;

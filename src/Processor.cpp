@@ -42,7 +42,7 @@ Processor::Processor(Memory* pMemory)
     m_iSerialCycles = 0;
     m_bCGB = false;
     m_iUnhaltCycles = 0;
-    m_InterruptDelayCycles = 0;
+    m_iInterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
 }
@@ -81,7 +81,7 @@ void Processor::Reset(bool bCGB)
     BC.SetValue(0x0013);
     DE.SetValue(0x00D8);
     HL.SetValue(0x014D);
-    m_InterruptDelayCycles = 0;
+    m_iInterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
     m_GameSharkList.clear();
@@ -120,9 +120,9 @@ u8 Processor::Tick()
         ExecuteOPCode(FetchOPCode());
     }
     
-    if (m_InterruptDelayCycles > 0)
+    if (m_iInterruptDelayCycles > 0)
     {
-        m_InterruptDelayCycles -= m_iCurrentClockCycles;
+        m_iInterruptDelayCycles -= m_iCurrentClockCycles;
     }
 
     UpdateTimers();
@@ -231,7 +231,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
         switch (interrupt)
         {
             case VBlank_Interrupt:
-                m_InterruptDelayCycles= 0;
+                m_iInterruptDelayCycles= 0;
                 m_pMemory->Load(0xFF0F, if_reg & 0xFE);
                 PC.SetValue(0x0040);
                 UpdateGameShark();
@@ -396,7 +396,7 @@ void Processor::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iSerialCycles), sizeof(m_iSerialCycles));
     stream.write(reinterpret_cast<const char*> (&m_iIMECycles), sizeof(m_iIMECycles));
     stream.write(reinterpret_cast<const char*> (&m_iUnhaltCycles), sizeof(m_iUnhaltCycles));
-    stream.write(reinterpret_cast<const char*> (m_InterruptDelayCycles), sizeof(m_InterruptDelayCycles));
+    stream.write(reinterpret_cast<const char*> (&m_iInterruptDelayCycles), sizeof(m_iInterruptDelayCycles));
     stream.write(reinterpret_cast<const char*> (&m_bCGBSpeed), sizeof(m_bCGBSpeed));
     stream.write(reinterpret_cast<const char*> (&m_iSpeedMultiplier), sizeof(m_iSpeedMultiplier));
     stream.write(reinterpret_cast<const char*> (&m_iAccurateOPCodeState), sizeof(m_iAccurateOPCodeState));
@@ -439,7 +439,7 @@ void Processor::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iSerialCycles), sizeof(m_iSerialCycles));
     stream.read(reinterpret_cast<char*> (&m_iIMECycles), sizeof(m_iIMECycles));
     stream.read(reinterpret_cast<char*> (&m_iUnhaltCycles), sizeof(m_iUnhaltCycles));
-    stream.read(reinterpret_cast<char*> (m_InterruptDelayCycles), sizeof(m_InterruptDelayCycles));
+    stream.read(reinterpret_cast<char*> (&m_iInterruptDelayCycles), sizeof(m_iInterruptDelayCycles));
     stream.read(reinterpret_cast<char*> (&m_bCGBSpeed), sizeof(m_bCGBSpeed));
     stream.read(reinterpret_cast<char*> (&m_iSpeedMultiplier), sizeof(m_iSpeedMultiplier));
     stream.read(reinterpret_cast<char*> (&m_iAccurateOPCodeState), sizeof(m_iAccurateOPCodeState));
