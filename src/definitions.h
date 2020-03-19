@@ -29,8 +29,8 @@
 #include <fstream>
 #include <sstream>
 
-//#define DEBUG_GEARBOY 1
-#define GEARBOY_VERSION "2.7.0"
+#define DEBUG_GEARBOY 1
+#define GEARBOY_VERSION "3.0.0"
 
 #ifndef NULL
 #define NULL 0
