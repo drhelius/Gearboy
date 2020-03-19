@@ -18,7 +18,6 @@ matrix:
       env: BUILD_TYPE=macosx
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe"; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
   - if [[ "$BUILD_TYPE" == "linux" ]]; then sudo apt-get install -y build-essential libsdl2-dev; fi
   - if [[ "$BUILD_TYPE" == "macosx" ]]; then brew install sdl2; fi
