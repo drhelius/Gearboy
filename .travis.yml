@@ -1,12 +1,12 @@
 matrix:
   include:
     - os: linux
-      dist: trusty
+      dist: bionic
       sudo: required
       language: cpp
       env: BUILD_TYPE=desktop
     - os: linux
-      dist: trusty
+      dist: bionic
       sudo: required
       language: cpp
       env: BUILD_TYPE=libretro
