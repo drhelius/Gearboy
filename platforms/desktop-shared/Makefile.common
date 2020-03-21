@@ -93,6 +93,3 @@ $(EXE): $(OBJS)
 
 clean:
 	rm -f $(EXE) $(OBJS)
-
-check-env:
-

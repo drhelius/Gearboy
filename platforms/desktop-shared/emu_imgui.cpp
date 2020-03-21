@@ -23,6 +23,7 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl2.h"
 #include "emu_sdl.h"
+#include "Emulator.h"
 
 #define EMU_IMGUI_IMPORT
 #include "emu_imgui.h"
@@ -30,6 +31,8 @@
 bool show_demo_window = true;
 bool show_another_window = false;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+Emulator* emu;
+GB_Color* emu_frame_buffer;
 
 void emu_imgui_init(void)
 {
@@ -47,17 +50,26 @@ void emu_imgui_init(void)
     // Setup Platform/Renderer bindings
     ImGui_ImplSDL2_InitForOpenGL(emu_sdl_window, emu_sdl_gl_context);
     ImGui_ImplOpenGL2_Init();
+
+    emu_frame_buffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+    emu = new Emulator();
+    emu->Init();
 }
 
 void emu_imgui_destroy(void)
 {
+    SafeDelete(emu);
+    SafeDeleteArray(emu_frame_buffer);
+    
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 }
 
-void emu_imgui_render(void)
+void emu_imgui_update(void)
 {
+    emu->RunToVBlank(emu_frame_buffer);
+
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL2_NewFrame();
     ImGui_ImplSDL2_NewFrame(emu_sdl_window);

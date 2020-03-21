@@ -30,7 +30,7 @@
 
 EXTERN void emu_imgui_init(void);
 EXTERN void emu_imgui_destroy(void);
-EXTERN void emu_imgui_render(void);
+EXTERN void emu_imgui_update(void);
 EXTERN void emu_imgui_event(SDL_Event* event);
 
 #undef EMU_IMGUI_IMPORT

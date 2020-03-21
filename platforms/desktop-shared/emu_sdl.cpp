@@ -19,14 +19,11 @@
 
 #include <SDL.h>
 #include <SDL_opengl.h>
-#include "Emulator.h"
+#include "../../src/gearboy.h"
 #include "emu_imgui.h"
 
 #define EMU_SDL_IMPORT
 #include "emu_sdl.h"
-
-Emulator* emu;
-GB_Color* emu_frame_buffer;
 
 int emu_sdl_init(void)
 {
@@ -49,18 +46,11 @@ int emu_sdl_init(void)
 
     emu_imgui_init();
 
-    emu_frame_buffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
-    emu = new Emulator();
-    emu->Init();
-
     return 0;
 }
 
 void emu_sdl_destroy(void)
 {
-    SafeDelete(emu);
-    SafeDeleteArray(emu_frame_buffer);
-
     emu_imgui_destroy();
 
     SDL_GL_DeleteContext(emu_sdl_gl_context);
@@ -81,11 +71,10 @@ void emu_sdl_mainloop(void)
             emu_imgui_event(&event);
             if (event.type == SDL_QUIT)
                 done = true;
-        }
+        }       
 
-        emu->RunToVBlank(emu_frame_buffer);
+        emu_imgui_update();
 
-        emu_imgui_render();
         SDL_GL_SwapWindow(emu_sdl_window);
     }    
 }
