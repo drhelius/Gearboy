@@ -75,8 +75,8 @@ xcuserdata/
 
 *.xccheckout
 
-#rpi
-platforms/raspberry*/**/gearboy
+#binaries
+platforms/**/gearboy
 
 #Switch
 *.a

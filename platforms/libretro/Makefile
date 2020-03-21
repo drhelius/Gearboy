@@ -255,7 +255,7 @@ ifeq ($(STATIC_LINKING), 1)
 else
 	$(CXX) $(fpic) $(SHARED) $(INCLUDES) -o $@ $(OBJECTS) $(LDFLAGS)
 endif
-	@echo "** BUILD SUCCESSFUL! GG NO RE **"
+	@echo "** BUILD SUCCESSFUL! **"
   
 %.o: %.c
 	$(CXX) $(CXXFLAGS) $(fpic) -c -o $@ $<
