@@ -1,21 +1,16 @@
-matrix:
+language: cpp
+jobs:
   include:
-    - os: linux
-      dist: bionic
-      sudo: required
-      language: cpp
-      env: BUILD_TYPE=Linux
-    - os: linux
-      dist: bionic
-      sudo: required
-      language: cpp
-      env: BUILD_TYPE=Libretro
-    - os: osx
-      language: cpp
-      env: BUILD_TYPE=iOS
-    - os: osx
-      language: cpp
-      env: BUILD_TYPE=macOS
+  - os: linux
+    dist: bionic
+    env: BUILD_TYPE=Linux
+  - os: linux
+    dist: bionic
+    env: BUILD_TYPE=Libretro
+  - os: osx
+    env: BUILD_TYPE=iOS
+  - os: osx
+    env: BUILD_TYPE=macOS
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
