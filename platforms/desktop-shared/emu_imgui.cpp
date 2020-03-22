@@ -22,32 +22,65 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl2.h"
+#include "imgui/ImGuiFileDialog.h"
 #include "emu_sdl.h"
 #include "Emulator.h"
 
 #define EMU_IMGUI_IMPORT
 #include "emu_imgui.h"
 
-bool show_demo_window = true;
-bool show_another_window = false;
-ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+static void gui_main_menu(void);
+static void gui_main_window(void);
+static void gui_about_window(void);
+
+struct EmulatorOptions
+{
+    int save_slot = 0;
+    bool start_paused;
+    bool force_dmg;
+};
+
+struct VideoOptions
+{
+    bool fps;
+    bool bilinear;
+    bool mix_frames;
+    bool vsync;
+    bool matrix;
+    ImVec4 color[4];
+};
+
+struct AudioOptions
+{
+    bool enable;
+    bool sync;
+    int freq = 44100;
+};
+
+struct InputOptions
+{
+    bool gamepad;
+};
+
 Emulator* emu;
 GB_Color* emu_frame_buffer;
 
+int gui_main_menu_height;
+bool gui_show_about_window = false;
+bool gui_show_debug = false;
+
+EmulatorOptions gui_emulator_options;
+VideoOptions gui_video_options;
+AudioOptions gui_audio_options;
+InputOptions gui_input_options;
+
 void emu_imgui_init(void)
 {
-    // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
+
     ImGui::CreateContext();
-    
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
 
-    // Setup Platform/Renderer bindings
     ImGui_ImplSDL2_InitForOpenGL(emu_sdl_window, emu_sdl_gl_context);
     ImGui_ImplOpenGL2_Init();
 
@@ -63,6 +96,7 @@ void emu_imgui_destroy(void)
     
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
+
     ImGui::DestroyContext();
 }
 
@@ -70,51 +104,23 @@ void emu_imgui_update(void)
 {
     emu->RunToVBlank(emu_frame_buffer);
 
-    // Start the Dear ImGui frame
     ImGui_ImplOpenGL2_NewFrame();
     ImGui_ImplSDL2_NewFrame(emu_sdl_window);
+
     ImGui::NewFrame();
 
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-    if (show_demo_window)
-        ImGui::ShowDemoWindow(&show_demo_window);
+    gui_main_menu();
+    gui_main_window();
+    if (gui_show_about_window)
+        gui_about_window();
 
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-    {
-        static float f = 0.0f;
-        static int counter = 0;
+    //bool show_demo_window = true;
+    //ImGui::ShowDemoWindow(&show_demo_window);
 
-        ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-        ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-        ImGui::Checkbox("Another Window", &show_another_window);
-
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-        if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-            counter++;
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
-
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        ImGui::End();
-    }
-
-    // 3. Show another simple window.
-    if (show_another_window)
-    {
-        ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Hello from another window!");
-        if (ImGui::Button("Close Me"))
-            show_another_window = false;
-        ImGui::End();
-    }
-
-    // Rendering
     ImGui::Render();
     
+    ImVec4 clear_color = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+
     glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -122,7 +128,243 @@ void emu_imgui_update(void)
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 }
 
-void emu_imgui_event(SDL_Event* event)
+void emu_imgui_event(const SDL_Event* event)
 {
     ImGui_ImplSDL2_ProcessEvent(event);
+}
+
+static void gui_main_menu(void)
+{
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("Game Boy"))
+        {
+            if (ImGui::MenuItem("Open ROM...", "Ctrl+O"))
+            {
+                ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".*\0.gb\0.zip\0.gbc\0.cgb\0.rom\0\0", ".");
+
+            }
+
+            if (ImGui::MenuItem("Pause", "Ctrl+P")) {}
+            if (ImGui::MenuItem("Reset", "Ctrl+R")) {}
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Save State As...")) {}
+            if (ImGui::MenuItem("Open State From...")) {}
+
+            ImGui::Separator();
+           
+            if (ImGui::BeginMenu("Select State Slot")) // <-- Append!
+            {
+                ImGui::Combo("", &gui_emulator_options.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::MenuItem("Save State", "Ctrl+S")) {}
+            if (ImGui::MenuItem("Load State", "Ctrl+L")) {}
+
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Quit", "Alt+F4")) {}
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Options"))
+        {
+            if (ImGui::BeginMenu("Emulator"))
+            {
+                ImGui::MenuItem("Force DMG", "", &gui_emulator_options.force_dmg);
+                ImGui::MenuItem("Start Paused", "", &gui_emulator_options.start_paused);
+                
+                if (ImGui::BeginMenu("Cheats"))
+                {
+                    ImGui::EndMenu();
+                }
+
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Video"))
+            {
+                ImGui::MenuItem("Show FPS", "", &gui_video_options.fps);
+                ImGui::MenuItem("Bilinear Filtering", "", &gui_video_options.bilinear);
+                ImGui::MenuItem("Screen Ghosting", "", &gui_video_options.mix_frames);
+                ImGui::MenuItem("Dot Matrix", "", &gui_video_options.matrix);
+                ImGui::MenuItem("Vertical Sync", "", &gui_video_options.vsync);
+                
+                ImGui::Separator();
+
+                if (ImGui::BeginMenu("Palette"))
+                {
+                    ImGui::Combo("", &gui_emulator_options.save_slot, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0");
+                    ImGui::EndMenu();
+                }
+
+                ImGui::ColorEdit4("Color #1", (float*)&gui_video_options.color[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+                ImGui::ColorEdit4("Color #2", (float*)&gui_video_options.color[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+                ImGui::ColorEdit4("Color #3", (float*)&gui_video_options.color[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+                ImGui::ColorEdit4("Color #4", (float*)&gui_video_options.color[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+
+                
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Input"))
+            {
+                if (ImGui::BeginMenu("Keyboard Configuration"))
+                {
+                    ImGui::Text("Up:");
+                    ImGui::SameLine();
+                     if (ImGui::Button("UP"))
+                        ImGui::OpenPopup("keyboard_definition");
+                                        
+                    ImGui::Text("Down:");
+                    ImGui::SameLine();
+                    if (ImGui::Button("DOWN"))
+                        ImGui::OpenPopup("keyboard_definition");
+
+                    if (ImGui::BeginPopupModal("keyboard_definition", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+                    {
+                        ImGui::Text("Press any key...\n\n");
+                        ImGui::Separator();
+                        if (ImGui::Button("OK", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                        ImGui::SetItemDefaultFocus();
+                        ImGui::SameLine();
+                        if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                        ImGui::EndPopup();
+                    }                   
+                   
+                    ImGui::EndMenu();
+                }
+                ImGui::MenuItem("Enable Gamepad", "", &gui_input_options.gamepad);
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Audio"))
+            {
+                ImGui::MenuItem("Enable", "", &gui_audio_options.enable);
+                ImGui::MenuItem("Sync", "", &gui_audio_options.sync);
+                
+                if (ImGui::BeginMenu("Frequency"))
+                {
+                    ImGui::Combo("", &gui_audio_options.freq, " 48000\0 44100\0 22050\0\0");
+                    ImGui::EndMenu();
+                }
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Debug"))
+        {
+            ImGui::MenuItem("Enabled", "", &gui_show_debug, false);
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("About"))
+        {
+            ImGui::MenuItem("About " GEARBOY_TITLE " " GEARBOY_VERSION " ...", "", &gui_show_about_window);
+            ImGui::EndMenu();
+        }
+
+        gui_main_menu_height = ImGui::GetWindowSize().y;
+
+        ImGui::EndMainMenuBar();       
+    }
+
+    if (ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) 
+    {
+        if (ImGuiFileDialog::Instance()->IsOk == true)
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilepathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+        }
+        ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+    }
+}
+
+static void gui_main_window(void)
+{
+    int w = ImGui::GetIO().DisplaySize.x;
+    int h = ImGui::GetIO().DisplaySize.y - gui_main_menu_height;
+
+    int factor_w = w / GAMEBOY_WIDTH;
+    int factor_h = h / GAMEBOY_HEIGHT;
+
+    int factor = (factor_w < factor_h) ? factor_w : factor_h;
+
+    int window_w = GAMEBOY_WIDTH * factor;
+    int window_h = GAMEBOY_HEIGHT * factor;
+
+    int window_x = (w - (GAMEBOY_WIDTH * factor)) / 2;
+    int window_y = ((h - (GAMEBOY_HEIGHT * factor)) / 2) + gui_main_menu_height;
+    
+    ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
+    ImGui::SetNextWindowSize(ImVec2(window_w, window_h));
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+
+    ImGui::Begin(GEARBOY_TITLE, 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav);
+    
+    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+    ImGui::Text("Frame time: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::End();
+
+    ImGui::PopStyleVar();
+}
+
+static void gui_about_window(void)
+{
+    ImGui::SetNextWindowSize(ImVec2(400,220));
+    ImGui::SetNextWindowPos(ImVec2((ImGui::GetIO().DisplaySize.x / 2) - 200, (ImGui::GetIO().DisplaySize.y / 2) - 110));
+
+    ImGui::Begin("About " GEARBOY_TITLE, &gui_show_about_window, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
+    
+    ImGui::Text("%s %s", GEARBOY_TITLE, GEARBOY_VERSION);
+    ImGui::Separator();
+    ImGui::Text("By Ignacio Sánchez (twitter.com/drhelius)");
+    ImGui::Text("%s is licensed under the GPL-3.0 License,\nsee LICENSE for more information.", GEARBOY_TITLE);
+    ImGui::Separator();        
+    
+#ifdef _WIN32
+    ImGui::Text("Windows 32 bit detected.");
+#endif
+#ifdef _WIN64
+    ImGui::Text("Windows 32 bit detected.");
+#endif
+#ifdef __linux__
+    ImGui::Text("Linux detected.");
+#endif
+#ifdef __APPLE__
+    ImGui::Text("macOS detected.");
+#endif
+#ifdef _MSC_VER
+    ImGui::Text("Built with Microsoft C++ %d.", _MSC_VER);
+#endif
+#ifdef __MINGW32__
+    ImGui::Text("Built with MinGW 32 bit.");
+#endif
+#ifdef __MINGW64__
+    ImGui::Text("Built with MinGW 64 bit.");
+#endif
+#ifdef __GNUC__
+    ImGui::Text("Built with GCC %d.", (int)__GNUC__);
+#endif
+#ifdef __clang_version__
+    ImGui::Text("Built with Clang %s.", __clang_version__);
+#endif
+#ifdef DEBUG
+    ImGui::Text("define: DEBUG");
+#endif
+#ifdef DEBUG_GEARBOY
+    ImGui::Text("define: DEBUG_GEARBOY");
+#endif
+    ImGui::Text("define: __cplusplus=%d", (int)__cplusplus);
+    ImGui::Text("Dear ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
+    ImGui::End();
 }
