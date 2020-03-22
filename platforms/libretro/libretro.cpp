@@ -127,7 +127,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 void retro_get_system_info(struct retro_system_info *info)
 {
     memset(info, 0, sizeof(*info));
-    info->library_name     = "Gearboy";
+    info->library_name     = GEARBOY_TITLE;
     info->library_version  = GEARBOY_VERSION;
     info->need_fullpath    = false;
     info->valid_extensions = "gb|dmg|gbc|cgb|sgb";

@@ -95,7 +95,7 @@ GearboyCore::~GearboyCore()
 
 void GearboyCore::Init()
 {
-    Log("--== Gearboy %s by Ignacio Sanchez ==--", GEARBOY_VERSION);
+    Log("--== %s %s by Ignacio Sanchez ==--", GEARBOY_TITLE, GEARBOY_VERSION);
 
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);

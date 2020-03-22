@@ -224,7 +224,7 @@ void init_sdl(void)
         Log("SDL Error Init: %s", SDL_GetError());
     }
 
-    theWindow = SDL_CreateWindow("Gearboy", 0, 0, 0, 0, 0);
+    theWindow = SDL_CreateWindow(GEARBOY_TITLE, 0, 0, 0, 0, 0);
 
     if (theWindow == NULL)
     {
@@ -289,7 +289,7 @@ void init_sdl(void)
         try
         {
             const Setting& root = cfg.getRoot();
-            const Setting &gearboy = root["Gearboy"];
+            const Setting &gearboy = root[GEARBOY_TITLE];
 
             string keypad_left, keypad_right, keypad_up, keypad_down, keypad_a, keypad_b,
             keypad_start, keypad_select, emulator_pause, emulator_quit;
@@ -514,7 +514,7 @@ void end(void)
     Config cfg;
 
     Setting &root = cfg.getRoot();
-    Setting &address = root.add("Gearboy", Setting::TypeGroup);
+    Setting &address = root.add(GEARBOY_TITLE, Setting::TypeGroup);
 
     address.add("keypad_left", Setting::TypeString) = SDL_GetKeyName(kc_keypad_left);
     address.add("keypad_right", Setting::TypeString) = SDL_GetKeyName(kc_keypad_right);

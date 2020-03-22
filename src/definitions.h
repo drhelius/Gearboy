@@ -30,6 +30,7 @@
 #include <sstream>
 
 #define DEBUG_GEARBOY 1
+#define GEARBOY_TITLE "Gearboy"
 #define GEARBOY_VERSION "3.0.0"
 
 #ifndef NULL
