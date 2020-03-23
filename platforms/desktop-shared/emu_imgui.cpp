@@ -22,7 +22,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl2.h"
-#include "imgui/ImGuiFileDialog.h"
+#include "imgui/ImGuiFileBrowser.h"
 #include "emu_sdl.h"
 #include "Emulator.h"
 
@@ -61,6 +61,8 @@ struct InputOptions
 {
     bool gamepad;
 };
+
+imgui_addons::ImGuiFileBrowser file_dialog;
 
 Emulator* emu;
 GB_Color* emu_frame_buffer;
@@ -135,14 +137,14 @@ void emu_imgui_event(const SDL_Event* event)
 
 static void gui_main_menu(void)
 {
+    bool open = false;
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("Game Boy"))
         {
             if (ImGui::MenuItem("Open ROM...", "Ctrl+O"))
             {
-                ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".*\0.gb\0.zip\0.gbc\0.cgb\0.rom\0\0", ".");
-
+                open = true;
             }
 
             if (ImGui::MenuItem("Pause", "Ctrl+P")) {}
@@ -163,7 +165,6 @@ static void gui_main_menu(void)
 
             if (ImGui::MenuItem("Save State", "Ctrl+S")) {}
             if (ImGui::MenuItem("Load State", "Ctrl+L")) {}
-
 
             ImGui::Separator();
 
@@ -207,7 +208,6 @@ static void gui_main_menu(void)
                 ImGui::ColorEdit4("Color #2", (float*)&gui_video_options.color[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
                 ImGui::ColorEdit4("Color #3", (float*)&gui_video_options.color[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
                 ImGui::ColorEdit4("Color #4", (float*)&gui_video_options.color[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-
                 
                 ImGui::EndMenu();
             }
@@ -277,15 +277,15 @@ static void gui_main_menu(void)
         ImGui::EndMainMenuBar();       
     }
 
-    if (ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) 
+    if (open)
+        ImGui::OpenPopup("Open ROM");
+
+    if(file_dialog.showFileDialog("Open ROM", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip"))
     {
-        if (ImGuiFileDialog::Instance()->IsOk == true)
-        {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilepathName();
-            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-        }
-        ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+        Log(file_dialog.selected_fn.c_str());
+        Log(file_dialog.selected_path.c_str());
     }
+
 }
 
 static void gui_main_window(void)
@@ -320,8 +320,8 @@ static void gui_main_window(void)
 
 static void gui_about_window(void)
 {
-    ImGui::SetNextWindowSize(ImVec2(400,220));
-    ImGui::SetNextWindowPos(ImVec2((ImGui::GetIO().DisplaySize.x / 2) - 200, (ImGui::GetIO().DisplaySize.y / 2) - 110));
+    ImGui::SetNextWindowSize(ImVec2(400,230));
+    ImGui::SetNextWindowPos(ImVec2((ImGui::GetIO().DisplaySize.x / 2) - 200, (ImGui::GetIO().DisplaySize.y / 2) - 115));
 
     ImGui::Begin("About " GEARBOY_TITLE, &gui_show_about_window, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
     

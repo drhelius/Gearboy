@@ -44,7 +44,7 @@ int emu_sdl_init(void)
     SDL_GL_MakeCurrent(emu_sdl_window, emu_sdl_gl_context);
     SDL_GL_SetSwapInterval(1);
 
-    SDL_SetWindowMinimumSize(emu_sdl_window, 432, 389);
+    SDL_SetWindowMinimumSize(emu_sdl_window, 680, 630);
 
     emu_imgui_init();
 

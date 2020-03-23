@@ -12,7 +12,7 @@ IMGUI_SRC=$(EMULATOR_DESKTOP_SHARED_SRC)/imgui
 
 SOURCES = $(EMULATOR_DESKTOP_SHARED_SRC)/main.cpp $(EMULATOR_DESKTOP_SHARED_SRC)/Emulator.cpp $(EMULATOR_DESKTOP_SHARED_SRC)/emu_imgui.cpp $(EMULATOR_DESKTOP_SHARED_SRC)/emu_sdl.cpp
 
-SOURCES += $(IMGUI_SRC)/imgui_impl_sdl.cpp $(IMGUI_SRC)/imgui_impl_opengl2.cpp $(IMGUI_SRC)/imgui.cpp $(IMGUI_SRC)/imgui_demo.cpp $(IMGUI_SRC)/imgui_draw.cpp $(IMGUI_SRC)/imgui_widgets.cpp $(IMGUI_SRC)/ImGuiFileDialog.cpp
+SOURCES += $(IMGUI_SRC)/imgui_impl_sdl.cpp $(IMGUI_SRC)/imgui_impl_opengl2.cpp $(IMGUI_SRC)/imgui.cpp $(IMGUI_SRC)/imgui_demo.cpp $(IMGUI_SRC)/imgui_draw.cpp $(IMGUI_SRC)/imgui_widgets.cpp $(IMGUI_SRC)/ImGuiFileBrowser.cpp
 
 SOURCES += $(EMULATOR_SRC)/Audio.cpp $(EMULATOR_SRC)/Cartridge.cpp $(EMULATOR_SRC)/CommonMemoryRule.cpp $(EMULATOR_SRC)/GearboyCore.cpp $(EMULATOR_SRC)/Input.cpp $(EMULATOR_SRC)/IORegistersMemoryRule.cpp $(EMULATOR_SRC)/MBC1MemoryRule.cpp $(EMULATOR_SRC)/MBC2MemoryRule.cpp $(EMULATOR_SRC)/MBC3MemoryRule.cpp $(EMULATOR_SRC)/MBC5MemoryRule.cpp $(EMULATOR_SRC)/Memory.cpp $(EMULATOR_SRC)/MemoryRule.cpp $(EMULATOR_SRC)/MultiMBC1MemoryRule.cpp $(EMULATOR_SRC)/opcodes.cpp $(EMULATOR_SRC)/opcodes_cb.cpp $(EMULATOR_SRC)/Processor.cpp $(EMULATOR_SRC)/RomOnlyMemoryRule.cpp $(EMULATOR_SRC)/Video.cpp
 
