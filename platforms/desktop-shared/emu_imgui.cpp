@@ -38,6 +38,7 @@ struct EmulatorOptions
     int save_slot = 0;
     bool start_paused;
     bool force_dmg;
+    bool save_in_rom_folder;
 };
 
 struct VideoOptions
@@ -52,7 +53,7 @@ struct VideoOptions
 
 struct AudioOptions
 {
-    bool enable;
+    bool enable = true;
     bool sync;
     int freq = 44100;
 };
@@ -179,6 +180,7 @@ static void gui_main_menu(void)
             {
                 ImGui::MenuItem("Force DMG", "", &gui_emulator_options.force_dmg);
                 ImGui::MenuItem("Start Paused", "", &gui_emulator_options.start_paused);
+                ImGui::MenuItem("Save RAM in ROM folder", "", &gui_emulator_options.save_in_rom_folder);                
                 
                 if (ImGui::BeginMenu("Cheats"))
                 {
@@ -282,10 +284,11 @@ static void gui_main_menu(void)
 
     if(file_dialog.showFileDialog("Open ROM", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip"))
     {
-        Log(file_dialog.selected_fn.c_str());
-        Log(file_dialog.selected_path.c_str());
-    }
+        emu->LoadRom(file_dialog.selected_path.c_str(), gui_emulator_options.force_dmg, gui_emulator_options.save_in_rom_folder);
 
+        if (gui_emulator_options.start_paused)
+            emu->Pause();
+    }
 }
 
 static void gui_main_window(void)

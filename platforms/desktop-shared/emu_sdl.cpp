@@ -42,7 +42,7 @@ int emu_sdl_init(void)
     emu_sdl_window = SDL_CreateWindow(GEARBOY_TITLE " " GEARBOY_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 700, window_flags);
     emu_sdl_gl_context = SDL_GL_CreateContext(emu_sdl_window);
     SDL_GL_MakeCurrent(emu_sdl_window, emu_sdl_gl_context);
-    SDL_GL_SetSwapInterval(1);
+    SDL_GL_SetSwapInterval(0);
 
     SDL_SetWindowMinimumSize(emu_sdl_window, 680, 630);
 
