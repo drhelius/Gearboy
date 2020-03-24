@@ -1109,21 +1109,7 @@ namespace imgui_addons
 
     bool ImGuiFileBrowser::alphaSortComparator(const Info& a, const Info& b)
     {
-        const char* str1 = a.name.c_str();
-        const char* str2 = b.name.c_str();
-        int ca, cb;
-        do
-        {
-            ca = (unsigned char) *str1++;
-            cb = (unsigned char) *str2++;
-            ca = std::tolower(std::toupper(ca));
-            cb = std::tolower(std::toupper(cb));
-        }
-        while (ca == cb && ca != '\0');
-        if(ca - cb <= 0)
-            return true;
-        else
-            return false;
+        return a.name < b.name;
     }
 
     //Windows Exclusive function
