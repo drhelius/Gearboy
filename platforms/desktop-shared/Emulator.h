@@ -30,7 +30,7 @@ public:
     ~Emulator();
     void Init();
     void RunToVBlank(GB_Color* pFrameBuffer);
-    void LoadRom(const char* szFilePath, bool forceDMG, bool saveInROMFolder);
+    void LoadRom(const char* szFilePath, bool forceDMG, bool saveInRAMFolder);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause();
@@ -54,6 +54,7 @@ private:
     Sound_Queue* m_pSoundQueue;
     bool m_bAudioEnabled;
     bool m_bSaveInROMFolder;
+    char* m_szDataDir;
 };
 
 #endif	/* EMULATOR_H */

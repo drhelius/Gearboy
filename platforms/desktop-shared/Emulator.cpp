@@ -17,6 +17,7 @@
  *
  */
 
+#include <SDL.h>
 #include "Emulator.h"
 
 Emulator::Emulator()
@@ -25,6 +26,7 @@ Emulator::Emulator()
     InitPointer(m_pSoundQueue);
     m_bAudioEnabled = true;
     m_bSaveInROMFolder = false;
+    InitPointer(m_szDataDir);
 }
 
 Emulator::~Emulator()
@@ -32,6 +34,7 @@ Emulator::~Emulator()
     SaveRam();
     SafeDelete(m_pSoundQueue);
     SafeDelete(m_pGearboyCore);
+    SDL_free(m_szDataDir);
 }
 
 void Emulator::Init()
@@ -41,6 +44,8 @@ void Emulator::Init()
 
     m_pSoundQueue = new Sound_Queue();
     m_pSoundQueue->start(44100, 2);
+
+    m_szDataDir = SDL_GetPrefPath("Geardome", GEARBOY_TITLE);
 }
 
 void Emulator::LoadRom(const char* szFilePath, bool forceDMG, bool saveInROMFolder)
@@ -158,18 +163,18 @@ bool Emulator::IsAudioEnabled()
 
 void Emulator::SaveRam()
 {
-    //if (m_bSaveInROMFolder)
+    if (m_bSaveInROMFolder)
         m_pGearboyCore->SaveRam();
-    //else
-    //    m_pGearboyCore->SaveRam(QStandardPaths::writableLocation(QStandardPaths::DataLocation).toStdString().c_str());
+    else
+        m_pGearboyCore->SaveRam(m_szDataDir);
 }
 
 void Emulator::LoadRam()
 {
-    //if (m_bSaveInROMFolder)
+    if (m_bSaveInROMFolder)
         m_pGearboyCore->LoadRam();
-    //else
-    //    m_pGearboyCore->LoadRam(QStandardPaths::writableLocation(QStandardPaths::DataLocation).toStdString().c_str());
+    else
+        m_pGearboyCore->LoadRam(m_szDataDir);
 }
 
 void Emulator::SaveState(int index)
