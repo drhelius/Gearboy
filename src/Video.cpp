@@ -552,7 +552,7 @@ void Video::RenderBG(int line, int pixel)
             else
             {
                 u8 color = (palette >> (pixel_data << 1)) & 0x03;
-                m_pFrameBuffer[index] = color;
+                m_pColorFrameBuffer[index] = m_pFrameBuffer[index] = color;
             }
         }
     }
@@ -661,7 +661,7 @@ void Video::RenderWindow(int line)
             else
             {
                 u8 color = (palette >> (pixel << 1)) & 0x03;
-                m_pFrameBuffer[position] = color;
+                m_pColorFrameBuffer[position] = m_pFrameBuffer[position] = color;
             }
         }
     }
@@ -769,7 +769,7 @@ void Video::RenderSprites(int line)
             else
             {
                 u8 color = (palette >> (pixel << 1)) & 0x03;
-                m_pFrameBuffer[position] = color;
+                m_pColorFrameBuffer[position] = m_pFrameBuffer[position] = color;
             }
         }
     }

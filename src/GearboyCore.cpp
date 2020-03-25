@@ -118,7 +118,7 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     InitDMGPalette();
 }
 
-void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount)
+void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer)
 {
     if (!m_bPaused && m_pCartridge->IsLoadedROM())
     {
@@ -140,7 +140,7 @@ void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pCartridge->UpdateCurrentRTC();
         }
 
-        if (!m_bCGB)
+        if (!m_bCGB && !bDMGbuffer)
         {
             RenderDMGFrame(pFrameBuffer);
         }
@@ -275,6 +275,11 @@ void GearboyCore::ResetSound()
 void GearboyCore::SetSoundSampleRate(int rate)
 {
     m_pAudio->SetSampleRate(rate);
+}
+
+u16* GearboyCore::GetDMGInternalPalette()
+{
+    return m_DMGPalette;
 }
 
 void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3,
