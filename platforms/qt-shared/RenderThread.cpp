@@ -28,7 +28,7 @@ RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 {
     m_bPaused = false;
     m_bDoRendering = true;
-    m_pFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+    m_pFrameBuffer = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     m_iWidth = 0;
     m_iHeight = 0;
     InitPointer(m_pEmulator);
@@ -143,9 +143,7 @@ void RenderThread::Init()
         for (int x = 0; x < GAMEBOY_WIDTH; ++x)
         {
             int pixel = (y * GAMEBOY_WIDTH) + x;
-            m_pFrameBuffer[pixel].red = m_pFrameBuffer[pixel].green =
-                    m_pFrameBuffer[pixel].blue = 0x00;
-            m_pFrameBuffer[pixel].alpha = 0xFF;
+            m_pFrameBuffer[pixel] = 0x0000;
         }
     }
 
@@ -177,8 +175,8 @@ void RenderThread::Init()
 
 void RenderThread::SetupTexture(GLvoid* data)
 {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0,
-            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0,
+            GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) data);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -188,10 +186,11 @@ void RenderThread::SetupTexture(GLvoid* data)
 
 void RenderThread::RenderFrame()
 {
+    glDisable(GL_BLEND);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, m_GBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
-            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
+            GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) m_pFrameBuffer);
     if (m_bFiltering)
     {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -210,13 +209,15 @@ void RenderThread::RenderMixFrames()
     glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFramebuffer);
     glBindTexture(GL_TEXTURE_2D, m_GBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
-            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
+            GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) m_pFrameBuffer);
 
     float alpha = kMixFrameAlpha;
     if (m_bFirstFrame)
     {
         m_bFirstFrame = false;
         alpha = 1.0f;
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
     }
     
     static bool round_error = false; 

@@ -62,7 +62,7 @@ private:
     int m_iWidth, m_iHeight;
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;
-    GB_Color* m_pFrameBuffer;
+    u16* m_pFrameBuffer;
     bool m_bFiltering;
     bool m_bMixFrames;
     bool m_bResizeEvent;

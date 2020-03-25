@@ -57,7 +57,7 @@ GLshort quadVerts[8];
 
 GearboyCore* theGearboyCore;
 Sound_Queue* theSoundQueue;
-GB_Color* theFrameBuffer;
+u16* theFrameBuffer;
 GLuint theGBTexture;
 s16 theSampleBufffer[AUDIO_BUFFER_SIZE];
 
@@ -212,7 +212,7 @@ void update(void)
         theSoundQueue->write(theSampleBufffer, sampleCount);
     }
 
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) theFrameBuffer);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     eglSwapBuffers(display, surface);
 }
@@ -454,7 +454,7 @@ void init_ogl(void)
 
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, theGBTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -496,16 +496,11 @@ void init(void)
     theSoundQueue = new Sound_Queue();
     theSoundQueue->start(44100, 2);
 
-    theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+    theFrameBuffer = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
 
-    for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
+    for (int i = 0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); ++i)
     {
-        for (int x = 0; x < GAMEBOY_WIDTH; ++x)
-        {
-            int pixel = (y * GAMEBOY_WIDTH) + x;
-            theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
-            theFrameBuffer[pixel].alpha = 0xFF;
-        }
+        theFrameBuffer[i] = 0;
     }
 }
 

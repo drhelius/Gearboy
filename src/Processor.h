@@ -44,6 +44,7 @@ public:
     ~Processor();
     void Init();
     void Reset(bool bCGB);
+    u8 RunFor(u8 ticks);
     u8 Tick();
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();

@@ -55,6 +55,7 @@ GearboyCore::GearboyCore()
     m_bPaused = true;
     m_bForceDMG = false;
     m_iRTCUpdateCount = 0;
+    m_pixelFormat = GB_PIXEL_RGB565;
 }
 
 GearboyCore::~GearboyCore()
@@ -93,9 +94,11 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pMemory);
 }
 
-void GearboyCore::Init()
+void GearboyCore::Init(GB_Color_Format pixelFormat)
 {
     Log("--== %s %s by Ignacio Sanchez ==--", GEARBOY_TITLE, GEARBOY_VERSION);
+
+    m_pixelFormat = pixelFormat;
 
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
@@ -115,15 +118,20 @@ void GearboyCore::Init()
     InitDMGPalette();
 }
 
-void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount)
+void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer)
 {
     if (!m_bPaused && m_pCartridge->IsLoadedROM())
     {
         bool vblank = false;
         while (!vblank)
         {
-            unsigned int clockCycles = m_pProcessor->Tick();
-            vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
+            #ifdef PS2
+                unsigned int clockCycles = m_pProcessor->RunFor(50);
+            #else
+                unsigned int clockCycles = m_pProcessor->Tick();
+            #endif
+            
+            vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
         }
@@ -137,7 +145,7 @@ void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer, s16* pSampleBuffer, int* p
             m_pCartridge->UpdateCurrentRTC();
         }
 
-        if (!m_bCGB)
+        if (!m_bCGB && !bDMGbuffer)
         {
             RenderDMGFrame(pFrameBuffer);
         }
@@ -274,17 +282,49 @@ void GearboyCore::SetSoundSampleRate(int rate)
     m_pAudio->SetSampleRate(rate);
 }
 
+u16* GearboyCore::GetDMGInternalPalette()
+{
+    return m_DMGPalette;
+}
+
 void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3,
         GB_Color& color4)
 {
-    m_DMGPalette[0] = color1;
-    m_DMGPalette[1] = color2;
-    m_DMGPalette[2] = color3;
-    m_DMGPalette[3] = color4;
-    m_DMGPalette[0].alpha = 0xFF;
-    m_DMGPalette[1].alpha = 0xFF;
-    m_DMGPalette[2].alpha = 0xFF;
-    m_DMGPalette[3].alpha = 0xFF;
+    bool format_565 = (m_pixelFormat == GB_PIXEL_RGB565) || (m_pixelFormat == GB_PIXEL_BGR565);
+    bool order_RGB = (m_pixelFormat == GB_PIXEL_RGB565) || (m_pixelFormat == GB_PIXEL_RGB555);
+
+    int multiplier = format_565 ? 63 : 31;
+    int shift = format_565 ? 11 : 10;
+
+    if (order_RGB)
+    {
+        m_DMGPalette[0] = (((color1.red * 31) / 255) << shift ) | (((color1.green * multiplier) / 255) << 5 ) | ((color1.blue * 31) / 255);
+        m_DMGPalette[1] = (((color2.red * 31) / 255) << shift ) | (((color2.green * multiplier) / 255) << 5 ) | ((color2.blue * 31) / 255);
+        m_DMGPalette[2] = (((color3.red * 31) / 255) << shift ) | (((color3.green * multiplier) / 255) << 5 ) | ((color3.blue * 31) / 255);
+        m_DMGPalette[3] = (((color4.red * 31) / 255) << shift ) | (((color4.green * multiplier) / 255) << 5 ) | ((color4.blue * 31) / 255);        
+    }
+    else
+    {
+        m_DMGPalette[0] = (((color1.blue * 31) / 255) << shift ) | (((color1.red * multiplier) / 255) << 5 ) | ((color1.blue * 31) / 255);
+        m_DMGPalette[1] = (((color2.blue * 31) / 255) << shift ) | (((color2.red * multiplier) / 255) << 5 ) | ((color2.blue * 31) / 255);
+        m_DMGPalette[2] = (((color3.blue * 31) / 255) << shift ) | (((color3.red * multiplier) / 255) << 5 ) | ((color3.blue * 31) / 255);
+        m_DMGPalette[3] = (((color4.blue * 31) / 255) << shift ) | (((color4.red * multiplier) / 255) << 5 ) | ((color4.blue * 31) / 255);
+    }   
+
+    if (!format_565)
+    {
+        m_DMGPalette[0] |= 0x8000;
+        m_DMGPalette[1] |= 0x8000;
+        m_DMGPalette[2] |= 0x8000;
+        m_DMGPalette[3] |= 0x8000;
+    }
+
+#if defined(IS_BIG_ENDIAN)
+    m_DMGPalette[0] = ((m_DMGPalette[0] << 8) & 0xFF00) | ((m_DMGPalette[0] >> 8) 0x00FF);
+    m_DMGPalette[1] = ((m_DMGPalette[1] << 8) & 0xFF00) | ((m_DMGPalette[1] >> 8) 0x00FF);
+    m_DMGPalette[2] = ((m_DMGPalette[2] << 8) & 0xFF00) | ((m_DMGPalette[2] >> 8) 0x00FF);
+    m_DMGPalette[3] = ((m_DMGPalette[3] << 8) & 0xFF00) | ((m_DMGPalette[3] >> 8) 0x00FF);
+#endif
 }
 
 void GearboyCore::SaveRam()
@@ -667,25 +707,25 @@ bool GearboyCore::IsCGB()
 
 void GearboyCore::InitDMGPalette()
 {
-    m_DMGPalette[0].red = 0x87;
-    m_DMGPalette[0].green = 0x96;
-    m_DMGPalette[0].blue = 0x03;
-    m_DMGPalette[0].alpha = 0xFF;
+    GB_Color color[4];
 
-    m_DMGPalette[1].red = 0x4d;
-    m_DMGPalette[1].green = 0x6b;
-    m_DMGPalette[1].blue = 0x03;
-    m_DMGPalette[1].alpha = 0xFF;
+    color[0].red = 0x87;
+    color[0].green = 0x96;
+    color[0].blue = 0x03;
 
-    m_DMGPalette[2].red = 0x2b;
-    m_DMGPalette[2].green = 0x55;
-    m_DMGPalette[2].blue = 0x03;
-    m_DMGPalette[2].alpha = 0xFF;
+    color[1].red = 0x4d;
+    color[1].green = 0x6b;
+    color[1].blue = 0x03;
 
-    m_DMGPalette[3].red = 0x14;
-    m_DMGPalette[3].green = 0x44;
-    m_DMGPalette[3].blue = 0x03;
-    m_DMGPalette[3].alpha = 0xFF;
+    color[2].red = 0x2b;
+    color[2].green = 0x55;
+    color[2].blue = 0x03;
+
+    color[3].red = 0x14;
+    color[3].green = 0x44;
+    color[3].blue = 0x03;
+
+    SetDMGPalette(color[0], color[1], color[2], color[3]);
 }
 
 void GearboyCore::InitMemoryRules()
@@ -790,7 +830,7 @@ void GearboyCore::Reset(bool bCGB)
     m_bPaused = false;
 }
 
-void GearboyCore::RenderDMGFrame(GB_Color* pFrameBuffer) const
+void GearboyCore::RenderDMGFrame(u16* pFrameBuffer) const
 {
     if (IsValidPointer(pFrameBuffer))
     {

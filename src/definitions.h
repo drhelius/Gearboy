@@ -79,24 +79,17 @@ typedef void (*RamChangedCallback) (void);
 
 struct GB_Color
 {
-#if defined(__LIBRETRO__)
-    #if defined(IS_LITTLE_ENDIAN)
-    u8 blue;
-    u8 green;
-    u8 red;
-    u8 alpha;
-    #elif defined(IS_BIG_ENDIAN)
-    u8 alpha;
     u8 red;
     u8 green;
     u8 blue;
-    #endif
-#else
-    u8 red;
-    u8 green;
-    u8 blue;
-    u8 alpha;
-#endif
+};
+
+enum GB_Color_Format
+{
+    GB_PIXEL_RGB565,
+    GB_PIXEL_RGB555,
+    GB_PIXEL_BGR565,
+    GB_PIXEL_BGR555
 };
 
 enum Gameboy_Keys

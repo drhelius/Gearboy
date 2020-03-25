@@ -78,27 +78,17 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
         theInput = new EmulatorInput(self);
         theInput->Init();
-        theFrameBuffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
-        theTexture = new GB_Color[256 * 256];
+        theFrameBuffer = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+        theTexture = new u16[256 * 256];
 
-        for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
+        for (int i = 0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); ++i)
         {
-            for (int x = 0; x < GAMEBOY_WIDTH; ++x)
-            {
-                int pixel = (y * GAMEBOY_WIDTH) + x;
-                theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
-                theFrameBuffer[pixel].alpha = 0xFF;
-            }
+                theFrameBuffer[i] = 0;
         }
 
-        for (int y = 0; y < 256; ++y)
+        for (int i = 0; i < (256 * 256); ++i)
         {
-            for (int x = 0; x < 256; ++x)
-            {
-                int pixel = (y * 256) + x;
-                theTexture[pixel].red = theTexture[pixel].green = theTexture[pixel].blue = 0x00;
-                theTexture[pixel].alpha = 0xFF;
-            }
+            theTexture[i] = 0;
         }
     }
     return self;
@@ -199,7 +189,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 -(void)renderFrame
 {
     glBindTexture(GL_TEXTURE_2D, GBTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) theTexture);
     [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier) andMirrorY:NO];
 
     [self renderDotMatrix];
@@ -209,7 +199,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 {
     glBindFramebuffer(GL_FRAMEBUFFER, accumulationFramebuffer);
     glBindTexture(GL_TEXTURE_2D, GBTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) theTexture);
 
     float alpha = kMixFrameAlpha;
     if (firstFrame)
@@ -257,7 +247,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)setupTextureWithData: (GLvoid*) data
 {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }

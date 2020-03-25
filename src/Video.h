@@ -32,7 +32,7 @@ public:
     ~Video();
     void Init();
     void Reset(bool bCGB);
-    bool Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer);
+    bool Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_Format pixelFormat);
     void EnableScreen();
     void DisableScreen();
     bool IsScreenEnabled() const;
@@ -53,13 +53,12 @@ private:
     void RenderWindow(int line);
     void RenderSprites(int line);
     void UpdateStatRegister();
-    GB_Color ConvertTo8BitColor(GB_Color color);
 
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
     u8* m_pFrameBuffer;
-    GB_Color* m_pColorFrameBuffer;
+    u16* m_pColorFrameBuffer;
     int* m_pSpriteXCacheBuffer;
     u8* m_pColorCacheBuffer;
     int m_iStatusMode;
@@ -72,22 +71,13 @@ private:
     int m_iTileCycleCounter;
     bool m_bScreenEnabled;
     bool m_bCGB;
-    GB_Color m_CGBSpritePalettes[8][4];
-    GB_Color m_CGBBackgroundPalettes[8][4];
+    u16 m_CGBSpritePalettes[8][4][2];
+    u16 m_CGBBackgroundPalettes[8][4][2];
     bool m_bScanLineTransfered;
     int m_iWindowLine;
     int m_iHideFrames;
     u8 m_IRQ48Signal;
+    GB_Color_Format m_pixelFormat;
 };
-
-inline GB_Color Video::ConvertTo8BitColor(GB_Color color)
-{
-    color.red = (color.red << 3) | (color.red >> 2);
-    color.green = (color.green << 3) | (color.green >> 2);
-    color.blue = (color.blue << 3) | (color.blue >> 2);
-    color.alpha = 0xFF;
-
-    return color;
-}
 
 #endif	/* VIDEO_H */
