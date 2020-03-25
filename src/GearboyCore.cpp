@@ -115,7 +115,7 @@ void GearboyCore::Init()
     InitDMGPalette();
 }
 
-void GearboyCore::RunToVBlank(GB_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount)
+void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount)
 {
     if (!m_bPaused && m_pCartridge->IsLoadedROM())
     {
@@ -277,14 +277,17 @@ void GearboyCore::SetSoundSampleRate(int rate)
 void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3,
         GB_Color& color4)
 {
-    m_DMGPalette[0] = color1;
-    m_DMGPalette[1] = color2;
-    m_DMGPalette[2] = color3;
-    m_DMGPalette[3] = color4;
-    m_DMGPalette[0].alpha = 0xFF;
-    m_DMGPalette[1].alpha = 0xFF;
-    m_DMGPalette[2].alpha = 0xFF;
-    m_DMGPalette[3].alpha = 0xFF;
+#if defined(IS_BIG_ENDIAN)
+    m_DMGPalette[0] = (((color1.blue * 31) / 255) << 11 ) | (((color1.green * 63) / 255) << 5 ) | ((color1.red * 31) / 255);
+    m_DMGPalette[1] = (((color2.blue * 31) / 255) << 11 ) | (((color2.green * 63) / 255) << 5 ) | ((color2.red * 31) / 255);
+    m_DMGPalette[2] = (((color3.blue * 31) / 255) << 11 ) | (((color3.green * 63) / 255) << 5 ) | ((color3.red * 31) / 255);
+    m_DMGPalette[3] = (((color4.blue * 31) / 255) << 11 ) | (((color4.green * 63) / 255) << 5 ) | ((color4.red * 31) / 255);
+#else
+    m_DMGPalette[0] = (((color1.blue * 31) / 255) << 11 ) | (((color1.green * 63) / 255) << 5 ) | ((color1.red * 31) / 255);
+    m_DMGPalette[1] = (((color2.blue * 31) / 255) << 11 ) | (((color2.green * 63) / 255) << 5 ) | ((color2.red * 31) / 255);
+    m_DMGPalette[2] = (((color3.blue * 31) / 255) << 11 ) | (((color3.green * 63) / 255) << 5 ) | ((color3.red * 31) / 255);
+    m_DMGPalette[3] = (((color4.blue * 31) / 255) << 11 ) | (((color4.green * 63) / 255) << 5 ) | ((color4.red * 31) / 255);
+#endif
 }
 
 void GearboyCore::SaveRam()
@@ -667,25 +670,25 @@ bool GearboyCore::IsCGB()
 
 void GearboyCore::InitDMGPalette()
 {
-    m_DMGPalette[0].red = 0x87;
-    m_DMGPalette[0].green = 0x96;
-    m_DMGPalette[0].blue = 0x03;
-    m_DMGPalette[0].alpha = 0xFF;
+    GB_Color color[4];
 
-    m_DMGPalette[1].red = 0x4d;
-    m_DMGPalette[1].green = 0x6b;
-    m_DMGPalette[1].blue = 0x03;
-    m_DMGPalette[1].alpha = 0xFF;
+    color[0].red = 0x87;
+    color[0].green = 0x96;
+    color[0].blue = 0x03;
 
-    m_DMGPalette[2].red = 0x2b;
-    m_DMGPalette[2].green = 0x55;
-    m_DMGPalette[2].blue = 0x03;
-    m_DMGPalette[2].alpha = 0xFF;
+    color[1].red = 0x4d;
+    color[1].green = 0x6b;
+    color[1].blue = 0x03;
 
-    m_DMGPalette[3].red = 0x14;
-    m_DMGPalette[3].green = 0x44;
-    m_DMGPalette[3].blue = 0x03;
-    m_DMGPalette[3].alpha = 0xFF;
+    color[2].red = 0x2b;
+    color[2].green = 0x55;
+    color[2].blue = 0x03;
+
+    color[3].red = 0x14;
+    color[3].green = 0x44;
+    color[3].blue = 0x03;
+
+    SetDMGPalette(color[0], color[1], color[2], color[3]);
 }
 
 void GearboyCore::InitMemoryRules()
@@ -790,7 +793,7 @@ void GearboyCore::Reset(bool bCGB)
     m_bPaused = false;
 }
 
-void GearboyCore::RenderDMGFrame(GB_Color* pFrameBuffer) const
+void GearboyCore::RenderDMGFrame(u16* pFrameBuffer) const
 {
     if (IsValidPointer(pFrameBuffer))
     {

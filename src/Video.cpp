@@ -68,9 +68,10 @@ void Video::Reset(bool bCGB)
 
     for (int p = 0; p < 8; p++)
         for (int c = 0; c < 4; c++)
-            m_CGBBackgroundPalettes[p][c].red = m_CGBBackgroundPalettes[p][c].green =
-                m_CGBBackgroundPalettes[p][c].blue = m_CGBSpritePalettes[p][c].red =
-                m_CGBSpritePalettes[p][c].green = m_CGBSpritePalettes[p][c].blue = 0;
+        {
+            m_CGBBackgroundPalettes[p][c][0] = m_CGBSpritePalettes[p][c][0] = 0x0000;
+            m_CGBBackgroundPalettes[p][c][1] = m_CGBSpritePalettes[p][c][1] = 0x0000;
+        }
 
     m_iStatusMode = 1;
     m_iStatusModeCounter = 0;
@@ -88,7 +89,7 @@ void Video::Reset(bool bCGB)
     m_IRQ48Signal = 0;
 }
 
-bool Video::Tick(unsigned int &clockCycles, GB_Color* pColorFrameBuffer)
+bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer)
 {
     m_pColorFrameBuffer = pColorFrameBuffer;
 
@@ -360,24 +361,9 @@ void Video::UpdatePaletteToSpecification(bool background, u8 value)
     int index = (value >> 1) & 0x03;
     int pal = (value >> 3) & 0x07;
 
-    GB_Color color = (background ? m_CGBBackgroundPalettes[pal][index] : m_CGBSpritePalettes[pal][index]);
+    u16 color = (background ? m_CGBBackgroundPalettes[pal][index][0] : m_CGBSpritePalettes[pal][index][0]);
 
-    u8 final_value = 0;
-
-    if (hl)
-    {
-        u8 blue = (color.blue & 0x1f) << 2;
-        u8 half_green_hi = (color.green >> 3) & 0x03;
-        final_value = (blue | half_green_hi) & 0x7F;
-    }
-    else
-    {
-        u8 half_green_low = (color.green & 0x07) << 5;
-        u8 red = color.red & 0x1F;
-        final_value = (red | half_green_low);
-    }
-
-    m_pMemory->Load(background ? 0xFF69 : 0xFF6B, final_value);
+    m_pMemory->Load(background ? 0xFF69 : 0xFF6B, hl ? (color >> 8) & 0xFF : color & 0xFF);
 }
 
 void Video::SetColorPalette(bool background, u8 value)
@@ -398,44 +384,53 @@ void Video::SetColorPalette(bool background, u8 value)
         UpdatePaletteToSpecification(background, ps);
     }
 
+    u16* palette_color_555 = background ? &m_CGBBackgroundPalettes[pal][index][0] : &m_CGBSpritePalettes[pal][index][0];
+    u16* palette_color_565 = background ? &m_CGBBackgroundPalettes[pal][index][1] : &m_CGBSpritePalettes[pal][index][1];
+
+    *palette_color_555 = hl ? (*palette_color_555 & 0x00FF) | (value << 8) : (*palette_color_555 & 0xFF00) | value;
+    
+    u8 red_5bit = *palette_color_555 & 0x1F;
+    u8 green_5bit = (*palette_color_555 >> 5) & 0x1F;
+    u8 green_6bit = green_5bit << 1;
+    u8 blue_5bit = (*palette_color_555 >> 10) & 0x1F;
+
+#if defined(IS_BIG_ENDIAN)
+    u16 color = red_5bit | (green_6bit << 5) | (blue_5bit << 11);
+    *palette_color_565 = ((color << 8) & 0xFF00) | ((color >> 8) 0x00FF);
+#else
+    *palette_color_565 = red_5bit | (green_6bit << 5) | (blue_5bit << 11);
+#endif
+    
+/*
     if (hl)
     {
-        // high
-        u8 blue = (value >> 2) & 0x1F;
-        u8 half_green_hi = (value & 0x03) << 3;
-
         if (background)
         {
-            m_CGBBackgroundPalettes[pal][index].blue = blue;
-            m_CGBBackgroundPalettes[pal][index].green =
-                    (m_CGBBackgroundPalettes[pal][index].green & 0x07) | half_green_hi;
+            m_CGBBackgroundPalettes[pal][index][0] = (value << 8) | (m_CGBBackgroundPalettes[pal][index][0] & 0x00FF);
+
+            u8 red_5bit = m_CGBBackgroundPalettes[pal][index][0] & 0x1F;
+            u8 green_5bit = (m_CGBBackgroundPalettes[pal][index][0] >> 5) & 0x1F;
+            u8 blue_5bit = (m_CGBBackgroundPalettes[pal][index][0] >> 10) & 0x1F;
+
+            m_CGBBackgroundPalettes[pal][index][1] = 
         }
         else
         {
-            m_CGBSpritePalettes[pal][index].blue = blue;
-            m_CGBSpritePalettes[pal][index].green =
-                    (m_CGBSpritePalettes[pal][index].green & 0x07) | half_green_hi;
+            m_CGBSpritePalettes[pal][index] =  0x8000 | (value << 8) | (m_CGBSpritePalettes[pal][index] & 0x00FF);
         }
     }
     else
     {
-        // low
-        u8 half_green_low = (value >> 5) & 0x07;
-        u8 red = value & 0x1F;
 
         if (background)
         {
-            m_CGBBackgroundPalettes[pal][index].red = red;
-            m_CGBBackgroundPalettes[pal][index].green =
-                    (m_CGBBackgroundPalettes[pal][index].green & 0x18) | half_green_low;
+            m_CGBBackgroundPalettes[pal][index] =  0x8000 | value | (m_CGBBackgroundPalettes[pal][index] & 0xFF00);
         }
         else
         {
-            m_CGBSpritePalettes[pal][index].red = red;
-            m_CGBSpritePalettes[pal][index].green =
-                    (m_CGBSpritePalettes[pal][index].green & 0x18) | half_green_low;
+            m_CGBSpritePalettes[pal][index] =  0x8000 | value | (m_CGBSpritePalettes[pal][index] & 0xFF00);
         }
-    }
+    }*/
 }
 
 int Video::GetCurrentStatusMode() const
@@ -467,13 +462,8 @@ void Video::ScanLine(int line)
             int line_width = (line * GAMEBOY_WIDTH);
             if (m_bCGB)
             {
-                GB_Color black;
-                black.red = 0;
-                black.green = 0;
-                black.blue = 0;
-                black.alpha = 0xFF;
                 for (int x = 0; x < GAMEBOY_WIDTH; x++)
-                    m_pColorFrameBuffer[line_width + x] = black;
+                    m_pColorFrameBuffer[line_width + x] = 0x8000;
             }
             else
             {
@@ -564,8 +554,7 @@ void Video::RenderBG(int line, int pixel)
                 bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7);
                 if (cgb_tile_priority && (pixel_data != 0))
                     m_pColorCacheBuffer[index] = SetBit(m_pColorCacheBuffer[index], 2);
-                GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel_data];
-                m_pColorFrameBuffer[index] = ConvertTo8BitColor(color);
+                m_pColorFrameBuffer[index] = m_CGBBackgroundPalettes[cgb_tile_pal][pixel_data][1];
             }
             else
             {
@@ -674,8 +663,7 @@ void Video::RenderWindow(int line)
             {
                 if (cgb_tile_priority && (pixel != 0))
                     m_pColorCacheBuffer[position] = SetBit(m_pColorCacheBuffer[position], 2);
-                GB_Color color = m_CGBBackgroundPalettes[cgb_tile_pal][pixel];
-                m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
+                 m_pColorFrameBuffer[position] = m_CGBBackgroundPalettes[cgb_tile_pal][pixel][1];
             }
             else
             {
@@ -783,8 +771,7 @@ void Video::RenderSprites(int line)
             m_pSpriteXCacheBuffer[position] = sprite_x;
             if (m_bCGB)
             {
-                GB_Color color = m_CGBSpritePalettes[cgb_tile_pal][pixel];
-                m_pColorFrameBuffer[position] = ConvertTo8BitColor(color);
+                m_pColorFrameBuffer[position] = m_CGBSpritePalettes[cgb_tile_pal][pixel][1];
             }
             else
             {

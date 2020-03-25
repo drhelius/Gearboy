@@ -44,8 +44,7 @@ public:
     GearboyCore();
     ~GearboyCore();
     void Init();
-    void RunToVBlank(GB_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount);
-    void RenderDMGFrame(GB_Color* pFrameBuffer) const;
+    void RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount);    
     bool LoadROM(const char* szFilePath, bool forceDMG);
     bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG);
     void KeyPressed(Gameboy_Keys key);
@@ -77,6 +76,7 @@ public:
     Cartridge* GetCartridge();
 
 private:
+    void RenderDMGFrame(u16* pFrameBuffer) const;
     void InitDMGPalette();
     void InitMemoryRules();
     bool AddMemoryRules();
@@ -99,7 +99,7 @@ private:
     MultiMBC1MemoryRule* m_pMultiMBC1MemoryRule;
     bool m_bCGB;
     bool m_bPaused;
-    GB_Color m_DMGPalette[4];
+    u16 m_DMGPalette[4];
     bool m_bForceDMG;
     int m_iRTCUpdateCount;
     RamChangedCallback m_pRamChangedCallback;
