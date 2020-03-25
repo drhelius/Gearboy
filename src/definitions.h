@@ -83,6 +83,12 @@ struct GB_Color
     u8 blue;
 };
 
+enum GB_Color_Format
+{
+    RGB565,
+    RGB555
+};
+
 enum Gameboy_Keys
 {
     A_Key = 4,

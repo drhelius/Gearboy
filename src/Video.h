@@ -32,7 +32,7 @@ public:
     ~Video();
     void Init();
     void Reset(bool bCGB);
-    bool Tick(unsigned int &clockCycles, u16* pColorFrameBuffer);
+    bool Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_Format pixelFormat);
     void EnableScreen();
     void DisableScreen();
     bool IsScreenEnabled() const;
@@ -77,6 +77,7 @@ private:
     int m_iWindowLine;
     int m_iHideFrames;
     u8 m_IRQ48Signal;
+    GB_Color_Format m_pixelFormat;
 };
 
 #endif	/* VIDEO_H */

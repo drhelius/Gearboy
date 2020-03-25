@@ -43,7 +43,7 @@ class GearboyCore
 public:
     GearboyCore();
     ~GearboyCore();
-    void Init();
+    void Init(GB_Color_Format pixelFormat = GB_Color_Format::RGB565);
     void RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount);    
     bool LoadROM(const char* szFilePath, bool forceDMG);
     bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG);
@@ -103,6 +103,7 @@ private:
     bool m_bForceDMG;
     int m_iRTCUpdateCount;
     RamChangedCallback m_pRamChangedCallback;
+    GB_Color_Format m_pixelFormat;
 };
 
 #endif	/* CORE_H */

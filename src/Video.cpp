@@ -44,6 +44,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bScanLineTransfered = false;
     m_iHideFrames = 0;
     m_IRQ48Signal = 0;
+    m_pixelFormat = GB_Color_Format::RGB565;
 }
 
 Video::~Video()
@@ -89,9 +90,10 @@ void Video::Reset(bool bCGB)
     m_IRQ48Signal = 0;
 }
 
-bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer)
+bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_Format pixelFormat)
 {
     m_pColorFrameBuffer = pColorFrameBuffer;
+    m_pixelFormat = pixelFormat;
 
     bool vblank = false;
     m_iStatusModeCounter += clockCycles;
@@ -384,53 +386,25 @@ void Video::SetColorPalette(bool background, u8 value)
         UpdatePaletteToSpecification(background, ps);
     }
 
-    u16* palette_color_555 = background ? &m_CGBBackgroundPalettes[pal][index][0] : &m_CGBSpritePalettes[pal][index][0];
-    u16* palette_color_565 = background ? &m_CGBBackgroundPalettes[pal][index][1] : &m_CGBSpritePalettes[pal][index][1];
+    u16* palette_color_gbc = background ? &m_CGBBackgroundPalettes[pal][index][0] : &m_CGBSpritePalettes[pal][index][0];
+    u16* palette_color_final = background ? &m_CGBBackgroundPalettes[pal][index][1] : &m_CGBSpritePalettes[pal][index][1];
 
-    *palette_color_555 = hl ? (*palette_color_555 & 0x00FF) | (value << 8) : (*palette_color_555 & 0xFF00) | value;
+    *palette_color_gbc = hl ? (*palette_color_gbc & 0x00FF) | (value << 8) : (*palette_color_gbc & 0xFF00) | value;
     
-    u8 red_5bit = *palette_color_555 & 0x1F;
-    u8 green_5bit = (*palette_color_555 >> 5) & 0x1F;
+    u8 red_5bit = *palette_color_gbc & 0x1F;
+    u8 green_5bit = (*palette_color_gbc >> 5) & 0x1F;
     u8 green_6bit = green_5bit << 1;
-    u8 blue_5bit = (*palette_color_555 >> 10) & 0x1F;
+    u8 blue_5bit = (*palette_color_gbc >> 10) & 0x1F;
+
+    if (m_pixelFormat == GB_Color_Format::RGB565)
+        *palette_color_final = blue_5bit | (green_6bit << 5) | (red_5bit << 11);
+    else
+        *palette_color_final = 0x8000 | blue_5bit | (green_5bit << 5) | (red_5bit << 10);        
 
 #if defined(IS_BIG_ENDIAN)
-    u16 color = red_5bit | (green_6bit << 5) | (blue_5bit << 11);
-    *palette_color_565 = ((color << 8) & 0xFF00) | ((color >> 8) 0x00FF);
-#else
-    *palette_color_565 = red_5bit | (green_6bit << 5) | (blue_5bit << 11);
+    u16 color = *palette_color_final;
+    *palette_color_final = ((color << 8) & 0xFF00) | ((color >> 8) 0x00FF);
 #endif
-    
-/*
-    if (hl)
-    {
-        if (background)
-        {
-            m_CGBBackgroundPalettes[pal][index][0] = (value << 8) | (m_CGBBackgroundPalettes[pal][index][0] & 0x00FF);
-
-            u8 red_5bit = m_CGBBackgroundPalettes[pal][index][0] & 0x1F;
-            u8 green_5bit = (m_CGBBackgroundPalettes[pal][index][0] >> 5) & 0x1F;
-            u8 blue_5bit = (m_CGBBackgroundPalettes[pal][index][0] >> 10) & 0x1F;
-
-            m_CGBBackgroundPalettes[pal][index][1] = 
-        }
-        else
-        {
-            m_CGBSpritePalettes[pal][index] =  0x8000 | (value << 8) | (m_CGBSpritePalettes[pal][index] & 0x00FF);
-        }
-    }
-    else
-    {
-
-        if (background)
-        {
-            m_CGBBackgroundPalettes[pal][index] =  0x8000 | value | (m_CGBBackgroundPalettes[pal][index] & 0xFF00);
-        }
-        else
-        {
-            m_CGBSpritePalettes[pal][index] =  0x8000 | value | (m_CGBSpritePalettes[pal][index] & 0xFF00);
-        }
-    }*/
 }
 
 int Video::GetCurrentStatusMode() const
