@@ -125,7 +125,12 @@ void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
         bool vblank = false;
         while (!vblank)
         {
-            unsigned int clockCycles = m_pProcessor->Tick();
+            #ifdef PS2
+                unsigned int clockCycles = m_pProcessor->RunFor(50);
+            #else
+                unsigned int clockCycles = m_pProcessor->Tick();
+            #endif
+            
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);

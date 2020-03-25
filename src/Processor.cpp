@@ -87,6 +87,18 @@ void Processor::Reset(bool bCGB)
     m_GameSharkList.clear();
 }
 
+u8 Processor::RunFor(u8 ticks)
+{
+    u8 executed = 0;
+
+    while (executed < ticks)
+    {
+        executed += Tick();
+    }
+
+    return executed;
+}
+
 u8 Processor::Tick()
 {
     m_iCurrentClockCycles = 0;
