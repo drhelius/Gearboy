@@ -94,9 +94,9 @@ void retro_init(void)
     core = new GearboyCore();
 
 #ifdef PS2
-    core->Init(GB_Color_Format::BGR555);
+    core->Init(GB_PIXEL_BGR555);
 #else
-    core->Init(GB_Color_Format::RGB565);
+    core->Init(GB_PIXEL_RGB565);
 #endif  
 
     gearboy_frame_buf = new u16[VIDEO_WIDTH * VIDEO_HEIGHT];

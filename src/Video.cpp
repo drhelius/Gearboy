@@ -44,7 +44,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bScanLineTransfered = false;
     m_iHideFrames = 0;
     m_IRQ48Signal = 0;
-    m_pixelFormat = GB_Color_Format::RGB565;
+    m_pixelFormat = GB_PIXEL_RGB565;
 }
 
 Video::~Video()
@@ -398,22 +398,22 @@ void Video::SetColorPalette(bool background, u8 value)
 
     switch (m_pixelFormat)
     {
-        case GB_Color_Format::RGB565:
+        case GB_PIXEL_RGB565:
         {
             *palette_color_final = (red_5bit << 11) | (green_6bit << 5) | blue_5bit;
             break;
         }
-        case GB_Color_Format::BGR565:
+        case GB_PIXEL_BGR565:
         {
             *palette_color_final = (blue_5bit << 11) | (green_6bit << 5) | red_5bit;
             break;
         }
-        case GB_Color_Format::RGB555:
+        case GB_PIXEL_RGB555:
         {
             *palette_color_final = 0x8000 | (red_5bit << 10) | (green_5bit << 5) | blue_5bit;
             break;
         }
-        case GB_Color_Format::BGR555:
+        case GB_PIXEL_BGR555:
         {
             *palette_color_final = 0x8000 | (blue_5bit << 10) | (green_5bit << 5) | red_5bit;
             break;

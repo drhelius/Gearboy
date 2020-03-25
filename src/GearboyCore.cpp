@@ -55,7 +55,7 @@ GearboyCore::GearboyCore()
     m_bPaused = true;
     m_bForceDMG = false;
     m_iRTCUpdateCount = 0;
-    m_pixelFormat = GB_Color_Format::RGB565;
+    m_pixelFormat = GB_PIXEL_RGB565;
 }
 
 GearboyCore::~GearboyCore()
@@ -290,8 +290,8 @@ u16* GearboyCore::GetDMGInternalPalette()
 void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3,
         GB_Color& color4)
 {
-    bool format_565 = (m_pixelFormat == GB_Color_Format::RGB565) || (m_pixelFormat == GB_Color_Format::BGR565);
-    bool order_RGB = (m_pixelFormat == GB_Color_Format::RGB565) || (m_pixelFormat == GB_Color_Format::RGB555);
+    bool format_565 = (m_pixelFormat == GB_PIXEL_RGB565) || (m_pixelFormat == GB_PIXEL_BGR565);
+    bool order_RGB = (m_pixelFormat == GB_PIXEL_RGB565) || (m_pixelFormat == GB_PIXEL_RGB555);
 
     int multiplier = format_565 ? 63 : 31;
     int shift = format_565 ? 11 : 10;

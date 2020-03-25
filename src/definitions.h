@@ -85,10 +85,10 @@ struct GB_Color
 
 enum GB_Color_Format
 {
-    RGB565,
-    RGB555,
-    BGR565,
-    BGR555
+    GB_PIXEL_RGB565,
+    GB_PIXEL_RGB555,
+    GB_PIXEL_BGR565,
+    GB_PIXEL_BGR555
 };
 
 enum Gameboy_Keys
