@@ -280,15 +280,28 @@ void GearboyCore::SetSoundSampleRate(int rate)
 void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3,
         GB_Color& color4)
 {
-    int multiplier = m_pixelFormat == GB_Color_Format::RGB565 ? 63 : 31;
-    int shift = m_pixelFormat == GB_Color_Format::RGB565 ? 11 : 10;
+    bool format_565 = (m_pixelFormat == GB_Color_Format::RGB565) || (m_pixelFormat == GB_Color_Format::BGR565);
+    bool order_RGB = (m_pixelFormat == GB_Color_Format::RGB565) || (m_pixelFormat == GB_Color_Format::RGB555);
 
-    m_DMGPalette[0] = (((color1.red * 31) / 255) << shift ) | (((color1.green * multiplier) / 255) << 5 ) | ((color1.blue * 31) / 255);
-    m_DMGPalette[1] = (((color2.red * 31) / 255) << shift ) | (((color2.green * multiplier) / 255) << 5 ) | ((color2.blue * 31) / 255);
-    m_DMGPalette[2] = (((color3.red * 31) / 255) << shift ) | (((color3.green * multiplier) / 255) << 5 ) | ((color3.blue * 31) / 255);
-    m_DMGPalette[3] = (((color4.red * 31) / 255) << shift ) | (((color4.green * multiplier) / 255) << 5 ) | ((color4.blue * 31) / 255);
+    int multiplier = format_565 ? 63 : 31;
+    int shift = format_565 ? 11 : 10;
 
-    if (m_pixelFormat == GB_Color_Format::RGB555)
+    if (order_RGB)
+    {
+        m_DMGPalette[0] = (((color1.red * 31) / 255) << shift ) | (((color1.green * multiplier) / 255) << 5 ) | ((color1.blue * 31) / 255);
+        m_DMGPalette[1] = (((color2.red * 31) / 255) << shift ) | (((color2.green * multiplier) / 255) << 5 ) | ((color2.blue * 31) / 255);
+        m_DMGPalette[2] = (((color3.red * 31) / 255) << shift ) | (((color3.green * multiplier) / 255) << 5 ) | ((color3.blue * 31) / 255);
+        m_DMGPalette[3] = (((color4.red * 31) / 255) << shift ) | (((color4.green * multiplier) / 255) << 5 ) | ((color4.blue * 31) / 255);        
+    }
+    else
+    {
+        m_DMGPalette[0] = (((color1.blue * 31) / 255) << shift ) | (((color1.red * multiplier) / 255) << 5 ) | ((color1.blue * 31) / 255);
+        m_DMGPalette[1] = (((color2.blue * 31) / 255) << shift ) | (((color2.red * multiplier) / 255) << 5 ) | ((color2.blue * 31) / 255);
+        m_DMGPalette[2] = (((color3.blue * 31) / 255) << shift ) | (((color3.red * multiplier) / 255) << 5 ) | ((color3.blue * 31) / 255);
+        m_DMGPalette[3] = (((color4.blue * 31) / 255) << shift ) | (((color4.red * multiplier) / 255) << 5 ) | ((color4.blue * 31) / 255);
+    }   
+
+    if (!format_565)
     {
         m_DMGPalette[0] |= 0x8000;
         m_DMGPalette[1] |= 0x8000;

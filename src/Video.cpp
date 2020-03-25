@@ -396,10 +396,29 @@ void Video::SetColorPalette(bool background, u8 value)
     u8 green_6bit = green_5bit << 1;
     u8 blue_5bit = (*palette_color_gbc >> 10) & 0x1F;
 
-    if (m_pixelFormat == GB_Color_Format::RGB565)
-        *palette_color_final = blue_5bit | (green_6bit << 5) | (red_5bit << 11);
-    else
-        *palette_color_final = 0x8000 | blue_5bit | (green_5bit << 5) | (red_5bit << 10);        
+    switch (m_pixelFormat)
+    {
+        case GB_Color_Format::RGB565:
+        {
+            *palette_color_final = (red_5bit << 11) | (green_6bit << 5) | blue_5bit;
+            break;
+        }
+        case GB_Color_Format::BGR565:
+        {
+            *palette_color_final = (blue_5bit << 11) | (green_6bit << 5) | red_5bit;
+            break;
+        }
+        case GB_Color_Format::RGB555:
+        {
+            *palette_color_final = 0x8000 | (red_5bit << 10) | (green_5bit << 5) | blue_5bit;
+            break;
+        }
+        case GB_Color_Format::BGR555:
+        {
+            *palette_color_final = 0x8000 | (blue_5bit << 10) | (green_5bit << 5) | red_5bit;
+            break;
+        }
+    }
 
 #if defined(IS_BIG_ENDIAN)
     u16 color = *palette_color_final;

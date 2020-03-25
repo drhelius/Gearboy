@@ -93,8 +93,8 @@ void retro_init(void)
 
     core = new GearboyCore();
 
-#ifdef GEARBOY_PIXEL_FORMAT_0RGB1555
-    core->Init(GB_Color_Format::RGB555);
+#ifdef PS2
+    core->Init(GB_Color_Format::BGR555);
 #else
     core->Init(GB_Color_Format::RGB565);
 #endif  
@@ -350,15 +350,6 @@ bool retro_load_game(const struct retro_game_info *info)
 
     environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
-#ifdef GEARBOY_PIXEL_FORMAT_0RGB1555
-    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_0RGB1555;
-    
-    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
-    {
-        log_cb(RETRO_LOG_INFO, "RETRO_PIXEL_FORMAT_0RGB1555 is not supported.\n");
-        return false;
-    }
-#else
     enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
     
     if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
@@ -366,7 +357,6 @@ bool retro_load_game(const struct retro_game_info *info)
         log_cb(RETRO_LOG_INFO, "RETRO_PIXEL_FORMAT_RGB565 is not supported.\n");
         return false;
     }
-#endif    
 
     snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
 
