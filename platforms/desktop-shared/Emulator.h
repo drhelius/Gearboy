@@ -29,7 +29,7 @@ public:
     Emulator();
     ~Emulator();
     void Init();
-    void RunToVBlank(GB_Color* pFrameBuffer);
+    void RunToVBlank(u16* pFrameBuffer);
     void LoadRom(const char* szFilePath, bool forceDMG, bool saveInRAMFolder);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);

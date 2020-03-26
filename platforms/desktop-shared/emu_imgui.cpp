@@ -18,7 +18,14 @@
  */
 
 #include <SDL.h>
+
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#else
 #include <SDL_opengl.h>
+#include <GL/glew.h>
+#endif
+
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl2.h"
@@ -66,9 +73,12 @@ struct InputOptions
 imgui_addons::ImGuiFileBrowser file_dialog;
 
 Emulator* emu;
-GB_Color* emu_frame_buffer;
+u16* emu_frame_buffer;
+GLuint emu_texture;
 
 int gui_main_menu_height;
+int gui_main_window_width;
+int gui_main_window_height;
 bool gui_show_about_window = false;
 bool gui_show_debug = false;
 
@@ -87,15 +97,34 @@ void emu_imgui_init(void)
     ImGui_ImplSDL2_InitForOpenGL(emu_sdl_window, emu_sdl_gl_context);
     ImGui_ImplOpenGL2_Init();
 
-    emu_frame_buffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+    emu_frame_buffer = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     emu = new Emulator();
     emu->Init();
+
+#ifndef __APPLE__
+    GLenum err = glewInit();
+    if (GLEW_OK != err)
+    {
+        /* Problem: glewInit failed, something is seriously wrong. */
+        Log("GLEW Error: %s\n", glewGetErrorString(err));
+    }
+    Log("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+#endif
+
+    //glGenFramebuffers(1, &emu_fbo);
+    glGenTextures(1, &emu_texture);  
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, emu_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0,
+            GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) emu_frame_buffer);
 }
 
 void emu_imgui_destroy(void)
 {
     SafeDelete(emu);
     SafeDeleteArray(emu_frame_buffer);
+
+    glDeleteTextures(1, &emu_texture);
     
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
@@ -107,6 +136,23 @@ void emu_imgui_update(void)
 {
     emu->RunToVBlank(emu_frame_buffer);
 
+    glDisable(GL_BLEND);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, emu_texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
+            GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) emu_frame_buffer);
+
+    if (gui_video_options.bilinear)
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
+    else
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
+    
     ImGui_ImplOpenGL2_NewFrame();
     ImGui_ImplSDL2_NewFrame(emu_sdl_window);
 
@@ -301,21 +347,23 @@ static void gui_main_window(void)
 
     int factor = (factor_w < factor_h) ? factor_w : factor_h;
 
-    int window_w = GAMEBOY_WIDTH * factor;
-    int window_h = GAMEBOY_HEIGHT * factor;
+    gui_main_window_width = GAMEBOY_WIDTH * factor;
+    gui_main_window_height = GAMEBOY_HEIGHT * factor;
 
     int window_x = (w - (GAMEBOY_WIDTH * factor)) / 2;
     int window_y = ((h - (GAMEBOY_HEIGHT * factor)) / 2) + gui_main_menu_height;
     
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
-    ImGui::SetNextWindowSize(ImVec2(window_w, window_h));
+    ImGui::SetNextWindowSize(ImVec2(gui_main_window_width, gui_main_window_height));
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
     ImGui::Begin(GEARBOY_TITLE, 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav);
+
+    ImGui::Image((void*)(intptr_t)emu_texture, ImVec2(gui_main_window_width,gui_main_window_height));
     
-    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-    ImGui::Text("Frame time: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+    //ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+    //ImGui::Text("Frame time: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
     ImGui::End();
 
     ImGui::PopStyleVar();

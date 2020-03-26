@@ -58,7 +58,7 @@ void Emulator::LoadRom(const char* szFilePath, bool forceDMG, bool saveInROMFold
     //m_Mutex.unlock();
 }
 
-void Emulator::RunToVBlank(GB_Color* pFrameBuffer)
+void Emulator::RunToVBlank(u16* pFrameBuffer)
 {
     //m_Mutex.lock();
 
