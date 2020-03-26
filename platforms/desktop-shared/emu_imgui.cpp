@@ -22,8 +22,8 @@
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #else
-#include <SDL_opengl.h>
 #include <GL/glew.h>
+#include <SDL_opengl.h>
 #endif
 
 #include "imgui/imgui.h"
@@ -98,6 +98,10 @@ void emu_imgui_init(void)
     ImGui_ImplOpenGL2_Init();
 
     emu_frame_buffer = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+
+    for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+        emu_frame_buffer[i] = 0;
+
     emu = new Emulator();
     emu->Init();
 
