@@ -14,7 +14,7 @@ jobs:
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
-  - if [[ "$BUILD_TYPE" == "Linux" ]]; then sudo apt-get install -y build-essential libsdl2-dev; fi
+  - if [[ "$BUILD_TYPE" == "Linux" ]]; then sudo apt-get install -y build-essential libsdl2-dev libglew-dev; fi
   - if [[ "$BUILD_TYPE" == "macOS" ]]; then brew install sdl2; fi
 
 script:
