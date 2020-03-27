@@ -395,6 +395,8 @@ static void gui_main_window(void)
     ImGui::SetNextWindowSize(ImVec2(gui_main_window_width, gui_main_window_height));
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
     ImGui::Begin(GEARBOY_TITLE, 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav);
 
@@ -405,16 +407,19 @@ static void gui_main_window(void)
     ImGui::End();
 
     ImGui::PopStyleVar();
+    ImGui::PopStyleVar();
+    ImGui::PopStyleVar();
 }
 
 static void gui_about_window(void)
 {
-    ImGui::SetNextWindowSize(ImVec2(400,230));
+    ImGui::SetNextWindowSize(ImVec2(400,250));
     ImGui::SetNextWindowPos(ImVec2((ImGui::GetIO().DisplaySize.x / 2) - 200, (ImGui::GetIO().DisplaySize.y / 2) - 115));
 
     ImGui::Begin("About " GEARBOY_TITLE, &gui_show_about_window, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
     
     ImGui::Text("%s %s", GEARBOY_TITLE, GEARBOY_VERSION);
+    ImGui::Text("Build: %s", EMULATOR_BUILD);
     ImGui::Separator();
     ImGui::Text("By Ignacio Sánchez (twitter.com/drhelius)");
     ImGui::Text("%s is licensed under the GPL-3.0 License,\nsee LICENSE for more information.", GEARBOY_TITLE);
