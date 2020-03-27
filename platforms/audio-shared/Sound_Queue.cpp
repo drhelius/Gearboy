@@ -121,8 +121,10 @@ inline Sound_Queue::sample_t* Sound_Queue::buf( int index )
 	return bufs + (long) index * buf_size;
 }
 
-void Sound_Queue::write( const sample_t* in, int count )
+void Sound_Queue::write( const sample_t* in, int count, bool sync )
 {
+	sync_output = sync;
+
 	while ( count )
 	{
 		int n = buf_size - write_pos;
@@ -138,19 +140,23 @@ void Sound_Queue::write( const sample_t* in, int count )
 		{
 			write_pos = 0;
 			write_buf = (write_buf + 1) % buf_count;
-			SDL_SemWait( free_sem );
+			
+			if (sync_output)
+				SDL_SemWait( free_sem );
 		}
 	}
 }
 
 void Sound_Queue::fill_buffer( Uint8* out, int count )
 {
-	if ( SDL_SemValue( free_sem ) < buf_count - 1 )
+	if ((SDL_SemValue( free_sem ) < buf_count - 1 ) || !sync_output)
 	{
 		currently_playing_ = buf( read_buf );
 		memcpy( out, buf( read_buf ), count );
 		read_buf = (read_buf + 1) % buf_count;
-		SDL_SemPost( free_sem );
+
+		if (sync_output)
+			SDL_SemPost( free_sem );
 	}
 	else
 	{

@@ -27,11 +27,13 @@ Emulator::Emulator()
     m_bAudioEnabled = true;
     m_bSaveInROMFolder = false;
     InitPointer(m_szDataDir);
+    InitPointer(m_pSampleBufer);
 }
 
 Emulator::~Emulator()
 {
     SaveRam();
+    SafeDeleteArray(m_pSampleBufer);
     SafeDelete(m_pSoundQueue);
     SafeDelete(m_pGearboyCore);
     SDL_free(m_szDataDir);
@@ -46,114 +48,95 @@ void Emulator::Init()
     m_pSoundQueue->start(44100, 2);
 
     m_szDataDir = SDL_GetPrefPath("Geardome", GEARBOY_TITLE);
+
+    m_pSampleBufer = new s16[AUDIO_BUFFER_SIZE];
+
+    for (int i = 0; i < AUDIO_BUFFER_SIZE; i++)
+        m_pSampleBufer[i] = 0;
 }
 
 void Emulator::LoadRom(const char* szFilePath, bool forceDMG, bool saveInROMFolder)
 {
-    //m_Mutex.lock();
     m_bSaveInROMFolder = saveInROMFolder;
     SaveRam();
     m_pGearboyCore->LoadROM(szFilePath, forceDMG);
     LoadRam();
-    //m_Mutex.unlock();
 }
 
-void Emulator::RunToVBlank(u16* pFrameBuffer)
+void Emulator::RunToVBlank(u16* pFrameBuffer, bool audio_sync)
 {
-    //m_Mutex.lock();
-
-    s16 sampleBufer[AUDIO_BUFFER_SIZE];
     int sampleCount = 0;
 
-    m_pGearboyCore->RunToVBlank(pFrameBuffer, sampleBufer, &sampleCount);
+    m_pGearboyCore->RunToVBlank(pFrameBuffer, m_pSampleBufer, &sampleCount);
 
     if (m_bAudioEnabled && (sampleCount > 0))
     {
-        m_pSoundQueue->write(sampleBufer, sampleCount);
+        m_pSoundQueue->write(m_pSampleBufer, sampleCount, audio_sync);
     }
-
-    //m_Mutex.unlock();
 }
 
 void Emulator::KeyPressed(Gameboy_Keys key)
 {
-    //m_Mutex.lock();
     m_pGearboyCore->KeyPressed(key);
-    //m_Mutex.unlock();
 }
 
 void Emulator::KeyReleased(Gameboy_Keys key)
 {
-    //m_Mutex.lock();
     m_pGearboyCore->KeyReleased(key);
-    //m_Mutex.unlock();
 }
 
 void Emulator::Pause()
 {
-    //m_Mutex.lock();
     m_pGearboyCore->Pause(true);
     m_bAudioEnabled = false;
-    //m_Mutex.unlock();
 }
 
 void Emulator::Resume()
 {
-    //m_Mutex.lock();
     m_pGearboyCore->Pause(false);
     m_bAudioEnabled = true;
-    //m_Mutex.unlock();
 }
 
 bool Emulator::IsPaused()
 {
-    //m_Mutex.lock();
-    bool paused = m_pGearboyCore->IsPaused();
-    //m_Mutex.unlock();
-    return paused;
+    return m_pGearboyCore->IsPaused();
+}
+
+bool Emulator::IsEmpty()
+{
+    return !m_pGearboyCore->GetCartridge()->IsLoadedROM();
 }
 
 void Emulator::Reset(bool forceDMG, bool saveInROMFolder)
 {
-    //m_Mutex.lock();
     m_bSaveInROMFolder = saveInROMFolder;
     SaveRam();
     m_pGearboyCore->ResetROM(forceDMG);
     LoadRam();
-    //m_Mutex.unlock();
 }
 
 void Emulator::MemoryDump()
 {
-    //m_Mutex.lock();
     m_pGearboyCore->GetMemory()->MemoryDump("memdump.txt");
-    //m_Mutex.unlock();
 }
 
 void Emulator::SetSoundSettings(bool enabled, int rate)
 {
-    //m_Mutex.lock();
     m_bAudioEnabled = enabled;
     m_pGearboyCore->SetSoundSampleRate(rate);
     m_pSoundQueue->stop();
     m_pSoundQueue->start(rate, 2);
-    //m_Mutex.unlock();
 }
 
 void Emulator::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3,
         GB_Color& color4)
 {
-    //m_Mutex.lock();
     m_pGearboyCore->SetDMGPalette(color1, color2, color3, color4);
-    //m_Mutex.unlock();
 }
 
 bool Emulator::IsCGBRom()
 {
-    //m_Mutex.lock();
-    bool cgb = m_pGearboyCore->GetCartridge()->IsCGB();
-    //m_Mutex.unlock();
-    return cgb;
+    return m_pGearboyCore->GetCartridge()->IsCGB();
 }
 
 bool Emulator::IsAudioEnabled()
@@ -179,14 +162,10 @@ void Emulator::LoadRam()
 
 void Emulator::SaveState(int index)
 {
-    //m_Mutex.lock();
     m_pGearboyCore->SaveState(index);
-    //m_Mutex.unlock();
 }
 
 void Emulator::LoadState(int index)
 {
-    //m_Mutex.lock();
     m_pGearboyCore->LoadState(index);
-    //m_Mutex.unlock();
 }

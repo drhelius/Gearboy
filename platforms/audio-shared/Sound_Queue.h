@@ -23,7 +23,7 @@ public:
 
 	// Write samples to buffer and block until enough space is available
 	typedef short sample_t;
-	void write( const sample_t*, int count );
+	void write( const sample_t*, int count, bool sync = true );
 
 	// Pointer to samples currently playing (for showing waveform display)
 	sample_t const* currently_playing() const { return currently_playing_; }
@@ -41,6 +41,7 @@ private:
 	int write_buf;
 	int write_pos;
 	bool sound_open;
+	bool sync_output;
 
 	sample_t* buf( int index );
 	void fill_buffer( Uint8*, int );

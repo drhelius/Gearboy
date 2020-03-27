@@ -39,6 +39,10 @@
 static void gui_main_menu(void);
 static void gui_main_window(void);
 static void gui_about_window(void);
+static void emu_run(void);
+static void emu_update_begin(void);
+static void emu_update_end(void);
+static void emu_frame_throttle(void);
 
 struct EmulatorOptions
 {
@@ -53,7 +57,6 @@ struct VideoOptions
     bool fps;
     bool bilinear;
     bool mix_frames;
-    bool vsync;
     bool matrix;
     ImVec4 color[4];
 };
@@ -75,6 +78,7 @@ imgui_addons::ImGuiFileBrowser file_dialog;
 Emulator* emu;
 u16* emu_frame_buffer;
 GLuint emu_texture;
+Uint64 emu_start_frame_time;
 
 int gui_main_menu_height;
 int gui_main_window_width;
@@ -138,7 +142,34 @@ void emu_imgui_destroy(void)
 
 void emu_imgui_update(void)
 {
-    emu->RunToVBlank(emu_frame_buffer);
+    emu_update_begin();
+
+    emu_run();
+
+    gui_main_menu();
+    gui_main_window();
+    if (gui_show_about_window)
+        gui_about_window();
+
+    //bool show_demo_window = true;
+    //ImGui::ShowDemoWindow(&show_demo_window);
+
+    emu_update_end();
+
+    if (emu->IsEmpty() || emu->IsPaused() || !emu->IsAudioEnabled())
+    {
+        emu_frame_throttle();
+    }
+}
+
+void emu_imgui_event(const SDL_Event* event)
+{
+    ImGui_ImplSDL2_ProcessEvent(event);
+}
+
+static void emu_run(void)
+{
+    emu->RunToVBlank(emu_frame_buffer, gui_audio_options.sync);
 
     glDisable(GL_BLEND);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -156,20 +187,20 @@ void emu_imgui_update(void)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
-    
+}
+
+static void emu_update_begin(void)
+{
+    emu_start_frame_time = SDL_GetPerformanceCounter();
+
     ImGui_ImplOpenGL2_NewFrame();
     ImGui_ImplSDL2_NewFrame(emu_sdl_window);
 
     ImGui::NewFrame();
+}
 
-    gui_main_menu();
-    gui_main_window();
-    if (gui_show_about_window)
-        gui_about_window();
-
-    //bool show_demo_window = true;
-    //ImGui::ShowDemoWindow(&show_demo_window);
-
+static void emu_update_end(void)
+{
     ImGui::Render();
     
     ImVec4 clear_color = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
@@ -181,9 +212,13 @@ void emu_imgui_update(void)
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 }
 
-void emu_imgui_event(const SDL_Event* event)
+static void emu_frame_throttle(void)
 {
-    ImGui_ImplSDL2_ProcessEvent(event);
+    Uint64 end_time = SDL_GetPerformanceCounter();
+
+	float elapsedMS = (end_time - emu_start_frame_time) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
+    if (elapsedMS < 16.666f)
+	    SDL_Delay((Uint32)(16.666f - elapsedMS));
 }
 
 static void gui_main_menu(void)
@@ -246,7 +281,6 @@ static void gui_main_menu(void)
                 ImGui::MenuItem("Bilinear Filtering", "", &gui_video_options.bilinear);
                 ImGui::MenuItem("Screen Ghosting", "", &gui_video_options.mix_frames);
                 ImGui::MenuItem("Dot Matrix", "", &gui_video_options.matrix);
-                ImGui::MenuItem("Vertical Sync", "", &gui_video_options.vsync);
                 
                 ImGui::Separator();
 

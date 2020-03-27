@@ -29,13 +29,14 @@ public:
     Emulator();
     ~Emulator();
     void Init();
-    void RunToVBlank(u16* pFrameBuffer);
+    void RunToVBlank(u16* pFrameBuffer, bool audio_sync);
     void LoadRom(const char* szFilePath, bool forceDMG, bool saveInRAMFolder);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause();
     void Resume();
     bool IsPaused();
+    bool IsEmpty();
     void Reset(bool forceDMG, bool saveInROMFolder);
     void MemoryDump();
     void SetSoundSettings(bool enabled, int rate);
@@ -55,6 +56,7 @@ private:
     bool m_bAudioEnabled;
     bool m_bSaveInROMFolder;
     char* m_szDataDir;
+    s16* m_pSampleBufer;
 };
 
 #endif	/* EMULATOR_H */
