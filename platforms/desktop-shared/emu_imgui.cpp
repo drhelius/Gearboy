@@ -29,7 +29,8 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl2.h"
-#include "imgui/ImGuiFileBrowser.h"
+#include "FileBrowser/ImGuiFileBrowser.h"
+#include "inih/INIReader.h"
 #include "emu_sdl.h"
 #include "Emulator.h"
 
