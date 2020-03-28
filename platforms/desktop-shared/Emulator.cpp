@@ -65,13 +65,16 @@ void Emulator::LoadRom(const char* szFilePath, bool forceDMG, bool saveInROMFold
 
 void Emulator::RunToVBlank(u16* pFrameBuffer, bool audio_sync)
 {
-    int sampleCount = 0;
-
-    m_pGearboyCore->RunToVBlank(pFrameBuffer, m_pSampleBufer, &sampleCount);
-
-    if (m_bAudioEnabled && (sampleCount > 0))
+    if (!this->IsEmpty())
     {
-        m_pSoundQueue->write(m_pSampleBufer, sampleCount, audio_sync);
+        int sampleCount = 0;
+
+        m_pGearboyCore->RunToVBlank(pFrameBuffer, m_pSampleBufer, &sampleCount);
+
+        if (m_bAudioEnabled && (sampleCount > 0))
+        {
+            m_pSoundQueue->write(m_pSampleBufer, sampleCount, audio_sync);
+        }
     }
 }
 
