@@ -487,6 +487,8 @@ void GearboyCore::SaveState(const char* szPath, int index)
     Log("Save state %d file created", index);
 
     SafeDeleteArray(buffer);
+
+    file.close();
 }
 
 bool GearboyCore::SaveState(u8* buffer, size_t& size)
@@ -608,6 +610,8 @@ void GearboyCore::LoadState(const char* szPath, int index)
     {
         Log("Save state file doesn't exist");
     }
+
+    file.close();
 }
 
 bool GearboyCore::LoadState(const u8* buffer, size_t size)
