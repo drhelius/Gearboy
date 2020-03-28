@@ -52,7 +52,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC5MemoryRule);
     InitPointer(m_pRamChangedCallback);
     m_bCGB = false;
-    m_bPaused = true;
+    m_bPaused = false;
     m_bForceDMG = false;
     m_iRTCUpdateCount = 0;
     m_pixelFormat = GB_PIXEL_RGB565;
@@ -448,7 +448,7 @@ void GearboyCore::SaveState(int index)
 
 void GearboyCore::SaveState(const char* szPath, int index)
 {
-    Log("Creating save state...");
+    Log("Creating save state %d...", index);
 
     using namespace std;
 
@@ -484,7 +484,7 @@ void GearboyCore::SaveState(const char* szPath, int index)
 
     SaveState(file, size);
 
-    Log("Save state file created");
+    Log("Save state %d file created", index);
 
     SafeDeleteArray(buffer);
 }
@@ -554,7 +554,11 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
 
 void GearboyCore::LoadState(int index)
 {
+    Log("Loading save state %d...", index);
+
     LoadState(NULL, index);
+
+    Log("State %d file loaded", index);
 }
 
 void GearboyCore::LoadState(const char* szPath, int index)
