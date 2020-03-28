@@ -31,7 +31,7 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl2.h"
 #include "FileBrowser/ImGuiFileBrowser.h"
-#include "inih/INIReader.h"
+#include "mINI/ini.h"
 #include "emu_sdl.h"
 #include "Emulator.h"
 
@@ -45,36 +45,45 @@ static void emu_run(void);
 static void emu_update_begin(void);
 static void emu_update_end(void);
 static void emu_frame_throttle(float min);
+static void emu_config_read(void);
+static void emu_config_write(void);
 
 struct EmulatorOptions
 {
-    bool paused;
+    bool paused = false;
     int save_slot = 0;
-    bool start_paused;
-    bool force_dmg;
-    bool save_in_rom_folder;
-    bool ffwd;
+    bool start_paused = false;
+    bool force_dmg = false;
+    bool save_in_rom_folder = false;
+    bool ffwd = false;
 };
 
 struct VideoOptions
 {
-    bool fps;
-    bool bilinear;
-    bool mix_frames;
-    bool matrix;
+    bool fps = false;
+    bool bilinear = false;
+    bool mix_frames = true;
+    bool matrix = true;
     ImVec4 color[4];
 };
 
 struct AudioOptions
 {
     bool enable = true;
-    bool sync;
+    bool sync = true;
 };
 
 struct InputOptions
 {
-    bool gamepad;
+    bool gamepad = true;
 };
+
+mINI::INIFile* emu_ini_file;
+mINI::INIStructure emu_ini_data;
+
+char* emu_config_path;
+char emu_config_file_path[260];
+char imgui_config_file_path[260];
 
 imgui_addons::ImGuiFileBrowser file_dialog;
 
@@ -96,6 +105,15 @@ InputOptions gui_input_options;
 
 void emu_imgui_init(void)
 {
+    emu_config_path = SDL_GetPrefPath("Geardome", GEARBOY_TITLE);
+    
+    strcpy(emu_config_file_path, emu_config_path);
+    strcpy(imgui_config_file_path, emu_config_path);
+    strcat(emu_config_file_path, "config.ini");
+    strcat(imgui_config_file_path, "imgui.ini");
+
+    emu_ini_file = new mINI::INIFile(emu_config_file_path);
+
     IMGUI_CHECKVERSION();
 
     ImGui::CreateContext();
@@ -104,6 +122,8 @@ void emu_imgui_init(void)
     ImGui_ImplSDL2_InitForOpenGL(emu_sdl_window, emu_sdl_gl_context);
     ImGui_ImplOpenGL2_Init();
 
+    ImGui::GetIO().IniFilename = imgui_config_file_path;
+
     emu_frame_buffer = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
 
     for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
@@ -111,6 +131,8 @@ void emu_imgui_init(void)
 
     emu = new Emulator();
     emu->Init();
+
+    emu_config_read();
 
 #ifndef __APPLE__
     GLenum err = glewInit();
@@ -132,6 +154,8 @@ void emu_imgui_init(void)
 
 void emu_imgui_destroy(void)
 {
+    emu_config_write();
+
     SafeDelete(emu);
     SafeDeleteArray(emu_frame_buffer);
 
@@ -141,6 +165,9 @@ void emu_imgui_destroy(void)
     ImGui_ImplSDL2_Shutdown();
 
     ImGui::DestroyContext();
+
+    SafeDelete(emu_ini_file)
+    SafeDeleteArray(emu_config_path);
 }
 
 void emu_imgui_update(void)
@@ -225,6 +252,53 @@ static void emu_frame_throttle(float min)
 
     if (elapsedMS < min)
 	    SDL_Delay((Uint32)(min - elapsedMS));
+}
+
+static void emu_config_read(void)
+{
+    if (emu_ini_file->read(emu_ini_data))
+    {
+
+        // gui_emulator_options.save_slot = emu_ini_data["Emulator"]["SaveSlot"];
+        // emu_ini_data["Emulator"]["StartPaused"] = gui_emulator_options.start_paused;
+        // emu_ini_data["Emulator"]["ForceDMG"] = gui_emulator_options.force_dmg;
+        // emu_ini_data["Emulator"]["SaveInROMFolder"] = gui_emulator_options.save_in_rom_folder;
+        // emu_ini_data["Emulator"]["FastForward"] = gui_emulator_options.ffwd;
+
+        // emu_ini_data["Video"]["FPS"] = gui_video_options.fps;
+        // emu_ini_data["Video"]["Bilinear"] = gui_video_options.bilinear;
+        // emu_ini_data["Video"]["MixFrames"] = gui_video_options.mix_frames;
+        // emu_ini_data["Video"]["Matrix"] = gui_video_options.matrix;
+
+        // emu_ini_data["Audio"]["Enable"] = gui_audio_options.enable;
+        // emu_ini_data["Audio"]["Sync"] = gui_audio_options.sync;
+
+        // emu_ini_data["Input"]["Gamepad"] = gui_input_options.gamepad;
+    }
+}
+
+static void emu_config_write(void)
+{
+    // emu_ini_data["Emulator"]["SaveSlot"] = gui_emulator_options.save_slot;
+    // emu_ini_data["Emulator"]["StartPaused"] = gui_emulator_options.start_paused;
+    // emu_ini_data["Emulator"]["ForceDMG"] = gui_emulator_options.force_dmg;
+    // emu_ini_data["Emulator"]["SaveInROMFolder"] = gui_emulator_options.save_in_rom_folder;
+    // emu_ini_data["Emulator"]["FastForward"] = gui_emulator_options.ffwd;
+
+    // emu_ini_data["Video"]["FPS"] = gui_video_options.fps;
+    // emu_ini_data["Video"]["Bilinear"] = gui_video_options.bilinear;
+    // emu_ini_data["Video"]["MixFrames"] = gui_video_options.mix_frames;
+    // emu_ini_data["Video"]["Matrix"] = gui_video_options.matrix;
+
+    // emu_ini_data["Audio"]["Enable"] = gui_audio_options.enable;
+    // emu_ini_data["Audio"]["Sync"] = gui_audio_options.sync;
+
+    // emu_ini_data["Input"]["Gamepad"] = gui_input_options.gamepad;
+
+    // if (emu_ini_file->write(emu_ini_data, true))
+    // {
+
+    // }
 }
 
 static void gui_main_menu(void)
