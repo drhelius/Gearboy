@@ -42,14 +42,16 @@ static void gui_about_window(void);
 static void emu_run(void);
 static void emu_update_begin(void);
 static void emu_update_end(void);
-static void emu_frame_throttle(void);
+static void emu_frame_throttle(float min);
 
 struct EmulatorOptions
 {
+    bool paused;
     int save_slot = 0;
     bool start_paused;
     bool force_dmg;
     bool save_in_rom_folder;
+    bool ffwd;
 };
 
 struct VideoOptions
@@ -65,7 +67,6 @@ struct AudioOptions
 {
     bool enable = true;
     bool sync;
-    int freq = 44100;
 };
 
 struct InputOptions
@@ -156,9 +157,9 @@ void emu_imgui_update(void)
 
     emu_update_end();
 
-    if (emu->IsEmpty() || emu->IsPaused() || !emu->IsAudioEnabled())
+    if (emu->IsEmpty() || emu->IsPaused() || !emu->IsAudioEnabled() || gui_emulator_options.ffwd)
     {
-        emu_frame_throttle();
+        emu_frame_throttle(gui_emulator_options.ffwd ? 8.0f : 16.666f);
     }
 }
 
@@ -169,6 +170,8 @@ void emu_imgui_event(const SDL_Event* event)
 
 static void emu_run(void)
 {
+    gui_emulator_options.paused = emu->IsPaused();
+
     emu->RunToVBlank(emu_frame_buffer, gui_audio_options.sync);
 
     glDisable(GL_BLEND);
@@ -212,34 +215,71 @@ static void emu_update_end(void)
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 }
 
-static void emu_frame_throttle(void)
+static void emu_frame_throttle(float min)
 {
     Uint64 end_time = SDL_GetPerformanceCounter();
 
-	float elapsedMS = (end_time - emu_start_frame_time) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
-    if (elapsedMS < 16.666f)
-	    SDL_Delay((Uint32)(16.666f - elapsedMS));
+    float elapsedMS = (float)((end_time - emu_start_frame_time) * 1000) / SDL_GetPerformanceFrequency();
+
+    if (elapsedMS < min)
+	    SDL_Delay((Uint32)(min - elapsedMS));
 }
 
 static void gui_main_menu(void)
 {
-    bool open = false;
+    bool open_rom = false;
+    bool open_state = false;
+    bool save_state = false;
+
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("Game Boy"))
         {
             if (ImGui::MenuItem("Open ROM...", "Ctrl+O"))
             {
-                open = true;
+                open_rom = true;
             }
 
-            if (ImGui::MenuItem("Pause", "Ctrl+P")) {}
-            if (ImGui::MenuItem("Reset", "Ctrl+R")) {}
+            ImGui::Separator();
+            
+            if (ImGui::MenuItem("Reset", "Ctrl+R"))
+            {
+                emu->Resume();
+                emu->Reset(gui_emulator_options.force_dmg, gui_emulator_options.save_in_rom_folder);
+
+                if (gui_emulator_options.start_paused)
+                {
+                    emu->Pause();
+                    
+                    for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+                        emu_frame_buffer[i] = 0;
+                }
+            }
+
+            if (ImGui::MenuItem("Paused", "Ctrl+P", &gui_emulator_options.paused))
+            {
+                if (emu->IsPaused())
+                    emu->Resume();
+                else
+                    emu->Pause();
+            }
+
+            if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &gui_emulator_options.ffwd))
+            {
+                gui_audio_options.sync = !gui_emulator_options.ffwd;
+            }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Save State As...")) {}
-            if (ImGui::MenuItem("Open State From...")) {}
+            if (ImGui::MenuItem("Save State As...")) 
+            {
+                save_state = true;
+            }
+
+            if (ImGui::MenuItem("Load State From..."))
+            {
+                open_state = true;
+            }
 
             ImGui::Separator();
            
@@ -249,23 +289,35 @@ static void gui_main_menu(void)
                 ImGui::EndMenu();
             }
 
-            if (ImGui::MenuItem("Save State", "Ctrl+S")) {}
-            if (ImGui::MenuItem("Load State", "Ctrl+L")) {}
+            if (ImGui::MenuItem("Save State", "Ctrl+S")) 
+            {
+                emu->SaveState(gui_emulator_options.save_slot + 1);
+            }
+
+            if (ImGui::MenuItem("Load State", "Ctrl+L"))
+            {
+                emu->LoadState(gui_emulator_options.save_slot + 1);
+            }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Quit", "Alt+F4")) {}
+            if (ImGui::MenuItem("Quit", "Alt+F4"))
+            {
+                SDL_Event sdlevent;
+                sdlevent.type = SDL_QUIT;
+                SDL_PushEvent(&sdlevent);
+            }
 
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Options"))
+        if (ImGui::BeginMenu("Settings"))
         {
             if (ImGui::BeginMenu("Emulator"))
             {
                 ImGui::MenuItem("Force DMG", "", &gui_emulator_options.force_dmg);
                 ImGui::MenuItem("Start Paused", "", &gui_emulator_options.start_paused);
-                ImGui::MenuItem("Save RAM in ROM folder", "", &gui_emulator_options.save_in_rom_folder);                
+                ImGui::MenuItem("Save files in ROM folder", "", &gui_emulator_options.save_in_rom_folder);
                 
                 if (ImGui::BeginMenu("Cheats"))
                 {
@@ -279,8 +331,8 @@ static void gui_main_menu(void)
             {
                 ImGui::MenuItem("Show FPS", "", &gui_video_options.fps);
                 ImGui::MenuItem("Bilinear Filtering", "", &gui_video_options.bilinear);
-                ImGui::MenuItem("Screen Ghosting", "", &gui_video_options.mix_frames);
-                ImGui::MenuItem("Dot Matrix", "", &gui_video_options.matrix);
+                ImGui::MenuItem("Screen Ghosting", "", &gui_video_options.mix_frames, false);
+                ImGui::MenuItem("Dot Matrix", "", &gui_video_options.matrix, false);
                 
                 ImGui::Separator();
 
@@ -325,19 +377,20 @@ static void gui_main_menu(void)
                    
                     ImGui::EndMenu();
                 }
-                ImGui::MenuItem("Enable Gamepad", "", &gui_input_options.gamepad);
+                ImGui::MenuItem("Enable Gamepad", "", &gui_input_options.gamepad, false);
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Audio"))
             {
-                ImGui::MenuItem("Enable", "", &gui_audio_options.enable);
-                ImGui::MenuItem("Sync", "", &gui_audio_options.sync);
-                
-                if (ImGui::BeginMenu("Frequency"))
+                if (ImGui::MenuItem("Enable", "", &gui_audio_options.enable))
                 {
-                    ImGui::Combo("", &gui_audio_options.freq, " 48000\0 44100\0 22050\0\0");
-                    ImGui::EndMenu();
+                    emu->SetSoundSettings(gui_audio_options.enable, 44100);
+                }
+
+                if (ImGui::MenuItem("Sync With Emulator", "", &gui_audio_options.sync))
+                {
+                    gui_emulator_options.ffwd = false;
                 }
 
                 ImGui::EndMenu();
@@ -363,15 +416,44 @@ static void gui_main_menu(void)
         ImGui::EndMainMenuBar();       
     }
 
-    if (open)
-        ImGui::OpenPopup("Open ROM");
+    if (open_rom)
+        ImGui::OpenPopup("Open ROM...");
+    
+    if (open_state)
+        ImGui::OpenPopup("Load State From...");
+    
+    if (save_state)
+        ImGui::OpenPopup("Save State As...");
 
-    if(file_dialog.showFileDialog("Open ROM", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip"))
+    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip"))
     {
+        emu->Resume();
         emu->LoadRom(file_dialog.selected_path.c_str(), gui_emulator_options.force_dmg, gui_emulator_options.save_in_rom_folder);
 
         if (gui_emulator_options.start_paused)
+        {
             emu->Pause();
+            
+            for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+                emu_frame_buffer[i] = 0;
+        }
+    }
+
+    if(file_dialog.showFileDialog("Load State From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".state,*.*"))
+    {
+        emu->LoadState(file_dialog.selected_path.c_str());
+    }
+
+    if(file_dialog.showFileDialog("Save State As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".state"))
+    {
+        std::string state_path = file_dialog.selected_path;
+
+        if (state_path.rfind(file_dialog.ext) != (state_path.size()-file_dialog.ext.size()))
+        {
+            state_path += file_dialog.ext;
+        }
+
+        emu->SaveState(state_path.c_str());
     }
 }
 
@@ -401,9 +483,15 @@ static void gui_main_window(void)
     ImGui::Begin(GEARBOY_TITLE, 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav);
 
     ImGui::Image((void*)(intptr_t)emu_texture, ImVec2(gui_main_window_width,gui_main_window_height));
-    
-    //ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-    //ImGui::Text("Frame time: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+
+    if (gui_video_options.fps)
+    {
+        ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
+        ImGui::Text("Frame Rate: %.2f FPS", ImGui::GetIO().Framerate);
+        ImGui::SetCursorPosX(5.0f);
+        ImGui::Text("Frame Time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
+    }
+
     ImGui::End();
 
     ImGui::PopStyleVar();
