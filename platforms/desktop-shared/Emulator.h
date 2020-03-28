@@ -45,6 +45,8 @@ public:
     bool IsAudioEnabled();
     void SaveState(int index);
     void LoadState(int index);
+    void SaveState(const char* szFilePath);
+    void LoadState(const char* szFilePath);
 
 private:
     void SaveRam();

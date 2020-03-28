@@ -443,12 +443,16 @@ void GearboyCore::LoadRam(const char* szPath)
 
 void GearboyCore::SaveState(int index)
 {
+    Log("Creating save state %d...", index);
+
     SaveState(NULL, index);
+
+    Log("Save state %d created", index);
 }
 
 void GearboyCore::SaveState(const char* szPath, int index)
 {
-    Log("Creating save state %d...", index);
+    Log("Saving state...");
 
     using namespace std;
 
@@ -476,7 +480,11 @@ void GearboyCore::SaveState(const char* szPath, int index)
     }
 
     std::stringstream sstm;
-    sstm << path << index;
+
+    if (index < 0)
+        sstm << szPath;
+    else
+        sstm << path << index;
 
     Log("Save state file: %s", sstm.str().c_str());
 
@@ -484,11 +492,11 @@ void GearboyCore::SaveState(const char* szPath, int index)
 
     SaveState(file, size);
 
-    Log("Save state %d file created", index);
-
     SafeDeleteArray(buffer);
 
     file.close();
+
+    Log("Save state created");
 }
 
 bool GearboyCore::SaveState(u8* buffer, size_t& size)
@@ -591,7 +599,11 @@ void GearboyCore::LoadState(const char* szPath, int index)
     }
 
     std::stringstream sstm;
-    sstm << sav_path << index;
+
+    if (index < 0)
+        sstm << szPath;
+    else
+        sstm << sav_path << index;
 
     Log("Opening save file: %s", sstm.str().c_str());
 

@@ -165,10 +165,24 @@ void Emulator::LoadRam()
 
 void Emulator::SaveState(int index)
 {
-    m_pGearboyCore->SaveState(index);
+    if (!this->IsEmpty())
+        m_pGearboyCore->SaveState(index);
 }
 
 void Emulator::LoadState(int index)
 {
-    m_pGearboyCore->LoadState(index);
+    if (!this->IsEmpty())
+        m_pGearboyCore->LoadState(index);
+}
+
+void Emulator::SaveState(const char* szFilePath)
+{
+    if (!this->IsEmpty())
+        m_pGearboyCore->SaveState(szFilePath, -1);
+}
+
+void Emulator::LoadState(const char* szFilePath)
+{
+    if (!this->IsEmpty())
+        m_pGearboyCore->LoadState(szFilePath, -1);
 }
