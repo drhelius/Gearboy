@@ -69,6 +69,9 @@ const char* Sound_Queue::start( long sample_rate, int chan_count )
 		return "Out of memory";
 	currently_playing_ = bufs;
 
+	for (long l = 0; l < ((long) buf_size * buf_count); l++)
+		bufs[0] = 0;
+
 	free_sem = SDL_CreateSemaphore( buf_count - 1 );
 	if ( !free_sem )
 		return sdl_error( "Couldn't create semaphore" );
