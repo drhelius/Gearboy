@@ -31,9 +31,10 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl2.h"
 #include "FileBrowser/ImGuiFileBrowser.h"
-#include "mINI/ini.h"
+
 #include "emu_sdl.h"
 #include "Emulator.h"
+#include "config.h"
 
 #define EMU_IMGUI_IMPORT
 #include "emu_imgui.h"
@@ -45,75 +46,22 @@ static void emu_run(void);
 static void emu_update_begin(void);
 static void emu_update_end(void);
 static void emu_frame_throttle(float min);
-static void emu_config_read(void);
-static void emu_config_write(void);
 
-struct EmulatorOptions
-{
-    bool paused = false;
-    int save_slot = 0;
-    bool start_paused = false;
-    bool force_dmg = false;
-    bool save_in_rom_folder = false;
-    bool ffwd = false;
-};
+static imgui_addons::ImGuiFileBrowser file_dialog;
 
-struct VideoOptions
-{
-    bool fps = false;
-    bool bilinear = false;
-    bool mix_frames = true;
-    bool matrix = true;
-    ImVec4 color[4];
-};
+static Emulator* emu;
+static u16* emu_frame_buffer;
+static GLuint emu_texture;
+static Uint64 emu_start_frame_time;
 
-struct AudioOptions
-{
-    bool enable = true;
-    bool sync = true;
-};
-
-struct InputOptions
-{
-    bool gamepad = true;
-};
-
-mINI::INIFile* emu_ini_file;
-mINI::INIStructure emu_ini_data;
-
-char* emu_config_path;
-char emu_config_file_path[260];
-char imgui_config_file_path[260];
-
-imgui_addons::ImGuiFileBrowser file_dialog;
-
-Emulator* emu;
-u16* emu_frame_buffer;
-GLuint emu_texture;
-Uint64 emu_start_frame_time;
-
-int gui_main_menu_height;
-int gui_main_window_width;
-int gui_main_window_height;
-bool gui_show_about_window = false;
-bool gui_show_debug = false;
-
-EmulatorOptions gui_emulator_options;
-VideoOptions gui_video_options;
-AudioOptions gui_audio_options;
-InputOptions gui_input_options;
+static int gui_main_menu_height;
+static int gui_main_window_width;
+static int gui_main_window_height;
+static bool gui_show_about_window = false;
+static bool gui_show_debug = false;
 
 void emu_imgui_init(void)
 {
-    emu_config_path = SDL_GetPrefPath("Geardome", GEARBOY_TITLE);
-    
-    strcpy(emu_config_file_path, emu_config_path);
-    strcpy(imgui_config_file_path, emu_config_path);
-    strcat(emu_config_file_path, "config.ini");
-    strcat(imgui_config_file_path, "imgui.ini");
-
-    emu_ini_file = new mINI::INIFile(emu_config_file_path);
-
     IMGUI_CHECKVERSION();
 
     ImGui::CreateContext();
@@ -121,8 +69,6 @@ void emu_imgui_init(void)
 
     ImGui_ImplSDL2_InitForOpenGL(emu_sdl_window, emu_sdl_gl_context);
     ImGui_ImplOpenGL2_Init();
-
-    ImGui::GetIO().IniFilename = imgui_config_file_path;
 
     emu_frame_buffer = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
 
@@ -132,7 +78,9 @@ void emu_imgui_init(void)
     emu = new Emulator();
     emu->Init();
 
-    emu_config_read();
+    config_read();
+
+    ImGui::GetIO().IniFilename = config_imgui_file_path;
 
 #ifndef __APPLE__
     GLenum err = glewInit();
@@ -154,7 +102,7 @@ void emu_imgui_init(void)
 
 void emu_imgui_destroy(void)
 {
-    emu_config_write();
+    config_write();
 
     SafeDelete(emu);
     SafeDeleteArray(emu_frame_buffer);
@@ -165,9 +113,6 @@ void emu_imgui_destroy(void)
     ImGui_ImplSDL2_Shutdown();
 
     ImGui::DestroyContext();
-
-    SafeDelete(emu_ini_file)
-    SafeDeleteArray(emu_config_path);
 }
 
 void emu_imgui_update(void)
@@ -186,9 +131,9 @@ void emu_imgui_update(void)
 
     emu_update_end();
 
-    if (emu->IsEmpty() || emu->IsPaused() || !emu->IsAudioEnabled() || gui_emulator_options.ffwd)
+    if (emu->IsEmpty() || emu->IsPaused() || !emu->IsAudioEnabled() || config_emulator_options.ffwd)
     {
-        emu_frame_throttle(gui_emulator_options.ffwd ? 8.0f : 16.666f);
+        emu_frame_throttle(config_emulator_options.ffwd ? 8.0f : 16.666f);
     }
 }
 
@@ -199,9 +144,9 @@ void emu_imgui_event(const SDL_Event* event)
 
 static void emu_run(void)
 {
-    gui_emulator_options.paused = emu->IsPaused();
+    config_emulator_options.paused = emu->IsPaused();
 
-    emu->RunToVBlank(emu_frame_buffer, gui_audio_options.sync);
+    emu->RunToVBlank(emu_frame_buffer, config_audio_options.sync);
 
     glDisable(GL_BLEND);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -209,7 +154,7 @@ static void emu_run(void)
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
             GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) emu_frame_buffer);
 
-    if (gui_video_options.bilinear)
+    if (config_video_options.bilinear)
     {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -254,53 +199,6 @@ static void emu_frame_throttle(float min)
 	    SDL_Delay((Uint32)(min - elapsedMS));
 }
 
-static void emu_config_read(void)
-{
-    if (emu_ini_file->read(emu_ini_data))
-    {
-
-        // gui_emulator_options.save_slot = emu_ini_data["Emulator"]["SaveSlot"];
-        // emu_ini_data["Emulator"]["StartPaused"] = gui_emulator_options.start_paused;
-        // emu_ini_data["Emulator"]["ForceDMG"] = gui_emulator_options.force_dmg;
-        // emu_ini_data["Emulator"]["SaveInROMFolder"] = gui_emulator_options.save_in_rom_folder;
-        // emu_ini_data["Emulator"]["FastForward"] = gui_emulator_options.ffwd;
-
-        // emu_ini_data["Video"]["FPS"] = gui_video_options.fps;
-        // emu_ini_data["Video"]["Bilinear"] = gui_video_options.bilinear;
-        // emu_ini_data["Video"]["MixFrames"] = gui_video_options.mix_frames;
-        // emu_ini_data["Video"]["Matrix"] = gui_video_options.matrix;
-
-        // emu_ini_data["Audio"]["Enable"] = gui_audio_options.enable;
-        // emu_ini_data["Audio"]["Sync"] = gui_audio_options.sync;
-
-        // emu_ini_data["Input"]["Gamepad"] = gui_input_options.gamepad;
-    }
-}
-
-static void emu_config_write(void)
-{
-    // emu_ini_data["Emulator"]["SaveSlot"] = gui_emulator_options.save_slot;
-    // emu_ini_data["Emulator"]["StartPaused"] = gui_emulator_options.start_paused;
-    // emu_ini_data["Emulator"]["ForceDMG"] = gui_emulator_options.force_dmg;
-    // emu_ini_data["Emulator"]["SaveInROMFolder"] = gui_emulator_options.save_in_rom_folder;
-    // emu_ini_data["Emulator"]["FastForward"] = gui_emulator_options.ffwd;
-
-    // emu_ini_data["Video"]["FPS"] = gui_video_options.fps;
-    // emu_ini_data["Video"]["Bilinear"] = gui_video_options.bilinear;
-    // emu_ini_data["Video"]["MixFrames"] = gui_video_options.mix_frames;
-    // emu_ini_data["Video"]["Matrix"] = gui_video_options.matrix;
-
-    // emu_ini_data["Audio"]["Enable"] = gui_audio_options.enable;
-    // emu_ini_data["Audio"]["Sync"] = gui_audio_options.sync;
-
-    // emu_ini_data["Input"]["Gamepad"] = gui_input_options.gamepad;
-
-    // if (emu_ini_file->write(emu_ini_data, true))
-    // {
-
-    // }
-}
-
 static void gui_main_menu(void)
 {
     bool open_rom = false;
@@ -321,9 +219,9 @@ static void gui_main_menu(void)
             if (ImGui::MenuItem("Reset", "Ctrl+R"))
             {
                 emu->Resume();
-                emu->Reset(gui_emulator_options.force_dmg, gui_emulator_options.save_in_rom_folder);
+                emu->Reset(config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
 
-                if (gui_emulator_options.start_paused)
+                if (config_emulator_options.start_paused)
                 {
                     emu->Pause();
                     
@@ -332,7 +230,7 @@ static void gui_main_menu(void)
                 }
             }
 
-            if (ImGui::MenuItem("Paused", "Ctrl+P", &gui_emulator_options.paused))
+            if (ImGui::MenuItem("Paused", "Ctrl+P", &config_emulator_options.paused))
             {
                 if (emu->IsPaused())
                     emu->Resume();
@@ -340,9 +238,9 @@ static void gui_main_menu(void)
                     emu->Pause();
             }
 
-            if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &gui_emulator_options.ffwd))
+            if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &config_emulator_options.ffwd))
             {
-                gui_audio_options.sync = !gui_emulator_options.ffwd;
+                config_audio_options.sync = !config_emulator_options.ffwd;
             }
 
             ImGui::Separator();
@@ -361,18 +259,18 @@ static void gui_main_menu(void)
            
             if (ImGui::BeginMenu("Select State Slot")) // <-- Append!
             {
-                ImGui::Combo("", &gui_emulator_options.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
+                ImGui::Combo("", &config_emulator_options.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
                 ImGui::EndMenu();
             }
 
             if (ImGui::MenuItem("Save State", "Ctrl+S")) 
             {
-                emu->SaveState(gui_emulator_options.save_slot + 1);
+                emu->SaveState(config_emulator_options.save_slot + 1);
             }
 
             if (ImGui::MenuItem("Load State", "Ctrl+L"))
             {
-                emu->LoadState(gui_emulator_options.save_slot + 1);
+                emu->LoadState(config_emulator_options.save_slot + 1);
             }
 
             ImGui::Separator();
@@ -391,9 +289,9 @@ static void gui_main_menu(void)
         {
             if (ImGui::BeginMenu("Emulator"))
             {
-                ImGui::MenuItem("Force DMG", "", &gui_emulator_options.force_dmg);
-                ImGui::MenuItem("Start Paused", "", &gui_emulator_options.start_paused);
-                ImGui::MenuItem("Save files in ROM folder", "", &gui_emulator_options.save_in_rom_folder);
+                ImGui::MenuItem("Force DMG", "", &config_emulator_options.force_dmg);
+                ImGui::MenuItem("Start Paused", "", &config_emulator_options.start_paused);
+                ImGui::MenuItem("Save files in ROM folder", "", &config_emulator_options.save_in_rom_folder);
                 
                 if (ImGui::BeginMenu("Cheats"))
                 {
@@ -405,23 +303,23 @@ static void gui_main_menu(void)
 
             if (ImGui::BeginMenu("Video"))
             {
-                ImGui::MenuItem("Show FPS", "", &gui_video_options.fps);
-                ImGui::MenuItem("Bilinear Filtering", "", &gui_video_options.bilinear);
-                ImGui::MenuItem("Screen Ghosting", "", &gui_video_options.mix_frames, false);
-                ImGui::MenuItem("Dot Matrix", "", &gui_video_options.matrix, false);
+                ImGui::MenuItem("Show FPS", "", &config_video_options.fps);
+                ImGui::MenuItem("Bilinear Filtering", "", &config_video_options.bilinear);
+                ImGui::MenuItem("Screen Ghosting", "", &config_video_options.mix_frames, false);
+                ImGui::MenuItem("Dot Matrix", "", &config_video_options.matrix, false);
                 
                 ImGui::Separator();
 
                 if (ImGui::BeginMenu("Palette"))
                 {
-                    ImGui::Combo("", &gui_emulator_options.save_slot, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0");
+                    ImGui::Combo("", &config_emulator_options.save_slot, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0");
                     ImGui::EndMenu();
                 }
 
-                ImGui::ColorEdit4("Color #1", (float*)&gui_video_options.color[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-                ImGui::ColorEdit4("Color #2", (float*)&gui_video_options.color[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-                ImGui::ColorEdit4("Color #3", (float*)&gui_video_options.color[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-                ImGui::ColorEdit4("Color #4", (float*)&gui_video_options.color[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+                ImGui::ColorEdit4("Color #1", (float*)&config_video_options.color[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+                ImGui::ColorEdit4("Color #2", (float*)&config_video_options.color[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+                ImGui::ColorEdit4("Color #3", (float*)&config_video_options.color[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+                ImGui::ColorEdit4("Color #4", (float*)&config_video_options.color[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
                 
                 ImGui::EndMenu();
             }
@@ -453,20 +351,20 @@ static void gui_main_menu(void)
                    
                     ImGui::EndMenu();
                 }
-                ImGui::MenuItem("Enable Gamepad", "", &gui_input_options.gamepad, false);
+                ImGui::MenuItem("Enable Gamepad", "", &config_input_options.gamepad, false);
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Audio"))
             {
-                if (ImGui::MenuItem("Enable", "", &gui_audio_options.enable))
+                if (ImGui::MenuItem("Enable", "", &config_audio_options.enable))
                 {
-                    emu->SetSoundSettings(gui_audio_options.enable, 44100);
+                    emu->SetSoundSettings(config_audio_options.enable, 44100);
                 }
 
-                if (ImGui::MenuItem("Sync With Emulator", "", &gui_audio_options.sync))
+                if (ImGui::MenuItem("Sync With Emulator", "", &config_audio_options.sync))
                 {
-                    gui_emulator_options.ffwd = false;
+                    config_emulator_options.ffwd = false;
                 }
 
                 ImGui::EndMenu();
@@ -504,9 +402,9 @@ static void gui_main_menu(void)
     if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip"))
     {
         emu->Resume();
-        emu->LoadRom(file_dialog.selected_path.c_str(), gui_emulator_options.force_dmg, gui_emulator_options.save_in_rom_folder);
+        emu->LoadRom(file_dialog.selected_path.c_str(), config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
 
-        if (gui_emulator_options.start_paused)
+        if (config_emulator_options.start_paused)
         {
             emu->Pause();
             
@@ -560,7 +458,7 @@ static void gui_main_window(void)
 
     ImGui::Image((void*)(intptr_t)emu_texture, ImVec2(gui_main_window_width,gui_main_window_height));
 
-    if (gui_video_options.fps)
+    if (config_video_options.fps)
     {
         ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
         ImGui::Text("Frame Rate: %.2f FPS", ImGui::GetIO().Framerate);

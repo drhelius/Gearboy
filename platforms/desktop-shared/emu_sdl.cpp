@@ -21,6 +21,7 @@
 #include <SDL_opengl.h>
 #include "../../src/gearboy.h"
 #include "emu_imgui.h"
+#include "config.h"
 
 #define EMU_SDL_IMPORT
 #include "emu_sdl.h"
@@ -46,6 +47,7 @@ int emu_sdl_init(void)
 
     SDL_SetWindowMinimumSize(emu_sdl_window, 680, 630);
 
+    config_init();
     emu_imgui_init();
 
     return 0;
@@ -54,6 +56,7 @@ int emu_sdl_init(void)
 void emu_sdl_destroy(void)
 {
     emu_imgui_destroy();
+    config_destroy();
 
     SDL_GL_DeleteContext(emu_sdl_gl_context);
     SDL_DestroyWindow(emu_sdl_window);
