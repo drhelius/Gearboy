@@ -17,22 +17,23 @@
  *
  */
 
-#ifndef EMU_IMGUI_H
-#define	EMU_IMGUI_H
+#ifndef RENDERER_H
+#define	RENDERER_H
 
-#include <SDL.h>
-
-#ifdef EMU_IMGUI_IMPORT
+#ifdef RENDERER_IMPORT
     #define EXTERN
 #else
     #define EXTERN extern
 #endif
 
-EXTERN void emu_imgui_init(void);
-EXTERN void emu_imgui_destroy(void);
-EXTERN void emu_imgui_update(void);
-EXTERN void emu_imgui_event(const SDL_Event* event);
+EXTERN uint32_t renderer_emu_texture;
 
-#undef EMU_IMGUI_IMPORT
+EXTERN void renderer_init(void);
+EXTERN void renderer_destroy(void);
+EXTERN void renderer_begin_render(void);
+EXTERN void renderer_render(void);
+EXTERN void renderer_end_render(void);
+
+#undef RENDERER_IMPORT
 #undef EXTERN
-#endif	/* EMU_IMGUI_H */
+#endif	/* RENDERER_H */

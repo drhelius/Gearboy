@@ -17,189 +17,56 @@
  *
  */
 
-#include <SDL.h>
-
-#ifdef __APPLE__
-#define GL_SILENCE_DEPRECATION
-#include <OpenGL/gl.h>
-#else
-#include <GL/glew.h>
-#include <SDL_opengl.h>
-#endif
-
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_sdl.h"
-#include "imgui/imgui_impl_opengl2.h"
 #include "FileBrowser/ImGuiFileBrowser.h"
-
-#include "emu_sdl.h"
-#include "Emulator.h"
 #include "config.h"
+#include "emu.h"
+#include "renderer.h"
+#include "application.h"
 
-#define EMU_IMGUI_IMPORT
-#include "emu_imgui.h"
-
-static void gui_main_menu(void);
-static void gui_main_window(void);
-static void gui_about_window(void);
-static void emu_run(void);
-static void emu_update_begin(void);
-static void emu_update_end(void);
-static void emu_frame_throttle(float min);
+#define GUI_IMPORT
+#include "gui.h"
 
 static imgui_addons::ImGuiFileBrowser file_dialog;
+static int main_menu_height;
+static int main_window_width;
+static int main_window_height;
+static bool show_about_window = false;
+static bool show_debug = false;
 
-static Emulator* emu;
-static u16* emu_frame_buffer;
-static GLuint emu_texture;
-static Uint64 emu_start_frame_time;
+static void main_menu(void);
+static void main_window(void);
+static void about_window(void);
 
-static int gui_main_menu_height;
-static int gui_main_window_width;
-static int gui_main_window_height;
-static bool gui_show_about_window = false;
-static bool gui_show_debug = false;
-
-void emu_imgui_init(void)
+void gui_init(void)
 {
     IMGUI_CHECKVERSION();
-
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-
-    ImGui_ImplSDL2_InitForOpenGL(emu_sdl_window, emu_sdl_gl_context);
-    ImGui_ImplOpenGL2_Init();
-
-    emu_frame_buffer = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
-
-    for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
-        emu_frame_buffer[i] = 0;
-
-    emu = new Emulator();
-    emu->Init();
-
-    config_read();
-
     ImGui::GetIO().IniFilename = config_imgui_file_path;
-
-#ifndef __APPLE__
-    GLenum err = glewInit();
-    if (GLEW_OK != err)
-    {
-        /* Problem: glewInit failed, something is seriously wrong. */
-        Log("GLEW Error: %s\n", glewGetErrorString(err));
-    }
-    Log("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-#endif
-
-    //glGenFramebuffers(1, &emu_fbo);
-    glGenTextures(1, &emu_texture);  
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, emu_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0,
-            GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) emu_frame_buffer);
 }
 
-void emu_imgui_destroy(void)
+void gui_destroy(void)
 {
-    config_write();
-
-    SafeDelete(emu);
-    SafeDeleteArray(emu_frame_buffer);
-
-    glDeleteTextures(1, &emu_texture);
-    
-    ImGui_ImplOpenGL2_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-
     ImGui::DestroyContext();
 }
 
-void emu_imgui_update(void)
+void gui_render(void)
 {
-    emu_update_begin();
+    ImGui::NewFrame();
 
-    emu_run();
-
-    gui_main_menu();
-    gui_main_window();
-    if (gui_show_about_window)
-        gui_about_window();
+    main_menu();
+    main_window();
+    if (show_about_window)
+        about_window();
 
     //bool show_demo_window = true;
     //ImGui::ShowDemoWindow(&show_demo_window);
 
-    emu_update_end();
-
-    if (emu->IsEmpty() || emu->IsPaused() || !emu->IsAudioEnabled() || config_emulator_options.ffwd)
-    {
-        emu_frame_throttle(config_emulator_options.ffwd ? 8.0f : 16.666f);
-    }
-}
-
-void emu_imgui_event(const SDL_Event* event)
-{
-    ImGui_ImplSDL2_ProcessEvent(event);
-}
-
-static void emu_run(void)
-{
-    config_emulator_options.paused = emu->IsPaused();
-
-    emu->RunToVBlank(emu_frame_buffer, config_audio_options.sync);
-
-    glDisable(GL_BLEND);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, emu_texture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
-            GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid*) emu_frame_buffer);
-
-    if (config_video_options.bilinear)
-    {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    }
-    else
-    {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    }
-}
-
-static void emu_update_begin(void)
-{
-    emu_start_frame_time = SDL_GetPerformanceCounter();
-
-    ImGui_ImplOpenGL2_NewFrame();
-    ImGui_ImplSDL2_NewFrame(emu_sdl_window);
-
-    ImGui::NewFrame();
-}
-
-static void emu_update_end(void)
-{
     ImGui::Render();
-    
-    ImVec4 clear_color = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
-
-    glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
-    glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 }
 
-static void emu_frame_throttle(float min)
-{
-    Uint64 end_time = SDL_GetPerformanceCounter();
-
-    float elapsedMS = (float)((end_time - emu_start_frame_time) * 1000) / SDL_GetPerformanceFrequency();
-
-    if (elapsedMS < min)
-	    SDL_Delay((Uint32)(min - elapsedMS));
-}
-
-static void gui_main_menu(void)
+static void main_menu(void)
 {
     bool open_rom = false;
     bool open_state = false;
@@ -218,12 +85,12 @@ static void gui_main_menu(void)
             
             if (ImGui::MenuItem("Reset", "Ctrl+R"))
             {
-                emu->Resume();
-                emu->Reset(config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
+                emu_resume();
+                emu_reset(config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
 
                 if (config_emulator_options.start_paused)
                 {
-                    emu->Pause();
+                    emu_pause();
                     
                     for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
                         emu_frame_buffer[i] = 0;
@@ -232,10 +99,10 @@ static void gui_main_menu(void)
 
             if (ImGui::MenuItem("Paused", "Ctrl+P", &config_emulator_options.paused))
             {
-                if (emu->IsPaused())
-                    emu->Resume();
+                if (emu_is_paused())
+                    emu_resume();
                 else
-                    emu->Pause();
+                    emu_pause();
             }
 
             if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &config_emulator_options.ffwd))
@@ -257,7 +124,7 @@ static void gui_main_menu(void)
 
             ImGui::Separator();
            
-            if (ImGui::BeginMenu("Select State Slot")) // <-- Append!
+            if (ImGui::BeginMenu("Select State Slot"))
             {
                 ImGui::Combo("", &config_emulator_options.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
                 ImGui::EndMenu();
@@ -265,21 +132,19 @@ static void gui_main_menu(void)
 
             if (ImGui::MenuItem("Save State", "Ctrl+S")) 
             {
-                emu->SaveState(config_emulator_options.save_slot + 1);
+                emu_save_state_slot(config_emulator_options.save_slot + 1);
             }
 
             if (ImGui::MenuItem("Load State", "Ctrl+L"))
             {
-                emu->LoadState(config_emulator_options.save_slot + 1);
+                emu_load_state_slot(config_emulator_options.save_slot + 1);
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Quit", "Alt+F4"))
             {
-                SDL_Event sdlevent;
-                sdlevent.type = SDL_QUIT;
-                SDL_PushEvent(&sdlevent);
+                application_trigger_quit();
             }
 
             ImGui::EndMenu();
@@ -359,7 +224,7 @@ static void gui_main_menu(void)
             {
                 if (ImGui::MenuItem("Enable", "", &config_audio_options.enable))
                 {
-                    emu->SetSoundSettings(config_audio_options.enable, 44100);
+                    emu_audio_settings(config_audio_options.enable, 44100);
                 }
 
                 if (ImGui::MenuItem("Sync With Emulator", "", &config_audio_options.sync))
@@ -375,17 +240,17 @@ static void gui_main_menu(void)
 
         if (ImGui::BeginMenu("Debug"))
         {
-            ImGui::MenuItem("Enabled", "", &gui_show_debug, false);
+            ImGui::MenuItem("Enabled", "", &show_debug, false);
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("About"))
         {
-            ImGui::MenuItem("About " GEARBOY_TITLE " " GEARBOY_VERSION " ...", "", &gui_show_about_window);
+            ImGui::MenuItem("About " GEARBOY_TITLE " " GEARBOY_VERSION " ...", "", &show_about_window);
             ImGui::EndMenu();
         }
 
-        gui_main_menu_height = ImGui::GetWindowSize().y;
+        main_menu_height = ImGui::GetWindowSize().y;
 
         ImGui::EndMainMenuBar();       
     }
@@ -401,12 +266,12 @@ static void gui_main_menu(void)
 
     if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip"))
     {
-        emu->Resume();
-        emu->LoadRom(file_dialog.selected_path.c_str(), config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
+        emu_resume();
+        emu_load_rom(file_dialog.selected_path.c_str(), config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
 
         if (config_emulator_options.start_paused)
         {
-            emu->Pause();
+            emu_pause();
             
             for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
                 emu_frame_buffer[i] = 0;
@@ -415,7 +280,7 @@ static void gui_main_menu(void)
 
     if(file_dialog.showFileDialog("Load State From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".state,*.*"))
     {
-        emu->LoadState(file_dialog.selected_path.c_str());
+        emu_load_state_file(file_dialog.selected_path.c_str());
     }
 
     if(file_dialog.showFileDialog("Save State As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".state"))
@@ -427,28 +292,28 @@ static void gui_main_menu(void)
             state_path += file_dialog.ext;
         }
 
-        emu->SaveState(state_path.c_str());
+        emu_save_state_file(state_path.c_str());
     }
 }
 
-static void gui_main_window(void)
+static void main_window(void)
 {
     int w = ImGui::GetIO().DisplaySize.x;
-    int h = ImGui::GetIO().DisplaySize.y - gui_main_menu_height;
+    int h = ImGui::GetIO().DisplaySize.y - main_menu_height;
 
     int factor_w = w / GAMEBOY_WIDTH;
     int factor_h = h / GAMEBOY_HEIGHT;
 
     int factor = (factor_w < factor_h) ? factor_w : factor_h;
 
-    gui_main_window_width = GAMEBOY_WIDTH * factor;
-    gui_main_window_height = GAMEBOY_HEIGHT * factor;
+    main_window_width = GAMEBOY_WIDTH * factor;
+    main_window_height = GAMEBOY_HEIGHT * factor;
 
     int window_x = (w - (GAMEBOY_WIDTH * factor)) / 2;
-    int window_y = ((h - (GAMEBOY_HEIGHT * factor)) / 2) + gui_main_menu_height;
+    int window_y = ((h - (GAMEBOY_HEIGHT * factor)) / 2) + main_menu_height;
     
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
-    ImGui::SetNextWindowSize(ImVec2(gui_main_window_width, gui_main_window_height));
+    ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -456,7 +321,7 @@ static void gui_main_window(void)
 
     ImGui::Begin(GEARBOY_TITLE, 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav);
 
-    ImGui::Image((void*)(intptr_t)emu_texture, ImVec2(gui_main_window_width,gui_main_window_height));
+    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width,main_window_height));
 
     if (config_video_options.fps)
     {
@@ -473,12 +338,12 @@ static void gui_main_window(void)
     ImGui::PopStyleVar();
 }
 
-static void gui_about_window(void)
+static void about_window(void)
 {
     ImGui::SetNextWindowSize(ImVec2(400,250));
     ImGui::SetNextWindowPos(ImVec2((ImGui::GetIO().DisplaySize.x / 2) - 200, (ImGui::GetIO().DisplaySize.y / 2) - 115));
 
-    ImGui::Begin("About " GEARBOY_TITLE, &gui_show_about_window, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
+    ImGui::Begin("About " GEARBOY_TITLE, &show_about_window, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
     
     ImGui::Text("%s %s", GEARBOY_TITLE, GEARBOY_VERSION);
     ImGui::Text("Build: %s", EMULATOR_BUILD);

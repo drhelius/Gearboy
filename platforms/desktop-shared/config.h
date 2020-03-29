@@ -62,11 +62,9 @@ struct config_InputOptions
 
 EXTERN mINI::INIFile* config_ini_file;
 EXTERN mINI::INIStructure config_ini_data;
-
 EXTERN char* config_root_path;
 EXTERN char config_emu_file_path[260];
 EXTERN char config_imgui_file_path[260];
-
 EXTERN config_EmulatorOptions config_emulator_options;
 EXTERN config_VideoOptions config_video_options;
 EXTERN config_AudioOptions config_audio_options;

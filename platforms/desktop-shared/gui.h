@@ -17,16 +17,19 @@
  *
  */
 
-#include "application.h"
+#ifndef GUI_H
+#define	GUI_H
 
-int main(int, char**)
-{
-    int ret = application_init();
+#ifdef GUI_IMPORT
+    #define EXTERN
+#else
+    #define EXTERN extern
+#endif
 
-    if (ret >= 0)
-        application_mainloop();
+EXTERN void gui_init(void);
+EXTERN void gui_destroy(void);
+EXTERN void gui_render(void);
 
-    application_destroy();    
-
-    return ret;
-}
+#undef GUI_IMPORT
+#undef EXTERN
+#endif	/* GUI_H */

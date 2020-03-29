@@ -19,6 +19,8 @@
 
 #include <SDL.h>
 #include "../../src/gearboy.h"
+#define MINI_CASE_SENSITIVE
+#include "mINI/ini.h"
 
 #define CONFIG_IMPORT
 #include "config.h"

@@ -17,24 +17,20 @@
  *
  */
 
-#ifndef EMU_SDL_H
-#define	EMU_SDL_H
+#ifndef APPLICATION_H
+#define	APPLICATION_H
 
-#include <SDL.h>
-
-#ifdef EMU_SDL_IMPORT
+#ifdef APPLICATION_IMPORT
     #define EXTERN
 #else
     #define EXTERN extern
 #endif
 
-EXTERN SDL_Window* emu_sdl_window;
-EXTERN SDL_GLContext emu_sdl_gl_context;
+EXTERN int application_init(void);
+EXTERN void application_destroy(void);
+EXTERN void application_mainloop(void);
+EXTERN void application_trigger_quit(void);
 
-EXTERN int emu_sdl_init(void);
-EXTERN void emu_sdl_destroy(void);
-EXTERN void emu_sdl_mainloop(void);
-
-#undef EMU_SDL_IMPORT
+#undef APPLICATION_IMPORT
 #undef EXTERN
-#endif	/* EMU_SDL_H */
+#endif	/* APPLICATION_H */
