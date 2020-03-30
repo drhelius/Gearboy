@@ -332,7 +332,7 @@ void GearboyCore::SaveRam()
     SaveRam(NULL);
 }
 
-void GearboyCore::SaveRam(const char* szPath)
+void GearboyCore::SaveRam(const char* szPath, bool fullPath)
 {
     if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
@@ -345,8 +345,12 @@ void GearboyCore::SaveRam(const char* szPath)
         if (IsValidPointer(szPath))
         {
             path += szPath;
-            path += "/";
-            path += m_pCartridge->GetFileName();
+
+            if (!fullPath)
+            {
+                path += "/";
+                path += m_pCartridge->GetFileName();
+            }
         }
         else
         {
@@ -374,7 +378,7 @@ void GearboyCore::LoadRam()
     LoadRam(NULL);
 }
 
-void GearboyCore::LoadRam(const char* szPath)
+void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 {
     if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
@@ -387,8 +391,12 @@ void GearboyCore::LoadRam(const char* szPath)
         if (IsValidPointer(szPath))
         {
             sav_path += szPath;
-            sav_path += "/";
-            sav_path += m_pCartridge->GetFileName();
+
+            if (!fullPath)
+            {
+                sav_path += "/";
+                sav_path += m_pCartridge->GetFileName();
+            }
         }
         else
         {

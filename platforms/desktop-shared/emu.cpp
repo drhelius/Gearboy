@@ -157,6 +157,23 @@ bool emu_is_cgb(void)
     return gearboy->GetCartridge()->IsCGB();
 }
 
+void emu_save_ram(const char* file_path)
+{
+    if (!emu_is_empty())
+        gearboy->SaveRam(file_path, true);
+}
+
+void emu_load_ram(const char* file_path, bool force_dmg, bool save_in_rom_dir)
+{
+    if (!emu_is_empty())
+    {
+        save_files_in_rom_dir = save_in_rom_dir;
+        save_ram();
+        gearboy->ResetROM(force_dmg);
+        gearboy->LoadRam(file_path, true);
+    }
+}
+
 void emu_save_state_slot(int index)
 {
     if (!emu_is_empty())

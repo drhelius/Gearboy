@@ -73,6 +73,8 @@ void gui_render(void)
 static void main_menu(void)
 {
     bool open_rom = false;
+    bool open_ram = false;
+    bool save_ram = false;
     bool open_state = false;
     bool save_state = false;
 
@@ -112,6 +114,18 @@ static void main_menu(void)
             if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &config_emulator_options.ffwd))
             {
                 config_audio_options.sync = !config_emulator_options.ffwd;
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Save RAM As...")) 
+            {
+                save_ram = true;
+            }
+
+            if (ImGui::MenuItem("Load RAM From..."))
+            {
+                open_ram = true;
             }
 
             ImGui::Separator();
@@ -261,6 +275,12 @@ static void main_menu(void)
 
     if (open_rom)
         ImGui::OpenPopup("Open ROM...");
+
+    if (open_ram)
+        ImGui::OpenPopup("Load RAM From...");
+    
+    if (save_ram)
+        ImGui::OpenPopup("Save RAM As...");
     
     if (open_state)
         ImGui::OpenPopup("Load State From...");
@@ -280,6 +300,23 @@ static void main_menu(void)
             for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
                 emu_frame_buffer[i] = 0;
         }
+    }
+
+    if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*"))
+    {
+        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
+    }
+
+    if(file_dialog.showFileDialog("Save RAM As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".sav"))
+    {
+        std::string state_path = file_dialog.selected_path;
+
+        if (state_path.rfind(file_dialog.ext) != (state_path.size()-file_dialog.ext.size()))
+        {
+            state_path += file_dialog.ext;
+        }
+
+        emu_save_ram(state_path.c_str());
     }
 
     if(file_dialog.showFileDialog("Load State From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".state,*.*"))

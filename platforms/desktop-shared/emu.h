@@ -47,6 +47,8 @@ EXTERN void emu_audio_settings(bool enabled, int rate);
 EXTERN bool emu_is_audio_enabled(void);
 EXTERN void emu_dmg_palette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
 EXTERN bool emu_is_cgb(void);
+EXTERN void emu_save_ram(const char* file_path);
+EXTERN void emu_load_ram(const char* file_path, bool force_dmg, bool save_in_rom_dir);
 EXTERN void emu_save_state_slot(int index);
 EXTERN void emu_load_state_slot(int index);
 EXTERN void emu_save_state_file(const char* file_path);
