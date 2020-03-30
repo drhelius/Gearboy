@@ -18,6 +18,7 @@
  */
 
 #include "imgui/imgui.h"
+#include "imgui/fonts/RobotoMedium.h"
 #include "FileBrowser/ImGuiFileBrowser.h"
 #include "config.h"
 #include "emu.h"
@@ -43,7 +44,10 @@ void gui_init(void)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-    ImGui::GetIO().IniFilename = config_imgui_file_path;
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = config_imgui_file_path;
+    io.Fonts->AddFontFromMemoryCompressedBase85TTF(RobotoMedium_compressed_data_base85, 15.0f, NULL, io.Fonts->GetGlyphRangesCyrillic());
 }
 
 void gui_destroy(void)
@@ -373,8 +377,8 @@ static void about_window(void)
 #ifdef __MINGW64__
     ImGui::Text("Built with MinGW 64 bit.");
 #endif
-#ifdef __GNUC__
-    ImGui::Text("Built with GCC %d.", (int)__GNUC__);
+#if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+    ImGui::Text("Built with GCC %d.%d.%d", (int)__GNUC__, (int)__GNUC_MINOR__, (int)__GNUC_PATCHLEVEL__);
 #endif
 #ifdef __clang_version__
     ImGui::Text("Built with Clang %s.", __clang_version__);
