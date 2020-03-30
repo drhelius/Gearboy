@@ -32,7 +32,6 @@ static imgui_addons::ImGuiFileBrowser file_dialog;
 static int main_menu_height;
 static int main_window_width;
 static int main_window_height;
-static bool show_about_window = false;
 static bool show_debug = false;
 
 static void main_menu(void);
