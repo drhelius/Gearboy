@@ -37,7 +37,7 @@ static bool show_debug = false;
 
 static void main_menu(void);
 static void main_window(void);
-static void about_window(void);
+static void about_popup(void);
 
 void gui_init(void)
 {
@@ -61,11 +61,6 @@ void gui_render(void)
 
     main_menu();
     main_window();
-    if (show_about_window)
-        about_window();
-
-    //bool show_demo_window = true;
-    //ImGui::ShowDemoWindow(&show_demo_window);
 
     ImGui::Render();
 }
@@ -77,6 +72,7 @@ static void main_menu(void)
     bool save_ram = false;
     bool open_state = false;
     bool save_state = false;
+    bool open_about = false;
 
     if (ImGui::BeginMainMenuBar())
     {
@@ -213,15 +209,15 @@ static void main_menu(void)
                 {
                     ImGui::Text("Up:");
                     ImGui::SameLine();
-                     if (ImGui::Button("UP"))
-                        ImGui::OpenPopup("keyboard_definition");
+                    if (ImGui::Button("UP"))
+                        ImGui::OpenPopup("Keyboard Configuration");
                                         
                     ImGui::Text("Down:");
                     ImGui::SameLine();
                     if (ImGui::Button("DOWN"))
-                        ImGui::OpenPopup("keyboard_definition");
+                        ImGui::OpenPopup("Keyboard Configuration");
 
-                    if (ImGui::BeginPopupModal("keyboard_definition", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+                    if (ImGui::BeginPopupModal("Keyboard Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
                     {
                         ImGui::Text("Press any key...\n\n");
                         ImGui::Separator();
@@ -264,7 +260,10 @@ static void main_menu(void)
 
         if (ImGui::BeginMenu("About"))
         {
-            ImGui::MenuItem("About " GEARBOY_TITLE " " GEARBOY_VERSION " ...", "", &show_about_window);
+            if (ImGui::MenuItem("About " GEARBOY_TITLE " " GEARBOY_VERSION " ..."))
+            {
+               open_about = true;
+            }
             ImGui::EndMenu();
         }
 
@@ -287,6 +286,11 @@ static void main_menu(void)
     
     if (save_state)
         ImGui::OpenPopup("Save State As...");
+
+    if (open_about)
+        ImGui::OpenPopup("About " GEARBOY_TITLE);
+    
+    about_popup();
 
     if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip"))
     {
@@ -379,54 +383,61 @@ static void main_window(void)
     ImGui::PopStyleVar();
 }
 
-static void about_window(void)
+static void about_popup(void)
 {
-    ImGui::SetNextWindowSize(ImVec2(400,250));
-    ImGui::SetNextWindowPos(ImVec2((ImGui::GetIO().DisplaySize.x / 2) - 200, (ImGui::GetIO().DisplaySize.y / 2) - 115));
+    if (ImGui::BeginPopupModal("About " GEARBOY_TITLE, NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("%s %s", GEARBOY_TITLE, GEARBOY_VERSION);
+        ImGui::Text("Build: %s", EMULATOR_BUILD);
+        ImGui::Separator();
+        ImGui::Text("By Ignacio Sánchez (twitter.com/drhelius)");
+        ImGui::Text("%s is licensed under the GPL-3.0 License, see LICENSE for more information.", GEARBOY_TITLE);
+        ImGui::Separator();        
+        
+        #ifdef _WIN32
+        ImGui::Text("Windows 32 bit detected.");
+        #endif
+        #ifdef _WIN64
+        ImGui::Text("Windows 32 bit detected.");
+        #endif
+        #ifdef __linux__
+        ImGui::Text("Linux detected.");
+        #endif
+        #ifdef __APPLE__
+        ImGui::Text("macOS detected.");
+        #endif
+        #ifdef _MSC_VER
+        ImGui::Text("Built with Microsoft C++ %d.", _MSC_VER);
+        #endif
+        #ifdef __MINGW32__
+        ImGui::Text("Built with MinGW 32 bit.");
+        #endif
+        #ifdef __MINGW64__
+        ImGui::Text("Built with MinGW 64 bit.");
+        #endif
+        #if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+        ImGui::Text("Built with GCC %d.%d.%d", (int)__GNUC__, (int)__GNUC_MINOR__, (int)__GNUC_PATCHLEVEL__);
+        #endif
+        #ifdef __clang_version__
+        ImGui::Text("Built with Clang %s.", __clang_version__);
+        #endif
+        #ifdef DEBUG
+        ImGui::Text("define: DEBUG");
+        #endif
+        #ifdef DEBUG_GEARBOY
+        ImGui::Text("define: DEBUG_GEARBOY");
+        #endif
+        ImGui::Text("define: __cplusplus=%d", (int)__cplusplus);
+        ImGui::Text("Dear ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
+        
 
-    ImGui::Begin("About " GEARBOY_TITLE, &show_about_window, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);
-    
-    ImGui::Text("%s %s", GEARBOY_TITLE, GEARBOY_VERSION);
-    ImGui::Text("Build: %s", EMULATOR_BUILD);
-    ImGui::Separator();
-    ImGui::Text("By Ignacio Sánchez (twitter.com/drhelius)");
-    ImGui::Text("%s is licensed under the GPL-3.0 License,\nsee LICENSE for more information.", GEARBOY_TITLE);
-    ImGui::Separator();        
-    
-#ifdef _WIN32
-    ImGui::Text("Windows 32 bit detected.");
-#endif
-#ifdef _WIN64
-    ImGui::Text("Windows 32 bit detected.");
-#endif
-#ifdef __linux__
-    ImGui::Text("Linux detected.");
-#endif
-#ifdef __APPLE__
-    ImGui::Text("macOS detected.");
-#endif
-#ifdef _MSC_VER
-    ImGui::Text("Built with Microsoft C++ %d.", _MSC_VER);
-#endif
-#ifdef __MINGW32__
-    ImGui::Text("Built with MinGW 32 bit.");
-#endif
-#ifdef __MINGW64__
-    ImGui::Text("Built with MinGW 64 bit.");
-#endif
-#if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
-    ImGui::Text("Built with GCC %d.%d.%d", (int)__GNUC__, (int)__GNUC_MINOR__, (int)__GNUC_PATCHLEVEL__);
-#endif
-#ifdef __clang_version__
-    ImGui::Text("Built with Clang %s.", __clang_version__);
-#endif
-#ifdef DEBUG
-    ImGui::Text("define: DEBUG");
-#endif
-#ifdef DEBUG_GEARBOY
-    ImGui::Text("define: DEBUG_GEARBOY");
-#endif
-    ImGui::Text("define: __cplusplus=%d", (int)__cplusplus);
-    ImGui::Text("Dear ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
-    ImGui::End();
+        ImGui::Separator();
+        if (ImGui::Button("OK", ImVec2(120, 0))) 
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SetItemDefaultFocus();
+
+        ImGui::EndPopup();
+    }
 }
