@@ -36,6 +36,7 @@ Sound_Queue::Sound_Queue()
 	bufs = NULL;
 	free_sem = NULL;
 	sound_open = false;
+	sync_output = true;
 
 	std::string platform = SDL_GetPlatform();
 	if (platform == "Linux")
