@@ -25,6 +25,11 @@
 #define CONFIG_IMPORT
 #include "config.h"
 
+static int read_int(const char* group, const char* key);
+static void write_int(const char* group, const char* key, int integer);
+static bool read_bool(const char* group, const char* key);
+static void write_bool(const char* group, const char* key, bool boolean);
+
 void config_init(void)
 {
     config_root_path = SDL_GetPrefPath("Geardome", GEARBOY_TITLE);
@@ -50,20 +55,20 @@ void config_read(void)
     {
         Log("Loading settings from %s", config_emu_file_path);
 
-        config_emulator_options.save_slot = std::stoi(config_ini_data["Emulator"]["SaveSlot"]);
-        std::istringstream(config_ini_data["Emulator"]["StartPaused"]) >> std::boolalpha >> config_emulator_options.start_paused;
-        std::istringstream(config_ini_data["Emulator"]["ForceDMG"]) >> std::boolalpha >> config_emulator_options.force_dmg;
-        std::istringstream(config_ini_data["Emulator"]["SaveInROMFolder"]) >> std::boolalpha >> config_emulator_options.save_in_rom_folder;
+        config_emulator_options.save_slot = read_int("Emulator", "SaveSlot");
+        config_emulator_options.start_paused = read_bool("Emulator", "StartPaused");
+        config_emulator_options.force_dmg = read_bool("Emulator", "ForceDMG");
+        config_emulator_options.save_in_rom_folder = read_bool("Emulator", "SaveInROMFolder");
 
-        std::istringstream(config_ini_data["Video"]["FPS"]) >> std::boolalpha >> config_video_options.fps;
-        std::istringstream(config_ini_data["Video"]["Bilinear"]) >> std::boolalpha >> config_video_options.bilinear;
-        std::istringstream(config_ini_data["Video"]["MixFrames"]) >> std::boolalpha >> config_video_options.mix_frames;
-        std::istringstream(config_ini_data["Video"]["Matrix"]) >> std::boolalpha >> config_video_options.matrix;
+        config_video_options.fps = read_bool("Video", "FPS");
+        config_video_options.bilinear = read_bool("Video", "Bilinear");
+        config_video_options.mix_frames = read_bool("Video", "MixFrames");
+        config_video_options.matrix = read_bool("Video", "Matrix");
 
-        std::istringstream(config_ini_data["Audio"]["Enable"]) >> std::boolalpha >> config_audio_options.enable;
-        std::istringstream(config_ini_data["Audio"]["Sync"]) >> std::boolalpha >> config_audio_options.sync;
+        config_audio_options.enable = read_bool("Audio", "Enable");
+        config_audio_options.sync = read_bool("Audio", "Sync");
 
-        std::istringstream(config_ini_data["Input"]["Gamepad"]) >> std::boolalpha >> config_input_options.gamepad;
+        config_input_options.gamepad = read_bool("Input", "Gamepad");
 
         Log("Settings loaded");
     }
@@ -77,52 +82,55 @@ void config_write(void)
 {
     Log("Saving settings to %s", config_emu_file_path);
 
-    std::stringstream converter;
+    write_int("Emulator", "SaveSlot", config_emulator_options.save_slot);
+    write_bool("Emulator", "StartPaused", config_emulator_options.start_paused);
+    write_bool("Emulator", "ForceDMG", config_emulator_options.force_dmg);
+    write_bool("Emulator", "SaveInROMFolder", config_emulator_options.save_in_rom_folder);
 
-    config_ini_data["Emulator"]["SaveSlot"] = std::to_string(config_emulator_options.save_slot);
+    write_bool("Video", "FPS", config_video_options.fps);
+    write_bool("Video", "Bilinear", config_video_options.bilinear);
+    write_bool("Video", "MixFrames", config_video_options.mix_frames);
+    write_bool("Video", "Matrix", config_video_options.matrix);
 
-    converter << std::boolalpha << config_emulator_options.start_paused;
-    config_ini_data["Emulator"]["StartPaused"] = converter.str();
-    converter.str("");
+    write_bool("Audio", "Enable", config_audio_options.enable);
+    write_bool("Audio", "Sync", config_audio_options.sync);
 
-    converter << std::boolalpha << config_emulator_options.force_dmg;
-    config_ini_data["Emulator"]["ForceDMG"] = converter.str();
-    converter.str("");
-
-    converter << std::boolalpha << config_emulator_options.save_in_rom_folder;
-    config_ini_data["Emulator"]["SaveInROMFolder"] = converter.str();
-    converter.str("");
-
-    converter << std::boolalpha << config_video_options.fps;
-    config_ini_data["Video"]["FPS"] = converter.str();
-    converter.str("");
-
-    converter << std::boolalpha << config_video_options.bilinear;
-    config_ini_data["Video"]["Bilinear"] = converter.str();
-    converter.str("");
-
-    converter << std::boolalpha << config_video_options.mix_frames;
-    config_ini_data["Video"]["MixFrames"] = converter.str();
-    converter.str("");
-
-    converter << std::boolalpha << config_video_options.matrix;
-    config_ini_data["Video"]["Matrix"] = converter.str();
-    converter.str("");
-
-    converter << std::boolalpha << config_audio_options.enable;
-    config_ini_data["Audio"]["Enable"] = converter.str();
-    converter.str("");
-
-    converter << std::boolalpha << config_audio_options.sync;
-    config_ini_data["Audio"]["Sync"] = converter.str();
-    converter.str("");
-
-    converter << std::boolalpha << config_input_options.gamepad;
-    config_ini_data["Input"]["Gamepad"] = converter.str();
-    converter.str("");
+    write_bool("Input", "Gamepad", config_input_options.gamepad);
 
     if (config_ini_file->write(config_ini_data, true))
     {
         Log("Settings saved");
     }
+}
+
+static int read_int(const char* group, const char* key)
+{
+    int ret = std::stoi(config_ini_data[group][key]);
+    Log("Load setting: [%s][%s]=%d", group, key, ret);
+    return ret;
+}
+
+static void write_int(const char* group, const char* key, int integer)
+{
+    std::string value = std::to_string(integer);
+    config_ini_data[group][key] = value;
+    Log("Save setting: [%s][%s]=%s", group, key, value.c_str());
+}
+
+static bool read_bool(const char* group, const char* key)
+{
+    bool ret;
+    std::istringstream(config_ini_data[group][key]) >> std::boolalpha >> ret;
+    Log("Load setting: [%s][%s]=%s", group, key, ret ? "true" : "false");
+    return ret;
+}
+
+static void write_bool(const char* group, const char* key, bool boolean)
+{
+    std::stringstream converter;
+    converter << std::boolalpha << boolean;
+    std::string value;
+    value = converter.str();
+    config_ini_data[group][key] = value;
+    Log("Save setting: [%s][%s]=%s", group, key, value.c_str());
 }
