@@ -37,6 +37,7 @@ static Uint64 frame_time_end;
 static int sdl_init(void);
 static void sdl_destroy(void);
 static void sdl_events(void);
+static void sdl_events_emu(const SDL_Event* event);
 static void run_emulator(void);
 static void render(void);
 static void frame_throttle(void);
@@ -82,9 +83,9 @@ void application_mainloop(void)
 
 void application_trigger_quit(void)
 {
-    SDL_Event sdlevent;
-    sdlevent.type = SDL_QUIT;
-    SDL_PushEvent(&sdlevent);
+    SDL_Event event;
+    event.type = SDL_QUIT;
+    SDL_PushEvent(&event);
 }
 
 static int sdl_init(void)
@@ -126,9 +127,125 @@ static void sdl_events(void)
     while (SDL_PollEvent(&event))
     {
         ImGui_ImplSDL2_ProcessEvent(&event);
+        sdl_events_emu(&event);
+    }
+}
 
-        if (event.type == SDL_QUIT)
-            running = false;
+static void sdl_events_emu(const SDL_Event* event)
+{
+    switch(event->type)
+    {
+        case SDL_QUIT:
+        running = false;
+        break;
+
+        case SDL_JOYBUTTONDOWN:
+        {
+            if (!config_input_options.gamepad)
+                break;
+            
+            if (event->jbutton.button == config_input_options.gamepad_b)
+                emu_key_pressed(B_Key);
+            else if (event->jbutton.button == config_input_options.gamepad_a)
+                emu_key_pressed(A_Key);
+            else if (event->jbutton.button == config_input_options.gamepad_select)
+                emu_key_pressed(Select_Key);
+            else if (event->jbutton.button == config_input_options.gamepad_start)
+                emu_key_pressed(Start_Key);
+        }
+        break;
+
+        case SDL_JOYBUTTONUP:
+        {
+            if (!config_input_options.gamepad)
+                break;
+
+            if (event->jbutton.button == config_input_options.gamepad_b)
+                emu_key_released(B_Key);
+            else if (event->jbutton.button == config_input_options.gamepad_a)
+                emu_key_released(A_Key);
+            else if (event->jbutton.button == config_input_options.gamepad_select)
+                emu_key_released(Select_Key);
+            else if (event->jbutton.button == config_input_options.gamepad_start)
+                emu_key_released(Start_Key);
+        }
+        break;
+
+        case SDL_JOYAXISMOTION:
+        {
+            if (!config_input_options.gamepad)
+                break;
+                
+            if(event->jaxis.axis == config_input_options.gamepad_x_axis)
+            {
+                int x_motion = event->jaxis.value * (config_input_options.gamepad_invert_x_axis ? -1 : 1);
+                if (x_motion < 0)
+                    emu_key_pressed(Left_Key);
+                else if (x_motion > 0)
+                    emu_key_pressed(Right_Key);
+                else
+                {
+                    emu_key_released(Left_Key);
+                    emu_key_released(Right_Key);
+                }
+            }
+            else if(event->jaxis.axis == config_input_options.gamepad_y_axis)
+            {
+                int y_motion = event->jaxis.value * (config_input_options.gamepad_invert_y_axis ? -1 : 1);
+                if (y_motion < 0)
+                    emu_key_pressed(Up_Key);
+                else if (y_motion > 0)
+                    emu_key_pressed(Down_Key);
+                else
+                {
+                    emu_key_released(Up_Key);
+                    emu_key_released(Down_Key);
+                }
+            }
+        }
+        break;
+
+        case SDL_KEYDOWN:
+        {
+            if (event->key.keysym.sym == config_input_options.key_left)
+                emu_key_pressed(Left_Key);
+            else if (event->key.keysym.sym == config_input_options.key_right)
+                emu_key_pressed(Right_Key);
+            else if (event->key.keysym.sym == config_input_options.key_up)
+                emu_key_pressed(Up_Key);
+            else if (event->key.keysym.sym == config_input_options.key_down)
+                emu_key_pressed(Down_Key);
+            else if (event->key.keysym.sym == config_input_options.key_b)
+                emu_key_pressed(B_Key);
+            else if (event->key.keysym.sym == config_input_options.key_a)
+                emu_key_pressed(A_Key);
+            else if (event->key.keysym.sym == config_input_options.key_select)
+                emu_key_pressed(Select_Key);
+            else if (event->key.keysym.sym == config_input_options.key_start)
+                emu_key_pressed(Start_Key);
+        }
+        break;
+
+        case SDL_KEYUP:
+        {
+            if (event->key.keysym.sym == config_input_options.key_left)
+                emu_key_released(Left_Key);
+            else if (event->key.keysym.sym == config_input_options.key_right)
+                emu_key_released(Right_Key);
+            else if (event->key.keysym.sym == config_input_options.key_up)
+                emu_key_released(Up_Key);
+            else if (event->key.keysym.sym == config_input_options.key_down)
+                emu_key_released(Down_Key);
+            else if (event->key.keysym.sym == config_input_options.key_b)
+                emu_key_released(B_Key);
+            else if (event->key.keysym.sym == config_input_options.key_a)
+                emu_key_released(A_Key);
+            else if (event->key.keysym.sym == config_input_options.key_select)
+                emu_key_released(Select_Key);
+            else if (event->key.keysym.sym == config_input_options.key_start)
+                emu_key_released(Start_Key);
+        }
+        break;
     }
 }
 

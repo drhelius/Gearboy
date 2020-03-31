@@ -20,6 +20,7 @@
 #ifndef CONFIG_H
 #define	CONFIG_H
 
+#include <SDL.h>
 #define MINI_CASE_SENSITIVE
 #include "mINI/ini.h"
 #include "imgui/imgui.h"
@@ -57,7 +58,24 @@ struct config_AudioOptions
 
 struct config_InputOptions
 {
+    SDL_Keycode key_left = SDLK_LEFT;
+    SDL_Keycode key_right = SDLK_RIGHT;
+    SDL_Keycode key_up = SDLK_UP;
+    SDL_Keycode key_down = SDLK_DOWN;
+    SDL_Keycode key_a = SDLK_s;
+    SDL_Keycode key_b = SDLK_a;
+    SDL_Keycode key_start = SDLK_RETURN;
+    SDL_Keycode key_select = SDLK_SPACE;
+
     bool gamepad = true;
+    bool gamepad_invert_x_axis = false;
+    bool gamepad_invert_y_axis = false;
+    int gamepad_a = 1;
+    int gamepad_b = 2;
+    int gamepad_start = 9;
+    int gamepad_select = 8;
+    int gamepad_x_axis = 0;
+    int gamepad_y_axis = 1;
 };
 
 EXTERN mINI::INIFile* config_ini_file;
