@@ -36,7 +36,12 @@ static bool show_debug = false;
 
 static void main_menu(void);
 static void main_window(void);
-static void about_popup(void);
+static void file_dialog_open_rom(void);
+static void file_dialog_load_ram(void);
+static void file_dialog_save_ram(void);
+static void file_dialog_load_state(void);
+static void file_dialog_save_state(void);
+static void popup_modal_about(void);
 
 void gui_init(void)
 {
@@ -289,55 +294,12 @@ static void main_menu(void)
     if (open_about)
         ImGui::OpenPopup("About " GEARBOY_TITLE);
     
-    about_popup();
-
-    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip"))
-    {
-        emu_resume();
-        emu_load_rom(file_dialog.selected_path.c_str(), config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
-
-        if (config_emulator_options.start_paused)
-        {
-            emu_pause();
-            
-            for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
-                emu_frame_buffer[i] = 0;
-        }
-    }
-
-    if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*"))
-    {
-        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
-    }
-
-    if(file_dialog.showFileDialog("Save RAM As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".sav"))
-    {
-        std::string state_path = file_dialog.selected_path;
-
-        if (state_path.rfind(file_dialog.ext) != (state_path.size()-file_dialog.ext.size()))
-        {
-            state_path += file_dialog.ext;
-        }
-
-        emu_save_ram(state_path.c_str());
-    }
-
-    if(file_dialog.showFileDialog("Load State From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".state,*.*"))
-    {
-        emu_load_state_file(file_dialog.selected_path.c_str());
-    }
-
-    if(file_dialog.showFileDialog("Save State As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".state"))
-    {
-        std::string state_path = file_dialog.selected_path;
-
-        if (state_path.rfind(file_dialog.ext) != (state_path.size()-file_dialog.ext.size()))
-        {
-            state_path += file_dialog.ext;
-        }
-
-        emu_save_state_file(state_path.c_str());
-    }
+    popup_modal_about();
+    file_dialog_open_rom();
+    file_dialog_load_ram();
+    file_dialog_save_ram();
+    file_dialog_load_state();
+    file_dialog_save_state();
 }
 
 static void main_window(void)
@@ -382,7 +344,70 @@ static void main_window(void)
     ImGui::PopStyleVar();
 }
 
-static void about_popup(void)
+static void file_dialog_open_rom(void)
+{
+    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip"))
+    {
+        emu_resume();
+        emu_load_rom(file_dialog.selected_path.c_str(), config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
+
+        if (config_emulator_options.start_paused)
+        {
+            emu_pause();
+            
+            for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+                emu_frame_buffer[i] = 0;
+        }
+    }
+}
+
+static void file_dialog_load_ram(void)
+{
+    if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*"))
+    {
+        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
+    }
+}
+
+static void file_dialog_save_ram(void)
+{
+    if(file_dialog.showFileDialog("Save RAM As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".sav"))
+    {
+        std::string state_path = file_dialog.selected_path;
+
+        if (state_path.rfind(file_dialog.ext) != (state_path.size()-file_dialog.ext.size()))
+        {
+            state_path += file_dialog.ext;
+        }
+
+        emu_save_ram(state_path.c_str());
+    }
+}
+
+static void file_dialog_load_state(void)
+{
+    if(file_dialog.showFileDialog("Load State From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".state,*.*"))
+    {
+        emu_load_state_file(file_dialog.selected_path.c_str());
+    }
+}
+
+static void file_dialog_save_state(void)
+{
+    if(file_dialog.showFileDialog("Save State As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".state"))
+    {
+        std::string state_path = file_dialog.selected_path;
+
+        if (state_path.rfind(file_dialog.ext) != (state_path.size()-file_dialog.ext.size()))
+        {
+            state_path += file_dialog.ext;
+        }
+
+        emu_save_state_file(state_path.c_str());
+    }
+}
+
+static void popup_modal_about(void)
 {
     if (ImGui::BeginPopupModal("About " GEARBOY_TITLE, NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
