@@ -31,7 +31,7 @@
     #define EXTERN extern
 #endif
 
-struct config_EmulatorOptions
+struct config_Emulator
 {
     bool paused = false;
     int save_slot = 0;
@@ -41,7 +41,7 @@ struct config_EmulatorOptions
     bool ffwd = false;
 };
 
-struct config_VideoOptions
+struct config_Video
 {
     bool fps = false;
     bool bilinear = false;
@@ -50,13 +50,13 @@ struct config_VideoOptions
     ImVec4 color[4];
 };
 
-struct config_AudioOptions
+struct config_Audio
 {
     bool enable = true;
     bool sync = true;
 };
 
-struct config_InputOptions
+struct config_Input
 {
     SDL_Keycode key_left = SDLK_LEFT;
     SDL_Keycode key_right = SDLK_RIGHT;
@@ -83,10 +83,10 @@ EXTERN mINI::INIStructure config_ini_data;
 EXTERN char* config_root_path;
 EXTERN char config_emu_file_path[260];
 EXTERN char config_imgui_file_path[260];
-EXTERN config_EmulatorOptions config_emulator_options;
-EXTERN config_VideoOptions config_video_options;
-EXTERN config_AudioOptions config_audio_options;
-EXTERN config_InputOptions config_input_options;
+EXTERN config_Emulator config_emulator;
+EXTERN config_Video config_video;
+EXTERN config_Audio config_audio;
+EXTERN config_Input config_input;
 
 EXTERN void config_init(void);
 EXTERN void config_destroy(void);

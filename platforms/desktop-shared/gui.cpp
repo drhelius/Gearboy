@@ -33,6 +33,7 @@ static int main_menu_height;
 static int main_window_width;
 static int main_window_height;
 static bool show_debug = false;
+static bool dialog_in_use = false;
 
 static void main_menu(void);
 static void main_window(void);
@@ -66,6 +67,8 @@ void gui_render(void)
     main_menu();
     main_window();
 
+    gui_in_use = dialog_in_use;
+
     ImGui::Render();
 }
 
@@ -77,11 +80,13 @@ static void main_menu(void)
     bool open_state = false;
     bool save_state = false;
     bool open_about = false;
-
+    
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("Game Boy"))
         {
+            gui_in_use = true;
+
             if (ImGui::MenuItem("Open ROM...", "Ctrl+O"))
             {
                 open_rom = true;
@@ -92,9 +97,9 @@ static void main_menu(void)
             if (ImGui::MenuItem("Reset", "Ctrl+R"))
             {
                 emu_resume();
-                emu_reset(config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
+                emu_reset(config_emulator.force_dmg, config_emulator.save_in_rom_folder);
 
-                if (config_emulator_options.start_paused)
+                if (config_emulator.start_paused)
                 {
                     emu_pause();
                     
@@ -103,7 +108,7 @@ static void main_menu(void)
                 }
             }
 
-            if (ImGui::MenuItem("Paused", "Ctrl+P", &config_emulator_options.paused))
+            if (ImGui::MenuItem("Paused", "Ctrl+P", &config_emulator.paused))
             {
                 if (emu_is_paused())
                     emu_resume();
@@ -111,9 +116,9 @@ static void main_menu(void)
                     emu_pause();
             }
 
-            if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &config_emulator_options.ffwd))
+            if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &config_emulator.ffwd))
             {
-                config_audio_options.sync = !config_emulator_options.ffwd;
+                config_audio.sync = !config_emulator.ffwd;
             }
 
             ImGui::Separator();
@@ -144,18 +149,18 @@ static void main_menu(void)
            
             if (ImGui::BeginMenu("Select State Slot"))
             {
-                ImGui::Combo("", &config_emulator_options.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
+                ImGui::Combo("", &config_emulator.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
                 ImGui::EndMenu();
             }
 
             if (ImGui::MenuItem("Save State", "Ctrl+S")) 
             {
-                emu_save_state_slot(config_emulator_options.save_slot + 1);
+                emu_save_state_slot(config_emulator.save_slot + 1);
             }
 
             if (ImGui::MenuItem("Load State", "Ctrl+L"))
             {
-                emu_load_state_slot(config_emulator_options.save_slot + 1);
+                emu_load_state_slot(config_emulator.save_slot + 1);
             }
 
             ImGui::Separator();
@@ -168,89 +173,122 @@ static void main_menu(void)
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Settings"))
+        if (ImGui::BeginMenu("Emulator"))
         {
-            if (ImGui::BeginMenu("Emulator"))
-            {
-                ImGui::MenuItem("Force DMG", "", &config_emulator_options.force_dmg);
-                ImGui::MenuItem("Start Paused", "", &config_emulator_options.start_paused);
-                ImGui::MenuItem("Save files in ROM folder", "", &config_emulator_options.save_in_rom_folder);
-                
-                if (ImGui::BeginMenu("Cheats"))
-                {
-                    ImGui::EndMenu();
-                }
+            gui_in_use = true;
 
+            ImGui::MenuItem("Force DMG", "", &config_emulator.force_dmg);
+            ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
+            ImGui::MenuItem("Save files in ROM folder", "", &config_emulator.save_in_rom_folder);
+            
+            if (ImGui::BeginMenu("Cheats"))
+            {
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu("Video"))
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Video"))
+        {
+            gui_in_use = true;
+
+            ImGui::MenuItem("Show FPS", "", &config_video.fps);
+            ImGui::MenuItem("Bilinear Filtering", "", &config_video.bilinear);
+            ImGui::MenuItem("Screen Ghosting", "", &config_video.mix_frames, false);
+            ImGui::MenuItem("Dot Matrix", "", &config_video.matrix, false);
+            
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Palette"))
             {
-                ImGui::MenuItem("Show FPS", "", &config_video_options.fps);
-                ImGui::MenuItem("Bilinear Filtering", "", &config_video_options.bilinear);
-                ImGui::MenuItem("Screen Ghosting", "", &config_video_options.mix_frames, false);
-                ImGui::MenuItem("Dot Matrix", "", &config_video_options.matrix, false);
-                
-                ImGui::Separator();
-
-                if (ImGui::BeginMenu("Palette"))
-                {
-                    ImGui::Combo("", &config_emulator_options.save_slot, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0");
-                    ImGui::EndMenu();
-                }
-
-                ImGui::ColorEdit4("Color #1", (float*)&config_video_options.color[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-                ImGui::ColorEdit4("Color #2", (float*)&config_video_options.color[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-                ImGui::ColorEdit4("Color #3", (float*)&config_video_options.color[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-                ImGui::ColorEdit4("Color #4", (float*)&config_video_options.color[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-                
+                ImGui::Combo("", &config_emulator.save_slot, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0");
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu("Input"))
+            ImGui::ColorEdit4("Color #1", (float*)&config_video.color[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+            ImGui::ColorEdit4("Color #2", (float*)&config_video.color[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+            ImGui::ColorEdit4("Color #3", (float*)&config_video.color[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+            ImGui::ColorEdit4("Color #4", (float*)&config_video.color[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+            
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Input"))
+        {
+            gui_in_use = true;
+
+            if (ImGui::BeginMenu("Keyboard Configuration"))
             {
-                if (ImGui::BeginMenu("Keyboard Configuration"))
+                ImGui::Text("Left:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GetKeyName(config_input.key_left), ImVec2(70,0)))
+                    ImGui::OpenPopup("Keyboard Configuration");
+                                    
+                ImGui::Text("Right:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GetKeyName(config_input.key_right), ImVec2(70,0)))
+                    ImGui::OpenPopup("Keyboard Configuration");
+                
+                ImGui::Text("Up:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GetKeyName(config_input.key_up), ImVec2(70,0)))
+                    ImGui::OpenPopup("Keyboard Configuration");
+
+                ImGui::Text("Down:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GetKeyName(config_input.key_down), ImVec2(70,0)))
+                    ImGui::OpenPopup("Keyboard Configuration");
+
+                ImGui::Text("A:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GetKeyName(config_input.key_a), ImVec2(70,0)))
+                    ImGui::OpenPopup("Keyboard Configuration");
+
+                ImGui::Text("B:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GetKeyName(config_input.key_b), ImVec2(70,0)))
+                    ImGui::OpenPopup("Keyboard Configuration");
+
+                ImGui::Text("Start:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GetKeyName(config_input.key_start), ImVec2(70,0)))
+                    ImGui::OpenPopup("Keyboard Configuration");
+                
+                ImGui::Text("Select:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GetKeyName(config_input.key_select), ImVec2(70,0)))
+                    ImGui::OpenPopup("Keyboard Configuration");
+
+                if (ImGui::BeginPopupModal("Keyboard Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
                 {
-                    ImGui::Text("Up:");
+                    ImGui::Text("Press any key...\n\n");
+                    ImGui::Separator();
+                    if (ImGui::Button("OK", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                    ImGui::SetItemDefaultFocus();
                     ImGui::SameLine();
-                    if (ImGui::Button("UP"))
-                        ImGui::OpenPopup("Keyboard Configuration");
-                                        
-                    ImGui::Text("Down:");
-                    ImGui::SameLine();
-                    if (ImGui::Button("DOWN"))
-                        ImGui::OpenPopup("Keyboard Configuration");
-
-                    if (ImGui::BeginPopupModal("Keyboard Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-                    {
-                        ImGui::Text("Press any key...\n\n");
-                        ImGui::Separator();
-                        if (ImGui::Button("OK", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-                        ImGui::SetItemDefaultFocus();
-                        ImGui::SameLine();
-                        if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-                        ImGui::EndPopup();
-                    }                   
-                   
-                    ImGui::EndMenu();
-                }
-                ImGui::MenuItem("Enable Gamepad", "", &config_input_options.gamepad, false);
+                    if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+                    ImGui::EndPopup();
+                }                   
+                
                 ImGui::EndMenu();
             }
+            ImGui::MenuItem("Enable Gamepad", "", &config_input.gamepad, false);
+            ImGui::EndMenu();
+        }
 
-            if (ImGui::BeginMenu("Audio"))
+        if (ImGui::BeginMenu("Audio"))
+        {
+            gui_in_use = true;
+
+            if (ImGui::MenuItem("Enable", "", &config_audio.enable))
             {
-                if (ImGui::MenuItem("Enable", "", &config_audio_options.enable))
-                {
-                    emu_audio_settings(config_audio_options.enable, 44100);
-                }
+                emu_audio_settings(config_audio.enable, 44100);
+            }
 
-                if (ImGui::MenuItem("Sync With Emulator", "", &config_audio_options.sync))
-                {
-                    config_emulator_options.ffwd = false;
-                }
-
-                ImGui::EndMenu();
+            if (ImGui::MenuItem("Sync With Emulator", "", &config_audio.sync))
+            {
+                config_emulator.ffwd = false;
             }
 
             ImGui::EndMenu();
@@ -258,12 +296,16 @@ static void main_menu(void)
 
         if (ImGui::BeginMenu("Debug"))
         {
+            gui_in_use = true;
+
             ImGui::MenuItem("Enabled", "", &show_debug, false);
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("About"))
         {
+            gui_in_use = true;
+
             if (ImGui::MenuItem("About " GEARBOY_TITLE " " GEARBOY_VERSION " ..."))
             {
                open_about = true;
@@ -281,10 +323,10 @@ static void main_menu(void)
 
     if (open_ram)
         ImGui::OpenPopup("Load RAM From...");
-    
+
     if (save_ram)
         ImGui::OpenPopup("Save RAM As...");
-    
+
     if (open_state)
         ImGui::OpenPopup("Load State From...");
     
@@ -292,7 +334,10 @@ static void main_menu(void)
         ImGui::OpenPopup("Save State As...");
 
     if (open_about)
+    {
+        dialog_in_use = true;
         ImGui::OpenPopup("About " GEARBOY_TITLE);
+    }
     
     popup_modal_about();
     file_dialog_open_rom();
@@ -329,12 +374,13 @@ static void main_window(void)
 
     ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width,main_window_height));
 
-    if (config_video_options.fps)
+    if (config_video.fps)
     {
         ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
         ImGui::Text("Frame Rate: %.2f FPS", ImGui::GetIO().Framerate);
         ImGui::SetCursorPosX(5.0f);
         ImGui::Text("Frame Time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
+        ImGui::Text("gui_in_use: %d", gui_in_use);
     }
 
     ImGui::End();
@@ -346,12 +392,12 @@ static void main_window(void)
 
 static void file_dialog_open_rom(void)
 {
-    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip"))
+    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip", &dialog_in_use))
     {
         emu_resume();
-        emu_load_rom(file_dialog.selected_path.c_str(), config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
+        emu_load_rom(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder);
 
-        if (config_emulator_options.start_paused)
+        if (config_emulator.start_paused)
         {
             emu_pause();
             
@@ -363,15 +409,15 @@ static void file_dialog_open_rom(void)
 
 static void file_dialog_load_ram(void)
 {
-    if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*"))
+    if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*", &dialog_in_use))
     {
-        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator_options.force_dmg, config_emulator_options.save_in_rom_folder);
+        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder);
     }
 }
 
 static void file_dialog_save_ram(void)
 {
-    if(file_dialog.showFileDialog("Save RAM As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".sav"))
+    if(file_dialog.showFileDialog("Save RAM As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".sav", &dialog_in_use))
     {
         std::string state_path = file_dialog.selected_path;
 
@@ -386,7 +432,7 @@ static void file_dialog_save_ram(void)
 
 static void file_dialog_load_state(void)
 {
-    if(file_dialog.showFileDialog("Load State From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".state,*.*"))
+    if(file_dialog.showFileDialog("Load State From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".state,*.*", &dialog_in_use))
     {
         emu_load_state_file(file_dialog.selected_path.c_str());
     }
@@ -394,7 +440,7 @@ static void file_dialog_load_state(void)
 
 static void file_dialog_save_state(void)
 {
-    if(file_dialog.showFileDialog("Save State As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".state"))
+    if(file_dialog.showFileDialog("Save State As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".state", &dialog_in_use))
     {
         std::string state_path = file_dialog.selected_path;
 
@@ -453,12 +499,12 @@ static void popup_modal_about(void)
         #endif
         ImGui::Text("define: __cplusplus=%d", (int)__cplusplus);
         ImGui::Text("Dear ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
-        
 
         ImGui::Separator();
         if (ImGui::Button("OK", ImVec2(120, 0))) 
         {
             ImGui::CloseCurrentPopup();
+            dialog_in_use = false;
         }
         ImGui::SetItemDefaultFocus();
 

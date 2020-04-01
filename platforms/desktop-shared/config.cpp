@@ -55,37 +55,37 @@ void config_read(void)
     {
         Log("Loading settings from %s", config_emu_file_path);
 
-        config_emulator_options.save_slot = read_int("Emulator", "SaveSlot");
-        config_emulator_options.start_paused = read_bool("Emulator", "StartPaused");
-        config_emulator_options.force_dmg = read_bool("Emulator", "ForceDMG");
-        config_emulator_options.save_in_rom_folder = read_bool("Emulator", "SaveInROMFolder");
+        config_emulator.save_slot = read_int("Emulator", "SaveSlot");
+        config_emulator.start_paused = read_bool("Emulator", "StartPaused");
+        config_emulator.force_dmg = read_bool("Emulator", "ForceDMG");
+        config_emulator.save_in_rom_folder = read_bool("Emulator", "SaveInROMFolder");
 
-        config_video_options.fps = read_bool("Video", "FPS");
-        config_video_options.bilinear = read_bool("Video", "Bilinear");
-        config_video_options.mix_frames = read_bool("Video", "MixFrames");
-        config_video_options.matrix = read_bool("Video", "Matrix");
+        config_video.fps = read_bool("Video", "FPS");
+        config_video.bilinear = read_bool("Video", "Bilinear");
+        config_video.mix_frames = read_bool("Video", "MixFrames");
+        config_video.matrix = read_bool("Video", "Matrix");
 
-        config_audio_options.enable = read_bool("Audio", "Enable");
-        config_audio_options.sync = read_bool("Audio", "Sync");
+        config_audio.enable = read_bool("Audio", "Enable");
+        config_audio.sync = read_bool("Audio", "Sync");
 
-        config_input_options.key_left = read_int("Input", "KeyLeft");
-        config_input_options.key_right = read_int("Input", "KeyRight");
-        config_input_options.key_up = read_int("Input", "KeyUp");
-        config_input_options.key_down = read_int("Input", "KeyDown");
-        config_input_options.key_a = read_int("Input", "KeyA");
-        config_input_options.key_b = read_int("Input", "KeyB");
-        config_input_options.key_start = read_int("Input", "KeyStart");
-        config_input_options.key_select = read_int("Input", "KeySelect");
+        config_input.key_left = read_int("Input", "KeyLeft");
+        config_input.key_right = read_int("Input", "KeyRight");
+        config_input.key_up = read_int("Input", "KeyUp");
+        config_input.key_down = read_int("Input", "KeyDown");
+        config_input.key_a = read_int("Input", "KeyA");
+        config_input.key_b = read_int("Input", "KeyB");
+        config_input.key_start = read_int("Input", "KeyStart");
+        config_input.key_select = read_int("Input", "KeySelect");
 
-        config_input_options.gamepad = read_bool("Input", "Gamepad");
-        config_input_options.gamepad_invert_x_axis = read_bool("Input", "GamepadInvertX");
-        config_input_options.gamepad_invert_y_axis = read_bool("Input", "GamepadInvertY");
-        config_input_options.gamepad_a = read_int("Input", "GamepadA");
-        config_input_options.gamepad_b = read_int("Input", "GamepadB");
-        config_input_options.gamepad_start = read_int("Input", "GamepadStart");
-        config_input_options.gamepad_select = read_int("Input", "GamepadSelect");
-        config_input_options.gamepad_x_axis = read_int("Input", "GamepadX");
-        config_input_options.gamepad_y_axis = read_int("Input", "GamepadY");
+        config_input.gamepad = read_bool("Input", "Gamepad");
+        config_input.gamepad_invert_x_axis = read_bool("Input", "GamepadInvertX");
+        config_input.gamepad_invert_y_axis = read_bool("Input", "GamepadInvertY");
+        config_input.gamepad_a = read_int("Input", "GamepadA");
+        config_input.gamepad_b = read_int("Input", "GamepadB");
+        config_input.gamepad_start = read_int("Input", "GamepadStart");
+        config_input.gamepad_select = read_int("Input", "GamepadSelect");
+        config_input.gamepad_x_axis = read_int("Input", "GamepadX");
+        config_input.gamepad_y_axis = read_int("Input", "GamepadY");
 
         Log("Settings loaded");
     }
@@ -99,37 +99,37 @@ void config_write(void)
 {
     Log("Saving settings to %s", config_emu_file_path);
 
-    write_int("Emulator", "SaveSlot", config_emulator_options.save_slot);
-    write_bool("Emulator", "StartPaused", config_emulator_options.start_paused);
-    write_bool("Emulator", "ForceDMG", config_emulator_options.force_dmg);
-    write_bool("Emulator", "SaveInROMFolder", config_emulator_options.save_in_rom_folder);
+    write_int("Emulator", "SaveSlot", config_emulator.save_slot);
+    write_bool("Emulator", "StartPaused", config_emulator.start_paused);
+    write_bool("Emulator", "ForceDMG", config_emulator.force_dmg);
+    write_bool("Emulator", "SaveInROMFolder", config_emulator.save_in_rom_folder);
 
-    write_bool("Video", "FPS", config_video_options.fps);
-    write_bool("Video", "Bilinear", config_video_options.bilinear);
-    write_bool("Video", "MixFrames", config_video_options.mix_frames);
-    write_bool("Video", "Matrix", config_video_options.matrix);
+    write_bool("Video", "FPS", config_video.fps);
+    write_bool("Video", "Bilinear", config_video.bilinear);
+    write_bool("Video", "MixFrames", config_video.mix_frames);
+    write_bool("Video", "Matrix", config_video.matrix);
 
-    write_bool("Audio", "Enable", config_audio_options.enable);
-    write_bool("Audio", "Sync", config_audio_options.sync);
+    write_bool("Audio", "Enable", config_audio.enable);
+    write_bool("Audio", "Sync", config_audio.sync);
 
-    write_int("Input", "KeyLeft", config_input_options.key_left);
-    write_int("Input", "KeyRight", config_input_options.key_right);
-    write_int("Input", "KeyUp", config_input_options.key_up);
-    write_int("Input", "KeyDown", config_input_options.key_down);
-    write_int("Input", "KeyA", config_input_options.key_a);
-    write_int("Input", "KeyB", config_input_options.key_b);
-    write_int("Input", "KeyStart", config_input_options.key_start);
-    write_int("Input", "KeySelect", config_input_options.key_select);
+    write_int("Input", "KeyLeft", config_input.key_left);
+    write_int("Input", "KeyRight", config_input.key_right);
+    write_int("Input", "KeyUp", config_input.key_up);
+    write_int("Input", "KeyDown", config_input.key_down);
+    write_int("Input", "KeyA", config_input.key_a);
+    write_int("Input", "KeyB", config_input.key_b);
+    write_int("Input", "KeyStart", config_input.key_start);
+    write_int("Input", "KeySelect", config_input.key_select);
 
-    write_bool("Input", "Gamepad", config_input_options.gamepad);
-    write_bool("Input", "GamepadInvertX", config_input_options.gamepad_invert_x_axis);
-    write_bool("Input", "GamepadInvertY", config_input_options.gamepad_invert_y_axis);
-    write_int("Input", "GamepadA", config_input_options.gamepad_a);
-    write_int("Input", "GamepadB", config_input_options.gamepad_b);
-    write_int("Input", "GamepadStart", config_input_options.gamepad_start);
-    write_int("Input", "GamepadSelect", config_input_options.gamepad_select);
-    write_int("Input", "GamepadX", config_input_options.gamepad_x_axis);
-    write_int("Input", "GamepadY", config_input_options.gamepad_y_axis);
+    write_bool("Input", "Gamepad", config_input.gamepad);
+    write_bool("Input", "GamepadInvertX", config_input.gamepad_invert_x_axis);
+    write_bool("Input", "GamepadInvertY", config_input.gamepad_invert_y_axis);
+    write_int("Input", "GamepadA", config_input.gamepad_a);
+    write_int("Input", "GamepadB", config_input.gamepad_b);
+    write_int("Input", "GamepadStart", config_input.gamepad_start);
+    write_int("Input", "GamepadSelect", config_input.gamepad_select);
+    write_int("Input", "GamepadX", config_input.gamepad_x_axis);
+    write_int("Input", "GamepadY", config_input.gamepad_y_axis);
 
     if (config_ini_file->write(config_ini_data, true))
     {

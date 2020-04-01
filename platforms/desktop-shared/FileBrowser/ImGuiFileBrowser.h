@@ -24,7 +24,7 @@ namespace imgui_addons
              * the size, a DialogMode enum value defining in which mode the dialog should operate and optionally the extensions that are valid for opening.
              * Note that the select directory mode doesn't need any extensions.
              */
-            bool showFileDialog(const std::string& label, const DialogMode mode, const ImVec2& sz_xy = ImVec2(0,0), const std::string& valid_types = "*.*");
+            bool showFileDialog(const std::string& label, const DialogMode mode, const ImVec2& sz_xy = ImVec2(0,0), const std::string& valid_types = "*.*", bool* is_open = 0);
 
             /* Store the opened/saved file name or dir name (incase of selectDirectoryDialog) and the absolute path to the selection
              * Should only be accessed when above functions return true else may contain garbage.
@@ -103,6 +103,7 @@ namespace imgui_addons
             float col_width, ext_box_width;
             bool show_hidden, show_inputbar_combobox, is_dir, is_appearing, filter_dirty, validate_file;
             char input_fn[256];
+            bool* is_open_;
 
             std::vector<std::string> valid_exts;
             std::vector<std::string> current_dirlist;

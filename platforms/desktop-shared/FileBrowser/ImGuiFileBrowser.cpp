@@ -77,6 +77,8 @@ namespace imgui_addons
 
     void ImGuiFileBrowser::closeDialog()
     {
+        if (is_open_)
+            *is_open_ = false;
         valid_types = "";
         valid_exts.clear();
         selected_ext_idx = 0;
@@ -104,9 +106,9 @@ namespace imgui_addons
         ImGui::CloseCurrentPopup();
     }
 
-    bool ImGuiFileBrowser::showFileDialog(const std::string& label, const DialogMode mode, const ImVec2& sz_xy, const std::string& valid_types)
+    bool ImGuiFileBrowser::showFileDialog(const std::string& label, const DialogMode mode, const ImVec2& sz_xy, const std::string& valid_types, bool* is_open)
     {
-
+        is_open_ = is_open;
         dialog_mode = mode;
         ImGuiIO& io = ImGui::GetIO();
         max_size.x = io.DisplaySize.x;
@@ -124,6 +126,8 @@ namespace imgui_addons
         if (ImGui::BeginPopupModal(label.c_str(), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
         {
             bool show_error = false;
+            if (is_open_)
+                *is_open_ = true;
 
             // If this is the initial run, read current directory and load data once.
             if(is_appearing)

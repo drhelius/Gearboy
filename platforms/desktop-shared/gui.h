@@ -26,6 +26,8 @@
     #define EXTERN extern
 #endif
 
+EXTERN bool gui_in_use;
+
 EXTERN void gui_init(void);
 EXTERN void gui_destroy(void);
 EXTERN void gui_render(void);
