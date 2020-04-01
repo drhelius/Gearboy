@@ -34,6 +34,7 @@ static int main_window_width;
 static int main_window_height;
 static bool show_debug = false;
 static bool dialog_in_use = false;
+static SDL_Scancode* configured_key;
 
 static void main_menu(void);
 static void main_window(void);
@@ -64,10 +65,10 @@ void gui_render(void)
 {
     ImGui::NewFrame();
 
+    gui_in_use = dialog_in_use;
+
     main_menu();
     main_window();
-
-    gui_in_use = dialog_in_use;
 
     ImGui::Render();
 }
@@ -222,52 +223,87 @@ static void main_menu(void)
             {
                 ImGui::Text("Left:");
                 ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetKeyName(config_input.key_left), ImVec2(70,0)))
+                if (ImGui::Button(SDL_GetScancodeName(config_input.key_left), ImVec2(70,0)))
+                {
+                    configured_key = &config_input.key_left;
                     ImGui::OpenPopup("Keyboard Configuration");
+                }
                                     
                 ImGui::Text("Right:");
                 ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetKeyName(config_input.key_right), ImVec2(70,0)))
+                if (ImGui::Button(SDL_GetScancodeName(config_input.key_right), ImVec2(70,0)))
+                {
+                    configured_key = &config_input.key_right;
                     ImGui::OpenPopup("Keyboard Configuration");
+                }
                 
                 ImGui::Text("Up:");
                 ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetKeyName(config_input.key_up), ImVec2(70,0)))
+                if (ImGui::Button(SDL_GetScancodeName(config_input.key_up), ImVec2(70,0)))
+                {
+                    configured_key = &config_input.key_up;
                     ImGui::OpenPopup("Keyboard Configuration");
+                }
 
                 ImGui::Text("Down:");
                 ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetKeyName(config_input.key_down), ImVec2(70,0)))
+                if (ImGui::Button(SDL_GetScancodeName(config_input.key_down), ImVec2(70,0)))
+                {
+                    configured_key = &config_input.key_down;
                     ImGui::OpenPopup("Keyboard Configuration");
+                }
 
                 ImGui::Text("A:");
                 ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetKeyName(config_input.key_a), ImVec2(70,0)))
+                if (ImGui::Button(SDL_GetScancodeName(config_input.key_a), ImVec2(70,0)))
+                {
+                    configured_key = &config_input.key_a;
                     ImGui::OpenPopup("Keyboard Configuration");
+                }
 
                 ImGui::Text("B:");
                 ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetKeyName(config_input.key_b), ImVec2(70,0)))
+                if (ImGui::Button(SDL_GetScancodeName(config_input.key_b), ImVec2(70,0)))
+                {
+                    configured_key = &config_input.key_b;
                     ImGui::OpenPopup("Keyboard Configuration");
+                }
 
                 ImGui::Text("Start:");
                 ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetKeyName(config_input.key_start), ImVec2(70,0)))
+                if (ImGui::Button(SDL_GetScancodeName(config_input.key_start), ImVec2(70,0)))
+                {
+                    configured_key = &config_input.key_start;
                     ImGui::OpenPopup("Keyboard Configuration");
+                }
                 
                 ImGui::Text("Select:");
                 ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetKeyName(config_input.key_select), ImVec2(70,0)))
+                if (ImGui::Button(SDL_GetScancodeName(config_input.key_select), ImVec2(70,0)))
+                {
+                    configured_key = &config_input.key_select;
                     ImGui::OpenPopup("Keyboard Configuration");
+                }
 
                 if (ImGui::BeginPopupModal("Keyboard Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
                 {
                     ImGui::Text("Press any key...\n\n");
                     ImGui::Separator();
-                    if (ImGui::Button("OK", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-                    ImGui::SetItemDefaultFocus();
-                    ImGui::SameLine();
-                    if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+
+                    for (int i = 0; i < IM_ARRAYSIZE(ImGui::GetIO().KeysDown); i++)
+                    {
+                        if (ImGui::IsKeyPressed(i))
+                        {
+                            *configured_key = (SDL_Scancode)i;
+                            ImGui::CloseCurrentPopup();
+                            break;
+                        }
+                    } 
+
+                    if (ImGui::Button("Cancel", ImVec2(120, 0)))
+                    {
+                        ImGui::CloseCurrentPopup();
+                    }
                     ImGui::EndPopup();
                 }                   
                 
@@ -380,7 +416,6 @@ static void main_window(void)
         ImGui::Text("Frame Rate: %.2f FPS", ImGui::GetIO().Framerate);
         ImGui::SetCursorPosX(5.0f);
         ImGui::Text("Frame Time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
-        ImGui::Text("gui_in_use: %d", gui_in_use);
     }
 
     ImGui::End();

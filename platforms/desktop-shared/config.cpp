@@ -68,14 +68,14 @@ void config_read(void)
         config_audio.enable = read_bool("Audio", "Enable");
         config_audio.sync = read_bool("Audio", "Sync");
 
-        config_input.key_left = read_int("Input", "KeyLeft");
-        config_input.key_right = read_int("Input", "KeyRight");
-        config_input.key_up = read_int("Input", "KeyUp");
-        config_input.key_down = read_int("Input", "KeyDown");
-        config_input.key_a = read_int("Input", "KeyA");
-        config_input.key_b = read_int("Input", "KeyB");
-        config_input.key_start = read_int("Input", "KeyStart");
-        config_input.key_select = read_int("Input", "KeySelect");
+        config_input.key_left = (SDL_Scancode)read_int("Input", "KeyLeft");
+        config_input.key_right = (SDL_Scancode)read_int("Input", "KeyRight");
+        config_input.key_up = (SDL_Scancode)read_int("Input", "KeyUp");
+        config_input.key_down = (SDL_Scancode)read_int("Input", "KeyDown");
+        config_input.key_a = (SDL_Scancode)read_int("Input", "KeyA");
+        config_input.key_b = (SDL_Scancode)read_int("Input", "KeyB");
+        config_input.key_start = (SDL_Scancode)read_int("Input", "KeyStart");
+        config_input.key_select = (SDL_Scancode)read_int("Input", "KeySelect");
 
         config_input.gamepad = read_bool("Input", "Gamepad");
         config_input.gamepad_invert_x_axis = read_bool("Input", "GamepadInvertX");

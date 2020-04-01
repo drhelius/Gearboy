@@ -211,42 +211,46 @@ static void sdl_events_emu(const SDL_Event* event)
 
         case SDL_KEYDOWN:
         {
-            if (event->key.keysym.sym == config_input.key_left)
+            int key = event->key.keysym.scancode;
+
+            if (key == config_input.key_left)
                 emu_key_pressed(Left_Key);
-            else if (event->key.keysym.sym == config_input.key_right)
+            else if (key == config_input.key_right)
                 emu_key_pressed(Right_Key);
-            else if (event->key.keysym.sym == config_input.key_up)
+            else if (key == config_input.key_up)
                 emu_key_pressed(Up_Key);
-            else if (event->key.keysym.sym == config_input.key_down)
+            else if (key == config_input.key_down)
                 emu_key_pressed(Down_Key);
-            else if (event->key.keysym.sym == config_input.key_b)
+            else if (key == config_input.key_b)
                 emu_key_pressed(B_Key);
-            else if (event->key.keysym.sym == config_input.key_a)
+            else if (key == config_input.key_a)
                 emu_key_pressed(A_Key);
-            else if (event->key.keysym.sym == config_input.key_select)
+            else if (key == config_input.key_select)
                 emu_key_pressed(Select_Key);
-            else if (event->key.keysym.sym == config_input.key_start)
+            else if (key == config_input.key_start)
                 emu_key_pressed(Start_Key);
         }
         break;
 
         case SDL_KEYUP:
         {
-            if (event->key.keysym.sym == config_input.key_left)
+            int key = event->key.keysym.scancode;
+            
+            if (key == config_input.key_left)
                 emu_key_released(Left_Key);
-            else if (event->key.keysym.sym == config_input.key_right)
+            else if (key == config_input.key_right)
                 emu_key_released(Right_Key);
-            else if (event->key.keysym.sym == config_input.key_up)
+            else if (key == config_input.key_up)
                 emu_key_released(Up_Key);
-            else if (event->key.keysym.sym == config_input.key_down)
+            else if (key == config_input.key_down)
                 emu_key_released(Down_Key);
-            else if (event->key.keysym.sym == config_input.key_b)
+            else if (key == config_input.key_b)
                 emu_key_released(B_Key);
-            else if (event->key.keysym.sym == config_input.key_a)
+            else if (key == config_input.key_a)
                 emu_key_released(A_Key);
-            else if (event->key.keysym.sym == config_input.key_select)
+            else if (key == config_input.key_select)
                 emu_key_released(Select_Key);
-            else if (event->key.keysym.sym == config_input.key_start)
+            else if (key == config_input.key_start)
                 emu_key_released(Start_Key);
         }
         break;

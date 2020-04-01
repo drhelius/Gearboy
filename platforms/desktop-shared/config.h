@@ -58,14 +58,14 @@ struct config_Audio
 
 struct config_Input
 {
-    SDL_Keycode key_left = SDLK_LEFT;
-    SDL_Keycode key_right = SDLK_RIGHT;
-    SDL_Keycode key_up = SDLK_UP;
-    SDL_Keycode key_down = SDLK_DOWN;
-    SDL_Keycode key_a = SDLK_s;
-    SDL_Keycode key_b = SDLK_a;
-    SDL_Keycode key_start = SDLK_RETURN;
-    SDL_Keycode key_select = SDLK_SPACE;
+    SDL_Scancode key_left = SDL_SCANCODE_LEFT;
+    SDL_Scancode key_right = SDL_SCANCODE_RIGHT;
+    SDL_Scancode key_up = SDL_SCANCODE_UP;
+    SDL_Scancode key_down = SDL_SCANCODE_DOWN;
+    SDL_Scancode key_a = SDL_SCANCODE_S;
+    SDL_Scancode key_b = SDL_SCANCODE_A;
+    SDL_Scancode key_start = SDL_SCANCODE_RETURN;
+    SDL_Scancode key_select = SDL_SCANCODE_SPACE;
 
     bool gamepad = true;
     bool gamepad_invert_x_axis = false;
