@@ -143,6 +143,25 @@ static void sdl_events_emu(const SDL_Event* event)
 {
     switch(event->type)
     {
+        case SDL_WINDOWEVENT:
+        {
+            switch (event->window.event)
+            {
+                case SDL_WINDOWEVENT_FOCUS_GAINED:
+                {
+                    emu_resume();
+                }
+                break;
+
+                case SDL_WINDOWEVENT_FOCUS_LOST:
+                {
+                    emu_pause();
+                }
+                break;
+            }
+        }
+        break;
+
         case SDL_JOYBUTTONDOWN:
         {
             if (!config_input.gamepad)
@@ -235,7 +254,7 @@ static void sdl_events_emu(const SDL_Event* event)
         case SDL_KEYUP:
         {
             int key = event->key.keysym.scancode;
-            
+
             if (key == config_input.key_left)
                 emu_key_released(Left_Key);
             else if (key == config_input.key_right)
