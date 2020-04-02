@@ -21,6 +21,7 @@
 #define	CONFIG_H
 
 #include <SDL.h>
+#include "../../src/gearboy.h"
 #define MINI_CASE_SENSITIVE
 #include "mINI/ini.h"
 #include "imgui/imgui.h"
@@ -47,7 +48,8 @@ struct config_Video
     bool bilinear = false;
     bool mix_frames = true;
     bool matrix = true;
-    ImVec4 color[4];
+    int palette = 0;
+    GB_Color color[4] = {{0xC4, 0xF0, 0xC2}, {0x5A, 0xB9, 0xA8}, {0x1E, 0x60, 0x6E}, {0x2D, 0x1B, 0x00}};
 };
 
 struct config_Audio
@@ -89,6 +91,7 @@ EXTERN config_Emulator config_emulator;
 EXTERN config_Video config_video;
 EXTERN config_Audio config_audio;
 EXTERN config_Input config_input;
+EXTERN bool config_video_palette_changed;
 
 EXTERN void config_init(void);
 EXTERN void config_destroy(void);

@@ -41,6 +41,8 @@ void config_init(void)
     strcat(config_imgui_file_path, "imgui.ini");
 
     config_ini_file = new mINI::INIFile(config_emu_file_path);
+
+    config_video_palette_changed = false;
 }
 
 void config_destroy(void)
@@ -64,7 +66,22 @@ void config_read(void)
         config_video.bilinear = read_bool("Video", "Bilinear");
         config_video.mix_frames = read_bool("Video", "MixFrames");
         config_video.matrix = read_bool("Video", "Matrix");
+        config_video.palette = read_int("Video", "Palette");
+        config_video.color[0].red = read_int("Video", "CustomPalette0R");
+        config_video.color[0].green = read_int("Video", "CustomPalette0G");
+        config_video.color[0].blue = read_int("Video", "CustomPalette0B");
+        config_video.color[1].red = read_int("Video", "CustomPalette1R");
+        config_video.color[1].green = read_int("Video", "CustomPalette1G");
+        config_video.color[1].blue = read_int("Video", "CustomPalette1B");
+        config_video.color[2].red = read_int("Video", "CustomPalette2R");
+        config_video.color[2].green = read_int("Video", "CustomPalette2G");
+        config_video.color[2].blue = read_int("Video", "CustomPalette2B");
+        config_video.color[3].red = read_int("Video", "CustomPalette3R");
+        config_video.color[3].green = read_int("Video", "CustomPalette3G");
+        config_video.color[3].blue = read_int("Video", "CustomPalette3B");
 
+        config_video_palette_changed = true;
+        
         config_audio.enable = read_bool("Audio", "Enable");
         config_audio.sync = read_bool("Audio", "Sync");
 
@@ -108,6 +125,19 @@ void config_write(void)
     write_bool("Video", "Bilinear", config_video.bilinear);
     write_bool("Video", "MixFrames", config_video.mix_frames);
     write_bool("Video", "Matrix", config_video.matrix);
+    write_int("Video", "Palette", config_video.palette);
+    write_int("Video", "CustomPalette0R", config_video.color[0].red);
+    write_int("Video", "CustomPalette0G", config_video.color[0].green);
+    write_int("Video", "CustomPalette0B", config_video.color[0].blue);
+    write_int("Video", "CustomPalette1R", config_video.color[1].red);
+    write_int("Video", "CustomPalette1G", config_video.color[1].green);
+    write_int("Video", "CustomPalette1B", config_video.color[1].blue);
+    write_int("Video", "CustomPalette2R", config_video.color[2].red);
+    write_int("Video", "CustomPalette2G", config_video.color[2].green);
+    write_int("Video", "CustomPalette2B", config_video.color[2].blue);
+    write_int("Video", "CustomPalette3R", config_video.color[3].red);
+    write_int("Video", "CustomPalette3G", config_video.color[3].green);
+    write_int("Video", "CustomPalette3B", config_video.color[3].blue);
 
     write_bool("Audio", "Enable", config_audio.enable);
     write_bool("Audio", "Sync", config_audio.sync);

@@ -22,6 +22,7 @@
 #include "FileBrowser/ImGuiFileBrowser.h"
 #include "config.h"
 #include "emu.h"
+#include "../../src/gearboy.h"
 #include "renderer.h"
 #include "application.h"
 
@@ -36,6 +37,7 @@ static bool show_debug = false;
 static bool dialog_in_use = false;
 static SDL_Scancode* configured_key;
 static int* configured_button;
+static ImVec4 custom_palette[4];
 
 static void main_menu(void);
 static void main_window(void);
@@ -49,6 +51,8 @@ static void gamepad_configuration_item(const char* text, int* button);
 static void popup_modal_keyboard(void);
 static void popup_modal_gamepad(void);
 static void popup_modal_about(void);
+static GB_Color color_float_to_int(ImVec4 color);
+static ImVec4 color_int_to_float(GB_Color color);
 
 void gui_init(void)
 {
@@ -86,6 +90,9 @@ static void main_menu(void)
     bool open_state = false;
     bool save_state = false;
     bool open_about = false;
+
+    for (int i = 0; i < 4; i++)
+        custom_palette[i] = color_int_to_float(config_video.color[i]);
     
     if (ImGui::BeginMainMenuBar())
     {
@@ -208,16 +215,31 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Palette"))
             {
-                ImGui::Combo("", &config_emulator.save_slot, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0");
+                if (ImGui::Combo("", &config_video.palette, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0"))
+                {
+                    config_video_palette_changed = true;
+                }
                 ImGui::EndMenu();
             }
 
             ImGui::Text("Custom Palette:");
 
-            ImGui::ColorEdit4("Color #1", (float*)&config_video.color[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-            ImGui::ColorEdit4("Color #2", (float*)&config_video.color[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-            ImGui::ColorEdit4("Color #3", (float*)&config_video.color[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
-            ImGui::ColorEdit4("Color #4", (float*)&config_video.color[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+            if (ImGui::ColorEdit4("Color #1", (float*)&custom_palette[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            {
+                config_video_palette_changed = true;
+            }
+            if (ImGui::ColorEdit4("Color #2", (float*)&custom_palette[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            {
+                config_video_palette_changed = true;
+            }
+            if (ImGui::ColorEdit4("Color #3", (float*)&custom_palette[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            {
+                config_video_palette_changed = true;
+            }
+            if (ImGui::ColorEdit4("Color #4", (float*)&custom_palette[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            {
+                config_video_palette_changed = true;
+            }
             
             ImGui::EndMenu();
         }
@@ -327,6 +349,9 @@ static void main_menu(void)
     file_dialog_save_ram();
     file_dialog_load_state();
     file_dialog_save_state();
+
+    for (int i = 0; i < 4; i++)
+        config_video.color[i] = color_float_to_int(custom_palette[i]);
 }
 
 static void main_window(void)
@@ -436,7 +461,7 @@ static void file_dialog_save_state(void)
 
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key)
 {
-    ImGui::Text(text);
+    ImGui::Text("%s", text);
     ImGui::SameLine(70);
     if (ImGui::Button(SDL_GetScancodeName(*key), ImVec2(70,0)))
     {
@@ -447,7 +472,7 @@ static void keyboard_configuration_item(const char* text, SDL_Scancode* key)
 
 static void gamepad_configuration_item(const char* text, int* button)
 {
-    ImGui::Text(text);
+    ImGui::Text("%s", text);
     ImGui::SameLine(70);
     if (ImGui::Button(config_input_gamepad_names[*button], ImVec2(70,0)))
     {
@@ -563,4 +588,23 @@ static void popup_modal_about(void)
 
         ImGui::EndPopup();
     }
+}
+
+static GB_Color color_float_to_int(ImVec4 color)
+{
+    GB_Color ret;
+    ret.red = floor(color.x >= 1.0 ? 255 : color.x * 256.0);
+    ret.green = floor(color.y >= 1.0 ? 255 : color.y * 256.0);
+    ret.blue = floor(color.z >= 1.0 ? 255 : color.z * 256.0);
+    return ret;
+}
+
+static ImVec4 color_int_to_float(GB_Color color)
+{
+    ImVec4 ret;
+    ret.w = 0;
+    ret.x = (1.0f / 255.0f) * color.red;
+    ret.y = (1.0f / 255.0f) * color.green;
+    ret.z = (1.0f / 255.0f) * color.blue;
+    return ret;
 }
