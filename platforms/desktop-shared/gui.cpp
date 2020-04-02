@@ -35,6 +35,7 @@ static int main_window_height;
 static bool show_debug = false;
 static bool dialog_in_use = false;
 static SDL_Scancode* configured_key;
+static SDL_GameControllerButton* configured_button;
 
 static void main_menu(void);
 static void main_window(void);
@@ -309,7 +310,101 @@ static void main_menu(void)
                 
                 ImGui::EndMenu();
             }
-            ImGui::MenuItem("Enable Gamepad", "", &config_input.gamepad, false);
+
+            ImGui::MenuItem("Enable Gamepad", "", &config_input.gamepad);
+            
+            if (ImGui::BeginMenu("Gamepad Configuration"))
+            {
+                /*
+                ImGui::Text("Left:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_x_axis), ImVec2(70,0)))
+                {
+                    configured_button = &config_input.gamepad_x_axis;
+                    ImGui::OpenPopup("Gamepad Configuration");
+                }
+
+                ImGui::Text("Right:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_x_axis), ImVec2(70,0)))
+                {
+                    configured_button = &config_input.gamepad_x_axis;
+                    ImGui::OpenPopup("Gamepad Configuration");
+                }
+
+                ImGui::Text("Up:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_y_axis), ImVec2(70,0)))
+                {
+                    configured_button = &config_input.gamepad_y_axis;
+                    ImGui::OpenPopup("Gamepad Configuration");
+                }
+
+                ImGui::Text("Down:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_y_axis), ImVec2(70,0)))
+                {
+                    configured_button = &config_input.gamepad_y_axis;
+                    ImGui::OpenPopup("Gamepad Configuration");
+                }
+*/
+                ImGui::Text("A:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_a), ImVec2(70,0)))
+                {
+                    configured_button = &config_input.gamepad_a;
+                    ImGui::OpenPopup("Gamepad Configuration");
+                }
+
+                ImGui::Text("B:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_a), ImVec2(70,0)))
+                {
+                    configured_button = &config_input.gamepad_a;
+                    ImGui::OpenPopup("Gamepad Configuration");
+                }
+
+                ImGui::Text("Start:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_start), ImVec2(70,0)))
+                {
+                    configured_button = &config_input.gamepad_start;
+                    ImGui::OpenPopup("Gamepad Configuration");
+                }
+
+                ImGui::Text("Select:");
+                ImGui::SameLine(70);
+                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_select), ImVec2(70,0)))
+                {
+                    configured_button = &config_input.gamepad_select;
+                    ImGui::OpenPopup("Gamepad Configuration");
+                }
+
+                if (ImGui::BeginPopupModal("Gamepad Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+                {
+                    ImGui::Text("Press any button in your gamepad...\n\n");
+                    ImGui::Separator();
+
+                    for (int i = 0; i < IM_ARRAYSIZE(ImGui::GetIO().NavInputs); i++)
+                    {
+                        if (ImGui::GetIO().NavInputsDownDuration[i] == 0.0f)
+                        {
+                            *configured_key = (SDL_Scancode)i;
+                            ImGui::CloseCurrentPopup();
+                            break;
+                        }
+                    } 
+
+                    if (ImGui::Button("Cancel", ImVec2(120, 0)))
+                    {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }                   
+
+                ImGui::EndMenu();
+            }
+
             ImGui::EndMenu();
         }
 

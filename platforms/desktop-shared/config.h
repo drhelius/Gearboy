@@ -70,10 +70,10 @@ struct config_Input
     bool gamepad = true;
     bool gamepad_invert_x_axis = false;
     bool gamepad_invert_y_axis = false;
-    int gamepad_a = 1;
-    int gamepad_b = 2;
-    int gamepad_start = 9;
-    int gamepad_select = 8;
+    SDL_GameControllerButton gamepad_a = SDL_CONTROLLER_BUTTON_A;
+    SDL_GameControllerButton gamepad_b = SDL_CONTROLLER_BUTTON_B;
+    SDL_GameControllerButton gamepad_start = SDL_CONTROLLER_BUTTON_START;
+    SDL_GameControllerButton gamepad_select = SDL_CONTROLLER_BUTTON_BACK;
     int gamepad_x_axis = 0;
     int gamepad_y_axis = 1;
 };

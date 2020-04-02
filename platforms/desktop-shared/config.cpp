@@ -80,10 +80,10 @@ void config_read(void)
         config_input.gamepad = read_bool("Input", "Gamepad");
         config_input.gamepad_invert_x_axis = read_bool("Input", "GamepadInvertX");
         config_input.gamepad_invert_y_axis = read_bool("Input", "GamepadInvertY");
-        config_input.gamepad_a = read_int("Input", "GamepadA");
-        config_input.gamepad_b = read_int("Input", "GamepadB");
-        config_input.gamepad_start = read_int("Input", "GamepadStart");
-        config_input.gamepad_select = read_int("Input", "GamepadSelect");
+        config_input.gamepad_a = (SDL_GameControllerButton)read_int("Input", "GamepadA");
+        config_input.gamepad_b = (SDL_GameControllerButton)read_int("Input", "GamepadB");
+        config_input.gamepad_start = (SDL_GameControllerButton)read_int("Input", "GamepadStart");
+        config_input.gamepad_select = (SDL_GameControllerButton)read_int("Input", "GamepadSelect");
         config_input.gamepad_x_axis = read_int("Input", "GamepadX");
         config_input.gamepad_y_axis = read_int("Input", "GamepadY");
 
