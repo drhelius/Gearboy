@@ -183,9 +183,9 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            ImGui::MenuItem("Force DMG", "", &config_emulator.force_dmg);
+            ImGui::MenuItem("Force DMG Model", "", &config_emulator.force_dmg);
             ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
-            ImGui::MenuItem("Save files in ROM folder", "", &config_emulator.save_in_rom_folder);
+            ImGui::MenuItem("Save Files In ROM Folder", "", &config_emulator.save_in_rom_folder);
             
             if (ImGui::BeginMenu("Cheats"))
             {
@@ -211,6 +211,8 @@ static void main_menu(void)
                 ImGui::Combo("", &config_emulator.save_slot, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0");
                 ImGui::EndMenu();
             }
+
+            ImGui::Text("Custom Palette:");
 
             ImGui::ColorEdit4("Color #1", (float*)&config_video.color[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
             ImGui::ColorEdit4("Color #2", (float*)&config_video.color[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
@@ -469,14 +471,14 @@ static void popup_modal_keyboard(void)
                 ImGui::CloseCurrentPopup();
                 break;
             }
-        } 
+        }
 
         if (ImGui::Button("Cancel", ImVec2(120, 0)))
         {
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
-    }  
+    }
 }
 
 static void popup_modal_gamepad(void)
@@ -494,14 +496,14 @@ static void popup_modal_gamepad(void)
                 ImGui::CloseCurrentPopup();
                 break;
             }
-        } 
+        }
 
         if (ImGui::Button("Cancel", ImVec2(120, 0)))
         {
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
-    }  
+    }
 }
 
 static void popup_modal_about(void)
