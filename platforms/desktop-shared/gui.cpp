@@ -35,7 +35,7 @@ static int main_window_height;
 static bool show_debug = false;
 static bool dialog_in_use = false;
 static SDL_Scancode* configured_key;
-static SDL_GameControllerButton* configured_button;
+static int* configured_button;
 
 static void main_menu(void);
 static void main_window(void);
@@ -44,6 +44,10 @@ static void file_dialog_load_ram(void);
 static void file_dialog_save_ram(void);
 static void file_dialog_load_state(void);
 static void file_dialog_save_state(void);
+static void keyboard_configuration_item(const char* text, SDL_Scancode* key);
+static void gamepad_configuration_item(const char* text, int* button);
+static void popup_modal_keyboard(void);
+static void popup_modal_gamepad(void);
 static void popup_modal_about(void);
 
 void gui_init(void)
@@ -54,7 +58,7 @@ void gui_init(void)
 
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = config_imgui_file_path;
-    io.Fonts->AddFontFromMemoryCompressedBase85TTF(RobotoMedium_compressed_data_base85, 15.0f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+    io.Fonts->AddFontFromMemoryCompressedBase85TTF(RobotoMedium_compressed_data_base85, 17.0f, NULL, io.Fonts->GetGlyphRangesCyrillic());
 }
 
 void gui_destroy(void)
@@ -222,91 +226,16 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Keyboard Configuration"))
             {
-                ImGui::Text("Left:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetScancodeName(config_input.key_left), ImVec2(70,0)))
-                {
-                    configured_key = &config_input.key_left;
-                    ImGui::OpenPopup("Keyboard Configuration");
-                }
-                                    
-                ImGui::Text("Right:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetScancodeName(config_input.key_right), ImVec2(70,0)))
-                {
-                    configured_key = &config_input.key_right;
-                    ImGui::OpenPopup("Keyboard Configuration");
-                }
-                
-                ImGui::Text("Up:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetScancodeName(config_input.key_up), ImVec2(70,0)))
-                {
-                    configured_key = &config_input.key_up;
-                    ImGui::OpenPopup("Keyboard Configuration");
-                }
+                keyboard_configuration_item("Left:", &config_input.key_left);
+                keyboard_configuration_item("Right:", &config_input.key_right);
+                keyboard_configuration_item("Up:", &config_input.key_up);
+                keyboard_configuration_item("Down:", &config_input.key_down);
+                keyboard_configuration_item("A:", &config_input.key_a);
+                keyboard_configuration_item("B:", &config_input.key_b);
+                keyboard_configuration_item("Start:", &config_input.key_start);
+                keyboard_configuration_item("Select:", &config_input.key_select);
 
-                ImGui::Text("Down:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetScancodeName(config_input.key_down), ImVec2(70,0)))
-                {
-                    configured_key = &config_input.key_down;
-                    ImGui::OpenPopup("Keyboard Configuration");
-                }
-
-                ImGui::Text("A:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetScancodeName(config_input.key_a), ImVec2(70,0)))
-                {
-                    configured_key = &config_input.key_a;
-                    ImGui::OpenPopup("Keyboard Configuration");
-                }
-
-                ImGui::Text("B:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetScancodeName(config_input.key_b), ImVec2(70,0)))
-                {
-                    configured_key = &config_input.key_b;
-                    ImGui::OpenPopup("Keyboard Configuration");
-                }
-
-                ImGui::Text("Start:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetScancodeName(config_input.key_start), ImVec2(70,0)))
-                {
-                    configured_key = &config_input.key_start;
-                    ImGui::OpenPopup("Keyboard Configuration");
-                }
-                
-                ImGui::Text("Select:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GetScancodeName(config_input.key_select), ImVec2(70,0)))
-                {
-                    configured_key = &config_input.key_select;
-                    ImGui::OpenPopup("Keyboard Configuration");
-                }
-
-                if (ImGui::BeginPopupModal("Keyboard Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-                {
-                    ImGui::Text("Press any key...\n\n");
-                    ImGui::Separator();
-
-                    for (int i = 0; i < IM_ARRAYSIZE(ImGui::GetIO().KeysDown); i++)
-                    {
-                        if (ImGui::IsKeyPressed(i))
-                        {
-                            *configured_key = (SDL_Scancode)i;
-                            ImGui::CloseCurrentPopup();
-                            break;
-                        }
-                    } 
-
-                    if (ImGui::Button("Cancel", ImVec2(120, 0)))
-                    {
-                        ImGui::CloseCurrentPopup();
-                    }
-                    ImGui::EndPopup();
-                }                   
+                popup_modal_keyboard();                 
                 
                 ImGui::EndMenu();
             }
@@ -315,92 +244,12 @@ static void main_menu(void)
             
             if (ImGui::BeginMenu("Gamepad Configuration"))
             {
-                /*
-                ImGui::Text("Left:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_x_axis), ImVec2(70,0)))
-                {
-                    configured_button = &config_input.gamepad_x_axis;
-                    ImGui::OpenPopup("Gamepad Configuration");
-                }
+                gamepad_configuration_item("A:", &config_input.gamepad_a);
+                gamepad_configuration_item("B:", &config_input.gamepad_b);
+                gamepad_configuration_item("START:", &config_input.gamepad_start);
+                gamepad_configuration_item("SELECT:", &config_input.gamepad_select);
 
-                ImGui::Text("Right:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_x_axis), ImVec2(70,0)))
-                {
-                    configured_button = &config_input.gamepad_x_axis;
-                    ImGui::OpenPopup("Gamepad Configuration");
-                }
-
-                ImGui::Text("Up:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_y_axis), ImVec2(70,0)))
-                {
-                    configured_button = &config_input.gamepad_y_axis;
-                    ImGui::OpenPopup("Gamepad Configuration");
-                }
-
-                ImGui::Text("Down:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_y_axis), ImVec2(70,0)))
-                {
-                    configured_button = &config_input.gamepad_y_axis;
-                    ImGui::OpenPopup("Gamepad Configuration");
-                }
-*/
-                ImGui::Text("A:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_a), ImVec2(70,0)))
-                {
-                    configured_button = &config_input.gamepad_a;
-                    ImGui::OpenPopup("Gamepad Configuration");
-                }
-
-                ImGui::Text("B:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_a), ImVec2(70,0)))
-                {
-                    configured_button = &config_input.gamepad_a;
-                    ImGui::OpenPopup("Gamepad Configuration");
-                }
-
-                ImGui::Text("Start:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_start), ImVec2(70,0)))
-                {
-                    configured_button = &config_input.gamepad_start;
-                    ImGui::OpenPopup("Gamepad Configuration");
-                }
-
-                ImGui::Text("Select:");
-                ImGui::SameLine(70);
-                if (ImGui::Button(SDL_GameControllerGetStringForButton(config_input.gamepad_select), ImVec2(70,0)))
-                {
-                    configured_button = &config_input.gamepad_select;
-                    ImGui::OpenPopup("Gamepad Configuration");
-                }
-
-                if (ImGui::BeginPopupModal("Gamepad Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-                {
-                    ImGui::Text("Press any button in your gamepad...\n\n");
-                    ImGui::Separator();
-
-                    for (int i = 0; i < IM_ARRAYSIZE(ImGui::GetIO().NavInputs); i++)
-                    {
-                        if (ImGui::GetIO().NavInputsDownDuration[i] == 0.0f)
-                        {
-                            *configured_key = (SDL_Scancode)i;
-                            ImGui::CloseCurrentPopup();
-                            break;
-                        }
-                    } 
-
-                    if (ImGui::Button("Cancel", ImVec2(120, 0)))
-                    {
-                        ImGui::CloseCurrentPopup();
-                    }
-                    ImGui::EndPopup();
-                }                   
+                popup_modal_gamepad();                 
 
                 ImGui::EndMenu();
             }
@@ -522,7 +371,7 @@ static void main_window(void)
 
 static void file_dialog_open_rom(void)
 {
-    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip", &dialog_in_use))
+    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip", &dialog_in_use))
     {
         emu_resume();
         emu_load_rom(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder);
@@ -581,6 +430,78 @@ static void file_dialog_save_state(void)
 
         emu_save_state_file(state_path.c_str());
     }
+}
+
+static void keyboard_configuration_item(const char* text, SDL_Scancode* key)
+{
+    ImGui::Text(text);
+    ImGui::SameLine(70);
+    if (ImGui::Button(SDL_GetScancodeName(*key), ImVec2(70,0)))
+    {
+        configured_key = key;
+        ImGui::OpenPopup("Keyboard Configuration");
+    }
+}
+
+static void gamepad_configuration_item(const char* text, int* button)
+{
+    ImGui::Text(text);
+    ImGui::SameLine(70);
+    if (ImGui::Button(config_input_gamepad_names[*button], ImVec2(70,0)))
+    {
+        configured_button = button;
+        ImGui::OpenPopup("Gamepad Configuration");
+    }
+}
+
+static void popup_modal_keyboard(void)
+{
+    if (ImGui::BeginPopupModal("Keyboard Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("Press any key...\n\n");
+        ImGui::Separator();
+
+        for (int i = 0; i < IM_ARRAYSIZE(ImGui::GetIO().KeysDown); i++)
+        {
+            if (ImGui::IsKeyPressed(i))
+            {
+                *configured_key = (SDL_Scancode)i;
+                ImGui::CloseCurrentPopup();
+                break;
+            }
+        } 
+
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }  
+}
+
+static void popup_modal_gamepad(void)
+{
+    if (ImGui::BeginPopupModal("Gamepad Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("Press any button in your gamepad...\n\n");
+        ImGui::Separator();
+
+        for (int i = 0; i < 16; i++)
+        {
+            if (SDL_JoystickGetButton(application_gamepad, i))
+            {
+                *configured_button = i;
+                ImGui::CloseCurrentPopup();
+                break;
+            }
+        } 
+
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }  
 }
 
 static void popup_modal_about(void)

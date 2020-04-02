@@ -109,11 +109,19 @@ static int sdl_init(void)
 
     SDL_SetWindowMinimumSize(sdl_window, 680, 630);
 
+    application_gamepad = SDL_JoystickOpen(0);
+
+    if(!application_gamepad)
+    {
+        Log("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
+    }
+
     return 0;
 }
 
 static void sdl_destroy(void)
 {
+    SDL_JoystickClose(application_gamepad);
     ImGui_ImplSDL2_Shutdown();
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(sdl_window);

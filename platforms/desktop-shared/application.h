@@ -20,11 +20,15 @@
 #ifndef APPLICATION_H
 #define	APPLICATION_H
 
+#include <SDL.h>
+
 #ifdef APPLICATION_IMPORT
     #define EXTERN
 #else
     #define EXTERN extern
 #endif
+
+EXTERN SDL_Joystick* application_gamepad;
 
 EXTERN int application_init(void);
 EXTERN void application_destroy(void);
