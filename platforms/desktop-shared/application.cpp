@@ -109,7 +109,7 @@ static int sdl_init(void)
     SDL_GL_MakeCurrent(sdl_window, gl_context);
     SDL_GL_SetSwapInterval(0);
 
-    SDL_SetWindowMinimumSize(sdl_window, 680, 630);
+    SDL_SetWindowMinimumSize(sdl_window, 644, 602);
 
     application_gamepad = SDL_JoystickOpen(0);
 

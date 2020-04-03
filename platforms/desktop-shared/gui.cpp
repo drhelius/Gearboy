@@ -225,7 +225,9 @@ static void main_menu(void)
                 ImGui::Text("Game Genie or GameShark codes:");
 
                 static char cheat_buffer[12] = "";
+                ImGui::PushItemWidth(150);
                 ImGui::InputText("", cheat_buffer, 12);
+                ImGui::PopItemWidth();
                 ImGui::SameLine();
 
                 if (ImGui::Button("Add Cheat Code"))
