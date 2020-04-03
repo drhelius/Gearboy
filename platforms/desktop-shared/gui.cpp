@@ -54,6 +54,7 @@ static void popup_modal_gamepad(void);
 static void popup_modal_about(void);
 static GB_Color color_float_to_int(ImVec4 color);
 static ImVec4 color_int_to_float(GB_Color color);
+static void update_palette(void);
 
 void gui_init(void)
 {
@@ -64,6 +65,8 @@ void gui_init(void)
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = config_imgui_file_path;
     io.Fonts->AddFontFromMemoryCompressedBase85TTF(RobotoMedium_compressed_data_base85, 17.0f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+
+    update_palette();
 }
 
 void gui_destroy(void)
@@ -252,7 +255,7 @@ static void main_menu(void)
             {
                 if (ImGui::Combo("", &config_video.palette, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0"))
                 {
-                    config_video_palette_changed = true;
+                    update_palette();
                 }
                 ImGui::EndMenu();
             }
@@ -261,19 +264,19 @@ static void main_menu(void)
 
             if (ImGui::ColorEdit4("Color #1", (float*)&custom_palette[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
             {
-                config_video_palette_changed = true;
+                update_palette();
             }
             if (ImGui::ColorEdit4("Color #2", (float*)&custom_palette[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
             {
-                config_video_palette_changed = true;
+                update_palette();
             }
             if (ImGui::ColorEdit4("Color #3", (float*)&custom_palette[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
             {
-                config_video_palette_changed = true;
+                update_palette();
             }
             if (ImGui::ColorEdit4("Color #4", (float*)&custom_palette[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
             {
-                config_video_palette_changed = true;
+                update_palette();
             }
             
             ImGui::EndMenu();
@@ -644,4 +647,12 @@ static ImVec4 color_int_to_float(GB_Color color)
     ret.y = (1.0f / 255.0f) * color.green;
     ret.z = (1.0f / 255.0f) * color.blue;
     return ret;
+}
+
+static void update_palette(void)
+{
+    if (config_video.palette == 6)
+        emu_dmg_palette(config_video.color[0], config_video.color[1], config_video.color[2], config_video.color[3]);
+    else
+        emu_dmg_predefined_palette(config_video.palette);
 }

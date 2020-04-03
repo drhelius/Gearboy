@@ -45,15 +45,17 @@ static void frame_throttle(void);
 int application_init(void)
 {
     int ret = sdl_init();
+    
     config_init();
+    config_read();
+
+    emu_init(config_root_path);
+    
     gui_init();
 
     ImGui_ImplSDL2_InitForOpenGL(sdl_window, gl_context);
 
-    emu_init(config_root_path);
     renderer_init();
-
-    config_read();
 
     return ret;
 }
@@ -288,17 +290,6 @@ static void run_emulator(void)
 {
     config_emulator.paused = emu_is_paused();
     emu_audio_sync = config_audio.sync;
-
-    if (config_video_palette_changed)
-    {
-        config_video_palette_changed = false;
-        
-        if (config_video.palette == 6)
-            emu_dmg_palette(config_video.color[0], config_video.color[1], config_video.color[2], config_video.color[3]);
-        else
-            emu_dmg_predefined_palette(config_video.palette);
-    }
-
     emu_run_to_vblank();
 }
 

@@ -91,7 +91,6 @@ EXTERN config_Emulator config_emulator;
 EXTERN config_Video config_video;
 EXTERN config_Audio config_audio;
 EXTERN config_Input config_input;
-EXTERN bool config_video_palette_changed;
 
 EXTERN void config_init(void);
 EXTERN void config_destroy(void);

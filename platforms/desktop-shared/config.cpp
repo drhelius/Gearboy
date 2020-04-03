@@ -41,8 +41,6 @@ void config_init(void)
     strcat(config_imgui_file_path, "imgui.ini");
 
     config_ini_file = new mINI::INIFile(config_emu_file_path);
-
-    config_video_palette_changed = false;
 }
 
 void config_destroy(void)
@@ -79,8 +77,6 @@ void config_read(void)
         config_video.color[3].red = read_int("Video", "CustomPalette3R");
         config_video.color[3].green = read_int("Video", "CustomPalette3G");
         config_video.color[3].blue = read_int("Video", "CustomPalette3B");
-
-        config_video_palette_changed = true;
         
         config_audio.enable = read_bool("Audio", "Enable");
         config_audio.sync = read_bool("Audio", "Sync");
