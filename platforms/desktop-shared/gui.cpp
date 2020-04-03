@@ -38,6 +38,7 @@ static bool dialog_in_use = false;
 static SDL_Scancode* configured_key;
 static int* configured_button;
 static ImVec4 custom_palette[4];
+static std::list<std::string> cheat_list;
 
 static void main_menu(void);
 static void main_window(void);
@@ -196,6 +197,40 @@ static void main_menu(void)
             
             if (ImGui::BeginMenu("Cheats"))
             {
+                static char cheat_buffer[12] = "";
+                ImGui::InputText("", cheat_buffer, 12);
+                ImGui::SameLine();
+
+                if (ImGui::Button("Add Cheat Code"))
+                {
+                    std::string cheat = cheat_buffer;
+
+                    if ((cheat_list.size() < 10) && ((cheat.length() == 7) || (cheat.length() == 8) || (cheat.length() == 11)))
+                    {
+                        cheat_list.push_back(cheat_buffer);
+                        emu_add_cheat(cheat_buffer);
+                    }
+                }
+
+                std::list<std::string>::iterator it;
+
+                for (it = cheat_list.begin(); it != cheat_list.end(); it++)
+                {
+                    if ((it->length() == 7) || (it->length() == 11))
+                        ImGui::Text("Game Genie: %s", it->c_str());
+                    else
+                        ImGui::Text("GameShark: %s", it->c_str());
+                }
+
+                if (cheat_list.size() > 0)
+                {
+                    if (ImGui::Button("Clear All"))
+                    {
+                        cheat_list.clear();
+                        emu_clear_cheats();
+                    }
+                }
+
                 ImGui::EndMenu();
             }
 
@@ -402,6 +437,8 @@ static void file_dialog_open_rom(void)
     {
         emu_resume();
         emu_load_rom(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder);
+        cheat_list.clear();
+        emu_clear_cheats();
 
         if (config_emulator.start_paused)
         {

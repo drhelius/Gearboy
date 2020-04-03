@@ -240,6 +240,16 @@ void emu_load_state_file(const char* file_path)
         gearboy->LoadState(file_path, -1);
 }
 
+void emu_add_cheat(const char* cheat)
+{
+    gearboy->SetCheat(cheat);
+}
+
+void emu_clear_cheats()
+{
+    gearboy->ClearCheats();
+}
+
 static void save_ram(void)
 {
     if (save_files_in_rom_dir)

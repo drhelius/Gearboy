@@ -54,6 +54,8 @@ EXTERN void emu_save_state_slot(int index);
 EXTERN void emu_load_state_slot(int index);
 EXTERN void emu_save_state_file(const char* file_path);
 EXTERN void emu_load_state_file(const char* file_path);
+EXTERN void emu_add_cheat(const char* cheat);
+EXTERN void emu_clear_cheats();
 
 #undef EMU_IMPORT
 #undef EXTERN
