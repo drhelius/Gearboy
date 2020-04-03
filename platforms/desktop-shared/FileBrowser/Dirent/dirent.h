@@ -1,14 +1,22 @@
 /*
  * Dirent interface for Microsoft Visual Studio
- * Version 1.23.1
  *
- * Copyright (C) 2006-2012 Toni Ronkko
+ * Copyright (C) 1998-2019 Toni Ronkko
  * This file is part of dirent.  Dirent may be freely distributed
  * under the MIT license.  For all details and documentation, see
  * https://github.com/tronkko/dirent
  */
 #ifndef DIRENT_H
 #define DIRENT_H
+
+/* Hide warnings about unreferenced local functions */
+#if defined(__clang__)
+#   pragma clang diagnostic ignored "-Wunused-function"
+#elif defined(_MSC_VER)
+#   pragma warning(disable:4505)
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic ignored "-Wunused-function"
+#endif
 
 /*
  * Include windows.h without Windows Sockets 1.1 to prevent conflicts with
@@ -345,8 +353,9 @@ static _WDIR*
 _wopendir(
     const wchar_t *dirname)
 {
-    _WDIR *dirp = NULL;
-    int error;
+    _WDIR *dirp;
+    DWORD n;
+    wchar_t *p;
 
     /* Must have directory name */
     if (dirname == NULL  ||  dirname[0] == '\0') {
@@ -356,97 +365,83 @@ _wopendir(
 
     /* Allocate new _WDIR structure */
     dirp = (_WDIR*) malloc (sizeof (struct _WDIR));
-    if (dirp != NULL) {
-        DWORD n;
-
-        /* Reset _WDIR structure */
-        dirp->handle = INVALID_HANDLE_VALUE;
-        dirp->patt = NULL;
-        dirp->cached = 0;
-
-        /* Compute the length of full path plus zero terminator
-         *
-         * Note that on WinRT there's no way to convert relative paths
-         * into absolute paths, so just assume it is an absolute path.
-         */
-#       if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)
-            n = wcslen(dirname);
-#       else
-            n = GetFullPathNameW (dirname, 0, NULL, NULL);
-#       endif
-
-        /* Allocate room for absolute directory name and search pattern */
-        dirp->patt = (wchar_t*) malloc (sizeof (wchar_t) * n + 16);
-        if (dirp->patt) {
-
-            /*
-             * Convert relative directory name to an absolute one.  This
-             * allows rewinddir() to function correctly even when current
-             * working directory is changed between opendir() and rewinddir().
-             *
-             * Note that on WinRT there's no way to convert relative paths
-             * into absolute paths, so just assume it is an absolute path.
-             */
-#           if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)
-                wcsncpy_s(dirp->patt, n+1, dirname, n);
-#           else
-                n = GetFullPathNameW (dirname, n, dirp->patt, NULL);
-#           endif
-            if (n > 0) {
-                wchar_t *p;
-
-                /* Append search pattern \* to the directory name */
-                p = dirp->patt + n;
-                if (dirp->patt < p) {
-                    switch (p[-1]) {
-                    case '\\':
-                    case '/':
-                    case ':':
-                        /* Directory ends in path separator, e.g. c:\temp\ */
-                        /*NOP*/;
-                        break;
-
-                    default:
-                        /* Directory name doesn't end in path separator */
-                        *p++ = '\\';
-                    }
-                }
-                *p++ = '*';
-                *p = '\0';
-
-                /* Open directory stream and retrieve the first entry */
-                if (dirent_first (dirp)) {
-                    /* Directory stream opened successfully */
-                    error = 0;
-                } else {
-                    /* Cannot retrieve first entry */
-                    error = 1;
-                    dirent_set_errno (ENOENT);
-                }
-
-            } else {
-                /* Cannot retrieve full path name */
-                dirent_set_errno (ENOENT);
-                error = 1;
-            }
-
-        } else {
-            /* Cannot allocate memory for search pattern */
-            error = 1;
-        }
-
-    } else {
-        /* Cannot allocate _WDIR structure */
-        error = 1;
+    if (!dirp) {
+        return NULL;
     }
 
-    /* Clean up in case of error */
-    if (error  &&  dirp) {
-        _wclosedir (dirp);
-        dirp = NULL;
+    /* Reset _WDIR structure */
+    dirp->handle = INVALID_HANDLE_VALUE;
+    dirp->patt = NULL;
+    dirp->cached = 0;
+
+    /*
+     * Compute the length of full path plus zero terminator
+     *
+     * Note that on WinRT there's no way to convert relative paths
+     * into absolute paths, so just assume it is an absolute path.
+     */
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+    /* Desktop */
+    n = GetFullPathNameW (dirname, 0, NULL, NULL);
+#else
+    /* WinRT */
+    n = wcslen (dirname);
+#endif
+
+    /* Allocate room for absolute directory name and search pattern */
+    dirp->patt = (wchar_t*) malloc (sizeof (wchar_t) * n + 16);
+    if (dirp->patt == NULL) {
+        goto exit_closedir;
     }
 
+    /*
+     * Convert relative directory name to an absolute one.  This
+     * allows rewinddir() to function correctly even when current
+     * working directory is changed between opendir() and rewinddir().
+     *
+     * Note that on WinRT there's no way to convert relative paths
+     * into absolute paths, so just assume it is an absolute path.
+     */
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+    /* Desktop */
+    n = GetFullPathNameW (dirname, n, dirp->patt, NULL);
+    if (n <= 0) {
+        goto exit_closedir;
+    }
+#else
+    /* WinRT */
+    wcsncpy_s (dirp->patt, n+1, dirname, n);
+#endif
+
+    /* Append search pattern \* to the directory name */
+    p = dirp->patt + n;
+    switch (p[-1]) {
+    case '\\':
+    case '/':
+    case ':':
+        /* Directory ends in path separator, e.g. c:\temp\ */
+        /*NOP*/;
+        break;
+
+    default:
+        /* Directory name doesn't end in path separator */
+        *p++ = '\\';
+    }
+    *p++ = '*';
+    *p = '\0';
+
+    /* Open directory stream and retrieve the first entry */
+    if (!dirent_first (dirp)) {
+        goto exit_closedir;
+    }
+
+    /* Success */
     return dirp;
+
+    /* Failure */
+exit_closedir:
+    _wclosedir (dirp);
+    return NULL;
 }
 
 /*
@@ -549,14 +544,10 @@ _wclosedir(
         /* Release search handle */
         if (dirp->handle != INVALID_HANDLE_VALUE) {
             FindClose (dirp->handle);
-            dirp->handle = INVALID_HANDLE_VALUE;
         }
 
         /* Release search pattern */
-        if (dirp->patt) {
-            free (dirp->patt);
-            dirp->patt = NULL;
-        }
+        free (dirp->patt);
 
         /* Release directory structure */
         free (dirp);
@@ -597,6 +588,7 @@ dirent_first(
     _WDIR *dirp)
 {
     WIN32_FIND_DATAW *datap;
+    DWORD error;
 
     /* Open directory and retrieve the first entry */
     dirp->handle = FindFirstFileExW(
@@ -610,9 +602,28 @@ dirent_first(
 
     } else {
 
-        /* Failed to re-open directory: no directory entry in memory */
+        /* Failed to open directory: no directory entry in memory */
         dirp->cached = 0;
         datap = NULL;
+
+        /* Set error code */
+        error = GetLastError ();
+        switch (error) {
+        case ERROR_ACCESS_DENIED:
+            /* No read access to directory */
+            dirent_set_errno (EACCES);
+            break;
+
+        case ERROR_DIRECTORY:
+            /* Directory name is invalid */
+            dirent_set_errno (ENOTDIR);
+            break;
+
+        case ERROR_PATH_NOT_FOUND:
+        default:
+            /* Cannot find the file */
+            dirent_set_errno (ENOENT);
+        }
 
     }
     return datap;
@@ -621,7 +632,7 @@ dirent_first(
 /*
  * Get next directory entry (internal).
  *
- * Returns 
+ * Returns
  */
 static WIN32_FIND_DATAW*
 dirent_next(
@@ -664,10 +675,9 @@ dirent_next(
  */
 static DIR*
 opendir(
-    const char *dirname) 
+    const char *dirname)
 {
     struct DIR *dirp;
-    int error;
 
     /* Must have directory name */
     if (dirname == NULL  ||  dirname[0] == '\0') {
@@ -677,47 +687,43 @@ opendir(
 
     /* Allocate memory for DIR structure */
     dirp = (DIR*) malloc (sizeof (struct DIR));
-    if (dirp) {
+    if (!dirp) {
+        return NULL;
+    }
+    {
+        int error;
         wchar_t wname[PATH_MAX + 1];
         size_t n;
 
         /* Convert directory name to wide-character string */
         error = dirent_mbstowcs_s(
             &n, wname, PATH_MAX + 1, dirname, PATH_MAX + 1);
-        if (!error) {
-
-            /* Open directory stream using wide-character name */
-            dirp->wdirp = _wopendir (wname);
-            if (dirp->wdirp) {
-                /* Directory stream opened */
-                error = 0;
-            } else {
-                /* Failed to open directory stream */
-                error = 1;
-            }
-
-        } else {
+        if (error) {
             /*
              * Cannot convert file name to wide-character string.  This
              * occurs if the string contains invalid multi-byte sequences or
              * the output buffer is too small to contain the resulting
              * string.
              */
-            error = 1;
+            goto exit_free;
         }
 
-    } else {
-        /* Cannot allocate DIR structure */
-        error = 1;
+
+        /* Open directory stream using wide-character name */
+        dirp->wdirp = _wopendir (wname);
+        if (!dirp->wdirp) {
+            goto exit_free;
+        }
+
     }
 
-    /* Clean up in case of error */
-    if (error  &&  dirp) {
-        free (dirp);
-        dirp = NULL;
-    }
-
+    /* Success */
     return dirp;
+
+    /* Failure */
+exit_free:
+    free (dirp);
+    return NULL;
 }
 
 /*
@@ -985,9 +991,7 @@ scandir(
     }
 
     /* Release temporary directory entry */
-    if (tmp) {
-        free (tmp);
-    }
+    free (tmp);
 
     /* Release allocated memory on error */
     if (result < 0) {
@@ -1026,7 +1030,6 @@ versionsort(
     /* FIXME: implement strverscmp and use that */
     return alphasort (a, b);
 }
-
 
 /* Convert multi-byte string to wide character string */
 static int
@@ -1077,7 +1080,6 @@ dirent_mbstowcs_s(
     }
 
 #endif
-
     return error;
 }
 
@@ -1130,7 +1132,6 @@ dirent_wcstombs_s(
     }
 
 #endif
-
     return error;
 }
 
@@ -1157,4 +1158,3 @@ dirent_set_errno(
 }
 #endif
 #endif /*DIRENT_H*/
-

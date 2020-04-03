@@ -351,17 +351,17 @@ namespace imgui_addons
         int items = 0;
         for (std::size_t i = 0; i < filtered_dirs.size(); i++)
         {
-            if(!filtered_dirs[i]->is_hidden || show_hidden)
+            if(!filtered_dirs[i].is_hidden || show_hidden)
             {
                 items++;
-                if(ImGui::Selectable(filtered_dirs[i]->name.c_str(), selected_idx == (int)i && is_dir, ImGuiSelectableFlags_AllowDoubleClick))
+                if(ImGui::Selectable(filtered_dirs[i].name.c_str(), selected_idx == (int)i && is_dir, ImGuiSelectableFlags_AllowDoubleClick))
                 {
                     selected_idx = i;
                     is_dir = true;
 
                     // If dialog mode is SELECT then copy the selected dir name to the input text bar
                     if(dialog_mode == DialogMode::SELECT)
-                        strcpy(input_fn, filtered_dirs[i]->name.c_str());
+                        strcpy(input_fn, filtered_dirs[i].name.c_str());
 
                     if(ImGui::IsMouseDoubleClicked(0))
                     {
@@ -378,21 +378,21 @@ namespace imgui_addons
         //Output files
         for (std::size_t i = 0; i < filtered_files.size(); i++)
         {
-            if(!filtered_files[i]->is_hidden || show_hidden)
+            if(!filtered_files[i].is_hidden || show_hidden)
             {
                 items++;
-                if(ImGui::Selectable(filtered_files[i]->name.c_str(), selected_idx == (int)i && !is_dir, ImGuiSelectableFlags_AllowDoubleClick))
+                if(ImGui::Selectable(filtered_files[i].name.c_str(), selected_idx == (int)i && !is_dir, ImGuiSelectableFlags_AllowDoubleClick))
                 {
                     // unused: int len = filtered_files[i]->name.length();
                     selected_idx = i;
                     is_dir = false;
 
                     // If dialog mode is OPEN/SAVE then copy the selected file name to the input text bar
-                    strcpy(input_fn, filtered_files[i]->name.c_str());
+                    strcpy(input_fn, filtered_files[i].name.c_str());
 
                     if(ImGui::IsMouseDoubleClicked(0))
                     {
-                        selected_fn = filtered_files[i]->name;
+                        selected_fn = filtered_files[i].name;
                         validate_file = true;
                     }
                 }
@@ -723,7 +723,7 @@ namespace imgui_addons
         drives_shown = (current_dirlist.size() == 1 && current_dirlist.back() == "Computer");
         #endif // OSWIN
 
-        name = filtered_dirs[idx]->name;
+        name = filtered_dirs[idx].name;
 
         if(name == "..")
         {
@@ -855,7 +855,7 @@ namespace imgui_addons
             for (size_t i = 0; i < subdirs.size(); ++i)
             {
                 if(filter.PassFilter(subdirs[i].name.c_str()))
-                    filtered_dirs.push_back(&subdirs[i]);
+                    filtered_dirs.push_back(subdirs[i]);
             }
         }
         if(filter_mode | FilterMode_Files)
@@ -866,7 +866,7 @@ namespace imgui_addons
                 if(valid_exts[selected_ext_idx] == "*.*")
                 {
                     if(filter.PassFilter(subfiles[i].name.c_str()))
-                        filtered_files.push_back(&subfiles[i]);
+                        filtered_files.push_back(subfiles[i]);
                 }
                 else
                 {
@@ -879,7 +879,7 @@ namespace imgui_addons
                         std::string extension = subfiles[i].name.substr(last);
 
                         if(filter.PassFilter(subfiles[i].name.c_str()) && (extension == valid_exts[selected_ext_idx]))
-                            filtered_files.push_back(&subfiles[i]);
+                            filtered_files.push_back(subfiles[i]);
                     }
                 }
             }
@@ -1013,9 +1013,9 @@ namespace imgui_addons
         if(selected_idx >= 0)
         {
             if(dialog_mode == DialogMode::SELECT)
-                match = (filtered_dirs[selected_idx]->name == selected_fn);
+                match = (filtered_dirs[selected_idx].name == selected_fn);
             else
-                match = (filtered_files[selected_idx]->name == selected_fn);
+                match = (filtered_files[selected_idx].name == selected_fn);
         }
 
         //If the input filename doesn't match we need to explicitly find the input filename..

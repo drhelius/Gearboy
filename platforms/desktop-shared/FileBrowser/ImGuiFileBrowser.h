@@ -113,8 +113,8 @@ namespace imgui_addons
 
             ImGuiTextFilter filter;
             std::string valid_types;
-            std::vector<const Info*> filtered_dirs; // Note: We don't need to call delete. It's just for storing filtered items from subdirs and subfiles so we don't use PassFilter every frame.
-            std::vector<const Info*> filtered_files;
+            std::vector<Info> filtered_dirs; // Note: We don't need to call delete. It's just for storing filtered items from subdirs and subfiles so we don't use PassFilter every frame.
+            std::vector<Info> filtered_files;
             std::vector< std::reference_wrapper<std::string> > inputcb_filter_files;
     };
 }
