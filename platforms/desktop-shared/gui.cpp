@@ -55,6 +55,8 @@ static void popup_modal_about(void);
 static GB_Color color_float_to_int(ImVec4 color);
 static ImVec4 color_int_to_float(GB_Color color);
 static void update_palette(void);
+static void load_rom(const char* path);
+static void push_recent_rom(std::string path);
 
 void gui_init(void)
 {
@@ -107,6 +109,22 @@ static void main_menu(void)
             if (ImGui::MenuItem("Open ROM...", "Ctrl+O"))
             {
                 open_rom = true;
+            }
+
+            if (ImGui::BeginMenu("Open Recent"))
+            {
+                for (int i = 0; i < config_max_recent_roms; i++)
+                {
+                    if (config_emulator.recent_roms[i].length() > 0)
+                    {
+                        if (ImGui::MenuItem(config_emulator.recent_roms[i].c_str()))
+                        {
+                            load_rom(config_emulator.recent_roms[i].c_str());
+                        }
+                    }
+                }
+
+                ImGui::EndMenu();
             }
 
             ImGui::Separator();
@@ -438,18 +456,8 @@ static void file_dialog_open_rom(void)
 {
     if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip", &dialog_in_use))
     {
-        emu_resume();
-        emu_load_rom(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder);
-        cheat_list.clear();
-        emu_clear_cheats();
-
-        if (config_emulator.start_paused)
-        {
-            emu_pause();
-            
-            for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
-                emu_frame_buffer[i] = 0;
-        }
+        push_recent_rom(file_dialog.selected_path.c_str());
+        load_rom(file_dialog.selected_path.c_str());
     }
 }
 
@@ -655,4 +663,32 @@ static void update_palette(void)
         emu_dmg_palette(config_video.color[0], config_video.color[1], config_video.color[2], config_video.color[3]);
     else
         emu_dmg_predefined_palette(config_video.palette);
+}
+
+static void load_rom(const char* path)
+{
+    emu_resume();
+    emu_load_rom(path, config_emulator.force_dmg, config_emulator.save_in_rom_folder);
+    cheat_list.clear();
+    emu_clear_cheats();
+
+    if (config_emulator.start_paused)
+    {
+        emu_pause();
+        
+        for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+            emu_frame_buffer[i] = 0;
+    }
+}
+
+static void push_recent_rom(std::string path)
+{
+    for (int i = (config_max_recent_roms - 1); i >= 0; i--)
+    {
+        //if (config_emulator.recent_roms[i - 1].length() <= 0)
+        //    break;
+        config_emulator.recent_roms[i] = config_emulator.recent_roms[i - 1];
+    }
+
+    config_emulator.recent_roms[0] = path;
 }

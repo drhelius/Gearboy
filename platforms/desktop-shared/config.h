@@ -32,6 +32,8 @@
     #define EXTERN extern
 #endif
 
+static const int config_max_recent_roms = 10;
+
 struct config_Emulator
 {
     bool paused = false;
@@ -40,6 +42,7 @@ struct config_Emulator
     bool force_dmg = false;
     bool save_in_rom_folder = false;
     bool ffwd = false;
+    std::string recent_roms[config_max_recent_roms];
 };
 
 struct config_Video
