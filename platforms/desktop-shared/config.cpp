@@ -72,6 +72,7 @@ void config_read(void)
         config_emulator.recent_roms[i] = read_string("Emulator", item.c_str());
     }
 
+    config_video.scale = read_int("Video", "Scale");
     config_video.fps = read_bool("Video", "FPS");
     config_video.bilinear = read_bool("Video", "Bilinear");
     config_video.mix_frames = read_bool("Video", "MixFrames");
@@ -130,6 +131,7 @@ void config_write(void)
         write_string("Emulator", item.c_str(), config_emulator.recent_roms[i]);
     }
 
+    write_int("Video", "Scale", config_video.scale);
     write_bool("Video", "FPS", config_video.fps);
     write_bool("Video", "Bilinear", config_video.bilinear);
     write_bool("Video", "MixFrames", config_video.mix_frames);

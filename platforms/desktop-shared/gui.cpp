@@ -143,7 +143,7 @@ static void main_menu(void)
                 }
             }
 
-            if (ImGui::MenuItem("Paused", "Ctrl+P", &config_emulator.paused))
+            if (ImGui::MenuItem("Pause", "Ctrl+P", &config_emulator.paused))
             {
                 if (emu_is_paused())
                     emu_resume();
@@ -212,12 +212,18 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            ImGui::MenuItem("Force DMG Model", "", &config_emulator.force_dmg);
             ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
+
+            ImGui::MenuItem("Force DMG Model", "", &config_emulator.force_dmg);
+            
             ImGui::MenuItem("Save Files In ROM Folder", "", &config_emulator.save_in_rom_folder);
+
+            ImGui::Separator();
             
             if (ImGui::BeginMenu("Cheats"))
             {
+                ImGui::Text("Game Genie or GameShark codes:");
+
                 static char cheat_buffer[12] = "";
                 ImGui::InputText("", cheat_buffer, 12);
                 ImGui::SameLine();
@@ -230,6 +236,7 @@ static void main_menu(void)
                     {
                         cheat_list.push_back(cheat_buffer);
                         emu_add_cheat(cheat_buffer);
+                        cheat_buffer[0] = 0;
                     }
                 }
 
@@ -261,6 +268,17 @@ static void main_menu(void)
         if (ImGui::BeginMenu("Video"))
         {
             gui_in_use = true;
+
+            if (ImGui::BeginMenu("Scale"))
+            {
+                if (ImGui::Combo("", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0Zoom X4\0\0"))
+                {
+                    //update_palette();
+                }
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
 
             ImGui::MenuItem("Show FPS", "", &config_video.fps);
             ImGui::MenuItem("Bilinear Filtering", "", &config_video.bilinear);
@@ -319,6 +337,8 @@ static void main_menu(void)
                 
                 ImGui::EndMenu();
             }
+
+            ImGui::Separator();
 
             ImGui::MenuItem("Enable Gamepad", "", &config_input.gamepad);
             
@@ -415,10 +435,18 @@ static void main_window(void)
     int w = ImGui::GetIO().DisplaySize.x;
     int h = ImGui::GetIO().DisplaySize.y - main_menu_height;
 
-    int factor_w = w / GAMEBOY_WIDTH;
-    int factor_h = h / GAMEBOY_HEIGHT;
+    int factor = 0;
 
-    int factor = (factor_w < factor_h) ? factor_w : factor_h;
+    if (config_video.scale > 0)
+    {
+        factor = config_video.scale;
+    }
+    else
+    {
+        int factor_w = w / GAMEBOY_WIDTH;
+        int factor_h = h / GAMEBOY_HEIGHT;
+        factor = (factor_w < factor_h) ? factor_w : factor_h;
+    }
 
     main_window_width = GAMEBOY_WIDTH * factor;
     main_window_height = GAMEBOY_HEIGHT * factor;
