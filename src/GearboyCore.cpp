@@ -708,7 +708,8 @@ void GearboyCore::SetCheat(const char* szCheat)
     if ((s.length() == 7) || (s.length() == 11))
     {
         m_pCartridge->SetGameGenieCheat(szCheat);
-        m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
+        if (m_pCartridge->IsLoadedROM())
+            m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
     }
     else
     {
