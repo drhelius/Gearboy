@@ -552,7 +552,10 @@ static void gamepad_configuration_item(const char* text, int* button)
 {
     ImGui::Text("%s", text);
     ImGui::SameLine(70);
-    if (ImGui::Button(config_input_gamepad_names[*button], ImVec2(70,0)))
+
+    static const char* gamepad_names[16] = {"0", "A", "B" ,"3", "L", "R", "6", "7", "SELECT", "START", "10", "11", "12", "13", "14", "15"};
+
+    if (ImGui::Button(gamepad_names[*button], ImVec2(70,0)))
     {
         configured_button = button;
         ImGui::OpenPopup("Gamepad Configuration");
@@ -622,7 +625,7 @@ static void popup_modal_about(void)
         
         #ifdef _WIN64
         ImGui::Text("Windows 64 bit detected.");
-        #elif
+        #elif defined(_WIN32)
         ImGui::Text("Windows 32 bit detected.");
         #endif
         #ifdef __linux__

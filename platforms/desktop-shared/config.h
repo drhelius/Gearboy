@@ -84,8 +84,6 @@ struct config_Input
     int gamepad_y_axis = 1;
 };
 
-static const char* config_input_gamepad_names[16] = {"0", "A", "B" ,"3", "L", "R", "6", "7", "SELECT", "START", "10", "11", "12", "13", "14", "15"};
-
 EXTERN mINI::INIFile* config_ini_file;
 EXTERN mINI::INIStructure config_ini_data;
 EXTERN char* config_root_path;
