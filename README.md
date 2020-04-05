@@ -64,7 +64,7 @@ sudo make install
 
 ### Windows
 
-- You need Visual Studio 2017 or later.
+- You need Microsoft Visual Studio Community 2019 or later.
 - Open the Gearboy Visual Studio solution `platforms/windows/Gearboy.sln` and build.
 - You may want to use the `platforms/windows/Makefile` to build the application using MinGW.
 
