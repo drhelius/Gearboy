@@ -48,7 +48,7 @@ void config_init(void)
 void config_destroy(void)
 {
     SafeDelete(config_ini_file)
-    SafeDeleteArray(config_root_path);
+    SDL_free(config_root_path);
 }
 
 void config_read(void)
