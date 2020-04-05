@@ -356,7 +356,7 @@ namespace imgui_addons
                 items++;
                 if(ImGui::Selectable(filtered_dirs[i].name.c_str(), selected_idx == (int)i && is_dir, ImGuiSelectableFlags_AllowDoubleClick))
                 {
-                    selected_idx = i;
+                    selected_idx = (int)i;
                     is_dir = true;
 
                     // If dialog mode is SELECT then copy the selected dir name to the input text bar
@@ -384,7 +384,7 @@ namespace imgui_addons
                 if(ImGui::Selectable(filtered_files[i].name.c_str(), selected_idx == (int)i && !is_dir, ImGuiSelectableFlags_AllowDoubleClick))
                 {
                     // unused: int len = filtered_files[i]->name.length();
-                    selected_idx = i;
+                    selected_idx = (int)i;
                     is_dir = false;
 
                     // If dialog mode is OPEN/SAVE then copy the selected file name to the input text bar
@@ -650,7 +650,7 @@ namespace imgui_addons
             {
                 if(ImGui::Selectable(valid_exts[i].c_str(), selected_ext_idx == (int)i))
                 {
-                    selected_ext_idx = i;
+                    selected_ext_idx = (int)i;
                     if(dialog_mode == DialogMode::SAVE)
                     {
                         std::string name(input_fn);
@@ -872,7 +872,7 @@ namespace imgui_addons
                 {
                     //if(filter.PassFilter(subfiles[i].name.c_str()) && (ImStristr(subfiles[i].name.c_str(), nullptr, valid_exts[selected_ext_idx].c_str(), nullptr)) != nullptr)
 
-                    int last = subfiles[i].name.find_last_of(".");
+                    int last = (int)subfiles[i].name.find_last_of(".");
                     
                     if (last >= 0 )
                     {
@@ -1064,7 +1064,7 @@ namespace imgui_addons
                 if(ext == "*.*")
                     return true;
             }
-            int idx = selected_fn.find_last_of('.');
+            int idx = (int)selected_fn.find_last_of('.');
             std::string file_ext = idx == (int)std::string::npos ? "" : selected_fn.substr(idx, selected_fn.length() - idx);
             return (std::find(valid_exts.begin(), valid_exts.end(), file_ext) != valid_exts.end());
         }
