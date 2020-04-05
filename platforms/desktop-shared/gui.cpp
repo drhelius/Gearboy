@@ -66,7 +66,7 @@ void gui_init(void)
 
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = config_imgui_file_path;
-    io.Fonts->AddFontFromMemoryCompressedBase85TTF(RobotoMedium_compressed_data_base85, 17.0f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+    io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, 17.0f, NULL, io.Fonts->GetGlyphRangesCyrillic());
 
     update_palette();
 }
@@ -620,10 +620,9 @@ static void popup_modal_about(void)
         ImGui::Text("%s is licensed under the GPL-3.0 License, see LICENSE for more information.", GEARBOY_TITLE);
         ImGui::Separator();        
         
-        #ifdef _WIN32
-        ImGui::Text("Windows 32 bit detected.");
-        #endif
         #ifdef _WIN64
+        ImGui::Text("Windows 64 bit detected.");
+        #elif
         ImGui::Text("Windows 32 bit detected.");
         #endif
         #ifdef __linux__
