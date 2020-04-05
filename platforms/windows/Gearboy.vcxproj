@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\Audio.cpp" />
+    <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp" />
+    <ClCompile Include="..\..\src\audio\Effects_Buffer.cpp" />
+    <ClCompile Include="..\..\src\audio\Gb_Apu.cpp" />
+    <ClCompile Include="..\..\src\audio\Gb_Apu_State.cpp" />
+    <ClCompile Include="..\..\src\audio\Gb_Oscs.cpp" />
+    <ClCompile Include="..\..\src\audio\Multi_Buffer.cpp" />
+    <ClCompile Include="..\..\src\Cartridge.cpp" />
+    <ClCompile Include="..\..\src\CommonMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\GearboyCore.cpp" />
+    <ClCompile Include="..\..\src\Input.cpp" />
+    <ClCompile Include="..\..\src\IORegistersMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\MBC1MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\MBC2MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\MBC3MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\MBC5MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\Memory.cpp" />
+    <ClCompile Include="..\..\src\MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\MultiMBC1MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\opcodes.cpp" />
+    <ClCompile Include="..\..\src\opcodes_cb.cpp" />
+    <ClCompile Include="..\..\src\Processor.cpp" />
+    <ClCompile Include="..\..\src\RomOnlyMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\Video.cpp" />
+    <ClCompile Include="..\audio-shared\Sound_Queue.cpp" />
+    <ClCompile Include="..\desktop-shared\application.cpp" />
+    <ClCompile Include="..\desktop-shared\config.cpp" />
+    <ClCompile Include="..\desktop-shared\emu.cpp" />
+    <ClCompile Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.cpp" />
+    <ClCompile Include="..\desktop-shared\gui.cpp" />
+    <ClCompile Include="..\desktop-shared\imgui\imgui.cpp" />
+    <ClCompile Include="..\desktop-shared\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\desktop-shared\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_opengl2.cpp" />
+    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl.cpp" />
+    <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\desktop-shared\main.cpp" />
+    <ClCompile Include="..\desktop-shared\renderer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Audio.h" />
+    <ClInclude Include="..\..\src\audio\blargg_common.h" />
+    <ClInclude Include="..\..\src\audio\blargg_config.h" />
+    <ClInclude Include="..\..\src\audio\blargg_source.h" />
+    <ClInclude Include="..\..\src\audio\Blip_Buffer.h" />
+    <ClInclude Include="..\..\src\audio\Blip_Synth.h" />
+    <ClInclude Include="..\..\src\audio\Effects_Buffer.h" />
+    <ClInclude Include="..\..\src\audio\Gb_Apu.h" />
+    <ClInclude Include="..\..\src\audio\Gb_Oscs.h" />
+    <ClInclude Include="..\..\src\audio\Multi_Buffer.h" />
+    <ClInclude Include="..\..\src\Cartridge.h" />
+    <ClInclude Include="..\..\src\CommonMemoryRule.h" />
+    <ClInclude Include="..\..\src\definitions.h" />
+    <ClInclude Include="..\..\src\EightBitRegister.h" />
+    <ClInclude Include="..\..\src\gearboy.h" />
+    <ClInclude Include="..\..\src\GearboyCore.h" />
+    <ClInclude Include="..\..\src\Input.h" />
+    <ClInclude Include="..\..\src\IORegistersMemoryRule.h" />
+    <ClInclude Include="..\..\src\MBC1MemoryRule.h" />
+    <ClInclude Include="..\..\src\MBC2MemoryRule.h" />
+    <ClInclude Include="..\..\src\MBC3MemoryRule.h" />
+    <ClInclude Include="..\..\src\MBC5MemoryRule.h" />
+    <ClInclude Include="..\..\src\Memory.h" />
+    <ClInclude Include="..\..\src\MemoryRule.h" />
+    <ClInclude Include="..\..\src\Memory_inline.h" />
+    <ClInclude Include="..\..\src\MultiMBC1MemoryRule.h" />
+    <ClInclude Include="..\..\src\opcode_names.h" />
+    <ClInclude Include="..\..\src\opcode_timing.h" />
+    <ClInclude Include="..\..\src\Processor.h" />
+    <ClInclude Include="..\..\src\Processor_inline.h" />
+    <ClInclude Include="..\..\src\RomOnlyMemoryRule.h" />
+    <ClInclude Include="..\..\src\SixteenBitRegister.h" />
+    <ClInclude Include="..\..\src\Video.h" />
+    <ClInclude Include="..\audio-shared\Sound_Queue.h" />
+    <ClInclude Include="..\desktop-shared\application.h" />
+    <ClInclude Include="..\desktop-shared\config.h" />
+    <ClInclude Include="..\desktop-shared\emu.h" />
+    <ClInclude Include="..\desktop-shared\FileBrowser\Dirent\dirent.h" />
+    <ClInclude Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.h" />
+    <ClInclude Include="..\desktop-shared\gui.h" />
+    <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h" />
+    <ClInclude Include="..\desktop-shared\imgui\imconfig.h" />
+    <ClInclude Include="..\desktop-shared\imgui\imgui.h" />
+    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_opengl2.h" />
+    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl.h" />
+    <ClInclude Include="..\desktop-shared\imgui\imgui_internal.h" />
+    <ClInclude Include="..\desktop-shared\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\desktop-shared\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\desktop-shared\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\desktop-shared\mINI\ini.h" />
+    <ClInclude Include="..\desktop-shared\renderer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\desktop-shared\Makefile.common" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{92D9838A-C6AB-348D-8565-F9E813C3C467}</ProjectGuid>
+    <RootNamespace>Gearboy</RootNamespace>
+    <Keyword>Qt4VSv1.0</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <PlatformToolSet>v142</PlatformToolSet>
+    <OutputDirectory>release\</OutputDirectory>
+    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+    <CharacterSet>NotSet</CharacterSet>
+    <ConfigurationType>Application</ConfigurationType>
+    <IntermediateDirectory>release\</IntermediateDirectory>
+    <PrimaryOutput>Gearboy</PrimaryOutput>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <PlatformToolSet>v142</PlatformToolSet>
+    <OutputDirectory>debug\</OutputDirectory>
+    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+    <CharacterSet>NotSet</CharacterSet>
+    <ConfigurationType>Application</ConfigurationType>
+    <IntermediateDirectory>debug\</IntermediateDirectory>
+    <PrimaryOutput>Gearboy</PrimaryOutput>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Gearboy</TargetName>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</IgnoreImportLibrary>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Gearboy</TargetName>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</IgnoreImportLibrary>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>.;dependencies/sdl/include;dependencies/sdl/include/SDL2;dependencies/glew/include;release;.;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
+      <AssemblerListingLocation>release\</AssemblerListingLocation>
+      <BrowseInformation>false</BrowseInformation>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <DisableSpecificWarnings>4577;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <Optimization>MaxSpeed</Optimization>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>glew32.lib;SDL2main.lib;SDL2.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>dependencies\sdl\lib;dependencies\glew\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreImportLibrary>true</IgnoreImportLibrary>
+      <LinkIncremental>false</LinkIncremental>
+      <OutputFile>$(OutDir)\Gearboy.exe</OutputFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <SubSystem>Windows</SubSystem>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Link>
+    <Midl>
+      <DefaultCharType>Unsigned</DefaultCharType>
+      <EnableErrorChecks>None</EnableErrorChecks>
+      <WarningLevel>0</WarningLevel>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_NO_DEBUG;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>.;dependencies/sdl/include;dependencies/sdl/include/SDL2;dependencies/glew/include;debug;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
+      <AssemblerListingLocation>debug\</AssemblerListingLocation>
+      <BrowseInformation>false</BrowseInformation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4577;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <WarningLevel>Level3</WarningLevel>
+      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>glew32.lib;SDL2main.lib;SDL2.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>dependencies\sdl\lib;dependencies\glew\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreImportLibrary>true</IgnoreImportLibrary>
+      <OutputFile>$(OutDir)\Gearboy.exe</OutputFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <SubSystem>Console</SubSystem>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Link>
+    <Midl>
+      <DefaultCharType>Unsigned</DefaultCharType>
+      <EnableErrorChecks>None</EnableErrorChecks>
+      <WarningLevel>0</WarningLevel>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" Qt5Version_x0020_x64="$(DefaultQtVersion)" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

@@ -1,0 +1,325 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;moc;h;def;odl;idl;res;</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{b930aa5d-6e83-4226-a05b-f18413a2c91a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\audio">
+      <UniqueIdentifier>{bff59648-7448-4d09-8230-3574b68d277f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="audio-shared">
+      <UniqueIdentifier>{b0db2bbb-3da9-4f05-8d93-cbdd7b21824d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="desktop-shared">
+      <UniqueIdentifier>{0100a978-2962-4046-80a0-b51ab4a9534c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="desktop-shared\imgui">
+      <UniqueIdentifier>{4642afc7-a495-4170-b504-7283adcdce92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="desktop-shared\filebrowser">
+      <UniqueIdentifier>{fff362e7-09c1-4dae-baa1-7022b57d90b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="desktop-shared\mini">
+      <UniqueIdentifier>{741038af-a906-4314-be4b-3522c4db0e8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="desktop-shared\imgui\fonts">
+      <UniqueIdentifier>{e4192cc4-2be0-4f65-87ee-74901af5e89c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="desktop-shared\filebrowser\dirent">
+      <UniqueIdentifier>{91ae7ec4-31db-4763-bcd0-caf62486f29d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\Audio.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Cartridge.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CommonMemoryRule.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GearboyCore.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Input.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\IORegistersMemoryRule.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\MBC1MemoryRule.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\MBC2MemoryRule.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\MBC3MemoryRule.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\MBC5MemoryRule.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Memory.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\MemoryRule.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\MultiMBC1MemoryRule.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\opcodes.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\opcodes_cb.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Processor.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\RomOnlyMemoryRule.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Video.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp">
+      <Filter>source\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\Effects_Buffer.cpp">
+      <Filter>source\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\Gb_Apu.cpp">
+      <Filter>source\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\Gb_Apu_State.cpp">
+      <Filter>source\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\Gb_Oscs.cpp">
+      <Filter>source\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\Multi_Buffer.cpp">
+      <Filter>source\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\audio-shared\Sound_Queue.cpp">
+      <Filter>audio-shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\application.cpp">
+      <Filter>desktop-shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\config.cpp">
+      <Filter>desktop-shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\emu.cpp">
+      <Filter>desktop-shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\gui.cpp">
+      <Filter>desktop-shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\main.cpp">
+      <Filter>desktop-shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\renderer.cpp">
+      <Filter>desktop-shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\imgui.cpp">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\imgui_demo.cpp">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\imgui_draw.cpp">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_opengl2.cpp">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl.cpp">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.cpp">
+      <Filter>desktop-shared\filebrowser</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Audio.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Cartridge.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\CommonMemoryRule.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\definitions.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\EightBitRegister.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gearboy.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GearboyCore.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Input.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\IORegistersMemoryRule.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MBC1MemoryRule.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MBC2MemoryRule.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MBC3MemoryRule.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MBC5MemoryRule.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Memory.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Memory_inline.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MemoryRule.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MultiMBC1MemoryRule.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\opcode_names.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\opcode_timing.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Processor.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Processor_inline.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\RomOnlyMemoryRule.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SixteenBitRegister.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Video.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\blargg_common.h">
+      <Filter>source\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\blargg_config.h">
+      <Filter>source\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\blargg_source.h">
+      <Filter>source\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\Blip_Buffer.h">
+      <Filter>source\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\Blip_Synth.h">
+      <Filter>source\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\Effects_Buffer.h">
+      <Filter>source\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\Gb_Apu.h">
+      <Filter>source\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\Gb_Oscs.h">
+      <Filter>source\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\Multi_Buffer.h">
+      <Filter>source\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\audio-shared\Sound_Queue.h">
+      <Filter>audio-shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\application.h">
+      <Filter>desktop-shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\config.h">
+      <Filter>desktop-shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\emu.h">
+      <Filter>desktop-shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\gui.h">
+      <Filter>desktop-shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\renderer.h">
+      <Filter>desktop-shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\imconfig.h">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\imgui.h">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_opengl2.h">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl.h">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\imgui_internal.h">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\imstb_rectpack.h">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\imstb_textedit.h">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\imstb_truetype.h">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h">
+      <Filter>desktop-shared\imgui\fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.h">
+      <Filter>desktop-shared\filebrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\FileBrowser\Dirent\dirent.h">
+      <Filter>desktop-shared\filebrowser\dirent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\mINI\ini.h">
+      <Filter>desktop-shared\mini</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\desktop-shared\Makefile.common">
+      <Filter>desktop-shared</Filter>
+    </None>
+  </ItemGroup>
+</Project>
