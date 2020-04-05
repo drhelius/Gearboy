@@ -1,13 +1,9 @@
-# Netbeans files
-dist/
-build/
-private/
-
 # Mac files
 *.DS_Store
 *.dylib
 
 # Visual Studio files
+.vs/
 ipch/
 [Oo]bj
 [Bb]in
@@ -56,6 +52,7 @@ desktop.ini
 *.gearboy
 *.so
 *.sav
+*.state*
 
 # Qt Ignores
 moc_*.cpp
@@ -71,7 +68,6 @@ Gearboy.pro.user.*
 xcuserdata/
 *.xcexplist
 *.xcsettings
-
 *.xccheckout
 
 #rpi
