@@ -1,6 +1,7 @@
 # Mac files
 *.DS_Store
 *.dylib
+*.app/
 
 # Visual Studio files
 .vscode/
@@ -53,11 +54,8 @@ desktop.ini
 *.gearboy
 *.so
 *.sav
-<<<<<<< HEAD
 *.tmp
-=======
 *.state*
->>>>>>> ab554f5cb656dc540903798fa70ac7573b8e12a1
 
 # Qt Ignores
 moc_*.cpp
