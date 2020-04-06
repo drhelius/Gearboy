@@ -39,6 +39,7 @@ static SDL_Scancode* configured_key;
 static int* configured_button;
 static ImVec4 custom_palette[4];
 static std::list<std::string> cheat_list;
+static bool shortcut_open_rom = false;
 
 static void main_menu(void);
 static void main_window(void);
@@ -57,6 +58,8 @@ static ImVec4 color_int_to_float(GB_Color color);
 static void update_palette(void);
 static void load_rom(const char* path);
 static void push_recent_rom(std::string path);
+static void menu_reset(void);
+static void menu_pause(void);
 
 void gui_init(void)
 {
@@ -86,6 +89,34 @@ void gui_render(void)
     main_window();
 
     ImGui::Render();
+}
+
+void gui_shortcut(gui_ShortCutEvent event)
+{
+    switch (event)
+    {  
+    case gui_ShortcutOpenROM:
+        shortcut_open_rom = true;
+        break;
+    case gui_ShortcutReset:
+        menu_reset();
+        break;
+    case gui_ShortcutPause:
+        menu_pause();
+        break;
+    case gui_ShortcutFFWD:
+        config_emulator.ffwd = !config_emulator.ffwd;
+        config_audio.sync = !config_emulator.ffwd;
+        break;
+    case gui_ShortcutSaveState:
+        emu_save_state_slot(config_emulator.save_slot + 1);
+        break;
+    case gui_ShortcutLoadState:
+        emu_load_state_slot(config_emulator.save_slot + 1);
+        break;
+    default:
+        break;
+    }
 }
 
 static void main_menu(void)
@@ -131,24 +162,12 @@ static void main_menu(void)
             
             if (ImGui::MenuItem("Reset", "Ctrl+R"))
             {
-                emu_resume();
-                emu_reset(config_emulator.force_dmg, config_emulator.save_in_rom_folder);
-
-                if (config_emulator.start_paused)
-                {
-                    emu_pause();
-                    
-                    for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
-                        emu_frame_buffer[i] = 0;
-                }
+                menu_reset();
             }
 
             if (ImGui::MenuItem("Pause", "Ctrl+P", &config_emulator.paused))
             {
-                if (emu_is_paused())
-                    emu_resume();
-                else
-                    emu_pause();
+                menu_pause();
             }
 
             if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &config_emulator.ffwd))
@@ -400,8 +419,11 @@ static void main_menu(void)
         ImGui::EndMainMenuBar();       
     }
 
-    if (open_rom)
+    if (open_rom || shortcut_open_rom)
+    {
+        shortcut_open_rom = false;
         ImGui::OpenPopup("Open ROM...");
+    }
 
     if (open_ram)
         ImGui::OpenPopup("Load RAM From...");
@@ -723,4 +745,26 @@ static void push_recent_rom(std::string path)
     }
 
     config_emulator.recent_roms[0] = path;
+}
+
+static void menu_reset(void)
+{
+    emu_resume();
+    emu_reset(config_emulator.force_dmg, config_emulator.save_in_rom_folder);
+
+    if (config_emulator.start_paused)
+    {
+        emu_pause();
+        
+        for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+            emu_frame_buffer[i] = 0;
+    }
+}
+
+static void menu_pause(void)
+{
+    if (emu_is_paused())
+        emu_resume();
+    else
+        emu_pause();
 }
