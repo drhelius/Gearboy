@@ -71,12 +71,12 @@ sudo make install
 ### Mac OS X
 
 - Install Xcode and run `xcode-select --install` in the terminal for the compiler to be available on the command line.
-- Then run this commands:
+- Run this commands to generate a Mac **app** bundle:
 
 ``` shell
 brew install sdl2
 cd platforms/macos
-make
+make dist
 ```
 
 ### Linux
