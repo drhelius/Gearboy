@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/drhelius/Gearboy.svg?branch=master)](https://travis-ci.org/drhelius/Gearboy)
 
-Gearboy is a cross-platform Game Boy / GameBoy Color emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows, Linux and RetroArch.
+Gearboy is a cross-platform Game Boy / GameBoy Color emulator written in C++ that runs on iOS, Raspberry Pi, macOS, Windows, Linux and RetroArch.
 
 Please, consider [sponsoring](https://github.com/sponsors/drhelius) and following me on [Twitter](https://twitter.com/drhelius) for updates.
 
@@ -40,7 +40,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Open the Gearboy Visual Studio solution `platforms/windows/Gearboy.sln` and build.
 - You may want to use the `platforms/windows/Makefile` to build the application using MinGW.
 
-### Mac OS X
+### macOS
 
 - Install Xcode and run `xcode-select --install` in the terminal for the compiler to be available on the command line.
 - Run this commands to generate a Mac *app* bundle:
@@ -71,7 +71,7 @@ make
 
 ### iOS
 
-- Install Xcode for Mac OS X. You need iOS 13 SDK or later.
+- Install Xcode for macOS. You need iOS 13 SDK or later.
 - Build the project `platforms/ios/Gearboy.xcodeproj`
 - Run it on real hardware using your iOS developer certificate. Make sure it builds on *Release* for better performance.
 
