@@ -11,7 +11,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 ## Downloads
 
 - **Windows**: [Gearboy-3.0.0-beta-1-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.0-beta-1/Gearboy-3.0.0-beta-1-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
-- **Mac OS X**: [Gearboy-3.0.0-beta-1-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.0-beta-1/Gearboy-3.0.0-beta-1-macOS.zip)
+- **macOS**: [Gearboy-3.0.0-beta-1-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.0-beta-1/Gearboy-3.0.0-beta-1-macOS.zip)
 - **Linux**: [Gearboy-3.0.0-beta-1-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.0-beta-1/Gearboy-3.0.0-beta-1-Linux.tar.xz)
 - **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/).
