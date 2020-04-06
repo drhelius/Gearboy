@@ -10,7 +10,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and follow m
 
 ## Downloads
 
-- **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
+- **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **Mac OS X**: [Gearboy-3.0.0-beta-1-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.0-beta-1/Gearboy-3.0.0-beta-1-macOS.zip) 
 - **Windows**: [Gearboy-3.0.0-beta-1-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.0-beta-1/Gearboy-3.0.0-beta-1-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
 - **Linux**: [Gearboy-3.0.0-beta-1-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.0-beta-1/Gearboy-3.0.0-beta-1-Linux.tar.xz)
