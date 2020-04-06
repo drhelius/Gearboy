@@ -26,11 +26,22 @@
     #define EXTERN extern
 #endif
 
+enum gui_ShortCutEvent
+{
+    gui_ShortcutOpenROM = 0,
+    gui_ShortcutReset,
+    gui_ShortcutPause,
+    gui_ShortcutFFWD,
+    gui_ShortcutSaveState,
+    gui_ShortcutLoadState,
+};
+
 EXTERN bool gui_in_use;
 
 EXTERN void gui_init(void);
 EXTERN void gui_destroy(void);
 EXTERN void gui_render(void);
+EXTERN void gui_shortcut(gui_ShortCutEvent event);
 
 #undef GUI_IMPORT
 #undef EXTERN

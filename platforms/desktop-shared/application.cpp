@@ -38,6 +38,7 @@ static int sdl_init(void);
 static void sdl_destroy(void);
 static void sdl_events(void);
 static void sdl_events_emu(const SDL_Event* event);
+static void sdl_shortcuts_gui(const SDL_Event* event);
 static void run_emulator(void);
 static void render(void);
 static void frame_throttle(void);
@@ -145,7 +146,10 @@ static void sdl_events(void)
         ImGui_ImplSDL2_ProcessEvent(&event);
 
         if (!gui_in_use)
+        {
             sdl_events_emu(&event);
+            sdl_shortcuts_gui(&event);
+        }
     }
 }
 
@@ -240,6 +244,9 @@ static void sdl_events_emu(const SDL_Event* event)
 
         case SDL_KEYDOWN:
         {
+            if (event->key.keysym.mod != KMOD_NONE)
+                break;
+
             int key = event->key.keysym.scancode;
 
             if (key == config_input.key_left)
@@ -283,6 +290,36 @@ static void sdl_events_emu(const SDL_Event* event)
                 emu_key_released(Start_Key);
         }
         break;
+    }
+}
+
+static void sdl_shortcuts_gui(const SDL_Event* event)
+{
+    if ((event->type == SDL_KEYDOWN) && (event->key.keysym.mod & KMOD_CTRL ))
+    {
+        int key = event->key.keysym.scancode;
+        
+        switch (key)
+        {
+            case SDL_SCANCODE_O:
+                gui_shortcut(gui_ShortcutOpenROM);
+                break;
+            case SDL_SCANCODE_R:
+                gui_shortcut(gui_ShortcutReset);
+                break;
+            case SDL_SCANCODE_P:
+                gui_shortcut(gui_ShortcutPause);
+                break;
+            case SDL_SCANCODE_F:
+                gui_shortcut(gui_ShortcutFFWD);
+                break;
+            case SDL_SCANCODE_L:
+                gui_shortcut(gui_ShortcutLoadState);
+                break;
+            case SDL_SCANCODE_S:
+                gui_shortcut(gui_ShortcutSaveState);
+                break;
+        }
     }
 }
 
