@@ -10,10 +10,10 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 
 ## Downloads
 
-- **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
-- **Mac OS X**: [Gearboy-3.0.0-beta-1-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.0-beta-1/Gearboy-3.0.0-beta-1-macOS.zip) 
 - **Windows**: [Gearboy-3.0.0-beta-1-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.0-beta-1/Gearboy-3.0.0-beta-1-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
+- **Mac OS X**: [Gearboy-3.0.0-beta-1-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.0-beta-1/Gearboy-3.0.0-beta-1-macOS.zip)
 - **Linux**: [Gearboy-3.0.0-beta-1-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.0-beta-1/Gearboy-3.0.0-beta-1-Linux.tar.xz)
+- **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/).
 - **Raspberry Pi**: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
 
@@ -33,34 +33,6 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Supported platforms: Windows, Linux, macOS, Raspberry Pi, iOS and RetroArch (libretro).
 
 ## Build Instructions
-
-### iOS
-
-- Install Xcode for Mac OS X. You need iOS 13 SDK or later.
-- Build the project `platforms/ios/Gearboy.xcodeproj`
-- Run it on real hardware using your iOS developer certificate. Make sure it builds on *Release* for better performance.
-
-### Raspberry Pi 2 & 3 - Raspbian
-
-- Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
-
-``` shell
-sudo apt-get update
-sudo apt-get upgrade
-sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg-dev libtiff5-dev libwebp-dev automake
-cd ~
-wget https://www.libsdl.org/release/SDL2-2.0.9.tar.gz
-tar zxvf SDL2-2.0.9.tar.gz
-cd SDL2-2.0.9 && mkdir build && cd build
-../configure --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl --host=armv7l-raspberry-linux-gnueabihf
-make -j 4
-sudo make install
-```
-
-- Install libconfig library dependencies for development: `sudo apt-get install libconfig++-dev`
-- Use `make -j 4` in the `platforms/raspberrypi3/x64/` folder to build the project.
-- Use `export SDL_AUDIODRIVER=ALSA` before running the emulator for the best performance.
-- Gearboy generates a `gearboy.cfg` configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ### Windows
 
@@ -96,6 +68,52 @@ sudo dnf install @development-tools gcc-c++ SDL2-devel glew-devel
 cd platforms/linux
 make
 ```
+
+### iOS
+
+- Install Xcode for Mac OS X. You need iOS 13 SDK or later.
+- Build the project `platforms/ios/Gearboy.xcodeproj`
+- Run it on real hardware using your iOS developer certificate. Make sure it builds on *Release* for better performance.
+
+### Libretro
+
+- Ubuntu / Debian:
+
+``` shell
+sudo apt-get install build-essential
+cd platforms/libretro
+make
+```
+
+- Fedora:
+
+``` shell
+sudo dnf install @development-tools gcc-c++
+cd platforms/libretro
+make
+```
+
+### Raspberry Pi 2 & 3 - Raspbian
+
+- Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
+
+``` shell
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg-dev libtiff5-dev libwebp-dev automake
+cd ~
+wget https://www.libsdl.org/release/SDL2-2.0.9.tar.gz
+tar zxvf SDL2-2.0.9.tar.gz
+cd SDL2-2.0.9 && mkdir build && cd build
+../configure --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl --host=armv7l-raspberry-linux-gnueabihf
+make -j 4
+sudo make install
+```
+
+- Install libconfig library dependencies for development: `sudo apt-get install libconfig++-dev`
+- Use `make -j 4` in the `platforms/raspberrypi3/x64/` folder to build the project.
+- Use `export SDL_AUDIODRIVER=ALSA` before running the emulator for the best performance.
+- Gearboy generates a `gearboy.cfg` configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ## Accuracy Tests
 
