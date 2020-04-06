@@ -14,5 +14,7 @@
     <string>APPL</string>
     <key>CFBundleIconFile</key>
     <string>iconfile</string>
+    <key>NSHighResolutionCapable</key>
+    <string>True</string>
 </dict>
 </plist>
