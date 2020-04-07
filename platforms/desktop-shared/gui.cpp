@@ -33,7 +33,7 @@ static imgui_addons::ImGuiFileBrowser file_dialog;
 static int main_menu_height;
 static int main_window_width;
 static int main_window_height;
-static bool show_debug = false;
+//static bool show_debug = false;
 static bool dialog_in_use = false;
 static SDL_Scancode* configured_key;
 static int* configured_button;
@@ -303,7 +303,7 @@ static void main_menu(void)
 
             ImGui::MenuItem("Show FPS", "", &config_video.fps);
             ImGui::MenuItem("Bilinear Filtering", "", &config_video.bilinear);
-            ImGui::MenuItem("Screen Ghosting", "", &config_video.mix_frames, false);
+            ImGui::MenuItem("Screen Ghosting", "", &config_video.mix_frames);
             //ImGui::MenuItem("Dot Matrix", "", &config_video.matrix, false);
             
             ImGui::Separator();
@@ -395,13 +395,13 @@ static void main_menu(void)
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Debug"))
-        {
-            gui_in_use = true;
+        // if (ImGui::BeginMenu("Debug"))
+        // {
+        //     gui_in_use = true;
 
-            ImGui::MenuItem("Enabled", "", &show_debug, false);
-            ImGui::EndMenu();
-        }
+        //     ImGui::MenuItem("Enabled", "", &show_debug, false);
+        //     ImGui::EndMenu();
+        // }
 
         if (ImGui::BeginMenu("About"))
         {

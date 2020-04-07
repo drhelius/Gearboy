@@ -29,9 +29,9 @@
 #include <fstream>
 #include <sstream>
 
-#define DEBUG_GEARBOY 1
+//#define DEBUG_GEARBOY 1
 #define GEARBOY_TITLE "Gearboy"
-#define GEARBOY_VERSION "3.0.0 - WIP"
+#define GEARBOY_VERSION "3.0.0"
 
 #ifndef EMULATOR_BUILD
 #define EMULATOR_BUILD "undefined"
