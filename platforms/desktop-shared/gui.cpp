@@ -395,13 +395,13 @@ static void main_menu(void)
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Debug"))
-        {
-            gui_in_use = true;
+        // if (ImGui::BeginMenu("Debug"))
+        // {
+        //     gui_in_use = true;
 
-            ImGui::MenuItem("Enabled", "", &show_debug, false);
-            ImGui::EndMenu();
-        }
+        //     ImGui::MenuItem("Enabled", "", &show_debug, false);
+        //     ImGui::EndMenu();
+        // }
 
         if (ImGui::BeginMenu("About"))
         {
