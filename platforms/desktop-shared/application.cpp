@@ -244,7 +244,7 @@ static void sdl_events_emu(const SDL_Event* event)
 
         case SDL_KEYDOWN:
         {
-            if (event->key.keysym.mod != KMOD_NONE)
+            if (event->key.keysym.mod & KMOD_CTRL)
                 break;
 
             int key = event->key.keysym.scancode;
@@ -295,7 +295,7 @@ static void sdl_events_emu(const SDL_Event* event)
 
 static void sdl_shortcuts_gui(const SDL_Event* event)
 {
-    if ((event->type == SDL_KEYDOWN) && (event->key.keysym.mod & KMOD_CTRL ))
+    if ((event->type == SDL_KEYDOWN) && (event->key.keysym.mod & KMOD_CTRL))
     {
         int key = event->key.keysym.scancode;
         
