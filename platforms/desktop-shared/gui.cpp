@@ -563,7 +563,11 @@ static void keyboard_configuration_item(const char* text, SDL_Scancode* key)
 {
     ImGui::Text("%s", text);
     ImGui::SameLine(70);
-    if (ImGui::Button(SDL_GetScancodeName(*key), ImVec2(70,0)))
+
+    char button_label[256];
+    sprintf(button_label, "%s##%s", SDL_GetScancodeName(*key), text);
+
+    if (ImGui::Button(button_label, ImVec2(70,0)))
     {
         configured_key = key;
         ImGui::OpenPopup("Keyboard Configuration");
@@ -577,7 +581,10 @@ static void gamepad_configuration_item(const char* text, int* button)
 
     static const char* gamepad_names[16] = {"0", "A", "B" ,"3", "L", "R", "6", "7", "SELECT", "START", "10", "11", "12", "13", "14", "15"};
 
-    if (ImGui::Button(gamepad_names[*button], ImVec2(70,0)))
+    char button_label[256];
+    sprintf(button_label, "%s##%s", gamepad_names[*button], text);
+
+    if (ImGui::Button(button_label, ImVec2(70,0)))
     {
         configured_button = button;
         ImGui::OpenPopup("Gamepad Configuration");
@@ -595,9 +602,14 @@ static void popup_modal_keyboard(void)
         {
             if (ImGui::IsKeyPressed(i))
             {
-                *configured_key = (SDL_Scancode)i;
-                ImGui::CloseCurrentPopup();
-                break;
+                SDL_Scancode key = (SDL_Scancode)i;
+
+                if ((key != SDL_SCANCODE_LCTRL) && (key != SDL_SCANCODE_RCTRL) && (key != SDL_SCANCODE_CAPSLOCK))
+                {
+                    *configured_key = key;
+                    ImGui::CloseCurrentPopup();
+                    break;
+                }
             }
         }
 
