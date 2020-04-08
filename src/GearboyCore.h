@@ -55,6 +55,7 @@ public:
     void ResetROMPreservingRAM(bool forceDMG);
     void ResetSound();
     void SetSoundSampleRate(int rate);
+    void SetSoundVolume(float volume);
     void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
     u16* GetDMGInternalPalette();
     void SaveRam();

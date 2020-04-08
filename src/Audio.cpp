@@ -79,6 +79,11 @@ void Audio::SetSampleRate(int rate)
     }
 }
 
+void Audio::SetVolume(float volume)
+{
+    m_pApu->volume(volume);
+}
+
 void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 {
     m_pApu->end_frame(m_ElapsedCycles);

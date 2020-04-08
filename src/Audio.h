@@ -32,6 +32,7 @@ public:
     void Init();
     void Reset(bool bCGB);
     void SetSampleRate(int rate);
+    void SetVolume(float volume);
     u8 ReadAudioRegister(u16 address);
     void WriteAudioRegister(u16 address, u8 value);
     void Tick(unsigned int clockCycles);

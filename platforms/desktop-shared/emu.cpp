@@ -100,7 +100,7 @@ void emu_run_to_vblank(void)
 
         generate_24bit_buffer();
 
-        if (audio_enabled && (sampleCount > 0))
+        if ((sampleCount > 0) && !gearboy->IsPaused())
         {
             sound_queue->write(audio_buffer, sampleCount, emu_audio_sync);
         }
@@ -120,13 +120,11 @@ void emu_key_released(Gameboy_Keys key)
 void emu_pause(void)
 {
     gearboy->Pause(true);
-    audio_enabled = false;
 }
 
 void emu_resume(void)
 {
     gearboy->Pause(false);
-    audio_enabled = true;
 }
 
 bool emu_is_paused(void)
@@ -152,12 +150,10 @@ void emu_memory_dump(void)
     gearboy->GetMemory()->MemoryDump("memdump.txt");
 }
 
-void emu_audio_settings(bool enabled, int rate)
+void emu_audio_volume(float volume)
 {
-    audio_enabled = enabled && !gearboy->IsPaused();
-    gearboy->SetSoundSampleRate(rate);
-    sound_queue->stop();
-    sound_queue->start(rate, 2);
+    audio_enabled = (volume > 0.0f);
+    gearboy->SetSoundVolume(volume);
 }
 
 bool emu_is_audio_enabled(void)

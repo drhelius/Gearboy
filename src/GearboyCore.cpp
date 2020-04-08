@@ -282,6 +282,11 @@ void GearboyCore::SetSoundSampleRate(int rate)
     m_pAudio->SetSampleRate(rate);
 }
 
+void GearboyCore::SetSoundVolume(float volume)
+{
+    m_pAudio->SetVolume(volume);
+}
+
 u16* GearboyCore::GetDMGInternalPalette()
 {
     return m_DMGPalette;

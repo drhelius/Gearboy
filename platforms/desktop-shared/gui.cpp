@@ -384,7 +384,7 @@ static void main_menu(void)
 
             if (ImGui::MenuItem("Enable", "", &config_audio.enable))
             {
-                emu_audio_settings(config_audio.enable, 44100);
+                emu_audio_volume(config_audio.enable ? 1.0f: 0.0f);
             }
 
             if (ImGui::MenuItem("Sync With Emulator", "", &config_audio.sync))
@@ -743,8 +743,6 @@ static void push_recent_rom(std::string path)
 {
     for (int i = (config_max_recent_roms - 1); i >= 0; i--)
     {
-        //if (config_emulator.recent_roms[i - 1].length() <= 0)
-        //    break;
         config_emulator.recent_roms[i] = config_emulator.recent_roms[i - 1];
     }
 
