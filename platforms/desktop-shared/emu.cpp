@@ -34,21 +34,29 @@ static GB_Color slime_palette[4] = {{0xD4, 0xEB, 0xA5},{0x62, 0xB8, 0x7C},{0x27,
 static GearboyCore* gearboy;
 static Sound_Queue* sound_queue;
 static bool save_files_in_rom_dir = false;
+static u16* frame_buffer_565;
 static s16* audio_buffer;
 static char base_save_path[260];
 static bool audio_enabled;
 
 static void save_ram(void);
 static void load_ram(void);
+static void generate_24bit_buffer(void);
 
 void emu_init(const char* save_path)
 {
     strcpy(base_save_path, save_path);
 
-    emu_frame_buffer = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+    frame_buffer_565 = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+    emu_frame_buffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     
     for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
-        emu_frame_buffer[i] = 0;
+    {
+        emu_frame_buffer[i].red = 0;
+        emu_frame_buffer[i].green = 0;
+        emu_frame_buffer[i].blue = 0;
+        frame_buffer_565[i] = 0;
+    }
 
     gearboy = new GearboyCore();
     gearboy->Init();
@@ -88,7 +96,9 @@ void emu_run_to_vblank(void)
     {
         int sampleCount = 0;
 
-        gearboy->RunToVBlank(emu_frame_buffer, audio_buffer, &sampleCount);
+        gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount);
+
+        generate_24bit_buffer();
 
         if (audio_enabled && (sampleCount > 0))
         {
@@ -266,3 +276,12 @@ static void load_ram(void)
         gearboy->LoadRam(base_save_path);
 }
 
+static void generate_24bit_buffer(void)
+{
+    for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+    {
+        emu_frame_buffer[i].red = (((frame_buffer_565[i] >> 11) & 0x1F ) * 255 + 15) / 31;
+        emu_frame_buffer[i].green = (((frame_buffer_565[i] >> 5) & 0x3F ) * 255 + 31) / 63;
+        emu_frame_buffer[i].blue = ((frame_buffer_565[i] & 0x1F ) * 255 + 15) / 31;
+    }
+}

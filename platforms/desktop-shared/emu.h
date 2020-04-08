@@ -28,7 +28,7 @@
     #define EXTERN extern
 #endif
 
-EXTERN u16* emu_frame_buffer;
+EXTERN GB_Color* emu_frame_buffer;
 EXTERN bool emu_audio_sync;
 
 EXTERN void emu_init(const char* save_path);

@@ -731,7 +731,11 @@ static void load_rom(const char* path)
         emu_pause();
         
         for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
-            emu_frame_buffer[i] = 0;
+        {
+            emu_frame_buffer[i].red = 0;
+            emu_frame_buffer[i].green = 0;
+            emu_frame_buffer[i].blue = 0;
+        }
     }
 }
 
@@ -757,7 +761,11 @@ static void menu_reset(void)
         emu_pause();
         
         for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
-            emu_frame_buffer[i] = 0;
+        {
+            emu_frame_buffer[i].red = 0;
+            emu_frame_buffer[i].green = 0;
+            emu_frame_buffer[i].blue = 0;
+        }
     }
 }
 
