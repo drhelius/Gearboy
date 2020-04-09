@@ -58,6 +58,8 @@ int application_init(void)
 
     renderer_init();
 
+    SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+
     return ret;
 }
 
@@ -356,7 +358,7 @@ static void render(void)
 
 static void frame_throttle(void)
 {
-    if (emu_is_empty() || emu_is_paused() || (!emu_is_audio_enabled() && config_audio.sync) || config_emulator.ffwd)
+    if (emu_is_empty() || emu_is_paused() || config_emulator.ffwd)
     {
         float elapsed = (float)((frame_time_end - frame_time_start) * 1000) / SDL_GetPerformanceFrequency();
 

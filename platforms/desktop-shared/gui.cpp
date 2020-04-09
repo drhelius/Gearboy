@@ -60,6 +60,7 @@ static void load_rom(const char* path);
 static void push_recent_rom(std::string path);
 static void menu_reset(void);
 static void menu_pause(void);
+static void menu_ffwd(void);
 
 void gui_init(void)
 {
@@ -112,7 +113,7 @@ void gui_shortcut(gui_ShortCutEvent event)
         break;
     case gui_ShortcutFFWD:
         config_emulator.ffwd = !config_emulator.ffwd;
-        config_audio.sync = !config_emulator.ffwd;
+        menu_ffwd();
         break;
     case gui_ShortcutSaveState:
         emu_save_state_slot(config_emulator.save_slot + 1);
@@ -178,7 +179,7 @@ static void main_menu(void)
 
             if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &config_emulator.ffwd))
             {
-                config_audio.sync = !config_emulator.ffwd;
+                menu_ffwd();
             }
 
             ImGui::Separator();
@@ -307,6 +308,17 @@ static void main_menu(void)
 
             ImGui::Separator();
 
+            if (ImGui::MenuItem("Vertical Sync", "", &config_video.sync))
+            {
+                SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+
+                if (config_video.sync)
+                {
+                    config_audio.sync = true;
+                    emu_audio_reset();
+                }
+            }
+
             ImGui::MenuItem("Show FPS", "", &config_video.fps);
             ImGui::MenuItem("Bilinear Filtering", "", &config_video.bilinear);
             ImGui::MenuItem("Screen Ghosting", "", &config_video.mix_frames);
@@ -396,6 +408,12 @@ static void main_menu(void)
             if (ImGui::MenuItem("Sync With Emulator", "", &config_audio.sync))
             {
                 config_emulator.ffwd = false;
+
+                if (!config_audio.sync)
+                {
+                    config_video.sync = false;
+                    SDL_GL_SetSwapInterval(0);
+                }
             }
 
             ImGui::EndMenu();
@@ -791,4 +809,17 @@ static void menu_pause(void)
         emu_resume();
     else
         emu_pause();
+}
+
+static void menu_ffwd(void)
+{
+    config_audio.sync = !config_emulator.ffwd;
+
+    if (config_emulator.ffwd)
+        SDL_GL_SetSwapInterval(0);
+    else
+    {
+        SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+        emu_audio_reset();
+    }
 }
