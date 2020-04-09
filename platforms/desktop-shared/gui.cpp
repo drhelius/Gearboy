@@ -93,7 +93,9 @@ void gui_render(void)
     gui_in_use = dialog_in_use;
 
     main_menu();
-    main_window();
+
+    if(!emu_is_empty())
+        main_window();
 
     ImGui::Render();
 }
