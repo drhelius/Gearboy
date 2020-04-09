@@ -301,10 +301,13 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Scale"))
             {
-                if (ImGui::Combo("", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0Zoom X4\0\0"))
-                {
-                    //update_palette();
-                }
+                ImGui::Combo("", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0Zoom X4\0\0");
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Aspect Ratio"))
+            {
+                ImGui::Combo("", &config_video.ratio, "Game Boy\0Standard (4:3)\0Wide (16:9)\0Fit Window\0\0");
                 ImGui::EndMenu();
             }
 
@@ -485,6 +488,29 @@ static void main_window(void)
     int w = ImGui::GetIO().DisplaySize.x;
     int h = ImGui::GetIO().DisplaySize.y - main_menu_height;
 
+    float ratio;
+
+    switch (config_video.ratio)
+    {
+        case 0:
+            ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
+            break;
+        case 1:
+            ratio = 4.0f / 3.0f;
+            break;
+        case 2:
+            ratio = 16.0f / 9.0f;
+            break;
+        case 3:
+            ratio = (float)w / (float)h;
+            break;
+        default:
+            ratio = 1.0f;
+    }
+
+    int w_corrected = config_video.ratio == 3 ? w : GAMEBOY_HEIGHT * ratio;
+    int h_corrected = config_video.ratio == 3 ? h : GAMEBOY_HEIGHT;
+
     int factor = 0;
 
     if (config_video.scale > 0)
@@ -493,16 +519,16 @@ static void main_window(void)
     }
     else
     {
-        int factor_w = w / GAMEBOY_WIDTH;
-        int factor_h = h / GAMEBOY_HEIGHT;
+        int factor_w = w / w_corrected;
+        int factor_h = h / h_corrected;
         factor = (factor_w < factor_h) ? factor_w : factor_h;
     }
 
-    main_window_width = GAMEBOY_WIDTH * factor;
-    main_window_height = GAMEBOY_HEIGHT * factor;
+    main_window_width = w_corrected * factor;
+    main_window_height = h_corrected * factor;
 
-    int window_x = (w - (GAMEBOY_WIDTH * factor)) / 2;
-    int window_y = ((h - (GAMEBOY_HEIGHT * factor)) / 2) + main_menu_height;
+    int window_x = (w - (w_corrected * factor)) / 2;
+    int window_y = ((h - (h_corrected * factor)) / 2) + main_menu_height;
     
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
     ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
