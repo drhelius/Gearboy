@@ -90,6 +90,7 @@ void config_read(void)
     config_video.color[3].red = read_int("Video", "CustomPalette3R");
     config_video.color[3].green = read_int("Video", "CustomPalette3G");
     config_video.color[3].blue = read_int("Video", "CustomPalette3B");
+    config_video.sync = read_bool("Video", "Sync");
     
     config_audio.enable = read_bool("Audio", "Enable");
     config_audio.sync = read_bool("Audio", "Sync");
@@ -149,6 +150,7 @@ void config_write(void)
     write_int("Video", "CustomPalette3R", config_video.color[3].red);
     write_int("Video", "CustomPalette3G", config_video.color[3].green);
     write_int("Video", "CustomPalette3B", config_video.color[3].blue);
+    write_bool("Video", "Sync", config_video.sync);
 
     write_bool("Audio", "Enable", config_audio.enable);
     write_bool("Audio", "Sync", config_audio.sync);

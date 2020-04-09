@@ -44,6 +44,7 @@ EXTERN bool emu_is_empty(void);
 EXTERN void emu_reset(bool force_dmg, bool save_in_rom_dir);
 EXTERN void emu_memory_dump(void);
 EXTERN void emu_audio_volume(float volume);
+EXTERN void emu_audio_reset(void);
 EXTERN bool emu_is_audio_enabled(void);
 EXTERN void emu_dmg_palette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
 EXTERN void emu_dmg_predefined_palette(int palette);
