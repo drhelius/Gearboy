@@ -66,10 +66,16 @@ void gui_init(void)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-
     ImGuiIO& io = ImGui::GetIO();
+
     io.IniFilename = config_imgui_file_path;
-    io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, 17.0f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+
+    float font_scaling_factor = application_display_scale;
+    float font_size = 17.0f;
+
+    io.FontGlobalScale /= font_scaling_factor;
+
+    io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, font_size * font_scaling_factor, NULL, io.Fonts->GetGlyphRangesCyrillic());
 
     update_palette();
 }

@@ -29,6 +29,7 @@
 #endif
 
 EXTERN SDL_Joystick* application_gamepad;
+EXTERN float application_display_scale;
 
 EXTERN int application_init(void);
 EXTERN void application_destroy(void);
