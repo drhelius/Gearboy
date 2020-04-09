@@ -119,6 +119,19 @@ static int sdl_init(void)
         Log("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
     }
 
+    int w, h;
+    int display_w, display_h;
+    SDL_GetWindowSize(sdl_window, &w, &h);
+    SDL_GL_GetDrawableSize(sdl_window, &display_w, &display_h);
+    
+    if (w > 0 && h > 0)
+    {
+        float scale_w = (float)display_w / w;
+        float scale_h = (float)display_h / h;
+
+        application_display_scale = (scale_w > scale_h) ? scale_w : scale_h;
+    }
+
     return 0;
 }
 
