@@ -21,13 +21,13 @@
 #define	CORE_H
 
 #include "definitions.h"
+#include "Cartridge.h"
 
 class Memory;
 class Processor;
 class Video;
 class Audio;
 class Input;
-class Cartridge;
 class CommonMemoryRule;
 class IORegistersMemoryRule;
 class RomOnlyMemoryRule;
@@ -45,13 +45,13 @@ public:
     ~GearboyCore();
     void Init(GB_Color_Format pixelFormat = GB_PIXEL_RGB565);
     void RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer = false);
-    bool LoadROM(const char* szFilePath, bool forceDMG);
+    bool LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
     bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause(bool paused);
     bool IsPaused();
-    void ResetROM(bool forceDMG);
+    void ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
     void ResetROMPreservingRAM(bool forceDMG);
     void ResetSound();
     void SetSoundSampleRate(int rate);
@@ -81,7 +81,7 @@ private:
     void RenderDMGFrame(u16* pFrameBuffer) const;
     void InitDMGPalette();
     void InitMemoryRules();
-    bool AddMemoryRules();
+    bool AddMemoryRules(Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
     void Reset(bool bCGB);
 
 private:

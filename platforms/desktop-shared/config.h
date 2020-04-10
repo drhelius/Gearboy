@@ -42,6 +42,8 @@ struct config_Emulator
     bool force_dmg = false;
     bool save_in_rom_folder = false;
     bool ffwd = false;
+    bool show_info = false;
+    int mbc = 0;
     std::string recent_roms[config_max_recent_roms];
 };
 

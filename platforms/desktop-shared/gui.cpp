@@ -61,6 +61,9 @@ static void push_recent_rom(std::string path);
 static void menu_reset(void);
 static void menu_pause(void);
 static void menu_ffwd(void);
+static void show_info(void);
+static void show_fps(void);
+static Cartridge::CartridgeTypes get_mbc(int index);
 
 void gui_init(void)
 {
@@ -142,7 +145,7 @@ static void main_menu(void)
     
     if (ImGui::BeginMainMenuBar())
     {
-        if (ImGui::BeginMenu("Game Boy"))
+        if (ImGui::BeginMenu(GEARBOY_TITLE))
         {
             gui_in_use = true;
 
@@ -228,7 +231,7 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Quit", "Alt+F4"))
+            if (ImGui::MenuItem("Quit"))
             {
                 application_trigger_quit();
             }
@@ -240,11 +243,23 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
+            ImGui::MenuItem("Force Game Boy (DMG)", "", &config_emulator.force_dmg);
 
-            ImGui::MenuItem("Force DMG Model", "", &config_emulator.force_dmg);
+            if (ImGui::BeginMenu("Memory Bank Controller"))
+            {
+                ImGui::Combo("", &config_emulator.mbc, "Auto\0ROM Only\0MBC 1\0MBC 2\0MBC 3\0MBC 5\0Multi MBC 1\0\0");
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
             
             ImGui::MenuItem("Save Files In ROM Folder", "", &config_emulator.save_in_rom_folder);
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Show ROM info", "", &config_emulator.show_info);
 
             ImGui::Separator();
             
@@ -542,12 +557,10 @@ static void main_window(void)
     ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width,main_window_height));
 
     if (config_video.fps)
-    {
-        ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
-        ImGui::Text("Frame Rate: %.2f FPS", ImGui::GetIO().Framerate);
-        ImGui::SetCursorPosX(5.0f);
-        ImGui::Text("Frame Time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
-    }
+        show_fps();
+
+    if (config_emulator.show_info)
+        show_info();
 
     ImGui::End();
 
@@ -569,7 +582,7 @@ static void file_dialog_load_ram(void)
 {
     if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*", &dialog_in_use))
     {
-        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder);
+        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
     }
 }
 
@@ -786,7 +799,7 @@ static void update_palette(void)
 static void load_rom(const char* path)
 {
     emu_resume();
-    emu_load_rom(path, config_emulator.force_dmg, config_emulator.save_in_rom_folder);
+    emu_load_rom(path, config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
     cheat_list.clear();
     emu_clear_cheats();
 
@@ -816,7 +829,7 @@ static void push_recent_rom(std::string path)
 static void menu_reset(void)
 {
     emu_resume();
-    emu_reset(config_emulator.force_dmg, config_emulator.save_in_rom_folder);
+    emu_reset(config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
 
     if (config_emulator.start_paused)
     {
@@ -851,3 +864,49 @@ static void menu_ffwd(void)
         emu_audio_reset();
     }
 }
+
+static void show_info(void)
+{
+    if (config_video.fps)
+        ImGui::SetCursorPosX(5.0f);
+    else
+        ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
+
+    static char info[256];
+
+    emu_get_info(info);
+    ImGui::Text("%s", info);
+}
+
+static void show_fps(void)
+{
+    ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
+    ImGui::Text("Frame Rate: %.2f FPS", ImGui::GetIO().Framerate);
+    ImGui::SetCursorPosX(5.0f);
+    ImGui::Text("Frame Time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
+}
+
+static Cartridge::CartridgeTypes get_mbc(int index)
+{
+    switch (index)
+    {
+        case 0:
+            return Cartridge::CartridgeNotSupported;
+        case 1:
+            return Cartridge::CartridgeNoMBC;
+        case 2:
+            return Cartridge::CartridgeMBC1;
+        case 3:
+            return Cartridge::CartridgeMBC2;
+        case 4:
+            return Cartridge::CartridgeMBC3;
+        case 5:
+            return Cartridge::CartridgeMBC5;
+        case 6:
+            return Cartridge::CartridgeMBC1Multi;
+        default:
+            return Cartridge::CartridgeNotSupported;
+    }
+}
+
+
