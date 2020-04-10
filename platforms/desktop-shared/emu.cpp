@@ -42,6 +42,7 @@ static bool audio_enabled;
 static void save_ram(void);
 static void load_ram(void);
 static void generate_24bit_buffer(void);
+static const char* get_mbc(Cartridge::CartridgeTypes type);
 
 void emu_init(const char* save_path)
 {
@@ -82,11 +83,11 @@ void emu_destroy(void)
     SafeDeleteArray(emu_frame_buffer);
 }
 
-void emu_load_rom(const char* file_path, bool force_dmg, bool save_in_rom_dir)
+void emu_load_rom(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc)
 {
     save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
-    gearboy->LoadROM(file_path, force_dmg);
+    gearboy->LoadROM(file_path, force_dmg, mbc);
     load_ram();
 }
 
@@ -137,11 +138,11 @@ bool emu_is_empty(void)
     return !gearboy->GetCartridge()->IsLoadedROM();
 }
 
-void emu_reset(bool force_dmg, bool save_in_rom_dir)
+void emu_reset(bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc)
 {
     save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
-    gearboy->ResetROM(force_dmg);
+    gearboy->ResetROM(force_dmg, mbc);
     load_ram();
 }
 
@@ -217,13 +218,13 @@ void emu_save_ram(const char* file_path)
         gearboy->SaveRam(file_path, true);
 }
 
-void emu_load_ram(const char* file_path, bool force_dmg, bool save_in_rom_dir)
+void emu_load_ram(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc)
 {
     if (!emu_is_empty())
     {
         save_files_in_rom_dir = save_in_rom_dir;
         save_ram();
-        gearboy->ResetROM(force_dmg);
+        gearboy->ResetROM(force_dmg, mbc);
         gearboy->LoadRam(file_path, true);
     }
 }
@@ -279,34 +280,7 @@ void emu_get_info(char* info)
         int rom_banks = cart->GetROMBankCount();
         int ram_banks = cart->GetRAMBankCount();
 
-        const char* mbc = 0;
-
-        switch (cart->GetType())
-        {
-        case Cartridge::CartridgeNoMBC:
-            mbc = "ROM Only";
-            break;
-        case Cartridge::CartridgeMBC1:
-            mbc = "MBC 1";
-            break;
-        case Cartridge::CartridgeMBC1Multi:
-            mbc = "MBC 1 Multi 64";
-            break;
-        case Cartridge::CartridgeMBC2:
-            mbc = "MBC 2";
-            break;
-        case Cartridge::CartridgeMBC3:
-            mbc = "MBC 3";
-            break;
-        case Cartridge::CartridgeMBC5:
-            mbc = "MBC 5";
-            break;
-        case Cartridge::CartridgeNotSupported:
-            mbc = "Not Supported";
-            break;
-        default:
-            break;
-        }
+        const char* mbc = get_mbc(cart->GetType());
 
         sprintf(info, "File Name: %s\nMBC: %s\nGame Boy Color: %s\nSuper Game Boy: %s\nCartridge Name: %s\nCartridge Version: %d\nROM Banks: %d\nRAM Banks: %d\nBattery: %s\nReal Time Clock: %s\nRumble: %s\n", filename, mbc, gbc, sgb, name, version, rom_banks, ram_banks, battery, rtc, rumble);
     }
@@ -339,5 +313,36 @@ static void generate_24bit_buffer(void)
         emu_frame_buffer[i].red = (((frame_buffer_565[i] >> 11) & 0x1F ) * 255 + 15) / 31;
         emu_frame_buffer[i].green = (((frame_buffer_565[i] >> 5) & 0x3F ) * 255 + 31) / 63;
         emu_frame_buffer[i].blue = ((frame_buffer_565[i] & 0x1F ) * 255 + 15) / 31;
+    }
+}
+
+static const char* get_mbc(Cartridge::CartridgeTypes type)
+{
+    switch (type)
+    {
+    case Cartridge::CartridgeNoMBC:
+        return "ROM Only";
+        break;
+    case Cartridge::CartridgeMBC1:
+        return "MBC 1";
+        break;
+    case Cartridge::CartridgeMBC1Multi:
+        return "MBC 1 Multi 64";
+        break;
+    case Cartridge::CartridgeMBC2:
+        return "MBC 2";
+        break;
+    case Cartridge::CartridgeMBC3:
+        return "MBC 3";
+        break;
+    case Cartridge::CartridgeMBC5:
+        return "MBC 5";
+        break;
+    case Cartridge::CartridgeNotSupported:
+        return "Not Supported";
+        break;
+    default:
+        return "Undefined";
+        break;
     }
 }

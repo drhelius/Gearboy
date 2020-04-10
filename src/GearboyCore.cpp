@@ -152,7 +152,7 @@ void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
     }
 }
 
-bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)
+bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType)
 {
 #ifdef DEBUG_GEARBOY
     if (m_pCartridge->IsLoadedROM() && (strlen(m_pCartridge->GetFilePath()) > 0))
@@ -177,7 +177,7 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG)
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
-        bool romTypeOK = AddMemoryRules();
+        bool romTypeOK = AddMemoryRules(forceType);
 
         if (!romTypeOK)
         {
@@ -240,14 +240,14 @@ bool GearboyCore::IsPaused()
     return m_bPaused;
 }
 
-void GearboyCore::ResetROM(bool forceDMG)
+void GearboyCore::ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType)
 {
     if (m_pCartridge->IsLoadedROM())
     {
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
-        AddMemoryRules();
+        AddMemoryRules(forceType);
     }
 }
 
@@ -787,7 +787,7 @@ void GearboyCore::InitMemoryRules()
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 }
 
-bool GearboyCore::AddMemoryRules()
+bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
 {
     m_pMemory->SetIORule(m_pIORegistersMemoryRule);
     m_pMemory->SetCommonRule(m_pCommonMemoryRule);
@@ -795,6 +795,9 @@ bool GearboyCore::AddMemoryRules()
     Cartridge::CartridgeTypes type = m_pCartridge->GetType();
 
     bool notSupported = false;
+
+    if (forceType != Cartridge::CartridgeNotSupported)
+        type = forceType;
 
     switch (type)
     {
