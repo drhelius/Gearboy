@@ -262,6 +262,60 @@ void emu_clear_cheats()
     gearboy->ClearCheats();
 }
 
+void emu_get_info(char* info)
+{
+    if (!emu_is_empty())
+    {
+        Cartridge* cart = gearboy->GetCartridge();
+
+        const char* filename = cart->GetFileName();
+        const char* gbc = cart->IsCGB() ? "YES" : "NO";
+        const char* sgb = cart->IsSGB() ? "YES" : "NO";
+        const char* battery = cart->HasBattery() ? "YES" : "NO";
+        const char* rtc = cart->IsRTCPresent() ? "YES" : "NO";
+        const char* rumble = cart->IsRumblePresent() ? "YES" : "NO";
+        const char* name = cart->GetName();
+        int version = cart->GetVersion();
+        int rom_banks = cart->GetROMBankCount();
+        int ram_banks = cart->GetRAMBankCount();
+
+        const char* mbc = 0;
+
+        switch (cart->GetType())
+        {
+        case Cartridge::CartridgeNoMBC:
+            mbc = "ROM Only";
+            break;
+        case Cartridge::CartridgeMBC1:
+            mbc = "MBC 1";
+            break;
+        case Cartridge::CartridgeMBC1Multi:
+            mbc = "MBC 1 Multi 64";
+            break;
+        case Cartridge::CartridgeMBC2:
+            mbc = "MBC 2";
+            break;
+        case Cartridge::CartridgeMBC3:
+            mbc = "MBC 3";
+            break;
+        case Cartridge::CartridgeMBC5:
+            mbc = "MBC 5";
+            break;
+        case Cartridge::CartridgeNotSupported:
+            mbc = "Not Supported";
+            break;
+        default:
+            break;
+        }
+
+        sprintf(info, "File Name: %s\nMBC: %s\nGame Boy Color: %s\nSuper Game Boy: %s\nCartridge Name: %s\nCartridge Version: %d\nROM Banks: %d\nRAM Banks: %d\nBattery: %s\nReal Time Clock: %s\nRumble: %s\n", filename, mbc, gbc, sgb, name, version, rom_banks, ram_banks, battery, rtc, rumble);
+    }
+    else
+    {
+        sprintf(info, "No data!");
+    }
+}
+
 static void save_ram(void)
 {
     if (save_files_in_rom_dir)
