@@ -82,6 +82,8 @@ void gui_init(void)
     io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, font_size * font_scaling_factor, NULL, io.Fonts->GetGlyphRangesCyrillic());
 
     update_palette();
+
+    emu_audio_volume(config_audio.enable ? 1.0f: 0.0f);
 }
 
 void gui_destroy(void)
@@ -872,7 +874,7 @@ static void show_info(void)
     else
         ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
 
-    static char info[256];
+    static char info[512];
 
     emu_get_info(info);
     ImGui::Text("%s", info);
@@ -908,5 +910,3 @@ static Cartridge::CartridgeTypes get_mbc(int index)
             return Cartridge::CartridgeNotSupported;
     }
 }
-
-
