@@ -276,13 +276,14 @@ void emu_get_info(char* info)
         const char* rtc = cart->IsRTCPresent() ? "YES" : "NO";
         const char* rumble = cart->IsRumblePresent() ? "YES" : "NO";
         const char* name = cart->GetName();
+        const char* checksum = cart->IsValidROM() ? "VALID" : "FAILED";
         int version = cart->GetVersion();
         int rom_banks = cart->GetROMBankCount();
         int ram_banks = cart->GetRAMBankCount();
 
         const char* mbc = get_mbc(cart->GetType());
 
-        sprintf(info, "File Name: %s\nMBC: %s\nGame Boy Color: %s\nSuper Game Boy: %s\nCartridge Name: %s\nCartridge Version: %d\nROM Banks: %d\nRAM Banks: %d\nBattery: %s\nReal Time Clock: %s\nRumble: %s\n", filename, mbc, gbc, sgb, name, version, rom_banks, ram_banks, battery, rtc, rumble);
+        sprintf(info, "File Name: %s\nMBC: %s\nGame Boy Color: %s\nSuper Game Boy: %s\nCartridge Name: %s\nCartridge Version: %d\nCartridge Checksum: %s\nROM Banks: %d\nRAM Banks: %d\nBattery: %s\nReal Time Clock: %s\nRumble: %s\n", filename, mbc, gbc, sgb, name, version, checksum, rom_banks, ram_banks, battery, rtc, rumble);
     }
     else
     {
