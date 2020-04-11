@@ -52,7 +52,7 @@ struct config_Video
     int scale = 0;
     int ratio = 0;
     bool fps = false;
-    bool bilinear = false;
+    bool bilinear = true;
     bool mix_frames = true;
     bool matrix = true;
     int palette = 0;
