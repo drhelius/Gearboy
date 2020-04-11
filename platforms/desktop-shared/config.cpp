@@ -76,7 +76,7 @@ void config_read(void)
     config_video.scale = read_int("Video", "Scale", 0);
     config_video.ratio = read_int("Video", "AspectRatio", 0);
     config_video.fps = read_bool("Video", "FPS", false);
-    config_video.bilinear = read_bool("Video", "Bilinear", true);
+    config_video.bilinear = read_bool("Video", "Bilinear", false);
     config_video.mix_frames = read_bool("Video", "MixFrames", true);
     config_video.matrix = read_bool("Video", "Matrix", true);
     config_video.palette = read_int("Video", "Palette", 0);
