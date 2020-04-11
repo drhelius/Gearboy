@@ -344,7 +344,7 @@ static void main_menu(void)
             ImGui::MenuItem("Show FPS", "", &config_video.fps);
             ImGui::MenuItem("Bilinear Filtering", "", &config_video.bilinear);
             ImGui::MenuItem("Screen Ghosting", "", &config_video.mix_frames);
-            //ImGui::MenuItem("Dot Matrix", "", &config_video.matrix, false);
+            ImGui::MenuItem("Dot Matrix", "", &config_video.matrix);
             
             ImGui::Separator();
 
