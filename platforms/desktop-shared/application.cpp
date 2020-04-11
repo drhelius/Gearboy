@@ -264,6 +264,12 @@ static void sdl_events_emu(const SDL_Event* event)
 
             int key = event->key.keysym.scancode;
 
+            if (key == SDL_SCANCODE_ESCAPE)
+            {
+                application_trigger_quit();
+                break;
+            }
+
             if (key == config_input.key_left)
                 emu_key_pressed(Left_Key);
             else if (key == config_input.key_right)
