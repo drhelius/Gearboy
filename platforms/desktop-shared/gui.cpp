@@ -629,7 +629,7 @@ static void file_dialog_save_state(void)
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key)
 {
     ImGui::Text("%s", text);
-    ImGui::SameLine(70);
+    ImGui::SameLine(90);
 
     char button_label[256];
     sprintf(button_label, "%s##%s", SDL_GetScancodeName(*key), text);
