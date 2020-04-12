@@ -96,6 +96,14 @@ cd platforms/libretro
 make
 ```
 
+### Raspberry Pi 4 - Raspbian (Desktop)
+
+``` shell
+sudo apt install build-essential libsdl2-dev libglew-dev
+cd platforms/raspberrypi4
+make
+```
+
 ### Raspberry Pi 2 & 3 - Raspbian
 
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
