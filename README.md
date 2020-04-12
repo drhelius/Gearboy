@@ -10,12 +10,12 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 
 ## Downloads
 
-- **Windows**: [Gearboy-3.0.1-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.1/Gearboy-3.0.1-Windows.zip)
+- **Windows**: [Gearboy-3.0.2-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.2/Gearboy-3.0.2-Windows.zip)
   + NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
 - **macOS**:
   + `brew cask install gearboy`
-  + Or install manually: [Gearboy-3.0.1-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.1/Gearboy-3.0.1-macOS.zip)
-- **Linux**: [Gearboy-3.0.1-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.1/Gearboy-3.0.1-Linux.tar.xz)
+  + Or install manually: [Gearboy-3.0.2-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.2/Gearboy-3.0.2-macOS.zip)
+- **Linux**: [Gearboy-3.0.2-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.2/Gearboy-3.0.2-Linux.tar.xz)
 - **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/).
 - **Raspberry Pi**: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
