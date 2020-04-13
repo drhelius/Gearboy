@@ -719,47 +719,71 @@ static void popup_modal_about(void)
     {
         ImGui::Text("%s %s", GEARBOY_TITLE, GEARBOY_VERSION);
         ImGui::Text("Build: %s", EMULATOR_BUILD);
+
         ImGui::Separator();
+
         ImGui::Text("By Ignacio Sánchez (twitter.com/drhelius)");
         ImGui::Text("%s is licensed under the GPL-3.0 License, see LICENSE for more information.", GEARBOY_TITLE);
+
         ImGui::Separator();        
         
         #ifdef _WIN64
-        ImGui::Text("Windows 64 bit detected.");
+        ImGui::Text("Windows 64 bit build");
         #elif defined(_WIN32)
-        ImGui::Text("Windows 32 bit detected.");
+        ImGui::Text("Windows 32 bit build");
         #endif
         #ifdef __linux__
-        ImGui::Text("Linux detected.");
+        ImGui::Text("Linux build");
         #endif
         #ifdef __APPLE__
-        ImGui::Text("macOS detected.");
+        ImGui::Text("macOS build");
         #endif
         #ifdef _MSC_VER
-        ImGui::Text("Built with Microsoft C++ %d.", _MSC_VER);
+        ImGui::Text("Microsoft C++ %d.", _MSC_VER);
         #endif
         #ifdef __MINGW32__
-        ImGui::Text("Built with MinGW 32 bit.");
+        ImGui::Text("MinGW 32 bit (%d.%d)", __MINGW32_MAJOR_VERSION, __MINGW32_MINOR_VERSION);
         #endif
         #ifdef __MINGW64__
-        ImGui::Text("Built with MinGW 64 bit.");
+        ImGui::Text("MinGW 64 bit (%d.%d)", __MINGW64_VERSION_MAJOR, __MINGW64_VERSION_MINOR);
         #endif
         #if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
-        ImGui::Text("Built with GCC %d.%d.%d", (int)__GNUC__, (int)__GNUC_MINOR__, (int)__GNUC_PATCHLEVEL__);
+        ImGui::Text("GCC %d.%d.%d", (int)__GNUC__, (int)__GNUC_MINOR__, (int)__GNUC_PATCHLEVEL__);
         #endif
         #ifdef __clang_version__
-        ImGui::Text("Built with Clang %s.", __clang_version__);
+        ImGui::Text("Clang %s", __clang_version__);
         #endif
+
+        ImGui::Separator();
+
         #ifdef DEBUG
         ImGui::Text("define: DEBUG");
         #endif
         #ifdef DEBUG_GEARBOY
         ImGui::Text("define: DEBUG_GEARBOY");
         #endif
-        ImGui::Text("define: __cplusplus=%d", (int)__cplusplus);
+        #ifdef __cplusplus
+        ImGui::Text("define: __cplusplus = %d", (int)__cplusplus);
+        #endif
+        #ifdef __STDC__
+        ImGui::Text("define: __STDC__ = %d", (int)__STDC__);
+        #endif
+        #ifdef __STDC_VERSION__
+        ImGui::Text("define: __STDC_VERSION__ = %d", (int)__STDC_VERSION__);
+        #endif
+        
+        ImGui::Separator();
+
+        ImGui::Text("SDL %d.%d.%d (build)", application_sdl_build_version.major, application_sdl_build_version.minor, application_sdl_build_version.patch);
+        ImGui::Text("SDL %d.%d.%d (link) ", application_sdl_link_version.major, application_sdl_link_version.minor, application_sdl_link_version.patch);
+        ImGui::Text("OpenGL %s", renderer_opengl_version);
+        #ifndef __APPLE__
+        ImGui::Text("GLEW %s", renderer_glew_version);
+        #endif
         ImGui::Text("Dear ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
 
         ImGui::Separator();
+        
         if (ImGui::Button("OK", ImVec2(120, 0))) 
         {
             ImGui::CloseCurrentPopup();

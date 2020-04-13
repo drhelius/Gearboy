@@ -30,6 +30,8 @@
 
 EXTERN SDL_Joystick* application_gamepad;
 EXTERN float application_display_scale;
+EXTERN SDL_version application_sdl_build_version;
+EXTERN SDL_version application_sdl_link_version;
 
 EXTERN int application_init(void);
 EXTERN void application_destroy(void);

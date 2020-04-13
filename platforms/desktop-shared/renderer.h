@@ -27,6 +27,8 @@
 #endif
 
 EXTERN uint32_t renderer_emu_texture;
+EXTERN const char* renderer_glew_version;
+EXTERN const char* renderer_opengl_version;
 
 EXTERN void renderer_init(void);
 EXTERN void renderer_destroy(void);

@@ -101,6 +101,9 @@ static int sdl_init(void)
         return -1;
     }
 
+    SDL_VERSION(&application_sdl_build_version);
+    SDL_GetVersion(&application_sdl_link_version);
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);

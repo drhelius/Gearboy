@@ -61,7 +61,12 @@ void renderer_init(void)
         /* Problem: glewInit failed, something is seriously wrong. */
         Log("GLEW Error: %s\n", glewGetErrorString(err));
     }
-    Log("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
+    renderer_glew_version = (const char*)glewGetString(GLEW_VERSION);
+    renderer_opengl_version = (const char*)glGetString(GL_VERSION);
+
+    Log("Using GLEW %s\n", renderer_glew_version);
+    
     #endif
 
     init_ogl_gui();
