@@ -4,6 +4,8 @@
 
 Gearboy is a cross-platform Game Boy / GameBoy Color emulator written in C++ that runs on iOS, Raspberry Pi, macOS, Windows, Linux and RetroArch.
 
+This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md).
+
 Please, consider [sponsoring](https://github.com/sponsors/drhelius) and following me on [Twitter](https://twitter.com/drhelius) for updates.
 
 ----------
