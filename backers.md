@@ -6,6 +6,8 @@ Gearboy is an open source project with its ongoing development made possible tha
 
 ## $10
 
-- [dinglyburrow](https://github.com/dinglyburrow)
+- [Michael Mellor](https://github.com/dinglyburrow)
 
 ## $5
+
+## $1
