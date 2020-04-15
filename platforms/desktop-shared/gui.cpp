@@ -729,7 +729,7 @@ static void popup_modal_about(void)
 
         ImGui::Text("Special thanks to:");
         ImGui::BeginChild("backers", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-        ImGui::Text(" · dinglyburrow");
+        ImGui::Text(" · Michael Mellor (dinglyburrow)");
         ImGui::EndChild();
 
         ImGui::Separator();
