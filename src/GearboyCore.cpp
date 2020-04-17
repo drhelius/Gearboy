@@ -775,7 +775,7 @@ void GearboyCore::InitMemoryRules()
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 
     m_pMultiMBC1MemoryRule = new MultiMBC1MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio, m_pMBC1MemoryRule);
 
     m_pMBC2MemoryRule = new MBC2MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
