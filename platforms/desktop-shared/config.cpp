@@ -101,8 +101,8 @@ void config_read(void)
     config_input.key_right = (SDL_Scancode)read_int("Input", "KeyRight", SDL_SCANCODE_RIGHT);
     config_input.key_up = (SDL_Scancode)read_int("Input", "KeyUp", SDL_SCANCODE_UP);
     config_input.key_down = (SDL_Scancode)read_int("Input", "KeyDown", SDL_SCANCODE_DOWN);
-    config_input.key_a = (SDL_Scancode)read_int("Input", "Key1", SDL_SCANCODE_A);
-    config_input.key_b = (SDL_Scancode)read_int("Input", "Key2", SDL_SCANCODE_S);
+    config_input.key_a = (SDL_Scancode)read_int("Input", "KeyA", SDL_SCANCODE_A);
+    config_input.key_b = (SDL_Scancode)read_int("Input", "KeyB", SDL_SCANCODE_S);
     config_input.key_start = (SDL_Scancode)read_int("Input", "KeyStart", SDL_SCANCODE_RETURN);
     config_input.key_select = (SDL_Scancode)read_int("Input", "KeySelect", SDL_SCANCODE_SPACE);
 
