@@ -22,13 +22,11 @@
 
 #include "MemoryRule.h"
 
-class MBC1MemoryRule;
-
 class MultiMBC1MemoryRule : public MemoryRule
 {
 public:
     MultiMBC1MemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio, MBC1MemoryRule* pMBC1MemoryRule);
+            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
     virtual ~MultiMBC1MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
@@ -42,10 +40,15 @@ public:
     virtual void LoadState(std::istream& stream);
 
 private:
+    void SetROMBanks();
+
+private:
     int m_iMulticartMode;
-    MBC1MemoryRule* m_pMBC1MemoryRule;
     int m_iROMBankHi;
     int m_iROMBankLo;
+    int m_iMBC1Bank_1;
+    int m_iMBC1MBank_0;
+    int m_iMBC1MBank_1;
 };
 
 #endif	/* MULTIMBC1MEMORYRULE_H */

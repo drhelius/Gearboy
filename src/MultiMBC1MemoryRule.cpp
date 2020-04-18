@@ -27,10 +27,9 @@
 
 MultiMBC1MemoryRule::MultiMBC1MemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio, MBC1MemoryRule* pMBC1MemoryRule) : MemoryRule(pProcessor,
+        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
 pMemory, pVideo, pInput, pCartridge, pAudio)
 {
-    m_pMBC1MemoryRule = pMBC1MemoryRule;
     Reset(false);
 }
 
@@ -45,28 +44,43 @@ void MultiMBC1MemoryRule::Reset(bool bCGB)
     m_iMulticartMode = 0;
     m_iROMBankHi = 0;
     m_iROMBankLo = 1;
+    SetROMBanks();
 }
 
 u8 MultiMBC1MemoryRule::PerformRead(u16 address)
 {
-    if (m_iMulticartMode == 0)
-        return m_pMBC1MemoryRule->PerformRead(address);
-
     switch (address & 0xE000)
     {
         case 0x0000:
         case 0x2000:
         {
             u8* pROM = m_pCartridge->GetTheROM();
-            u16 new_addr = ((m_iROMBankHi << 4) * 0x4000) + (address & 0x3fff);
-            return pROM[new_addr];
+
+            if (m_iMulticartMode == 0)
+            {
+                return pROM[address];
+            }
+            else
+            {
+                int bank_addr = (m_iMBC1MBank_0 * 0x4000) + address;
+                return pROM[bank_addr];
+            }
         }
         case 0x4000:
         case 0x6000:
         {
             u8* pROM = m_pCartridge->GetTheROM();
-            u16 new_addr = ((m_iROMBankHi << 4 | m_iROMBankLo) * 0x4000) + (address & 0x3fff);
-            return pROM[new_addr];
+            
+            if (m_iMulticartMode == 0)
+            {
+                int bank_addr = (m_iMBC1Bank_1 * 0x4000) + (address & 0x3FFF);
+                return pROM[bank_addr];
+            }
+            else
+            {
+                int bank_addr = (m_iMBC1MBank_1 * 0x4000) + (address & 0x3FFF);
+                return pROM[bank_addr];
+            }
         }
         default:
         {
@@ -77,85 +91,79 @@ u8 MultiMBC1MemoryRule::PerformRead(u16 address)
 
 void MultiMBC1MemoryRule::PerformWrite(u16 address, u8 value)
 {
-    if (m_iMulticartMode == 0)
+    switch (address & 0xE000)
     {
-        if ((address & 0xE000) == 0x6000)
+        case 0x2000:
+        {
+            m_iROMBankLo = value & 0x1F;
+            SetROMBanks();
+            break;
+        }
+        case 0x4000:
+        {
+            m_iROMBankHi = value & 0x03;
+            SetROMBanks();
+            break;
+        }
+        case 0x6000:
         {
             m_iMulticartMode = value & 0x01;
-            Log("--> ** Change Multicart mode %X %X", address, value);
+            break;
         }
-        else
-            m_pMBC1MemoryRule->PerformWrite(address, value);
-    }
-    else
-    {
-        switch (address & 0xE000)
+        default:
         {
-            case 0x2000:
-            {
-                m_iROMBankLo = value & 0x15;
-                Log("--> ** Set bank LO %X %X %X", address, value, m_iROMBankLo);
-                break;
-            }
-            case 0x4000:
-            {
-                m_iROMBankHi = value & 0x03;
-                Log("--> ** Set bank HI %X %X %X", address, value, m_iROMBankHi);
-                break;
-            }
-            case 0x6000:
-            {
-                m_iMulticartMode = value & 0x01;
-                Log("--> ** Change Multicart mode %X %X", address, value);
-                break;
-            }
-            default:
-            {
-                Log("--> ** Attempting to write on invalid address %X %X", address, value);
-                break;
-            }
+            Log("--> ** Attempting to write on invalid address %X %X", address, value);
+            break;
         }
     }
+}
+
+void MultiMBC1MemoryRule::SetROMBanks()
+{
+    int full_bank = (m_iROMBankHi << 5) | m_iROMBankLo;
+
+    m_iMBC1Bank_1 = full_bank;
+
+    if (full_bank == 0x00 || full_bank == 0x20 || full_bank == 0x40 || full_bank == 0x60)
+        m_iMBC1Bank_1 = full_bank + 1;
+    
+    m_iMBC1MBank_0 = ((full_bank >> 1) & 0x30);
+    m_iMBC1MBank_1 = ((full_bank >> 1) & 0x30) | (full_bank & 0x0F);
 }
 
 size_t MultiMBC1MemoryRule::GetRamSize()
 {
-    if (m_iMulticartMode != 0)
-        return 0;
-    else
-        return m_pMBC1MemoryRule->GetRamSize();
+    return 0;
 }
 
 u8* MultiMBC1MemoryRule::GetRamBanks()
 {
-    if (m_iMulticartMode != 0)
-        return 0;
-    else
-        return m_pMBC1MemoryRule->GetRamBanks(); 
+    return 0;
 }
 
 u8* MultiMBC1MemoryRule::GetCurrentRamBank()
 {
-    if (m_iMulticartMode != 0)
-        return 0;
-    else
-        return m_pMBC1MemoryRule->GetCurrentRamBank(); 
+    return 0;
 }
 
 u8* MultiMBC1MemoryRule::GetRomBank0()
 {
-    if (m_iMulticartMode != 0)
-        return 0;
+    u8* pROM = m_pCartridge->GetTheROM();
+
+    if (m_iMulticartMode == 0)
+        return &pROM[0];
     else
-        return m_pMBC1MemoryRule->GetRomBank0(); 
+        return &pROM[m_iMBC1MBank_0 * 0x4000];
 }
 
 u8* MultiMBC1MemoryRule::GetCurrentRomBank1()
 {
-    if (m_iMulticartMode != 0)
-        return 0;
+    u8* pROM = m_pCartridge->GetTheROM();
+
+    if (m_iMulticartMode == 0)
+        return &pROM[m_iMBC1Bank_1 * 0x4000];
     else
-        return m_pMBC1MemoryRule->GetCurrentRomBank1();
+        return &pROM[m_iMBC1MBank_1 * 0x4000];
 }
 
 void MultiMBC1MemoryRule::SaveState(std::ostream& stream)
@@ -165,8 +173,9 @@ void MultiMBC1MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iMulticartMode), sizeof(m_iMulticartMode));
     stream.write(reinterpret_cast<const char*> (&m_iROMBankHi), sizeof(m_iROMBankHi));
     stream.write(reinterpret_cast<const char*> (&m_iROMBankLo), sizeof(m_iROMBankLo));
-    
-    m_pMBC1MemoryRule->SaveState(stream);
+    stream.write(reinterpret_cast<const char*> (&m_iMBC1Bank_1), sizeof(m_iMBC1Bank_1));
+    stream.write(reinterpret_cast<const char*> (&m_iMBC1MBank_0), sizeof(m_iMBC1MBank_0));
+    stream.write(reinterpret_cast<const char*> (&m_iMBC1MBank_1), sizeof(m_iMBC1MBank_1));
 }
 
 void MultiMBC1MemoryRule::LoadState(std::istream& stream)
@@ -176,6 +185,7 @@ void MultiMBC1MemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iMulticartMode), sizeof(m_iMulticartMode));
     stream.read(reinterpret_cast<char*> (&m_iROMBankHi), sizeof(m_iROMBankHi));
     stream.read(reinterpret_cast<char*> (&m_iROMBankLo), sizeof(m_iROMBankLo));
-    
-    m_pMBC1MemoryRule->LoadState(stream);
+    stream.read(reinterpret_cast<char*> (&m_iMBC1Bank_1), sizeof(m_iMBC1Bank_1));
+    stream.read(reinterpret_cast<char*> (&m_iMBC1MBank_0), sizeof(m_iMBC1MBank_0));
+    stream.read(reinterpret_cast<char*> (&m_iMBC1MBank_1), sizeof(m_iMBC1MBank_1));
 }
