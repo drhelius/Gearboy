@@ -26,14 +26,15 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 
 - Accurate CPU emulation, passes cpu_instrs.gb from blargg's tests.
 - Accurate instruction and memory timing, passes instr_timing.gb and mem_timing.gb from blargg's tests.
-- Memory Bank Controllers (MBC1, MBC2, MBC3 with RTC, MBC5), ROM + RAM and multicart cartridges.
-- Accurate LCD controller emulation. Background, window and sprites, with correct timings and priorities including mid-scanline timing.
-- Mix frames: Mimics the LCD ghosting effect seen in the original Game Boy.
-- Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Gb_Snd_Emu).
+- Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3 + RTC, MBC5, HuC-1 and MBC1M (multicart).
+- Accurate LCD controller emulation with correct timings and priorities including mid-scanline effects.
 - Game Boy Color support.
-- Saves battery powered RAM cartridges to file.
+- LCD screen ghosting effect as seen in the original Game Boy.
+- LCD dot matrix effect.
+- Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Gb_Snd_Emu).
+- Save battery powered RAM cartridges to file.
 - Save states.
-- Compressed rom support (ZIP deflate).
+- Compressed rom support (ZIP).
 - Game Genie and GameShark cheat support.
 - Supported platforms: Windows, Linux, macOS, Raspberry Pi, iOS and RetroArch (libretro).
 
@@ -41,7 +42,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 
 ### Windows
 
-- You need Microsoft Visual Studio Community 2019 or later.
+- Install Microsoft Visual Studio Community 2019 or later.
 - Open the Gearboy Visual Studio solution `platforms/windows/Gearboy.sln` and build.
 - You may want to use the `platforms/windows/Makefile` to build the application using MinGW.
 
@@ -106,7 +107,7 @@ cd platforms/raspberrypi4
 make
 ```
 
-### Raspberry Pi 2 & 3 - Raspbian
+### Raspberry Pi 2 & 3 - Raspbian (CLI)
 
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
 
