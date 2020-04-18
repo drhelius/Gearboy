@@ -42,6 +42,7 @@ struct config_Emulator
     bool force_dmg = false;
     bool save_in_rom_folder = false;
     bool ffwd = false;
+    int ffwd_speed = 1;
     bool show_info = false;
     int mbc = 0;
     std::string recent_roms[config_max_recent_roms];
@@ -54,7 +55,9 @@ struct config_Video
     bool fps = false;
     bool bilinear = false;
     bool mix_frames = true;
+    float mix_frames_intensity = 0.50f;
     bool matrix = true;
+    float matrix_intensity = 0.30f;
     int palette = 0;
     GB_Color color[4] = {{0xC4, 0xF0, 0xC2}, {0x5A, 0xB9, 0xA8}, {0x1E, 0x60, 0x6E}, {0x2D, 0x1B, 0x00}};
     bool sync = true;

@@ -25,6 +25,8 @@
 #include "../../src/gearboy.h"
 #include "renderer.h"
 #include "application.h"
+#include "license.h"
+#include "backers.h"
 
 #define GUI_IMPORT
 #include "gui.h"
@@ -184,9 +186,17 @@ static void main_menu(void)
                 menu_pause();
             }
 
+            ImGui::Separator();
+
             if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &config_emulator.ffwd))
             {
                 menu_ffwd();
+            }
+
+            if (ImGui::BeginMenu("Fast Forward Speed"))
+            {
+                ImGui::Combo("##fwd", &config_emulator.ffwd_speed, "X 1.5\0X 2\0X 2.5\0X 3\0Unlimited\0\0");
+                ImGui::EndMenu();
             }
 
             ImGui::Separator();
@@ -217,7 +227,7 @@ static void main_menu(void)
            
             if (ImGui::BeginMenu("Select State Slot"))
             {
-                ImGui::Combo("", &config_emulator.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
+                ImGui::Combo("##slot", &config_emulator.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
                 ImGui::EndMenu();
             }
 
@@ -249,7 +259,7 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Memory Bank Controller"))
             {
-                ImGui::Combo("", &config_emulator.mbc, "Auto\0ROM Only\0MBC 1\0MBC 2\0MBC 3\0MBC 5\0Multi MBC 1\0\0");
+                ImGui::Combo("##mbc", &config_emulator.mbc, "Auto\0ROM Only\0MBC 1\0MBC 2\0MBC 3\0MBC 5\0MBC 1 Multicart\0\0");
                 ImGui::EndMenu();
             }
 
@@ -318,13 +328,13 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Scale"))
             {
-                ImGui::Combo("", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0Zoom X4\0\0");
+                ImGui::Combo("##scale", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0Zoom X4\0\0");
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Aspect Ratio"))
             {
-                ImGui::Combo("", &config_video.ratio, "Game Boy\0Standard (4:3)\0Wide (16:9)\0Fit Window\0\0");
+                ImGui::Combo("##ratio", &config_video.ratio, "Game Boy\0Standard (4:3)\0Wide (16:9)\0Fit Window\0\0");
                 ImGui::EndMenu();
             }
 
@@ -342,15 +352,30 @@ static void main_menu(void)
             }
 
             ImGui::MenuItem("Show FPS", "", &config_video.fps);
+
+            ImGui::Separator();
+
             ImGui::MenuItem("Bilinear Filtering", "", &config_video.bilinear);
-            ImGui::MenuItem("Screen Ghosting", "", &config_video.mix_frames);
-            ImGui::MenuItem("Dot Matrix", "", &config_video.matrix);
+
+            if (ImGui::BeginMenu("Screen Ghosting"))
+            {
+                ImGui::MenuItem("Enable Screen Ghosting", "", &config_video.mix_frames);
+                ImGui::SliderFloat("##screen_ghosting", &config_video.mix_frames_intensity, 0.0f, 1.0f, "Intensity = %.2f");
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Dot Matrix"))
+            {
+                ImGui::MenuItem("Enable Dot Matrix", "", &config_video.matrix);
+                ImGui::SliderFloat("##dot_matrix", &config_video.matrix_intensity, 0.0f, 1.0f, "Intensity = %.2f");
+                ImGui::EndMenu();
+            }
             
             ImGui::Separator();
 
             if (ImGui::BeginMenu("Palette"))
             {
-                if (ImGui::Combo("", &config_video.palette, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0"))
+                if (ImGui::Combo("##palette", &config_video.palette, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0"))
                 {
                     update_palette();
                 }
@@ -359,19 +384,19 @@ static void main_menu(void)
 
             ImGui::Text("Custom Palette:");
 
-            if (ImGui::ColorEdit4("Color #1", (float*)&custom_palette[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #1", (float*)&custom_palette[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
             {
                 update_palette();
             }
-            if (ImGui::ColorEdit4("Color #2", (float*)&custom_palette[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #2", (float*)&custom_palette[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
             {
                 update_palette();
             }
-            if (ImGui::ColorEdit4("Color #3", (float*)&custom_palette[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #3", (float*)&custom_palette[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
             {
                 update_palette();
             }
-            if (ImGui::ColorEdit4("Color #4", (float*)&custom_palette[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #4", (float*)&custom_palette[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
             {
                 update_palette();
             }
@@ -422,7 +447,7 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            if (ImGui::MenuItem("Enable", "", &config_audio.enable))
+            if (ImGui::MenuItem("Enable Audio", "", &config_audio.enable))
             {
                 emu_audio_volume(config_audio.enable ? 1.0f: 0.0f);
             }
@@ -727,10 +752,24 @@ static void popup_modal_about(void)
 
         ImGui::Separator();
 
-        ImGui::Text("Special thanks to:");
-        ImGui::BeginChild("backers", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-        ImGui::Text(" · Michael Mellor (dinglyburrow)");
-        ImGui::EndChild();
+        if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None))
+        {
+            if (ImGui::BeginTabItem("Special thanks to"))
+            {
+                ImGui::BeginChild("backers", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+                ImGui::Text("%s", BACKERS_STR);
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("LICENSE"))
+            {
+                ImGui::BeginChild("license", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+                ImGui::TextUnformatted(GPL_LICENSE_STR);
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
 
         ImGui::Separator();
         

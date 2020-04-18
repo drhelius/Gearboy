@@ -27,6 +27,8 @@
 
 static int read_int(const char* group, const char* key, int default_value);
 static void write_int(const char* group, const char* key, int integer);
+static float read_float(const char* group, const char* key, float default_value);
+static void write_float(const char* group, const char* key, float value);
 static bool read_bool(const char* group, const char* key, bool default_value);
 static void write_bool(const char* group, const char* key, bool boolean);
 static std::string read_string(const char* group, const char* key);
@@ -61,6 +63,7 @@ void config_read(void)
 
     Log("Loading settings from %s", config_emu_file_path);
 
+    config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
     config_emulator.force_dmg = read_bool("Emulator", "ForceDMG", false);
@@ -78,7 +81,9 @@ void config_read(void)
     config_video.fps = read_bool("Video", "FPS", false);
     config_video.bilinear = read_bool("Video", "Bilinear", false);
     config_video.mix_frames = read_bool("Video", "MixFrames", true);
+    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.50f);
     config_video.matrix = read_bool("Video", "Matrix", true);
+    config_video.matrix_intensity = read_float("Video", "MatrixIntensity", 0.30f);
     config_video.palette = read_int("Video", "Palette", 0);
     config_video.color[0].red = read_int("Video", "CustomPalette0R", 0xC4);
     config_video.color[0].green = read_int("Video", "CustomPalette0G", 0xF0);
@@ -123,6 +128,7 @@ void config_write(void)
 {
     Log("Saving settings to %s", config_emu_file_path);
 
+    write_int("Emulator", "FFWD", config_emulator.ffwd_speed);
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);
     write_bool("Emulator", "ForceDMG", config_emulator.force_dmg);
@@ -140,7 +146,9 @@ void config_write(void)
     write_bool("Video", "FPS", config_video.fps);
     write_bool("Video", "Bilinear", config_video.bilinear);
     write_bool("Video", "MixFrames", config_video.mix_frames);
+    write_float("Video", "MixFramesIntensity", config_video.mix_frames_intensity);
     write_bool("Video", "Matrix", config_video.matrix);
+    write_float("Video", "MatrixIntensity", config_video.matrix_intensity);
     write_int("Video", "Palette", config_video.palette);
     write_int("Video", "CustomPalette0R", config_video.color[0].red);
     write_int("Video", "CustomPalette0G", config_video.color[0].green);
@@ -204,6 +212,28 @@ static void write_int(const char* group, const char* key, int integer)
     std::string value = std::to_string(integer);
     config_ini_data[group][key] = value;
     Log("Save setting: [%s][%s]=%s", group, key, value.c_str());
+}
+
+static float read_float(const char* group, const char* key, float default_value)
+{
+    float ret = 0.0f;
+
+    std::string value = config_ini_data[group][key];
+
+    if(value.empty())
+        ret = default_value;
+    else
+        ret = strtof(value.c_str(), NULL);
+
+    Log("Load setting: [%s][%s]=%.2f", group, key, ret);
+    return ret;
+}
+
+static void write_float(const char* group, const char* key, float value)
+{
+    std::string value_str = std::to_string(value);
+    config_ini_data[group][key] = value_str;
+    Log("Save setting: [%s][%s]=%s", group, key, value_str.c_str());
 }
 
 static bool read_bool(const char* group, const char* key, bool default_value)

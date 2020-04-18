@@ -371,7 +371,28 @@ static void frame_throttle(void)
     {
         float elapsed = (float)((frame_time_end - frame_time_start) * 1000) / SDL_GetPerformanceFrequency();
 
-        float min = config_emulator.ffwd ? 8.333f : 16.666f;
+        float min = 16.666f;
+
+        if (config_emulator.ffwd)
+        {
+            switch (config_emulator.ffwd_speed)
+            {
+                case 0:
+                    min = 16.666f / 1.5f;
+                    break;
+                case 1: 
+                    min = 16.666f / 2.0f;
+                    break;
+                case 2:
+                    min = 16.666f / 2.5f;
+                    break;
+                case 3:
+                    min = 16.666f / 3.0f;
+                    break;
+                default:
+                    min = 0.0f;
+            }
+        }
 
         if (elapsed < min)
             SDL_Delay((Uint32)(min - elapsed));

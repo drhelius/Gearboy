@@ -180,7 +180,7 @@ static void render_emu_mix(void)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
 
-    float alpha = 0.25f;
+    float alpha = 0.15f + (0.20f * (1.0f - config_video.mix_frames_intensity));
 
     if (first_frame)
     {
@@ -269,7 +269,7 @@ static void render_matrix(void)
     glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
     glEnable(GL_BLEND);
 
-    glColor4f(1.0f, 1.0f, 1.0f, emu_is_cgb() ? 0.20f : 0.10f);
+    glColor4f(1.0f, 1.0f, 1.0f, config_video.matrix_intensity / 4.0f);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindTexture(GL_TEXTURE_2D, matrix_texture);
