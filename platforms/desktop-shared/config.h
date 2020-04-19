@@ -81,14 +81,15 @@ struct config_Input
     SDL_Scancode key_select = SDL_SCANCODE_SPACE;
 
     bool gamepad = true;
+    int gamepad_directional = 0;
     bool gamepad_invert_x_axis = false;
     bool gamepad_invert_y_axis = false;
-    int gamepad_a = 1;
-    int gamepad_b = 2;
-    int gamepad_start = 9;
-    int gamepad_select = 8;
-    int gamepad_x_axis = 0;
-    int gamepad_y_axis = 1;
+    int gamepad_a = SDL_CONTROLLER_BUTTON_B;
+    int gamepad_b = SDL_CONTROLLER_BUTTON_A;
+    int gamepad_start = SDL_CONTROLLER_BUTTON_START;
+    int gamepad_select = SDL_CONTROLLER_BUTTON_BACK;
+    int gamepad_x_axis = SDL_CONTROLLER_AXIS_LEFTX;
+    int gamepad_y_axis = SDL_CONTROLLER_AXIS_LEFTY;
 };
 
 EXTERN mINI::INIFile* config_ini_file;
