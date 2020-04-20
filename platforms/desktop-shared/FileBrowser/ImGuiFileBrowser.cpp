@@ -160,7 +160,9 @@ namespace imgui_addons
             show_error |= renderNavAndSearchBarRegion();
             show_error |= renderFileListRegion();
             show_error |= renderButtonsAndCheckboxRegion();
-            show_error |= renderInputTextAndExtRegion();
+
+            if (*is_open)
+                show_error |= renderInputTextAndExtRegion();
 
             if(validate_file)
             {
