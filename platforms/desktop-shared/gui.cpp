@@ -900,7 +900,7 @@ static void load_rom(const char* path)
 
 static void push_recent_rom(std::string path)
 {
-    for (int i = (config_max_recent_roms - 1); i >= 0; i--)
+    for (int i = (config_max_recent_roms - 1); i > 0; i--)
     {
         config_emulator.recent_roms[i] = config_emulator.recent_roms[i - 1];
     }
