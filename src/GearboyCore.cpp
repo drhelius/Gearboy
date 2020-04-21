@@ -325,10 +325,10 @@ void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& co
     }
 
 #if defined(IS_BIG_ENDIAN)
-    m_DMGPalette[0] = ((m_DMGPalette[0] << 8) & 0xFF00) | ((m_DMGPalette[0] >> 8) 0x00FF);
-    m_DMGPalette[1] = ((m_DMGPalette[1] << 8) & 0xFF00) | ((m_DMGPalette[1] >> 8) 0x00FF);
-    m_DMGPalette[2] = ((m_DMGPalette[2] << 8) & 0xFF00) | ((m_DMGPalette[2] >> 8) 0x00FF);
-    m_DMGPalette[3] = ((m_DMGPalette[3] << 8) & 0xFF00) | ((m_DMGPalette[3] >> 8) 0x00FF);
+    m_DMGPalette[0] = ((m_DMGPalette[0] << 8) & 0xFF00) | ((m_DMGPalette[0] >> 8) & 0x00FF);
+    m_DMGPalette[1] = ((m_DMGPalette[1] << 8) & 0xFF00) | ((m_DMGPalette[1] >> 8) & 0x00FF);
+    m_DMGPalette[2] = ((m_DMGPalette[2] << 8) & 0xFF00) | ((m_DMGPalette[2] >> 8) & 0x00FF);
+    m_DMGPalette[3] = ((m_DMGPalette[3] << 8) & 0xFF00) | ((m_DMGPalette[3] >> 8) & 0x00FF);
 #endif
 }
 
