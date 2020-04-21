@@ -839,6 +839,18 @@ static void popup_modal_about(void)
         ImGui::Text("Dear ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
 
         ImGui::Separator();
+
+        if (application_gamepad)
+            ImGui::Text("Gamepad detected");
+        else
+            ImGui::Text("No gamepad detected");
+
+        if (application_gamepad_mappings > 0)
+            ImGui::Text("%d gamepad mappings loaded", application_gamepad_mappings);
+        else
+            ImGui::Text("Gamepad database not found");
+
+        ImGui::Separator();
         
         if (ImGui::Button("OK", ImVec2(120, 0))) 
         {
