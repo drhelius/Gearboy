@@ -44,7 +44,6 @@ _ReSharper.*/
 desktop.ini
 
 # Misc files
-*.txt
 *.ini
 *.cfg
 *.gen
