@@ -291,6 +291,11 @@ void emu_get_info(char* info)
     }
 }
 
+GearboyCore* emu_get_core(void)
+{
+    return gearboy;
+}
+
 static void save_ram(void)
 {
     if (save_files_in_rom_dir)

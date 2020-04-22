@@ -76,6 +76,7 @@ public:
     bool IsCGB();
     Memory* GetMemory();
     Cartridge* GetCartridge();
+    Processor* GetProcessor();
 
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;

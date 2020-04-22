@@ -45,6 +45,15 @@ Processor::Processor(Memory* pMemory)
     m_iInterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
+
+    m_ProcessorState.AF = &AF;
+    m_ProcessorState.BC = &BC;
+    m_ProcessorState.DE = &DE;
+    m_ProcessorState.HL = &HL;
+    m_ProcessorState.SP = &SP;
+    m_ProcessorState.PC = &PC;
+    m_ProcessorState.IME = &m_bIME;
+    m_ProcessorState.Halt = &m_bHalt;
 }
 
 Processor::~Processor()
@@ -479,6 +488,11 @@ void Processor::SetGameSharkCheat(const char* szCheat)
 void Processor::ClearGameSharkCheats()
 {
     m_GameSharkList.clear();
+}
+
+Processor::ProcessorState* Processor::GetState(void)
+{
+    return &m_ProcessorState;
 }
 
 void Processor::InitOPCodeFunctors()

@@ -58,6 +58,7 @@ EXTERN void emu_load_state_file(const char* file_path);
 EXTERN void emu_add_cheat(const char* cheat);
 EXTERN void emu_clear_cheats();
 EXTERN void emu_get_info(char* info);
+EXTERN GearboyCore* emu_get_core(void);
 
 #undef EMU_IMPORT
 #undef EXTERN

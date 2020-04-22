@@ -220,6 +220,11 @@ Cartridge* GearboyCore::GetCartridge()
     return m_pCartridge;
 }
 
+Processor* GearboyCore::GetProcessor()
+{
+    return m_pProcessor;
+}
+
 void GearboyCore::KeyPressed(Gameboy_Keys key)
 {
     m_pInput->KeyPressed(key);

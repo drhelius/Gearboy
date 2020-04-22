@@ -63,6 +63,7 @@ void config_read(void)
 
     Log("Loading settings from %s", config_emu_file_path);
 
+    config_emulator.debug = read_bool("Emulator", "Debug", false);
     config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
@@ -129,6 +130,7 @@ void config_write(void)
 {
     Log("Saving settings to %s", config_emu_file_path);
 
+    write_int("Emulator", "Debug", config_emulator.debug);
     write_int("Emulator", "FFWD", config_emulator.ffwd_speed);
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);

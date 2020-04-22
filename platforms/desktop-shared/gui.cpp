@@ -18,6 +18,7 @@
  */
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_memory_editor.h"
 #include "imgui/fonts/RobotoMedium.h"
 #include "FileBrowser/ImGuiFileBrowser.h"
 #include "config.h"
@@ -42,9 +43,15 @@ static int* configured_button;
 static ImVec4 custom_palette[4];
 static std::list<std::string> cheat_list;
 static bool shortcut_open_rom = false;
+static ImFont* default_font;
+static ImFont* roboto_font;
+static MemoryEditor mem_edit;
 
 static void main_menu(void);
 static void main_window(void);
+static void debug_windows(void);
+static void debug_window_processor(void);
+static void debug_window_memory(void);
 static void file_dialog_open_rom(void);
 static void file_dialog_load_ram(void);
 static void file_dialog_save_ram(void);
@@ -76,12 +83,14 @@ void gui_init(void)
 
     io.IniFilename = config_imgui_file_path;
 
-    float font_scaling_factor = application_display_scale;
-    float font_size = 17.0f;
+    io.FontGlobalScale /= application_display_scale;
 
-    io.FontGlobalScale /= font_scaling_factor;
+    roboto_font = io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, 17.0f * application_display_scale, NULL, io.Fonts->GetGlyphRangesCyrillic());
 
-    io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, font_size * font_scaling_factor, NULL, io.Fonts->GetGlyphRangesCyrillic());
+    ImFontConfig font_cfg;
+    font_cfg.SizePixels = 16.0f * application_display_scale;
+
+    default_font = io.Fonts->AddFontDefault(&font_cfg);
 
     update_palette();
 
@@ -101,8 +110,10 @@ void gui_render(void)
 
     main_menu();
 
-    if(!emu_is_empty())
+    if(!emu_is_empty() || config_emulator.debug)
         main_window();
+
+    debug_windows();
 
     ImGui::Render();
 }
@@ -476,13 +487,19 @@ static void main_menu(void)
             ImGui::EndMenu();
         }
 
-        // if (ImGui::BeginMenu("Debug"))
-        // {
-        //     gui_in_use = true;
+        if (ImGui::BeginMenu("Debug"))
+        {
+            gui_in_use = true;
 
-        //     ImGui::MenuItem("Enabled", "", &show_debug, false);
-        //     ImGui::EndMenu();
-        // }
+            ImGui::MenuItem("Enabled", "", &config_emulator.debug);
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Step", "F10", (void*)0, config_emulator.debug);
+            ImGui::MenuItem("Continue", "F5", (void*)0, config_emulator.debug);
+
+            ImGui::EndMenu();
+        }
 
         if (ImGui::BeginMenu("About"))
         {
@@ -569,6 +586,10 @@ static void main_window(void)
     {
         factor = config_video.scale;
     }
+    else if (config_emulator.debug)
+    {
+        factor = 2;
+    }
     else
     {
         int factor_w = w / w_corrected;
@@ -581,15 +602,22 @@ static void main_window(void)
 
     int window_x = (w - (w_corrected * factor)) / 2;
     int window_y = ((h - (h_corrected * factor)) / 2) + main_menu_height;
-    
-    ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
-    ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
-    ImGui::Begin(GEARBOY_TITLE, 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav);
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar;
+    
+    if (!config_emulator.debug)
+    {
+        ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+        flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav;
+    }
+
+    ImGui::Begin(config_emulator.debug ? "Game Boy" : "output", 0, flags);
 
     ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width,main_window_height));
 
@@ -602,8 +630,143 @@ static void main_window(void)
     ImGui::End();
 
     ImGui::PopStyleVar();
-    ImGui::PopStyleVar();
-    ImGui::PopStyleVar();
+
+    if (!config_emulator.debug)
+    {
+        ImGui::PopStyleVar();
+        ImGui::PopStyleVar();
+    }
+}
+
+static void debug_windows(void)
+{
+    if (config_emulator.debug)
+    {
+        ImGui::PushFont(default_font);
+        debug_window_processor();
+        debug_window_memory();
+        //ImGui::ShowDemoWindow(&config_emulator.debug);
+        ImGui::PopFont();
+    }
+}
+
+static void debug_window_memory(void)
+{
+    ImGui::Begin("Memory");
+    
+    GearboyCore* core = emu_get_core();
+    Memory* memory = core->GetMemory();
+    mem_edit.Cols = 8;
+    mem_edit.DrawContents(memory->GetMemoryMap(), 0x10000, 0);
+
+    ImGui::End();
+}
+
+
+static void debug_window_processor(void)
+{
+    ImGui::Begin("Processor", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
+
+    GearboyCore* core = emu_get_core();
+    Processor* processor = core->GetProcessor();
+    Processor::ProcessorState* proc_state = processor->GetState();
+
+    ImGui::Separator();
+
+    u8 flags = proc_state->AF->GetLow();
+
+    ImVec4 cyan = ImVec4(0.0f,1.0f,1.0f,1.0f);
+    ImVec4 magenta = ImVec4(1.0f,0.5f,1.0f,1.0f);
+    ImVec4 yellow = ImVec4(1.0f,1.0f,0.0f,1.0f);
+    ImVec4 green = ImVec4(0.0f,1.0f,0.0f,1.0f);
+
+    ImGui::TextColored(magenta, "  Z"); ImGui::SameLine();
+    ImGui::Text("= %d", (bool)(flags & FLAG_ZERO)); ImGui::SameLine();
+
+    ImGui::TextColored(magenta, "  N"); ImGui::SameLine();
+    ImGui::Text("= %d", (bool)(flags & FLAG_SUB));
+
+    ImGui::TextColored(magenta, "  H"); ImGui::SameLine();
+    ImGui::Text("= %d", (bool)(flags & FLAG_HALF)); ImGui::SameLine();
+
+    ImGui::TextColored(magenta, "  C"); ImGui::SameLine();
+    ImGui::Text("= %d", (bool)(flags & FLAG_CARRY));
+
+    ImGui::Columns(2, "registers");
+    ImGui::Separator();
+    ImGui::TextColored(cyan, "A"); ImGui::SameLine();
+    ImGui::Text("= 0x%02X", proc_state->AF->GetHigh());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetHigh()));
+
+    ImGui::NextColumn();
+    ImGui::TextColored(cyan, "F"); ImGui::SameLine();
+    ImGui::Text("= 0x%02X", proc_state->AF->GetLow());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetLow()));
+
+    ImGui::NextColumn();
+    ImGui::Separator();
+    ImGui::TextColored(cyan, "B"); ImGui::SameLine();
+    ImGui::Text("= 0x%02X", proc_state->BC->GetHigh());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetHigh()));
+
+    ImGui::NextColumn();
+    ImGui::TextColored(cyan, "C"); ImGui::SameLine();
+    ImGui::Text("= 0x%02X", proc_state->BC->GetLow());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetLow()));
+
+    ImGui::NextColumn();
+    ImGui::Separator();
+    ImGui::TextColored(cyan, "D"); ImGui::SameLine();
+    ImGui::Text("= 0x%02X", proc_state->DE->GetHigh());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetHigh()));
+
+    ImGui::NextColumn();
+    ImGui::TextColored(cyan, "E"); ImGui::SameLine();
+    ImGui::Text("= 0x%02X", proc_state->DE->GetLow());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetLow()));
+
+    ImGui::NextColumn();
+    ImGui::Separator();
+    ImGui::TextColored(cyan, "H"); ImGui::SameLine();
+    ImGui::Text("= 0x%02X", proc_state->HL->GetHigh());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetHigh()));
+
+    ImGui::NextColumn();
+    ImGui::TextColored(cyan, "L"); ImGui::SameLine();
+    ImGui::Text("= 0x%02X", proc_state->HL->GetLow());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetLow()));
+
+    ImGui::NextColumn();
+    ImGui::Columns(1);
+    ImGui::Separator();
+    ImGui::TextColored(yellow, "   SP"); ImGui::SameLine();
+    ImGui::Text("= 0x%04X", proc_state->SP->GetValue());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN " " BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->SP->GetHigh()), BYTE_TO_BINARY(proc_state->SP->GetLow()));
+
+    ImGui::Separator();
+    ImGui::TextColored(yellow, "   PC"); ImGui::SameLine();
+    ImGui::Text("= 0x%04X", proc_state->PC->GetValue());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN " " BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->PC->GetHigh()), BYTE_TO_BINARY(proc_state->PC->GetLow()));
+
+
+    ImGui::Columns(2);
+    ImGui::Separator();
+
+    ImGui::TextColored(green, "IME"); ImGui::SameLine();
+    ImGui::Text("= %d", *proc_state->IME);
+
+    ImGui::NextColumn();
+
+    ImGui::TextColored(green, "HALT"); ImGui::SameLine();
+    ImGui::Text("= %d", *proc_state->Halt);
+
+    ImGui::NextColumn();
+
+    ImGui::Columns(1);
+    
+    ImGui::Separator();
+
+    ImGui::End();
 }
 
 static void file_dialog_open_rom(void)
