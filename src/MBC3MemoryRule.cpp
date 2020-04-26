@@ -388,10 +388,7 @@ u8* MBC3MemoryRule::GetRamBanks()
 
 u8* MBC3MemoryRule::GetCurrentRamBank()
 {
-    if (m_iCurrentRAMBank >= 0)
-        return &m_pRAMBanks[m_CurrentRAMAddress];
-    else
-        return NULL;
+    return m_pRAMBanks + m_CurrentRAMAddress;
 }
 
 u8* MBC3MemoryRule::GetRomBank0()

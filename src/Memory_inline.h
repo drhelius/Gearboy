@@ -132,9 +132,9 @@ inline void Memory::Load(u16 address, u8 value)
     m_pMap[address] = value;
 }
 
-inline bool Memory::IsDisassembled(u16 address)
+inline Memory::stDisassembleRecord* Memory::GetDisassembledMemoryMap()
 {
-    return m_pDisassembledMap[address].szDisString[0] != 0;
+    return m_pDisassembledMap;
 }
 
 #endif	/* MEMORY_INLINE_H */

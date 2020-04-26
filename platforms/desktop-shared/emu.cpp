@@ -38,6 +38,8 @@ static u16* frame_buffer_565;
 static s16* audio_buffer;
 static char base_save_path[260];
 static bool audio_enabled;
+static bool debugging = false;
+static bool debug_step = false;
 
 static void save_ram(void);
 static void load_ram(void);
@@ -97,7 +99,12 @@ void emu_run_to_vblank(void)
     {
         int sampleCount = 0;
 
-        gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount);
+        if (!debugging || (debugging && debug_step))
+        {
+            gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, debug_step);
+
+            debug_step = false;
+        }
 
         generate_24bit_buffer();
 
@@ -294,6 +301,18 @@ void emu_get_info(char* info)
 GearboyCore* emu_get_core(void)
 {
     return gearboy;
+}
+
+void emu_debug_step()
+{
+    debugging = debug_step = true;
+    gearboy->Pause(false);
+}
+
+void emu_debug_continue()
+{
+    debugging = debug_step = false;
+    gearboy->Pause(false);
 }
 
 static void save_ram(void)

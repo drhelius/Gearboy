@@ -21,7 +21,6 @@
 #include <ctype.h>
 #include "Processor.h"
 #include "opcode_timing.h"
-#include "opcode_names.h"
 
 Processor::Processor(Memory* pMemory)
 {
@@ -138,7 +137,14 @@ u8 Processor::Tick()
         if (m_iAccurateOPCodeState == 0)
             ServeInterrupt(InterruptPending());
 
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
+        Disassemble(PC.GetValue());
+#endif
         ExecuteOPCode(FetchOPCode());
+
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
+        Disassemble(PC.GetValue());
+#endif
     }
     
     if (m_iInterruptDelayCycles > 0)
@@ -183,14 +189,6 @@ void Processor::ExecuteOPCode(u8 opcode)
         machineCycles = kOPCodeMachineCycles;
         opcodeTable = m_OPCodes;
     }
-
-    #ifdef DEBUG_GEARBOY
-        u16 opcode_address = PC.GetValue() - 1;
-        if (!m_pMemory->IsDisassembled(opcode_address))
-        {
-            m_pMemory->Disassemble(opcode_address, isCB ? kOPCodeCBNames[opcode] : kOPCodeNames[opcode]);
-        }
-    #endif
 
     if ((accurateOPcodes[opcode] != 0) && (m_iAccurateOPCodeState == 0))
     {
@@ -386,6 +384,76 @@ void Processor::UpdateGameShark()
             m_pMemory->Write(it->address, it->value);
         }
     }
+}
+
+int Processor::Disassemble(u16 address)
+{
+    Memory::stDisassembleRecord* map = m_pMemory->GetDisassembledMemoryMap();
+
+    if (map[address].size != 0)
+        return 0;
+
+    map[address].address = address;
+
+    u8 bytes[4];
+
+    for (int i = 0; i < 4; i++)
+        bytes[i] = m_pMemory->Read(address + i);
+
+    u8 opcode = bytes[0];
+    bool cb = false;
+
+    if (opcode == 0xCB)
+    {
+        cb = true;
+        opcode = bytes[1];
+    }
+
+    stOPCodeInfo info = cb ? kOPCodeCBNames[opcode] : kOPCodeNames[opcode];
+
+    map[address].size = info.size;
+
+    map[address].bytes[0] = 0;
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (i < info.size)
+        {
+            char value[8];
+            sprintf(value, "%02X", bytes[i]);
+            strcat(map[address].bytes, value);
+        }
+        else
+        {
+            strcat(map[address].bytes, "  ");
+        }
+
+        if (i < 3)
+            strcat(map[address].bytes, " ");
+    }
+
+    switch (info.type)
+    {
+        case 0:
+            strcpy(map[address].name, info.name);
+            break;
+        case 1:
+            sprintf(map[address].name, info.name, bytes[1]);
+            break;
+        case 2:
+            sprintf(map[address].name, info.name, (bytes[2] << 8) | bytes[1]);
+            break;
+        case 3:
+            sprintf(map[address].name, info.name, (s8)bytes[1]);
+            break;
+        case 4:
+            sprintf(map[address].name, info.name, (s8)bytes[1], address + info.size+ (s8)bytes[1]);
+            break;
+        default:
+            strcpy(map[address].name, "PARSE ERROR");
+    }
+
+    return info.size;
 }
 
 void Processor::SaveState(std::ostream& stream)

@@ -255,10 +255,7 @@ u8* MBC1MemoryRule::GetRamBanks()
 
 u8* MBC1MemoryRule::GetCurrentRamBank()
 {
-    if (m_pCartridge->GetRAMSize() > 0)
-        return &m_pRAMBanks[m_CurrentRAMAddress];
-    else
-        return NULL;
+    return m_pRAMBanks + m_CurrentRAMAddress;
 }
 
 u8* MBC1MemoryRule::GetCurrentRomBank1()

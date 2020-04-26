@@ -126,10 +126,7 @@ u8* RomOnlyMemoryRule::GetRamBanks()
 
 u8* RomOnlyMemoryRule::GetCurrentRamBank()
 {
-    if (m_pCartridge->GetRAMSize() > 0)
-        return m_pMemory->GetMemoryMap() + 0xA000;
-    else
-        return NULL;
+    return m_pMemory->GetMemoryMap() + 0xA000;
 }
 
 u8* RomOnlyMemoryRule::GetCurrentRomBank1()

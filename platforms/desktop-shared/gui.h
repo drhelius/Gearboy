@@ -45,6 +45,8 @@ enum gui_ShortCutEvent
     gui_ShortcutFFWD,
     gui_ShortcutSaveState,
     gui_ShortcutLoadState,
+    gui_ShortcutDebugStep,
+    gui_ShortcutDebugContinue
 };
 
 EXTERN bool gui_in_use;

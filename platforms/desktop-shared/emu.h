@@ -59,6 +59,8 @@ EXTERN void emu_add_cheat(const char* cheat);
 EXTERN void emu_clear_cheats();
 EXTERN void emu_get_info(char* info);
 EXTERN GearboyCore* emu_get_core(void);
+EXTERN void emu_debug_step();
+EXTERN void emu_debug_continue();
 
 #undef EMU_IMPORT
 #undef EXTERN

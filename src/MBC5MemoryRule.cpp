@@ -198,7 +198,7 @@ u8* MBC5MemoryRule::GetRamBanks()
 
 u8* MBC5MemoryRule::GetCurrentRamBank()
 {
-    return &m_pRAMBanks[m_CurrentRAMAddress];
+    return m_pRAMBanks + m_CurrentRAMAddress;
 }
 
 u8* MBC5MemoryRule::GetRomBank0()

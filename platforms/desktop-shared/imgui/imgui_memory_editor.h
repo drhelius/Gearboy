@@ -105,16 +105,16 @@ struct MemoryEditor
         // Settings
         Open = true;
         ReadOnly = false;
-        Cols = 16;
+        Cols = 8;
         OptShowOptions = true;
         OptShowDataPreview = false;
         OptShowHexII = false;
         OptShowAscii = true;
         OptGreyOutZeroes = true;
         OptUpperCaseHex = true;
-        OptMidColsCount = 8;
+        OptMidColsCount = 4;
         OptAddrDigitsCount = 0;
-        HighlightColor = IM_COL32(255, 255, 255, 50);
+        HighlightColor = IM_COL32(255, 255, 255, 80);
         ReadFn = NULL;
         WriteFn = NULL;
         HighlightFn = NULL;
@@ -307,8 +307,8 @@ struct MemoryEditor
                     {
                         ImGui::SetKeyboardFocusHere();
                         ImGui::CaptureKeyboardFromApp(true);
-                        sprintf(AddrInputBuf, format_data, s.AddrDigitsCount, base_display_addr + addr);
-                        sprintf(DataInputBuf, format_byte, ReadFn ? ReadFn(mem_data, addr) : mem_data[addr]);
+                        //sprintf(AddrInputBuf, format_data, s.AddrDigitsCount, base_display_addr + addr);
+                        //sprintf(DataInputBuf, format_byte, ReadFn ? ReadFn(mem_data, addr) : mem_data[addr]);
                     }
                     ImGui::PushItemWidth(s.GlyphWidth * 2);
                     struct UserData
@@ -383,6 +383,9 @@ struct MemoryEditor
                     {
                         DataEditingTakeFocus = true;
                         data_editing_addr_next = addr;
+
+                        sprintf(AddrInputBuf, format_data, s.AddrDigitsCount, base_display_addr + addr);
+                        sprintf(DataInputBuf, format_byte, ReadFn ? ReadFn(mem_data, addr) : mem_data[addr]);
                     }
                 }
             }

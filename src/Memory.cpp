@@ -51,6 +51,7 @@ Memory::~Memory()
     InitPointer(m_pVideo);
     SafeDeleteArray(m_pMap);
     SafeDeleteArray(m_pDisassembledMap);
+    SafeDeleteArray(m_pDisassembledMap);
     SafeDeleteArray(m_pWRAMBanks);
     SafeDeleteArray(m_pLCDRAMBank1);
     InitPointer(m_pCommonMemoryRule);
@@ -73,7 +74,7 @@ void Memory::Init()
     m_pMap = new u8[65536];
     m_pWRAMBanks = new u8[0x8000];
     m_pLCDRAMBank1 = new u8[0x2000];
-    m_pDisassembledMap = new stDisassemble[65536];
+    m_pDisassembledMap = new stDisassembleRecord[65536];
     Reset(false);
 }
 
@@ -91,7 +92,10 @@ void Memory::Reset(bool bCGB)
     for (int i = 0; i < 65536; i++)
     {
         m_pMap[i] = 0x00;
-        m_pDisassembledMap[i].szDisString[0] = 0;
+        m_pDisassembledMap[i].address = 0;
+        m_pDisassembledMap[i].name[0] = 0;
+        m_pDisassembledMap[i].bytes[0] = 0;
+        m_pDisassembledMap[i].size = 0;
 
         if ((i >= 0x8000) && (i < 0xA000))
         {
@@ -193,11 +197,6 @@ u8* Memory::GetMemoryMap()
     return m_pMap;
 }
 
-void Memory::Disassemble(u16 address, const char* szDisassembled)
-{
-    strcpy(m_pDisassembledMap[address].szDisString, szDisassembled);
-}
-
 void Memory::LoadBank0and1FromROM(u8* pTheROM)
 {
     // loads the first 32KB only (bank 0 and 1)
@@ -217,9 +216,10 @@ void Memory::MemoryDump(const char* szFilePath)
     {
         for (int i = 0; i < 65536; i++)
         {
-            if (IsDisassembled(i))
+            if (m_pDisassembledMap[i].name[0] != 0)
             {
-                myfile << "0x" << hex << i << "\t " << m_pDisassembledMap[i].szDisString << "\n";
+                myfile << "0x" << hex << i << "\t " << m_pDisassembledMap[i].name << "\n";
+                i += (m_pDisassembledMap[i].size - 1);
             }
             else
             {
@@ -463,3 +463,37 @@ void Memory::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_HDMASource), sizeof(m_HDMASource));
     stream.read(reinterpret_cast<char*> (&m_HDMADestination), sizeof(m_HDMADestination));
 }
+
+u8* Memory::GetROM0()
+{
+    return m_pCurrentMemoryRule->GetRomBank0();
+}
+
+u8* Memory::GetROM1()
+{
+    return m_pCurrentMemoryRule->GetCurrentRomBank1();
+}
+
+u8* Memory::GetVRAM()
+{
+    if (m_bCGB)
+        return (m_iCurrentLCDRAMBank == 1) ? m_pLCDRAMBank1 : m_pMap + 0x8000;
+    else
+        return m_pMap + 0x8000;
+}
+
+u8* Memory::GetRAM()
+{
+    return m_pCurrentMemoryRule->GetCurrentRamBank();
+}
+
+u8* Memory::GetWRAM0()
+{
+    return m_bCGB ? m_pWRAMBanks : m_pMap + 0xC000;
+}
+
+u8* Memory::GetWRAM1()
+{
+    return m_bCGB ? m_pWRAMBanks + (0x1000 * m_iCurrentWRAMBank) : m_pMap + 0xD000;
+}
+

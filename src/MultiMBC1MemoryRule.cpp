@@ -143,7 +143,7 @@ u8* MultiMBC1MemoryRule::GetRamBanks()
 
 u8* MultiMBC1MemoryRule::GetCurrentRamBank()
 {
-    return 0;
+    return m_pMemory->GetMemoryMap() + 0xA000;
 }
 
 u8* MultiMBC1MemoryRule::GetRomBank0()
@@ -151,9 +151,9 @@ u8* MultiMBC1MemoryRule::GetRomBank0()
     u8* pROM = m_pCartridge->GetTheROM();
 
     if (m_iMulticartMode == 0)
-        return &pROM[0];
+        return pROM;
     else
-        return &pROM[m_iMBC1MBank_0 * 0x4000];
+        return pROM + (m_iMBC1MBank_0 * 0x4000);
 }
 
 u8* MultiMBC1MemoryRule::GetCurrentRomBank1()

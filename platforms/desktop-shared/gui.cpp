@@ -46,12 +46,19 @@ static bool shortcut_open_rom = false;
 static ImFont* default_font;
 static ImFont* roboto_font;
 static MemoryEditor mem_edit;
+static ImVec4 cyan = ImVec4(0.0f,1.0f,1.0f,1.0f);
+static ImVec4 magenta = ImVec4(1.0f,0.5f,1.0f,1.0f);
+static ImVec4 yellow = ImVec4(1.0f,1.0f,0.0f,1.0f);
+static ImVec4 green = ImVec4(0.0f,1.0f,0.0f,1.0f);
+static ImVec4 white = ImVec4(1.0f,1.0f,1.0f,1.0f);
+static ImVec4 gray = ImVec4(0.5f,0.5f,0.5f,1.0f);
 
 static void main_menu(void);
 static void main_window(void);
 static void debug_windows(void);
 static void debug_window_processor(void);
 static void debug_window_memory(void);
+static void debug_window_disassembler(void);
 static void file_dialog_open_rom(void);
 static void file_dialog_load_ram(void);
 static void file_dialog_save_ram(void);
@@ -80,6 +87,9 @@ void gui_init(void)
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
     ImGuiIO& io = ImGui::GetIO();
+
+    //io.WantCaptureMouse = true;
+    //io.WantCaptureKeyboard = true;
 
     io.IniFilename = config_imgui_file_path;
 
@@ -140,6 +150,14 @@ void gui_shortcut(gui_ShortCutEvent event)
         break;
     case gui_ShortcutLoadState:
         emu_load_state_slot(config_emulator.save_slot + 1);
+        break;
+    case gui_ShortcutDebugStep:
+        if (config_emulator.debug)
+            emu_debug_step();
+        break;
+    case gui_ShortcutDebugContinue:
+        if (config_emulator.debug)
+            emu_debug_continue();
         break;
     default:
         break;
@@ -491,12 +509,37 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            ImGui::MenuItem("Enabled", "", &config_emulator.debug);
+            if (ImGui::MenuItem("Enable", "", &config_emulator.debug))
+            {
+                if (config_emulator.debug)
+                    emu_debug_step();
+                else
+                    emu_debug_continue();
+            }
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Step", "F10", (void*)0, config_emulator.debug);
-            ImGui::MenuItem("Continue", "F5", (void*)0, config_emulator.debug);
+            if (ImGui::MenuItem("Load Symbols...", "", (void*)0, config_emulator.debug))
+            {
+                open_state = true;
+            }
+
+            if (ImGui::MenuItem("Clear Symbols", "", (void*)0, config_emulator.debug))
+            {
+                open_state = true;
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Step", "CTRL + F10", (void*)0, config_emulator.debug))
+            {
+                emu_debug_step();
+            }
+
+            if (ImGui::MenuItem("Continue", "CTRL + F5", (void*)0, config_emulator.debug))
+            {
+                emu_debug_continue();
+            }
 
             ImGui::EndMenu();
         }
@@ -577,6 +620,9 @@ static void main_window(void)
             ratio = 1.0f;
     }
 
+    if (config_emulator.debug)
+        ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
+
     int w_corrected = config_video.ratio == 3 ? w : GAMEBOY_HEIGHT * ratio;
     int h_corrected = config_video.ratio == 3 ? h : GAMEBOY_HEIGHT;
 
@@ -603,15 +649,20 @@ static void main_window(void)
     int window_x = (w - (w_corrected * factor)) / 2;
     int window_y = ((h - (h_corrected * factor)) / 2) + main_menu_height;
 
-    ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
+    
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar;
     
-    if (!config_emulator.debug)
+    if (config_emulator.debug)
     {
+        flags |= ImGuiWindowFlags_AlwaysAutoResize;
+    }
+    else
+    {
+        ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
         ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav;
@@ -630,10 +681,11 @@ static void main_window(void)
     ImGui::End();
 
     ImGui::PopStyleVar();
+    ImGui::PopStyleVar();
 
     if (!config_emulator.debug)
     {
-        ImGui::PopStyleVar();
+        
         ImGui::PopStyleVar();
     }
 }
@@ -642,30 +694,200 @@ static void debug_windows(void)
 {
     if (config_emulator.debug)
     {
-        ImGui::PushFont(default_font);
         debug_window_processor();
         debug_window_memory();
+        debug_window_disassembler();
         //ImGui::ShowDemoWindow(&config_emulator.debug);
-        ImGui::PopFont();
     }
 }
 
 static void debug_window_memory(void)
 {
-    ImGui::Begin("Memory");
-    
+    ImGui::Begin("Memory Editor");
+
     GearboyCore* core = emu_get_core();
     Memory* memory = core->GetMemory();
-    mem_edit.Cols = 8;
-    mem_edit.DrawContents(memory->GetMemoryMap(), 0x10000, 0);
+
+    if (ImGui::BeginTabBar("##memory_tabs", ImGuiTabBarFlags_None))
+        {
+            if (ImGui::BeginTabItem("ROM 0"))
+            {
+                ImGui::PushFont(default_font);
+                mem_edit.DrawContents(memory->GetROM0(), 0x4000, 0);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("ROM 1"))
+            {
+                ImGui::PushFont(default_font);
+                mem_edit.DrawContents(memory->GetROM1(), 0x4000, 0x4000);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("VRAM"))
+            {
+                ImGui::PushFont(default_font);
+                mem_edit.DrawContents(memory->GetVRAM(), 0x2000, 0x8000);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("RAM"))
+            {
+                ImGui::PushFont(default_font);
+                mem_edit.DrawContents(memory->GetRAM(), 0x2000, 0xA000);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if (emu_is_cgb())
+            {
+                if (ImGui::BeginTabItem("WRAM 0"))
+                {
+                    ImGui::PushFont(default_font);
+                    mem_edit.DrawContents(memory->GetWRAM0(), 0x1000, 0xC000);
+                    ImGui::PopFont();
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem("WRAM 1"))
+                {
+                    ImGui::PushFont(default_font);
+                    mem_edit.DrawContents(memory->GetWRAM1(), 0x1000, 0xD000);
+                    ImGui::PopFont();
+                    ImGui::EndTabItem();
+                }
+            }
+            else
+            {
+                if (ImGui::BeginTabItem("WRAM"))
+                {
+                    ImGui::PushFont(default_font);
+                    mem_edit.DrawContents(memory->GetWRAM0(), 0x2000, 0xC000);
+                    ImGui::PopFont();
+                    ImGui::EndTabItem();
+                }
+            }
+            
+            if (ImGui::BeginTabItem("OAM"))
+            {
+                ImGui::PushFont(default_font);
+                mem_edit.DrawContents(memory->GetMemoryMap() + 0xFE00, 0x00A0, 0xFE00);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("IO"))
+            {
+                ImGui::PushFont(default_font);
+                mem_edit.DrawContents(memory->GetMemoryMap() + 0xFF00, 0x0080, 0xFF00);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("HIRAM"))
+            {
+                ImGui::PushFont(default_font);
+                mem_edit.DrawContents(memory->GetMemoryMap() + 0xFF80, 0x007F, 0xFF80);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
 
     ImGui::End();
 }
 
+static void debug_window_disassembler(void)
+{
+    ImGui::Begin("Disassembler", 0, 0);
+    
+    ImGui::PushFont(default_font);
+
+    GearboyCore* core = emu_get_core();
+    Processor* processor = core->GetProcessor();
+    Processor::ProcessorState* proc_state = processor->GetState();
+    Memory* memory = core->GetMemory();
+    Memory::stDisassembleRecord* map = memory->GetDisassembledMemoryMap();
+
+    int pc = proc_state->PC->GetValue();
+
+    if (ImGui::Button("Step"))
+        emu_debug_step();
+    ImGui::SameLine();
+    if (ImGui::Button("Continue"))
+        emu_debug_continue(); 
+    ImGui::SameLine();
+    ImGui::Button("Next Frame"); ImGui::SameLine(0.0f, 30.0f);
+
+    static bool enable_track = true;
+    ImGui::Checkbox("Track PC", &enable_track);
+
+
+    bool window_visible = ImGui::BeginChild("##dis", ImVec2(ImGui::GetWindowContentRegionWidth(), 0), true, 0);
+    
+    if (window_visible)
+    {
+        int dis_size = 0;
+        int pc_pos = 0;
+        
+        std::vector<Memory::stDisassembleRecord*> vec(0x10000);
+        
+        for (int i = 0; i < 0x10000; i++)
+        {
+            if (map[i].name[0] != 0)
+            {
+                vec[dis_size] = &map[i];
+
+                if (vec[dis_size]->address == pc)
+                    pc_pos = dis_size;
+
+                dis_size++;
+            }
+        }
+
+        ImGuiListClipper clipper(dis_size, ImGui::GetTextLineHeightWithSpacing());
+
+        while (clipper.Step())
+        {
+            for (int item = clipper.DisplayStart; item < clipper.DisplayEnd; item++)
+            {
+                if (vec[item]->address == pc)
+                {
+                    ImGui::TextColored(yellow, "%04X: %s    %s", vec[item]->address, vec[item]->bytes, vec[item]->name);
+                }
+                else
+                {
+                    ImGui::TextColored(cyan, "%04X:", vec[item]->address);
+                    ImGui::SameLine();
+                    ImGui::TextColored(gray, "%s   ", vec[item]->bytes);
+                    ImGui::SameLine();
+                    ImGui::TextColored(white, "%s", vec[item]->name);
+                }
+            }
+        }
+
+        if (enable_track)
+        {
+            float window_offset = ImGui::GetWindowHeight() / 2.0f;
+            float offset = window_offset - (ImGui::GetTextLineHeightWithSpacing() - 4.0f);
+            ImGui::SetScrollY((pc_pos * ImGui::GetTextLineHeightWithSpacing()) - offset);
+        }
+    }
+
+    ImGui::EndChild();
+    
+    ImGui::PopFont();
+
+    ImGui::End();
+}
 
 static void debug_window_processor(void)
 {
-    ImGui::Begin("Processor", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Processor State", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
+
+    ImGui::PushFont(default_font);
 
     GearboyCore* core = emu_get_core();
     Processor* processor = core->GetProcessor();
@@ -674,11 +896,6 @@ static void debug_window_processor(void)
     ImGui::Separator();
 
     u8 flags = proc_state->AF->GetLow();
-
-    ImVec4 cyan = ImVec4(0.0f,1.0f,1.0f,1.0f);
-    ImVec4 magenta = ImVec4(1.0f,0.5f,1.0f,1.0f);
-    ImVec4 yellow = ImVec4(1.0f,1.0f,0.0f,1.0f);
-    ImVec4 green = ImVec4(0.0f,1.0f,0.0f,1.0f);
 
     ImGui::TextColored(magenta, "  Z"); ImGui::SameLine();
     ImGui::Text("= %d", (bool)(flags & FLAG_ZERO)); ImGui::SameLine();
@@ -707,34 +924,34 @@ static void debug_window_processor(void)
     ImGui::Separator();
     ImGui::TextColored(cyan, "B"); ImGui::SameLine();
     ImGui::Text("= 0x%02X", proc_state->BC->GetHigh());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetHigh()));
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->BC->GetHigh()));
 
     ImGui::NextColumn();
     ImGui::TextColored(cyan, "C"); ImGui::SameLine();
     ImGui::Text("= 0x%02X", proc_state->BC->GetLow());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetLow()));
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->BC->GetLow()));
 
     ImGui::NextColumn();
     ImGui::Separator();
     ImGui::TextColored(cyan, "D"); ImGui::SameLine();
     ImGui::Text("= 0x%02X", proc_state->DE->GetHigh());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetHigh()));
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->DE->GetHigh()));
 
     ImGui::NextColumn();
     ImGui::TextColored(cyan, "E"); ImGui::SameLine();
     ImGui::Text("= 0x%02X", proc_state->DE->GetLow());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetLow()));
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->DE->GetLow()));
 
     ImGui::NextColumn();
     ImGui::Separator();
     ImGui::TextColored(cyan, "H"); ImGui::SameLine();
     ImGui::Text("= 0x%02X", proc_state->HL->GetHigh());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetHigh()));
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->HL->GetHigh()));
 
     ImGui::NextColumn();
     ImGui::TextColored(cyan, "L"); ImGui::SameLine();
     ImGui::Text("= 0x%02X", proc_state->HL->GetLow());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->AF->GetLow()));
+    ImGui::Text(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(proc_state->HL->GetLow()));
 
     ImGui::NextColumn();
     ImGui::Columns(1);
@@ -765,6 +982,8 @@ static void debug_window_processor(void)
     ImGui::Columns(1);
     
     ImGui::Separator();
+
+    ImGui::PopFont();
 
     ImGui::End();
 }
@@ -1127,7 +1346,7 @@ static void show_info(void)
     if (config_video.fps)
         ImGui::SetCursorPosX(5.0f);
     else
-        ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
+        ImGui::SetCursorPos(ImVec2(5.0f, config_emulator.debug ? 25.0f : 5.0f));
 
     static char info[512];
 
@@ -1137,10 +1356,8 @@ static void show_info(void)
 
 static void show_fps(void)
 {
-    ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
-    ImGui::Text("Frame Rate: %.2f FPS", ImGui::GetIO().Framerate);
-    ImGui::SetCursorPosX(5.0f);
-    ImGui::Text("Frame Time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::SetCursorPos(ImVec2(5.0f, config_emulator.debug ? 25.0f : 5.0f ));
+    ImGui::Text("Frame Rate: %.2f FPS\nFrame Time: %.2f ms", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
 }
 
 static Cartridge::CartridgeTypes get_mbc(int index)

@@ -62,6 +62,7 @@ public:
     void ResetTIMACycles();
     void ResetDIVCycles();
     bool Halted() const;
+    bool DuringOpCode() const;
     bool CGBSpeed() const;
     void AddCycles(unsigned int cycles);
     bool InterruptIsAboutToRaise();
@@ -128,6 +129,7 @@ private:
     void StackPush(SixteenBitRegister* reg);
     void StackPop(SixteenBitRegister* reg);
     int AdjustedCycles(int cycles);
+    int Disassemble(u16 address);
     void InvalidOPCode();
     void OPCodes_LD(EightBitRegister* reg1, u8 reg2);
     void OPCodes_LD(EightBitRegister* reg, u16 address);

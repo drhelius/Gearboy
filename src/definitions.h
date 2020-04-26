@@ -29,7 +29,7 @@
 #include <fstream>
 #include <sstream>
 
-//#define DEBUG_GEARBOY 1
+#define DEBUG_GEARBOY 1
 #define GEARBOY_TITLE "Gearboy"
 #define GEARBOY_VERSION "3.0.4"
 
@@ -44,6 +44,8 @@
 #ifdef _WIN32
 #define BLARGG_USE_NAMESPACE 1
 #endif
+
+//#define GEARBOY_DISABLE_DISASSEMBLER
 
 #define SafeDelete(pointer) if(pointer != NULL) {delete pointer; pointer = NULL;}
 #define SafeDeleteArray(pointer) if(pointer != NULL) {delete [] pointer; pointer = NULL;}
