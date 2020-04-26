@@ -44,19 +44,23 @@ static void debug_window_disassembler(void);
 
 void gui_debug_windows(void)
 {
-    if (config_emulator.debug)
+    if (config_debug.debug)
     {
-        debug_window_processor();
-        debug_window_memory();
-        debug_window_disassembler();
-        debug_window_io();
+        if (config_debug.show_processor)
+            debug_window_processor();
+        if (config_debug.show_memory)
+            debug_window_memory();
+        if (config_debug.show_disassembler)
+            debug_window_disassembler();
+        if (config_debug.show_iomap)
+            debug_window_io();
         //ImGui::ShowDemoWindow(&config_emulator.debug);
     }
 }
 
 static void debug_window_memory(void)
 {
-    ImGui::Begin("Memory Editor");
+    ImGui::Begin("Memory Editor", &config_debug.show_memory);
 
     GearboyCore* core = emu_get_core();
     Memory* memory = core->GetMemory();
@@ -154,7 +158,7 @@ static void debug_window_memory(void)
 
 static void debug_window_disassembler(void)
 {
-    ImGui::Begin("Disassembler", 0, 0);
+    ImGui::Begin("Disassembler", &config_debug.show_disassembler, 0);
     
     ImGui::PushFont(gui_default_font);
 
@@ -238,7 +242,7 @@ static void debug_window_disassembler(void)
 
 static void debug_window_processor(void)
 {
-    ImGui::Begin("Processor State", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Processor Status", &config_debug.show_processor, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
 
     ImGui::PushFont(gui_default_font);
 
@@ -347,7 +351,7 @@ static void debug_window_processor(void)
 static void debug_window_io(void)
 {
     ImGui::SetNextWindowContentSize(ImVec2(480, 0.0f));
-    ImGui::Begin("IO Map", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
+    ImGui::Begin("IO Map", &config_debug.show_iomap, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
 
     ImGui::PushFont(gui_default_font);
 

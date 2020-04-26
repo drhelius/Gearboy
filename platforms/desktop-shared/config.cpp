@@ -63,7 +63,15 @@ void config_read(void)
 
     Log("Loading settings from %s", config_emu_file_path);
 
-    config_emulator.debug = read_bool("Emulator", "Debug", false);
+    config_debug.debug = read_bool("Debug", "Debug", false);
+    config_debug.show_audio = read_bool("Debug", "Audio", false);
+    config_debug.show_disassembler = read_bool("Debug", "Disassembler", true);
+    config_debug.show_gameboy = read_bool("Debug", "GameBoy", true);
+    config_debug.show_iomap = read_bool("Debug", "IOMap", false);
+    config_debug.show_memory = read_bool("Debug", "Memory", false);
+    config_debug.show_processor = read_bool("Debug", "Processor", true);
+    config_debug.show_video = read_bool("Debug", "Video", false);
+    
     config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
@@ -130,7 +138,15 @@ void config_write(void)
 {
     Log("Saving settings to %s", config_emu_file_path);
 
-    write_bool("Emulator", "Debug", config_emulator.debug);
+    write_bool("Debug", "Debug", config_debug.debug);
+    write_bool("Debug", "Audio", config_debug.show_audio);
+    write_bool("Debug", "Disassembler", config_debug.show_disassembler);
+    write_bool("Debug", "GameBoy", config_debug.show_gameboy);
+    write_bool("Debug", "IOMap", config_debug.show_iomap);
+    write_bool("Debug", "Memory", config_debug.show_memory);
+    write_bool("Debug", "Processor", config_debug.show_processor);
+    write_bool("Debug", "Video", config_debug.show_video);
+
     write_int("Emulator", "FFWD", config_emulator.ffwd_speed);
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);

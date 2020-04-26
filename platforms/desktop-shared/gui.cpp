@@ -35,8 +35,6 @@
 
 static imgui_addons::ImGuiFileBrowser file_dialog;
 static int main_menu_height;
-static int main_window_width;
-static int main_window_height;
 static bool dialog_in_use = false;
 static SDL_Scancode* configured_key;
 static int* configured_button;
@@ -108,7 +106,7 @@ void gui_render(void)
 
     main_menu();
 
-    if(!emu_is_empty() || config_emulator.debug)
+    if((!config_debug.debug && !emu_is_empty()) || (config_debug.debug && config_debug.show_gameboy))
         main_window();
 
     gui_debug_windows();
@@ -140,11 +138,11 @@ void gui_shortcut(gui_ShortCutEvent event)
         emu_load_state_slot(config_emulator.save_slot + 1);
         break;
     case gui_ShortcutDebugStep:
-        if (config_emulator.debug)
+        if (config_debug.debug)
             emu_debug_step();
         break;
     case gui_ShortcutDebugContinue:
-        if (config_emulator.debug)
+        if (config_debug.debug)
             emu_debug_continue();
         break;
     default:
@@ -497,9 +495,9 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            if (ImGui::MenuItem("Enable", "", &config_emulator.debug))
+            if (ImGui::MenuItem("Enable", "", &config_debug.debug))
             {
-                if (config_emulator.debug)
+                if (config_debug.debug)
                     emu_debug_step();
                 else
                     emu_debug_continue();
@@ -507,26 +505,42 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Load Symbols...", "", (void*)0, config_emulator.debug))
-            {
-                open_state = true;
-            }
-
-            if (ImGui::MenuItem("Clear Symbols", "", (void*)0, config_emulator.debug))
-            {
-                open_state = true;
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Step", "CTRL + F10", (void*)0, config_emulator.debug))
+            if (ImGui::MenuItem("Step", "CTRL + F10", (void*)0, config_debug.debug))
             {
                 emu_debug_step();
             }
 
-            if (ImGui::MenuItem("Continue", "CTRL + F5", (void*)0, config_emulator.debug))
+            if (ImGui::MenuItem("Continue", "CTRL + F5", (void*)0, config_debug.debug))
             {
                 emu_debug_continue();
+            }
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Show Game Boy Screen", "", &config_debug.show_gameboy, config_debug.debug);
+
+            ImGui::MenuItem("Show Disassembler", "", &config_debug.show_disassembler, config_debug.debug);
+
+            ImGui::MenuItem("Show Processor Status", "", &config_debug.show_processor, config_debug.debug);
+
+            ImGui::MenuItem("Show Memory Editor", "", &config_debug.show_memory, config_debug.debug);
+
+            ImGui::MenuItem("Show IO Map", "", &config_debug.show_iomap, config_debug.debug);
+
+            ImGui::MenuItem("Show VRAM Viewer", "", &config_debug.show_video, config_debug.debug);
+
+            ImGui::MenuItem("Show Sound Registers", "", &config_debug.show_audio, config_debug.debug);
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Load Symbols...", "", (void*)0, config_debug.debug))
+            {
+                open_state = true;
+            }
+
+            if (ImGui::MenuItem("Clear Symbols", "", (void*)0, config_debug.debug))
+            {
+                
             }
 
             ImGui::EndMenu();
@@ -608,7 +622,7 @@ static void main_window(void)
             ratio = 1.0f;
     }
 
-    if (config_emulator.debug)
+    if (config_debug.debug)
         ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
 
     int w_corrected = config_video.ratio == 3 ? w : GAMEBOY_HEIGHT * ratio;
@@ -620,7 +634,7 @@ static void main_window(void)
     {
         factor = config_video.scale;
     }
-    else if (config_emulator.debug)
+    else if (config_debug.debug)
     {
         factor = 2;
     }
@@ -631,21 +645,22 @@ static void main_window(void)
         factor = (factor_w < factor_h) ? factor_w : factor_h;
     }
 
-    main_window_width = w_corrected * factor;
-    main_window_height = h_corrected * factor;
+    int main_window_width = w_corrected * factor;
+    int main_window_height = h_corrected * factor;
 
     int window_x = (w - (w_corrected * factor)) / 2;
     int window_y = ((h - (h_corrected * factor)) / 2) + main_menu_height;
 
-    
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar;
     
-    if (config_emulator.debug)
+    if (config_debug.debug)
     {
         flags |= ImGuiWindowFlags_AlwaysAutoResize;
+
+        ImGui::Begin("Game Boy", &config_debug.show_gameboy, flags);
     }
     else
     {
@@ -654,11 +669,11 @@ static void main_window(void)
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav;
+
+        ImGui::Begin("output", 0, flags);
     }
 
-    ImGui::Begin(config_emulator.debug ? "Game Boy" : "output", 0, flags);
-
-    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width,main_window_height));
+    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width, main_window_height));
 
     if (config_video.fps)
         show_fps();
@@ -671,7 +686,7 @@ static void main_window(void)
     ImGui::PopStyleVar();
     ImGui::PopStyleVar();
 
-    if (!config_emulator.debug)
+    if (!config_debug.debug)
     {
         
         ImGui::PopStyleVar();
@@ -1036,7 +1051,7 @@ static void show_info(void)
     if (config_video.fps)
         ImGui::SetCursorPosX(5.0f);
     else
-        ImGui::SetCursorPos(ImVec2(5.0f, config_emulator.debug ? 25.0f : 5.0f));
+        ImGui::SetCursorPos(ImVec2(5.0f, config_debug.debug ? 25.0f : 5.0f));
 
     static char info[512];
 
@@ -1046,7 +1061,7 @@ static void show_info(void)
 
 static void show_fps(void)
 {
-    ImGui::SetCursorPos(ImVec2(5.0f, config_emulator.debug ? 25.0f : 5.0f ));
+    ImGui::SetCursorPos(ImVec2(5.0f, config_debug.debug ? 25.0f : 5.0f ));
     ImGui::Text("Frame Rate: %.2f FPS\nFrame Time: %.2f ms", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
 }
 
