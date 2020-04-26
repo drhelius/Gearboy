@@ -145,6 +145,10 @@ void gui_shortcut(gui_ShortCutEvent event)
         if (config_debug.debug)
             emu_debug_continue();
         break;
+    case gui_ShortcutDebugNextFrame:
+        if (config_debug.debug)
+            emu_debug_next_frame();
+        break;
     default:
         break;
     }
@@ -513,6 +517,11 @@ static void main_menu(void)
             if (ImGui::MenuItem("Continue", "CTRL + F5", (void*)0, config_debug.debug))
             {
                 emu_debug_continue();
+            }
+
+            if (ImGui::MenuItem("Next Frame", "CTRL + F6", (void*)0, config_debug.debug))
+            {
+                emu_debug_next_frame();
             }
 
             ImGui::Separator();

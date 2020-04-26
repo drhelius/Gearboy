@@ -176,7 +176,9 @@ static void debug_window_disassembler(void)
     if (ImGui::Button("Continue"))
         emu_debug_continue(); 
     ImGui::SameLine();
-    ImGui::Button("Next Frame"); ImGui::SameLine(0.0f, 20.0f);
+    if (ImGui::Button("Next Frame"))
+        emu_debug_next_frame();
+    ImGui::SameLine(0.0f, 20.0f);
 
     static bool enable_track = true;
     ImGui::Checkbox("Track PC", &enable_track);

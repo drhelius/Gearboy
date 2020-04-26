@@ -40,6 +40,7 @@ static char base_save_path[260];
 static bool audio_enabled;
 static bool debugging = false;
 static bool debug_step = false;
+static bool debug_next_frame = false;
 
 static void save_ram(void);
 static void load_ram(void);
@@ -99,10 +100,11 @@ void emu_run_to_vblank(void)
     {
         int sampleCount = 0;
 
-        if (!debugging || (debugging && debug_step))
+        if (!debugging || debug_step || debug_next_frame)
         {
             gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, debug_step);
 
+            debug_next_frame = false;
             debug_step = false;
         }
 
@@ -265,7 +267,7 @@ void emu_add_cheat(const char* cheat)
     gearboy->SetCheat(cheat);
 }
 
-void emu_clear_cheats()
+void emu_clear_cheats(void)
 {
     gearboy->ClearCheats();
 }
@@ -303,15 +305,23 @@ GearboyCore* emu_get_core(void)
     return gearboy;
 }
 
-void emu_debug_step()
+void emu_debug_step(void)
 {
     debugging = debug_step = true;
+    debug_next_frame = false;
     gearboy->Pause(false);
 }
 
-void emu_debug_continue()
+void emu_debug_continue(void)
 {
-    debugging = debug_step = false;
+    debugging = debug_step = debug_next_frame = false;
+    gearboy->Pause(false);
+}
+
+void emu_debug_next_frame(void)
+{
+    debugging = debug_next_frame = true;
+    debug_step = false;
     gearboy->Pause(false);
 }
 

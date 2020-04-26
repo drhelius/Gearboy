@@ -134,17 +134,20 @@ u8 Processor::Tick()
 
     if (!m_bHalt)
     {
-        if (m_iAccurateOPCodeState == 0)
-            ServeInterrupt(InterruptPending());
-
-#ifndef GEARBOY_DISABLE_DISASSEMBLER
+        #ifndef GEARBOY_DISABLE_DISASSEMBLER
         Disassemble(PC.GetValue());
-#endif
-        ExecuteOPCode(FetchOPCode());
+        #endif
 
-#ifndef GEARBOY_DISABLE_DISASSEMBLER
+        Interrupts interrupt = InterruptPending();
+
+        if ((m_iAccurateOPCodeState == 0) && (interrupt != None_Interrupt))
+            ServeInterrupt(interrupt);
+        else
+            ExecuteOPCode(FetchOPCode());
+
+        #ifndef GEARBOY_DISABLE_DISASSEMBLER
         Disassemble(PC.GetValue());
-#endif
+        #endif
     }
     
     if (m_iInterruptDelayCycles > 0)
@@ -240,7 +243,7 @@ void Processor::ExecuteOPCode(u8 opcode)
 
 void Processor::ServeInterrupt(Interrupts interrupt)
 {
-    if (m_bIME && (interrupt != None_Interrupt))
+    if (m_bIME)
     {
         u8 if_reg = m_pMemory->Retrieve(0xFF0F);
         m_bIME = false;
