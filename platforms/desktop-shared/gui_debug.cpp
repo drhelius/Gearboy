@@ -482,11 +482,32 @@ static void debug_window_audio(void)
     ImGui::NextColumn();
     ImGui::Separator();
 
-    ImGui::Text("aaa");
+    ImGui::TextColored(yellow, "CONTROL:");
+
+    value = apu_state.regs[0xFF24 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF24"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR50"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF25 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF25"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR51"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF26 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF26"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR52"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
 
     ImGui::NextColumn();
 
-    ImGui::Text("aaa");
+    ImGui::TextColored(yellow, "WAVE ($FF30 - $FF37):" );
+
+    ImGui::Text(" %02X%02X %02X%02X %02X%02X %02X%02X", apu_state.regs[0x20], apu_state.regs[0x21], apu_state.regs[0x22], apu_state.regs[0x23], apu_state.regs[0x24], apu_state.regs[0x25], apu_state.regs[0x26], apu_state.regs[0x27]);
+
+    ImGui::TextColored(yellow, "WAVE ($FF38 - $FF3F):" );
+
+    ImGui::Text(" %02X%02X %02X%02X %02X%02X %02X%02X", apu_state.regs[0x28], apu_state.regs[0x29], apu_state.regs[0x2A], apu_state.regs[0x2B], apu_state.regs[0x2C], apu_state.regs[0x2D], apu_state.regs[0x2E], apu_state.regs[0x2F]);
 
     ImGui::NextColumn();
 
