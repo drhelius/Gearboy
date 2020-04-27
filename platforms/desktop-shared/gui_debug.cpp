@@ -39,6 +39,7 @@ static ImVec4 gray = ImVec4(0.5f,0.5f,0.5f,1.0f);
 
 static void debug_window_processor(void);
 static void debug_window_io(void);
+static void debug_window_audio(void);
 static void debug_window_memory(void);
 static void debug_window_disassembler(void);
 
@@ -54,12 +55,17 @@ void gui_debug_windows(void)
             debug_window_disassembler();
         if (config_debug.show_iomap)
             debug_window_io();
-        //ImGui::ShowDemoWindow(&config_emulator.debug);
+        if (config_debug.show_audio)
+            debug_window_audio();
+
+        //ImGui::ShowDemoWindow(&config_debug.debug);
     }
 }
 
 static void debug_window_memory(void)
 {
+    ImGui::SetNextWindowSize(ImVec2(494, 368), ImGuiCond_FirstUseEver);
+
     ImGui::Begin("Memory Editor", &config_debug.show_memory);
 
     GearboyCore* core = emu_get_core();
@@ -158,7 +164,9 @@ static void debug_window_memory(void)
 
 static void debug_window_disassembler(void)
 {
-    ImGui::Begin("Disassembler", &config_debug.show_disassembler, 0);
+    ImGui::SetNextWindowSize(ImVec2(0, 325), ImGuiCond_FirstUseEver);
+
+    ImGui::Begin("Disassembler", &config_debug.show_disassembler);
     
     ImGui::PushFont(gui_default_font);
 
@@ -350,10 +358,150 @@ static void debug_window_processor(void)
     ImGui::End();
 }
 
+static void debug_window_audio(void)
+{
+    ImGui::SetNextWindowSize(ImVec2(494, 0), ImGuiCond_FirstUseEver);
+
+    ImGui::Begin("Sound Registers", &config_debug.show_audio);
+
+    ImGui::PushFont(gui_default_font);
+
+    GearboyCore* core = emu_get_core();
+    Audio* audio = core->GetAudio();
+
+    gb_apu_state_t apu_state;
+    audio->GetApu()->save_state(&apu_state);
+
+    ImGui::Columns(2, "audio");
+
+    ImGui::TextColored(yellow, "CHANNEL 1 - TONE & SWEEP:");
+
+    u8 value = apu_state.regs[0xFF10 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF10"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR10"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF11 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF11"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR11"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF12 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF12"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR12"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF13 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF13"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR13"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF14 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF14"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR14"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    ImGui::NextColumn();
+
+    ImGui::TextColored(yellow, "CHANNEL 3 - WAVE:");
+
+    value = apu_state.regs[0xFF1A - 0xFF10];
+    ImGui::TextColored(cyan, " $FF1A"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR30"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF1B - 0xFF10];
+    ImGui::TextColored(cyan, " $FF1B"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR31"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF1C - 0xFF10];
+    ImGui::TextColored(cyan, " $FF1C"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR32"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF1D - 0xFF10];
+    ImGui::TextColored(cyan, " $FF1D"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR33"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF1E - 0xFF10];
+    ImGui::TextColored(cyan, " $FF1E"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR34"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    ImGui::NextColumn();
+    ImGui::Separator();
+
+    ImGui::TextColored(yellow, "CHANNEL 2 - TONE:");
+
+    value = apu_state.regs[0xFF16 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF16"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR21"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF17 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF17"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR22"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF18 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF18"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR23"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF19 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF19"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR24"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    ImGui::NextColumn();
+
+    ImGui::TextColored(yellow, "CHANNEL 4 - NOISE:");
+
+    value = apu_state.regs[0xFF20 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF20"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR41"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF21 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF21"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR42"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF22 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF22"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR43"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    value = apu_state.regs[0xFF23 - 0xFF10];
+    ImGui::TextColored(cyan, " $FF23"); ImGui::SameLine();
+    ImGui::TextColored(green, "NR44"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
+
+    ImGui::NextColumn();
+    ImGui::Separator();
+
+    ImGui::Text("aaa");
+
+    ImGui::NextColumn();
+
+    ImGui::Text("aaa");
+
+    ImGui::NextColumn();
+
+    ImGui::Columns(1);
+
+    ImGui::PopFont();
+
+    ImGui::End();
+}
+
 static void debug_window_io(void)
 {
-    ImGui::SetNextWindowContentSize(ImVec2(480, 0.0f));
-    ImGui::Begin("IO Map", &config_debug.show_iomap, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
+    ImGui::SetNextWindowSize(ImVec2(494, 0), ImGuiCond_FirstUseEver);
+
+    ImGui::Begin("IO Map", &config_debug.show_iomap);
 
     ImGui::PushFont(gui_default_font);
 
