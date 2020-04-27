@@ -137,4 +137,9 @@ inline Memory::stDisassembleRecord* Memory::GetDisassembledMemoryMap()
     return m_pDisassembledMap;
 }
 
+inline Memory::stDisassembleRecord* Memory::GetDisassembledROMMemoryMap()
+{
+    return m_pDisassembledROMMap;
+}
+
 #endif	/* MEMORY_INLINE_H */

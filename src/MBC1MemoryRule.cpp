@@ -279,6 +279,11 @@ u8* MBC1MemoryRule::GetRomBank0()
     return m_pMemory->GetMemoryMap() + 0x0000;
 }
 
+int MBC1MemoryRule::GetCurrentRomBank0Index()
+{
+    return 0;
+}
+
 void MBC1MemoryRule::SaveState(std::ostream& stream)
 {
     using namespace std;

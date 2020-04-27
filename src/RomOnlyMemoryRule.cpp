@@ -148,3 +148,8 @@ u8* RomOnlyMemoryRule::GetRomBank0()
 {
     return m_pMemory->GetMemoryMap() + 0x0000;
 }
+
+int RomOnlyMemoryRule::GetCurrentRomBank0Index()
+{
+    return 0;
+}

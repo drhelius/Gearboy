@@ -189,7 +189,9 @@ static void debug_window_disassembler(void)
     Processor* processor = core->GetProcessor();
     Processor::ProcessorState* proc_state = processor->GetState();
     Memory* memory = core->GetMemory();
-    Memory::stDisassembleRecord* map = memory->GetDisassembledMemoryMap();
+    Memory::stDisassembleRecord* memoryMap = memory->GetDisassembledMemoryMap();
+    Memory::stDisassembleRecord* romMap = memory->GetDisassembledROMMemoryMap();
+    Memory::stDisassembleRecord* map = NULL;
 
     int pc = proc_state->PC->GetValue();
 
@@ -218,9 +220,28 @@ static void debug_window_disassembler(void)
         
         for (int i = 0; i < 0x10000; i++)
         {
-            if (map[i].name[0] != 0)
+            int offset = i;
+
+            if ((i & 0xC000) == 0x0000)
             {
-                vec[dis_size] = &map[i];
+                int bank = memory->GetCurrentRule()->GetCurrentRomBank0Index();
+                offset = (0x4000 * bank) + i;
+                map = romMap;
+            }
+            else if ((i & 0xC000) == 0x4000)
+            {
+                int bank = memory->GetCurrentRule()->GetCurrentRomBank1Index();
+                offset = (0x4000 * bank) + (i & 0x3FFF);
+                map = romMap;
+            }
+            else
+            {
+                map = memoryMap;
+            }
+
+            if (map[offset].name[0] != 0)
+            {
+                vec[dis_size] = &map[offset];
 
                 if (vec[dis_size]->address == pc)
                     pc_pos = dis_size;

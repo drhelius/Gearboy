@@ -29,6 +29,7 @@ Memory::Memory()
     InitPointer(m_pVideo);
     InitPointer(m_pMap);
     InitPointer(m_pDisassembledMap);
+    InitPointer(m_pDisassembledROMMap);
     InitPointer(m_pWRAMBanks);
     InitPointer(m_pLCDRAMBank1);
     InitPointer(m_pCommonMemoryRule);
@@ -51,7 +52,7 @@ Memory::~Memory()
     InitPointer(m_pVideo);
     SafeDeleteArray(m_pMap);
     SafeDeleteArray(m_pDisassembledMap);
-    SafeDeleteArray(m_pDisassembledMap);
+    SafeDeleteArray(m_pDisassembledROMMap);
     SafeDeleteArray(m_pWRAMBanks);
     SafeDeleteArray(m_pLCDRAMBank1);
     InitPointer(m_pCommonMemoryRule);
@@ -75,6 +76,7 @@ void Memory::Init()
     m_pWRAMBanks = new u8[0x8000];
     m_pLCDRAMBank1 = new u8[0x2000];
     m_pDisassembledMap = new stDisassembleRecord[65536];
+    m_pDisassembledROMMap = new stDisassembleRecord[MAX_ROM_SIZE];
     Reset(false);
 }
 
@@ -88,6 +90,14 @@ void Memory::Reset(bool bCGB)
     m_iCurrentLCDRAMBank = 0;
     m_bHDMAEnabled = false;
     m_iHDMABytes = 0;
+
+    for (int i = 0; i < MAX_ROM_SIZE; i++)
+    {
+        m_pDisassembledROMMap[i].address = 0;
+        m_pDisassembledROMMap[i].name[0] = 0;
+        m_pDisassembledROMMap[i].bytes[0] = 0;
+        m_pDisassembledROMMap[i].size = 0;
+    }
 
     for (int i = 0; i < 65536; i++)
     {

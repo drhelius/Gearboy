@@ -211,6 +211,11 @@ u8* MBC5MemoryRule::GetRomBank0()
     return m_pMemory->GetMemoryMap() + 0x0000;
 }
 
+int MBC5MemoryRule::GetCurrentRomBank0Index()
+{
+    return 0;
+}
+
 u8* MBC5MemoryRule::GetCurrentRomBank1()
 {
     u8* pROM = m_pCartridge->GetTheROM();

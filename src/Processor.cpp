@@ -393,12 +393,34 @@ void Processor::UpdateGameShark()
 
 int Processor::Disassemble(u16 address)
 {
-    Memory::stDisassembleRecord* map = m_pMemory->GetDisassembledMemoryMap();
+    Memory::stDisassembleRecord* memoryMap = m_pMemory->GetDisassembledMemoryMap();
+    Memory::stDisassembleRecord* romMap = m_pMemory->GetDisassembledROMMemoryMap();
 
-    if (map[address].size != 0)
+    Memory::stDisassembleRecord* map = NULL;
+
+    int offset = address;
+
+    if ((address & 0xC000) == 0x0000)
+    {
+        int bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank0Index();
+        offset = (0x4000 * bank) + address;
+        map = romMap;
+    }
+    else if ((address & 0xC000) == 0x4000)
+    {
+        int bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank1Index();
+        offset = (0x4000 * bank) + (address & 0x3FFF);
+        map = romMap;
+    }
+    else
+    {
+        map = memoryMap;
+    }
+
+    if (map[offset].size != 0)
         return 0;
 
-    map[address].address = address;
+    map[offset].address = address;
 
     u8 bytes[4];
 
@@ -416,9 +438,9 @@ int Processor::Disassemble(u16 address)
 
     stOPCodeInfo info = cb ? kOPCodeCBNames[opcode] : kOPCodeNames[opcode];
 
-    map[address].size = info.size;
+    map[offset].size = info.size;
 
-    map[address].bytes[0] = 0;
+    map[offset].bytes[0] = 0;
 
     for (int i = 0; i < 4; i++)
     {
@@ -426,36 +448,36 @@ int Processor::Disassemble(u16 address)
         {
             char value[8];
             sprintf(value, "%02X", bytes[i]);
-            strcat(map[address].bytes, value);
+            strcat(map[offset].bytes, value);
         }
         else
         {
-            strcat(map[address].bytes, "  ");
+            strcat(map[offset].bytes, "  ");
         }
 
         if (i < 3)
-            strcat(map[address].bytes, " ");
+            strcat(map[offset].bytes, " ");
     }
 
     switch (info.type)
     {
         case 0:
-            strcpy(map[address].name, info.name);
+            strcpy(map[offset].name, info.name);
             break;
         case 1:
-            sprintf(map[address].name, info.name, bytes[1]);
+            sprintf(map[offset].name, info.name, bytes[1]);
             break;
         case 2:
-            sprintf(map[address].name, info.name, (bytes[2] << 8) | bytes[1]);
+            sprintf(map[offset].name, info.name, (bytes[2] << 8) | bytes[1]);
             break;
         case 3:
-            sprintf(map[address].name, info.name, (s8)bytes[1]);
+            sprintf(map[offset].name, info.name, (s8)bytes[1]);
             break;
         case 4:
-            sprintf(map[address].name, info.name, (s8)bytes[1], address + info.size+ (s8)bytes[1]);
+            sprintf(map[offset].name, info.name, (s8)bytes[1], address + info.size + (s8)bytes[1]);
             break;
         default:
-            strcpy(map[address].name, "PARSE ERROR");
+            strcpy(map[offset].name, "PARSE ERROR");
     }
 
     return info.size;

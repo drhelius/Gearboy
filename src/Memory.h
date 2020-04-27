@@ -63,6 +63,7 @@ public:
     u8 Retrieve(u16 address);
     void Load(u16 address, u8 value);
     stDisassembleRecord* GetDisassembledMemoryMap();
+    stDisassembleRecord* GetDisassembledROMMemoryMap();
     void LoadBank0and1FromROM(u8* pTheROM);
     void MemoryDump(const char* szFilePath);
     void PerformDMA(u8 value);
@@ -92,6 +93,7 @@ private:
     MemoryRule* m_pCurrentMemoryRule;
     u8* m_pMap;
     stDisassembleRecord* m_pDisassembledMap;
+    stDisassembleRecord* m_pDisassembledROMMap;
     bool m_bCGB;
     int m_iCurrentWRAMBank;
     int m_iCurrentLCDRAMBank;

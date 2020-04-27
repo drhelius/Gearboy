@@ -401,6 +401,11 @@ u8* MBC3MemoryRule::GetRomBank0()
     return m_pMemory->GetMemoryMap() + 0x0000;
 }
 
+int MBC3MemoryRule::GetCurrentRomBank0Index()
+{
+    return 0;
+}
+
 u8* MBC3MemoryRule::GetCurrentRomBank1()
 {
     u8* pROM = m_pCartridge->GetTheROM();

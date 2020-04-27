@@ -92,6 +92,7 @@ void emu_load_rom(const char* file_path, bool force_dmg, bool save_in_rom_dir, C
     save_ram();
     gearboy->LoadROM(file_path, force_dmg, mbc);
     load_ram();
+    emu_debug_continue();
 }
 
 void emu_run_to_vblank(void)

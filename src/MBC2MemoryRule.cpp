@@ -216,6 +216,11 @@ u8* MBC2MemoryRule::GetRomBank0()
     return m_pMemory->GetMemoryMap() + 0x0000;
 }
 
+int MBC2MemoryRule::GetCurrentRomBank0Index()
+{
+    return 0;
+}
+
 int MBC2MemoryRule::GetCurrentRomBank1Index()
 {
     return m_iCurrentROMBank;

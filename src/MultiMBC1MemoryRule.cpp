@@ -161,6 +161,11 @@ u8* MultiMBC1MemoryRule::GetRomBank0()
         return pROM + (m_iMBC1MBank_0 * 0x4000);
 }
 
+int MultiMBC1MemoryRule::GetCurrentRomBank0Index()
+{
+    return m_iMBC1MBank_0;
+}
+
 u8* MultiMBC1MemoryRule::GetCurrentRomBank1()
 {
     u8* pROM = m_pCartridge->GetTheROM();

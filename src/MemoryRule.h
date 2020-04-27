@@ -48,6 +48,7 @@ public:
     virtual u8* GetCurrentRamBank();
     virtual int GetCurrentRamBankIndex();
     virtual u8* GetRomBank0();
+    virtual int GetCurrentRomBank0Index();
     virtual u8* GetCurrentRomBank1();
     virtual int GetCurrentRomBank1Index();
     virtual u8* GetRTCMemory();

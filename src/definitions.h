@@ -47,6 +47,8 @@
 
 //#define GEARBOY_DISABLE_DISASSEMBLER
 
+#define MAX_ROM_SIZE 0x800000
+
 #define SafeDelete(pointer) if(pointer != NULL) {delete pointer; pointer = NULL;}
 #define SafeDeleteArray(pointer) if(pointer != NULL) {delete [] pointer; pointer = NULL;}
 
