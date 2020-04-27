@@ -132,6 +132,8 @@ u8 Processor::Tick()
         }
     }
 
+    bool interrupt_served = false;
+
     if (!m_bHalt)
     {
         #ifndef GEARBOY_DISABLE_DISASSEMBLER
@@ -140,8 +142,11 @@ u8 Processor::Tick()
 
         Interrupts interrupt = InterruptPending();
 
-        if ((m_iAccurateOPCodeState == 0) && (interrupt != None_Interrupt))
+        if (m_bIME && (interrupt != None_Interrupt) && (m_iAccurateOPCodeState == 0))
+        {
             ServeInterrupt(interrupt);
+            interrupt_served = true;
+        }
         else
             ExecuteOPCode(FetchOPCode());
 
@@ -150,7 +155,7 @@ u8 Processor::Tick()
         #endif
     }
     
-    if (m_iInterruptDelayCycles > 0)
+    if (!interrupt_served && (m_iInterruptDelayCycles > 0))
     {
         m_iInterruptDelayCycles -= m_iCurrentClockCycles;
     }
@@ -158,7 +163,7 @@ u8 Processor::Tick()
     UpdateTimers();
     UpdateSerial();
 
-    if (m_iAccurateOPCodeState == 0 && m_iIMECycles > 0)
+    if (!interrupt_served && (m_iAccurateOPCodeState == 0) && (m_iIMECycles > 0))
     {
         m_iIMECycles -= m_iCurrentClockCycles;
 
@@ -243,40 +248,37 @@ void Processor::ExecuteOPCode(u8 opcode)
 
 void Processor::ServeInterrupt(Interrupts interrupt)
 {
-    if (m_bIME)
+    u8 if_reg = m_pMemory->Retrieve(0xFF0F);
+    m_bIME = false;
+    StackPush(&PC);
+    m_iCurrentClockCycles += AdjustedCycles(20);
+    
+    switch (interrupt)
     {
-        u8 if_reg = m_pMemory->Retrieve(0xFF0F);
-        m_bIME = false;
-        StackPush(&PC);
-        m_iCurrentClockCycles += AdjustedCycles(20);
-        
-        switch (interrupt)
-        {
-            case VBlank_Interrupt:
-                m_iInterruptDelayCycles= 0;
-                m_pMemory->Load(0xFF0F, if_reg & 0xFE);
-                PC.SetValue(0x0040);
-                UpdateGameShark();
-                break;
-            case LCDSTAT_Interrupt:
-                m_pMemory->Load(0xFF0F, if_reg & 0xFD);
-                PC.SetValue(0x0048);
-                break;
-            case Timer_Interrupt:
-                m_pMemory->Load(0xFF0F, if_reg & 0xFB);
-                PC.SetValue(0x0050);
-                break;
-            case Serial_Interrupt:
-                m_pMemory->Load(0xFF0F, if_reg & 0xF7);
-                PC.SetValue(0x0058);
-                break;
-            case Joypad_Interrupt:
-                m_pMemory->Load(0xFF0F, if_reg & 0xEF);
-                PC.SetValue(0x0060);
-                break;
-            case None_Interrupt:
-                break;
-        }
+        case VBlank_Interrupt:
+            m_iInterruptDelayCycles= 0;
+            m_pMemory->Load(0xFF0F, if_reg & 0xFE);
+            PC.SetValue(0x0040);
+            UpdateGameShark();
+            break;
+        case LCDSTAT_Interrupt:
+            m_pMemory->Load(0xFF0F, if_reg & 0xFD);
+            PC.SetValue(0x0048);
+            break;
+        case Timer_Interrupt:
+            m_pMemory->Load(0xFF0F, if_reg & 0xFB);
+            PC.SetValue(0x0050);
+            break;
+        case Serial_Interrupt:
+            m_pMemory->Load(0xFF0F, if_reg & 0xF7);
+            PC.SetValue(0x0058);
+            break;
+        case Joypad_Interrupt:
+            m_pMemory->Load(0xFF0F, if_reg & 0xEF);
+            PC.SetValue(0x0060);
+            break;
+        case None_Interrupt:
+            break;
     }
 }
 
