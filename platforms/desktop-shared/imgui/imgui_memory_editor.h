@@ -442,8 +442,8 @@ struct MemoryEditor
                 ImGui::OpenPopup("context");
             if (ImGui::BeginPopup("context"))
             {
-                ImGui::PushItemWidth(56);
-                if (ImGui::DragInt("##cols", &Cols, 0.2f, 4, 32, "%d cols")) { ContentsWidthChanged = true; }
+                ImGui::PushItemWidth(120);
+                if (ImGui::DragInt("##cols", &Cols, 0.2f, 4, 32, "%d columns")) { ContentsWidthChanged = true; }
                 ImGui::PopItemWidth();
                 ImGui::Checkbox("Show Data Preview", &next_show_data_preview);
                 ImGui::Checkbox("Show HexII", &OptShowHexII);
