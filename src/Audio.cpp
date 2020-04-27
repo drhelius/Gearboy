@@ -132,3 +132,8 @@ void Audio::LoadState(std::istream& stream)
     m_pApu->load_state(apu_state);
     m_pBuffer->clear();
 }
+
+Gb_Apu* Audio::GetApu()
+{
+    return m_pApu;
+}

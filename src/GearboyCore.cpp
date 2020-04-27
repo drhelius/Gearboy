@@ -105,6 +105,7 @@ void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
     if (!m_bPaused && m_pCartridge->IsLoadedROM())
     {
         bool vblank = false;
+        int totalClocks = 0;
         while (!vblank)
         {
             #ifdef PS2
@@ -118,6 +119,11 @@ void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pInput->Tick(clockCycles);
 
             if (step && !m_pProcessor->Halted() && !m_pProcessor->DuringOpCode())
+                vblank = true;
+
+            totalClocks += clockCycles;
+
+            if (totalClocks > 702240)
                 vblank = true;
         }
 
@@ -209,6 +215,11 @@ Cartridge* GearboyCore::GetCartridge()
 Processor* GearboyCore::GetProcessor()
 {
     return m_pProcessor;
+}
+
+Audio* GearboyCore::GetAudio()
+{
+    return m_pAudio;
 }
 
 void GearboyCore::KeyPressed(Gameboy_Keys key)
