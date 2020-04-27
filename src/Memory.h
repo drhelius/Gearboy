@@ -74,6 +74,7 @@ public:
     u8 GetHDMARegister(int reg) const;
     u8* GetCGBRAM();
     int GetCurrentCGBRAMBank();
+    int GetCurrentLCDRAMBank();
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
     u8* GetROM0();

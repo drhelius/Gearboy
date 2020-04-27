@@ -432,6 +432,11 @@ int Memory::GetCurrentCGBRAMBank()
     return m_iCurrentWRAMBank;
 }
 
+int Memory::GetCurrentLCDRAMBank()
+{
+    return m_iCurrentLCDRAMBank;
+}
+
 void Memory::SaveState(std::ostream& stream)
 {
     using namespace std;

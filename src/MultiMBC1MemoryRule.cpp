@@ -146,6 +146,11 @@ u8* MultiMBC1MemoryRule::GetCurrentRamBank()
     return m_pMemory->GetMemoryMap() + 0xA000;
 }
 
+int MultiMBC1MemoryRule::GetCurrentRamBankIndex()
+{
+    return 0;
+}
+
 u8* MultiMBC1MemoryRule::GetRomBank0()
 {
     u8* pROM = m_pCartridge->GetTheROM();
@@ -164,6 +169,11 @@ u8* MultiMBC1MemoryRule::GetCurrentRomBank1()
         return &pROM[m_iMBC1Bank_1 * 0x4000];
     else
         return &pROM[m_iMBC1MBank_1 * 0x4000];
+}
+
+int MultiMBC1MemoryRule::GetCurrentRomBank1Index()
+{
+    return m_iMBC1Bank_1;
 }
 
 void MultiMBC1MemoryRule::SaveState(std::ostream& stream)

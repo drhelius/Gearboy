@@ -64,16 +64,31 @@ void gui_debug_windows(void)
 
 static void debug_window_memory(void)
 {
-    ImGui::SetNextWindowSize(ImVec2(494, 368), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(483, 368), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Memory Editor", &config_debug.show_memory);
 
     GearboyCore* core = emu_get_core();
     Memory* memory = core->GetMemory();
 
+    ImGui::PushFont(gui_default_font);
+
+    ImGui::TextColored(cyan, "  BANKS: ");ImGui::SameLine();
+
+    ImGui::TextColored(magenta, "ROM1");ImGui::SameLine();
+    ImGui::Text("$%02X", memory->GetCurrentRule()->GetCurrentRomBank1Index()); ImGui::SameLine();
+    ImGui::TextColored(magenta, "  RAM");ImGui::SameLine();
+    ImGui::Text("$%02X", memory->GetCurrentRule()->GetCurrentRamBankIndex()); ImGui::SameLine();
+    ImGui::TextColored(magenta, "  WRAM1");ImGui::SameLine();
+    ImGui::Text("$%02X", memory->GetCurrentCGBRAMBank()); ImGui::SameLine();
+    ImGui::TextColored(magenta, "  VRAM");ImGui::SameLine();
+    ImGui::Text("$%02X", memory->GetCurrentLCDRAMBank());
+
+    ImGui::PopFont();
+
     if (ImGui::BeginTabBar("##memory_tabs", ImGuiTabBarFlags_None))
         {
-            if (ImGui::BeginTabItem("ROM 0"))
+            if (ImGui::BeginTabItem("ROM0"))
             {
                 ImGui::PushFont(gui_default_font);
                 mem_edit.DrawContents(memory->GetROM0(), 0x4000, 0);
@@ -81,7 +96,7 @@ static void debug_window_memory(void)
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("ROM 1"))
+            if (ImGui::BeginTabItem("ROM1"))
             {
                 ImGui::PushFont(gui_default_font);
                 mem_edit.DrawContents(memory->GetROM1(), 0x4000, 0x4000);
@@ -107,14 +122,14 @@ static void debug_window_memory(void)
 
             if (emu_is_cgb())
             {
-                if (ImGui::BeginTabItem("WRAM 0"))
+                if (ImGui::BeginTabItem("WRAM0"))
                 {
                     ImGui::PushFont(gui_default_font);
                     mem_edit.DrawContents(memory->GetWRAM0(), 0x1000, 0xC000);
                     ImGui::PopFont();
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem("WRAM 1"))
+                if (ImGui::BeginTabItem("WRAM1"))
                 {
                     ImGui::PushFont(gui_default_font);
                     mem_edit.DrawContents(memory->GetWRAM1(), 0x1000, 0xD000);

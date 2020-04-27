@@ -258,10 +258,20 @@ u8* MBC1MemoryRule::GetCurrentRamBank()
     return m_pRAMBanks + m_CurrentRAMAddress;
 }
 
+int MBC1MemoryRule::GetCurrentRamBankIndex()
+{
+    return m_iCurrentRAMBank;
+}
+
 u8* MBC1MemoryRule::GetCurrentRomBank1()
 {
     u8* pROM = m_pCartridge->GetTheROM();
     return &pROM[m_CurrentROMAddress];
+}
+
+int MBC1MemoryRule::GetCurrentRomBank1Index()
+{
+    return m_iCurrentROMBank;
 }
 
 u8* MBC1MemoryRule::GetRomBank0()

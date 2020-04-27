@@ -391,6 +391,11 @@ u8* MBC3MemoryRule::GetCurrentRamBank()
     return m_pRAMBanks + m_CurrentRAMAddress;
 }
 
+int MBC3MemoryRule::GetCurrentRamBankIndex()
+{
+    return m_iCurrentRAMBank > 0 ? m_iCurrentRAMBank : 0;
+}
+
 u8* MBC3MemoryRule::GetRomBank0()
 {
     return m_pMemory->GetMemoryMap() + 0x0000;
@@ -400,6 +405,11 @@ u8* MBC3MemoryRule::GetCurrentRomBank1()
 {
     u8* pROM = m_pCartridge->GetTheROM();
     return &pROM[m_CurrentROMAddress];
+}
+
+int MBC3MemoryRule::GetCurrentRomBank1Index()
+{
+    return m_iCurrentROMBank;
 }
 
 u8* MBC3MemoryRule::GetRTCMemory()

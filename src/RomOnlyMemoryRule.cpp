@@ -129,9 +129,19 @@ u8* RomOnlyMemoryRule::GetCurrentRamBank()
     return m_pMemory->GetMemoryMap() + 0xA000;
 }
 
+int RomOnlyMemoryRule::GetCurrentRamBankIndex()
+{
+    return 0;
+}
+
 u8* RomOnlyMemoryRule::GetCurrentRomBank1()
 {
     return m_pMemory->GetMemoryMap() + 0x4000;
+}
+
+int RomOnlyMemoryRule::GetCurrentRomBank1Index()
+{
+    return 0;
 }
 
 u8* RomOnlyMemoryRule::GetRomBank0()
