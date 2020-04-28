@@ -38,14 +38,9 @@
   (byte & 0x02 ? '1' : '0'), \
   (byte & 0x01 ? '1' : '0') 
 
-// EXTERN bool gui_in_use;
-
-// EXTERN void gui_init(void);
-// EXTERN void gui_destroy(void);
-// EXTERN void gui_render(void);
-// EXTERN void gui_shortcut(gui_ShortCutEvent event);
-
 EXTERN void gui_debug_windows(void);
+EXTERN void gui_debug_reset_symbols(void);
+EXTERN void gui_debug_load_symbols_file(const char* path);
 
 
 #undef GUI_DEBUG_IMPORT

@@ -50,6 +50,7 @@ static void file_dialog_load_ram(void);
 static void file_dialog_save_ram(void);
 static void file_dialog_load_state(void);
 static void file_dialog_save_state(void);
+static void file_dialog_load_symbols(void);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key);
 static void gamepad_configuration_item(const char* text, int* button);
 static void popup_modal_keyboard(void);
@@ -162,6 +163,7 @@ static void main_menu(void)
     bool open_state = false;
     bool save_state = false;
     bool open_about = false;
+    bool open_symbols = false;
 
     for (int i = 0; i < 4; i++)
         custom_palette[i] = color_int_to_float(config_video.color[i]);
@@ -546,12 +548,12 @@ static void main_menu(void)
 
             if (ImGui::MenuItem("Load Symbols...", "", (void*)0, config_debug.debug))
             {
-                open_state = true;
+                open_symbols = true;
             }
 
             if (ImGui::MenuItem("Clear Symbols", "", (void*)0, config_debug.debug))
             {
-                
+                gui_debug_reset_symbols();
             }
 
             ImGui::EndMenu();
@@ -591,6 +593,9 @@ static void main_menu(void)
     if (save_state)
         ImGui::OpenPopup("Save State As...");
 
+    if (open_symbols)
+        ImGui::OpenPopup("Load Symbols File...");
+
     if (open_about)
     {
         dialog_in_use = true;
@@ -603,6 +608,7 @@ static void main_menu(void)
     file_dialog_save_ram();
     file_dialog_load_state();
     file_dialog_save_state();
+    file_dialog_load_symbols();
 
     for (int i = 0; i < 4; i++)
         config_video.color[i] = color_float_to_int(custom_palette[i]);
@@ -756,6 +762,15 @@ static void file_dialog_save_state(void)
         }
 
         emu_save_state_file(state_path.c_str());
+    }
+}
+
+static void file_dialog_load_symbols(void)
+{
+    if(file_dialog.showFileDialog("Load Symbols File...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), ".sym,*.*", &dialog_in_use))
+    {
+        gui_debug_reset_symbols();
+        gui_debug_load_symbols_file(file_dialog.selected_path.c_str());
     }
 }
 
@@ -994,6 +1009,13 @@ static void load_rom(const char* path)
     emu_load_rom(path, config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
     cheat_list.clear();
     emu_clear_cheats();
+
+    gui_debug_reset_symbols();
+
+    std::string str(path);
+    str = str.substr(0, str.find_last_of("."));
+    str += ".sym";
+    gui_debug_load_symbols_file(str.c_str());
 
     if (config_emulator.start_paused)
     {

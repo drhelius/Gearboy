@@ -24,9 +24,26 @@
 #include "emu.h"
 #include "../../src/gearboy.h"
 #include "gui.h"
+#include "gui_debug_constants.h"
 
 #define GUI_DEBUG_IMPORT
 #include "gui_debug.h"
+
+struct DebugSymbol
+{
+    int bank;
+    u16 address;
+    std::string text;
+};
+
+struct DisassmeblerLine
+{
+    bool is_symbol;
+    Memory::stDisassembleRecord* record;
+    std::string symbol;
+};
+
+std::vector<DebugSymbol> symbols;
 
 static MemoryEditor mem_edit;
 static ImVec4 cyan = ImVec4(0.0f,1.0f,1.0f,1.0f);
@@ -42,6 +59,7 @@ static void debug_window_io(void);
 static void debug_window_audio(void);
 static void debug_window_memory(void);
 static void debug_window_disassembler(void);
+static void add_symbol(const char* line);
 
 void gui_debug_windows(void)
 {
@@ -216,21 +234,22 @@ static void debug_window_disassembler(void)
         int dis_size = 0;
         int pc_pos = 0;
         
-        std::vector<Memory::stDisassembleRecord*> vec(0x10000);
+        std::vector<DisassmeblerLine> vec(0x10000);
         
         for (int i = 0; i < 0x10000; i++)
         {
             int offset = i;
+            int bank = 0;
 
             if ((i & 0xC000) == 0x0000)
             {
-                int bank = memory->GetCurrentRule()->GetCurrentRomBank0Index();
+                bank = memory->GetCurrentRule()->GetCurrentRomBank0Index();
                 offset = (0x4000 * bank) + i;
                 map = romMap;
             }
             else if ((i & 0xC000) == 0x4000)
             {
-                int bank = memory->GetCurrentRule()->GetCurrentRomBank1Index();
+                bank = memory->GetCurrentRule()->GetCurrentRomBank1Index();
                 offset = (0x4000 * bank) + (i & 0x3FFF);
                 map = romMap;
             }
@@ -241,9 +260,20 @@ static void debug_window_disassembler(void)
 
             if (map[offset].name[0] != 0)
             {
-                vec[dis_size] = &map[offset];
+                for (int s = 0; s < symbols.size(); s++)
+                {
+                    if ((symbols[s].bank == bank) && (symbols[s].address == offset))
+                    {
+                        vec[dis_size].is_symbol = true;
+                        vec[dis_size].symbol = symbols[s].text;
+                        dis_size ++;
+                    }
+                }
 
-                if (vec[dis_size]->address == pc)
+                vec[dis_size].is_symbol = false;
+                vec[dis_size].record = &map[offset];
+
+                if (vec[dis_size].record->address == pc)
                     pc_pos = dis_size;
 
                 dis_size++;
@@ -256,17 +286,21 @@ static void debug_window_disassembler(void)
         {
             for (int item = clipper.DisplayStart; item < clipper.DisplayEnd; item++)
             {
-                if (vec[item]->address == pc)
+                if (vec[item].is_symbol)
                 {
-                    ImGui::TextColored(yellow, "%04X: %s  > %s", vec[item]->address, vec[item]->bytes, vec[item]->name);
+                    ImGui::TextColored(green, "%s:", vec[item].symbol.c_str());
+                }
+                else if (vec[item].record->address == pc)
+                {
+                    ImGui::TextColored(yellow, " %04X: %s  > %s", vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
                 }
                 else
                 {
-                    ImGui::TextColored(cyan, "%04X:", vec[item]->address);
+                    ImGui::TextColored(cyan, " %04X:", vec[item].record->address);
                     ImGui::SameLine();
-                    ImGui::TextColored(gray, "%s   ", vec[item]->bytes);
+                    ImGui::TextColored(gray, "%s   ", vec[item].record->bytes);
                     ImGui::SameLine();
-                    ImGui::TextColored(white, "%s", vec[item]->name);
+                    ImGui::TextColored(white, "%s", vec[item].record->name);
                 }
             }
         }
@@ -755,4 +789,83 @@ static void debug_window_io(void)
     ImGui::PopFont();
 
     ImGui::End();
+}
+
+void gui_debug_reset_symbols(void)
+{
+    symbols.clear();
+    
+    for (int i = 0; i < gui_debug_symbols_count; i++)
+        add_symbol(gui_debug_symbols[i]);
+}
+
+void gui_debug_load_symbols_file(const char* path)
+{
+    Log("Loading symbol file %s", path);
+
+    std::ifstream file(path);
+
+    if (file.is_open())
+    {
+        std::string line;
+
+        while (std::getline(file, line))
+        {
+            add_symbol(line.c_str());
+        }
+
+        file.close();
+    }
+}
+
+static void add_symbol(const char* line)
+{
+    Log("Loading symbol %s", line);
+
+    DebugSymbol s;
+
+    std::string str(line);
+
+    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+
+    size_t first = str.find_first_not_of(' ');
+    if (std::string::npos == first)
+    {
+        str = "";
+    }
+    else
+    {
+        size_t last = str.find_last_not_of(' ');
+        str = str.substr(first, (last - first + 1));
+    }
+
+    std::size_t comment = str.find(";");
+
+    if (comment != std::string::npos)
+        str = str.substr(0 , comment);
+
+    std::size_t space = str.find(" ");
+
+    if (space != std::string::npos)
+    {
+        s.text = str.substr(space + 1 , std::string::npos);
+        str = str.substr(0, space);
+
+        std::size_t separator = str.find(":");
+
+        if (separator != std::string::npos)
+        {
+            s.address = std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+
+            s.bank = std::stoul(str.substr(0, separator), 0 , 16);
+        }
+        else
+        {
+            s.address = std::stoul(str, 0, 16);
+            s.bank = 0;
+        }
+
+        symbols.push_back(s);
+    }
 }
