@@ -38,6 +38,7 @@ public:
         char name[32];
         char bytes[16];
         int size;
+        int bank;
     };
 
 public:
@@ -84,6 +85,7 @@ public:
     u8* GetRAM();
     u8* GetWRAM0();
     u8* GetWRAM1();
+    std::vector<Memory::stDisassembleRecord*>* GetBreakpoints();
 
 private:
     Processor* m_pProcessor;
@@ -94,6 +96,7 @@ private:
     u8* m_pMap;
     stDisassembleRecord* m_pDisassembledMap;
     stDisassembleRecord* m_pDisassembledROMMap;
+    std::vector<Memory::stDisassembleRecord*> m_Breakpoints;
     bool m_bCGB;
     int m_iCurrentWRAMBank;
     int m_iCurrentLCDRAMBank;

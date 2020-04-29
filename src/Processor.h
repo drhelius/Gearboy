@@ -70,8 +70,9 @@ public:
     void LoadState(std::istream& stream);
     void SetGameSharkCheat(const char* szCheat);
     void ClearGameSharkCheats();
-    ProcessorState* GetState(void);
-    int Disassemble(u16 address);
+    ProcessorState* GetState();
+    bool Disassemble(u16 address);
+    bool BreakpointHit();
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -101,6 +102,7 @@ private:
     int m_iSpeedMultiplier;
     int m_iAccurateOPCodeState;
     u8 m_iReadCache;
+    bool m_bBreakpointHit;
 
     struct GameSharkCode
     {        

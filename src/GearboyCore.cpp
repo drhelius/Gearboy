@@ -100,8 +100,10 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     InitDMGPalette();
 }
 
-void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer, bool step)
+bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer, bool step, bool stopOnBreakpoints)
 {
+    bool breakpoint = false;
+
     if (!m_bPaused && m_pCartridge->IsLoadedROM())
     {
         bool vblank = false;
@@ -118,8 +120,12 @@ void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
 
-            if (step && !m_pProcessor->Halted() && !m_pProcessor->DuringOpCode())
+            if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())) && !m_pProcessor->Halted() && !m_pProcessor->DuringOpCode())
+            {
                 vblank = true;
+                if (m_pProcessor->BreakpointHit())
+                    breakpoint = true;
+            }
 
             totalClocks += clockCycles;
 
@@ -141,6 +147,8 @@ void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             RenderDMGFrame(pFrameBuffer);
         }
     }
+
+    return breakpoint;
 }
 
 bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType)

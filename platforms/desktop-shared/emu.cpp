@@ -103,7 +103,8 @@ void emu_run_to_vblank(void)
 
         if (!debugging || debug_step || debug_next_frame)
         {
-            gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, debug_step);
+            if (gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, debug_step, true))
+                debugging = true;
 
             debug_next_frame = false;
             debug_step = false;

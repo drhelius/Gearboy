@@ -150,6 +150,10 @@ void gui_shortcut(gui_ShortCutEvent event)
         if (config_debug.debug)
             emu_debug_next_frame();
         break;
+    case gui_ShortcutDebugBreakpoint:
+        if (config_debug.debug)
+            gui_debug_add_breakpoint(true);
+        break;
     default:
         break;
     }
@@ -526,13 +530,21 @@ static void main_menu(void)
                 emu_debug_next_frame();
             }
 
+            if (ImGui::MenuItem("Add Breakpoint", "CTRL + F9", (void*)0, config_debug.debug))
+            {
+                gui_debug_add_breakpoint(false);
+            }
+
+            if (ImGui::MenuItem("Clear All Breakpoints", 0, (void*)0, config_debug.debug))
+            {
+                gui_debug_reset();
+            }
+
             ImGui::Separator();
 
             ImGui::MenuItem("Show Game Boy Screen", "", &config_debug.show_gameboy, config_debug.debug);
 
             ImGui::MenuItem("Show Disassembler", "", &config_debug.show_disassembler, config_debug.debug);
-
-            ImGui::MenuItem("Show Breakpoints", "", &config_debug.show_disassembler, config_debug.debug);
 
             ImGui::MenuItem("Show Processor Status", "", &config_debug.show_processor, config_debug.debug);
 
@@ -687,7 +699,7 @@ static void main_window(void)
 
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav;
 
-        ImGui::Begin("output", 0, flags);
+        ImGui::Begin(GEARBOY_TITLE, 0, flags);
     }
 
     ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width, main_window_height));
@@ -769,6 +781,7 @@ static void file_dialog_load_symbols(void)
 {
     if(file_dialog.showFileDialog("Load Symbols File...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), ".sym,*.*", &dialog_in_use))
     {
+        gui_debug_reset();
         gui_debug_reset_symbols();
         gui_debug_load_symbols_file(file_dialog.selected_path.c_str());
     }
@@ -1010,6 +1023,7 @@ static void load_rom(const char* path)
     cheat_list.clear();
     emu_clear_cheats();
 
+    gui_debug_reset();
     gui_debug_reset_symbols();
 
     std::string str(path);
@@ -1042,6 +1056,7 @@ static void push_recent_rom(std::string path)
 
 static void menu_reset(void)
 {
+    gui_debug_reset();
     emu_resume();
     emu_reset(config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
 

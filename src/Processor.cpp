@@ -44,6 +44,7 @@ Processor::Processor(Memory* pMemory)
     m_iInterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
+    m_bBreakpointHit = false;
 
     m_ProcessorState.AF = &AF;
     m_ProcessorState.BC = &BC;
@@ -93,6 +94,7 @@ void Processor::Reset(bool bCGB)
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
     m_GameSharkList.clear();
+    m_bBreakpointHit = false;
 }
 
 u8 Processor::RunFor(u8 ticks)
@@ -110,6 +112,7 @@ u8 Processor::RunFor(u8 ticks)
 u8 Processor::Tick()
 {
     m_iCurrentClockCycles = 0;
+    m_bBreakpointHit = false;
 
     if (m_iAccurateOPCodeState == 0 && m_bHalt)
     {
@@ -136,10 +139,6 @@ u8 Processor::Tick()
 
     if (!m_bHalt)
     {
-        #ifndef GEARBOY_DISABLE_DISASSEMBLER
-        Disassemble(PC.GetValue());
-        #endif
-
         Interrupts interrupt = InterruptPending();
 
         if (m_bIME && (interrupt != None_Interrupt) && (m_iAccurateOPCodeState == 0))
@@ -151,7 +150,7 @@ u8 Processor::Tick()
             ExecuteOPCode(FetchOPCode());
 
         #ifndef GEARBOY_DISABLE_DISASSEMBLER
-        Disassemble(PC.GetValue());
+        m_bBreakpointHit = Disassemble(PC.GetValue());
         #endif
     }
     
@@ -391,7 +390,7 @@ void Processor::UpdateGameShark()
     }
 }
 
-int Processor::Disassemble(u16 address)
+bool Processor::Disassemble(u16 address)
 {
     Memory::stDisassembleRecord* memoryMap = m_pMemory->GetDisassembledMemoryMap();
     Memory::stDisassembleRecord* romMap = m_pMemory->GetDisassembledROMMemoryMap();
@@ -399,16 +398,17 @@ int Processor::Disassemble(u16 address)
     Memory::stDisassembleRecord* map = NULL;
 
     int offset = address;
+    int bank = 0;
 
     if ((address & 0xC000) == 0x0000)
     {
-        int bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank0Index();
+        bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank0Index();
         offset = (0x4000 * bank) + address;
         map = romMap;
     }
     else if ((address & 0xC000) == 0x4000)
     {
-        int bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank1Index();
+        bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank1Index();
         offset = (0x4000 * bank) + (address & 0x3FFF);
         map = romMap;
     }
@@ -417,70 +417,84 @@ int Processor::Disassemble(u16 address)
         map = memoryMap;
     }
 
-    if (map[offset].size != 0)
-        return 0;
-
-    map[offset].address = address;
-
-    u8 bytes[4];
-
-    for (int i = 0; i < 4; i++)
-        bytes[i] = m_pMemory->Read(address + i);
-
-    u8 opcode = bytes[0];
-    bool cb = false;
-
-    if (opcode == 0xCB)
+    if (map[offset].size == 0)
     {
-        cb = true;
-        opcode = bytes[1];
-    }
+        map[offset].bank = bank;
+        map[offset].address = address;
 
-    stOPCodeInfo info = cb ? kOPCodeCBNames[opcode] : kOPCodeNames[opcode];
+        u8 bytes[4];
 
-    map[offset].size = info.size;
+        for (int i = 0; i < 4; i++)
+            bytes[i] = m_pMemory->Read(address + i);
 
-    map[offset].bytes[0] = 0;
+        u8 opcode = bytes[0];
+        bool cb = false;
 
-    for (int i = 0; i < 4; i++)
-    {
-        if (i < info.size)
+        if (opcode == 0xCB)
         {
-            char value[8];
-            sprintf(value, "%02X", bytes[i]);
-            strcat(map[offset].bytes, value);
-        }
-        else
-        {
-            strcat(map[offset].bytes, "  ");
+            cb = true;
+            opcode = bytes[1];
         }
 
-        if (i < 3)
-            strcat(map[offset].bytes, " ");
+        stOPCodeInfo info = cb ? kOPCodeCBNames[opcode] : kOPCodeNames[opcode];
+
+        map[offset].size = info.size;
+
+        map[offset].bytes[0] = 0;
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (i < info.size)
+            {
+                char value[8];
+                sprintf(value, "%02X", bytes[i]);
+                strcat(map[offset].bytes, value);
+            }
+            else
+            {
+                strcat(map[offset].bytes, "  ");
+            }
+
+            if (i < 3)
+                strcat(map[offset].bytes, " ");
+        }
+
+        switch (info.type)
+        {
+            case 0:
+                strcpy(map[offset].name, info.name);
+                break;
+            case 1:
+                sprintf(map[offset].name, info.name, bytes[1]);
+                break;
+            case 2:
+                sprintf(map[offset].name, info.name, (bytes[2] << 8) | bytes[1]);
+                break;
+            case 3:
+                sprintf(map[offset].name, info.name, (s8)bytes[1]);
+                break;
+            case 4:
+                sprintf(map[offset].name, info.name, (s8)bytes[1], address + info.size + (s8)bytes[1]);
+                break;
+            default:
+                strcpy(map[offset].name, "PARSE ERROR");
+        }
     }
 
-    switch (info.type)
+    std::vector<Memory::stDisassembleRecord*>* breakpoints = m_pMemory->GetBreakpoints();
+
+    for (int b = 0; b < breakpoints->size(); b++)
     {
-        case 0:
-            strcpy(map[offset].name, info.name);
-            break;
-        case 1:
-            sprintf(map[offset].name, info.name, bytes[1]);
-            break;
-        case 2:
-            sprintf(map[offset].name, info.name, (bytes[2] << 8) | bytes[1]);
-            break;
-        case 3:
-            sprintf(map[offset].name, info.name, (s8)bytes[1]);
-            break;
-        case 4:
-            sprintf(map[offset].name, info.name, (s8)bytes[1], address + info.size + (s8)bytes[1]);
-            break;
-        default:
-            strcpy(map[offset].name, "PARSE ERROR");
+        if ((*breakpoints)[b] == &map[offset])
+            return true;
     }
 
-    return info.size;
+    return false;
+}
+
+bool Processor::BreakpointHit()
+{
+    return m_bBreakpointHit;
 }
 
 void Processor::SaveState(std::ostream& stream)
@@ -585,7 +599,7 @@ void Processor::ClearGameSharkCheats()
     m_GameSharkList.clear();
 }
 
-Processor::ProcessorState* Processor::GetState(void)
+Processor::ProcessorState* Processor::GetState()
 {
     return &m_ProcessorState;
 }

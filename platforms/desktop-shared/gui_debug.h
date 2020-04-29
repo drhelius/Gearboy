@@ -39,9 +39,10 @@
   (byte & 0x01 ? '1' : '0') 
 
 EXTERN void gui_debug_windows(void);
+EXTERN void gui_debug_reset(void);
 EXTERN void gui_debug_reset_symbols(void);
 EXTERN void gui_debug_load_symbols_file(const char* path);
-
+EXTERN void gui_debug_add_breakpoint(bool toggle);
 
 #undef GUI_DEBUG_IMPORT
 #undef EXTERN

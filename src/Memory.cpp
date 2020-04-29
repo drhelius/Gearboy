@@ -77,6 +77,7 @@ void Memory::Init()
     m_pLCDRAMBank1 = new u8[0x2000];
     m_pDisassembledMap = new stDisassembleRecord[65536];
     m_pDisassembledROMMap = new stDisassembleRecord[MAX_ROM_SIZE];
+    m_Breakpoints.clear();
     Reset(false);
 }
 
@@ -510,5 +511,10 @@ u8* Memory::GetWRAM0()
 u8* Memory::GetWRAM1()
 {
     return m_bCGB ? m_pWRAMBanks + (0x1000 * m_iCurrentWRAMBank) : m_pMap + 0xD000;
+}
+
+std::vector<Memory::stDisassembleRecord*>* Memory::GetBreakpoints()
+{
+    return &m_Breakpoints;
 }
 
