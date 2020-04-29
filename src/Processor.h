@@ -71,6 +71,7 @@ public:
     void SetGameSharkCheat(const char* szCheat);
     void ClearGameSharkCheats();
     ProcessorState* GetState(void);
+    int Disassemble(u16 address);
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -129,7 +130,6 @@ private:
     void StackPush(SixteenBitRegister* reg);
     void StackPop(SixteenBitRegister* reg);
     int AdjustedCycles(int cycles);
-    int Disassemble(u16 address);
     void InvalidOPCode();
     void OPCodes_LD(EightBitRegister* reg1, u8 reg2);
     void OPCodes_LD(EightBitRegister* reg, u16 address);
