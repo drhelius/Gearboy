@@ -20,8 +20,6 @@
 #ifndef OPCODE_NAMES_H
 #define	OPCODE_NAMES_H
 
-#ifdef DEBUG_GEARBOY
-
 struct stOPCodeInfo
 {
     const char* name;
@@ -576,8 +574,6 @@ static const stOPCodeInfo kOPCodeCBNames[256] = {
     { "SET 7 (HL)", 2, 0 },
     { "SET 7 A", 2, 0 }
 };
-
-#endif
 
 #endif	/* OPCODE_NAMES_H */
 

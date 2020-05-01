@@ -75,6 +75,7 @@ void emu_init(const char* save_path)
 
     audio_enabled = true;
     emu_audio_sync = true;
+    emu_debug_disable_breakpoints = false;
 }
 
 void emu_destroy(void)
@@ -103,8 +104,12 @@ void emu_run_to_vblank(void)
 
         if (!debugging || debug_step || debug_next_frame)
         {
-            if (gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, debug_step, true))
+            bool breakpoints = !emu_debug_disable_breakpoints || IsValidPointer(gearboy->GetMemory()->GetRunToBreakpoint());
+
+            if (gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, debug_step, breakpoints))
+            {
                 debugging = true;
+            }
 
             debug_next_frame = false;
             debug_step = false;

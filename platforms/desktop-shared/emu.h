@@ -30,6 +30,7 @@
 
 EXTERN GB_Color* emu_frame_buffer;
 EXTERN bool emu_audio_sync;
+EXTERN bool emu_debug_disable_breakpoints;
 
 EXTERN void emu_init(const char* save_path);
 EXTERN void emu_destroy(void);

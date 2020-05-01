@@ -481,12 +481,28 @@ bool Processor::Disassemble(u16 address)
         }
     }
 
+    Memory::stDisassembleRecord* runtobreakpoint = m_pMemory->GetRunToBreakpoint();
     std::vector<Memory::stDisassembleRecord*>* breakpoints = m_pMemory->GetBreakpoints();
 
-    for (int b = 0; b < breakpoints->size(); b++)
+    if (IsValidPointer(runtobreakpoint))
     {
-        if ((*breakpoints)[b] == &map[offset])
+        if (runtobreakpoint == &map[offset])
+        {
+            m_pMemory->SetRunToBreakpoint(NULL);
             return true;
+        }
+        else
+            return false;
+    }
+    else
+    {
+        for (int b = 0; b < breakpoints->size(); b++)
+        {
+            if ((*breakpoints)[b] == &map[offset])
+            {
+                return true;
+            }
+        }
     }
 
     return false;

@@ -54,6 +54,7 @@ static ImVec4 white = ImVec4(1.0f,1.0f,1.0f,1.0f);
 static ImVec4 gray = ImVec4(0.5f,0.5f,0.5f,1.0f);
 static std::vector<DebugSymbol> symbols;
 static Memory::stDisassembleRecord* selected_record = NULL;
+static char brk_address[8] = "";
 
 static void debug_window_processor(void);
 static void debug_window_io(void);
@@ -61,6 +62,8 @@ static void debug_window_audio(void);
 static void debug_window_memory(void);
 static void debug_window_disassembler(void);
 static void add_symbol(const char* line);
+static void add_breakpoint(void);
+
 
 void gui_debug_windows(void)
 {
@@ -213,34 +216,55 @@ static void debug_window_disassembler(void)
 
     int pc = proc_state->PC->GetValue();
 
+    static bool follow_pc = true;
+    static bool show_mem = true;
+    static bool show_symbols = true;
+
+    ImGui::Checkbox("Follow PC", &follow_pc); ImGui::SameLine();
+    ImGui::Checkbox("Show Memory", &show_mem);  ImGui::SameLine();
+    ImGui::Checkbox("Show Symbols", &show_symbols);
+
+    if (ImGui::Button("Step Over"))
+        emu_debug_step();
+    ImGui::SameLine();
+    if (ImGui::Button("Continue"))
+        emu_debug_continue(); 
+    ImGui::SameLine();
+    if (ImGui::Button("Run To Cursor"))
+        gui_debug_runtocursor();
+    ImGui::SameLine();
+    if (ImGui::Button("Next Frame"))
+        emu_debug_next_frame();
+
     if (ImGui::CollapsingHeader("Breakpoints"))
     {
+        ImGui::Checkbox("Disable All", &emu_debug_disable_breakpoints);
+
         ImGui::Columns(2, "breakpoints");
         ImGui::SetColumnOffset(1, 85);
 
         ImGui::Separator();
 
-        static char brk_address[8] = "";
-
         if (IsValidPointer(selected_record))
             sprintf(brk_address, "%02X:%04X", selected_record->bank, selected_record->address);
-        else
-            brk_address[0] = 0;
         
         ImGui::PushItemWidth(70);
         ImGui::PushFont(gui_default_font);
-        ImGui::InputText("##add_breakpoint", brk_address, IM_ARRAYSIZE(brk_address));
+        if (ImGui::InputTextWithHint("##add_breakpoint", "XX:XXXX", brk_address, IM_ARRAYSIZE(brk_address), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue))
+        {
+            add_breakpoint();
+        }
         ImGui::PopFont();
         ImGui::PopItemWidth();
         
         if (ImGui::Button("Add", ImVec2(70, 0)))
         {
-            gui_debug_add_breakpoint(false);
+            add_breakpoint();
         }
         
         if (ImGui::Button("Clear All", ImVec2(70, 0)))
         {
-            breakpoints->clear();
+            gui_debug_reset_breakpoints();
         }
 
         ImGui::NextColumn();
@@ -274,19 +298,6 @@ static void debug_window_disassembler(void)
         ImGui::Columns(1);
         ImGui::Separator();
     }
-
-    if (ImGui::Button("Step"))
-        emu_debug_step();
-    ImGui::SameLine();
-    if (ImGui::Button("Continue"))
-        emu_debug_continue(); 
-    ImGui::SameLine();
-    if (ImGui::Button("Next Frame"))
-        emu_debug_next_frame();
-    ImGui::SameLine(0.0f, 20.0f);
-
-    static bool enable_track = true;
-    ImGui::Checkbox("Track PC", &enable_track);
 
     ImGui::PushFont(gui_default_font);
 
@@ -325,7 +336,7 @@ static void debug_window_disassembler(void)
             {
                 for (int s = 0; s < symbols.size(); s++)
                 {
-                    if ((symbols[s].bank == bank) && (symbols[s].address == offset))
+                    if ((symbols[s].bank == bank) && (symbols[s].address == offset) && show_symbols)
                     {
                         vec[dis_size].is_symbol = true;
                         vec[dis_size].symbol = symbols[s].text;
@@ -354,7 +365,7 @@ static void debug_window_disassembler(void)
             }
         }
 
-        if (enable_track)
+        if (follow_pc)
         {
             float window_offset = ImGui::GetWindowHeight() / 2.0f;
             float offset = window_offset - (ImGui::GetTextLineHeightWithSpacing() - 4.0f);
@@ -380,7 +391,10 @@ static void debug_window_disassembler(void)
                 if (ImGui::Selectable("", is_selected))
                 {
                     if (is_selected)
+                    {
                         InitPointer(selected_record);
+                        brk_address[0] = 0;
+                    }
                     else
                         selected_record = vec[item].record;
                 }
@@ -393,23 +407,41 @@ static void debug_window_disassembler(void)
                     ImGui::SameLine();
                     if (vec[item].record->address == pc)
                     {
-                        ImGui::TextColored(red, "%04X: %s", vec[item].record->address, vec[item].record->bytes); ImGui::SameLine();
-                        ImGui::TextColored(yellow, "->"); ImGui::SameLine();
+                        if (show_mem)
+                            ImGui::TextColored(red, "%04X: %s", vec[item].record->address, vec[item].record->bytes);
+                        else
+                            ImGui::TextColored(red, "%04X:", vec[item].record->address);
+                        ImGui::SameLine();
+                        ImGui::TextColored(yellow, "->");
+                        ImGui::SameLine();
                         ImGui::TextColored(red, "%s", vec[item].record->name);
                     }
                     else
-                        ImGui::TextColored(red, "%04X: %s    %s", vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
-                } else if (vec[item].record->address == pc)
+                    {
+                        if (show_mem)
+                            ImGui::TextColored(red, "%04X: %s    %s", vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
+                        else
+                            ImGui::TextColored(red, "%04X:    %s", vec[item].record->address, vec[item].record->name);
+                    }
+                } 
+                else if (vec[item].record->address == pc)
                 {
                     ImGui::SameLine();
-                    ImGui::TextColored(yellow, "%04X: %s -> %s", vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
+                    if (show_mem)
+                        ImGui::TextColored(yellow, "%04X: %s -> %s", vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
+                    else
+                        ImGui::TextColored(yellow, "%04X: -> %s", vec[item].record->address, vec[item].record->name);
                 }
                 else
                 {
                     ImGui::SameLine();
                     ImGui::TextColored(cyan, "%04X:", vec[item].record->address);
                     ImGui::SameLine();
-                    ImGui::TextColored(gray, "%s   ", vec[item].record->bytes);
+                    if (show_mem)
+                        ImGui::TextColored(gray, "%s   ", vec[item].record->bytes);
+                    else
+                        ImGui::TextColored(gray, "  ");
+                    
                     ImGui::SameLine();
                     ImGui::TextColored(white, "%s", vec[item].record->name);
                 }
@@ -899,7 +931,8 @@ static void debug_window_io(void)
 
 void gui_debug_reset(void)
 {
-    emu_get_core()->GetMemory()->GetBreakpoints()->clear();
+    gui_debug_reset_breakpoints();
+    gui_debug_reset_symbols();
     selected_record = NULL;
 }
 
@@ -930,21 +963,19 @@ void gui_debug_load_symbols_file(const char* path)
     }
 }
 
-void gui_debug_add_breakpoint(bool toggle)
+void gui_debug_toggle_breakpoint(void)
 {
-    std::vector<Memory::stDisassembleRecord*>* breakpoints = emu_get_core()->GetMemory()->GetBreakpoints();
-
     if (IsValidPointer(selected_record))
     {
         bool found = false;
+        std::vector<Memory::stDisassembleRecord*>* breakpoints = emu_get_core()->GetMemory()->GetBreakpoints();
 
         for (int b = 0; b < breakpoints->size(); b++)
         {
             if ((*breakpoints)[b] == selected_record)
             {
                 found = true;
-                if (toggle)
-                    InitPointer((*breakpoints)[b]);
+                 InitPointer((*breakpoints)[b]);
                 break;
             }
         }
@@ -952,9 +983,91 @@ void gui_debug_add_breakpoint(bool toggle)
         if (!found)
         {
             breakpoints->push_back(selected_record);
-            if (!toggle)
-                InitPointer(selected_record);
         }
+    }
+}
+
+void gui_debug_runtocursor(void)
+{
+    if (IsValidPointer(selected_record))
+    {
+        emu_get_core()->GetMemory()->SetRunToBreakpoint(selected_record);
+        emu_debug_continue();
+    }
+}
+
+void gui_debug_reset_breakpoints(void)
+{
+    emu_get_core()->GetMemory()->GetBreakpoints()->clear();
+    brk_address[0] = 0;
+}
+
+static void add_breakpoint(void)
+{
+    int input_len = strlen(brk_address);
+    u16 target_address = 0;
+    int target_bank = 0;
+    int target_offset = 0;
+
+    if ((input_len == 7) && (brk_address[2] == ':'))
+    {
+        std::string str(brk_address);   
+        std::size_t separator = str.find(":");
+
+        if (separator != std::string::npos)
+        {
+            target_address = std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+
+            target_bank = std::stoul(str.substr(0, separator), 0 , 16);
+            target_bank &= 0xFF;
+        }
+    } 
+    else if (input_len == 4)
+    {
+        target_bank = 0; 
+        target_address = std::stoul(brk_address, 0, 16);
+    }
+    else
+    {
+        return;
+    }
+
+    Memory::stDisassembleRecord* memoryMap = emu_get_core()->GetMemory()->GetDisassembledMemoryMap();
+    Memory::stDisassembleRecord* romMap = emu_get_core()->GetMemory()->GetDisassembledROMMemoryMap();
+    Memory::stDisassembleRecord* map = NULL;
+
+    if ((target_address & 0xC000) == 0x0000)
+    {
+        target_offset = (0x4000 * target_bank) + target_address;
+        map = romMap;
+    }
+    else if ((target_address & 0xC000) == 0x4000)
+    {
+        target_offset = (0x4000 * target_bank) + (target_address & 0x3FFF);
+        map = romMap;
+    }
+    else
+    {
+        map = memoryMap;
+    }
+
+    brk_address[0] = 0;
+
+    bool found = false;
+    std::vector<Memory::stDisassembleRecord*>* breakpoints = emu_get_core()->GetMemory()->GetBreakpoints();
+
+    for (int b = 0; b < breakpoints->size(); b++)
+    {
+        if ((*breakpoints)[b] == &map[target_offset])
+        {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        breakpoints->push_back(&map[target_offset]);
     }
 }
 

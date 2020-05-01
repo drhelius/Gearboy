@@ -400,6 +400,9 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
             case SDL_SCANCODE_F6:
                 gui_shortcut(gui_ShortcutDebugNextFrame);
                 break;
+            case SDL_SCANCODE_F8:
+                gui_shortcut(gui_ShortcutDebugRuntocursor);
+                break;
             case SDL_SCANCODE_F9:
                 gui_shortcut(gui_ShortcutDebugBreakpoint);
                 break;

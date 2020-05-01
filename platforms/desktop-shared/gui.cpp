@@ -75,9 +75,6 @@ void gui_init(void)
     ImGui::StyleColorsDark();
     ImGuiIO& io = ImGui::GetIO();
 
-    //io.WantCaptureMouse = true;
-    //io.WantCaptureKeyboard = true;
-
     io.IniFilename = config_imgui_file_path;
 
     io.FontGlobalScale /= application_display_scale;
@@ -152,7 +149,11 @@ void gui_shortcut(gui_ShortCutEvent event)
         break;
     case gui_ShortcutDebugBreakpoint:
         if (config_debug.debug)
-            gui_debug_add_breakpoint(true);
+            gui_debug_toggle_breakpoint();
+        break;
+    case gui_ShortcutDebugRuntocursor:
+        if (config_debug.debug)
+            gui_debug_runtocursor();
         break;
     default:
         break;
@@ -515,7 +516,7 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Step", "CTRL + F10", (void*)0, config_debug.debug))
+            if (ImGui::MenuItem("Step Over", "CTRL + F10", (void*)0, config_debug.debug))
             {
                 emu_debug_step();
             }
@@ -525,20 +526,29 @@ static void main_menu(void)
                 emu_debug_continue();
             }
 
+            if (ImGui::MenuItem("Run To Cursor", "CTRL + F8", (void*)0, config_debug.debug))
+            {
+                gui_debug_runtocursor();
+            }
+
             if (ImGui::MenuItem("Next Frame", "CTRL + F6", (void*)0, config_debug.debug))
             {
                 emu_debug_next_frame();
             }
 
-            if (ImGui::MenuItem("Add Breakpoint", "CTRL + F9", (void*)0, config_debug.debug))
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Toggle Breakpoint", "CTRL + F9", (void*)0, config_debug.debug))
             {
-                gui_debug_add_breakpoint(false);
+                gui_debug_toggle_breakpoint();
             }
 
             if (ImGui::MenuItem("Clear All Breakpoints", 0, (void*)0, config_debug.debug))
             {
-                gui_debug_reset();
+                gui_debug_reset_breakpoints();
             }
+
+            ImGui::MenuItem("Disable All Breakpoints", 0, &emu_debug_disable_breakpoints, config_debug.debug);
 
             ImGui::Separator();
 
@@ -781,7 +791,6 @@ static void file_dialog_load_symbols(void)
 {
     if(file_dialog.showFileDialog("Load Symbols File...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), ".sym,*.*", &dialog_in_use))
     {
-        gui_debug_reset();
         gui_debug_reset_symbols();
         gui_debug_load_symbols_file(file_dialog.selected_path.c_str());
     }
@@ -1024,7 +1033,6 @@ static void load_rom(const char* path)
     emu_clear_cheats();
 
     gui_debug_reset();
-    gui_debug_reset_symbols();
 
     std::string str(path);
     str = str.substr(0, str.find_last_of("."));
@@ -1056,7 +1064,6 @@ static void push_recent_rom(std::string path)
 
 static void menu_reset(void)
 {
-    gui_debug_reset();
     emu_resume();
     emu_reset(config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
 

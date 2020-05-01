@@ -42,7 +42,9 @@ EXTERN void gui_debug_windows(void);
 EXTERN void gui_debug_reset(void);
 EXTERN void gui_debug_reset_symbols(void);
 EXTERN void gui_debug_load_symbols_file(const char* path);
-EXTERN void gui_debug_add_breakpoint(bool toggle);
+EXTERN void gui_debug_toggle_breakpoint(void);
+EXTERN void gui_debug_reset_breakpoints(void);
+EXTERN void gui_debug_runtocursor(void);
 
 #undef GUI_DEBUG_IMPORT
 #undef EXTERN

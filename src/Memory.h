@@ -85,7 +85,9 @@ public:
     u8* GetRAM();
     u8* GetWRAM0();
     u8* GetWRAM1();
-    std::vector<Memory::stDisassembleRecord*>* GetBreakpoints();
+    std::vector<stDisassembleRecord*>* GetBreakpoints();
+    stDisassembleRecord* GetRunToBreakpoint();
+    void SetRunToBreakpoint(stDisassembleRecord* pBreakpoint);
 
 private:
     Processor* m_pProcessor;
@@ -96,7 +98,8 @@ private:
     u8* m_pMap;
     stDisassembleRecord* m_pDisassembledMap;
     stDisassembleRecord* m_pDisassembledROMMap;
-    std::vector<Memory::stDisassembleRecord*> m_Breakpoints;
+    std::vector<stDisassembleRecord*> m_Breakpoints;
+    stDisassembleRecord* m_pRunToBreakpoint;
     bool m_bCGB;
     int m_iCurrentWRAMBank;
     int m_iCurrentLCDRAMBank;
