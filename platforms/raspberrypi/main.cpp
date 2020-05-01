@@ -33,6 +33,8 @@
 #include "GLES/gl.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
+
+#define GEARBOY_DISABLE_DISASSEMBLER
 #include "gearboy.h"
 #include "../audio-shared/Sound_Queue.h"
 

@@ -39,6 +39,7 @@ public:
     void EndFrame(s16* pSampleBuffer, int* pSampleCount);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
+    Gb_Apu* GetApu();
 
 private:
     Gb_Apu* m_pApu;

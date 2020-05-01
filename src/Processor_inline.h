@@ -3,6 +3,7 @@
 
 #include "definitions.h"
 #include "Memory.h"
+#include "opcode_names.h"
 
 inline u8 Processor::FetchOPCode()
 {
@@ -84,6 +85,11 @@ inline void Processor::ResetDIVCycles()
 inline bool Processor::Halted() const
 {
     return m_bHalt;
+}
+
+inline bool Processor::DuringOpCode() const
+{
+    return m_iAccurateOPCodeState != 0;
 }
 
 inline bool Processor::CGBSpeed() const

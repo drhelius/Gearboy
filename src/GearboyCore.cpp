@@ -60,24 +60,6 @@ GearboyCore::GearboyCore()
 
 GearboyCore::~GearboyCore()
 {
-#ifdef DEBUG_GEARBOY
-    if (m_pCartridge->IsLoadedROM() && (strlen(m_pCartridge->GetFilePath()) > 0))
-    {
-        Log("Saving Memory Dump...");
-
-        using namespace std;
-
-        char path[512];
-
-        strcpy(path, m_pCartridge->GetFilePath());
-        strcat(path, ".dump");
-
-        m_pMemory->MemoryDump(path);
-
-        Log("Memory Dump Saved");
-    }
-#endif
-
     SafeDelete(m_pMBC5MemoryRule);
     SafeDelete(m_pMBC3MemoryRule);
     SafeDelete(m_pMBC2MemoryRule);
@@ -118,11 +100,14 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     InitDMGPalette();
 }
 
-void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer)
+bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer, bool step, bool stopOnBreakpoints)
 {
+    bool breakpoint = false;
+
     if (!m_bPaused && m_pCartridge->IsLoadedROM())
     {
         bool vblank = false;
+        int totalClocks = 0;
         while (!vblank)
         {
             #ifdef PS2
@@ -134,6 +119,18 @@ void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
+
+            if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())) && !m_pProcessor->Halted() && !m_pProcessor->DuringOpCode())
+            {
+                vblank = true;
+                if (m_pProcessor->BreakpointHit())
+                    breakpoint = true;
+            }
+
+            totalClocks += clockCycles;
+
+            if (totalClocks > 702240)
+                vblank = true;
         }
 
         m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
@@ -150,34 +147,19 @@ void GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             RenderDMGFrame(pFrameBuffer);
         }
     }
+
+    return breakpoint;
 }
 
 bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType)
 {
-#ifdef DEBUG_GEARBOY
-    if (m_pCartridge->IsLoadedROM() && (strlen(m_pCartridge->GetFilePath()) > 0))
-    {
-        Log("Saving Memory Dump...");
-
-        using namespace std;
-
-        char path[512];
-
-        strcpy(path, m_pCartridge->GetFilePath());
-        strcat(path, ".dump");
-
-        m_pMemory->MemoryDump(path);
-
-        Log("Memory Dump Saved");
-    }
-#endif
-
     if (m_pCartridge->LoadFromFile(szFilePath))
     {
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         bool romTypeOK = AddMemoryRules(forceType);
+        m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
 
         if (!romTypeOK)
         {
@@ -210,6 +192,25 @@ bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG)
         return false;
 }
 
+void GearboyCore::SaveMemoryDump()
+{
+    if (m_pCartridge->IsLoadedROM() && (strlen(m_pCartridge->GetFilePath()) > 0))
+    {
+        using namespace std;
+
+        char path[512];
+
+        strcpy(path, m_pCartridge->GetFilePath());
+        strcat(path, ".dump");
+
+        Log("Saving Memory Dump %s...", path);
+
+        m_pMemory->MemoryDump(path);
+
+        Log("Memory Dump Saved");
+    }
+}
+
 Memory* GearboyCore::GetMemory()
 {
     return m_pMemory;
@@ -218,6 +219,16 @@ Memory* GearboyCore::GetMemory()
 Cartridge* GearboyCore::GetCartridge()
 {
     return m_pCartridge;
+}
+
+Processor* GearboyCore::GetProcessor()
+{
+    return m_pProcessor;
+}
+
+Audio* GearboyCore::GetAudio()
+{
+    return m_pAudio;
 }
 
 void GearboyCore::KeyPressed(Gameboy_Keys key)
@@ -248,6 +259,7 @@ void GearboyCore::ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType)
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         AddMemoryRules(forceType);
+        m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
     }
 }
 
@@ -785,6 +797,10 @@ void GearboyCore::InitMemoryRules()
 
     m_pMBC5MemoryRule = new MBC5MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+
+    m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
+    m_pMemory->SetIORule(m_pIORegistersMemoryRule);
+    m_pMemory->SetCommonRule(m_pCommonMemoryRule);
 }
 
 bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)

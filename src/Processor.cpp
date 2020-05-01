@@ -21,7 +21,6 @@
 #include <ctype.h>
 #include "Processor.h"
 #include "opcode_timing.h"
-#include "opcode_names.h"
 
 Processor::Processor(Memory* pMemory)
 {
@@ -45,6 +44,16 @@ Processor::Processor(Memory* pMemory)
     m_iInterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
+    m_bBreakpointHit = false;
+
+    m_ProcessorState.AF = &AF;
+    m_ProcessorState.BC = &BC;
+    m_ProcessorState.DE = &DE;
+    m_ProcessorState.HL = &HL;
+    m_ProcessorState.SP = &SP;
+    m_ProcessorState.PC = &PC;
+    m_ProcessorState.IME = &m_bIME;
+    m_ProcessorState.Halt = &m_bHalt;
 }
 
 Processor::~Processor()
@@ -85,6 +94,7 @@ void Processor::Reset(bool bCGB)
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
     m_GameSharkList.clear();
+    m_bBreakpointHit = false;
 }
 
 u8 Processor::RunFor(u8 ticks)
@@ -102,6 +112,7 @@ u8 Processor::RunFor(u8 ticks)
 u8 Processor::Tick()
 {
     m_iCurrentClockCycles = 0;
+    m_bBreakpointHit = false;
 
     if (m_iAccurateOPCodeState == 0 && m_bHalt)
     {
@@ -124,15 +135,26 @@ u8 Processor::Tick()
         }
     }
 
+    bool interrupt_served = false;
+
     if (!m_bHalt)
     {
-        if (m_iAccurateOPCodeState == 0)
-            ServeInterrupt(InterruptPending());
+        Interrupts interrupt = InterruptPending();
 
-        ExecuteOPCode(FetchOPCode());
+        if (m_bIME && (interrupt != None_Interrupt) && (m_iAccurateOPCodeState == 0))
+        {
+            ServeInterrupt(interrupt);
+            interrupt_served = true;
+        }
+        else
+            ExecuteOPCode(FetchOPCode());
+
+        #ifndef GEARBOY_DISABLE_DISASSEMBLER
+        m_bBreakpointHit = Disassemble(PC.GetValue());
+        #endif
     }
     
-    if (m_iInterruptDelayCycles > 0)
+    if (!interrupt_served && (m_iInterruptDelayCycles > 0))
     {
         m_iInterruptDelayCycles -= m_iCurrentClockCycles;
     }
@@ -140,7 +162,7 @@ u8 Processor::Tick()
     UpdateTimers();
     UpdateSerial();
 
-    if (m_iAccurateOPCodeState == 0 && m_iIMECycles > 0)
+    if (!interrupt_served && (m_iAccurateOPCodeState == 0) && (m_iIMECycles > 0))
     {
         m_iIMECycles -= m_iCurrentClockCycles;
 
@@ -174,14 +196,6 @@ void Processor::ExecuteOPCode(u8 opcode)
         machineCycles = kOPCodeMachineCycles;
         opcodeTable = m_OPCodes;
     }
-
-    #ifdef DEBUG_GEARBOY
-        u16 opcode_address = PC.GetValue() - 1;
-        if (!m_pMemory->IsDisassembled(opcode_address))
-        {
-            m_pMemory->Disassemble(opcode_address, isCB ? kOPCodeCBNames[opcode] : kOPCodeNames[opcode]);
-        }
-    #endif
 
     if ((accurateOPcodes[opcode] != 0) && (m_iAccurateOPCodeState == 0))
     {
@@ -233,40 +247,37 @@ void Processor::ExecuteOPCode(u8 opcode)
 
 void Processor::ServeInterrupt(Interrupts interrupt)
 {
-    if (m_bIME && (interrupt != None_Interrupt))
+    u8 if_reg = m_pMemory->Retrieve(0xFF0F);
+    m_bIME = false;
+    StackPush(&PC);
+    m_iCurrentClockCycles += AdjustedCycles(20);
+    
+    switch (interrupt)
     {
-        u8 if_reg = m_pMemory->Retrieve(0xFF0F);
-        m_bIME = false;
-        StackPush(&PC);
-        m_iCurrentClockCycles += AdjustedCycles(20);
-        
-        switch (interrupt)
-        {
-            case VBlank_Interrupt:
-                m_iInterruptDelayCycles= 0;
-                m_pMemory->Load(0xFF0F, if_reg & 0xFE);
-                PC.SetValue(0x0040);
-                UpdateGameShark();
-                break;
-            case LCDSTAT_Interrupt:
-                m_pMemory->Load(0xFF0F, if_reg & 0xFD);
-                PC.SetValue(0x0048);
-                break;
-            case Timer_Interrupt:
-                m_pMemory->Load(0xFF0F, if_reg & 0xFB);
-                PC.SetValue(0x0050);
-                break;
-            case Serial_Interrupt:
-                m_pMemory->Load(0xFF0F, if_reg & 0xF7);
-                PC.SetValue(0x0058);
-                break;
-            case Joypad_Interrupt:
-                m_pMemory->Load(0xFF0F, if_reg & 0xEF);
-                PC.SetValue(0x0060);
-                break;
-            case None_Interrupt:
-                break;
-        }
+        case VBlank_Interrupt:
+            m_iInterruptDelayCycles= 0;
+            m_pMemory->Load(0xFF0F, if_reg & 0xFE);
+            PC.SetValue(0x0040);
+            UpdateGameShark();
+            break;
+        case LCDSTAT_Interrupt:
+            m_pMemory->Load(0xFF0F, if_reg & 0xFD);
+            PC.SetValue(0x0048);
+            break;
+        case Timer_Interrupt:
+            m_pMemory->Load(0xFF0F, if_reg & 0xFB);
+            PC.SetValue(0x0050);
+            break;
+        case Serial_Interrupt:
+            m_pMemory->Load(0xFF0F, if_reg & 0xF7);
+            PC.SetValue(0x0058);
+            break;
+        case Joypad_Interrupt:
+            m_pMemory->Load(0xFF0F, if_reg & 0xEF);
+            PC.SetValue(0x0060);
+            break;
+        case None_Interrupt:
+            break;
     }
 }
 
@@ -379,6 +390,129 @@ void Processor::UpdateGameShark()
     }
 }
 
+bool Processor::Disassemble(u16 address)
+{
+    Memory::stDisassembleRecord* memoryMap = m_pMemory->GetDisassembledMemoryMap();
+    Memory::stDisassembleRecord* romMap = m_pMemory->GetDisassembledROMMemoryMap();
+
+    Memory::stDisassembleRecord* map = NULL;
+
+    int offset = address;
+    int bank = 0;
+
+    if ((address & 0xC000) == 0x0000)
+    {
+        bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank0Index();
+        offset = (0x4000 * bank) + address;
+        map = romMap;
+    }
+    else if ((address & 0xC000) == 0x4000)
+    {
+        bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank1Index();
+        offset = (0x4000 * bank) + (address & 0x3FFF);
+        map = romMap;
+    }
+    else
+    {
+        map = memoryMap;
+    }
+
+    if (map[offset].size == 0)
+    {
+        map[offset].bank = bank;
+        map[offset].address = address;
+
+        u8 bytes[4];
+
+        for (int i = 0; i < 4; i++)
+            bytes[i] = m_pMemory->Read(address + i);
+
+        u8 opcode = bytes[0];
+        bool cb = false;
+
+        if (opcode == 0xCB)
+        {
+            cb = true;
+            opcode = bytes[1];
+        }
+
+        stOPCodeInfo info = cb ? kOPCodeCBNames[opcode] : kOPCodeNames[opcode];
+
+        map[offset].size = info.size;
+
+        map[offset].bytes[0] = 0;
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (i < info.size)
+            {
+                char value[8];
+                sprintf(value, "%02X", bytes[i]);
+                strcat(map[offset].bytes, value);
+            }
+            else
+            {
+                strcat(map[offset].bytes, "  ");
+            }
+
+            if (i < 3)
+                strcat(map[offset].bytes, " ");
+        }
+
+        switch (info.type)
+        {
+            case 0:
+                strcpy(map[offset].name, info.name);
+                break;
+            case 1:
+                sprintf(map[offset].name, info.name, bytes[1]);
+                break;
+            case 2:
+                sprintf(map[offset].name, info.name, (bytes[2] << 8) | bytes[1]);
+                break;
+            case 3:
+                sprintf(map[offset].name, info.name, (s8)bytes[1]);
+                break;
+            case 4:
+                sprintf(map[offset].name, info.name, (s8)bytes[1], address + info.size + (s8)bytes[1]);
+                break;
+            default:
+                strcpy(map[offset].name, "PARSE ERROR");
+        }
+    }
+
+    Memory::stDisassembleRecord* runtobreakpoint = m_pMemory->GetRunToBreakpoint();
+    std::vector<Memory::stDisassembleRecord*>* breakpoints = m_pMemory->GetBreakpoints();
+
+    if (IsValidPointer(runtobreakpoint))
+    {
+        if (runtobreakpoint == &map[offset])
+        {
+            m_pMemory->SetRunToBreakpoint(NULL);
+            return true;
+        }
+        else
+            return false;
+    }
+    else
+    {
+        for (int b = 0; b < breakpoints->size(); b++)
+        {
+            if ((*breakpoints)[b] == &map[offset])
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool Processor::BreakpointHit()
+{
+    return m_bBreakpointHit;
+}
+
 void Processor::SaveState(std::ostream& stream)
 {
     using namespace std;
@@ -479,6 +613,11 @@ void Processor::SetGameSharkCheat(const char* szCheat)
 void Processor::ClearGameSharkCheats()
 {
     m_GameSharkList.clear();
+}
+
+Processor::ProcessorState* Processor::GetState()
+{
+    return &m_ProcessorState;
 }
 
 void Processor::InitOPCodeFunctors()

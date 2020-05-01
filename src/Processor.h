@@ -39,6 +39,18 @@ public:
         Joypad_Interrupt = 0x10
     };
 
+    struct ProcessorState
+    {        
+        SixteenBitRegister* AF;
+        SixteenBitRegister* BC;
+        SixteenBitRegister* DE;
+        SixteenBitRegister* HL;
+        SixteenBitRegister* SP;
+        SixteenBitRegister* PC;
+        bool* IME;
+        bool* Halt;
+    };
+
 public:
     Processor(Memory* pMemory);
     ~Processor();
@@ -50,6 +62,7 @@ public:
     void ResetTIMACycles();
     void ResetDIVCycles();
     bool Halted() const;
+    bool DuringOpCode() const;
     bool CGBSpeed() const;
     void AddCycles(unsigned int cycles);
     bool InterruptIsAboutToRaise();
@@ -57,6 +70,9 @@ public:
     void LoadState(std::istream& stream);
     void SetGameSharkCheat(const char* szCheat);
     void ClearGameSharkCheats();
+    ProcessorState* GetState();
+    bool Disassemble(u16 address);
+    bool BreakpointHit();
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -86,6 +102,7 @@ private:
     int m_iSpeedMultiplier;
     int m_iAccurateOPCodeState;
     u8 m_iReadCache;
+    bool m_bBreakpointHit;
 
     struct GameSharkCode
     {        
@@ -94,6 +111,8 @@ private:
         u8 value;
     };
     std::list<GameSharkCode> m_GameSharkList;
+
+    ProcessorState m_ProcessorState;
 
 private:
     u8 FetchOPCode();

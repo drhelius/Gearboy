@@ -17,12 +17,10 @@
  *
  */
 
-#ifndef GUI_H
-#define	GUI_H
+#ifndef GUI_DEBUG_H
+#define	GUI_DEBUG_H
 
-#include "imgui/imgui.h"
-
-#ifdef GUI_IMPORT
+#ifdef GUI_DEBUG_IMPORT
     #define EXTERN
 #else
     #define EXTERN extern
@@ -40,30 +38,14 @@
   (byte & 0x02 ? '1' : '0'), \
   (byte & 0x01 ? '1' : '0') 
 
-enum gui_ShortCutEvent
-{
-    gui_ShortcutOpenROM = 0,
-    gui_ShortcutReset,
-    gui_ShortcutPause,
-    gui_ShortcutFFWD,
-    gui_ShortcutSaveState,
-    gui_ShortcutLoadState,
-    gui_ShortcutDebugStep,
-    gui_ShortcutDebugContinue,
-    gui_ShortcutDebugNextFrame,
-    gui_ShortcutDebugBreakpoint,
-    gui_ShortcutDebugRuntocursor
-};
+EXTERN void gui_debug_windows(void);
+EXTERN void gui_debug_reset(void);
+EXTERN void gui_debug_reset_symbols(void);
+EXTERN void gui_debug_load_symbols_file(const char* path);
+EXTERN void gui_debug_toggle_breakpoint(void);
+EXTERN void gui_debug_reset_breakpoints(void);
+EXTERN void gui_debug_runtocursor(void);
 
-EXTERN bool gui_in_use;
-EXTERN ImFont* gui_default_font;
-EXTERN ImFont* gui_roboto_font;
-
-EXTERN void gui_init(void);
-EXTERN void gui_destroy(void);
-EXTERN void gui_render(void);
-EXTERN void gui_shortcut(gui_ShortCutEvent event);
-
-#undef GUI_IMPORT
+#undef GUI_DEBUG_IMPORT
 #undef EXTERN
-#endif	/* GUI_H */
+#endif	/* GUI_DEBUG_H */

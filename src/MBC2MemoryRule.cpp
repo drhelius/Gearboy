@@ -200,6 +200,11 @@ u8* MBC2MemoryRule::GetCurrentRamBank()
     return m_pMemory->GetMemoryMap() + 0xA000;
 }
 
+int MBC2MemoryRule::GetCurrentRamBankIndex()
+{
+    return 0;
+}
+
 u8* MBC2MemoryRule::GetCurrentRomBank1()
 {
     u8* pROM = m_pCartridge->GetTheROM();
@@ -209,6 +214,16 @@ u8* MBC2MemoryRule::GetCurrentRomBank1()
 u8* MBC2MemoryRule::GetRomBank0()
 {
     return m_pMemory->GetMemoryMap() + 0x0000;
+}
+
+int MBC2MemoryRule::GetCurrentRomBank0Index()
+{
+    return 0;
+}
+
+int MBC2MemoryRule::GetCurrentRomBank1Index()
+{
+    return m_iCurrentROMBank;
 }
 
 void MBC2MemoryRule::SaveState(std::ostream& stream)

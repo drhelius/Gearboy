@@ -126,10 +126,12 @@ u8* RomOnlyMemoryRule::GetRamBanks()
 
 u8* RomOnlyMemoryRule::GetCurrentRamBank()
 {
-    if (m_pCartridge->GetRAMSize() > 0)
-        return m_pMemory->GetMemoryMap() + 0xA000;
-    else
-        return NULL;
+    return m_pMemory->GetMemoryMap() + 0xA000;
+}
+
+int RomOnlyMemoryRule::GetCurrentRamBankIndex()
+{
+    return 0;
 }
 
 u8* RomOnlyMemoryRule::GetCurrentRomBank1()
@@ -137,7 +139,17 @@ u8* RomOnlyMemoryRule::GetCurrentRomBank1()
     return m_pMemory->GetMemoryMap() + 0x4000;
 }
 
+int RomOnlyMemoryRule::GetCurrentRomBank1Index()
+{
+    return 0;
+}
+
 u8* RomOnlyMemoryRule::GetRomBank0()
 {
     return m_pMemory->GetMemoryMap() + 0x0000;
+}
+
+int RomOnlyMemoryRule::GetCurrentRomBank0Index()
+{
+    return 0;
 }

@@ -30,6 +30,7 @@
 
 EXTERN GB_Color* emu_frame_buffer;
 EXTERN bool emu_audio_sync;
+EXTERN bool emu_debug_disable_breakpoints;
 
 EXTERN void emu_init(const char* save_path);
 EXTERN void emu_destroy(void);
@@ -56,8 +57,12 @@ EXTERN void emu_load_state_slot(int index);
 EXTERN void emu_save_state_file(const char* file_path);
 EXTERN void emu_load_state_file(const char* file_path);
 EXTERN void emu_add_cheat(const char* cheat);
-EXTERN void emu_clear_cheats();
+EXTERN void emu_clear_cheats(void);
 EXTERN void emu_get_info(char* info);
+EXTERN GearboyCore* emu_get_core(void);
+EXTERN void emu_debug_step(void);
+EXTERN void emu_debug_continue(void);
+EXTERN void emu_debug_next_frame(void);
 
 #undef EMU_IMPORT
 #undef EXTERN

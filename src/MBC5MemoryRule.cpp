@@ -198,7 +198,12 @@ u8* MBC5MemoryRule::GetRamBanks()
 
 u8* MBC5MemoryRule::GetCurrentRamBank()
 {
-    return &m_pRAMBanks[m_CurrentRAMAddress];
+    return m_pRAMBanks + m_CurrentRAMAddress;
+}
+
+int MBC5MemoryRule::GetCurrentRamBankIndex()
+{
+    return m_iCurrentRAMBank;
 }
 
 u8* MBC5MemoryRule::GetRomBank0()
@@ -206,10 +211,20 @@ u8* MBC5MemoryRule::GetRomBank0()
     return m_pMemory->GetMemoryMap() + 0x0000;
 }
 
+int MBC5MemoryRule::GetCurrentRomBank0Index()
+{
+    return 0;
+}
+
 u8* MBC5MemoryRule::GetCurrentRomBank1()
 {
     u8* pROM = m_pCartridge->GetTheROM();
     return &pROM[m_CurrentROMAddress];
+}
+
+int MBC5MemoryRule::GetCurrentRomBank1Index()
+{
+    return m_iCurrentROMBank;
 }
 
 void MBC5MemoryRule::SaveState(std::ostream& stream)

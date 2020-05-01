@@ -18,6 +18,7 @@
  */
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_memory_editor.h"
 #include "imgui/fonts/RobotoMedium.h"
 #include "FileBrowser/ImGuiFileBrowser.h"
 #include "config.h"
@@ -27,21 +28,20 @@
 #include "application.h"
 #include "license.h"
 #include "backers.h"
+#include "gui_debug.h"
 
 #define GUI_IMPORT
 #include "gui.h"
 
 static imgui_addons::ImGuiFileBrowser file_dialog;
 static int main_menu_height;
-static int main_window_width;
-static int main_window_height;
-//static bool show_debug = false;
 static bool dialog_in_use = false;
 static SDL_Scancode* configured_key;
 static int* configured_button;
 static ImVec4 custom_palette[4];
 static std::list<std::string> cheat_list;
 static bool shortcut_open_rom = false;
+
 
 static void main_menu(void);
 static void main_window(void);
@@ -50,6 +50,7 @@ static void file_dialog_load_ram(void);
 static void file_dialog_save_ram(void);
 static void file_dialog_load_state(void);
 static void file_dialog_save_state(void);
+static void file_dialog_load_symbols(void);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key);
 static void gamepad_configuration_item(const char* text, int* button);
 static void popup_modal_keyboard(void);
@@ -76,12 +77,14 @@ void gui_init(void)
 
     io.IniFilename = config_imgui_file_path;
 
-    float font_scaling_factor = application_display_scale;
-    float font_size = 17.0f;
+    io.FontGlobalScale /= application_display_scale;
 
-    io.FontGlobalScale /= font_scaling_factor;
+    gui_roboto_font = io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, 17.0f * application_display_scale, NULL, io.Fonts->GetGlyphRangesCyrillic());
 
-    io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, font_size * font_scaling_factor, NULL, io.Fonts->GetGlyphRangesCyrillic());
+    ImFontConfig font_cfg;
+    font_cfg.SizePixels = 16.0f * application_display_scale;
+
+    gui_default_font = io.Fonts->AddFontDefault(&font_cfg);
 
     update_palette();
 
@@ -101,8 +104,10 @@ void gui_render(void)
 
     main_menu();
 
-    if(!emu_is_empty())
+    if((!config_debug.debug && !emu_is_empty()) || (config_debug.debug && config_debug.show_gameboy))
         main_window();
+
+    gui_debug_windows();
 
     ImGui::Render();
 }
@@ -130,6 +135,26 @@ void gui_shortcut(gui_ShortCutEvent event)
     case gui_ShortcutLoadState:
         emu_load_state_slot(config_emulator.save_slot + 1);
         break;
+    case gui_ShortcutDebugStep:
+        if (config_debug.debug)
+            emu_debug_step();
+        break;
+    case gui_ShortcutDebugContinue:
+        if (config_debug.debug)
+            emu_debug_continue();
+        break;
+    case gui_ShortcutDebugNextFrame:
+        if (config_debug.debug)
+            emu_debug_next_frame();
+        break;
+    case gui_ShortcutDebugBreakpoint:
+        if (config_debug.debug)
+            gui_debug_toggle_breakpoint();
+        break;
+    case gui_ShortcutDebugRuntocursor:
+        if (config_debug.debug)
+            gui_debug_runtocursor();
+        break;
     default:
         break;
     }
@@ -143,6 +168,7 @@ static void main_menu(void)
     bool open_state = false;
     bool save_state = false;
     bool open_about = false;
+    bool open_symbols = false;
 
     for (int i = 0; i < 4; i++)
         custom_palette[i] = color_int_to_float(config_video.color[i]);
@@ -476,13 +502,84 @@ static void main_menu(void)
             ImGui::EndMenu();
         }
 
-        // if (ImGui::BeginMenu("Debug"))
-        // {
-        //     gui_in_use = true;
+        if (ImGui::BeginMenu("Debug"))
+        {
+            gui_in_use = true;
 
-        //     ImGui::MenuItem("Enabled", "", &show_debug, false);
-        //     ImGui::EndMenu();
-        // }
+            if (ImGui::MenuItem("Enable", "", &config_debug.debug))
+            {
+                if (config_debug.debug)
+                    emu_debug_step();
+                else
+                    emu_debug_continue();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Step Over", "CTRL + F10", (void*)0, config_debug.debug))
+            {
+                emu_debug_step();
+            }
+
+            if (ImGui::MenuItem("Continue", "CTRL + F5", (void*)0, config_debug.debug))
+            {
+                emu_debug_continue();
+            }
+
+            if (ImGui::MenuItem("Run To Cursor", "CTRL + F8", (void*)0, config_debug.debug))
+            {
+                gui_debug_runtocursor();
+            }
+
+            if (ImGui::MenuItem("Next Frame", "CTRL + F6", (void*)0, config_debug.debug))
+            {
+                emu_debug_next_frame();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Toggle Breakpoint", "CTRL + F9", (void*)0, config_debug.debug))
+            {
+                gui_debug_toggle_breakpoint();
+            }
+
+            if (ImGui::MenuItem("Clear All Breakpoints", 0, (void*)0, config_debug.debug))
+            {
+                gui_debug_reset_breakpoints();
+            }
+
+            ImGui::MenuItem("Disable All Breakpoints", 0, &emu_debug_disable_breakpoints, config_debug.debug);
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Show Game Boy Screen", "", &config_debug.show_gameboy, config_debug.debug);
+
+            ImGui::MenuItem("Show Disassembler", "", &config_debug.show_disassembler, config_debug.debug);
+
+            ImGui::MenuItem("Show Processor Status", "", &config_debug.show_processor, config_debug.debug);
+
+            ImGui::MenuItem("Show Memory Editor", "", &config_debug.show_memory, config_debug.debug);
+
+            ImGui::MenuItem("Show IO Map", "", &config_debug.show_iomap, config_debug.debug);
+
+            ImGui::MenuItem("Show VRAM Viewer", "", &config_debug.show_video, config_debug.debug);
+
+            ImGui::MenuItem("Show Sound Registers", "", &config_debug.show_audio, config_debug.debug);
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Load Symbols...", "", (void*)0, config_debug.debug))
+            {
+                open_symbols = true;
+            }
+
+            if (ImGui::MenuItem("Clear Symbols", "", (void*)0, config_debug.debug))
+            {
+                gui_debug_reset_symbols();
+            }
+
+            ImGui::EndMenu();
+        }
 
         if (ImGui::BeginMenu("About"))
         {
@@ -518,6 +615,9 @@ static void main_menu(void)
     if (save_state)
         ImGui::OpenPopup("Save State As...");
 
+    if (open_symbols)
+        ImGui::OpenPopup("Load Symbols File...");
+
     if (open_about)
     {
         dialog_in_use = true;
@@ -530,6 +630,7 @@ static void main_menu(void)
     file_dialog_save_ram();
     file_dialog_load_state();
     file_dialog_save_state();
+    file_dialog_load_symbols();
 
     for (int i = 0; i < 4; i++)
         config_video.color[i] = color_float_to_int(custom_palette[i]);
@@ -560,6 +661,9 @@ static void main_window(void)
             ratio = 1.0f;
     }
 
+    if (config_debug.debug)
+        ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
+
     int w_corrected = config_video.ratio == 3 ? w : GAMEBOY_HEIGHT * ratio;
     int h_corrected = config_video.ratio == 3 ? h : GAMEBOY_HEIGHT;
 
@@ -569,6 +673,10 @@ static void main_window(void)
     {
         factor = config_video.scale;
     }
+    else if (config_debug.debug)
+    {
+        factor = 2;
+    }
     else
     {
         int factor_w = w / w_corrected;
@@ -576,22 +684,35 @@ static void main_window(void)
         factor = (factor_w < factor_h) ? factor_w : factor_h;
     }
 
-    main_window_width = w_corrected * factor;
-    main_window_height = h_corrected * factor;
+    int main_window_width = w_corrected * factor;
+    int main_window_height = h_corrected * factor;
 
     int window_x = (w - (w_corrected * factor)) / 2;
     int window_y = ((h - (h_corrected * factor)) / 2) + main_menu_height;
-    
-    ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
-    ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
-    ImGui::Begin(GEARBOY_TITLE, 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav);
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar;
+    
+    if (config_debug.debug)
+    {
+        flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
-    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width,main_window_height));
+        ImGui::Begin("Game Boy", &config_debug.show_gameboy, flags);
+    }
+    else
+    {
+        ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
+        ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+        flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav;
+
+        ImGui::Begin(GEARBOY_TITLE, 0, flags);
+    }
+
+    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width, main_window_height));
 
     if (config_video.fps)
         show_fps();
@@ -603,7 +724,12 @@ static void main_window(void)
 
     ImGui::PopStyleVar();
     ImGui::PopStyleVar();
-    ImGui::PopStyleVar();
+
+    if (!config_debug.debug)
+    {
+        
+        ImGui::PopStyleVar();
+    }
 }
 
 static void file_dialog_open_rom(void)
@@ -658,6 +784,15 @@ static void file_dialog_save_state(void)
         }
 
         emu_save_state_file(state_path.c_str());
+    }
+}
+
+static void file_dialog_load_symbols(void)
+{
+    if(file_dialog.showFileDialog("Load Symbols File...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), ".sym,*.*", &dialog_in_use))
+    {
+        gui_debug_reset_symbols();
+        gui_debug_load_symbols_file(file_dialog.selected_path.c_str());
     }
 }
 
@@ -897,6 +1032,13 @@ static void load_rom(const char* path)
     cheat_list.clear();
     emu_clear_cheats();
 
+    gui_debug_reset();
+
+    std::string str(path);
+    str = str.substr(0, str.find_last_of("."));
+    str += ".sym";
+    gui_debug_load_symbols_file(str.c_str());
+
     if (config_emulator.start_paused)
     {
         emu_pause();
@@ -964,7 +1106,7 @@ static void show_info(void)
     if (config_video.fps)
         ImGui::SetCursorPosX(5.0f);
     else
-        ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
+        ImGui::SetCursorPos(ImVec2(5.0f, config_debug.debug ? 25.0f : 5.0f));
 
     static char info[512];
 
@@ -974,10 +1116,8 @@ static void show_info(void)
 
 static void show_fps(void)
 {
-    ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
-    ImGui::Text("Frame Rate: %.2f FPS", ImGui::GetIO().Framerate);
-    ImGui::SetCursorPosX(5.0f);
-    ImGui::Text("Frame Time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::SetCursorPos(ImVec2(5.0f, config_debug.debug ? 25.0f : 5.0f ));
+    ImGui::Text("Frame Rate: %.2f FPS\nFrame Time: %.2f ms", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
 }
 
 static Cartridge::CartridgeTypes get_mbc(int index)

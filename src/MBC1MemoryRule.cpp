@@ -255,10 +255,12 @@ u8* MBC1MemoryRule::GetRamBanks()
 
 u8* MBC1MemoryRule::GetCurrentRamBank()
 {
-    if (m_pCartridge->GetRAMSize() > 0)
-        return &m_pRAMBanks[m_CurrentRAMAddress];
-    else
-        return NULL;
+    return m_pRAMBanks + m_CurrentRAMAddress;
+}
+
+int MBC1MemoryRule::GetCurrentRamBankIndex()
+{
+    return m_iCurrentRAMBank;
 }
 
 u8* MBC1MemoryRule::GetCurrentRomBank1()
@@ -267,9 +269,19 @@ u8* MBC1MemoryRule::GetCurrentRomBank1()
     return &pROM[m_CurrentROMAddress];
 }
 
+int MBC1MemoryRule::GetCurrentRomBank1Index()
+{
+    return m_iCurrentROMBank;
+}
+
 u8* MBC1MemoryRule::GetRomBank0()
 {
     return m_pMemory->GetMemoryMap() + 0x0000;
+}
+
+int MBC1MemoryRule::GetCurrentRomBank0Index()
+{
+    return 0;
 }
 
 void MBC1MemoryRule::SaveState(std::ostream& stream)
