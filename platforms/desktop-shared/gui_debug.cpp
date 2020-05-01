@@ -86,7 +86,8 @@ void gui_debug_windows(void)
 
 static void debug_window_memory(void)
 {
-    ImGui::SetNextWindowSize(ImVec2(483, 368), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(211, 386), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(482, 308), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Memory Editor", &config_debug.show_memory);
 
@@ -201,7 +202,8 @@ static void debug_window_memory(void)
 
 static void debug_window_disassembler(void)
 {
-    ImGui::SetNextWindowSize(ImVec2(376, 358), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(211, 32), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(482, 345), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Disassembler", &config_debug.show_disassembler);
 
@@ -460,6 +462,8 @@ static void debug_window_disassembler(void)
 
 static void debug_window_processor(void)
 {
+    ImGui::SetNextWindowPos(ImVec2(17, 224), ImGuiCond_FirstUseEver);
+
     ImGui::Begin("Processor Status", &config_debug.show_processor, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
 
     ImGui::PushFont(gui_default_font);
@@ -568,6 +572,7 @@ static void debug_window_processor(void)
 
 static void debug_window_audio(void)
 {
+    ImGui::SetNextWindowPos(ImVec2(130, 264), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(494, 0), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Sound Registers", &config_debug.show_audio);
@@ -728,6 +733,7 @@ static void debug_window_audio(void)
 
 static void debug_window_io(void)
 {
+    ImGui::SetNextWindowPos(ImVec2(121, 164), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(494, 0), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("IO Map", &config_debug.show_iomap);
