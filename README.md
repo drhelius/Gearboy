@@ -37,7 +37,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Compressed rom support (ZIP).
 - Game Genie and GameShark cheat support.
 - Supported platforms: Windows, Linux, macOS, Raspberry Pi, iOS and RetroArch (libretro).
-- Full debugger with disassembler, symbols, memory editor, IO inspectorand and VRAM viewer.
+- Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and and VRAM viewer.
 
 ## Build Instructions
 
