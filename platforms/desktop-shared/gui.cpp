@@ -410,19 +410,19 @@ static void main_menu(void)
 
             ImGui::Text("Custom Palette:");
 
-            if (ImGui::ColorEdit3("Color #1", (float*)&custom_palette[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #1", (float*)&custom_palette[0], ImGuiColorEditFlags_NoInputs))
             {
                 update_palette();
             }
-            if (ImGui::ColorEdit3("Color #2", (float*)&custom_palette[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #2", (float*)&custom_palette[1], ImGuiColorEditFlags_NoInputs))
             {
                 update_palette();
             }
-            if (ImGui::ColorEdit3("Color #3", (float*)&custom_palette[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #3", (float*)&custom_palette[2], ImGuiColorEditFlags_NoInputs))
             {
                 update_palette();
             }
-            if (ImGui::ColorEdit3("Color #4", (float*)&custom_palette[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #4", (float*)&custom_palette[3], ImGuiColorEditFlags_NoInputs))
             {
                 update_palette();
             }

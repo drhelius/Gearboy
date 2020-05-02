@@ -868,3 +868,13 @@ void Video::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iHideFrames), sizeof(m_iHideFrames));
     stream.read(reinterpret_cast<char*> (&m_IRQ48Signal), sizeof(m_IRQ48Signal));
 }
+
+PaletteMatrix Video::GetCGBBackgroundPalettes()
+{
+    return &m_CGBBackgroundPalettes;
+}
+
+PaletteMatrix Video::GetCGBSpritePalettes()
+{
+    return &m_CGBSpritePalettes;
+}
