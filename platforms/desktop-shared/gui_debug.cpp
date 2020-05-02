@@ -22,6 +22,7 @@
 #include "FileBrowser/ImGuiFileBrowser.h"
 #include "config.h"
 #include "emu.h"
+#include "renderer.h"
 #include "../../src/gearboy.h"
 #include "gui.h"
 #include "gui_debug_constants.h"
@@ -52,6 +53,7 @@ static ImVec4 red = ImVec4(1.0f,0.149f,0.447f,1.0f);
 static ImVec4 green = ImVec4(0.0f,1.0f,0.0f,1.0f);
 static ImVec4 white = ImVec4(1.0f,1.0f,1.0f,1.0f);
 static ImVec4 gray = ImVec4(0.5f,0.5f,0.5f,1.0f);
+static ImVec4 dark_gray = ImVec4(0.1f,0.1f,0.1f,1.0f);
 static std::vector<DebugSymbol> symbols;
 static Memory::stDisassembleRecord* selected_record = NULL;
 static char brk_address[8] = "";
@@ -61,9 +63,14 @@ static void debug_window_io(void);
 static void debug_window_audio(void);
 static void debug_window_memory(void);
 static void debug_window_disassembler(void);
+static void debug_window_vram(void);
+static void debug_window_vram_background(void);
+static void debug_window_vram_tiles(void);
+static void debug_window_vram_oam(void);
+static void debug_window_vram_palettes(void);
 static void add_symbol(const char* line);
 static void add_breakpoint(void);
-
+static ImVec4 color_565_to_float(u16 color);
 
 void gui_debug_windows(void)
 {
@@ -79,14 +86,91 @@ void gui_debug_windows(void)
             debug_window_io();
         if (config_debug.show_audio)
             debug_window_audio();
+        if (config_debug.show_video)
+            debug_window_vram();
 
         //ImGui::ShowDemoWindow(&config_debug.debug);
     }
 }
 
+
+void gui_debug_reset(void)
+{
+    gui_debug_reset_breakpoints();
+    gui_debug_reset_symbols();
+    selected_record = NULL;
+}
+
+void gui_debug_reset_symbols(void)
+{
+    symbols.clear();
+    
+    for (int i = 0; i < gui_debug_symbols_count; i++)
+        add_symbol(gui_debug_symbols[i]);
+}
+
+void gui_debug_load_symbols_file(const char* path)
+{
+    Log("Loading symbol file %s", path);
+
+    std::ifstream file(path);
+
+    if (file.is_open())
+    {
+        std::string line;
+
+        while (std::getline(file, line))
+        {
+            add_symbol(line.c_str());
+        }
+
+        file.close();
+    }
+}
+
+void gui_debug_toggle_breakpoint(void)
+{
+    if (IsValidPointer(selected_record))
+    {
+        bool found = false;
+        std::vector<Memory::stDisassembleRecord*>* breakpoints = emu_get_core()->GetMemory()->GetBreakpoints();
+
+        for (int b = 0; b < breakpoints->size(); b++)
+        {
+            if ((*breakpoints)[b] == selected_record)
+            {
+                found = true;
+                 InitPointer((*breakpoints)[b]);
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            breakpoints->push_back(selected_record);
+        }
+    }
+}
+
+void gui_debug_runtocursor(void)
+{
+    if (IsValidPointer(selected_record))
+    {
+        emu_get_core()->GetMemory()->SetRunToBreakpoint(selected_record);
+        emu_debug_continue();
+    }
+}
+
+void gui_debug_reset_breakpoints(void)
+{
+    emu_get_core()->GetMemory()->GetBreakpoints()->clear();
+    brk_address[0] = 0;
+}
+
 static void debug_window_memory(void)
 {
-    ImGui::SetNextWindowSize(ImVec2(483, 368), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(211, 386), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(482, 308), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Memory Editor", &config_debug.show_memory);
 
@@ -109,99 +193,100 @@ static void debug_window_memory(void)
     ImGui::PopFont();
 
     if (ImGui::BeginTabBar("##memory_tabs", ImGuiTabBarFlags_None))
+    {
+        if (ImGui::BeginTabItem("ROM0"))
         {
-            if (ImGui::BeginTabItem("ROM0"))
-            {
-                ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetROM0(), 0x4000, 0);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("ROM1"))
-            {
-                ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetROM1(), 0x4000, 0x4000);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("VRAM"))
-            {
-                ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetVRAM(), 0x2000, 0x8000);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("RAM"))
-            {
-                ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetRAM(), 0x2000, 0xA000);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-
-            if (emu_is_cgb())
-            {
-                if (ImGui::BeginTabItem("WRAM0"))
-                {
-                    ImGui::PushFont(gui_default_font);
-                    mem_edit.DrawContents(memory->GetWRAM0(), 0x1000, 0xC000);
-                    ImGui::PopFont();
-                    ImGui::EndTabItem();
-                }
-                if (ImGui::BeginTabItem("WRAM1"))
-                {
-                    ImGui::PushFont(gui_default_font);
-                    mem_edit.DrawContents(memory->GetWRAM1(), 0x1000, 0xD000);
-                    ImGui::PopFont();
-                    ImGui::EndTabItem();
-                }
-            }
-            else
-            {
-                if (ImGui::BeginTabItem("WRAM"))
-                {
-                    ImGui::PushFont(gui_default_font);
-                    mem_edit.DrawContents(memory->GetWRAM0(), 0x2000, 0xC000);
-                    ImGui::PopFont();
-                    ImGui::EndTabItem();
-                }
-            }
-            
-            if (ImGui::BeginTabItem("OAM"))
-            {
-                ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetMemoryMap() + 0xFE00, 0x00A0, 0xFE00);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("IO"))
-            {
-                ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetMemoryMap() + 0xFF00, 0x0080, 0xFF00);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("HIRAM"))
-            {
-                ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetMemoryMap() + 0xFF80, 0x007F, 0xFF80);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-            ImGui::EndTabBar();
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(memory->GetROM0(), 0x4000, 0);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
         }
+
+        if (ImGui::BeginTabItem("ROM1"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(memory->GetROM1(), 0x4000, 0x4000);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("VRAM"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(memory->GetVRAM(), 0x2000, 0x8000);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("RAM"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(memory->GetRAM(), 0x2000, 0xA000);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+
+        if (emu_is_cgb())
+        {
+            if (ImGui::BeginTabItem("WRAM0"))
+            {
+                ImGui::PushFont(gui_default_font);
+                mem_edit.DrawContents(memory->GetWRAM0(), 0x1000, 0xC000);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("WRAM1"))
+            {
+                ImGui::PushFont(gui_default_font);
+                mem_edit.DrawContents(memory->GetWRAM1(), 0x1000, 0xD000);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+        }
+        else
+        {
+            if (ImGui::BeginTabItem("WRAM"))
+            {
+                ImGui::PushFont(gui_default_font);
+                mem_edit.DrawContents(memory->GetWRAM0(), 0x2000, 0xC000);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+        }
+        
+        if (ImGui::BeginTabItem("OAM"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(memory->GetMemoryMap() + 0xFE00, 0x00A0, 0xFE00);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("IO"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(memory->GetMemoryMap() + 0xFF00, 0x0080, 0xFF00);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("HIRAM"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(memory->GetMemoryMap() + 0xFF80, 0x007F, 0xFF80);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
 
     ImGui::End();
 }
 
 static void debug_window_disassembler(void)
 {
-    ImGui::SetNextWindowSize(ImVec2(376, 358), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(211, 32), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(482, 345), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Disassembler", &config_debug.show_disassembler);
 
@@ -460,6 +545,8 @@ static void debug_window_disassembler(void)
 
 static void debug_window_processor(void)
 {
+    ImGui::SetNextWindowPos(ImVec2(17, 224), ImGuiCond_FirstUseEver);
+
     ImGui::Begin("Processor Status", &config_debug.show_processor, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
 
     ImGui::PushFont(gui_default_font);
@@ -568,6 +655,7 @@ static void debug_window_processor(void)
 
 static void debug_window_audio(void)
 {
+    ImGui::SetNextWindowPos(ImVec2(130, 264), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(494, 0), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Sound Registers", &config_debug.show_audio);
@@ -728,6 +816,7 @@ static void debug_window_audio(void)
 
 static void debug_window_io(void)
 {
+    ImGui::SetNextWindowPos(ImVec2(121, 164), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(494, 0), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("IO Map", &config_debug.show_iomap);
@@ -929,77 +1018,330 @@ static void debug_window_io(void)
     ImGui::End();
 }
 
-void gui_debug_reset(void)
+static void debug_window_vram(void)
 {
-    gui_debug_reset_breakpoints();
-    gui_debug_reset_symbols();
-    selected_record = NULL;
-}
+    //ImGui::SetNextWindowPos(ImVec2(211, 32), ImGuiCond_FirstUseEver);
+    //ImGui::SetNextWindowSize(ImVec2(482, 345), ImGuiCond_FirstUseEver);
 
-void gui_debug_reset_symbols(void)
-{
-    symbols.clear();
-    
-    for (int i = 0; i < gui_debug_symbols_count; i++)
-        add_symbol(gui_debug_symbols[i]);
-}
+    ImGui::Begin("VRAM Viewer", &config_debug.show_video);
 
-void gui_debug_load_symbols_file(const char* path)
-{
-    Log("Loading symbol file %s", path);
-
-    std::ifstream file(path);
-
-    if (file.is_open())
+    if (ImGui::BeginTabBar("##vram_tabs", ImGuiTabBarFlags_None))
     {
-        std::string line;
-
-        while (std::getline(file, line))
+        if (ImGui::BeginTabItem("Background"))
         {
-            add_symbol(line.c_str());
+            debug_window_vram_background();
+            ImGui::EndTabItem();
         }
 
-        file.close();
+        if (ImGui::BeginTabItem("Tiles"))
+        {
+            debug_window_vram_tiles();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("OAM"))
+        {
+            debug_window_vram_oam();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Palettes"))
+        {
+            debug_window_vram_palettes();
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
     }
+
+    ImGui::End();
 }
 
-void gui_debug_toggle_breakpoint(void)
+static void debug_window_vram_background(void)
 {
-    if (IsValidPointer(selected_record))
-    {
-        bool found = false;
-        std::vector<Memory::stDisassembleRecord*>* breakpoints = emu_get_core()->GetMemory()->GetBreakpoints();
+    static bool show_grid = true;
+    static bool show_screen = true;
+    float scale = 1.5f;
+    float size = 256.0f * scale;
+    float spacing = 8.0f * scale;
 
-        for (int b = 0; b < breakpoints->size(); b++)
+    ImGui::PushFont(gui_default_font);
+
+    ImGui::Columns(2, "bg", false);
+    ImGui::SetColumnOffset(1, size + 10.0f);
+
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_background, ImVec2(size, size));
+
+    
+
+    if (show_grid)
+    {
+        float x = p.x;
+        for (int n = 0; n <= 32; n++)
         {
-            if ((*breakpoints)[b] == selected_record)
-            {
-                found = true;
-                 InitPointer((*breakpoints)[b]);
-                break;
+            draw_list->AddLine(ImVec2(x, p.y), ImVec2(x, p.y + size), ImColor(dark_gray), 1.0f);
+            x += spacing;
+        }
+
+        float y = p.y;  
+        for (int n = 0; n <= 32; n++)
+        {
+            draw_list->AddLine(ImVec2(p.x, y), ImVec2(p.x + size, y), ImColor(dark_gray), 1.0f);
+            y += spacing;
+        }
+    }
+
+    float mouse_x = io.MousePos.x - p.x;
+    float mouse_y = io.MousePos.y - p.y;
+
+    int tile_x = -1;
+    int tile_y = -1;
+    if ((mouse_x >= 0.0f) && (mouse_x < size) && (mouse_y >= 0.0f) && (mouse_y < size))
+    {
+        tile_x = mouse_x / spacing;
+        tile_y = mouse_y / spacing;
+
+        draw_list->AddRect(ImVec2(p.x + (tile_x * spacing), p.y + (tile_y * spacing)), ImVec2(p.x + ((tile_x + 1) * spacing), p.y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, 15, 2.0f);
+
+        ImGui::NextColumn();
+
+        ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_background, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
+
+        ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
+        ImGui::Text("$%02X", tile_x);
+        ImGui::TextColored(cyan, " Y:"); ImGui::SameLine();
+        ImGui::Text("$%02X", tile_y);
+    }
+
+    ImGui::Columns(1);
+
+    ImGui::Text(" ");
+    ImGui::Checkbox("Grid", &show_grid); ImGui::SameLine();
+    ImGui::Checkbox("Screen Position", &show_screen); 
+
+    ImGui::PopFont();
+}
+
+static void debug_window_vram_tiles(void)
+{
+    ImGui::PushFont(gui_default_font);
+    ImGui::TextColored(cyan, "tiles"); //ImGui::SameLine();
+    ImGui::PopFont();
+}
+
+static void debug_window_vram_oam(void)
+{
+    ImGui::PushFont(gui_default_font);
+    ImGui::TextColored(cyan, "oam"); //ImGui::SameLine();
+    ImGui::PopFont();
+}
+
+static void debug_window_vram_palettes(void)
+{
+    GearboyCore* core = emu_get_core();
+    Video* video = core->GetVideo();
+    Memory* memory = core->GetMemory();
+    u16* palette = core->GetDMGInternalPalette();
+
+    ImGui::PushFont(gui_default_font);
+
+    ImGui::TextColored(yellow, "DMG:"); ImGui::SameLine();
+    ImGui::TextColored(cyan, "                          0      1       2      3");
+
+    u8 bgp = memory->Retrieve(0xFF47);
+    u8 obp0 = memory->Retrieve(0xFF48);
+    u8 obp1 = memory->Retrieve(0xFF49);
+    
+    ImGui::TextColored(cyan, " $FF47"); ImGui::SameLine();
+    ImGui::TextColored(magenta, "BGP "); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", bgp, BYTE_TO_BINARY(bgp)); ImGui::SameLine();
+    ImGui::Text(" "); ImGui::SameLine();
+
+    for (int i = 0; i < 4; i++)
+    {
+        int index = (bgp >> (i * 2)) & 0x03;
+        int color = palette[index];
+        ImVec4 float_color = color_565_to_float(color);
+        char id[16];
+        sprintf(id, "##dmg_bg_%d", i);
+        ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
+        ImGui::Text("%d  ", index);
+        if (i < 3)
+            ImGui::SameLine();
+    }
+
+    ImGui::TextColored(cyan, " $FF48"); ImGui::SameLine();
+    ImGui::TextColored(magenta, "OBP0"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", obp0, BYTE_TO_BINARY(obp0)); ImGui::SameLine();
+    ImGui::Text(" "); ImGui::SameLine();
+
+    for (int i = 0; i < 4; i++)
+    {
+        int index = (obp0 >> (i * 2)) & 0x03;
+        int color = palette[index];
+        ImVec4 float_color = color_565_to_float(color);
+        char id[16];
+        sprintf(id, "##dmg_bg_%d", i);
+        ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
+        ImGui::Text("%d  ", index);
+        if (i < 3)
+            ImGui::SameLine();
+    }
+
+    ImGui::TextColored(cyan, " $FF49"); ImGui::SameLine();
+    ImGui::TextColored(magenta, "OBP1"); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", obp1, BYTE_TO_BINARY(obp1)); ImGui::SameLine();
+    ImGui::Text(" "); ImGui::SameLine();
+
+    for (int i = 0; i < 4; i++)
+    {
+        int index = (obp1 >> (i * 2)) & 0x03;
+        int color = palette[index];
+        ImVec4 float_color = color_565_to_float(color);
+        char id[16];
+        sprintf(id, "##dmg_bg_%d", i);
+        ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
+        ImGui::Text("%d  ", index);
+        if (i < 3)
+            ImGui::SameLine();
+    }
+
+    ImGui::Text(" ");
+
+    PaletteMatrix bg_palettes = video->GetCGBBackgroundPalettes();
+    PaletteMatrix sprite_palettes = video->GetCGBSpritePalettes();
+
+    ImGui::Columns(2, "palettes");
+
+    ImGui::TextColored(yellow, "GBC BACKGROUND:");
+
+    ImGui::NextColumn();
+
+    ImGui::TextColored(yellow, "GBC SPRITES:");
+
+    ImGui::NextColumn();
+
+    ImGui::Separator();
+
+    for (int p = 0; p < 8; p++)
+    {
+        ImGui::TextColored(cyan, " %d ", p); ImGui::SameLine();
+
+        for (int c = 0; c < 4; c++)
+        {
+            u16 color = (*bg_palettes)[p][c][1];
+            ImVec4 float_color = color_565_to_float(color);
+            char id[16];
+            sprintf(id, "##cgb_bg_%d_%d", p, c);
+            ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker);
+            if (c < 3)
+            {   
+                ImGui::SameLine(); ImGui::Dummy(ImVec2(14.0f, 0.0f));
+                ImGui::SameLine();
             }
         }
 
-        if (!found)
+        ImGui::Text("  "); ImGui::SameLine();
+
+        for (int c = 0; c < 4; c++)
         {
-            breakpoints->push_back(selected_record);
+            u16 color = (*bg_palettes)[p][c][1];
+            ImGui::Text("%04X ", color);
+            if (c < 3)
+                ImGui::SameLine();
         }
     }
-}
 
-void gui_debug_runtocursor(void)
-{
-    if (IsValidPointer(selected_record))
+    ImGui::NextColumn();
+
+    for (int p = 0; p < 8; p++)
     {
-        emu_get_core()->GetMemory()->SetRunToBreakpoint(selected_record);
-        emu_debug_continue();
+        ImGui::TextColored(cyan, " %d ", p); ImGui::SameLine();
+
+        for (int c = 0; c < 4; c++)
+        {
+            u16 color = (*sprite_palettes)[p][c][1];
+            ImVec4 float_color = color_565_to_float(color);
+            char id[16];
+            sprintf(id, "##cgb_bg_%d_%d", p, c);
+            ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker);
+            if (c < 3)
+            {
+                ImGui::SameLine(); ImGui::Dummy(ImVec2(14.0f, 0.0f));
+                ImGui::SameLine();
+            }
+        }
+
+        ImGui::Text("  "); ImGui::SameLine();
+
+        for (int c = 0; c < 4; c++)
+        {
+            u16 color = (*sprite_palettes)[p][c][1];
+            ImGui::Text("%04X ", color);
+            if (c < 3)
+                ImGui::SameLine();
+        }
     }
+
+    ImGui::Columns(1);
+
+    ImGui::PopFont();
 }
 
-void gui_debug_reset_breakpoints(void)
+static void add_symbol(const char* line)
 {
-    emu_get_core()->GetMemory()->GetBreakpoints()->clear();
-    brk_address[0] = 0;
+    Log("Loading symbol %s", line);
+
+    DebugSymbol s;
+
+    std::string str(line);
+
+    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+
+    size_t first = str.find_first_not_of(' ');
+    if (std::string::npos == first)
+    {
+        str = "";
+    }
+    else
+    {
+        size_t last = str.find_last_not_of(' ');
+        str = str.substr(first, (last - first + 1));
+    }
+
+    std::size_t comment = str.find(";");
+
+    if (comment != std::string::npos)
+        str = str.substr(0 , comment);
+
+    std::size_t space = str.find(" ");
+
+    if (space != std::string::npos)
+    {
+        s.text = str.substr(space + 1 , std::string::npos);
+        str = str.substr(0, space);
+
+        std::size_t separator = str.find(":");
+
+        if (separator != std::string::npos)
+        {
+            s.address = std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+
+            s.bank = std::stoul(str.substr(0, separator), 0 , 16);
+        }
+        else
+        {
+            s.address = std::stoul(str, 0, 16);
+            s.bank = 0;
+        }
+
+        symbols.push_back(s);
+    }
 }
 
 static void add_breakpoint(void)
@@ -1071,54 +1413,12 @@ static void add_breakpoint(void)
     }
 }
 
-static void add_symbol(const char* line)
+static ImVec4 color_565_to_float(u16 color)
 {
-    Log("Loading symbol %s", line);
-
-    DebugSymbol s;
-
-    std::string str(line);
-
-    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
-    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
-
-    size_t first = str.find_first_not_of(' ');
-    if (std::string::npos == first)
-    {
-        str = "";
-    }
-    else
-    {
-        size_t last = str.find_last_not_of(' ');
-        str = str.substr(first, (last - first + 1));
-    }
-
-    std::size_t comment = str.find(";");
-
-    if (comment != std::string::npos)
-        str = str.substr(0 , comment);
-
-    std::size_t space = str.find(" ");
-
-    if (space != std::string::npos)
-    {
-        s.text = str.substr(space + 1 , std::string::npos);
-        str = str.substr(0, space);
-
-        std::size_t separator = str.find(":");
-
-        if (separator != std::string::npos)
-        {
-            s.address = std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
-
-            s.bank = std::stoul(str.substr(0, separator), 0 , 16);
-        }
-        else
-        {
-            s.address = std::stoul(str, 0, 16);
-            s.bank = 0;
-        }
-
-        symbols.push_back(s);
-    }
+    ImVec4 ret;
+    ret.w = 0;
+    ret.x = (1.0f / 31.0f) * ((color >> 11) & 0x1F);
+    ret.y = (1.0f / 63.0f) * ((color >> 5) & 0x3F);
+    ret.z = (1.0f / 31.0f) * (color & 0x1F);
+    return ret;
 }

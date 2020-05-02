@@ -79,6 +79,7 @@ public:
     Cartridge* GetCartridge();
     Processor* GetProcessor();
     Audio* GetAudio();
+    Video* GetVideo();
 
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;

@@ -25,6 +25,8 @@
 class Memory;
 class Processor;
 
+typedef u16 (*PaletteMatrix)[8][4][2];
+
 class Video
 {
 public:
@@ -46,6 +48,8 @@ public:
     void SetIRQ48Signal(u8 signal);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
+    PaletteMatrix GetCGBBackgroundPalettes();
+    PaletteMatrix GetCGBSpritePalettes();
 
 private:
     void ScanLine(int line);

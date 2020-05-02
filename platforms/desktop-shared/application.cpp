@@ -417,7 +417,7 @@ static void run_emulator(void)
 {
     config_emulator.paused = emu_is_paused();
     emu_audio_sync = config_audio.sync;
-    emu_run_to_vblank();
+    emu_update();
 }
 
 static void render(void)

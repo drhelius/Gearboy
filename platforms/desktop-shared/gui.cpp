@@ -410,19 +410,19 @@ static void main_menu(void)
 
             ImGui::Text("Custom Palette:");
 
-            if (ImGui::ColorEdit3("Color #1", (float*)&custom_palette[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #1", (float*)&custom_palette[0], ImGuiColorEditFlags_NoInputs))
             {
                 update_palette();
             }
-            if (ImGui::ColorEdit3("Color #2", (float*)&custom_palette[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #2", (float*)&custom_palette[1], ImGuiColorEditFlags_NoInputs))
             {
                 update_palette();
             }
-            if (ImGui::ColorEdit3("Color #3", (float*)&custom_palette[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #3", (float*)&custom_palette[2], ImGuiColorEditFlags_NoInputs))
             {
                 update_palette();
             }
-            if (ImGui::ColorEdit3("Color #4", (float*)&custom_palette[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
+            if (ImGui::ColorEdit3("Color #4", (float*)&custom_palette[3], ImGuiColorEditFlags_NoInputs))
             {
                 update_palette();
             }
@@ -641,9 +641,10 @@ static void main_window(void)
     int w = ImGui::GetIO().DisplaySize.x;
     int h = ImGui::GetIO().DisplaySize.y - main_menu_height;
 
-    float ratio;
+    int selected_ratio = config_debug.debug ? 0 : config_video.ratio;
+    float ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
 
-    switch (config_video.ratio)
+    switch (selected_ratio)
     {
         case 0:
             ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
@@ -658,14 +659,11 @@ static void main_window(void)
             ratio = (float)w / (float)h;
             break;
         default:
-            ratio = 1.0f;
+            ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
     }
 
-    if (config_debug.debug)
-        ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
-
-    int w_corrected = config_video.ratio == 3 ? w : GAMEBOY_HEIGHT * ratio;
-    int h_corrected = config_video.ratio == 3 ? h : GAMEBOY_HEIGHT;
+    int w_corrected = selected_ratio == 3 ? w : GAMEBOY_HEIGHT * ratio;
+    int h_corrected = selected_ratio == 3 ? h : GAMEBOY_HEIGHT;
 
     int factor = 0;
 
@@ -675,7 +673,7 @@ static void main_window(void)
     }
     else if (config_debug.debug)
     {
-        factor = 2;
+        factor = 1;
     }
     else
     {
@@ -699,7 +697,9 @@ static void main_window(void)
     {
         flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
-        ImGui::Begin("Game Boy", &config_debug.show_gameboy, flags);
+        ImGui::SetNextWindowPos(ImVec2(27, 39), ImGuiCond_FirstUseEver);
+
+        ImGui::Begin(emu_is_cgb() ? "Game Boy Color###debug_output" : "Game Boy###debug_output", &config_debug.show_gameboy, flags);
     }
     else
     {

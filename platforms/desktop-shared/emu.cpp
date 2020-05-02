@@ -35,6 +35,7 @@ static GearboyCore* gearboy;
 static Sound_Queue* sound_queue;
 static bool save_files_in_rom_dir = false;
 static u16* frame_buffer_565;
+static u16* debug_background_buffer_565;
 static s16* audio_buffer;
 static char base_save_path[260];
 static bool audio_enabled;
@@ -44,8 +45,9 @@ static bool debug_next_frame = false;
 
 static void save_ram(void);
 static void load_ram(void);
-static void generate_24bit_buffer(void);
+static void generate_24bit_buffer(GB_Color* dest, u16* src, int size);
 static const char* get_mbc(Cartridge::CartridgeTypes type);
+static void update_debug_background_buffer();
 
 void emu_init(const char* save_path)
 {
@@ -53,6 +55,9 @@ void emu_init(const char* save_path)
 
     frame_buffer_565 = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     emu_frame_buffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+
+    debug_background_buffer_565 = new u16[256 * 256];
+    emu_debug_background_buffer = new GB_Color[256 * 256];
     
     for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
     {
@@ -60,6 +65,14 @@ void emu_init(const char* save_path)
         emu_frame_buffer[i].green = 0;
         emu_frame_buffer[i].blue = 0;
         frame_buffer_565[i] = 0;
+    }
+
+    for (int i=0; i < (256 * 256); i++)
+    {
+        emu_debug_background_buffer[i].red = 0;
+        emu_debug_background_buffer[i].green = 0;
+        emu_debug_background_buffer[i].blue = 0;
+        debug_background_buffer_565[i] = 0;
     }
 
     gearboy = new GearboyCore();
@@ -84,7 +97,10 @@ void emu_destroy(void)
     SafeDeleteArray(audio_buffer);
     SafeDelete(sound_queue);
     SafeDelete(gearboy);
+    SafeDeleteArray(frame_buffer_565);
     SafeDeleteArray(emu_frame_buffer);
+    SafeDeleteArray(debug_background_buffer_565);
+    SafeDeleteArray(emu_debug_background_buffer);
 }
 
 void emu_load_rom(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc)
@@ -96,7 +112,7 @@ void emu_load_rom(const char* file_path, bool force_dmg, bool save_in_rom_dir, C
     emu_debug_continue();
 }
 
-void emu_run_to_vblank(void)
+void emu_update(void)
 {
     if (!emu_is_empty())
     {
@@ -113,9 +129,12 @@ void emu_run_to_vblank(void)
 
             debug_next_frame = false;
             debug_step = false;
+
+            update_debug_background_buffer();
         }
 
-        generate_24bit_buffer();
+        generate_24bit_buffer(emu_frame_buffer, frame_buffer_565, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
+        generate_24bit_buffer(emu_debug_background_buffer, debug_background_buffer_565, 256 * 256);
 
         if ((sampleCount > 0) && !gearboy->IsPaused())
         {
@@ -348,13 +367,13 @@ static void load_ram(void)
         gearboy->LoadRam(base_save_path);
 }
 
-static void generate_24bit_buffer(void)
+static void generate_24bit_buffer(GB_Color* dest, u16* src, int size)
 {
-    for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+    for (int i=0; i < size; i++)
     {
-        emu_frame_buffer[i].red = (((frame_buffer_565[i] >> 11) & 0x1F ) * 255 + 15) / 31;
-        emu_frame_buffer[i].green = (((frame_buffer_565[i] >> 5) & 0x3F ) * 255 + 31) / 63;
-        emu_frame_buffer[i].blue = ((frame_buffer_565[i] & 0x1F ) * 255 + 15) / 31;
+        dest[i].red = (((src[i] >> 11) & 0x1F ) * 255 + 15) / 31;
+        dest[i].green = (((src[i] >> 5) & 0x3F ) * 255 + 31) / 63;
+        dest[i].blue = ((src[i] & 0x1F ) * 255 + 15) / 31;
     }
 }
 
@@ -386,5 +405,93 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
     default:
         return "Undefined";
         break;
+    }
+}
+
+static void update_debug_background_buffer()
+{
+    Video* video = gearboy->GetVideo();
+    Memory* memory = gearboy->GetMemory();
+    u16* dmg_palette = gearboy->GetDMGInternalPalette();
+    u8 lcdc = memory->Retrieve(0xFF40);
+
+    for (int line = 0; line < 256; line++)
+    {
+        int line_width = (line * 256);
+
+        for (int pixel = 0; pixel < 256; pixel++)
+        {
+            int offset_x = pixel & 0x7;
+            int screen_tile = pixel >> 3;
+            int tile_start_addr = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
+            int map_start_addr = IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
+            int line_32 = (line >> 3) << 5;
+            int tile_pixel_y = line & 0x7;
+            int tile_pixel_y_2 = tile_pixel_y << 1;
+            int tile_pixel_y_flip_2 = (7 - tile_pixel_y) << 1;
+            u8 palette = memory->Retrieve(0xFF47);
+
+            int screen_pixel_x = (screen_tile << 3) + offset_x;
+            u8 map_pixel_x = screen_pixel_x;
+            int map_tile_x = map_pixel_x >> 3;
+            int map_tile_offset_x = map_pixel_x & 0x7;
+            u16 map_tile_addr = map_start_addr + line_32 + map_tile_x;
+            int map_tile = 0;
+
+            if (tile_start_addr == 0x8800)
+            {
+                map_tile = static_cast<s8> (memory->Retrieve(map_tile_addr));
+                map_tile += 128;
+            }
+            else
+            {
+                map_tile = memory->Retrieve(map_tile_addr);
+            }
+
+            u8 cgb_tile_attr = gearboy->IsCGB() ? memory->ReadCGBLCDRAM(map_tile_addr, true) : 0;
+            u8 cgb_tile_pal = gearboy->IsCGB() ? (cgb_tile_attr & 0x07) : 0;
+            bool cgb_tile_bank = gearboy->IsCGB() ? IsSetBit(cgb_tile_attr, 3) : false;
+            bool cgb_tile_xflip = gearboy->IsCGB() ? IsSetBit(cgb_tile_attr, 5) : false;
+            bool cgb_tile_yflip = gearboy->IsCGB() ? IsSetBit(cgb_tile_attr, 6) : false;
+            int map_tile_16 = map_tile << 4;
+            u8 byte1 = 0;
+            u8 byte2 = 0;
+            int final_pixely_2 = cgb_tile_yflip ? tile_pixel_y_flip_2 : tile_pixel_y_2;
+            int tile_address = tile_start_addr + map_tile_16 + final_pixely_2;
+
+            if (cgb_tile_bank)
+            {
+                byte1 = memory->ReadCGBLCDRAM(tile_address, true);
+                byte2 = memory->ReadCGBLCDRAM(tile_address + 1, true);
+            }
+            else
+            {
+                byte1 = memory->Retrieve(tile_address);
+                byte2 = memory->Retrieve(tile_address + 1);
+            }
+
+            int pixel_x_in_tile = map_tile_offset_x;
+
+            if (cgb_tile_xflip)
+            {
+                pixel_x_in_tile = 7 - pixel_x_in_tile;
+            }
+            int pixel_x_in_tile_bit = 0x1 << (7 - pixel_x_in_tile);
+            int pixel_data = (byte1 & pixel_x_in_tile_bit) ? 1 : 0;
+            pixel_data |= (byte2 & pixel_x_in_tile_bit) ? 2 : 0;
+
+            int index = line_width + screen_pixel_x;
+
+            if (gearboy->IsCGB())
+            {
+                PaletteMatrix bg_palettes = video->GetCGBBackgroundPalettes();
+                debug_background_buffer_565[index] = (*bg_palettes)[cgb_tile_pal][pixel_data][1];
+            }
+            else
+            {
+                u8 color = (palette >> (pixel_data << 1)) & 0x03;
+                debug_background_buffer_565[index] = dmg_palette[color];
+            }
+        }
     }
 }
