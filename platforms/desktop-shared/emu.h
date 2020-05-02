@@ -29,12 +29,13 @@
 #endif
 
 EXTERN GB_Color* emu_frame_buffer;
+EXTERN GB_Color* emu_debug_background_buffer;
 EXTERN bool emu_audio_sync;
 EXTERN bool emu_debug_disable_breakpoints;
 
 EXTERN void emu_init(const char* save_path);
 EXTERN void emu_destroy(void);
-EXTERN void emu_run_to_vblank(void);
+EXTERN void emu_update(void);
 EXTERN void emu_load_rom(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc);
 EXTERN void emu_key_pressed(Gameboy_Keys key);
 EXTERN void emu_key_released(Gameboy_Keys key);
