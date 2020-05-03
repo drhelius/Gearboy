@@ -135,7 +135,7 @@ void gui_debug_toggle_breakpoint(void)
         bool found = false;
         std::vector<Memory::stDisassembleRecord*>* breakpoints = emu_get_core()->GetMemory()->GetBreakpoints();
 
-        for (int b = 0; b < breakpoints->size(); b++)
+        for (long unsigned int b = 0; b < breakpoints->size(); b++)
         {
             if ((*breakpoints)[b] == selected_record)
             {
@@ -356,7 +356,7 @@ static void debug_window_disassembler(void)
 
         ImGui::BeginChild("breakpoints", ImVec2(0, 74), false);
 
-        for (int b = 0; b < breakpoints->size(); b++)
+        for (long unsigned int b = 0; b < breakpoints->size(); b++)
         {
             if (!IsValidPointer((*breakpoints)[b]))
                 continue;
@@ -419,7 +419,7 @@ static void debug_window_disassembler(void)
 
             if (map[offset].name[0] != 0)
             {
-                for (int s = 0; s < symbols.size(); s++)
+                for (long unsigned int s = 0; s < symbols.size(); s++)
                 {
                     if ((symbols[s].bank == bank) && (symbols[s].address == offset) && show_symbols)
                     {
@@ -437,7 +437,7 @@ static void debug_window_disassembler(void)
 
                 vec[dis_size].is_breakpoint = false;
 
-                for (int b = 0; b < breakpoints->size(); b++)
+                for (long unsigned int b = 0; b < breakpoints->size(); b++)
                 {
                     if ((*breakpoints)[b] == vec[dis_size].record)
                     {
@@ -1398,7 +1398,7 @@ static void add_breakpoint(void)
     bool found = false;
     std::vector<Memory::stDisassembleRecord*>* breakpoints = emu_get_core()->GetMemory()->GetBreakpoints();
 
-    for (int b = 0; b < breakpoints->size(); b++)
+    for (long unsigned int b = 0; b < breakpoints->size(); b++)
     {
         if ((*breakpoints)[b] == &map[target_offset])
         {

@@ -46,7 +46,7 @@ private:
 
 inline void SixteenBitRegister::SetLow(u8 low)
 {
-    this->m_Low.SetValue(low);
+    m_Low.SetValue(low);
 }
 
 inline u8 SixteenBitRegister::GetLow() const
@@ -56,7 +56,7 @@ inline u8 SixteenBitRegister::GetLow() const
 
 inline void SixteenBitRegister::SetHigh(u8 high)
 {
-    this->m_High.SetValue(high);
+    m_High.SetValue(high);
 }
 
 inline u8 SixteenBitRegister::GetHigh() const

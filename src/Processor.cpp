@@ -496,7 +496,7 @@ bool Processor::Disassemble(u16 address)
     }
     else
     {
-        for (int b = 0; b < breakpoints->size(); b++)
+        for (long unsigned int b = 0; b < breakpoints->size(); b++)
         {
             if ((*breakpoints)[b] == &map[offset])
             {
