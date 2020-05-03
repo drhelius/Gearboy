@@ -493,9 +493,9 @@ static void debug_window_disassembler(void)
                     if (vec[item].record->address == pc)
                     {
                         if (show_mem)
-                            ImGui::TextColored(red, "%04X: %s", vec[item].record->address, vec[item].record->bytes);
+                            ImGui::TextColored(red, " %04X: %s", vec[item].record->address, vec[item].record->bytes);
                         else
-                            ImGui::TextColored(red, "%04X:", vec[item].record->address);
+                            ImGui::TextColored(red, " %04X:", vec[item].record->address);
                         ImGui::SameLine();
                         ImGui::TextColored(yellow, "->");
                         ImGui::SameLine();
@@ -504,23 +504,23 @@ static void debug_window_disassembler(void)
                     else
                     {
                         if (show_mem)
-                            ImGui::TextColored(red, "%04X: %s    %s", vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
+                            ImGui::TextColored(red, " %04X: %s    %s", vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
                         else
-                            ImGui::TextColored(red, "%04X:    %s", vec[item].record->address, vec[item].record->name);
+                            ImGui::TextColored(red, " %04X:    %s", vec[item].record->address, vec[item].record->name);
                     }
                 } 
                 else if (vec[item].record->address == pc)
                 {
                     ImGui::SameLine();
                     if (show_mem)
-                        ImGui::TextColored(yellow, "%04X: %s -> %s", vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
+                        ImGui::TextColored(yellow, " %04X: %s -> %s", vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
                     else
-                        ImGui::TextColored(yellow, "%04X: -> %s", vec[item].record->address, vec[item].record->name);
+                        ImGui::TextColored(yellow, " %04X: -> %s", vec[item].record->address, vec[item].record->name);
                 }
                 else
                 {
                     ImGui::SameLine();
-                    ImGui::TextColored(cyan, "%04X:", vec[item].record->address);
+                    ImGui::TextColored(cyan, " %04X:", vec[item].record->address);
                     ImGui::SameLine();
                     if (show_mem)
                         ImGui::TextColored(gray, "%s   ", vec[item].record->bytes);
@@ -1020,8 +1020,8 @@ static void debug_window_io(void)
 
 static void debug_window_vram(void)
 {
-    //ImGui::SetNextWindowPos(ImVec2(211, 32), ImGuiCond_FirstUseEver);
-    //ImGui::SetNextWindowSize(ImVec2(482, 345), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(540, 510), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("VRAM Viewer", &config_debug.show_video);
 
@@ -1059,8 +1059,12 @@ static void debug_window_vram(void)
 
 static void debug_window_vram_background(void)
 {
+    Memory* memory = emu_get_core()->GetMemory();
+
     static bool show_grid = true;
     static bool show_screen = true;
+    static int tile_address_radio = 0;
+    static int map_address_radio = 0;
     float scale = 1.5f;
     float size = 256.0f * scale;
     float spacing = 8.0f * scale;
@@ -1075,8 +1079,6 @@ static void debug_window_vram_background(void)
     ImGuiIO& io = ImGui::GetIO();
 
     ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_background, ImVec2(size, size));
-
-    
 
     if (show_grid)
     {
@@ -1093,6 +1095,73 @@ static void debug_window_vram_background(void)
             draw_list->AddLine(ImVec2(p.x, y), ImVec2(p.x + size, y), ImColor(dark_gray), 1.0f);
             y += spacing;
         }
+    }
+
+    if (show_screen)
+    {
+        u8 scroll_x = memory->Retrieve(0xFF43);
+        u8 scroll_y = memory->Retrieve(0xFF42);
+
+        float grid_x_max = p.x + size;
+        float grid_y_max = p.y + size;
+
+        float rect_x_min = p.x + (scroll_x * scale);
+        float rect_y_min = p.y + (scroll_y * scale);
+        float rect_x_max = p.x + ((scroll_x + GAMEBOY_WIDTH) * scale);
+        float rect_y_max = p.y + ((scroll_y + GAMEBOY_HEIGHT) * scale);
+
+        float x_overflow = 0.0f;
+        float y_overflow = 0.0f;
+
+        if (rect_x_max > grid_x_max)
+            x_overflow = rect_x_max - grid_x_max;
+        if (rect_y_max > grid_y_max)
+            y_overflow = rect_y_max - grid_y_max;
+
+        draw_list->AddLine(ImVec2(rect_x_min, rect_y_min), ImVec2(fminf(rect_x_max, grid_x_max), rect_y_min), ImColor(green), 2.0f);
+        if (x_overflow > 0.0f)
+            draw_list->AddLine(ImVec2(p.x, rect_y_min), ImVec2(p.x + x_overflow, rect_y_min), ImColor(green), 2.0f);
+
+        draw_list->AddLine(ImVec2(rect_x_min, rect_y_min), ImVec2(rect_x_min, fminf(rect_y_max, grid_y_max)), ImColor(green), 2.0f);
+        if (y_overflow > 0.0f)
+            draw_list->AddLine(ImVec2(rect_x_min, p.y), ImVec2(rect_x_min, p.y + y_overflow), ImColor(green), 2.0f);
+
+        draw_list->AddLine(ImVec2(rect_x_min, (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImVec2(fminf(rect_x_max, grid_x_max), (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImColor(green), 2.0f);
+        if (x_overflow > 0.0f)
+            draw_list->AddLine(ImVec2(p.x, (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImVec2(p.x + x_overflow, (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImColor(green), 2.0f);
+
+        draw_list->AddLine(ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, rect_y_min), ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, fminf(rect_y_max, grid_y_max)), ImColor(green), 2.0f);
+        if (y_overflow > 0.0f)
+            draw_list->AddLine(ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, p.y), ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, p.y + y_overflow), ImColor(green), 2.0f);
+
+        
+        
+
+        
+
+
+        // draw_list->AddLine(ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_min, rect_y_min), ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_min, fminf(rect_y_max, grid_y_max)), ImColor(green), 2.0f);
+        
+
+        // if (x_overflow > 0.0f)
+        //     draw_list->AddLine(ImVec2(p.x + x_overflow, rect_y_min), ImVec2(p.x + x_overflow, rect_y_max), ImColor(green), 2.0f);
+        // else
+        //     draw_list->AddLine(ImVec2(rect_x_max, rect_y_min), ImVec2(rect_x_max, rect_y_max), ImColor(green), 2.0f);
+
+        // if (y_overflow > 0.0f)
+        //     draw_list->AddLine(ImVec2(rect_x_min, p.y + y_overflow), ImVec2(rect_x_max, p.y + y_overflow), ImColor(green), 2.0f);
+        // else
+        //     draw_list->AddLine(ImVec2(rect_x_min, rect_y_max), ImVec2(rect_x_max, rect_y_max), ImColor(green), 2.0f);
+
+        // if (x_overflow > 0.0f)
+        //     draw_list->AddLine(ImVec2(p.x, rect_y_min), ImVec2(p.x + x_overflow, rect_y_min), ImColor(green), 2.0f);
+        // if (y_overflow > 0.0f)
+        //     draw_list->AddLine(ImVec2(rect_x_min, p.y), ImVec2(rect_x_min, p.y + y_overflow), ImColor(green), 2.0f);
+
+        // if (x_overflow > 0.0f)
+        //     draw_list->AddLine(ImVec2(p.x, rect_y_max), ImVec2(p.x + x_overflow, rect_y_max), ImColor(green), 2.0f);
+        // if (y_overflow > 0.0f)
+        //     draw_list->AddLine(ImVec2(rect_x_max, p.y), ImVec2(rect_x_max, p.y + y_overflow), ImColor(green), 2.0f);
     }
 
     float mouse_x = io.MousePos.x - p.x;
@@ -1112,18 +1181,62 @@ static void debug_window_vram_background(void)
         ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_background, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
 
         ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
-        ImGui::Text("$%02X", tile_x);
+        ImGui::Text("$%02X", tile_x); ImGui::SameLine();
         ImGui::TextColored(cyan, " Y:"); ImGui::SameLine();
         ImGui::Text("$%02X", tile_y);
     }
 
     ImGui::Columns(1);
 
-    ImGui::Text(" ");
-    ImGui::Checkbox("Grid", &show_grid); ImGui::SameLine();
-    ImGui::Checkbox("Screen Position", &show_screen); 
-
     ImGui::PopFont();
+    
+    ImGui::Checkbox("Grid", &show_grid); ImGui::SameLine();
+    ImGui::Checkbox("Screen Position", &show_screen);
+    ImGui::Text(" ");
+
+    //ImGui::PushFont(gui_default_font);
+
+    ImGui::Text("Tile address:"); ImGui::SameLine();
+    ImGui::RadioButton("Auto##tile", &tile_address_radio, 0); ImGui::SameLine();
+    ImGui::RadioButton("0x8000", &tile_address_radio, 1); ImGui::SameLine();
+    ImGui::RadioButton("0x8800", &tile_address_radio, 2);
+
+    switch (tile_address_radio)
+    {
+    case 0:
+        emu_debug_background_tile_address = -1;
+        break;
+    case 1:
+        emu_debug_background_tile_address = 0x8000;
+        break;
+    case 2:
+        emu_debug_background_tile_address = 0x8800;
+        break;
+    default:
+        emu_debug_background_tile_address = -1;
+        break;
+    }
+
+    ImGui::Text("Map address:"); ImGui::SameLine();
+    ImGui::RadioButton("Auto##map", &map_address_radio, 0); ImGui::SameLine();
+    ImGui::RadioButton("0x9C00", &map_address_radio, 1); ImGui::SameLine();
+    ImGui::RadioButton("0x9800", &map_address_radio, 2);
+
+    switch (map_address_radio)
+    {
+    case 0:
+        emu_debug_background_map_address = -1;
+        break;
+    case 1:
+        emu_debug_background_map_address = 0x9C00;
+        break;
+    case 2:
+        emu_debug_background_map_address = 0x9800;
+        break;
+    default:
+        emu_debug_background_map_address = -1;
+        break;
+    }
 }
 
 static void debug_window_vram_tiles(void)

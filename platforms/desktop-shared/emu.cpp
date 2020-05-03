@@ -89,6 +89,8 @@ void emu_init(const char* save_path)
     audio_enabled = true;
     emu_audio_sync = true;
     emu_debug_disable_breakpoints = false;
+    emu_debug_background_tile_address = -1;
+    emu_debug_background_map_address = -1;
 }
 
 void emu_destroy(void)
@@ -129,11 +131,12 @@ void emu_update(void)
 
             debug_next_frame = false;
             debug_step = false;
-
-            update_debug_background_buffer();
         }
 
         generate_24bit_buffer(emu_frame_buffer, frame_buffer_565, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
+        
+        update_debug_background_buffer();
+
         generate_24bit_buffer(emu_debug_background_buffer, debug_background_buffer_565, 256 * 256);
 
         if ((sampleCount > 0) && !gearboy->IsPaused())
@@ -423,8 +426,8 @@ static void update_debug_background_buffer()
         {
             int offset_x = pixel & 0x7;
             int screen_tile = pixel >> 3;
-            int tile_start_addr = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
-            int map_start_addr = IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
+            int tile_start_addr = emu_debug_background_tile_address >= 0 ? emu_debug_background_tile_address : IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
+            int map_start_addr = emu_debug_background_map_address >= 0 ? emu_debug_background_map_address : IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
             int line_32 = (line >> 3) << 5;
             int tile_pixel_y = line & 0x7;
             int tile_pixel_y_2 = tile_pixel_y << 1;
