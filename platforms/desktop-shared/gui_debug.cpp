@@ -1021,7 +1021,7 @@ static void debug_window_io(void)
 static void debug_window_vram(void)
 {
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(540, 510), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(540, 534), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("VRAM Viewer", &config_debug.show_video);
 
@@ -1154,7 +1154,9 @@ static void debug_window_vram_background(void)
 
         ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_background, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
 
-        ImGui::TextColored(cyan, "X:"); ImGui::SameLine();
+        ImGui::TextColored(yellow, "DMG:");
+
+        ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
         ImGui::Text("$%02X", tile_x); ImGui::SameLine();
         ImGui::TextColored(cyan, "   Y:"); ImGui::SameLine();
         ImGui::Text("$%02X", tile_y);
@@ -1166,7 +1168,7 @@ static void debug_window_vram_background(void)
 
         u16 map_addr = map_start_addr + (32 * tile_y) + tile_x;
 
-        ImGui::TextColored(cyan, "Map Addr: "); ImGui::SameLine();
+        ImGui::TextColored(cyan, " Map Addr: "); ImGui::SameLine();
         ImGui::Text("$%04X", map_addr);
 
         int map_tile = 0;
@@ -1181,30 +1183,32 @@ static void debug_window_vram_background(void)
             map_tile = memory->Retrieve(map_addr);
         }
 
-        ImGui::TextColored(cyan, "Tile Addr:"); ImGui::SameLine();
+        ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
         ImGui::Text("$%04X", tile_start_addr + (map_tile << 4));
-        ImGui::TextColored(cyan, "Tile:"); ImGui::SameLine();
+        ImGui::TextColored(cyan, " Tile:"); ImGui::SameLine();
         ImGui::Text("$%02X", memory->Retrieve(map_addr));
 
         if (emu_is_cgb())
         {
+            ImGui::TextColored(yellow, "GBC:");
+
             u8 cgb_tile_attr = memory->ReadCGBLCDRAM(map_addr, true);
             int cgb_tile_pal = cgb_tile_attr & 0x07;
             int cgb_tile_bank = IsSetBit(cgb_tile_attr, 3) ? 1 : 0;
             bool cgb_tile_xflip = IsSetBit(cgb_tile_attr, 5);
             bool cgb_tile_yflip = IsSetBit(cgb_tile_attr, 6);
 
-            ImGui::TextColored(cyan, "Attributes:"); ImGui::SameLine();
+            ImGui::TextColored(cyan, " Attributes:"); ImGui::SameLine();
             ImGui::Text("$%02X", cgb_tile_attr);
-            ImGui::TextColored(cyan, "Palette:"); ImGui::SameLine();
+            ImGui::TextColored(cyan, " Palette:"); ImGui::SameLine();
             ImGui::Text("%d", cgb_tile_pal);
-            ImGui::TextColored(cyan, "Bank:"); ImGui::SameLine();
+            ImGui::TextColored(cyan, " Bank:"); ImGui::SameLine();
             ImGui::Text("%d", cgb_tile_bank);
 
-            ImGui::TextColored(cyan, "X-Flip:"); ImGui::SameLine();
+            ImGui::TextColored(cyan, " X-Flip:"); ImGui::SameLine();
             cgb_tile_xflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
 
-            ImGui::TextColored(cyan, "Y-Flip:"); ImGui::SameLine();
+            ImGui::TextColored(cyan, " Y-Flip:"); ImGui::SameLine();
             cgb_tile_yflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
         }
     }
@@ -1280,7 +1284,7 @@ static void debug_window_vram_palettes(void)
     ImGui::PushFont(gui_default_font);
 
     ImGui::TextColored(yellow, "DMG:"); ImGui::SameLine();
-    ImGui::TextColored(cyan, "                          0      1       2      3");
+    ImGui::TextColored(cyan, "                          0       1       2       3");
 
     u8 bgp = memory->Retrieve(0xFF47);
     u8 obp0 = memory->Retrieve(0xFF48);
@@ -1367,7 +1371,7 @@ static void debug_window_vram_palettes(void)
             ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker);
             if (c < 3)
             {   
-                ImGui::SameLine(); ImGui::Dummy(ImVec2(14.0f, 0.0f));
+                ImGui::SameLine(); ImGui::Dummy(ImVec2(8.0f, 0.0f));
                 ImGui::SameLine();
             }
         }
@@ -1398,7 +1402,7 @@ static void debug_window_vram_palettes(void)
             ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker);
             if (c < 3)
             {
-                ImGui::SameLine(); ImGui::Dummy(ImVec2(14.0f, 0.0f));
+                ImGui::SameLine(); ImGui::Dummy(ImVec2(8.0f, 0.0f));
                 ImGui::SameLine();
             }
         }
