@@ -1069,6 +1069,9 @@ static void debug_window_vram_background(void)
     float size = 256.0f * scale;
     float spacing = 8.0f * scale;
 
+    ImGui::Checkbox("Show Grid", &show_grid); ImGui::SameLine();
+    ImGui::Checkbox("Show Screen Rect", &show_screen);
+
     ImGui::PushFont(gui_default_font);
 
     ImGui::Columns(2, "bg", false);
@@ -1133,35 +1136,6 @@ static void debug_window_vram_background(void)
         draw_list->AddLine(ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, rect_y_min), ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, fminf(rect_y_max, grid_y_max)), ImColor(green), 2.0f);
         if (y_overflow > 0.0f)
             draw_list->AddLine(ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, p.y), ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, p.y + y_overflow), ImColor(green), 2.0f);
-
-        
-        
-
-        
-
-
-        // draw_list->AddLine(ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_min, rect_y_min), ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_min, fminf(rect_y_max, grid_y_max)), ImColor(green), 2.0f);
-        
-
-        // if (x_overflow > 0.0f)
-        //     draw_list->AddLine(ImVec2(p.x + x_overflow, rect_y_min), ImVec2(p.x + x_overflow, rect_y_max), ImColor(green), 2.0f);
-        // else
-        //     draw_list->AddLine(ImVec2(rect_x_max, rect_y_min), ImVec2(rect_x_max, rect_y_max), ImColor(green), 2.0f);
-
-        // if (y_overflow > 0.0f)
-        //     draw_list->AddLine(ImVec2(rect_x_min, p.y + y_overflow), ImVec2(rect_x_max, p.y + y_overflow), ImColor(green), 2.0f);
-        // else
-        //     draw_list->AddLine(ImVec2(rect_x_min, rect_y_max), ImVec2(rect_x_max, rect_y_max), ImColor(green), 2.0f);
-
-        // if (x_overflow > 0.0f)
-        //     draw_list->AddLine(ImVec2(p.x, rect_y_min), ImVec2(p.x + x_overflow, rect_y_min), ImColor(green), 2.0f);
-        // if (y_overflow > 0.0f)
-        //     draw_list->AddLine(ImVec2(rect_x_min, p.y), ImVec2(rect_x_min, p.y + y_overflow), ImColor(green), 2.0f);
-
-        // if (x_overflow > 0.0f)
-        //     draw_list->AddLine(ImVec2(p.x, rect_y_max), ImVec2(p.x + x_overflow, rect_y_max), ImColor(green), 2.0f);
-        // if (y_overflow > 0.0f)
-        //     draw_list->AddLine(ImVec2(rect_x_max, p.y), ImVec2(rect_x_max, p.y + y_overflow), ImColor(green), 2.0f);
     }
 
     float mouse_x = io.MousePos.x - p.x;
@@ -1180,21 +1154,64 @@ static void debug_window_vram_background(void)
 
         ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_background, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
 
-        ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
+        ImGui::TextColored(cyan, "X:"); ImGui::SameLine();
         ImGui::Text("$%02X", tile_x); ImGui::SameLine();
-        ImGui::TextColored(cyan, " Y:"); ImGui::SameLine();
+        ImGui::TextColored(cyan, "   Y:"); ImGui::SameLine();
         ImGui::Text("$%02X", tile_y);
+
+        u8 lcdc = memory->Retrieve(0xFF40);
+
+        int tile_start_addr = emu_debug_background_tile_address >= 0 ? emu_debug_background_tile_address : IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
+        int map_start_addr = emu_debug_background_map_address >= 0 ? emu_debug_background_map_address : IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
+
+        u16 map_addr = map_start_addr + (32 * tile_y) + tile_x;
+
+        ImGui::TextColored(cyan, "Map Addr: "); ImGui::SameLine();
+        ImGui::Text("$%04X", map_addr);
+
+        int map_tile = 0;
+
+        if (tile_start_addr == 0x8800)
+        {
+            map_tile = static_cast<s8> (memory->Retrieve(map_addr));
+            map_tile += 128;
+        }
+        else
+        {
+            map_tile = memory->Retrieve(map_addr);
+        }
+
+        ImGui::TextColored(cyan, "Tile Addr:"); ImGui::SameLine();
+        ImGui::Text("$%04X", tile_start_addr + (map_tile << 4));
+        ImGui::TextColored(cyan, "Tile:"); ImGui::SameLine();
+        ImGui::Text("$%02X", memory->Retrieve(map_addr));
+
+        if (emu_is_cgb())
+        {
+            u8 cgb_tile_attr = memory->ReadCGBLCDRAM(map_addr, true);
+            int cgb_tile_pal = cgb_tile_attr & 0x07;
+            int cgb_tile_bank = IsSetBit(cgb_tile_attr, 3) ? 1 : 0;
+            bool cgb_tile_xflip = IsSetBit(cgb_tile_attr, 5);
+            bool cgb_tile_yflip = IsSetBit(cgb_tile_attr, 6);
+
+            ImGui::TextColored(cyan, "Attributes:"); ImGui::SameLine();
+            ImGui::Text("$%02X", cgb_tile_attr);
+            ImGui::TextColored(cyan, "Palette:"); ImGui::SameLine();
+            ImGui::Text("%d", cgb_tile_pal);
+            ImGui::TextColored(cyan, "Bank:"); ImGui::SameLine();
+            ImGui::Text("%d", cgb_tile_bank);
+
+            ImGui::TextColored(cyan, "X-Flip:"); ImGui::SameLine();
+            cgb_tile_xflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+
+            ImGui::TextColored(cyan, "Y-Flip:"); ImGui::SameLine();
+            cgb_tile_yflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+        }
     }
 
     ImGui::Columns(1);
 
     ImGui::PopFont();
-    
-    ImGui::Checkbox("Grid", &show_grid); ImGui::SameLine();
-    ImGui::Checkbox("Screen Position", &show_screen);
-    ImGui::Text(" ");
-
-    //ImGui::PushFont(gui_default_font);
 
     ImGui::Text("Tile address:"); ImGui::SameLine();
     ImGui::RadioButton("Auto##tile", &tile_address_radio, 0); ImGui::SameLine();
@@ -1271,8 +1288,7 @@ static void debug_window_vram_palettes(void)
     
     ImGui::TextColored(cyan, " $FF47"); ImGui::SameLine();
     ImGui::TextColored(magenta, "BGP "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", bgp, BYTE_TO_BINARY(bgp)); ImGui::SameLine();
-    ImGui::Text(" "); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")  ", bgp, BYTE_TO_BINARY(bgp)); ImGui::SameLine();
 
     for (int i = 0; i < 4; i++)
     {
@@ -1289,8 +1305,7 @@ static void debug_window_vram_palettes(void)
 
     ImGui::TextColored(cyan, " $FF48"); ImGui::SameLine();
     ImGui::TextColored(magenta, "OBP0"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", obp0, BYTE_TO_BINARY(obp0)); ImGui::SameLine();
-    ImGui::Text(" "); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")  ", obp0, BYTE_TO_BINARY(obp0)); ImGui::SameLine();
 
     for (int i = 0; i < 4; i++)
     {
@@ -1307,8 +1322,7 @@ static void debug_window_vram_palettes(void)
 
     ImGui::TextColored(cyan, " $FF49"); ImGui::SameLine();
     ImGui::TextColored(magenta, "OBP1"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", obp1, BYTE_TO_BINARY(obp1)); ImGui::SameLine();
-    ImGui::Text(" "); ImGui::SameLine();
+    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")  ", obp1, BYTE_TO_BINARY(obp1)); ImGui::SameLine();
 
     for (int i = 0; i < 4; i++)
     {
