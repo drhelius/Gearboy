@@ -82,7 +82,7 @@ void gui_init(void)
     gui_roboto_font = io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, 17.0f * application_display_scale, NULL, io.Fonts->GetGlyphRangesCyrillic());
 
     ImFontConfig font_cfg;
-    font_cfg.SizePixels = 16.0f * application_display_scale;
+    font_cfg.SizePixels = 13.0f * application_display_scale;
 
     gui_default_font = io.Fonts->AddFontDefault(&font_cfg);
 
@@ -697,7 +697,7 @@ static void main_window(void)
     {
         flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
-        ImGui::SetNextWindowPos(ImVec2(27, 39), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowPos(ImVec2(7, 32), ImGuiCond_FirstUseEver);
 
         ImGui::Begin(emu_is_cgb() ? "Game Boy Color###debug_output" : "Game Boy###debug_output", &config_debug.show_gameboy, flags);
     }
