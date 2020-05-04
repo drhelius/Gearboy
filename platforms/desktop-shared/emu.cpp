@@ -36,6 +36,7 @@ static Sound_Queue* sound_queue;
 static bool save_files_in_rom_dir = false;
 static u16* frame_buffer_565;
 static u16* debug_background_buffer_565;
+static u16* debug_tile_buffers_565[2];
 static s16* audio_buffer;
 static char base_save_path[260];
 static bool audio_enabled;
@@ -47,7 +48,8 @@ static void save_ram(void);
 static void load_ram(void);
 static void generate_24bit_buffer(GB_Color* dest, u16* src, int size);
 static const char* get_mbc(Cartridge::CartridgeTypes type);
-static void update_debug_background_buffer();
+static void update_debug_background_buffer(void);
+static void update_debug_tile_buffers(void);
 
 void emu_init(const char* save_path)
 {
@@ -58,6 +60,20 @@ void emu_init(const char* save_path)
 
     debug_background_buffer_565 = new u16[256 * 256];
     emu_debug_background_buffer = new GB_Color[256 * 256];
+
+    for (int b = 0; b < 2; b++)
+    {
+        debug_tile_buffers_565[b] = new u16[16 * 24 * 64];
+        emu_debug_tile_buffers[b] = new GB_Color[16 * 24 * 64];
+
+        for (int i=0; i < (16 * 24 * 64); i++)
+        {
+            emu_debug_tile_buffers[b][i].red = 0;
+            emu_debug_tile_buffers[b][i].green = 0;
+            emu_debug_tile_buffers[b][i].blue = 0;
+            debug_tile_buffers_565[b][i] = 0;
+        }
+    }
     
     for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
     {
@@ -103,6 +119,11 @@ void emu_destroy(void)
     SafeDeleteArray(emu_frame_buffer);
     SafeDeleteArray(debug_background_buffer_565);
     SafeDeleteArray(emu_debug_background_buffer);
+    for (int b = 0; b < 2; b++)
+    {
+        SafeDeleteArray(debug_tile_buffers_565[b]);
+        SafeDeleteArray(emu_debug_tile_buffers[b]);
+    }
 }
 
 void emu_load_rom(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc)
@@ -136,8 +157,14 @@ void emu_update(void)
         generate_24bit_buffer(emu_frame_buffer, frame_buffer_565, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
         
         update_debug_background_buffer();
+        update_debug_tile_buffers();
 
         generate_24bit_buffer(emu_debug_background_buffer, debug_background_buffer_565, 256 * 256);
+
+        for (int b = 0; b < 2; b++)
+        {
+            generate_24bit_buffer(emu_debug_tile_buffers[b], debug_tile_buffers_565[b], 16 * 24 * 64);
+        }
 
         if ((sampleCount > 0) && !gearboy->IsPaused())
         {
@@ -411,7 +438,7 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
     }
 }
 
-static void update_debug_background_buffer()
+static void update_debug_background_buffer(void)
 {
     Video* video = gearboy->GetVideo();
     Memory* memory = gearboy->GetMemory();
@@ -495,6 +522,46 @@ static void update_debug_background_buffer()
                 u8 color = (palette >> (pixel_data << 1)) & 0x03;
                 debug_background_buffer_565[index] = dmg_palette[color];
             }
+        }
+    }
+}
+
+static void update_debug_tile_buffers(void)
+{
+    Memory* memory = gearboy->GetMemory();
+    Video* video = gearboy->GetVideo();
+    u16* dmg_palette = gearboy->GetDMGInternalPalette();
+    PaletteMatrix bg_palettes = video->GetCGBBackgroundPalettes();
+
+    for (int b=0; b < 2; b++)
+    {
+        for (int pixel=0; pixel < (16 * 24 * 64); pixel++)
+        {
+            int tilex = (pixel >> 3) & 0xF;
+            int tile_offset_x = pixel & 0x7;
+            int tiley = (pixel >> 10); 
+            int tile_offset_y = (pixel >> 7) & 0x7; 
+            int tile = (tiley << 4) + tilex;
+            int tile_address = 0x8000 + (tile << 4) + (tile_offset_y << 1);
+            u8 byte1 = 0;
+            u8 byte2 = 0;
+
+            if (b == 0)
+            {
+                byte1 = memory->Retrieve(tile_address);
+                byte2 = memory->Retrieve(tile_address + 1);
+            }
+            else
+            {
+                byte1 = memory->ReadCGBLCDRAM(tile_address, true);
+                byte2 = memory->ReadCGBLCDRAM(tile_address + 1, true);
+            }
+
+            int tile_bit = 0x1 << (7 - tile_offset_x);
+            int pixel_data = (byte1 & tile_bit) ? 1 : 0;
+            pixel_data |= (byte2 & tile_bit) ? 2 : 0;
+
+            debug_tile_buffers_565[b][pixel] = dmg_palette[pixel_data];
         }
     }
 }

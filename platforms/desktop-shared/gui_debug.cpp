@@ -312,14 +312,14 @@ static void debug_window_disassembler(void)
     if (ImGui::Button("Step Over"))
         emu_debug_step();
     ImGui::SameLine();
+    if (ImGui::Button("Step Frame"))
+        emu_debug_next_frame();
+    ImGui::SameLine();
     if (ImGui::Button("Continue"))
         emu_debug_continue(); 
     ImGui::SameLine();
     if (ImGui::Button("Run To Cursor"))
         gui_debug_runtocursor();
-    ImGui::SameLine();
-    if (ImGui::Button("Next Frame"))
-        emu_debug_next_frame();
 
     if (ImGui::CollapsingHeader("Breakpoints"))
     {
@@ -1069,7 +1069,7 @@ static void debug_window_vram_background(void)
     float size = 256.0f * scale;
     float spacing = 8.0f * scale;
 
-    ImGui::Checkbox("Show Grid", &show_grid); ImGui::SameLine();
+    ImGui::Checkbox("Show Grid##grid_bg", &show_grid); ImGui::SameLine();
     ImGui::Checkbox("Show Screen Rect", &show_screen);
 
     ImGui::PushFont(gui_default_font);
@@ -1262,6 +1262,73 @@ static void debug_window_vram_background(void)
 
 static void debug_window_vram_tiles(void)
 {
+    static bool show_grid = true;
+    float scale = 1.5f;
+    float width = 8.0f * 16.0f * scale;
+    float height = 8.0f * 24.0f * scale;
+    float spacing = 8.0f * scale;
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImGuiIO& io = ImGui::GetIO();
+    ImVec2 p[2];
+
+    ImGui::Checkbox("Show Grid##grid_tiles", &show_grid); 
+
+    ImGui::Columns(2, "bg", false);
+    ImGui::SetColumnOffset(1, (width * 2.0f) + 16.0f);
+
+    p[0] = ImGui::GetCursorScreenPos();
+    
+    ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_tiles[0], ImVec2(width, height));
+
+    ImGui::SameLine();
+
+    p[1] = ImGui::GetCursorScreenPos();
+
+    ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_tiles[1], ImVec2(width, height));
+
+    for (int i = 0; i < 2; i++)
+    {
+        if (show_grid)
+        {
+            float x = p[i].x;
+            for (int n = 0; n <= 16; n++)
+            {
+                draw_list->AddLine(ImVec2(x, p[i].y), ImVec2(x, p[i].y + height), ImColor(dark_gray), 1.0f);
+                x += spacing;
+            }
+
+            float y = p[i].y;  
+            for (int n = 0; n <= 24; n++)
+            {
+                draw_list->AddLine(ImVec2(p[i].x, y), ImVec2(p[i].x + width, y), ImColor(dark_gray), ((n == 8) || (n == 16)) ? 3.0f : 1.0f);
+                y += spacing;
+            }
+        }
+    }
+
+    for (int i = 0; i < 2; i++)
+    {
+        float mouse_x = io.MousePos.x - p[i].x;
+        float mouse_y = io.MousePos.y - p[i].y;
+
+        int tile_x = -1;
+        int tile_y = -1;
+
+        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
+        {
+            tile_x = mouse_x / spacing;
+            tile_y = mouse_y / spacing;
+
+            draw_list->AddRect(ImVec2(p[i].x + (tile_x * spacing), p[i].y + (tile_y * spacing)), ImVec2(p[i].x + ((tile_x + 1) * spacing), p[i].y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, 15, 2.0f);
+
+            ImGui::NextColumn();
+
+            ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_tiles[i], ImVec2(128.0f, 128.0f), ImVec2((1.0f / 16.0f) * tile_x, (1.0f / 24.0f) * tile_y), ImVec2((1.0f / 16.0f) * (tile_x + 1), (1.0f / 24.0f) * (tile_y + 1)));
+        }
+    }
+
+    ImGui::Columns(1);
+
     ImGui::PushFont(gui_default_font);
     ImGui::TextColored(cyan, "tiles"); //ImGui::SameLine();
     ImGui::PopFont();
@@ -1270,7 +1337,7 @@ static void debug_window_vram_tiles(void)
 static void debug_window_vram_oam(void)
 {
     ImGui::PushFont(gui_default_font);
-    ImGui::TextColored(cyan, "oam"); //ImGui::SameLine();
+    ImGui::TextColored(cyan, "oam"); 
     ImGui::PopFont();
 }
 

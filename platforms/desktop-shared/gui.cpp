@@ -521,6 +521,11 @@ static void main_menu(void)
                 emu_debug_step();
             }
 
+            if (ImGui::MenuItem("Step Frame", "CTRL + F6", (void*)0, config_debug.debug))
+            {
+                emu_debug_next_frame();
+            }
+
             if (ImGui::MenuItem("Continue", "CTRL + F5", (void*)0, config_debug.debug))
             {
                 emu_debug_continue();
@@ -529,11 +534,6 @@ static void main_menu(void)
             if (ImGui::MenuItem("Run To Cursor", "CTRL + F8", (void*)0, config_debug.debug))
             {
                 gui_debug_runtocursor();
-            }
-
-            if (ImGui::MenuItem("Next Frame", "CTRL + F6", (void*)0, config_debug.debug))
-            {
-                emu_debug_next_frame();
             }
 
             ImGui::Separator();
