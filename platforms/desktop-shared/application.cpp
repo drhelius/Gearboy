@@ -415,6 +415,20 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
 
 static void run_emulator(void)
 {
+    if (!emu_is_empty())
+    {
+        static int i = 0;
+        i++;
+
+        if (i > 20)
+        {
+            i = 0;
+
+            char title[256];
+            sprintf(title, "%s %s - %s", GEARBOY_TITLE, GEARBOY_VERSION, emu_get_core()->GetCartridge()->GetFileName());
+            SDL_SetWindowTitle(sdl_window, title);
+        }
+    }
     config_emulator.paused = emu_is_paused();
     emu_audio_sync = config_audio.sync;
     emu_update();
