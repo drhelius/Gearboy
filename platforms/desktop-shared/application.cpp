@@ -122,9 +122,13 @@ static int sdl_init(void)
     application_gamepad_mappings = SDL_GameControllerAddMappingsFromRW(SDL_RWFromFile("gamecontrollerdb.txt", "rb"), 1);
 
     if (application_gamepad_mappings > 0)
+    {
         Log("Succesfuly loaded %d game controller mappings", application_gamepad_mappings);
+    }
     else
+    {
         Log("Game controller database not found!");
+    }
 
     for (int i = 0; i < SDL_NumJoysticks(); ++i)
     {
