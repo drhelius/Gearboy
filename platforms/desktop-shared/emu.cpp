@@ -107,6 +107,8 @@ void emu_init(const char* save_path)
     emu_debug_disable_breakpoints = false;
     emu_debug_background_tile_address = -1;
     emu_debug_background_map_address = -1;
+    emu_debug_tile_dmg_palette = 0;
+    emu_debug_tile_color_palette = 0;
 }
 
 void emu_destroy(void)
@@ -532,6 +534,7 @@ static void update_debug_tile_buffers(void)
     Video* video = gearboy->GetVideo();
     u16* dmg_palette = gearboy->GetDMGInternalPalette();
     PaletteMatrix bg_palettes = video->GetCGBBackgroundPalettes();
+    PaletteMatrix sprite_palettes = video->GetCGBSpritePalettes();
 
     for (int b=0; b < 2; b++)
     {
@@ -561,7 +564,24 @@ static void update_debug_tile_buffers(void)
             int pixel_data = (byte1 & tile_bit) ? 1 : 0;
             pixel_data |= (byte2 & tile_bit) ? 2 : 0;
 
-            debug_tile_buffers_565[b][pixel] = dmg_palette[pixel_data];
+            if (gearboy->IsCGB())
+            {
+                if (emu_debug_tile_color_palette > 7)
+                {
+                    pixel_data = (*sprite_palettes)[emu_debug_tile_color_palette - 8][pixel_data][1];
+                }
+                else
+                {
+                    pixel_data = (*bg_palettes)[emu_debug_tile_color_palette][pixel_data][1];
+                }
+                debug_tile_buffers_565[b][pixel] = pixel_data;
+            }
+            else
+            {
+                u8 palette = memory->Retrieve(0xFF47 + emu_debug_tile_dmg_palette);
+                pixel_data = (palette >> (pixel_data << 1)) & 0x03;
+                debug_tile_buffers_565[b][pixel] = dmg_palette[pixel_data];
+            }
         }
     }
 }

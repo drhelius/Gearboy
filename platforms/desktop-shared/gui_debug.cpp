@@ -1185,7 +1185,7 @@ static void debug_window_vram_background(void)
 
         ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
         ImGui::Text("$%04X", tile_start_addr + (map_tile << 4));
-        ImGui::TextColored(cyan, " Tile:"); ImGui::SameLine();
+        ImGui::TextColored(cyan, " Tile Number:"); ImGui::SameLine();
         ImGui::Text("$%02X", memory->Retrieve(map_addr));
 
         if (emu_is_cgb())
@@ -1271,7 +1271,21 @@ static void debug_window_vram_tiles(void)
     ImGuiIO& io = ImGui::GetIO();
     ImVec2 p[2];
 
-    ImGui::Checkbox("Show Grid##grid_tiles", &show_grid); 
+    ImGui::Checkbox("Show Grid##grid_tiles", &show_grid);
+    ImGui::SameLine(150.0f);
+
+    ImGui::PushItemWidth(80.0f);
+
+    if (!emu_is_cgb())
+    {
+        ImGui::Combo("Palette##dmg_tile_palette", &emu_debug_tile_dmg_palette, "BGP\0OBP0\0OBP1\0\0");
+    }
+    else
+    {
+        ImGui::Combo("Palette##cgb_tile_palette", &emu_debug_tile_color_palette, "BCP0\0BCP1\0BCP2\0BCP3\0BCP4\0BCP5\0BCP6\0BCP7\0OCP0\0OCP1\0OCP2\0OCP3\0OCP4\0OCP5\0OCP6\0OCP7\0\0");
+    }
+
+    ImGui::PopItemWidth();
 
     ImGui::Columns(2, "bg", false);
     ImGui::SetColumnOffset(1, (width * 2.0f) + 16.0f);
@@ -1324,14 +1338,24 @@ static void debug_window_vram_tiles(void)
             ImGui::NextColumn();
 
             ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_tiles[i], ImVec2(128.0f, 128.0f), ImVec2((1.0f / 16.0f) * tile_x, (1.0f / 24.0f) * tile_y), ImVec2((1.0f / 16.0f) * (tile_x + 1), (1.0f / 24.0f) * (tile_y + 1)));
+
+            ImGui::PushFont(gui_default_font);
+
+            ImGui::TextColored(yellow, "DETAILS:");
+
+            int tile_full = (tile_y << 4) + tile_x;
+            int tile = tile_full & 0xFF;
+
+            ImGui::TextColored(cyan, " Tile Number:"); ImGui::SameLine();
+            ImGui::Text("$%02X", tile); 
+            ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
+            ImGui::Text("$%04X", 0x8000 + (tile_full << 4)); 
+
+            ImGui::PopFont();
         }
     }
 
     ImGui::Columns(1);
-
-    ImGui::PushFont(gui_default_font);
-    ImGui::TextColored(cyan, "tiles"); //ImGui::SameLine();
-    ImGui::PopFont();
 }
 
 static void debug_window_vram_oam(void)
