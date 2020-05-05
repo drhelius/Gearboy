@@ -1464,13 +1464,13 @@ static void debug_window_vram_oam(void)
             ImGui::Text("$%02X", flags); 
 
             ImGui::TextColored(cyan, " Priority:"); ImGui::SameLine();
-            ImGui::Text("$%02X", priority); ImGui::SameLine();
+            priority ? ImGui::TextColored(green, "ON ") : ImGui::TextColored(gray, "OFF"); ImGui::SameLine();
 
             ImGui::TextColored(cyan, "  Palette:"); ImGui::SameLine();
             ImGui::Text("%d", emu_is_cgb() ? cgb_pal : palette);
 
             ImGui::TextColored(cyan, " X-Flip:"); ImGui::SameLine();
-            xflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF"); ImGui::SameLine();
+            xflip ? ImGui::TextColored(green, "ON ") : ImGui::TextColored(gray, "OFF"); ImGui::SameLine();
 
             ImGui::TextColored(cyan, "  Y-Flip:"); ImGui::SameLine();
             yflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
