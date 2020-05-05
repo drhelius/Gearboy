@@ -221,7 +221,9 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Fast Forward Speed"))
             {
+                ImGui::PushItemWidth(100.0f);
                 ImGui::Combo("##fwd", &config_emulator.ffwd_speed, "X 1.5\0X 2\0X 2.5\0X 3\0Unlimited\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
@@ -253,7 +255,9 @@ static void main_menu(void)
            
             if (ImGui::BeginMenu("Select State Slot"))
             {
+                ImGui::PushItemWidth(100.0f);
                 ImGui::Combo("##slot", &config_emulator.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
@@ -285,7 +289,9 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Memory Bank Controller"))
             {
+                ImGui::PushItemWidth(140.0f);
                 ImGui::Combo("##mbc", &config_emulator.mbc, "Auto\0ROM Only\0MBC 1\0MBC 2\0MBC 3\0MBC 5\0MBC 1 Multicart\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
@@ -354,13 +360,17 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Scale"))
             {
+                ImGui::PushItemWidth(100.0f);
                 ImGui::Combo("##scale", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0Zoom X4\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Aspect Ratio"))
             {
+                ImGui::PushItemWidth(130.0f);
                 ImGui::Combo("##ratio", &config_video.ratio, "Game Boy\0Standard (4:3)\0Wide (16:9)\0Fit Window\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
@@ -401,10 +411,12 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Palette"))
             {
+                ImGui::PushItemWidth(130.0f);
                 if (ImGui::Combo("##palette", &config_video.palette, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0"))
                 {
                     update_palette();
                 }
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
@@ -458,7 +470,9 @@ static void main_menu(void)
 
                 if (ImGui::BeginMenu("Directional Controls"))
                 {
+                    ImGui::PushItemWidth(150.0f);
                     ImGui::Combo("##directional", &config_input.gamepad_directional, "D-pad\0Left Analog Stick\0\0");
+                    ImGui::PopItemWidth();
                     ImGui::EndMenu();
                 }
                 
