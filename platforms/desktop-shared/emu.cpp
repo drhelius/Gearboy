@@ -37,6 +37,7 @@ static bool save_files_in_rom_dir = false;
 static u16* frame_buffer_565;
 static u16* debug_background_buffer_565;
 static u16* debug_tile_buffers_565[2];
+static u16* debug_oam_buffers_565[40];
 static s16* audio_buffer;
 static char base_save_path[260];
 static bool audio_enabled;
@@ -48,8 +49,11 @@ static void save_ram(void);
 static void load_ram(void);
 static void generate_24bit_buffer(GB_Color* dest, u16* src, int size);
 static const char* get_mbc(Cartridge::CartridgeTypes type);
+static void init_debug(void);
+static void update_debug(void);
 static void update_debug_background_buffer(void);
 static void update_debug_tile_buffers(void);
+static void update_debug_oam_buffers(void);
 
 void emu_init(const char* save_path)
 {
@@ -58,38 +62,7 @@ void emu_init(const char* save_path)
     frame_buffer_565 = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     emu_frame_buffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
 
-    debug_background_buffer_565 = new u16[256 * 256];
-    emu_debug_background_buffer = new GB_Color[256 * 256];
-
-    for (int b = 0; b < 2; b++)
-    {
-        debug_tile_buffers_565[b] = new u16[16 * 24 * 64];
-        emu_debug_tile_buffers[b] = new GB_Color[16 * 24 * 64];
-
-        for (int i=0; i < (16 * 24 * 64); i++)
-        {
-            emu_debug_tile_buffers[b][i].red = 0;
-            emu_debug_tile_buffers[b][i].green = 0;
-            emu_debug_tile_buffers[b][i].blue = 0;
-            debug_tile_buffers_565[b][i] = 0;
-        }
-    }
-    
-    for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
-    {
-        emu_frame_buffer[i].red = 0;
-        emu_frame_buffer[i].green = 0;
-        emu_frame_buffer[i].blue = 0;
-        frame_buffer_565[i] = 0;
-    }
-
-    for (int i=0; i < (256 * 256); i++)
-    {
-        emu_debug_background_buffer[i].red = 0;
-        emu_debug_background_buffer[i].green = 0;
-        emu_debug_background_buffer[i].blue = 0;
-        debug_background_buffer_565[i] = 0;
-    }
+    init_debug();
 
     gearboy = new GearboyCore();
     gearboy->Init();
@@ -126,6 +99,11 @@ void emu_destroy(void)
         SafeDeleteArray(debug_tile_buffers_565[b]);
         SafeDeleteArray(emu_debug_tile_buffers[b]);
     }
+    for (int s = 0; s < 40; s++)
+    {
+        SafeDeleteArray(debug_oam_buffers_565[s]);
+        SafeDeleteArray(emu_debug_oam_buffers[s]);
+    }
 }
 
 void emu_load_rom(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc)
@@ -157,16 +135,8 @@ void emu_update(void)
         }
 
         generate_24bit_buffer(emu_frame_buffer, frame_buffer_565, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
-        
-        update_debug_background_buffer();
-        update_debug_tile_buffers();
 
-        generate_24bit_buffer(emu_debug_background_buffer, debug_background_buffer_565, 256 * 256);
-
-        for (int b = 0; b < 2; b++)
-        {
-            generate_24bit_buffer(emu_debug_tile_buffers[b], debug_tile_buffers_565[b], 16 * 24 * 64);
-        }
+        update_debug();
 
         if ((sampleCount > 0) && !gearboy->IsPaused())
         {
@@ -440,6 +410,76 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
     }
 }
 
+static void init_debug(void)
+{
+    debug_background_buffer_565 = new u16[256 * 256];
+    emu_debug_background_buffer = new GB_Color[256 * 256];
+
+    for (int b = 0; b < 2; b++)
+    {
+        debug_tile_buffers_565[b] = new u16[16 * 24 * 64];
+        emu_debug_tile_buffers[b] = new GB_Color[16 * 24 * 64];
+
+        for (int i=0; i < (16 * 24 * 64); i++)
+        {
+            emu_debug_tile_buffers[b][i].red = 0;
+            emu_debug_tile_buffers[b][i].green = 0;
+            emu_debug_tile_buffers[b][i].blue = 0;
+            debug_tile_buffers_565[b][i] = 0;
+        }
+    }
+
+    for (int s = 0; s < 40; s++)
+    {
+        debug_oam_buffers_565[s] = new u16[8 * 16];
+        emu_debug_oam_buffers[s] = new GB_Color[8 * 16];
+
+        for (int i=0; i < (8 * 16); i++)
+        {
+            emu_debug_oam_buffers[s][i].red = 0;
+            emu_debug_oam_buffers[s][i].green = 0;
+            emu_debug_oam_buffers[s][i].blue = 0;
+            debug_oam_buffers_565[s][i] = 0;
+        }
+    }
+    
+    for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+    {
+        emu_frame_buffer[i].red = 0;
+        emu_frame_buffer[i].green = 0;
+        emu_frame_buffer[i].blue = 0;
+        frame_buffer_565[i] = 0;
+    }
+
+    for (int i=0; i < (256 * 256); i++)
+    {
+        emu_debug_background_buffer[i].red = 0;
+        emu_debug_background_buffer[i].green = 0;
+        emu_debug_background_buffer[i].blue = 0;
+        debug_background_buffer_565[i] = 0;
+    }
+}
+
+static void update_debug(void)
+{
+    update_debug_background_buffer();
+    update_debug_tile_buffers();
+    update_debug_oam_buffers();
+
+    generate_24bit_buffer(emu_debug_background_buffer, debug_background_buffer_565, 256 * 256);
+
+    for (int b = 0; b < 2; b++)
+    {
+        generate_24bit_buffer(emu_debug_tile_buffers[b], debug_tile_buffers_565[b], 16 * 24 * 64);
+    }
+
+    for (int s = 0; s < 40; s++)
+    {
+        generate_24bit_buffer(emu_debug_oam_buffers[s], debug_oam_buffers_565[s], 8 * 16);
+    }
+
+}
+
 static void update_debug_background_buffer(void)
 {
     Video* video = gearboy->GetVideo();
@@ -536,9 +576,9 @@ static void update_debug_tile_buffers(void)
     PaletteMatrix bg_palettes = video->GetCGBBackgroundPalettes();
     PaletteMatrix sprite_palettes = video->GetCGBSpritePalettes();
 
-    for (int b=0; b < 2; b++)
+    for (int b = 0; b < 2; b++)
     {
-        for (int pixel=0; pixel < (16 * 24 * 64); pixel++)
+        for (int pixel = 0; pixel < (16 * 24 * 64); pixel++)
         {
             int tilex = (pixel >> 3) & 0xF;
             int tile_offset_x = pixel & 0x7;
@@ -583,5 +623,66 @@ static void update_debug_tile_buffers(void)
                 debug_tile_buffers_565[b][pixel] = dmg_palette[pixel_data];
             }
         }
+    }
+}
+
+static void update_debug_oam_buffers(void)
+{
+    Memory* memory = gearboy->GetMemory();
+    Video* video = gearboy->GetVideo();
+    u16 address = 0xFE00;
+    u16* dmg_palette = gearboy->GetDMGInternalPalette();
+    PaletteMatrix sprite_palettes = video->GetCGBSpritePalettes();
+    u8 lcdc = memory->Retrieve(0xFF40);
+    bool sprites_16 = IsSetBit(lcdc, 2);
+
+    for (int s = 0; s < 40; s++)
+    {
+        u8 y = memory->Retrieve(address);
+        u8 x = memory->Retrieve(address + 1);
+        u8 tile = memory->Retrieve(address + 2);
+        u8 flags = memory->Retrieve(address + 3);
+        int palette = IsSetBit(flags, 4) ? 1 : 0;
+        bool xflip = IsSetBit(flags, 5);
+        bool yflip = IsSetBit(flags, 6);
+        bool priority = !IsSetBit(flags, 7);
+        bool cgb_bank = IsSetBit(flags, 3);
+        int cgb_pal = flags & 0x07;
+
+        for (int pixel = 0; pixel < (8 * 16); pixel++)
+        {
+            u16 tile_addr = 0x8000 + (tile * 16);
+
+            int pixel_x = pixel & 0x7;
+            int pixel_y = pixel / 8;
+
+            u16 line_addr = tile_addr + (2 * pixel_y);
+
+            if (xflip)
+                pixel_x = 7 - pixel_x;
+            if (yflip)
+                line_addr = (sprites_16 ? 15 : 7) - line_addr;
+
+            u8 byte1 = memory->Retrieve(line_addr);
+            u8 byte2 = memory->Retrieve(line_addr + 1);
+
+            int tile_bit = 0x1 << (7 - pixel_x);
+            int pixel_data = (byte1 & tile_bit) ? 1 : 0;
+            pixel_data |= (byte2 & tile_bit) ? 2 : 0;
+
+            if (gearboy->IsCGB())
+            {
+                pixel_data = (*sprite_palettes)[cgb_pal][pixel_data][1];
+                debug_oam_buffers_565[s][pixel] = pixel_data;
+            }
+            else
+            {
+                u8 final_palette = memory->Retrieve(0xFF48 + palette);
+                pixel_data = (final_palette >> (pixel_data << 1)) & 0x03;
+                debug_oam_buffers_565[s][pixel] = dmg_palette[pixel_data];
+            }
+        }
+
+        address += 4;
     }
 }

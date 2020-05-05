@@ -31,6 +31,7 @@
 EXTERN GB_Color* emu_frame_buffer;
 EXTERN GB_Color* emu_debug_background_buffer;
 EXTERN GB_Color* emu_debug_tile_buffers[2];
+EXTERN GB_Color* emu_debug_oam_buffers[40];
 
 EXTERN bool emu_audio_sync;
 EXTERN bool emu_debug_disable_breakpoints;

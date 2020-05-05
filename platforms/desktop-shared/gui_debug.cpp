@@ -1360,8 +1360,125 @@ static void debug_window_vram_tiles(void)
 
 static void debug_window_vram_oam(void)
 {
+    float scale = 5.0f;
+    float width = 8.0f * scale;
+    float height_8 = 8.0f * scale;
+    float height_16 = 16.0f * scale;
+
+    GearboyCore* core = emu_get_core();
+    Memory* memory = core->GetMemory();
+
+    ImVec2 p[40];
+
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImGuiIO& io = ImGui::GetIO();
+
+    u8 lcdc = memory->Retrieve(0xFF40);
+    bool sprites_16 = IsSetBit(lcdc, 2);
+
     ImGui::PushFont(gui_default_font);
-    ImGui::TextColored(cyan, "oam"); 
+
+    ImGui::Columns(2, "oam", true);
+
+    for (int s = 0; s < 40; s++)
+    {
+        p[s] = ImGui::GetCursorScreenPos();
+
+        ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_oam[s], ImVec2(width, sprites_16 ? height_16 : height_8), ImVec2(0.0f, 0.0f), ImVec2(1.0f, sprites_16 ? 1.0f : 0.5f));
+
+        float mouse_x = io.MousePos.x - p[s].x;
+        float mouse_y = io.MousePos.y - p[s].y;
+
+        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
+        {
+            draw_list->AddRect(ImVec2(p[s].x, p[s].y), ImVec2(p[s].x + width, p[s].y + (sprites_16 ? height_16 : height_8)), ImColor(cyan), 2.0f, 15, 3.0f);
+        }
+
+        if (s % 5 < 4)
+            ImGui::SameLine();
+    }
+
+    ImGui::NextColumn();
+
+    ImVec2 p_screen = ImGui::GetCursorScreenPos();
+
+    float screen_scale = 1.5f;
+
+    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(GAMEBOY_WIDTH * screen_scale, GAMEBOY_HEIGHT * screen_scale));
+
+    for (int s = 0; s < 40; s++)
+    {
+        float mouse_x = io.MousePos.x - p[s].x;
+        float mouse_y = io.MousePos.y - p[s].y;
+
+        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
+        {
+            u16 address = 0xFE00 + (4 * s);
+
+            u8 y = memory->Retrieve(address);
+            u8 x = memory->Retrieve(address + 1);
+            u8 tile = memory->Retrieve(address + 2);
+            u8 flags = memory->Retrieve(address + 3);
+            int palette = IsSetBit(flags, 4) ? 1 : 0;
+            bool xflip = IsSetBit(flags, 5);
+            bool yflip = IsSetBit(flags, 6);
+            bool priority = !IsSetBit(flags, 7);
+            bool cgb_bank = IsSetBit(flags, 3);
+            int cgb_pal = flags & 0x07;
+
+            float real_x = x - 8.0f;
+            float real_y = y - 16.0f;
+            float rectx_min = p_screen.x + (real_x * screen_scale);
+            float rectx_max = p_screen.x + ((real_x + 8.0f) * screen_scale);
+            float recty_min = p_screen.y + (real_y * screen_scale);
+            float recty_max = p_screen.y + ((real_y + (sprites_16 ? 16.0f : 8.0f)) * screen_scale);
+
+            rectx_min = fminf(fmaxf(rectx_min, p_screen.x), p_screen.x + (GAMEBOY_WIDTH * screen_scale));
+            rectx_max = fminf(fmaxf(rectx_max, p_screen.x), p_screen.x + (GAMEBOY_WIDTH * screen_scale));
+            recty_min = fminf(fmaxf(recty_min, p_screen.y), p_screen.y + (GAMEBOY_HEIGHT * screen_scale));
+            recty_max = fminf(fmaxf(recty_max, p_screen.y), p_screen.y + (GAMEBOY_HEIGHT * screen_scale));
+            
+
+            draw_list->AddRect(ImVec2(rectx_min, recty_min), ImVec2(rectx_max, recty_max), ImColor(cyan), 2.0f, 15, 2.0f);
+
+            ImGui::TextColored(yellow, "DETAILS:");
+            ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
+            ImGui::Text("$%02X", x); ImGui::SameLine();
+            ImGui::TextColored(cyan, "  Y:"); ImGui::SameLine();
+            ImGui::Text("$%02X", y); ImGui::SameLine();
+
+            ImGui::TextColored(cyan, "   Tile:"); ImGui::SameLine();
+            ImGui::Text("$%02X", tile);
+
+            ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
+            ImGui::Text("$%04X", 0x8000 + (tile * 16)); ImGui::SameLine();
+
+            ImGui::TextColored(cyan, "  Bank:"); ImGui::SameLine();
+            ImGui::Text("%d", cgb_bank);
+
+            ImGui::TextColored(cyan, " OAM Addr:"); ImGui::SameLine();
+            ImGui::Text("$%04X", address); ImGui::SameLine();
+
+            
+            ImGui::TextColored(cyan, "  Flags:"); ImGui::SameLine();
+            ImGui::Text("$%02X", flags); 
+
+            ImGui::TextColored(cyan, " Priority:"); ImGui::SameLine();
+            ImGui::Text("$%02X", priority); ImGui::SameLine();
+
+            ImGui::TextColored(cyan, "  Palette:"); ImGui::SameLine();
+            ImGui::Text("%d", emu_is_cgb() ? cgb_pal : palette);
+
+            ImGui::TextColored(cyan, " X-Flip:"); ImGui::SameLine();
+            xflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF"); ImGui::SameLine();
+
+            ImGui::TextColored(cyan, "  Y-Flip:"); ImGui::SameLine();
+            yflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+        }
+    }
+
+    ImGui::Columns(1);
+
     ImGui::PopFont();
 }
 
