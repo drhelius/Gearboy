@@ -44,6 +44,7 @@ static bool audio_enabled;
 static bool debugging = false;
 static bool debug_step = false;
 static bool debug_next_frame = false;
+static bool color_correction = false;
 
 static void save_ram(void);
 static void load_ram(void);
@@ -333,6 +334,11 @@ GearboyCore* emu_get_core(void)
     return gearboy;
 }
 
+void emu_color_correction(bool correction)
+{
+    color_correction = correction;
+}
+
 void emu_debug_step(void)
 {
     debugging = debug_step = true;
@@ -376,6 +382,17 @@ static void generate_24bit_buffer(GB_Color* dest, u16* src, int size)
         dest[i].red = (((src[i] >> 11) & 0x1F ) * 255 + 15) / 31;
         dest[i].green = (((src[i] >> 5) & 0x3F ) * 255 + 31) / 63;
         dest[i].blue = ((src[i] & 0x1F ) * 255 + 15) / 31;
+
+        if (color_correction)
+        {
+            u8 red = (u8)(((dest[i].red * 0.8125f) + (dest[i].green * 0.125f) + (dest[i].blue * 0.0625f)) * 0.95f);
+            u8 green = (u8)(((dest[i].green * 0.75f) + (dest[i].blue * 0.25f)) * 0.95f);
+            u8 blue = (u8)((((dest[i].red * 0.1875f) + (dest[i].green * 0.125f) + (dest[i].blue * 0.6875f))) * 0.95f);
+
+            dest[i].red = red;
+            dest[i].green = green;
+            dest[i].blue = blue;
+        }
     }
 }
 

@@ -89,6 +89,7 @@ void gui_init(void)
     update_palette();
 
     emu_audio_volume(config_audio.enable ? 1.0f: 0.0f);
+    emu_color_correction(config_video.color_correction);
 }
 
 void gui_destroy(void)
@@ -392,6 +393,11 @@ static void main_menu(void)
             ImGui::Separator();
 
             ImGui::MenuItem("Bilinear Filtering", "", &config_video.bilinear);
+
+            if (ImGui::MenuItem("Color Correction (GBC)", "", &config_video.color_correction))
+            {
+                emu_color_correction(config_video.color_correction);
+            }
 
             if (ImGui::BeginMenu("Screen Ghosting"))
             {

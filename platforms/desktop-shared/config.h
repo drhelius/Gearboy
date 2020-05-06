@@ -61,6 +61,7 @@ struct config_Video
     int palette = 0;
     GB_Color color[4] = {{0xC4, 0xF0, 0xC2}, {0x5A, 0xB9, 0xA8}, {0x1E, 0x60, 0x6E}, {0x2D, 0x1B, 0x00}};
     bool sync = true;
+    bool color_correction = true;
 };
 
 struct config_Audio
