@@ -383,7 +383,7 @@ static void generate_24bit_buffer(GB_Color* dest, u16* src, int size)
         dest[i].green = (((src[i] >> 5) & 0x3F ) * 255 + 31) / 63;
         dest[i].blue = ((src[i] & 0x1F ) * 255 + 15) / 31;
 
-        if (color_correction)
+        if (gearboy->IsCGB() && color_correction)
         {
             u8 red = (u8)(((dest[i].red * 0.8125f) + (dest[i].green * 0.125f) + (dest[i].blue * 0.0625f)) * 0.95f);
             u8 green = (u8)(((dest[i].green * 0.75f) + (dest[i].blue * 0.25f)) * 0.95f);
