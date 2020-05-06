@@ -638,14 +638,11 @@ static void update_debug_oam_buffers(void)
 
     for (int s = 0; s < 40; s++)
     {
-        u8 y = memory->Retrieve(address);
-        u8 x = memory->Retrieve(address + 1);
         u8 tile = memory->Retrieve(address + 2);
         u8 flags = memory->Retrieve(address + 3);
         int palette = IsSetBit(flags, 4) ? 1 : 0;
         bool xflip = IsSetBit(flags, 5);
         bool yflip = IsSetBit(flags, 6);
-        bool priority = !IsSetBit(flags, 7);
         bool cgb_bank = IsSetBit(flags, 3);
         int cgb_pal = flags & 0x07;
 
@@ -663,8 +660,19 @@ static void update_debug_oam_buffers(void)
             if (yflip)
                 line_addr = (sprites_16 ? 15 : 7) - line_addr;
 
-            u8 byte1 = memory->Retrieve(line_addr);
-            u8 byte2 = memory->Retrieve(line_addr + 1);
+            u8 byte1 = 0;
+            u8 byte2 = 0;
+
+            if (gearboy->IsCGB() && cgb_bank)
+            {
+                byte1 = memory->ReadCGBLCDRAM(line_addr, true);
+                byte2 = memory->ReadCGBLCDRAM(line_addr + 1, true);
+            }
+            else
+            {
+                byte1 = memory->Retrieve(line_addr);
+                byte2 = memory->Retrieve(line_addr + 1);
+            }
 
             int tile_bit = 0x1 << (7 - pixel_x);
             int pixel_data = (byte1 & tile_bit) ? 1 : 0;
