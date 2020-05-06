@@ -1021,7 +1021,7 @@ static void debug_window_io(void)
 static void debug_window_vram(void)
 {
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(540, 534), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(544, 534), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("VRAM Viewer", &config_debug.show_video);
 
