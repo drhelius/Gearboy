@@ -20,7 +20,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - **Linux**: [Gearboy-3.1.0-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.1.0/Gearboy-3.1.0-Linux.tar.xz)
   + NOTE: You may need to install `libsdl2` and `libglew`
 - **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
-- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/).
+- **RetroArch**: [Libretro core documentation](https://libretro.readthedocs.io/en/latest/library/gearboy/).
 - **Raspberry Pi**: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2, 3 and 4.
 
 ## Features
