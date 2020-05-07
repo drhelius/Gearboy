@@ -12,12 +12,12 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 
 ## Downloads
 
-- **Windows**: [Gearboy-3.0.4-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.4/Gearboy-3.0.4-Windows.zip)
+- **Windows**: [Gearboy-3.1.0-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.1.0/Gearboy-3.1.0-Windows.zip)
   + NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
 - **macOS**:
   + `brew cask install gearboy`
-  + Or install manually: [Gearboy-3.0.4-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.4/Gearboy-3.0.4-macOS.zip)
-- **Linux**: [Gearboy-3.0.4-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.0.4/Gearboy-3.0.4-Linux.tar.xz)
+  + Or install manually: [Gearboy-3.1.0-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.1.0/Gearboy-3.1.0-macOS.zip)
+- **Linux**: [Gearboy-3.1.0-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.1.0/Gearboy-3.1.0-Linux.tar.xz)
 - **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/).
 - **Raspberry Pi**: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2, 3 and 4.
@@ -37,7 +37,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Compressed rom support (ZIP).
 - Game Genie and GameShark cheat support.
 - Supported platforms: Windows, Linux, macOS, Raspberry Pi, iOS and RetroArch (libretro).
-- Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and and VRAM viewer.
+- Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and and VRAM viewer including tiles, sprites, backgrounds and palettes.
 
 ## Build Instructions
 
