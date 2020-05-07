@@ -6,9 +6,9 @@ APP_NAME=Gearboy
 
 bundle:
 	rm -rf $(APP_NAME).app
-	mkdir -p $(APP_NAME).app/Contents/{MacOS,Resources}
+	mkdir -p $(APP_NAME).app/Contents/{MacOS,Resources,Frameworks}
 	cp Info.plist $(APP_NAME).app/Contents/
-	cp $(DYLIB_PATH)/$(SDL_DYLIB) $(APP_NAME).app/Contents/MacOS/
+	cp $(DYLIB_PATH)/$(SDL_DYLIB) $(APP_NAME).app/Contents/Frameworks/
 	cp iconfile.icns $(APP_NAME).app/Contents/Resources/
 	cp $(EXE) $(APP_NAME).app/Contents/MacOS/
 	cp run.sh $(APP_NAME).app/Contents/MacOS/
