@@ -18,6 +18,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
   + `brew cask install gearboy`
   + Or install manually: [Gearboy-3.1.0-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.1.0/Gearboy-3.1.0-macOS.zip)
 - **Linux**: [Gearboy-3.1.0-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.1.0/Gearboy-3.1.0-Linux.tar.xz)
+  + NOTE: You may need to install `libsdl` and `libglew`
 - **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/).
 - **Raspberry Pi**: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2, 3 and 4.
