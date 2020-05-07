@@ -53,7 +53,7 @@ static const stOPCodeInfo kOPCodeNames[256] = {
     { "DEC D", 1, 0 },
     { "LD D,$%02X", 2, 1 },
     { "RLA", 1, 0 },
-    { "JR %+d [$%04X]", 2, 4 },
+    { "JR %+d  [$%04X]", 2, 4 },
     { "ADD HL,DE", 1, 0 },
     { "LD A,(DE)", 1, 0 },
     { "DEC DE", 1, 0 },
@@ -62,7 +62,7 @@ static const stOPCodeInfo kOPCodeNames[256] = {
     { "LD E,$%02X", 2, 1 },
     { "RRA", 1, 0 },
 
-    { "JR NZ,%+d [$%04X]", 2, 4 },
+    { "JR NZ,%+d  [$%04X]", 2, 4 },
     { "LD HL,$%04X", 3, 2 },
     { "LD (HL+),A", 1, 0 },
     { "INC HL", 1, 0 },
@@ -79,7 +79,7 @@ static const stOPCodeInfo kOPCodeNames[256] = {
     { "LD L,$%02X", 2, 1 },
     { "CPL", 1, 0 },
 
-    { "JR NC,%+d [$%04X]", 2, 4 },
+    { "JR NC,%+d  [$%04X]", 2, 4 },
     { "LD SP,$%04X", 3, 2 },
     { "LD (HL-),A", 1, 0 },
     { "INC SP", 1, 0 },
@@ -87,7 +87,7 @@ static const stOPCodeInfo kOPCodeNames[256] = {
     { "DEC (HL)", 1, 0 },
     { "LD (HL),$%02X", 2, 1 },
     { "SCF", 1, 0 },
-    { "JR C,%+d [$%04X]", 2, 4 },
+    { "JR C,%+d  [$%04X]", 2, 4 },
     { "ADD HL,SP", 1, 0 },
     { "LD A,(HL-)", 1, 0 },
     { "DEC SP", 1, 0 },
@@ -266,7 +266,7 @@ static const stOPCodeInfo kOPCodeNames[256] = {
     { "SBC A,$%02X", 2, 1 },
     { "RST $18", 1, 0 },
 
-    { "LD ($FF00+$%02X),A", 2, 1 },
+    { "LD ($FF00+$%02X),A  [%s]", 2, 5 },
     { "POP HL", 1, 0 },
     { "LD ($FF00+C),A", 1, 0 },
     { "[UNUSED]", 1, 0 },
@@ -283,7 +283,7 @@ static const stOPCodeInfo kOPCodeNames[256] = {
     { "XOR $%02X", 2, 1 },
     { "RST $28", 1, 0 },
 
-    { "LD A,($FF00+$%02X)", 2, 1 },
+    { "LD A,($FF00+$%02X)  [%s]", 2, 5 },
     { "POP AF", 1, 0 },
     { "LD A,($FF00+C)", 1, 0 },
     { "DI", 1, 0 },
@@ -573,6 +573,25 @@ static const stOPCodeInfo kOPCodeCBNames[256] = {
     { "SET 7 L", 2, 0 },
     { "SET 7 (HL)", 2, 0 },
     { "SET 7 A", 2, 0 }
+};
+
+static const char* kRegisterNames[256] = {
+    "P1", "SB", "SC", "UNKNOWN", "DIV", "TIMA", "TMA", "TAC", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "IF",
+    "NR10", "NR11", "NR12", "NR13", "NR14", "UNKNOWN", "NR21", "NR22", "NR23", "NR24", "NR30", "NR31", "NR32", "NR33", "NR34", "UNKNOWN",
+    "NR41", "NR42", "NR43", "NR44", "NR50", "NR51", "NR52", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN",
+    "WAVE 0", "WAVE 1", "WAVE 2", "WAVE 3", "WAVE 4", "WAVE 5", "WAVE 6", "WAVE 7", "WAVE 8", "WAVE 9", "WAVE A", "WAVE B", "WAVE C", "WAVE D", "WAVE E", "WAVE F",
+    "LCDC", "STAT", "SCY", "SCX", "LY", "LYC", "DMA", "BGP", "OBP0", "OBP1", "WY", "WX", "UNKNOWN", "KEY1", "UNKNOWN", "VBK",
+    "UNKNOWN", "HDMA SOURCE HI", "HDMA SOURCE LOW", "HDMA DEST HI", "HDMA DEST LOW", "HDMA LEN", "RP", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN",
+    "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "BCPS", "BCPD", "OCPS", "OCPD", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN",
+    "SVBK", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "PCM12", "PCM34", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN",
+    "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM",
+    "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM",
+    "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM",
+    "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM",
+    "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM",
+    "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM",
+    "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM",
+    "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "HRAM", "IE"
 };
 
 #endif	/* OPCODE_NAMES_H */

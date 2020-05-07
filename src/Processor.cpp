@@ -21,6 +21,7 @@
 #include <ctype.h>
 #include "Processor.h"
 #include "opcode_timing.h"
+#include "opcode_names.h"
 
 Processor::Processor(Memory* pMemory)
 {
@@ -475,6 +476,9 @@ bool Processor::Disassemble(u16 address)
                 break;
             case 4:
                 sprintf(map[offset].name, info.name, (s8)bytes[1], address + info.size + (s8)bytes[1]);
+                break;
+            case 5:
+                sprintf(map[offset].name, info.name, bytes[1], kRegisterNames[bytes[1]]);
                 break;
             default:
                 strcpy(map[offset].name, "PARSE ERROR");

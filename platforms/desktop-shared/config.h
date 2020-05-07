@@ -99,7 +99,7 @@ struct config_Debug
     bool show_gameboy = true;
     bool show_disassembler = true;
     bool show_processor = true;
-    bool show_memory = false;
+    bool show_memory = true;
     bool show_iomap = false;
     bool show_audio = false;
     bool show_video = false;

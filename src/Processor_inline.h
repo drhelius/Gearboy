@@ -3,7 +3,6 @@
 
 #include "definitions.h"
 #include "Memory.h"
-#include "opcode_names.h"
 
 inline u8 Processor::FetchOPCode()
 {

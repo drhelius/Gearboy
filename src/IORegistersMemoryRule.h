@@ -146,6 +146,7 @@ inline u8 IORegistersMemoryRule::PerformRead(u16 address)
         }
         case 0xFF44:
         {
+            // LY
             return (m_pVideo->IsScreenEnabled() ? m_pMemory->Retrieve(0xFF44) : 0x00);
         }
         case 0xFF4C:

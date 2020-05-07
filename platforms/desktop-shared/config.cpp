@@ -68,7 +68,7 @@ void config_read(void)
     config_debug.show_disassembler = read_bool("Debug", "Disassembler", true);
     config_debug.show_gameboy = read_bool("Debug", "GameBoy", true);
     config_debug.show_iomap = read_bool("Debug", "IOMap", false);
-    config_debug.show_memory = read_bool("Debug", "Memory", false);
+    config_debug.show_memory = read_bool("Debug", "Memory", true);
     config_debug.show_processor = read_bool("Debug", "Processor", true);
     config_debug.show_video = read_bool("Debug", "Video", false);
     
