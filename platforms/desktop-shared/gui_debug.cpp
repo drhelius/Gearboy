@@ -334,12 +334,10 @@ static void debug_window_disassembler(void)
             sprintf(brk_address, "%02X:%04X", selected_record->bank, selected_record->address);
         
         ImGui::PushItemWidth(70);
-        ImGui::PushFont(gui_default_font);
         if (ImGui::InputTextWithHint("##add_breakpoint", "XX:XXXX", brk_address, IM_ARRAYSIZE(brk_address), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue))
         {
             add_breakpoint();
         }
-        ImGui::PopFont();
         ImGui::PopItemWidth();
         
         if (ImGui::Button("Add", ImVec2(70, 0)))

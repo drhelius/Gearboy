@@ -41,7 +41,7 @@ static int* configured_button;
 static ImVec4 custom_palette[4];
 static std::list<std::string> cheat_list;
 static bool shortcut_open_rom = false;
-
+static ImFont* default_font[4];
 
 static void main_menu(void);
 static void main_window(void);
@@ -81,9 +81,14 @@ void gui_init(void)
     gui_roboto_font = io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, 17.0f * application_display_scale, NULL, io.Fonts->GetGlyphRangesCyrillic());
 
     ImFontConfig font_cfg;
-    font_cfg.SizePixels = 13.0f * application_display_scale;
 
-    gui_default_font = io.Fonts->AddFontDefault(&font_cfg);
+    for (int i = 0; i < 4; i++)
+    {
+        font_cfg.SizePixels = (13.0f + (i * 3)) * application_display_scale;
+        default_font[i] = io.Fonts->AddFontDefault(&font_cfg);
+    }
+
+    gui_default_font = default_font[config_debug.font_size];
 
     update_palette();
 
@@ -595,6 +600,21 @@ static void main_menu(void)
             }
 
             ImGui::MenuItem("Disable All Breakpoints", 0, &emu_debug_disable_breakpoints, config_debug.debug);
+
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Font Size"))
+            {
+                ImGui::PushItemWidth(110.0f);
+                if (ImGui::Combo("##font", &config_debug.font_size, "Very Small\0Small\0Medium\0Large\0\0"))
+                {
+                    gui_default_font = default_font[config_debug.font_size];
+                }
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
+            ImGui::MenuItem("Show Game Boy Screen", "", &config_debug.show_gameboy, config_debug.font_size);
 
             ImGui::Separator();
 

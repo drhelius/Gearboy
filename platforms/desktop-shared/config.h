@@ -103,6 +103,7 @@ struct config_Debug
     bool show_iomap = false;
     bool show_audio = false;
     bool show_video = false;
+    int font_size = 0;
 };
 
 EXTERN mINI::INIFile* config_ini_file;
