@@ -43,9 +43,14 @@ static void run_emulator(void);
 static void render(void);
 static void frame_throttle(void);
 
-int application_init(void)
+int application_init(const char* arg)
 {
     Log ("<·> %s %s Desktop App <·>", GEARBOY_TITLE, GEARBOY_VERSION);
+
+    if (IsValidPointer(arg) && (strlen(arg) > 0))
+    {
+        Log ("Loading with argv: %s");
+    }
 
     int ret = sdl_init();
     
@@ -61,6 +66,11 @@ int application_init(void)
     renderer_init();
 
     SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+
+    if (IsValidPointer(arg) && (strlen(arg) > 0))
+    {
+        gui_load_rom(arg);
+    }
 
     return ret;
 }
