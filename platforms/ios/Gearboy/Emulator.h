@@ -26,7 +26,6 @@
 #endif
 #endif
 
-#define GEARBOY_DISABLE_DISASSEMBLER
 #import "../../../src/gearboy.h"
 #import "../../../platforms/audio-shared/Sound_Queue.h"
 #import "EmulatorInput.h"

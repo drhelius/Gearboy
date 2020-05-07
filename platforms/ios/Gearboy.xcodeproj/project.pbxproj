@@ -657,6 +657,10 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				DEVELOPMENT_TEAM = V3F66RFMSJ;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					GEARBOY_DISABLE_DISASSEMBLER,
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
@@ -683,6 +687,7 @@
 				DEVELOPMENT_TEAM = V3F66RFMSJ;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = GEARBOY_DISABLE_DISASSEMBLER;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,

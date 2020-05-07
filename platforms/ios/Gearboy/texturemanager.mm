@@ -18,7 +18,6 @@
  */
 
 #include "texturemanager.h"
-#define GEARBOY_DISABLE_DISASSEMBLER
 #import "../../../src/gearboy.h"
 #include <OpenGLES/ES1/glext.h>
 
