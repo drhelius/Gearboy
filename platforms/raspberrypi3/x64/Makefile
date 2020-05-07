@@ -4,7 +4,7 @@ GEARBOY_RPI_SRC=../../raspberrypi
 
 include $(GEARBOY_RPI_SRC)/Makefile.common
 
-CFLAGS+=-Wall -O3 -march=armv8-a+crc -mtune=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
+CFLAGS+=-Wall -O3 -march=armv8-a+crc -mtune=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -DGEARBOY_DISABLE_DISASSEMBLER
 
 LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lbrcmEGL -lbrcmGLESv2 -lopenmaxil -lvcos -lvchiq_arm -lm -lrt -lconfig++ -lbcm_host `sdl2-config --libs`
 

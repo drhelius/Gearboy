@@ -4,7 +4,7 @@ GEARBOY_RPI_SRC=.
 
 include $(GEARBOY_RPI_SRC)/Makefile.common
 
-CFLAGS+=-Wall -O3 -march=armv6zk -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard
+CFLAGS+=-Wall -O3 -march=armv6zk -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -DGEARBOY_DISABLE_DISASSEMBLER
 
 LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lbrcmEGL -lbrcmGLESv2 -lopenmaxil -lvcos -lvchiq_arm -lm -lrt -lconfig++ -lbcm_host `sdl2-config --libs`
 

@@ -32,7 +32,6 @@
 #endif
 #include "libretro.h"
 
-#define GEARBOY_DISABLE_DISASSEMBLER
 #include "../../src/gearboy.h"
 
 #define VIDEO_WIDTH 160
