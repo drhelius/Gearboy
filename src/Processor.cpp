@@ -475,7 +475,7 @@ bool Processor::Disassemble(u16 address)
                 sprintf(map[offset].name, info.name, (s8)bytes[1]);
                 break;
             case 4:
-                sprintf(map[offset].name, info.name, (s8)bytes[1], address + info.size + (s8)bytes[1]);
+                sprintf(map[offset].name, info.name, address + info.size + (s8)bytes[1], (s8)bytes[1]);
                 break;
             case 5:
                 sprintf(map[offset].name, info.name, bytes[1], kRegisterNames[bytes[1]]);
