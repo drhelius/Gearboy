@@ -305,7 +305,7 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Quit"))
+            if (ImGui::MenuItem("Quit", "ESC"))
             {
                 application_trigger_quit();
             }
@@ -603,7 +603,7 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            if (ImGui::BeginMenu("Font Size"))
+            if (ImGui::BeginMenu("Font Size", config_debug.debug))
             {
                 ImGui::PushItemWidth(110.0f);
                 if (ImGui::Combo("##font", &config_debug.font_size, "Very Small\0Small\0Medium\0Large\0\0"))
@@ -613,8 +613,6 @@ static void main_menu(void)
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
-
-            ImGui::MenuItem("Show Game Boy Screen", "", &config_debug.show_gameboy, config_debug.font_size);
 
             ImGui::Separator();
 
@@ -1052,7 +1050,7 @@ static void popup_modal_about(void)
             ImGui::Text("Gamepad database not found");
 
         ImGui::Separator();
-        
+
         if (ImGui::Button("OK", ImVec2(120, 0))) 
         {
             ImGui::CloseCurrentPopup();
