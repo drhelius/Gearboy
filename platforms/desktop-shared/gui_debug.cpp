@@ -491,9 +491,9 @@ static void debug_window_disassembler(void)
                     if (vec[item].record->address == pc)
                     {
                         if (show_mem)
-                            ImGui::TextColored(red, " %04X: %s", vec[item].record->address, vec[item].record->bytes);
+                            ImGui::TextColored(red, " %02X:%04X  %s", vec[item].record->bank, vec[item].record->address, vec[item].record->bytes);
                         else
-                            ImGui::TextColored(red, " %04X:", vec[item].record->address);
+                            ImGui::TextColored(red, " %02X:%04X ", vec[item].record->bank, vec[item].record->address);
                         ImGui::SameLine();
                         ImGui::TextColored(yellow, "->");
                         ImGui::SameLine();
@@ -502,23 +502,23 @@ static void debug_window_disassembler(void)
                     else
                     {
                         if (show_mem)
-                            ImGui::TextColored(red, " %04X: %s    %s", vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
+                            ImGui::TextColored(red, " %02X:%04X  %s    %s", vec[item].record->bank, vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
                         else
-                            ImGui::TextColored(red, " %04X:    %s", vec[item].record->address, vec[item].record->name);
+                            ImGui::TextColored(red, " %02X:%04X     %s", vec[item].record->bank, vec[item].record->address, vec[item].record->name);
                     }
                 } 
                 else if (vec[item].record->address == pc)
                 {
                     ImGui::SameLine();
                     if (show_mem)
-                        ImGui::TextColored(yellow, " %04X: %s -> %s", vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
+                        ImGui::TextColored(yellow, " %02X:%04X  %s -> %s", vec[item].record->bank, vec[item].record->address, vec[item].record->bytes, vec[item].record->name);
                     else
-                        ImGui::TextColored(yellow, " %04X: -> %s", vec[item].record->address, vec[item].record->name);
+                        ImGui::TextColored(yellow, " %02X:%04X  -> %s", vec[item].record->bank, vec[item].record->address, vec[item].record->name);
                 }
                 else
                 {
                     ImGui::SameLine();
-                    ImGui::TextColored(cyan, " %04X:", vec[item].record->address);
+                    ImGui::TextColored(cyan, " %02X:%04X ", vec[item].record->bank, vec[item].record->address);
                     ImGui::SameLine();
                     if (show_mem)
                         ImGui::TextColored(gray, "%s   ", vec[item].record->bytes);
