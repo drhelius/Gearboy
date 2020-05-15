@@ -172,14 +172,14 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::Cart
         return false;
 }
 
-bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG)
+bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType)
 {
     if (m_pCartridge->LoadFromBuffer(buffer, size))
     {
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
-        bool romTypeOK = AddMemoryRules();
+        bool romTypeOK = AddMemoryRules(forceType);
 
         if (!romTypeOK)
         {
@@ -268,7 +268,7 @@ void GearboyCore::ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType)
     }
 }
 
-void GearboyCore::ResetROMPreservingRAM(bool forceDMG)
+void GearboyCore::ResetROMPreservingRAM(bool forceDMG, Cartridge::CartridgeTypes forceType)
 {
     if (m_pCartridge->IsLoadedROM())
     {
@@ -279,7 +279,7 @@ void GearboyCore::ResetROMPreservingRAM(bool forceDMG)
 
         m_pMemory->GetCurrentRule()->SaveRam(stream);
 
-        ResetROM(forceDMG);
+        ResetROM(forceDMG, forceType);
 
         stream.seekg(0, stream.end);
         s32 size = (s32)stream.tellg();

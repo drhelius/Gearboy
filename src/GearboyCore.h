@@ -46,14 +46,14 @@ public:
     void Init(GB_Color_Format pixelFormat = GB_PIXEL_RGB565);
     bool RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer = false, bool step = false, bool stopOnBreakpoints = false);
     bool LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
-    bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG);
+    bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
     void SaveMemoryDump();
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause(bool paused);
     bool IsPaused();
     void ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
-    void ResetROMPreservingRAM(bool forceDMG);
+    void ResetROMPreservingRAM(bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
     void ResetSound();
     void SetSoundSampleRate(int rate);
     void SetSoundVolume(float volume);
