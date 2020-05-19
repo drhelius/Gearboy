@@ -1368,7 +1368,6 @@ static void debug_window_vram_oam(void)
 
     ImVec2 p[40];
 
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImGuiIO& io = ImGui::GetIO();
 
     u8 lcdc = memory->Retrieve(0xFF40);
@@ -1376,7 +1375,10 @@ static void debug_window_vram_oam(void)
 
     ImGui::PushFont(gui_default_font);
 
-    ImGui::Columns(2, "oam", true);
+    ImGui::Columns(2, "oam", false);
+    ImGui::SetColumnOffset(1, 280.0f);
+
+    ImGui::BeginChild("sprites", ImVec2(0, 0), true);
 
     for (int s = 0; s < 40; s++)
     {
@@ -1389,12 +1391,15 @@ static void debug_window_vram_oam(void)
 
         if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
         {
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
             draw_list->AddRect(ImVec2(p[s].x, p[s].y), ImVec2(p[s].x + width, p[s].y + (sprites_16 ? height_16 : height_8)), ImColor(cyan), 2.0f, 15, 3.0f);
         }
 
         if (s % 5 < 4)
             ImGui::SameLine();
     }
+
+    ImGui::EndChild();
 
     ImGui::NextColumn();
 
@@ -1435,8 +1440,8 @@ static void debug_window_vram_oam(void)
             rectx_max = fminf(fmaxf(rectx_max, p_screen.x), p_screen.x + (GAMEBOY_WIDTH * screen_scale));
             recty_min = fminf(fmaxf(recty_min, p_screen.y), p_screen.y + (GAMEBOY_HEIGHT * screen_scale));
             recty_max = fminf(fmaxf(recty_max, p_screen.y), p_screen.y + (GAMEBOY_HEIGHT * screen_scale));
-            
 
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
             draw_list->AddRect(ImVec2(rectx_min, recty_min), ImVec2(rectx_max, recty_max), ImColor(cyan), 2.0f, 15, 2.0f);
 
             ImGui::TextColored(yellow, "DETAILS:");
