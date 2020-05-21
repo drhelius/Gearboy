@@ -831,6 +831,13 @@ namespace imgui_addons
                     subdirs.push_back(Info(name, is_hidden));
                 else if(ent->d_type == DT_REG && dialog_mode != DialogMode::SELECT)
                     subfiles.push_back(Info(name, is_hidden));
+
+                #ifndef OSWIN
+                else if(ent->d_type == DT_LNK)
+                {
+                    subdirs.push_back(Info(name, is_hidden));
+                }
+                #endif // OSWIN
             }
             closedir (dir);
             std::sort(subdirs.begin(), subdirs.end(), alphaSortComparator);
