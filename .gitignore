@@ -80,3 +80,6 @@ platforms/**/gearboy
 
 #Android
 platforms/libretro/libs/
+
+#JetBrains
+.idea
