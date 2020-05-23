@@ -144,6 +144,9 @@
     <ClCompile Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.cpp">
       <Filter>desktop-shared\filebrowser</Filter>
     </ClCompile>
+    <ClCompile Include="..\desktop-shared\gui_debug.cpp">
+      <Filter>desktop-shared</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Audio.h">
@@ -298,6 +301,12 @@
     </ClInclude>
     <ClInclude Include="..\desktop-shared\mINI\ini.h">
       <Filter>desktop-shared\mini</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\gui_debug.h">
+      <Filter>desktop-shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\gui_debug_constants.h">
+      <Filter>desktop-shared</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

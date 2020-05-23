@@ -41,6 +41,7 @@
     <ClCompile Include="..\desktop-shared\emu.cpp" />
     <ClCompile Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.cpp" />
     <ClCompile Include="..\desktop-shared\gui.cpp" />
+    <ClCompile Include="..\desktop-shared\gui_debug.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_draw.cpp" />
@@ -91,6 +92,8 @@
     <ClInclude Include="..\desktop-shared\FileBrowser\Dirent\dirent.h" />
     <ClInclude Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.h" />
     <ClInclude Include="..\desktop-shared\gui.h" />
+    <ClInclude Include="..\desktop-shared\gui_debug.h" />
+    <ClInclude Include="..\desktop-shared\gui_debug_constants.h" />
     <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h" />
     <ClInclude Include="..\desktop-shared\imgui\imconfig.h" />
     <ClInclude Include="..\desktop-shared\imgui\imgui.h" />
