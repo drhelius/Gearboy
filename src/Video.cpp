@@ -544,7 +544,7 @@ void Video::RenderBG(int line, int pixel)
 
             if (m_bCGB)
             {
-                bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7);
+                bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7) && IsSetBit(lcdc, 0);
                 if (cgb_tile_priority && (pixel_data != 0))
                     m_pColorCacheBuffer[index] = SetBit(m_pColorCacheBuffer[index], 2);
                 m_pColorFrameBuffer[index] = m_CGBBackgroundPalettes[cgb_tile_pal][pixel_data][1];
@@ -613,7 +613,6 @@ void Video::RenderWindow(int line)
         bool cgb_tile_bank = m_bCGB ? IsSetBit(cgb_tile_attr, 3) : false;
         bool cgb_tile_xflip = m_bCGB ? IsSetBit(cgb_tile_attr, 5) : false;
         bool cgb_tile_yflip = m_bCGB ? IsSetBit(cgb_tile_attr, 6) : false;
-        bool cgb_tile_priority = m_bCGB ? IsSetBit(cgb_tile_attr, 7) : false;
         int mapOffsetX = x << 3;
         int tile_16 = tile << 4;
         u8 byte1 = 0;
@@ -654,6 +653,7 @@ void Video::RenderWindow(int line)
 
             if (m_bCGB)
             {
+                bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7) && IsSetBit(lcdc, 0);
                 if (cgb_tile_priority && (pixel != 0))
                     m_pColorCacheBuffer[position] = SetBit(m_pColorCacheBuffer[position], 2);
                  m_pColorFrameBuffer[position] = m_CGBBackgroundPalettes[cgb_tile_pal][pixel][1];
@@ -678,19 +678,37 @@ void Video::RenderSprites(int line)
     int sprite_height = IsSetBit(lcdc, 2) ? 16 : 8;
     int line_width = (line * GAMEBOY_WIDTH);
 
-    for (int sprite = 39; sprite >= 0; sprite--)
+    bool visible_sprites[40];
+    int sprite_limit = 0;
+
+    for (int sprite = 0; sprite < 40; sprite++)
     {
         int sprite_4 = sprite << 2;
         int sprite_y = m_pMemory->Retrieve(0xFE00 + sprite_4) - 16;
 
         if ((sprite_y > line) || ((sprite_y + sprite_height) <= line))
+        {
+            visible_sprites[sprite] = false;
+            continue;
+        }
+
+        sprite_limit++;
+        
+        visible_sprites[sprite] = sprite_limit <= 10;
+    }
+
+    for (int sprite = 39; sprite >= 0; sprite--)
+    {
+        if (!visible_sprites[sprite])
             continue;
 
+        int sprite_4 = sprite << 2;
         int sprite_x = m_pMemory->Retrieve(0xFE00 + sprite_4 + 1) - 8;
 
         if ((sprite_x < -7) || (sprite_x >= GAMEBOY_WIDTH))
             continue;
 
+        int sprite_y = m_pMemory->Retrieve(0xFE00 + sprite_4) - 16;
         int sprite_tile_16 = (m_pMemory->Retrieve(0xFE00 + sprite_4 + 2)
                 & ((sprite_height == 16) ? 0xFE : 0xFF)) << 4;
         u8 sprite_flags = m_pMemory->Retrieve(0xFE00 + sprite_4 + 3);
@@ -698,7 +716,7 @@ void Video::RenderSprites(int line)
         u8 palette = m_pMemory->Retrieve(sprite_pallette ? 0xFF49 : 0xFF48);
         bool xflip = IsSetBit(sprite_flags, 5);
         bool yflip = IsSetBit(sprite_flags, 6);
-        bool aboveBG = !IsSetBit(sprite_flags, 7);
+        bool aboveBG = (!IsSetBit(sprite_flags, 7));
         bool cgb_tile_bank = IsSetBit(sprite_flags, 3);
         int cgb_tile_pal = sprite_flags & 0x07;
         int tiles = 0x8000;
