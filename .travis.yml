@@ -10,8 +10,6 @@ jobs:
   - os: osx
     env: BUILD_TYPE=iOS
   - os: osx
-    env: BUILD_TYPE=iOS-WIP
-  - os: osx
     env: BUILD_TYPE=macOS
 
 before_install:
@@ -21,7 +19,6 @@ before_install:
 
 script:
   - if [[ "$BUILD_TYPE" == "iOS" ]]; then xcodebuild clean build -sdk iphonesimulator -project platforms/ios/Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO; fi
-  - if [[ "$BUILD_TYPE" == "iOS-WIP" ]]; then xcodebuild clean build -sdk iphonesimulator -project platforms/ios_new/Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO; fi
   - if [[ "$BUILD_TYPE" == "Linux" ]]; then cd platforms/linux && make; fi
   - if [[ "$BUILD_TYPE" == "Libretro" ]]; then cd platforms/libretro && make; fi
   - if [[ "$BUILD_TYPE" == "macOS" ]]; then cd platforms/macos && make; fi
