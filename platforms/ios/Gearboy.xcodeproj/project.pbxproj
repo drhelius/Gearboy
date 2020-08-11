@@ -7,14 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2B2CCD2724E322CB0090387D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B2CCD2624E322CB0090387D /* AppDelegate.m */; };
-		2B2CCD2A24E322CB0090387D /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B2CCD2924E322CB0090387D /* SceneDelegate.m */; };
-		2B2CCD2D24E322CB0090387D /* MasterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B2CCD2C24E322CB0090387D /* MasterViewController.m */; };
-		2B2CCD3024E322CB0090387D /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B2CCD2F24E322CB0090387D /* DetailViewController.m */; };
 		2B2CCD3324E322CB0090387D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2B2CCD3124E322CB0090387D /* Main.storyboard */; };
 		2B2CCD3524E322CC0090387D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B2CCD3424E322CC0090387D /* Assets.xcassets */; };
 		2B2CCD3824E322CC0090387D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2B2CCD3624E322CC0090387D /* LaunchScreen.storyboard */; };
-		2B2CCD3B24E322CC0090387D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B2CCD3A24E322CC0090387D /* main.m */; };
 		2B2CCD4A24E324610090387D /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B2CCD4524E324610090387D /* CoreBluetooth.framework */; };
 		2B2CCD4B24E324610090387D /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B2CCD4624E324610090387D /* CoreMotion.framework */; };
 		2B2CCD4C24E324610090387D /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B2CCD4724E324610090387D /* GameController.framework */; };
@@ -51,6 +46,19 @@
 		2B2CCDC924E326430090387D /* Emulator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2B2CCDC324E326430090387D /* Emulator.mm */; };
 		2B2CCDCD24E3268B0090387D /* texturemanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2B2CCDCC24E3268A0090387D /* texturemanager.mm */; };
 		2B2CCDD024E327560090387D /* Sound_Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B2CCDCF24E327560090387D /* Sound_Queue.cpp */; };
+		2B2CCDD424E329210090387D /* GLViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2B2CCDD224E329210090387D /* GLViewController.mm */; };
+		2B2CCDD624E329530090387D /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B2CCDD524E329530090387D /* GLKit.framework */; };
+		2B2CCDD824E329700090387D /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B2CCDD724E329700090387D /* MediaPlayer.framework */; };
+		2B316ED024E33A1A009F9838 /* DetailViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2B316ECB24E33A1A009F9838 /* DetailViewController.mm */; };
+		2B316ED124E33A1A009F9838 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2B316ECC24E33A1A009F9838 /* main.mm */; };
+		2B316ED224E33A1A009F9838 /* MasterViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2B316ECD24E33A1A009F9838 /* MasterViewController.mm */; };
+		2B316ED324E33A1A009F9838 /* SceneDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2B316ECE24E33A1A009F9838 /* SceneDelegate.mm */; };
+		2B316ED424E33A1A009F9838 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2B316ECF24E33A1A009F9838 /* AppDelegate.mm */; };
+		2B316ED924E33AA4009F9838 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B316ED824E33AA4009F9838 /* OpenGLES.framework */; };
+		2B316EDB24E33ABA009F9838 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B316EDA24E33ABA009F9838 /* UIKit.framework */; };
+		2B316EDE24E33B19009F9838 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B316ED624E33A85009F9838 /* CoreGraphics.framework */; };
+		2B316EE024E33B3E009F9838 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B316EDF24E33B3E009F9838 /* QuartzCore.framework */; };
+		2B316EE324E33BAA009F9838 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B316EE224E33BAA009F9838 /* Metal.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,18 +109,13 @@
 /* Begin PBXFileReference section */
 		2B2CCD2224E322CB0090387D /* Gearboy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gearboy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B2CCD2524E322CB0090387D /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		2B2CCD2624E322CB0090387D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		2B2CCD2824E322CB0090387D /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
-		2B2CCD2924E322CB0090387D /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
 		2B2CCD2B24E322CB0090387D /* MasterViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MasterViewController.h; sourceTree = "<group>"; };
-		2B2CCD2C24E322CB0090387D /* MasterViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MasterViewController.m; sourceTree = "<group>"; };
 		2B2CCD2E24E322CB0090387D /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DetailViewController.h; sourceTree = "<group>"; };
-		2B2CCD2F24E322CB0090387D /* DetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DetailViewController.m; sourceTree = "<group>"; };
 		2B2CCD3224E322CB0090387D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		2B2CCD3424E322CC0090387D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2B2CCD3724E322CC0090387D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2B2CCD3924E322CC0090387D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		2B2CCD3A24E322CC0090387D /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		2B2CCD4524E324610090387D /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		2B2CCD4624E324610090387D /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		2B2CCD4724E324610090387D /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
@@ -193,6 +196,21 @@
 		2B2CCDCC24E3268A0090387D /* texturemanager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = texturemanager.mm; sourceTree = "<group>"; };
 		2B2CCDCE24E327560090387D /* Sound_Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound_Queue.h; path = "../../../audio-shared/Sound_Queue.h"; sourceTree = "<group>"; };
 		2B2CCDCF24E327560090387D /* Sound_Queue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound_Queue.cpp; path = "../../../audio-shared/Sound_Queue.cpp"; sourceTree = "<group>"; };
+		2B2CCDD224E329210090387D /* GLViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GLViewController.mm; sourceTree = "<group>"; };
+		2B2CCDD324E329210090387D /* GLViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLViewController.h; sourceTree = "<group>"; };
+		2B2CCDD524E329530090387D /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		2B2CCDD724E329700090387D /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
+		2B316ECB24E33A1A009F9838 /* DetailViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DetailViewController.mm; sourceTree = "<group>"; };
+		2B316ECC24E33A1A009F9838 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		2B316ECD24E33A1A009F9838 /* MasterViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MasterViewController.mm; sourceTree = "<group>"; };
+		2B316ECE24E33A1A009F9838 /* SceneDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SceneDelegate.mm; sourceTree = "<group>"; };
+		2B316ECF24E33A1A009F9838 /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		2B316ED624E33A85009F9838 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		2B316ED824E33AA4009F9838 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		2B316EDA24E33ABA009F9838 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		2B316EDC24E33AD9009F9838 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		2B316EDF24E33B3E009F9838 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		2B316EE224E33BAA009F9838 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -204,8 +222,15 @@
 				2B2CCD4B24E324610090387D /* CoreMotion.framework in Frameworks */,
 				2B2CCD6724E324870090387D /* libSDL2.a in Frameworks */,
 				2B2CCD4E24E324610090387D /* AVFoundation.framework in Frameworks */,
+				2B2CCDD624E329530090387D /* GLKit.framework in Frameworks */,
+				2B316EE324E33BAA009F9838 /* Metal.framework in Frameworks */,
 				2B2CCD4C24E324610090387D /* GameController.framework in Frameworks */,
+				2B2CCDD824E329700090387D /* MediaPlayer.framework in Frameworks */,
 				2B2CCD4D24E324610090387D /* AudioToolbox.framework in Frameworks */,
+				2B316EE024E33B3E009F9838 /* QuartzCore.framework in Frameworks */,
+				2B316ED924E33AA4009F9838 /* OpenGLES.framework in Frameworks */,
+				2B316EDE24E33B19009F9838 /* CoreGraphics.framework in Frameworks */,
+				2B316EDB24E33ABA009F9838 /* UIKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,6 +259,13 @@
 		2B2CCD2424E322CB0090387D /* Gearboy */ = {
 			isa = PBXGroup;
 			children = (
+				2B316ECF24E33A1A009F9838 /* AppDelegate.mm */,
+				2B316ECB24E33A1A009F9838 /* DetailViewController.mm */,
+				2B316ECC24E33A1A009F9838 /* main.mm */,
+				2B316ECD24E33A1A009F9838 /* MasterViewController.mm */,
+				2B316ECE24E33A1A009F9838 /* SceneDelegate.mm */,
+				2B2CCDD324E329210090387D /* GLViewController.h */,
+				2B2CCDD224E329210090387D /* GLViewController.mm */,
 				2B2CCDCB24E3268A0090387D /* texture.h */,
 				2B2CCDCA24E3268A0090387D /* texturemanager.h */,
 				2B2CCDCC24E3268A0090387D /* texturemanager.mm */,
@@ -250,18 +282,13 @@
 				2B2CCDBD24E326430090387D /* timer.mm */,
 				2B2CCDBA24E326430090387D /* Vector.h */,
 				2B2CCD2524E322CB0090387D /* AppDelegate.h */,
-				2B2CCD2624E322CB0090387D /* AppDelegate.m */,
 				2B2CCD2824E322CB0090387D /* SceneDelegate.h */,
-				2B2CCD2924E322CB0090387D /* SceneDelegate.m */,
 				2B2CCD2B24E322CB0090387D /* MasterViewController.h */,
-				2B2CCD2C24E322CB0090387D /* MasterViewController.m */,
 				2B2CCD2E24E322CB0090387D /* DetailViewController.h */,
-				2B2CCD2F24E322CB0090387D /* DetailViewController.m */,
 				2B2CCD3124E322CB0090387D /* Main.storyboard */,
 				2B2CCD3424E322CC0090387D /* Assets.xcassets */,
 				2B2CCD3624E322CC0090387D /* LaunchScreen.storyboard */,
 				2B2CCD3924E322CC0090387D /* Info.plist */,
-				2B2CCD3A24E322CC0090387D /* main.m */,
 			);
 			path = Gearboy;
 			sourceTree = "<group>";
@@ -327,6 +354,14 @@
 		2B2CCD4424E324600090387D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2B316EE224E33BAA009F9838 /* Metal.framework */,
+				2B316EDF24E33B3E009F9838 /* QuartzCore.framework */,
+				2B316EDC24E33AD9009F9838 /* Foundation.framework */,
+				2B316EDA24E33ABA009F9838 /* UIKit.framework */,
+				2B316ED824E33AA4009F9838 /* OpenGLES.framework */,
+				2B316ED624E33A85009F9838 /* CoreGraphics.framework */,
+				2B2CCDD724E329700090387D /* MediaPlayer.framework */,
+				2B2CCDD524E329530090387D /* GLKit.framework */,
 				2B2CCD4824E324610090387D /* AudioToolbox.framework */,
 				2B2CCD4924E324610090387D /* AVFoundation.framework */,
 				2B2CCD4524E324610090387D /* CoreBluetooth.framework */,
@@ -495,12 +530,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B2CCDAC24E325230090387D /* opcodes_cb.cpp in Sources */,
-				2B2CCD3B24E322CC0090387D /* main.m in Sources */,
 				2B2CCDC924E326430090387D /* Emulator.mm in Sources */,
 				2B2CCDC824E326430090387D /* inputmanager.mm in Sources */,
 				2B2CCDB424E325230090387D /* GearboyCore.cpp in Sources */,
 				2B2CCDB724E325230090387D /* Memory.cpp in Sources */,
 				2B2CCDAF24E325230090387D /* MemoryRule.cpp in Sources */,
+				2B316ED124E33A1A009F9838 /* main.mm in Sources */,
 				2B2CCDB824E325230090387D /* Video.cpp in Sources */,
 				2B2CCDB524E325230090387D /* Input.cpp in Sources */,
 				2B2CCD7A24E3250F0090387D /* Gb_Apu.cpp in Sources */,
@@ -508,13 +543,15 @@
 				2B2CCDAB24E325230090387D /* CommonMemoryRule.cpp in Sources */,
 				2B2CCDA824E325230090387D /* Processor.cpp in Sources */,
 				2B2CCD7C24E3250F0090387D /* Blip_Buffer.cpp in Sources */,
-				2B2CCD2724E322CB0090387D /* AppDelegate.m in Sources */,
 				2B2CCDA924E325230090387D /* MBC5MemoryRule.cpp in Sources */,
 				2B2CCD7B24E3250F0090387D /* Effects_Buffer.cpp in Sources */,
+				2B2CCDD424E329210090387D /* GLViewController.mm in Sources */,
 				2B2CCD7924E3250F0090387D /* Gb_Apu_State.cpp in Sources */,
-				2B2CCD2D24E322CB0090387D /* MasterViewController.m in Sources */,
+				2B316ED024E33A1A009F9838 /* DetailViewController.mm in Sources */,
 				2B2CCDAA24E325230090387D /* MBC3MemoryRule.cpp in Sources */,
+				2B316ED324E33A1A009F9838 /* SceneDelegate.mm in Sources */,
 				2B2CCDCD24E3268B0090387D /* texturemanager.mm in Sources */,
+				2B316ED424E33A1A009F9838 /* AppDelegate.mm in Sources */,
 				2B2CCDC624E326430090387D /* EmulatorInput.mm in Sources */,
 				2B2CCDB624E325230090387D /* IORegistersMemoryRule.cpp in Sources */,
 				2B2CCDB924E325230090387D /* opcodes.cpp in Sources */,
@@ -522,10 +559,9 @@
 				2B2CCDAD24E325230090387D /* Audio.cpp in Sources */,
 				2B2CCDB024E325230090387D /* Cartridge.cpp in Sources */,
 				2B2CCDB324E325230090387D /* MBC1MemoryRule.cpp in Sources */,
-				2B2CCD2A24E322CB0090387D /* SceneDelegate.m in Sources */,
 				2B2CCDB224E325230090387D /* RomOnlyMemoryRule.cpp in Sources */,
-				2B2CCD3024E322CB0090387D /* DetailViewController.m in Sources */,
 				2B2CCDC724E326430090387D /* timer.mm in Sources */,
+				2B316ED224E33A1A009F9838 /* MasterViewController.mm in Sources */,
 				2B2CCDAE24E325230090387D /* MBC2MemoryRule.cpp in Sources */,
 				2B2CCDB124E325230090387D /* MultiMBC1MemoryRule.cpp in Sources */,
 				2B2CCD7824E3250F0090387D /* Multi_Buffer.cpp in Sources */,
@@ -560,7 +596,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -592,6 +628,7 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -604,7 +641,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.6;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -618,7 +655,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -649,14 +686,16 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.6;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -668,9 +707,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_COMMA = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = V3F66RFMSJ;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -679,6 +721,7 @@
 				);
 				HEADER_SEARCH_PATHS = "dependencies/SDL2-2.0.12/include";
 				INFOPLIST_FILE = Gearboy/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -694,15 +737,20 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_COMMA = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = V3F66RFMSJ;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					GLES_SILENCE_DEPRECATION,
 					GEARBOY_DISABLE_DISASSEMBLER,
 				);
 				HEADER_SEARCH_PATHS = "dependencies/SDL2-2.0.12/include";
 				INFOPLIST_FILE = Gearboy/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
