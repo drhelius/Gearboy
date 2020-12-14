@@ -394,7 +394,9 @@ void Processor::UpdateGameShark()
 bool Processor::Disassemble(u16 address)
 {
     Memory::stDisassembleRecord* memoryMap = m_pMemory->GetDisassembledMemoryMap();
+#ifndef __LIBRETRO__
     Memory::stDisassembleRecord* romMap = m_pMemory->GetDisassembledROMMemoryMap();
+#endif
 
     Memory::stDisassembleRecord* map = NULL;
 
@@ -405,13 +407,17 @@ bool Processor::Disassemble(u16 address)
     {
         bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank0Index();
         offset = (0x4000 * bank) + address;
+#ifndef __LIBRETRO__
         map = romMap;
+#endif
     }
     else if ((address & 0xC000) == 0x4000)
     {
         bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank1Index();
         offset = (0x4000 * bank) + (address & 0x3FFF);
+#ifndef __LIBRETRO__
         map = romMap;
+#endif
     }
     else
     {

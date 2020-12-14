@@ -29,7 +29,9 @@ Memory::Memory()
     InitPointer(m_pVideo);
     InitPointer(m_pMap);
     InitPointer(m_pDisassembledMap);
+#ifndef __LIBRETRO__
     InitPointer(m_pDisassembledROMMap);
+#endif
     InitPointer(m_pWRAMBanks);
     InitPointer(m_pLCDRAMBank1);
     InitPointer(m_pCommonMemoryRule);
@@ -52,7 +54,9 @@ Memory::~Memory()
     InitPointer(m_pVideo);
     SafeDeleteArray(m_pMap);
     SafeDeleteArray(m_pDisassembledMap);
+#ifndef __LIBRETRO__
     SafeDeleteArray(m_pDisassembledROMMap);
+#endif
     SafeDeleteArray(m_pWRAMBanks);
     SafeDeleteArray(m_pLCDRAMBank1);
     InitPointer(m_pCommonMemoryRule);
@@ -76,7 +80,9 @@ void Memory::Init()
     m_pWRAMBanks = new u8[0x8000];
     m_pLCDRAMBank1 = new u8[0x2000];
     m_pDisassembledMap = new stDisassembleRecord[65536];
+#ifndef __LIBRETRO__
     m_pDisassembledROMMap = new stDisassembleRecord[MAX_ROM_SIZE];
+#endif
     m_Breakpoints.clear();
     InitPointer(m_pRunToBreakpoint);
     Reset(false);
@@ -93,6 +99,7 @@ void Memory::Reset(bool bCGB)
     m_bHDMAEnabled = false;
     m_iHDMABytes = 0;
 
+#ifndef __LIBRETRO__
     for (int i = 0; i < MAX_ROM_SIZE; i++)
     {
         m_pDisassembledROMMap[i].address = i & 0x3FFF;
@@ -101,6 +108,7 @@ void Memory::Reset(bool bCGB)
         m_pDisassembledROMMap[i].bytes[0] = 0;
         m_pDisassembledROMMap[i].size = 0;
     }
+#endif
 
     for (int i = 0; i < 65536; i++)
     {
