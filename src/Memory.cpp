@@ -29,9 +29,7 @@ Memory::Memory()
     InitPointer(m_pVideo);
     InitPointer(m_pMap);
     InitPointer(m_pDisassembledMap);
-#ifndef __LIBRETRO__
     InitPointer(m_pDisassembledROMMap);
-#endif
     InitPointer(m_pWRAMBanks);
     InitPointer(m_pLCDRAMBank1);
     InitPointer(m_pCommonMemoryRule);
@@ -54,14 +52,29 @@ Memory::~Memory()
     InitPointer(m_pVideo);
     SafeDeleteArray(m_pMap);
     SafeDeleteArray(m_pDisassembledMap);
-#ifndef __LIBRETRO__
-    SafeDeleteArray(m_pDisassembledROMMap);
-#endif
     SafeDeleteArray(m_pWRAMBanks);
     SafeDeleteArray(m_pLCDRAMBank1);
     InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pCurrentMemoryRule);
+
+    if (IsValidPointer(m_pDisassembledROMMap))
+    {
+        for (int i = 0; i < MAX_ROM_SIZE; i++)
+        {
+            SafeDelete(m_pDisassembledROMMap[i]);
+        }
+        SafeDeleteArray(m_pDisassembledROMMap);
+    }
+
+    if (IsValidPointer(m_pDisassembledMap))
+    {
+        for (int i = 0; i < 65536; i++)
+        {
+            SafeDelete(m_pDisassembledMap[i]);
+        }
+        SafeDeleteArray(m_pDisassembledMap);
+    }
 }
 
 void Memory::SetProcessor(Processor* pProcessor)
@@ -79,9 +92,9 @@ void Memory::Init()
     m_pMap = new u8[65536];
     m_pWRAMBanks = new u8[0x8000];
     m_pLCDRAMBank1 = new u8[0x2000];
-    m_pDisassembledMap = new stDisassembleRecord[65536];
-#ifndef __LIBRETRO__
-    m_pDisassembledROMMap = new stDisassembleRecord[MAX_ROM_SIZE];
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
+    m_pDisassembledMap = new stDisassembleRecord*[65536];
+    m_pDisassembledROMMap = new stDisassembleRecord*[MAX_ROM_SIZE];
 #endif
     m_Breakpoints.clear();
     InitPointer(m_pRunToBreakpoint);
@@ -99,25 +112,21 @@ void Memory::Reset(bool bCGB)
     m_bHDMAEnabled = false;
     m_iHDMABytes = 0;
 
-#ifndef __LIBRETRO__
-    for (int i = 0; i < MAX_ROM_SIZE; i++)
+    if (IsValidPointer(m_pDisassembledROMMap))
     {
-        m_pDisassembledROMMap[i].address = i & 0x3FFF;
-        m_pDisassembledROMMap[i].bank = i >> 14;
-        m_pDisassembledROMMap[i].name[0] = 0;
-        m_pDisassembledROMMap[i].bytes[0] = 0;
-        m_pDisassembledROMMap[i].size = 0;
+        for (int i = 0; i < MAX_ROM_SIZE; i++)
+        {
+            SafeDelete(m_pDisassembledROMMap[i]);
+        }
     }
-#endif
 
     for (int i = 0; i < 65536; i++)
     {
+        if (IsValidPointer(m_pDisassembledMap))
+        {
+            SafeDelete(m_pDisassembledMap[i]);
+        }
         m_pMap[i] = 0x00;
-        m_pDisassembledMap[i].address = 0;
-        m_pDisassembledMap[i].bank = 0;
-        m_pDisassembledMap[i].name[0] = 0;
-        m_pDisassembledMap[i].bytes[0] = 0;
-        m_pDisassembledMap[i].size = 0;
 
         if ((i >= 0x8000) && (i < 0xA000))
         {
@@ -234,14 +243,14 @@ void Memory::MemoryDump(const char* szFilePath)
 
     ofstream myfile(szFilePath, ios::out | ios::trunc);
 
-    if (myfile.is_open())
+    if (myfile.is_open() && IsValidPointer(m_pDisassembledMap))
     {
         for (int i = 0; i < 65536; i++)
         {
-            if (m_pDisassembledMap[i].name[0] != 0)
+            if (IsValidPointer(m_pDisassembledMap[i]) && (m_pDisassembledMap[i]->name[0] != 0))
             {
-                myfile << "0x" << hex << i << "\t " << m_pDisassembledMap[i].name << "\n";
-                i += (m_pDisassembledMap[i].size - 1);
+                myfile << "0x" << hex << i << "\t " << m_pDisassembledMap[i]->name << "\n";
+                i += (m_pDisassembledMap[i]->size - 1);
             }
             else
             {

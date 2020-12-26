@@ -132,16 +132,14 @@ inline void Memory::Load(u16 address, u8 value)
     m_pMap[address] = value;
 }
 
-inline Memory::stDisassembleRecord* Memory::GetDisassembledMemoryMap()
+inline Memory::stDisassembleRecord** Memory::GetDisassembledMemoryMap()
 {
     return m_pDisassembledMap;
 }
 
-#ifndef __LIBRETRO__
-inline Memory::stDisassembleRecord* Memory::GetDisassembledROMMemoryMap()
+inline Memory::stDisassembleRecord** Memory::GetDisassembledROMMemoryMap()
 {
     return m_pDisassembledROMMap;
 }
-#endif
 
 #endif	/* MEMORY_INLINE_H */
