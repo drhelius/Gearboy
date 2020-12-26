@@ -132,12 +132,12 @@ inline void Memory::Load(u16 address, u8 value)
     m_pMap[address] = value;
 }
 
-inline Memory::stDisassembleRecord* Memory::GetDisassembledMemoryMap()
+inline Memory::stDisassembleRecord** Memory::GetDisassembledMemoryMap()
 {
     return m_pDisassembledMap;
 }
 
-inline Memory::stDisassembleRecord* Memory::GetDisassembledROMMemoryMap()
+inline Memory::stDisassembleRecord** Memory::GetDisassembledROMMemoryMap()
 {
     return m_pDisassembledROMMap;
 }

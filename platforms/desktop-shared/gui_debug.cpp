@@ -295,9 +295,9 @@ static void debug_window_disassembler(void)
     Processor::ProcessorState* proc_state = processor->GetState();
     Memory* memory = core->GetMemory();
     std::vector<Memory::stDisassembleRecord*>* breakpoints = memory->GetBreakpoints();
-    Memory::stDisassembleRecord* memoryMap = memory->GetDisassembledMemoryMap();
-    Memory::stDisassembleRecord* romMap = memory->GetDisassembledROMMemoryMap();
-    Memory::stDisassembleRecord* map = NULL;
+    Memory::stDisassembleRecord** memoryMap = memory->GetDisassembledMemoryMap();
+    Memory::stDisassembleRecord** romMap = memory->GetDisassembledROMMemoryMap();
+    Memory::stDisassembleRecord** map = NULL;
 
     int pc = proc_state->PC->GetValue();
 
@@ -415,7 +415,7 @@ static void debug_window_disassembler(void)
                 map = memoryMap;
             }
 
-            if (map[offset].name[0] != 0)
+            if (IsValidPointer(map[offset]) && map[offset]->name[0] != 0)
             {
                 for (long unsigned int s = 0; s < symbols.size(); s++)
                 {
@@ -428,7 +428,7 @@ static void debug_window_disassembler(void)
                 }
 
                 vec[dis_size].is_symbol = false;
-                vec[dis_size].record = &map[offset];
+                vec[dis_size].record = map[offset];
 
                 if (vec[dis_size].record->address == pc)
                     pc_pos = dis_size;
@@ -1716,9 +1716,9 @@ static void add_breakpoint(void)
         return;
     }
 
-    Memory::stDisassembleRecord* memoryMap = emu_get_core()->GetMemory()->GetDisassembledMemoryMap();
-    Memory::stDisassembleRecord* romMap = emu_get_core()->GetMemory()->GetDisassembledROMMemoryMap();
-    Memory::stDisassembleRecord* map = NULL;
+    Memory::stDisassembleRecord** memoryMap = emu_get_core()->GetMemory()->GetDisassembledMemoryMap();
+    Memory::stDisassembleRecord** romMap = emu_get_core()->GetMemory()->GetDisassembledROMMemoryMap();
+    Memory::stDisassembleRecord** map = NULL;
 
     if ((target_address & 0xC000) == 0x0000)
     {
@@ -1742,7 +1742,7 @@ static void add_breakpoint(void)
 
     for (long unsigned int b = 0; b < breakpoints->size(); b++)
     {
-        if ((*breakpoints)[b] == &map[target_offset])
+        if ((*breakpoints)[b] == map[target_offset])
         {
             found = true;
             break;
@@ -1751,7 +1751,7 @@ static void add_breakpoint(void)
 
     if (!found)
     {
-        breakpoints->push_back(&map[target_offset]);
+        breakpoints->push_back(map[target_offset]);
     }
 }
 
