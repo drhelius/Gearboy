@@ -858,7 +858,7 @@ namespace imgui_addons
     void ImGuiFileBrowser::filterFiles(int filter_mode)
     {
         filter_dirty = false;
-        if(filter_mode | FilterMode_Dirs)
+        if((filter_mode & FilterMode_Dirs) != 0)
         {
             filtered_dirs.clear();
             for (size_t i = 0; i < subdirs.size(); ++i)
@@ -867,7 +867,7 @@ namespace imgui_addons
                     filtered_dirs.push_back(subdirs[i]);
             }
         }
-        if(filter_mode | FilterMode_Files)
+        if((filter_mode & FilterMode_Files) != 0)
         {
             filtered_files.clear();
             for (size_t i = 0; i < subfiles.size(); ++i)
