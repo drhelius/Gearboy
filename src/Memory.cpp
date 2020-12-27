@@ -94,7 +94,16 @@ void Memory::Init()
     m_pLCDRAMBank1 = new u8[0x2000];
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
     m_pDisassembledMap = new stDisassembleRecord*[65536];
+    for (int i = 0; i < 0x10000; i++)
+    {
+        InitPointer(m_pDisassembledMap[i]);
+    }
+
     m_pDisassembledROMMap = new stDisassembleRecord*[MAX_ROM_SIZE];
+    for (int i = 0; i < MAX_ROM_SIZE; i++)
+    {
+        InitPointer(m_pDisassembledROMMap[i]);
+    }
 #endif
     m_Breakpoints.clear();
     InitPointer(m_pRunToBreakpoint);
