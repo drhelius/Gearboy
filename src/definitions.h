@@ -31,7 +31,7 @@
 
 //#define DEBUG_GEARBOY 1
 #define GEARBOY_TITLE "Gearboy"
-#define GEARBOY_VERSION "3.1.1"
+#define GEARBOY_VERSION "3.2.0"
 
 #ifndef EMULATOR_BUILD
 #define EMULATOR_BUILD "undefined"
