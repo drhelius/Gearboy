@@ -248,11 +248,14 @@ void Memory::LoadBank0and1FromROM(u8* pTheROM)
 
 void Memory::MemoryDump(const char* szFilePath)
 {
+    if (!IsValidPointer(m_pDisassembledMap))
+        return;
+
     using namespace std;
 
     ofstream myfile(szFilePath, ios::out | ios::trunc);
 
-    if (myfile.is_open() && IsValidPointer(m_pDisassembledMap))
+    if (myfile.is_open())
     {
         for (int i = 0; i < 65536; i++)
         {

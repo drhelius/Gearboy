@@ -186,7 +186,12 @@ void emu_reset(bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes m
 
 void emu_memory_dump(void)
 {
-    gearboy->GetMemory()->MemoryDump("memdump.txt");
+    gearboy->SaveMemoryDump();
+}
+
+void emu_dissasemble_rom(void)
+{
+    gearboy->SaveDisassembledROM();
 }
 
 void emu_audio_volume(float volume)
@@ -361,6 +366,10 @@ void emu_debug_next_frame(void)
 
 static void save_ram(void)
 {
+#ifdef DEBUG_GEARBOY
+    emu_dissasemble_rom();
+#endif
+
     if (save_files_in_rom_dir)
         gearboy->SaveRam();
     else
