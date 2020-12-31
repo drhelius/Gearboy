@@ -50,6 +50,7 @@ static int audio_sample_count;
 
 static bool force_dmg = false;
 static bool allow_up_down = false;
+static bool libretro_supports_bitmasks;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -104,6 +105,7 @@ void retro_init(void)
     gearboy_frame_buf = new u16[VIDEO_WIDTH * VIDEO_HEIGHT];
 
     audio_sample_count = 0;
+    libretro_supports_bitmasks = environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL);
 }
 
 void retro_deinit(void)
@@ -201,51 +203,62 @@ static void update_input(void)
 {
     input_poll_cb();
 
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
+    int16_t ib;
+    if (libretro_supports_bitmasks)
+        ib = input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
+    else
     {
-        if (allow_up_down || !input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
+        unsigned int i;
+        ib = 0;
+        for (i = 0; i <= RETRO_DEVICE_ID_JOYPAD_R3; i++)
+            ib |= input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
+    }
+
+    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
+    {
+        if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)))
             core->KeyPressed(Up_Key);
     }
     else
         core->KeyReleased(Up_Key);
 
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
+    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
     {
-        if (allow_up_down || !input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
+        if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_UP)))
             core->KeyPressed(Down_Key);
     }
     else
         core->KeyReleased(Down_Key);
 
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
+    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
     {
-        if (allow_up_down || !input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+        if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)))
             core->KeyPressed(Left_Key);
     }
     else
         core->KeyReleased(Left_Key);
 
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
     {
-        if (allow_up_down || !input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
+        if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)))
             core->KeyPressed(Right_Key);
     }
     else
         core->KeyReleased(Right_Key);
 
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
+    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_B))
         core->KeyPressed(B_Key);
     else
         core->KeyReleased(B_Key);
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A))
+    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_A))
         core->KeyPressed(A_Key);
     else
         core->KeyReleased(A_Key);
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
+    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_START))
         core->KeyPressed(Start_Key);
     else
         core->KeyReleased(Start_Key);
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
+    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
         core->KeyPressed(Select_Key);
     else
         core->KeyReleased(Select_Key);
