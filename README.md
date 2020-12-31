@@ -15,7 +15,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - **Windows**: [Gearboy-3.1.1-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.1.1/Gearboy-3.1.1-Windows.zip)
   + NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
 - **macOS**:
-  + `brew cask install gearboy`
+  + `brew install --cask gearboy`
   + Or install manually: [Gearboy-3.1.1-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.1.1/Gearboy-3.1.1-macOS.zip)
 - **Linux**: [Gearboy-3.1.1-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.1.1/Gearboy-3.1.1-Linux.tar.xz)
   + NOTE: You may need to install `libsdl2` and `libglew`
