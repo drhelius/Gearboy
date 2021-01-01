@@ -52,6 +52,7 @@ EXTERN bool emu_is_paused(void);
 EXTERN bool emu_is_empty(void);
 EXTERN void emu_reset(bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc);
 EXTERN void emu_memory_dump(void);
+EXTERN void emu_dissasemble_rom(void);
 EXTERN void emu_audio_volume(float volume);
 EXTERN void emu_audio_reset(void);
 EXTERN bool emu_is_audio_enabled(void);

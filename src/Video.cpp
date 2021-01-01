@@ -420,10 +420,6 @@ void Video::SetColorPalette(bool background, u8 value)
         }
     }
 
-#if defined(IS_BIG_ENDIAN)
-    u16 color = *palette_color_final;
-    *palette_color_final = ((color << 8) & 0xFF00) | ((color >> 8) & 0x00FF);
-#endif
 }
 
 int Video::GetCurrentStatusMode() const

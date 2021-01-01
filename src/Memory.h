@@ -63,8 +63,8 @@ public:
     void SwitchCGBLCDRAM(u8 value);
     u8 Retrieve(u16 address);
     void Load(u16 address, u8 value);
-    stDisassembleRecord* GetDisassembledMemoryMap();
-    stDisassembleRecord* GetDisassembledROMMemoryMap();
+    stDisassembleRecord** GetDisassembledMemoryMap();
+    stDisassembleRecord** GetDisassembledROMMemoryMap();
     void LoadBank0and1FromROM(u8* pTheROM);
     void MemoryDump(const char* szFilePath);
     void PerformDMA(u8 value);
@@ -96,8 +96,8 @@ private:
     IORegistersMemoryRule* m_pIORegistersMemoryRule;
     MemoryRule* m_pCurrentMemoryRule;
     u8* m_pMap;
-    stDisassembleRecord* m_pDisassembledMap;
-    stDisassembleRecord* m_pDisassembledROMMap;
+    stDisassembleRecord** m_pDisassembledMap;
+    stDisassembleRecord** m_pDisassembledROMMap;
     std::vector<stDisassembleRecord*> m_Breakpoints;
     stDisassembleRecord* m_pRunToBreakpoint;
     bool m_bCGB;

@@ -47,6 +47,7 @@ public:
     bool RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer = false, bool step = false, bool stopOnBreakpoints = false);
     bool LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
     bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
+    void SaveDisassembledROM();
     void SaveMemoryDump();
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);

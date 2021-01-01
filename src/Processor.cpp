@@ -393,35 +393,59 @@ void Processor::UpdateGameShark()
 
 bool Processor::Disassemble(u16 address)
 {
-    Memory::stDisassembleRecord* memoryMap = m_pMemory->GetDisassembledMemoryMap();
-    Memory::stDisassembleRecord* romMap = m_pMemory->GetDisassembledROMMemoryMap();
+    Memory::stDisassembleRecord** memoryMap = m_pMemory->GetDisassembledMemoryMap();
+    Memory::stDisassembleRecord** romMap = m_pMemory->GetDisassembledROMMemoryMap();
 
-    Memory::stDisassembleRecord* map = NULL;
+    Memory::stDisassembleRecord** map = NULL;
 
     int offset = address;
     int bank = 0;
+    bool rom = false;
 
     if ((address & 0xC000) == 0x0000)
     {
         bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank0Index();
         offset = (0x4000 * bank) + address;
         map = romMap;
+        rom = true;
     }
     else if ((address & 0xC000) == 0x4000)
     {
         bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank1Index();
         offset = (0x4000 * bank) + (address & 0x3FFF);
         map = romMap;
+        rom = true;
     }
     else
     {
         map = memoryMap;
+        rom = false;
     }
 
-    if (map[offset].size == 0)
+    if (!IsValidPointer(map[offset]))
     {
-        map[offset].bank = bank;
-        map[offset].address = address;
+        map[offset] = new Memory::stDisassembleRecord;
+
+        if (rom)
+        {
+            map[offset]->address = offset & 0x3FFF;
+            map[offset]->bank = offset >> 14;
+        }
+        else
+        {
+            map[offset]->address = 0;
+            map[offset]->bank = 0;
+        }
+
+        map[offset]->name[0] = 0;
+        map[offset]->bytes[0] = 0;
+        map[offset]->size = 0;
+    }
+
+    if (map[offset]->size == 0)
+    {
+        map[offset]->bank = bank;
+        map[offset]->address = address;
 
         u8 bytes[4];
 
@@ -439,9 +463,9 @@ bool Processor::Disassemble(u16 address)
 
         stOPCodeInfo info = cb ? kOPCodeCBNames[opcode] : kOPCodeNames[opcode];
 
-        map[offset].size = info.size;
+        map[offset]->size = info.size;
 
-        map[offset].bytes[0] = 0;
+        map[offset]->bytes[0] = 0;
 
         for (int i = 0; i < 4; i++)
         {
@@ -449,39 +473,39 @@ bool Processor::Disassemble(u16 address)
             {
                 char value[8];
                 sprintf(value, "%02X", bytes[i]);
-                strcat(map[offset].bytes, value);
+                strcat(map[offset]->bytes, value);
             }
             else
             {
-                strcat(map[offset].bytes, "  ");
+                strcat(map[offset]->bytes, "  ");
             }
 
             if (i < 3)
-                strcat(map[offset].bytes, " ");
+                strcat(map[offset]->bytes, " ");
         }
 
         switch (info.type)
         {
             case 0:
-                strcpy(map[offset].name, info.name);
+                strcpy(map[offset]->name, info.name);
                 break;
             case 1:
-                sprintf(map[offset].name, info.name, bytes[1]);
+                sprintf(map[offset]->name, info.name, bytes[1]);
                 break;
             case 2:
-                sprintf(map[offset].name, info.name, (bytes[2] << 8) | bytes[1]);
+                sprintf(map[offset]->name, info.name, (bytes[2] << 8) | bytes[1]);
                 break;
             case 3:
-                sprintf(map[offset].name, info.name, (s8)bytes[1]);
+                sprintf(map[offset]->name, info.name, (s8)bytes[1]);
                 break;
             case 4:
-                sprintf(map[offset].name, info.name, address + info.size + (s8)bytes[1], (s8)bytes[1]);
+                sprintf(map[offset]->name, info.name, address + info.size + (s8)bytes[1], (s8)bytes[1]);
                 break;
             case 5:
-                sprintf(map[offset].name, info.name, bytes[1], kRegisterNames[bytes[1]]);
+                sprintf(map[offset]->name, info.name, bytes[1], kRegisterNames[bytes[1]]);
                 break;
             default:
-                strcpy(map[offset].name, "PARSE ERROR");
+                strcpy(map[offset]->name, "PARSE ERROR");
         }
     }
 
@@ -490,7 +514,7 @@ bool Processor::Disassemble(u16 address)
 
     if (IsValidPointer(runtobreakpoint))
     {
-        if (runtobreakpoint == &map[offset])
+        if (runtobreakpoint == map[offset])
         {
             m_pMemory->SetRunToBreakpoint(NULL);
             return true;
@@ -502,7 +526,7 @@ bool Processor::Disassemble(u16 address)
     {
         for (long unsigned int b = 0; b < breakpoints->size(); b++)
         {
-            if ((*breakpoints)[b] == &map[offset])
+            if ((*breakpoints)[b] == map[offset])
             {
                 return true;
             }
