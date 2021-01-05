@@ -1,0 +1,112 @@
+[
+    {
+        "id": 1001,
+        "title": "Apple Cake",
+        "prepTime": 0,
+        "cookTime": 2700,
+        "servings": "8",
+        "ingredients": "1 2/3 cups flour\n1/2 cup brown sugar\n1 tsp baking powder\n1 tsp cinnamon powder\n2/3 cup almond milk\n1/3 cup canola oil\n1 1/2 tsp vanilla\n1 tbsp apple cider vinegar\n2 apples, peeled and thinly sliced\ncanola oil spray\npowdered sugar\n1/2 tsp cinnamon",
+        "directions": "Preheat oven to 360F. In large bowl mix together all dry ingredients. In a separate large bowl mix together all wet ingredients. Using a hand mixer or whisk, add dry ingredients to the wet ingredients and mix together well until you get a smooth batter.\nLine a baking tin with baking paper and then spray the sides with oil. Pour batter into the cake tin and spread evenly. Place the apple slices on the batter in a star shape.\nBake the cake in the preheated oven for 35 minutes. Let cool, then sprinkle with powdered sugar and cinnamon.",
+        "isFavorite": true,
+        "addedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Dessert"],
+        "imageNames": ["Cartridge", "Cartridge", "Cartridge"]
+    },
+    
+    {
+        "id": 1002,
+        "title": "Chickpea Curry",
+        "prepTime": 0,
+        "cookTime": 1500,
+        "servings": "3",
+        "ingredients": "2 medium onions, diced\n1 bell pepper, seeded and diced\n2 carrots, diced\n2 tbsp olive oil\n3 cloves garlic, chopped\n1/4 cup lime juice\n1-2 tsp curry paste\n1 can coconut milk (1 can = 1.5 cups)\n1 can chickpeas, drained and rinsed\n1-2 tbsp soy sauce\n2-3 medium tomato\n1 cup basil, fresh\n1 tsp maple syrup\n1 tsp cilantro",
+        "directions": "Add oil, carrots, bell peppers, and onions into a large pan and cook on a low-medium heat until onions start to soften and turn clear, about 5 minutes. Add garlic and cook for 1 minute. Add curry paste and coconut milk, stirring until curry is dissolved. Add chickpeas and soy sauce, and cook on a medium heat for 5 minutes, bringing the curry to a boil. If it starts to burn, reduce heat immediately. Add the chopped tomatoes, chopped basil, lime juice, soy sauce and gently simmer the curry for another 2 minutes. If desired add a second tbsp soy sauce and the syrup or brown sugar. Give it another stir.\nGarnish with cilantro and serve with lime wedges and rice.",
+        "isFavorite": false,
+        "addedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Main Course"],
+        "imageNames": ["Cartridge", "Cartridge", "Cartridge"]
+    },
+    
+    {
+        "id": 1003,
+        "title": "Chocolate Peanut Butter Truffles",
+        "prepTime": 0,
+        "cookTime": 600,
+        "servings": "12",
+        "ingredients": "1/2 cup creamy peanut butter\n1 tbs vanilla\n1 cup+ powdered sugar\n8 oz semi-sweet chocolate chips",
+        "directions": "Mix peanut butter, vanilla, powdered sugar until combined well into a dough ball. If needed, add more powdered sugar a little at a time until mixture holds together in a large ball.\nShape into 1-inch balls, place on a baking sheet, cover and refrigerate for at least 20 minutes to allow to firm up. Dough balls should hold shape before dipping in chocolate. Add more refrigeration time if necessary.\nMelt chocolate, and dip peanut butter balls one at a time, allowing excess to drip off. Place on waxed paper lined baking sheet, top with a sprinkle of coarse or flaky salt. Cover and refrigerate until ready to serve.",
+        "isFavorite": false,
+        "collections": ["Dessert"],
+        "imageNames": ["Cartridge", "Cartridge", "Cartridge"]
+    },
+
+    {
+        "id": 1004,
+        "title": "Passion Fruit-Mango Sorbet",
+        "prepTime": 0,
+        "cookTime": 14400,
+        "servings": "4",
+        "ingredients": "4 cups mangoes, peeled and diced\n1 cup passion fruit, peeled and diced\n1/4 cup water\n3/4 cup sugar\n1 tbs lime juice, more or less to taste\n1/2 teaspoon kosher salt",
+        "directions": "Pack diced mangoes in blender with water and blend on high speed until very smooth, about 30 seconds. Pour through a fine-mesh strainer into a large measuring cup, pushing purée through strainer with a spoon, until you have 3 cups of purée. Reserve remainder for another use.\nTransfer strained purée into a large bowl and whisk in sugar until well dissolved. Whisk in lime juice and salt in small increments, adding more to taste.\nChill purée in refrigerator until very cold, 2 to 3 hours. Churn in ice cream maker according to manufacturer's instructions, then transfer to airtight container and chill in freezer at least 4 hours before serving.",
+        "isFavorite": true,
+        "addedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Dessert"],
+        "imageNames": ["Cartridge", "Cartridge", "Cartridge"]
+    },
+
+    {
+        "id": 1005,
+        "title": "Mushroom Tapioca",
+        "prepTime": 0,
+        "cookTime": 600,
+        "servings": "1",
+        "ingredients": "Brazilian tapioca flour\n1 garlic clove, minced\n1/4 onion, diced\n1 cup mushrooms, sliced\n1/2 cup kale\n1/2 cup carrots shredded\n2 tbsp olive oil",
+        "directions": "In a pan, pour the olive oil and heat up until sizzling. Add the garlic, and stir gently for about 30 seconds or until slightly golden. Add the onions, and stir for 2 minutes or until soft. Then, add the mushrooms, and stir until soft. Finally, add the kale and carrots, and mix them for about 3 minutes. Remove from heat and reserve.\nIn a bowl, size the tapioca until there is around 3 1/2 ounces of soft, homogenous flour. Heat up a large non-stick skillet until searing hot. Then, add the tapioca, and use a spoon to spread it until you have a smooth half inch layer on the entire surface. Wait 2 minutes or until you can lift the edges of the tapioca with a spatula, and flip over. Remove from heat. Add the mushroom filling on one half of the tapioca and fold the other half over it.",
+        "isFavorite": false,
+        "addedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Main Course"],
+        "imageNames": ["Cartridge", "Cartridge", "Cartridge"]
+    },
+
+    {
+        "id": 1006,
+        "title": "Spicy Tomato Sauce",
+        "prepTime": 0,
+        "cookTime": 4800,
+        "servings": "1-2",
+        "ingredients": "2 large onions, finely chopped\n10 cloves garlic, minced\n1 28oz can of peeled tomatoes\n1 1/2 cup basil, chopped\n2 tsp red crushed peppers\n3 springs fresh thyme leaves, pulled off stem\n1/4 cup olive oil\nsalt / freshly ground black pepper\n1 tsp sugar",
+        "directions": "In a large pot, heat olive oil on medium heat. Add minced garlic and sauté for a few seconds until fragrant. Add chopped onions and cook until translucent (be sure not to burn or over-cook). Add crushed red peppers and thyme leaves and cook for about 30 more seconds. Add tomatoes and adjust heat to maintain a gentle simmer and cook for 1 hour. The sauce will reduce by about 1/2 or until it has a thick consistency. Add in the chopped basil and sugar and simmer for another 30 minutes. Season with salt and freshly ground black pepper to taste.\nOnce the sauce is reduced and reaches desired consistency, use immediately or cool and store in fridge or freezer.",
+        "isFavorite": true,
+        "addedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Main Course"],
+        "imageNames": ["Cartridge", "Cartridge", "Cartridge"]
+    },
+
+    {
+        "id": 1007,
+        "title": "Three Bean Salad",
+        "prepTime": 0,
+        "cookTime": 600,
+        "servings": "8",
+        "ingredients": "1/2 cup sugar\n1 small onion, thinly sliced\n1 small shallot, thinly sliced\n1 tsp celery seed or celery salt\n1/2 tsp salt\n3/4 tsp pepper\n1/2 cup vinegar\n1/4 cup olive oil\n1 tbs soy sauce\n3 cans (16oz each) beans*, drained\n*Cooked green, yellow/wax, red kidney, garbanzo, lima, or soy beans can be used",
+        "directions": "In a large bowl, combine all ingredients and toss well. Cover and refrigerate for several hours before serving.",
+        "isFavorite": false,
+        "addedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Sides"],
+        "imageNames": ["Cartridge", "Cartridge", "Cartridge"]
+    },
+
+    {
+        "id": 1008,
+        "title": "Vegetable Dumplings",
+        "prepTime": 0,
+        "cookTime": 5400,
+        "servings": "5-7",
+        "ingredients": "1 tbsp vegetable oil\n1 tbsp ginger, minced\n1 garlic clove, minced\n3 cups Napa cabbage, shredded\n2 cups portobello or shiitake mushrooms, chopped\n1 cup carrots, shredded\n4 green onions, finely sliced\n7 medium jalapeños, finely chopped\n9 tbsp soy sauce\n1 1/2 tbsp sesame oil\nSalt and pepper\n1 tbsp sugar\n2 packs of dumpling wraps\n1/2 cup water",
+        "directions": "Add vegetable oil, ginger, garlic, and cabbage in a large skillet or wok, and cook on a medium heat until cabbage begins to wilt and shrink down. Add mushrooms, green onion, carrots, and jalapeños, along with the soy sauce and sesame oil. Continue to cook until liquid begins to evaporate. Season with pepper, to taste, and salt only if needed.\nTo assemble the dumplings, put about 1 tbsp of filling in the center of one wrap. Fold wrap in half, and use your opposite thumbs to fold a tiny pleat on either side of the dumpling, then press firmly to seal the dumpling closed. You may need to dab a little water under the pleat to make it stick closed. Put dumplings in boiling water and cook for 7 minutes. Serve with black vinegar or soy sauce.",
+        "isFavorite": false,
+        "collections": ["Sides", "Main Course"],
+        "imageNames": ["Cartridge", "Cartridge", "Cartridge"]
+    }
+    
+]

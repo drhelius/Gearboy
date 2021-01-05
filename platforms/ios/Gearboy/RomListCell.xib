@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="collection view cell content view" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="romListCell" id="cqd-WL-g3o" customClass="RomListCell" customModule="Gearboy" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="250" height="250"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="Mkx-zz-mfb">
+                <rect key="frame" x="0.0" y="0.0" width="250" height="250"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="placeholder" translatesAutoresizingMaskIntoConstraints="NO" id="8qC-zT-v4j">
+                        <rect key="frame" x="0.0" y="0.0" width="250" height="250"/>
+                    </imageView>
+                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="favorite" translatesAutoresizingMaskIntoConstraints="NO" id="TcV-ev-Wej">
+                        <rect key="frame" x="212" y="8" width="30" height="30"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="30" id="CvJ-pm-Z4q"/>
+                            <constraint firstAttribute="height" constant="30" id="eVW-BN-Fak"/>
+                        </constraints>
+                    </imageView>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ITi-tw-xSb">
+                        <rect key="frame" x="0.0" y="187.5" width="250" height="62.5"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Recipe Title" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.75" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="DOp-Aj-fLO">
+                                <rect key="frame" x="20" y="21" width="210" height="20.5"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" name="overlayBackground"/>
+                        <constraints>
+                            <constraint firstItem="DOp-Aj-fLO" firstAttribute="centerX" secondItem="ITi-tw-xSb" secondAttribute="centerX" id="65E-9I-Yem"/>
+                            <constraint firstItem="DOp-Aj-fLO" firstAttribute="centerY" secondItem="ITi-tw-xSb" secondAttribute="centerY" id="IhH-XA-gJb"/>
+                            <constraint firstItem="DOp-Aj-fLO" firstAttribute="leading" secondItem="ITi-tw-xSb" secondAttribute="leading" constant="20" symbolic="YES" id="SRb-7V-MFI"/>
+                            <constraint firstAttribute="trailing" secondItem="DOp-Aj-fLO" secondAttribute="trailing" constant="20" symbolic="YES" id="u8e-OQ-71Q"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="trailing" secondItem="TcV-ev-Wej" secondAttribute="trailing" constant="8" id="4DN-0R-0hg"/>
+                    <constraint firstItem="ITi-tw-xSb" firstAttribute="leading" secondItem="Mkx-zz-mfb" secondAttribute="leading" id="8Zz-CG-9pR"/>
+                    <constraint firstItem="TcV-ev-Wej" firstAttribute="top" secondItem="Mkx-zz-mfb" secondAttribute="top" constant="8" id="Izp-b5-0bW"/>
+                    <constraint firstItem="8qC-zT-v4j" firstAttribute="leading" secondItem="Mkx-zz-mfb" secondAttribute="leading" id="OKn-kP-9l1"/>
+                    <constraint firstItem="8qC-zT-v4j" firstAttribute="top" secondItem="Mkx-zz-mfb" secondAttribute="top" id="kKc-em-fTs"/>
+                    <constraint firstAttribute="trailing" secondItem="8qC-zT-v4j" secondAttribute="trailing" id="n1z-3p-K8d"/>
+                    <constraint firstItem="ITi-tw-xSb" firstAttribute="height" secondItem="Mkx-zz-mfb" secondAttribute="height" multiplier="0.25" id="qjE-bC-VJR"/>
+                    <constraint firstAttribute="bottom" secondItem="8qC-zT-v4j" secondAttribute="bottom" id="rPL-n2-tSX"/>
+                    <constraint firstAttribute="bottom" secondItem="ITi-tw-xSb" secondAttribute="bottom" id="z3r-eN-DVW"/>
+                    <constraint firstAttribute="trailing" secondItem="ITi-tw-xSb" secondAttribute="trailing" id="zTg-hP-leU"/>
+                </constraints>
+            </collectionViewCellContentView>
+            <size key="customSize" width="348" height="201"/>
+            <connections>
+                <outlet property="favoriteImageView" destination="TcV-ev-Wej" id="blg-OL-zoc"/>
+                <outlet property="imageView" destination="8qC-zT-v4j" id="t0t-Tk-6kD"/>
+                <outlet property="titleLabel" destination="DOp-Aj-fLO" id="Gxj-nX-1F5"/>
+            </connections>
+            <point key="canvasLocation" x="-149.27536231884059" y="-19.084821428571427"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <image name="favorite" width="80" height="80"/>
+        <image name="placeholder" width="230" height="183"/>
+        <namedColor name="overlayBackground">
+            <color red="1" green="1" blue="1" alpha="0.80000001192092896" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>
