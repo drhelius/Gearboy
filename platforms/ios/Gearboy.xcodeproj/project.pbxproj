@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 50;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -58,7 +58,6 @@
 
 /* Begin PBXFileReference section */
 		1F7AA12D248700600097AAEE /* RecipeCollectionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCollectionsViewController.swift; sourceTree = "<group>"; };
-		2BDB5C8B259FB9030026FDA1 /* Gearboy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gearboy.entitlements; sourceTree = "<group>"; };
 		680A3B4E242D332E00630335 /* RecipeListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeListViewController.swift; sourceTree = "<group>"; };
 		680A3B50242D389200630335 /* RecipeListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeListCell.swift; sourceTree = "<group>"; };
 		6840AA69248B00F300BBED58 /* TabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
@@ -97,6 +96,7 @@
 		684EB394248AB04A00CD353F /* PassionfruitMangoSorbet-small.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "PassionfruitMangoSorbet-small.jpg"; sourceTree = "<group>"; };
 		684EB395248AB04A00CD353F /* ThreeBeanSalad-small.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "ThreeBeanSalad-small.jpg"; sourceTree = "<group>"; };
 		686C74242436722F00BED6AD /* RecipeEditorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeEditorViewController.swift; sourceTree = "<group>"; };
+		68B706542483FE420047D7E8 /* Gearboy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gearboy.entitlements; sourceTree = "<group>"; };
 		68DC4A01247FFE5100579B91 /* RecipeListCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RecipeListCell.xib; sourceTree = "<group>"; };
 		68DC4A0F248049FA00579B91 /* RecipeDetailTopViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailTopViewController.swift; sourceTree = "<group>"; };
 		68DC4A1124804F9E00579B91 /* RecipeDetailBottomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailBottomViewController.swift; sourceTree = "<group>"; };
@@ -123,7 +123,6 @@
 		684CD653242BCF60004090E5 = {
 			isa = PBXGroup;
 			children = (
-				2BDB5C8B259FB9030026FDA1 /* Gearboy.entitlements */,
 				684CD65E242BCF60004090E5 /* Gearboy */,
 				684CD65D242BCF60004090E5 /* Products */,
 			);
@@ -140,6 +139,7 @@
 		684CD65E242BCF60004090E5 /* Gearboy */ = {
 			isa = PBXGroup;
 			children = (
+				68B706542483FE420047D7E8 /* Gearboy.entitlements */,
 				684CD65F242BCF60004090E5 /* AppDelegate.swift */,
 				684CD661242BCF60004090E5 /* SceneDelegate.swift */,
 				68FBC9FD2437A6A100002F7C /* SplitViewDelegate.swift */,
@@ -244,7 +244,7 @@
 				};
 			};
 			buildConfigurationList = 684CD657242BCF60004090E5 /* Build configuration list for PBXProject "Gearboy" */;
-			compatibilityVersion = "Xcode 12.0";
+			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -415,7 +415,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -470,7 +470,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -484,18 +484,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Gearboy.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Gearboy/Gearboy.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = V3F66RFMSJ;
-				"ENABLE_HARDENED_RUNTIME[sdk=macosx*]" = YES;
-				INFOPLIST_FILE = Gearboy/Info.plist;
-				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.3;
+				INFOPLIST_FILE = "$(SRCROOT)/Gearboy/Info.plist";
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = me.ignaciosanche.gearboy;
+				MARKETING_VERSION = 3.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.ignaciosanchez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTS_MACCATALYST = YES;
@@ -508,18 +508,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Gearboy.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Gearboy/Gearboy.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = V3F66RFMSJ;
-				"ENABLE_HARDENED_RUNTIME[sdk=macosx*]" = YES;
-				INFOPLIST_FILE = Gearboy/Info.plist;
-				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.3;
+				INFOPLIST_FILE = "$(SRCROOT)/Gearboy/Info.plist";
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = me.ignaciosanche.gearboy;
+				MARKETING_VERSION = 3.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.ignaciosanchez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTS_MACCATALYST = YES;
