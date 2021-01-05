@@ -72,7 +72,9 @@ xcuserdata/
 *.xccheckout
 
 #binaries
-platforms/**/gearboy
+platforms/linux/**/gearboy
+platforms/macos/**/gearboy
+platforms/raspberry*/**/gearboy
 
 #Switch
 *.a
