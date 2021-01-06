@@ -58,15 +58,6 @@ class RomListViewController: UIViewController {
             }
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        guard let navController = segue.destination as? UINavigationController else { return }
-        
-        // Prevent the user from dismissing the recipe editor by swiping down.
-        if let recipeEditor = navController.topViewController as? RomEditorViewController {
-            recipeEditor.isModalInPresentation = true
-        }
-    }
-    
 }
 
 extension RomListViewController: UICollectionViewDelegate {
@@ -163,27 +154,3 @@ extension RomListViewController {
 
 }
 
-// MARK: - Unwind Segues
-extension RomListViewController {
-    
-    @IBAction func cancelRomEditor(_ unwindSegue: UIStoryboardSegue) {
-        // Do nothing.
-    }
-    
-    @IBAction func saveRomEditor(_ unwindSegue: UIStoryboardSegue) {
-        guard
-            let recipeEditor = unwindSegue.source as? RomEditorViewController,
-            let recipe = recipeEditor.editedRecipe()
-        else { return }
-
-        let recipeToSelect = dataStore.add(recipe)
-
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            if let indexPath = dataSource.indexPath(for: recipeToSelect) {
-                collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .top)
-                self.collectionView(collectionView, didSelectItemAt: indexPath)
-            }
-        }
-    }
-
-}

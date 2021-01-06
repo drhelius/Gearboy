@@ -39,28 +39,7 @@ class RomDetailViewController: UIViewController, RomController {
             toggleNoRecipeView(show: true, animated: false)
         }
 
-        if let childController = children.first(where: { $0 is RomDetailTopViewController }) as? RomDetailTopViewController {
-            childController.recipe = recipe
-            topChildController = childController
-        }
-
-        if let childController = children.first(where: { $0 is RomDetailBottomViewController }) as? RomDetailBottomViewController {
-            bottomChildController = childController
-            
-            // Replace the bottom controller with one specific to iPad.
-            if traitCollection.userInterfaceIdiom == .pad {
-                if let storyboard = self.storyboard {
-                    if let newChildController = RomDetailBottomAltViewController.instantiate(with: storyboard) {
-                        let containerView = childController.view.superview
-                        hideContent(controller: childController)
-                        displayContent(controller: newChildController, to: containerView)
-                        bottomChildController = newChildController
-                    }
-                }
-            }
-            
-            bottomChildController?.recipe = recipe
-        }
+        
         
         // Listen for recipe changes in the data store.
         dataStoreSubscriber = dataStore.$allRecipes
@@ -91,18 +70,6 @@ class RomDetailViewController: UIViewController, RomController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         navigationController?.setToolbarHidden(true, animated: animated)
-    }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        guard
-            let navController = segue.destination as? UINavigationController,
-            let recipeEditor = navController.topViewController as? RomEditorViewController
-            else {
-                return
-        }
-        
-        recipeEditor.recipe = self.recipe
-        recipeEditor.isModalInPresentation = true
     }
     
 }
@@ -158,16 +125,6 @@ extension RomDetailViewController {
         present(activityViewController, animated: true, completion: nil)
     }
     
-    @objc
-    func editRecipe(_ sender: Any?) {
-        if recipe != nil {
-            guard let recipeEditor = RomEditorViewController.instantiateFromStoryboard() else { return }
-            recipeEditor.recipe = recipe
-            let navigationController = UINavigationController(rootViewController: recipeEditor)
-            present(navigationController, animated: true, completion: nil)
-        }
-    }
-    
 }
 
 // MARK: - UI Helpers
@@ -187,7 +144,7 @@ extension RomDetailViewController {
         topChildController?.recipe = recipe
         bottomChildController?.recipe = recipe
         
-        let imageName = recipe.isFavorite ? "heart.fill" : "heart"
+        let imageName = recipe.isFavorite ? "star.fill" : "star"
         recipeFavoriteButton.image = UIImage(systemName: imageName)
         
         toggleNoRecipeView(show: false)
@@ -204,7 +161,7 @@ extension RomDetailViewController {
         label.textColor = UIColor.systemGray2
         label.font = UIFont.preferredFont(forTextStyle: .largeTitle)
         label.adjustsFontForContentSizeCategory = true
-        label.text = "No Recipe Selected"
+        label.text = "No ROM Selected"
         
         noRecipeView = UIView()
         noRecipeView.translatesAutoresizingMaskIntoConstraints = false
@@ -265,23 +222,4 @@ extension RomDetailViewController {
         controller.view.removeFromSuperview()
         controller.removeFromParent()
     }
-}
-
-// MARK: - Unwind Segues
-
-extension RomDetailViewController {
-    
-    @IBAction func cancelRomEditor(_ unwindSegue: UIStoryboardSegue) {
-        // Do nothing.
-    }
-    
-    @IBAction func saveRomEditor(_ unwindSegue: UIStoryboardSegue) {
-        guard
-            let recipeEditor = unwindSegue.source as? RomEditorViewController,
-            let recipe = recipeEditor.editedRecipe()
-        else { return }
-        
-        self.recipe = dataStore.update(recipe)
-    }
-
 }

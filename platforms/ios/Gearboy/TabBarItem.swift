@@ -13,26 +13,26 @@ enum TabBarItem: Int, CaseIterable {
     func title() -> String {
         switch self {
         case .all:
-            return "All Recipes"
+            return "All ROMs"
         case .favorites:
             return "Favorites"
         case .recents:
             return "Recents"
         case .collections:
-            return "Collections"
+            return "Settings"
         }
     }
     
     func image() -> UIImage? {
         switch self {
         case .all:
-            return UIImage(systemName: "tray")
+            return UIImage(systemName: "memorychip")
         case .favorites:
-            return UIImage(systemName: "heart.circle")
+            return UIImage(systemName: "star")
         case .recents:
             return UIImage(systemName: "clock")
         case .collections:
-            return UIImage(systemName: "folder")
+            return UIImage(systemName: "gearshape")
         }
     }
 }

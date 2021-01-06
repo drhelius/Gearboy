@@ -38,7 +38,6 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <toolbar key="toolbar" opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="7Rt-WY-MbM">
-                        <rect key="frame" x="0.0" y="764" width="414" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </toolbar>
                     <connections>
@@ -62,11 +61,11 @@
             </objects>
             <point key="canvasLocation" x="-5539" y="-1744"/>
         </scene>
-        <!--All Recipes-->
+        <!--All ROMs-->
         <scene sceneID="sB8-Wo-163">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="xn4-uj-QxD" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="All Recipes" image="tray" catalog="system" id="oTW-gz-Ufu"/>
+                    <tabBarItem key="tabBarItem" title="All ROMs" image="memorychip" catalog="system" id="oTW-gz-Ufu"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="SZw-Ln-bgZ">
                         <rect key="frame" x="0.0" y="44" width="414" height="44"/>
@@ -81,7 +80,7 @@
             </objects>
             <point key="canvasLocation" x="-2425" y="-3120"/>
         </scene>
-        <!--Rom List View Controller-->
+        <!--Gearboy-->
         <scene sceneID="LQW-O7-eDB">
             <objects>
                 <viewController storyboardIdentifier="RecipeList" id="xKz-wn-otP" customClass="RomListViewController" customModule="Gearboy" customModuleProvider="target" sceneMemberID="viewController">
@@ -110,12 +109,8 @@
                             <constraint firstItem="ALa-qa-aXp" firstAttribute="leading" secondItem="2KU-zs-KXb" secondAttribute="leading" id="aGM-uh-OJp"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" id="8rT-Wu-lCm">
-                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="pJI-05-D3V">
-                            <connections>
-                                <segue destination="RYw-CG-TMf" kind="presentation" id="Ony-AJ-bHl"/>
-                            </connections>
-                        </barButtonItem>
+                    <navigationItem key="navigationItem" title="Gearboy" id="8rT-Wu-lCm">
+                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="pJI-05-D3V"/>
                     </navigationItem>
                     <connections>
                         <outlet property="collectionView" destination="ALa-qa-aXp" id="sRf-VL-3q3"/>
@@ -129,7 +124,7 @@
         <scene sceneID="web-aN-hnN">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="e0a-f4-UxG" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Favorites" image="heart.circle" catalog="system" id="jrS-4K-416"/>
+                    <tabBarItem key="tabBarItem" title="Favorites" image="star" catalog="system" id="jrS-4K-416"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="UaY-vi-lDV">
                         <rect key="frame" x="0.0" y="44" width="414" height="44"/>
@@ -144,7 +139,7 @@
             </objects>
             <point key="canvasLocation" x="-2425" y="-2454"/>
         </scene>
-        <!--Rom List View Controller-->
+        <!--Gearboy-->
         <scene sceneID="ZyN-Zw-mEA">
             <objects>
                 <viewController id="IiH-H0-QuL" customClass="RomListViewController" customModule="Gearboy" customModuleProvider="target" sceneMemberID="viewController">
@@ -173,12 +168,8 @@
                             <constraint firstItem="NIu-Z8-Xeg" firstAttribute="leading" secondItem="ZoG-uh-qxa" secondAttribute="leading" id="Y0a-x4-UgL"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" id="hrc-HU-tdQ">
-                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="nkU-qC-8rC">
-                            <connections>
-                                <segue destination="RYw-CG-TMf" kind="presentation" id="B4y-9J-2M7"/>
-                            </connections>
-                        </barButtonItem>
+                    <navigationItem key="navigationItem" title="Gearboy" id="hrc-HU-tdQ">
+                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="nkU-qC-8rC"/>
                     </navigationItem>
                     <connections>
                         <outlet property="collectionView" destination="NIu-Z8-Xeg" id="idO-hj-Myx"/>
@@ -207,7 +198,7 @@
             </objects>
             <point key="canvasLocation" x="-2429" y="-1771"/>
         </scene>
-        <!--Rom List View Controller-->
+        <!--Gearboy-->
         <scene sceneID="19a-Qh-tSa">
             <objects>
                 <viewController id="qX5-FO-R0M" customClass="RomListViewController" customModule="Gearboy" customModuleProvider="target" sceneMemberID="viewController">
@@ -236,12 +227,8 @@
                             <constraint firstItem="RA0-NP-kEX" firstAttribute="top" secondItem="QTd-W1-ILY" secondAttribute="top" id="m46-yQ-6qa"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" id="WkS-p0-JN6">
-                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="PEf-bX-iQj">
-                            <connections>
-                                <segue destination="RYw-CG-TMf" kind="presentation" id="eZm-Th-phD"/>
-                            </connections>
-                        </barButtonItem>
+                    <navigationItem key="navigationItem" title="Gearboy" id="WkS-p0-JN6">
+                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="PEf-bX-iQj"/>
                     </navigationItem>
                     <connections>
                         <outlet property="collectionView" destination="RA0-NP-kEX" id="ixh-hq-Tgn"/>
@@ -251,32 +238,21 @@
             </objects>
             <point key="canvasLocation" x="-1571" y="-1771"/>
         </scene>
-        <!--Collections-->
+        <!--Settings-->
         <scene sceneID="5fP-vC-ZTC">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="WDE-LG-1Od" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Collections" image="folder" catalog="system" id="Rhr-Xz-DHf"/>
+                    <tabBarItem key="tabBarItem" title="Settings" image="gearshape" catalog="system" id="Rhr-Xz-DHf"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="jNw-3m-HOK">
                         <rect key="frame" x="0.0" y="44" width="414" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="L0p-9U-k9P" kind="relationship" relationship="rootViewController" id="2Ny-ml-INP"/>
-                    </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="kmU-n1-YES" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-2465" y="-994"/>
-        </scene>
-        <!--RomEditorWithNavigation-->
-        <scene sceneID="kzf-FY-RGV">
-            <objects>
-                <viewControllerPlaceholder storyboardIdentifier="RomEditorWithNavigation" storyboardName="RomEditor" referencedIdentifier="RomEditorWithNavigation" id="RYw-CG-TMf" sceneMemberID="viewController"/>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="Lhr-gG-vJk" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-526" y="-2471"/>
         </scene>
         <!--RomDetail-->
         <scene sceneID="fe9-ah-iRU">
@@ -288,69 +264,12 @@
             </objects>
             <point key="canvasLocation" x="-4042" y="-461"/>
         </scene>
-        <!--Collections-->
-        <scene sceneID="izq-Gp-Wuz">
-            <objects>
-                <tableViewController id="L0p-9U-k9P" customClass="RomCollectionsViewController" customModule="Gearboy" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="120" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="bBl-zB-1HZ">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                        <prototypes>
-                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Category Row Cell" id="MtA-Z2-LDh" customClass="RecipeCollectionRowCell" customModule="Gearboy" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="28" width="414" height="120"/>
-                                <autoresizingMask key="autoresizingMask"/>
-                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="MtA-Z2-LDh" id="x6L-LF-985">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="120"/>
-                                    <autoresizingMask key="autoresizingMask"/>
-                                    <subviews>
-                                        <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" showsVerticalScrollIndicator="NO" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="35D-qM-Y44">
-                                            <rect key="frame" x="0.0" y="0.0" width="120" height="120"/>
-                                            <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
-                                            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                                            <collectionViewFlowLayout key="collectionViewLayout" scrollDirection="horizontal" automaticEstimatedItemSize="YES" minimumLineSpacing="15" minimumInteritemSpacing="15" sectionInsetReference="layoutMargins" id="92g-GB-qK9">
-                                                <size key="itemSize" width="250" height="250"/>
-                                                <size key="headerReferenceSize" width="0.0" height="0.0"/>
-                                                <size key="footerReferenceSize" width="0.0" height="0.0"/>
-                                                <inset key="sectionInset" minX="0.0" minY="15" maxX="15" maxY="0.0"/>
-                                            </collectionViewFlowLayout>
-                                            <cells/>
-                                            <connections>
-                                                <outlet property="dataSource" destination="MtA-Z2-LDh" id="fWw-3y-p4h"/>
-                                                <outlet property="delegate" destination="MtA-Z2-LDh" id="UBH-Fm-eqD"/>
-                                            </connections>
-                                        </collectionView>
-                                    </subviews>
-                                </tableViewCellContentView>
-                                <connections>
-                                    <outlet property="collectionView" destination="35D-qM-Y44" id="nvo-Q8-V5N"/>
-                                </connections>
-                            </tableViewCell>
-                        </prototypes>
-                        <connections>
-                            <outlet property="dataSource" destination="L0p-9U-k9P" id="UpO-2E-VxM"/>
-                            <outlet property="delegate" destination="L0p-9U-k9P" id="j3w-XH-qTh"/>
-                        </connections>
-                    </tableView>
-                    <navigationItem key="navigationItem" title="Collections" id="37b-mh-IvI"/>
-                    <connections>
-                        <segue destination="UmH-DM-mKJ" kind="showDetail" identifier="CollectionToDetail" id="5Mi-hY-QJc"/>
-                    </connections>
-                </tableViewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="9kL-jt-a4Y" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-1528.985507246377" y="-1001.1160714285713"/>
-        </scene>
     </scenes>
-    <inferredMetricsTieBreakers>
-        <segue reference="B4y-9J-2M7"/>
-        <segue reference="5Mi-hY-QJc"/>
-    </inferredMetricsTieBreakers>
     <resources>
         <image name="clock" catalog="system" width="128" height="121"/>
-        <image name="folder" catalog="system" width="128" height="97"/>
-        <image name="heart.circle" catalog="system" width="128" height="121"/>
-        <image name="tray" catalog="system" width="128" height="88"/>
+        <image name="gearshape" catalog="system" width="128" height="121"/>
+        <image name="memorychip" catalog="system" width="128" height="116"/>
+        <image name="star" catalog="system" width="128" height="116"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
