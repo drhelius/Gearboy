@@ -83,7 +83,7 @@
         <!--Gearboy-->
         <scene sceneID="LQW-O7-eDB">
             <objects>
-                <viewController storyboardIdentifier="RecipeList" id="xKz-wn-otP" customClass="RomListViewController" customModule="Gearboy" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="RomList" id="xKz-wn-otP" customClass="RomListViewController" customModule="Gearboy" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="AAa-mC-s9L">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

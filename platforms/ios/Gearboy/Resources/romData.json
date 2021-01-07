@@ -1,0 +1,74 @@
+[
+    {
+        "id": 1001,
+        "title": "Apple Cake",
+        "isFavorite": true,
+        "usedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Dessert"],
+        "imageName": "Cartridge"
+    },
+    
+    {
+        "id": 1002,
+        "title": "Chickpea Curry",
+        "isFavorite": false,
+        "usedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Main Course"],
+        "imageName": "Cartridge"
+    },
+    
+    {
+        "id": 1003,
+        "title": "Chocolate Peanut Butter Truffles",
+        "isFavorite": false,
+        "usedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Dessert"],
+        "imageName": "Cartridge"
+    },
+
+    {
+        "id": 1004,
+        "title": "Passion Fruit-Mango Sorbet",
+        "isFavorite": true,
+        "usedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Dessert"],
+        "imageName": "Cartridge"
+    },
+
+    {
+        "id": 1005,
+        "title": "Mushroom Tapioca",
+        "isFavorite": false,
+        "usedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Main Course"],
+        "imageName": "Cartridge"
+    },
+
+    {
+        "id": 1006,
+        "title": "Spicy Tomato Sauce",
+        "isFavorite": true,
+        "usedOn": "2019-02-04T12:00:00+00:00",
+        "collections": ["Main Course"],
+        "imageName": "Cartridge"
+    },
+
+    {
+        "id": 1007,
+        "title": "Three Bean Salad",
+        "usedOn": "2019-02-04T12:00:00+00:00",
+        "isFavorite": false,
+        "collections": ["Sides"],
+        "imageName": "Cartridge"
+    },
+
+    {
+        "id": 1008,
+        "title": "Vegetable Dumplings",
+        "usedOn": "2019-02-04T12:00:00+00:00",
+        "isFavorite": false,
+        "collections": ["Sides", "Main Course"],
+        "imageName": "Cartridge"
+    }
+    
+]

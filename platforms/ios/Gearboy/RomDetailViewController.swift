@@ -2,7 +2,7 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-The recipe detail view controller.
+The rom detail view controller.
 */
 
 import UIKit
@@ -17,13 +17,13 @@ class RomDetailViewController: UIViewController, RomController {
         return storyboard.instantiateViewController(identifier: storyboardID) as? RomDetailViewController
     }
     
-    var recipe: Rom? {
+    var rom: Rom? {
         didSet {
             updateUI()
         }
     }
     
-    @IBOutlet weak var recipeFavoriteButton: UIBarButtonItem!
+    @IBOutlet weak var romFavoriteButton: UIBarButtonItem!
     
     private var topChildController: RomController?
     private var bottomChildController: RomController?
@@ -35,23 +35,23 @@ class RomDetailViewController: UIViewController, RomController {
     override func viewDidLoad() {
         super.viewDidLoad()
         addNoRecipeView()
-        if recipe == nil {
+        if rom == nil {
             toggleNoRecipeView(show: true, animated: false)
         }
 
         
         
-        // Listen for recipe changes in the data store.
-        dataStoreSubscriber = dataStore.$allRecipes
+        // Listen for rom changes in the data store.
+        dataStoreSubscriber = dataStore.$allRoms
             .receive(on: RunLoop.main)
-            .sink { [weak self] recipes in
+            .sink { [weak self] roms in
                 guard
                     let self = self,
-                    let recipe = self.recipe,
-                    let updatedRecipe = recipes.first(where: { $0.id == recipe.id })
+                    let rom = self.rom,
+                    let updatedRecipe = roms.first(where: { $0.id == rom.id })
                 else { return }
                 
-                self.recipe = updatedRecipe
+                self.rom = updatedRecipe
             }
         
     }
@@ -79,24 +79,24 @@ class RomDetailViewController: UIViewController, RomController {
 extension RomDetailViewController {
     
     @IBAction func toggleFavorite(_ sender: Any?) {
-        guard var recipe = self.recipe else { return }
+        guard var rom = self.rom else { return }
         
-        recipe.isFavorite.toggle()
-        self.recipe = dataStore.update(recipe)
+        rom.isFavorite.toggle()
+        self.rom = dataStore.update(rom)
     }
     
     @IBAction func deleteRecipe(_ sender: Any?) {
-        guard let recipe = self.recipe else { return }
+        guard let rom = self.rom else { return }
         
         let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { (action) in
-            if dataStore.delete(recipe) {
-                self.recipe = nil
+            if dataStore.delete(rom) {
+                self.rom = nil
             }
         }
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         
-        let alert = UIAlertController(title: "Are you sure you want to delete \(recipe.title)?", message: nil, preferredStyle: .actionSheet)
+        let alert = UIAlertController(title: "Are you sure you want to delete \(rom.title)?", message: nil, preferredStyle: .actionSheet)
         alert.addAction(deleteAction)
         alert.addAction(cancelAction)
         
@@ -108,9 +108,9 @@ extension RomDetailViewController {
     }
     
     @IBAction func shareRecipe(_ sender: Any?) {
-        guard let recipe = self.recipe else { return }
+        guard let rom = self.rom else { return }
         
-        let items: [Any] = [recipe.title, recipe.fullImage]
+        let items: [Any] = [rom.title, rom.image]
         let activityViewController = UIActivityViewController(activityItems: items, applicationActivities: nil)
         activityViewController.completionWithItemsHandler = { activity, completed, items, error in
             os_log("Activity completed: %s", completed ? "true" : "false")
@@ -134,18 +134,18 @@ extension RomDetailViewController {
     fileprivate func updateUI() {
         loadViewIfNeeded()
 
-        guard  let recipe = self.recipe
+        guard  let rom = self.rom
         else {
             toggleNoRecipeView(show: true)
             return
         }
 
-        self.title = recipe.title
-        topChildController?.recipe = recipe
-        bottomChildController?.recipe = recipe
+        self.title = rom.title
+        topChildController?.rom = rom
+        bottomChildController?.rom = rom
         
-        let imageName = recipe.isFavorite ? "star.fill" : "star"
-        recipeFavoriteButton.image = UIImage(systemName: imageName)
+        let imageName = rom.isFavorite ? "star.fill" : "star"
+        romFavoriteButton.image = UIImage(systemName: imageName)
         
         toggleNoRecipeView(show: false)
     }

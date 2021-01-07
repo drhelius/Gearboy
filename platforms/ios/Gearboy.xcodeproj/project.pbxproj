@@ -16,7 +16,7 @@
 		684CD667242BCF60004090E5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 684CD665242BCF60004090E5 /* Main.storyboard */; };
 		684CD669242BCF61004090E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 684CD668242BCF61004090E5 /* Assets.xcassets */; };
 		684CD66C242BCF61004090E5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 684CD66A242BCF61004090E5 /* LaunchScreen.storyboard */; };
-		684CD677242BFD98004090E5 /* recipeData.json in Resources */ = {isa = PBXBuildFile; fileRef = 684CD676242BFD98004090E5 /* recipeData.json */; };
+		684CD677242BFD98004090E5 /* romData.json in Resources */ = {isa = PBXBuildFile; fileRef = 684CD676242BFD98004090E5 /* romData.json */; };
 		684CD679242BFF0E004090E5 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684CD678242BFF0E004090E5 /* Data.swift */; };
 		684CD67B242C0119004090E5 /* Rom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684CD67A242C0119004090E5 /* Rom.swift */; };
 		68DC4A02247FFE5100579B91 /* RomListCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 68DC4A01247FFE5100579B91 /* RomListCell.xib */; };
@@ -39,7 +39,7 @@
 		684CD668242BCF61004090E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		684CD66B242BCF61004090E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		684CD66D242BCF61004090E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		684CD676242BFD98004090E5 /* recipeData.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = recipeData.json; sourceTree = "<group>"; };
+		684CD676242BFD98004090E5 /* romData.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = romData.json; sourceTree = "<group>"; };
 		684CD678242BFF0E004090E5 /* Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
 		684CD67A242C0119004090E5 /* Rom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rom.swift; sourceTree = "<group>"; };
 		68B706542483FE420047D7E8 /* Gearboy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gearboy.entitlements; sourceTree = "<group>"; };
@@ -117,7 +117,7 @@
 			isa = PBXGroup;
 			children = (
 				2BA547A625A5289F00153D5E /* Cartridge.jpg */,
-				684CD676242BFD98004090E5 /* recipeData.json */,
+				684CD676242BFD98004090E5 /* romData.json */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -190,7 +190,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				684CD66C242BCF61004090E5 /* LaunchScreen.storyboard in Resources */,
-				684CD677242BFD98004090E5 /* recipeData.json in Resources */,
+				684CD677242BFD98004090E5 /* romData.json in Resources */,
 				684CD669242BCF61004090E5 /* Assets.xcassets in Resources */,
 				68E6C2EC2482AD0800F79593 /* RomDetail.storyboard in Resources */,
 				2BA547A725A5289F00153D5E /* Cartridge.jpg in Resources */,

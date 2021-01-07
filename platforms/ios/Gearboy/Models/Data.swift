@@ -8,7 +8,7 @@ Abstract:
 import UIKit
 import ImageIO
 
-let dataStore = DataStore(recipes: load("recipeData.json"))
+let dataStore = DataStore(roms: load("romData.json"))
 
 func load<T: Decodable>(_ filename: String) -> T {
     let data: Data
@@ -71,18 +71,18 @@ final class ImageStore {
 }
 
 class DataStore: ObservableObject {
-    @Published var allRecipes: [Rom]
+    @Published var allRoms: [Rom]
     @Published var collections: [String]
 
-    init(recipes: [Rom]) {
-        self.allRecipes = recipes
-        self.collections = DataStore.collection(from: recipes)
+    init(roms: [Rom]) {
+        self.allRoms = roms
+        self.collections = DataStore.collection(from: roms)
     }
     
-    fileprivate static func collection(from recipes: [Rom]) -> [String] {
+    fileprivate static func collection(from roms: [Rom]) -> [String] {
         var allCollections = Set<String>()
-        for recipe in recipes {
-            allCollections.formUnion(recipe.collections)
+        for rom in roms {
+            allCollections.formUnion(rom.collections)
         }
         return allCollections.sorted()
     }
@@ -96,15 +96,10 @@ class DataStore: ObservableObject {
         let json = """
             {
                 "id": 0,
-                "title": "New Recipe",
-                "prepTime": 0,
-                "cookTime": 0,
-                "servings": "",
-                "ingredients": "",
-                "directions": "",
+                "title": "New ROM",
                 "isFavorite": false,
                 "collections": [],
-                "imageNames": [\"\(UUID().uuidString)\"]
+                "imageName": \"\(UUID().uuidString)\"
             }
         """
         let data = Data(json.utf8)
@@ -113,45 +108,45 @@ class DataStore: ObservableObject {
             let decoder = JSONDecoder()
             return try decoder.decode(Rom.self, from: data)
         } catch {
-            fatalError("Invalid recipe JSON.")
+            fatalError("Invalid ROM JSON.")
         }
     }
     
-    func add(_ recipe: Rom) -> Rom {
-        var recipeToAdd = recipe
-        recipeToAdd.id = (allRecipes.map { $0.id }.max() ?? 0) + 1
-        allRecipes.append(recipeToAdd)
+    func add(_ rom: Rom) -> Rom {
+        var romToAdd = rom
+        romToAdd.id = (allRoms.map { $0.id }.max() ?? 0) + 1
+        allRoms.append(romToAdd)
         updateCollectionsIfNeeded()
-        return recipeToAdd
+        return romToAdd
     }
     
-    func delete(_ recipe: Rom) -> Bool {
+    func delete(_ rom: Rom) -> Bool {
         var deleted = false
-        if let index = allRecipes.firstIndex(where: { $0.id == recipe.id }) {
-            allRecipes.remove(at: index)
+        if let index = allRoms.firstIndex(where: { $0.id == rom.id }) {
+            allRoms.remove(at: index)
             deleted = true
             updateCollectionsIfNeeded()
         }
         return deleted
     }
     
-    func update(_ recipe: Rom) -> Rom? {
-        var recipeToReturn: Rom? = nil // Return nil if the recipe doesn't exist.
-        if let index = allRecipes.firstIndex(where: { $0.id == recipe.id }) {
-            allRecipes.remove(at: index)
-            allRecipes.insert(recipe, at: index)
-            recipeToReturn = recipe
+    func update(_ rom: Rom) -> Rom? {
+        var romToReturn: Rom? = nil // Return nil if the rom doesn't exist.
+        if let index = allRoms.firstIndex(where: { $0.id == rom.id }) {
+            allRoms.remove(at: index)
+            allRoms.insert(rom, at: index)
+            romToReturn = rom
             updateCollectionsIfNeeded()
         }
-        return recipeToReturn
+        return romToReturn
     }
     
-    func recipe(with id: Int) -> Rom? {
-        return allRecipes.first(where: { $0.id == id })
+    func rom(with id: Int) -> Rom? {
+        return allRoms.first(where: { $0.id == id })
     }
 
     fileprivate func updateCollectionsIfNeeded() {
-        let updatedCollection = DataStore.collection(from: allRecipes)
+        let updatedCollection = DataStore.collection(from: allRoms)
         if collections != updatedCollection {
             collections = updatedCollection
         }

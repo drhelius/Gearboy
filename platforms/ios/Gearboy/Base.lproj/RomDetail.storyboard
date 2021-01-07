@@ -53,7 +53,7 @@
                     </navigationItem>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
-                        <outlet property="recipeFavoriteButton" destination="sc4-zc-jjH" id="SX3-F1-kdh"/>
+                        <outlet property="romFavoriteButton" destination="sc4-zc-jjH" id="SX3-F1-kdh"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="yeX-e2-iS0" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

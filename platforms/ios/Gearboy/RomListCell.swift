@@ -2,7 +2,7 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-A cell of the recipe list collection view.
+A cell of the rom list collection view.
 */
 
 import UIKit
@@ -42,10 +42,10 @@ class RomListCell: UICollectionViewCell {
         }
     }
 
-    func configure(with recipe: Rom) {
-        titleLabel.text = recipe.title
-        imageView.image = recipe.smallImage
-        favoriteImageView.alpha = recipe.isFavorite ? 1 : 0
+    func configure(with rom: Rom) {
+        titleLabel.text = rom.title
+        imageView.image = rom.image
+        favoriteImageView.alpha = rom.isFavorite ? 1 : 0
     }
     
 }
