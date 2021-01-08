@@ -40,14 +40,14 @@
                         <barButtonItem style="plain" systemItem="flexibleSpace" id="hv9-dW-6fc"/>
                         <barButtonItem systemItem="trash" id="Qa8-DK-CZW">
                             <connections>
-                                <action selector="deleteRecipe:" destination="VtJ-ej-oFi" id="KdP-Mw-U4z"/>
+                                <action selector="deleteRom:" destination="VtJ-ej-oFi" id="KdP-Mw-U4z"/>
                             </connections>
                         </barButtonItem>
                     </toolbarItems>
                     <navigationItem key="navigationItem" id="swg-ju-vwb">
                         <barButtonItem key="rightBarButtonItem" title="Share" image="square.and.arrow.up" catalog="system" id="zjz-pP-Si7">
                             <connections>
-                                <action selector="shareRecipe:" destination="VtJ-ej-oFi" id="DUL-JT-ThG"/>
+                                <action selector="shareRom:" destination="VtJ-ej-oFi" id="DUL-JT-ThG"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>

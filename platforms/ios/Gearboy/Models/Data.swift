@@ -8,20 +8,39 @@ Abstract:
 import UIKit
 import ImageIO
 
-let dataStore = DataStore(roms: load("romData.json"))
+let dataFileName = "romData.json"
+let dataStore = DataStore(roms: load("romData.json") ?? [Rom]())
 
-func load<T: Decodable>(_ filename: String) -> T {
-    let data: Data
+func getDataFile () -> URL {
     
-    guard let file = Bundle.main.url(forResource: filename, withExtension: nil)
-    else {
-        fatalError("Couldn't find \(filename) in main bundle.")
+    let file: URL
+    
+    if let iCloudDocumentsDirectory = FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents") {
+        file = iCloudDocumentsDirectory.appendingPathComponent(dataFileName)
+    } else {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        let documentsDirectory = paths[0]
+        file = documentsDirectory.appendingPathComponent(dataFileName)
     }
+    
+    //    guard let file = Bundle.main.url(forResource: filename, withExtension: nil)
+    //    else {
+    //        fatalError("Couldn't find \(filename) in main bundle.")
+    //    }
+    
+    return file
+}
+
+func load<T: Decodable>(_ filename: String) -> T? {
+    
+    let file = getDataFile()
+    let data: Data
     
     do {
         data = try Data(contentsOf: file)
     } catch {
-        fatalError("Couldn't load \(filename) from main bundle:\n\(error)")
+        debugPrint("Couldn't load \(filename):\n\(error)")
+        return nil
     }
     
     do {
@@ -72,22 +91,12 @@ final class ImageStore {
 
 class DataStore: ObservableObject {
     @Published var allRoms: [Rom]
-    @Published var collections: [String]
 
     init(roms: [Rom]) {
         self.allRoms = roms
-        self.collections = DataStore.collection(from: roms)
     }
     
-    fileprivate static func collection(from roms: [Rom]) -> [String] {
-        var allCollections = Set<String>()
-        for rom in roms {
-            allCollections.formUnion(rom.collections)
-        }
-        return allCollections.sorted()
-    }
-    
-    func newRecipe() -> Rom {
+    func newRom() -> Rom {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -98,7 +107,6 @@ class DataStore: ObservableObject {
                 "id": 0,
                 "title": "New ROM",
                 "isFavorite": false,
-                "collections": [],
                 "imageName": \"\(UUID().uuidString)\"
             }
         """
@@ -116,7 +124,7 @@ class DataStore: ObservableObject {
         var romToAdd = rom
         romToAdd.id = (allRoms.map { $0.id }.max() ?? 0) + 1
         allRoms.append(romToAdd)
-        updateCollectionsIfNeeded()
+        save()
         return romToAdd
     }
     
@@ -125,7 +133,7 @@ class DataStore: ObservableObject {
         if let index = allRoms.firstIndex(where: { $0.id == rom.id }) {
             allRoms.remove(at: index)
             deleted = true
-            updateCollectionsIfNeeded()
+            save()
         }
         return deleted
     }
@@ -136,7 +144,7 @@ class DataStore: ObservableObject {
             allRoms.remove(at: index)
             allRoms.insert(rom, at: index)
             romToReturn = rom
-            updateCollectionsIfNeeded()
+            save()
         }
         return romToReturn
     }
@@ -144,11 +152,19 @@ class DataStore: ObservableObject {
     func rom(with id: Int) -> Rom? {
         return allRoms.first(where: { $0.id == id })
     }
-
-    fileprivate func updateCollectionsIfNeeded() {
-        let updatedCollection = DataStore.collection(from: allRoms)
-        if collections != updatedCollection {
-            collections = updatedCollection
+    
+    fileprivate func save() {
+        
+        let file = getDataFile()
+    
+        do {
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            
+            try encoder.encode(allRoms).write(to: file)
+            
+        } catch {
+            fatalError("Couldn't save \(file):\n\(error)")
         }
     }
     

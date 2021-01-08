@@ -4,7 +4,6 @@
         "title": "Apple Cake",
         "isFavorite": true,
         "usedOn": "2019-02-04T12:00:00+00:00",
-        "collections": ["Dessert"],
         "imageName": "Cartridge"
     },
     
@@ -13,7 +12,6 @@
         "title": "Chickpea Curry",
         "isFavorite": false,
         "usedOn": "2019-02-04T12:00:00+00:00",
-        "collections": ["Main Course"],
         "imageName": "Cartridge"
     },
     
@@ -22,7 +20,6 @@
         "title": "Chocolate Peanut Butter Truffles",
         "isFavorite": false,
         "usedOn": "2019-02-04T12:00:00+00:00",
-        "collections": ["Dessert"],
         "imageName": "Cartridge"
     },
 
@@ -31,7 +28,6 @@
         "title": "Passion Fruit-Mango Sorbet",
         "isFavorite": true,
         "usedOn": "2019-02-04T12:00:00+00:00",
-        "collections": ["Dessert"],
         "imageName": "Cartridge"
     },
 
@@ -40,7 +36,6 @@
         "title": "Mushroom Tapioca",
         "isFavorite": false,
         "usedOn": "2019-02-04T12:00:00+00:00",
-        "collections": ["Main Course"],
         "imageName": "Cartridge"
     },
 
@@ -49,7 +44,6 @@
         "title": "Spicy Tomato Sauce",
         "isFavorite": true,
         "usedOn": "2019-02-04T12:00:00+00:00",
-        "collections": ["Main Course"],
         "imageName": "Cartridge"
     },
 
@@ -58,7 +52,6 @@
         "title": "Three Bean Salad",
         "usedOn": "2019-02-04T12:00:00+00:00",
         "isFavorite": false,
-        "collections": ["Sides"],
         "imageName": "Cartridge"
     },
 
@@ -67,7 +60,6 @@
         "title": "Vegetable Dumplings",
         "usedOn": "2019-02-04T12:00:00+00:00",
         "isFavorite": false,
-        "collections": ["Sides", "Main Course"],
         "imageName": "Cartridge"
     }
     

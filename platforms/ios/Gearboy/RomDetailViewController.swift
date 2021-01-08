@@ -28,15 +28,15 @@ class RomDetailViewController: UIViewController, RomController {
     private var topChildController: RomController?
     private var bottomChildController: RomController?
 
-    var noRecipeView: UIView!
+    var noRomView: UIView!
     
     private var dataStoreSubscriber: AnyCancellable?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        addNoRecipeView()
+        addNoRomView()
         if rom == nil {
-            toggleNoRecipeView(show: true, animated: false)
+            toggleNoRomView(show: true, animated: false)
         }
 
         
@@ -48,10 +48,10 @@ class RomDetailViewController: UIViewController, RomController {
                 guard
                     let self = self,
                     let rom = self.rom,
-                    let updatedRecipe = roms.first(where: { $0.id == rom.id })
+                    let updatedRom = roms.first(where: { $0.id == rom.id })
                 else { return }
                 
-                self.rom = updatedRecipe
+                self.rom = updatedRom
             }
         
     }
@@ -85,7 +85,7 @@ extension RomDetailViewController {
         self.rom = dataStore.update(rom)
     }
     
-    @IBAction func deleteRecipe(_ sender: Any?) {
+    @IBAction func deleteRom(_ sender: Any?) {
         guard let rom = self.rom else { return }
         
         let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { (action) in
@@ -107,7 +107,7 @@ extension RomDetailViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    @IBAction func shareRecipe(_ sender: Any?) {
+    @IBAction func shareRom(_ sender: Any?) {
         guard let rom = self.rom else { return }
         
         let items: [Any] = [rom.title, rom.image]
@@ -136,7 +136,7 @@ extension RomDetailViewController {
 
         guard  let rom = self.rom
         else {
-            toggleNoRecipeView(show: true)
+            toggleNoRomView(show: true)
             return
         }
 
@@ -147,10 +147,10 @@ extension RomDetailViewController {
         let imageName = rom.isFavorite ? "star.fill" : "star"
         romFavoriteButton.image = UIImage(systemName: imageName)
         
-        toggleNoRecipeView(show: false)
+        toggleNoRomView(show: false)
     }
     
-    fileprivate func addNoRecipeView() {
+    fileprivate func addNoRomView() {
         let backgroundView = UIView()
         backgroundView.backgroundColor = UIColor.systemBackground
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
@@ -163,38 +163,38 @@ extension RomDetailViewController {
         label.adjustsFontForContentSizeCategory = true
         label.text = "No ROM Selected"
         
-        noRecipeView = UIView()
-        noRecipeView.translatesAutoresizingMaskIntoConstraints = false
-        noRecipeView.alpha = 0.0
-        noRecipeView.addSubview(backgroundView)
-        noRecipeView.addSubview(label)
-        self.view.addSubview(noRecipeView)
+        noRomView = UIView()
+        noRomView.translatesAutoresizingMaskIntoConstraints = false
+        noRomView.alpha = 0.0
+        noRomView.addSubview(backgroundView)
+        noRomView.addSubview(label)
+        self.view.addSubview(noRomView)
 
         NSLayoutConstraint.activate([
-            noRecipeView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
-            noRecipeView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
-            noRecipeView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor),
-            noRecipeView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor),
+            noRomView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
+            noRomView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
+            noRomView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor),
+            noRomView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor),
 
-            backgroundView.topAnchor.constraint(equalTo: noRecipeView.topAnchor),
-            backgroundView.bottomAnchor.constraint(equalTo: noRecipeView.bottomAnchor),
-            backgroundView.leadingAnchor.constraint(equalTo: noRecipeView.leadingAnchor),
-            backgroundView.trailingAnchor.constraint(equalTo: noRecipeView.trailingAnchor),
+            backgroundView.topAnchor.constraint(equalTo: noRomView.topAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: noRomView.bottomAnchor),
+            backgroundView.leadingAnchor.constraint(equalTo: noRomView.leadingAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: noRomView.trailingAnchor),
 
-            label.centerXAnchor.constraint(equalTo: noRecipeView.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: noRecipeView.centerYAnchor),
-            label.widthAnchor.constraint(equalTo: noRecipeView.widthAnchor)
+            label.centerXAnchor.constraint(equalTo: noRomView.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: noRomView.centerYAnchor),
+            label.widthAnchor.constraint(equalTo: noRomView.widthAnchor)
         ])
     }
     
-    fileprivate func toggleNoRecipeView(show: Bool, animated: Bool = true) {
+    fileprivate func toggleNoRomView(show: Bool, animated: Bool = true) {
         if animated {
             UIViewPropertyAnimator.runningPropertyAnimator(
                 withDuration: 0.2,
                 delay: 0.0,
                 options: .curveEaseIn,
                 animations: {
-                    self.noRecipeView.alpha = show ? 1.0 : 0.0
+                    self.noRomView.alpha = show ? 1.0 : 0.0
                     if show == true {
                         self.title = nil
                         self.navigationController?.isToolbarHidden = true
@@ -204,7 +204,7 @@ extension RomDetailViewController {
                 completion: nil
             )
         } else {
-            noRecipeView.alpha = show ? 1.0 : 0.0
+            noRomView.alpha = show ? 1.0 : 0.0
         }
     }
     

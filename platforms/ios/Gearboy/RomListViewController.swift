@@ -24,16 +24,15 @@ class RomListViewController: UIViewController {
 
     private var dataSource: UICollectionViewDiffableDataSource<Section, Rom>!
 
-    private var romCollectionName: String?
     private var selectedDataType: TabBarItem = .all
-    private var selectedRecipe: Rom? {
+    private var selectedRom: Rom? {
         guard
             let indexPathsForSelectedItems = collectionView.indexPathsForSelectedItems,
             let selectedIndexPath = indexPathsForSelectedItems.first,
-            let selectedRecipe = dataSource.itemIdentifier(for: selectedIndexPath)
+            let selectedRom = dataSource.itemIdentifier(for: selectedIndexPath)
         else { return nil }
         
-        return selectedRecipe
+        return selectedRom
     }
     
     private var dataStoreSubscriber: AnyCancellable?
@@ -124,13 +123,9 @@ extension RomListViewController {
         case .favorites:
             snapshot.appendItems(roms.filter { $0.isFavorite })
         case .recents:
-            let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
-            snapshot.appendItems(roms.filter { $0.usedOnDate > thirtyDaysAgo })
-        case .collections:
-            if let collectionName = self.romCollectionName {
-                let romCollection = roms.filter { $0.collections.contains(collectionName) }
-                snapshot.appendItems(romCollection)
-            }
+            //let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+            //snapshot.appendItems(roms.filter { $0.usedOnDate > thirtyDaysAgo })
+            snapshot.appendItems(roms)
         default:
             snapshot.appendItems(roms)
         }
@@ -138,19 +133,3 @@ extension RomListViewController {
     }
 
 }
-
-extension RomListViewController {
-    
-    func showRecipes(_ tabBarItem: TabBarItem) {
-        selectedDataType = tabBarItem
-        apply(dataStore.allRoms)
-    }
-    
-    func showRecipes(from collection: String) {
-        selectedDataType = .collections
-        romCollectionName = collection
-        apply(dataStore.allRoms)
-    }
-
-}
-

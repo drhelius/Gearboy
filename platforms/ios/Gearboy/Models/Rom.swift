@@ -11,7 +11,6 @@ struct Rom: Hashable, Codable, Identifiable {
     var id: Int
     var title: String
     var isFavorite: Bool
-    var collections: [String]
     fileprivate var usedOn: Date? = Date()
     fileprivate var imageName: String? = nil
 }

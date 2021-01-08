@@ -8,7 +8,7 @@ A set of tab bar items.
 import UIKit
 
 enum TabBarItem: Int, CaseIterable {
-    case all, favorites, recents, collections
+    case all, favorites, recents, settings
     
     func title() -> String {
         switch self {
@@ -18,7 +18,7 @@ enum TabBarItem: Int, CaseIterable {
             return "Favorites"
         case .recents:
             return "Recents"
-        case .collections:
+        case .settings:
             return "Settings"
         }
     }
@@ -31,7 +31,7 @@ enum TabBarItem: Int, CaseIterable {
             return UIImage(systemName: "star")
         case .recents:
             return UIImage(systemName: "clock")
-        case .collections:
+        case .settings:
             return UIImage(systemName: "gearshape")
         }
     }
