@@ -150,7 +150,7 @@ else ifeq ($(platform), ps3)
    CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
    CXXFLAGS += -DMINIZ_NO_TIME -DMINIZ_NO_STDIO -Wall -D__ppc__ -DMSB_FIRST
-STATIC_LINKING = 1
+   STATIC_LINKING = 1
 # OSX
 else ifneq (,$(findstring osx,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.dylib
@@ -180,6 +180,7 @@ else ifneq (,$(findstring ios,$(platform)))
       CXX += -miphoneos-version-min=5.0
       PLATFORM_DEFINES := -miphoneos-version-min=5.0
    endif
+# tvOS
 else ifeq ($(platform), tvos-arm64)
    TARGET := $(TARGET_NAME)_libretro_tvos.dylib
    fpic := -fPIC
@@ -187,15 +188,17 @@ else ifeq ($(platform), tvos-arm64)
    ifeq ($(IOSSDK),)
       IOSSDK := $(shell xcodebuild -version -sdk appletvos Path)
    endif
-
+# QNX
 else ifneq (,$(findstring qnx,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+# emscripten
 else ifeq ($(platform), emscripten)
    TARGET := $(TARGET_NAME)_libretro_emscripten.bc
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+# PSP
 else ifeq ($(platform), psp1)
    TARGET := $(TARGET_NAME)_libretro_psp1.a
    CC = psp-gcc
@@ -203,6 +206,7 @@ else ifeq ($(platform), psp1)
    AR = psp-ar
    CXXFLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant
 	STATIC_LINKING = 1
+# Vita
 else ifeq ($(platform), vita)
    TARGET := $(TARGET_NAME)_libretro_vita.a
    CC = arm-vita-eabi-gcc
