@@ -39,6 +39,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Game Genie and GameShark cheat support.
 - Supported platforms: Windows, Linux, macOS, Raspberry Pi, iOS and RetroArch (libretro).
 - Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
+- Portable mode by creating a file named `portable.ini` in the same directory as the application binary.
 
 <img src="http://www.geardome.com/files/gearboy/gearboy_debug_01.png" width="880" height="455">
 
