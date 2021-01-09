@@ -9,7 +9,7 @@
   variables:
     JNI_PATH: platforms/libretro
     CORENAME: gearboy
-    MAKEFILE: platforms/libretro/Makefile
+    MAKEFILE_PATH: platforms/libretro
 
 # Inclusion templates, required for the build to work
 include:
