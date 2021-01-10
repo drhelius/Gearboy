@@ -16,6 +16,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         configureSplitViewController()
     }
+    
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else {
+            return
+        }
+        
+        if url.isFileURL {
+            dataStore.addFromURL(url)
+        }
+    }
 
     private func configureSplitViewController() {
         guard

@@ -57,6 +57,10 @@ class RomListViewController: UIViewController {
             }
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        debugPrint("list appearing")
+    }
+    
 }
 
 extension RomListViewController: UICollectionViewDelegate {

@@ -24,7 +24,7 @@ class RomListCell: UICollectionViewCell {
         
         layer.borderColor = borderColor
         layer.borderWidth = 1
-        layer.cornerRadius = 8
+        layer.cornerRadius = 4
     }
     
     override func prepareForReuse() {

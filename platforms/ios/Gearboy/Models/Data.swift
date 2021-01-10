@@ -11,24 +11,37 @@ import ImageIO
 let dataFileName = "romData.json"
 let dataStore = DataStore(roms: load("romData.json") ?? [Rom]())
 
-func getDataFile () -> URL {
+func getDataDir () -> URL {
     
-    let file: URL
+    let dir: URL
     
     if let iCloudDocumentsDirectory = FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents") {
-        file = iCloudDocumentsDirectory.appendingPathComponent(dataFileName)
+        dir = iCloudDocumentsDirectory
+        
+        do {
+            if (FileManager.default.fileExists(atPath: dir.path, isDirectory: nil) == false) {
+                try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true, attributes: nil)
+            }
+        } catch {
+            debugPrint("ERROR: Cannot create /Documents on iCloud")
+        }
     } else {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         let documentsDirectory = paths[0]
-        file = documentsDirectory.appendingPathComponent(dataFileName)
+        dir = documentsDirectory
     }
     
-    //    guard let file = Bundle.main.url(forResource: filename, withExtension: nil)
+    //    guard let dir = Bundle.main.url(forResource: filename, withExtension: nil)
     //    else {
     //        fatalError("Couldn't find \(filename) in main bundle.")
     //    }
     
-    return file
+    return dir
+}
+
+func getDataFile () -> URL {
+    
+    return getDataDir().appendingPathComponent(dataFileName)
 }
 
 func load<T: Decodable>(_ filename: String) -> T? {
@@ -107,7 +120,7 @@ class DataStore: ObservableObject {
                 "id": 0,
                 "title": "New ROM",
                 "isFavorite": false,
-                "imageName": \"\(UUID().uuidString)\"
+                "imageName": "Cartridge"
             }
         """
         let data = Data(json.utf8)
@@ -117,6 +130,31 @@ class DataStore: ObservableObject {
             return try decoder.decode(Rom.self, from: data)
         } catch {
             fatalError("Invalid ROM JSON.")
+        }
+    }
+    
+    func addFromURL(_ url: URL) {
+        
+        let dataDir = getDataDir()
+        let fileName = url.lastPathComponent
+        let dstURL = dataDir.appendingPathComponent(fileName)
+        
+        if (url.deletingLastPathComponent().path != dataDir.path) {
+            do {
+                if FileManager.default.fileExists(atPath: dstURL.path) {
+                    try FileManager.default.removeItem(at: dstURL)
+                }
+                try FileManager.default.copyItem(at: url, to: dstURL)
+            } catch (let error) {
+                debugPrint("Cannot copy item at \(url) to \(dstURL): \(error)")
+            }
+        }
+        
+        var rom = newRom()
+        rom.title = fileName
+        
+        if (dataStore.rom(with: rom.title) == nil) {
+            _ = dataStore.add(rom)
         }
     }
     
@@ -151,6 +189,10 @@ class DataStore: ObservableObject {
     
     func rom(with id: Int) -> Rom? {
         return allRoms.first(where: { $0.id == id })
+    }
+    
+    func rom(with title: String) -> Rom? {
+        return allRoms.first(where: { $0.title == title })
     }
     
     fileprivate func save() {

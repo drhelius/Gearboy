@@ -110,7 +110,7 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Gearboy" id="8rT-Wu-lCm">
-                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="pJI-05-D3V"/>
+                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="pJI-05-D3V"/>
                     </navigationItem>
                     <connections>
                         <outlet property="collectionView" destination="ALa-qa-aXp" id="sRf-VL-3q3"/>
@@ -168,9 +168,7 @@
                             <constraint firstItem="NIu-Z8-Xeg" firstAttribute="leading" secondItem="ZoG-uh-qxa" secondAttribute="leading" id="Y0a-x4-UgL"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="Gearboy" id="hrc-HU-tdQ">
-                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="nkU-qC-8rC"/>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" title="Gearboy" id="hrc-HU-tdQ"/>
                     <connections>
                         <outlet property="collectionView" destination="NIu-Z8-Xeg" id="idO-hj-Myx"/>
                     </connections>
@@ -227,9 +225,7 @@
                             <constraint firstItem="RA0-NP-kEX" firstAttribute="top" secondItem="QTd-W1-ILY" secondAttribute="top" id="m46-yQ-6qa"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="Gearboy" id="WkS-p0-JN6">
-                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="PEf-bX-iQj"/>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" title="Gearboy" id="WkS-p0-JN6"/>
                     <connections>
                         <outlet property="collectionView" destination="RA0-NP-kEX" id="ixh-hq-Tgn"/>
                     </connections>

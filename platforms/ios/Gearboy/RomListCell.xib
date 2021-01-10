@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
         <capability name="Named colors" minToolsVersion="9.0"/>
@@ -29,8 +30,8 @@
                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ITi-tw-xSb">
                         <rect key="frame" x="0.0" y="187.5" width="250" height="62.5"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Rom Title" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.75" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="DOp-Aj-fLO">
-                                <rect key="frame" x="20" y="21" width="210" height="20.5"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Rom Title asas sa as asd a as as as asd as sa dsa as sad as das sa da fin" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" minimumScaleFactor="0.29999999999999999" adjustsLetterSpacingToFitWidth="YES" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="DOp-Aj-fLO">
+                                <rect key="frame" x="2" y="1" width="246" height="60.5"/>
                                 <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
@@ -38,10 +39,10 @@
                         </subviews>
                         <color key="backgroundColor" name="overlayBackground"/>
                         <constraints>
-                            <constraint firstItem="DOp-Aj-fLO" firstAttribute="centerX" secondItem="ITi-tw-xSb" secondAttribute="centerX" id="65E-9I-Yem"/>
-                            <constraint firstItem="DOp-Aj-fLO" firstAttribute="centerY" secondItem="ITi-tw-xSb" secondAttribute="centerY" id="IhH-XA-gJb"/>
-                            <constraint firstItem="DOp-Aj-fLO" firstAttribute="leading" secondItem="ITi-tw-xSb" secondAttribute="leading" constant="20" symbolic="YES" id="SRb-7V-MFI"/>
-                            <constraint firstAttribute="trailing" secondItem="DOp-Aj-fLO" secondAttribute="trailing" constant="20" symbolic="YES" id="u8e-OQ-71Q"/>
+                            <constraint firstItem="DOp-Aj-fLO" firstAttribute="centerY" secondItem="ITi-tw-xSb" secondAttribute="centerY" id="7nt-SI-a8k"/>
+                            <constraint firstItem="DOp-Aj-fLO" firstAttribute="top" secondItem="ITi-tw-xSb" secondAttribute="top" constant="1" id="QI7-JS-ecN"/>
+                            <constraint firstItem="DOp-Aj-fLO" firstAttribute="leading" secondItem="ITi-tw-xSb" secondAttribute="leading" constant="2" id="QZY-Vt-S1g"/>
+                            <constraint firstAttribute="trailing" secondItem="DOp-Aj-fLO" secondAttribute="trailing" constant="2" id="ZIg-AL-scr"/>
                         </constraints>
                     </view>
                 </subviews>
@@ -64,7 +65,7 @@
                 <outlet property="imageView" destination="8qC-zT-v4j" id="t0t-Tk-6kD"/>
                 <outlet property="titleLabel" destination="DOp-Aj-fLO" id="Gxj-nX-1F5"/>
             </connections>
-            <point key="canvasLocation" x="-149.27536231884059" y="-19.084821428571427"/>
+            <point key="canvasLocation" x="-149.27536231884059" y="-19.419642857142858"/>
         </collectionViewCell>
     </objects>
     <resources>
