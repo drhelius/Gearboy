@@ -22,13 +22,13 @@ extension Rom {
         usedOn ?? Date()
     }
 
-    var image: UIImage {
-        guard let name = imageName, !name.isEmpty else { return #imageLiteral(resourceName: "Cartridge.jpg") }
-        return ImageStore.shared.image(name: name)
-    }
+//    var image: UIImage {
+//        guard let name = imageName, !name.isEmpty else { return #imageLiteral(resourceName: "Cartridge.jpg") }
+//        return ImageStore.shared.image(name: name)
+//    }
     
-    func add(_ image: UIImage) {
-        guard let name = imageName, !name.isEmpty else { return }
-        ImageStore.shared.add(image, with: name)
-    }
+//    func add(_ image: UIImage) {
+//        guard let name = imageName, !name.isEmpty else { return }
+//        ImageStore.shared.add(image, with: name)
+//    }
 }

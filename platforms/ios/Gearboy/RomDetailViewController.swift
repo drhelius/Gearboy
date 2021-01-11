@@ -106,25 +106,6 @@ extension RomDetailViewController {
         
         present(alert, animated: true, completion: nil)
     }
-    
-    @IBAction func shareRom(_ sender: Any?) {
-        guard let rom = self.rom else { return }
-        
-        let items: [Any] = [rom.file, rom.image]
-        let activityViewController = UIActivityViewController(activityItems: items, applicationActivities: nil)
-        activityViewController.completionWithItemsHandler = { activity, completed, items, error in
-            os_log("Activity completed: %s", completed ? "true" : "false")
-        }
-
-        // Configure the popover presentation controller for iPad.
-        if let popover = activityViewController.popoverPresentationController {
-            if let barButtonItem = sender as? UIBarButtonItem {
-                popover.barButtonItem = barButtonItem
-            }
-        }
-        present(activityViewController, animated: true, completion: nil)
-    }
-    
 }
 
 // MARK: - UI Helpers

@@ -44,7 +44,7 @@ class RomListCell: UICollectionViewCell {
 
     func configure(with rom: Rom) {
         titleLabel.text = rom.file
-        imageView.image = rom.image
+        imageView.image = ImageStore.shared.image(name: rom.title + ".png")
         favoriteImageView.alpha = rom.isFavorite ? 1 : 0
     }
     

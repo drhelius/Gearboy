@@ -133,14 +133,13 @@ final class ImageStore {
 
     static func loadImage(name: String) -> UIImage {
         
-        debugPrint("temp \(gameStore.title(crc: "ss")):\n")
+        let url = getDBDir().appendingPathComponent(name)
         
         guard
-            let url = Bundle.main.url(forResource: name, withExtension: "jpg"),
             let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
             let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
         else {
-            fatalError("Couldn't load image \(name).jpg from the main bundle.")
+            return #imageLiteral(resourceName: "Cartridge.jpg")
         }
         return UIImage(cgImage: cgImage, scale: CGFloat(ImageStore.scale), orientation: .up)
     }
