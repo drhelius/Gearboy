@@ -9,10 +9,12 @@ import UIKit
 
 struct Rom: Hashable, Codable, Identifiable {
     var id: Int
+    var file: String
     var title: String
     var isFavorite: Bool
-    fileprivate var usedOn: Date? = Date()
-    fileprivate var imageName: String? = nil
+    var crc: String
+    var usedOn: Date? = Date()
+    var imageName: String? = nil
 }
 
 extension Rom {

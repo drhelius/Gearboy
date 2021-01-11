@@ -8,8 +8,28 @@ Abstract:
 import UIKit
 import ImageIO
 
-let dataFileName = "romData.json"
-let dataStore = DataStore(roms: load("romData.json") ?? [Rom]())
+let dbFileName = "db.json"
+let gamedbFileName = "gb.json"
+let gbBoxartsPath: String = "http://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/"
+let gbcBoxartsPath = "http://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/"
+
+let gameStore = GameStore(games: load(gamedbFileName, bundle: true) ?? [Game]())
+let dataStore = DataStore(roms: load(dbFileName, bundle: false) ?? [Rom]())
+
+func getDBDir () -> URL {
+    
+    let dir = getDataDir().appendingPathComponent("database")
+    
+    do {
+        if (FileManager.default.fileExists(atPath: dir.path, isDirectory: nil) == false) {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true, attributes: nil)
+        }
+    } catch {
+        debugPrint("ERROR: Cannot create /database")
+    }
+    
+    return dir
+}
 
 func getDataDir () -> URL {
     
@@ -17,36 +37,33 @@ func getDataDir () -> URL {
     
     if let iCloudDocumentsDirectory = FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents") {
         dir = iCloudDocumentsDirectory
-        
-        do {
-            if (FileManager.default.fileExists(atPath: dir.path, isDirectory: nil) == false) {
-                try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true, attributes: nil)
-            }
-        } catch {
-            debugPrint("ERROR: Cannot create /Documents on iCloud")
-        }
     } else {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         let documentsDirectory = paths[0]
         dir = documentsDirectory
     }
     
-    //    guard let dir = Bundle.main.url(forResource: filename, withExtension: nil)
-    //    else {
-    //        fatalError("Couldn't find \(filename) in main bundle.")
-    //    }
+    do {
+        if (FileManager.default.fileExists(atPath: dir.path, isDirectory: nil) == false) {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true, attributes: nil)
+        }
+    } catch {
+        debugPrint("ERROR: Cannot create /Documents")
+    }
     
     return dir
 }
 
-func getDataFile () -> URL {
+func load<T: Decodable>(_ filename: String, bundle: Bool) -> T? {
     
-    return getDataDir().appendingPathComponent(dataFileName)
-}
-
-func load<T: Decodable>(_ filename: String) -> T? {
+    let file: URL
     
-    let file = getDataFile()
+    if bundle {
+        file = Bundle.main.url(forResource: filename, withExtension: nil)!
+    } else {
+        file = getDBDir().appendingPathComponent(filename)
+    }
+    
     let data: Data
     
     do {
@@ -82,8 +99,42 @@ final class ImageStore {
     func add(_ image: UIImage, with name: String) {
         images[name] = image
     }
+    
+    func downloadImage(rom: Rom) {
+        
+        if rom.title == "" {
+            return
+        }
+        
+        let imageFile = rom.title + ".png"
+        let imageURL = (URL(string: gbBoxartsPath)?.appendingPathComponent(rom.title + ".png"))!
+        
+        let dstURL = getDBDir().appendingPathComponent(imageFile)
+        
+        if FileManager.default.fileExists(atPath: dstURL.path) {
+            return
+        }
+        
+        DispatchQueue.global().async { [weak self] in
+            if let data = try? Data(contentsOf: imageURL) {
+                
+                FileManager.default.createFile(atPath: dstURL.path, contents: data)
+                
+                if let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        self?.add(image, with: imageFile)
+                        //rom.image = image
+                        //_ = dataStore.update(rom)
+                    }
+                }
+            }
+        }
+    }
 
     static func loadImage(name: String) -> UIImage {
+        
+        debugPrint("temp \(gameStore.title(crc: "ss")):\n")
+        
         guard
             let url = Bundle.main.url(forResource: name, withExtension: "jpg"),
             let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
@@ -99,6 +150,22 @@ final class ImageStore {
         
         images[name] = ImageStore.loadImage(name: name)
         return images.index(forKey: name)!
+    }
+}
+
+class GameStore {
+    typealias _GameDictionary = [String: String]
+    
+    var gamesDict: _GameDictionary = [:]
+    
+    init(games: [Game]) {
+        for g in games {
+            gamesDict[g.crc] = g.title
+        }
+    }
+    
+    func title(crc: String) -> String {
+        return gamesDict[crc] ?? ""
     }
 }
 
@@ -118,8 +185,10 @@ class DataStore: ObservableObject {
         let json = """
             {
                 "id": 0,
+                "file": "file",
                 "title": "New ROM",
                 "isFavorite": false,
+                "crc": "00000000",
                 "imageName": "Cartridge"
             }
         """
@@ -151,9 +220,9 @@ class DataStore: ObservableObject {
         }
         
         var rom = newRom()
-        rom.title = fileName
+        rom.file = fileName
         
-        if (dataStore.rom(with: rom.title) == nil) {
+        if (dataStore.rom(with: rom.file) == nil) {
             _ = dataStore.add(rom)
         }
     }
@@ -161,6 +230,15 @@ class DataStore: ObservableObject {
     func add(_ rom: Rom) -> Rom {
         var romToAdd = rom
         romToAdd.id = (allRoms.map { $0.id }.max() ?? 0) + 1
+        
+        let romURL = getDataDir().appendingPathComponent(rom.file)
+        let romData = FileManager.default.contents(atPath: romURL.path)
+        let checksum = CRC32.checksum(bytes: romData!)
+        romToAdd.crc = String(format:"%08X", checksum)
+        romToAdd.title = gameStore.title(crc: romToAdd.crc)
+        
+        ImageStore.shared.downloadImage(rom: romToAdd)
+        
         allRoms.append(romToAdd)
         save()
         return romToAdd
@@ -191,13 +269,13 @@ class DataStore: ObservableObject {
         return allRoms.first(where: { $0.id == id })
     }
     
-    func rom(with title: String) -> Rom? {
-        return allRoms.first(where: { $0.title == title })
+    func rom(with file: String) -> Rom? {
+        return allRoms.first(where: { $0.file == file })
     }
     
     fileprivate func save() {
         
-        let file = getDataFile()
+        let file = getDBDir().appendingPathComponent(dbFileName)
     
         do {
             let encoder = JSONEncoder()
@@ -209,5 +287,21 @@ class DataStore: ObservableObject {
             fatalError("Couldn't save \(file):\n\(error)")
         }
     }
+}
+
+class CRC32 {
     
+    static var table: [UInt32] = {
+        (0...255).map { i -> UInt32 in
+            (0..<8).reduce(UInt32(i), { c, _ in
+                (c % 2 == 0) ? (c >> 1) : (0xEDB88320 ^ (c >> 1))
+            })
+        }
+    }()
+
+    static func checksum<T: DataProtocol>(bytes: T) -> UInt32 {
+        return ~(bytes.reduce(~UInt32(0), { crc, byte in
+            (crc >> 8) ^ table[(Int(crc) ^ Int(byte)) & 0xFF]
+        }))
+    }
 }

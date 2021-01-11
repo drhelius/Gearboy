@@ -43,7 +43,7 @@ class RomListCell: UICollectionViewCell {
     }
 
     func configure(with rom: Rom) {
-        titleLabel.text = rom.title
+        titleLabel.text = rom.file
         imageView.image = rom.image
         favoriteImageView.alpha = rom.isFavorite ? 1 : 0
     }

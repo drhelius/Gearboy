@@ -76,6 +76,10 @@ platforms/linux/**/gearboy
 platforms/macos/**/gearboy
 platforms/raspberry*/**/gearboy
 
+#metadata
+platforms/ios/tools/*.dat
+platforms/ios/tools/*.json
+
 #Switch
 *.a
 *.d

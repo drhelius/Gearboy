@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		2BA547A725A5289F00153D5E /* Cartridge.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2BA547A625A5289F00153D5E /* Cartridge.jpg */; };
+		2BE8F40625ACBF6F00E6FE62 /* gb.json in Resources */ = {isa = PBXBuildFile; fileRef = 2BE8F40525ACBF6F00E6FE62 /* gb.json */; };
+		2BE8F40925ACC3D000E6FE62 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE8F40825ACC3D000E6FE62 /* Game.swift */; };
 		680A3B4F242D332E00630335 /* RomListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680A3B4E242D332E00630335 /* RomListViewController.swift */; };
 		680A3B51242D389200630335 /* RomListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680A3B50242D389200630335 /* RomListCell.swift */; };
 		6840AA6A248B00F300BBED58 /* TabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6840AA69248B00F300BBED58 /* TabBarController.swift */; };
@@ -29,6 +31,8 @@
 
 /* Begin PBXFileReference section */
 		2BA547A625A5289F00153D5E /* Cartridge.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Cartridge.jpg; sourceTree = "<group>"; };
+		2BE8F40525ACBF6F00E6FE62 /* gb.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = gb.json; sourceTree = "<group>"; };
+		2BE8F40825ACC3D000E6FE62 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
 		680A3B4E242D332E00630335 /* RomListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomListViewController.swift; sourceTree = "<group>"; };
 		680A3B50242D389200630335 /* RomListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomListCell.swift; sourceTree = "<group>"; };
 		6840AA69248B00F300BBED58 /* TabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
@@ -116,6 +120,7 @@
 		684CD674242BFD43004090E5 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				2BE8F40525ACBF6F00E6FE62 /* gb.json */,
 				2BA547A625A5289F00153D5E /* Cartridge.jpg */,
 				684CD676242BFD98004090E5 /* romData.json */,
 			);
@@ -127,6 +132,7 @@
 			children = (
 				684CD678242BFF0E004090E5 /* Data.swift */,
 				684CD67A242C0119004090E5 /* Rom.swift */,
+				2BE8F40825ACC3D000E6FE62 /* Game.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -189,6 +195,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BE8F40625ACBF6F00E6FE62 /* gb.json in Resources */,
 				684CD66C242BCF61004090E5 /* LaunchScreen.storyboard in Resources */,
 				684CD677242BFD98004090E5 /* romData.json in Resources */,
 				684CD669242BCF61004090E5 /* Assets.xcassets in Resources */,
@@ -213,6 +220,7 @@
 				68FAA50C242E8E7E0061EF86 /* RomDetailViewController.swift in Sources */,
 				68E6C2F02482F62100F79593 /* TabBarItem.swift in Sources */,
 				684CD662242BCF60004090E5 /* SceneDelegate.swift in Sources */,
+				2BE8F40925ACC3D000E6FE62 /* Game.swift in Sources */,
 				68FBC9FE2437A6A100002F7C /* SplitViewDelegate.swift in Sources */,
 				684CD679242BFF0E004090E5 /* Data.swift in Sources */,
 				684CD67B242C0119004090E5 /* Rom.swift in Sources */,
@@ -372,7 +380,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Gearboy/Gearboy.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				DEVELOPMENT_TEAM = V3F66RFMSJ;
 				INFOPLIST_FILE = "$(SRCROOT)/Gearboy/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
@@ -396,7 +404,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Gearboy/Gearboy.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				DEVELOPMENT_TEAM = V3F66RFMSJ;
 				INFOPLIST_FILE = "$(SRCROOT)/Gearboy/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;

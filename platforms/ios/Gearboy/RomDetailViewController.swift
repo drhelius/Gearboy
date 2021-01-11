@@ -96,7 +96,7 @@ extension RomDetailViewController {
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         
-        let alert = UIAlertController(title: "Are you sure you want to delete \(rom.title)?", message: nil, preferredStyle: .actionSheet)
+        let alert = UIAlertController(title: "Are you sure you want to delete \(rom.file)?", message: nil, preferredStyle: .actionSheet)
         alert.addAction(deleteAction)
         alert.addAction(cancelAction)
         
@@ -110,7 +110,7 @@ extension RomDetailViewController {
     @IBAction func shareRom(_ sender: Any?) {
         guard let rom = self.rom else { return }
         
-        let items: [Any] = [rom.title, rom.image]
+        let items: [Any] = [rom.file, rom.image]
         let activityViewController = UIActivityViewController(activityItems: items, applicationActivities: nil)
         activityViewController.completionWithItemsHandler = { activity, completed, items, error in
             os_log("Activity completed: %s", completed ? "true" : "false")
@@ -140,7 +140,7 @@ extension RomDetailViewController {
             return
         }
 
-        self.title = rom.title
+        self.title = rom.file
         topChildController?.rom = rom
         bottomChildController?.rom = rom
         
