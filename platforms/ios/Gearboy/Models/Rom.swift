@@ -14,7 +14,7 @@ struct Rom: Hashable, Codable, Identifiable {
     var isFavorite: Bool
     var crc: String
     var usedOn: Date? = Date()
-    var imageName: String? = nil
+    var image: String
 }
 
 extension Rom {

@@ -85,7 +85,7 @@ extension RomListViewController {
     func createCollectionViewLayout() -> UICollectionViewLayout {
         let romItemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
         let romItem = NSCollectionLayoutItem(layoutSize: romItemSize)
-        romItem.contentInsets = NSDirectionalEdgeInsets(top: 5.0, leading: 10.0, bottom: 5.0, trailing: 10.0)
+        romItem.contentInsets = NSDirectionalEdgeInsets(top: 5.0, leading: 5.0, bottom: 5.0, trailing: 5.0)
         
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalWidth(0.333))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitem: romItem, count: 3)

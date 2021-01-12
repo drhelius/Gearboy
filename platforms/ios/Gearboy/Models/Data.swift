@@ -8,6 +8,7 @@ Abstract:
 import UIKit
 import ImageIO
 
+let boxartExtension = ".png"
 let dbFileName = "db.json"
 let gamedbFileName = "gb.json"
 let gbBoxartsPath: String = "http://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/"
@@ -96,18 +97,15 @@ final class ImageStore {
         return images.values[index]
     }
     
-    func add(_ image: UIImage, with name: String) {
-        images[name] = image
-    }
-    
     func downloadImage(rom: Rom) {
         
         if rom.title == "" {
             return
         }
         
-        let imageFile = rom.title + ".png"
-        let imageURL = (URL(string: gbBoxartsPath)?.appendingPathComponent(rom.title + ".png"))!
+        let imageFile = rom.title + boxartExtension
+        
+        let imageURL = (URL(string: gbBoxartsPath)?.appendingPathComponent(imageFile))!
         
         let dstURL = getDBDir().appendingPathComponent(imageFile)
         
@@ -120,13 +118,11 @@ final class ImageStore {
                 
                 FileManager.default.createFile(atPath: dstURL.path, contents: data)
                 
-                if let image = UIImage(data: data) {
-                    DispatchQueue.main.async {
-                        self?.add(image, with: imageFile)
-                        //rom.image = image
-                        //_ = dataStore.update(rom)
-                    }
-                }
+                self?.images[imageFile] = ImageStore.loadImage(name: imageFile)
+                
+                var updatedRom = rom
+                updatedRom.image = imageFile
+                _ = dataStore.update(updatedRom)
             }
         }
     }
@@ -184,11 +180,11 @@ class DataStore: ObservableObject {
         let json = """
             {
                 "id": 0,
-                "file": "file",
-                "title": "New ROM",
+                "file": "",
+                "title": "",
                 "isFavorite": false,
                 "crc": "00000000",
-                "imageName": "Cartridge"
+                "image": ""
             }
         """
         let data = Data(json.utf8)
@@ -218,12 +214,15 @@ class DataStore: ObservableObject {
             }
         }
         
-        var rom = newRom()
-        rom.file = fileName
+        var rom = dataStore.rom(with: fileName)
         
-        if (dataStore.rom(with: rom.file) == nil) {
-            _ = dataStore.add(rom)
+        if (rom == nil) {
+            var new = newRom()
+            new.file = fileName
+            rom = dataStore.add(new)
         }
+        
+        ImageStore.shared.downloadImage(rom: rom!)
     }
     
     func add(_ rom: Rom) -> Rom {
@@ -235,9 +234,6 @@ class DataStore: ObservableObject {
         let checksum = CRC32.checksum(bytes: romData!)
         romToAdd.crc = String(format:"%08X", checksum)
         romToAdd.title = gameStore.title(crc: romToAdd.crc)
-        
-        ImageStore.shared.downloadImage(rom: romToAdd)
-        
         allRoms.append(romToAdd)
         save()
         return romToAdd

@@ -24,7 +24,7 @@ class RomListCell: UICollectionViewCell {
         
         layer.borderColor = borderColor
         layer.borderWidth = 1
-        layer.cornerRadius = 4
+        layer.cornerRadius = 6
     }
     
     override func prepareForReuse() {
@@ -44,7 +44,7 @@ class RomListCell: UICollectionViewCell {
 
     func configure(with rom: Rom) {
         titleLabel.text = rom.file
-        imageView.image = ImageStore.shared.image(name: rom.title + ".png")
+        imageView.image = ImageStore.shared.image(name: rom.image)
         favoriteImageView.alpha = rom.isFavorite ? 1 : 0
     }
     
