@@ -13,6 +13,7 @@ let dbFileName = "db.json"
 let gamedbFileName = "gbdb.json"
 let gbBoxartsPath = "http://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/"
 let gbcBoxartsPath = "http://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/"
+let romExtensions = [ "gb", "gbc", "cgb", "sgb", "rom", "dmg", "zip" ]
 
 func getDBDir () -> URL {
     

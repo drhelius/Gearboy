@@ -61,6 +61,10 @@ class RomListViewController: UIViewController {
         debugPrint("list appearing")
     }
     
+    @IBAction func updateAll(_ sender: Any) {
+        dataStore.updateAll()
+    }
+    
 }
 
 extension RomListViewController: UICollectionViewDelegate {

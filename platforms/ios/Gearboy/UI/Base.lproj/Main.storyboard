@@ -110,7 +110,11 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Gearboy" id="8rT-Wu-lCm">
-                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="pJI-05-D3V"/>
+                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="pJI-05-D3V">
+                            <connections>
+                                <action selector="updateAll:" destination="xKz-wn-otP" id="v5V-T7-BgK"/>
+                            </connections>
+                        </barButtonItem>
                     </navigationItem>
                     <connections>
                         <outlet property="collectionView" destination="ALa-qa-aXp" id="sRf-VL-3q3"/>

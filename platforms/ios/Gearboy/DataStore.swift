@@ -104,6 +104,24 @@ class DataStore: ObservableObject {
         return romToReturn
     }
     
+    func updateAll() {
+        let romsDirectory = getDataDir()
+
+        do {
+            let directoryContents = try FileManager.default.contentsOfDirectory(at: romsDirectory, includingPropertiesForKeys: nil)
+
+            let romFiles = directoryContents.filter{ romExtensions.contains($0.pathExtension.lowercased()) }
+            debugPrint("rom urls:",romFiles)
+            
+            romFiles.forEach { rom in
+                addFromURL(rom)
+            }
+
+        } catch {
+            debugPrint(error)
+        }
+    }
+    
     func rom(with id: Int) -> Rom? {
         return allRoms.first(where: { $0.id == id })
     }
