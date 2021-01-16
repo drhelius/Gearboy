@@ -4,7 +4,7 @@
 <dict>
 	<key>com.apple.developer.icloud-container-identifiers</key>
 	<array>
-		<string>iCloud.me.ignaciosanchez.Gearboy</string>
+		<string>iCloud.Gearboy</string>
 	</array>
 	<key>com.apple.developer.icloud-services</key>
 	<array>
@@ -12,13 +12,13 @@
 	</array>
 	<key>com.apple.developer.ubiquity-container-identifiers</key>
 	<array>
-		<string>iCloud.me.ignaciosanchez.Gearboy</string>
+		<string>iCloud.Gearboy</string>
 	</array>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
-	<key>com.apple.security.files.downloads.read-write</key>
+	<key>com.apple.security.files.downloads.read-only</key>
 	<true/>
-	<key>com.apple.security.files.user-selected.read-write</key>
+	<key>com.apple.security.files.user-selected.read-only</key>
 	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>

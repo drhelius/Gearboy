@@ -48,6 +48,8 @@ class DataStore: ObservableObject {
         let dstURL = dataDir.appendingPathComponent(fileName)
         
         if (url.deletingLastPathComponent().path != dataDir.path) {
+            
+            _ = url.startAccessingSecurityScopedResource()
             do {
                 if FileManager.default.fileExists(atPath: dstURL.path) {
                     try FileManager.default.removeItem(at: dstURL)
@@ -56,6 +58,7 @@ class DataStore: ObservableObject {
             } catch (let error) {
                 debugPrint("Cannot copy item at \(url) to \(dstURL): \(error)")
             }
+            url.stopAccessingSecurityScopedResource()
         }
         
         var rom = dataStore.rom(with: fileName)
@@ -106,12 +109,23 @@ class DataStore: ObservableObject {
     
     func updateAll() {
         let romsDirectory = getDataDir()
+        
+        allRoms.forEach { rom in
+            
+            let romFile = rom.file
+            let romFileURL = romsDirectory.appendingPathComponent(romFile)
+            
+            if !FileManager.default.fileExists(atPath: romFileURL.path) {
+                _ = delete(rom)
+            } else {
+                ImageStore.shared.downloadImage(rom: rom)
+            }
+        }
 
         do {
             let directoryContents = try FileManager.default.contentsOfDirectory(at: romsDirectory, includingPropertiesForKeys: nil)
 
             let romFiles = directoryContents.filter{ romExtensions.contains($0.pathExtension.lowercased()) }
-            debugPrint("rom urls:",romFiles)
             
             romFiles.forEach { rom in
                 addFromURL(rom)

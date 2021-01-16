@@ -34,6 +34,12 @@ final class ImageStore {
         let dstURL = getDBDir().appendingPathComponent(imageFile)
         
         if FileManager.default.fileExists(atPath: dstURL.path) {
+            
+            if rom.image == "" {
+                var updatedRom = rom
+                updatedRom.image = imageFile
+                _ = dataStore.update(updatedRom)
+            }
             return
         }
         
