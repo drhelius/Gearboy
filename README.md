@@ -149,7 +149,7 @@ Tests from [blargg's test roms](https://github.com/retrio/gb-test-roms):
 
 ## Contributors
 
-Thank you to all the people who have already contributed to Gearboy.
+Thank you to all the people who have already contributed to Gearboy!
 
 [![Contributors](https://contrib.rocks/image?repo=drhelius/gearboy)]("https://github.com/drhelius/gearboy/graphs/contributors)
 
