@@ -79,9 +79,31 @@ extension RomListViewController: UICollectionViewDelegate {
 
 }
 
+extension RomListViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        return UICollectionViewCell()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, indexPathForIndexTitle title: String, at index: Int) -> IndexPath {
+        guard let index = dataStore.allRoms.firstIndex(where: { $0.file.prefix(1) == title }) else {
+            return IndexPath(item: 0, section: 0)
+        }
+        return IndexPath(item: index, section: 0)
+    }
+    
+    func indexTitles(for collectionView: UICollectionView) -> [String]? {
+        return Array(Set(dataStore.allRoms.map{ String($0.file.prefix(1)) })).sorted(by: { $0 < $1 })
+    }
+}
+
 extension RomListViewController {
     func configureCollectionView() {
         collectionView.delegate = self
+        collectionView.dataSource = self
         collectionView.alwaysBounceVertical = true
         collectionView.collectionViewLayout = createCollectionViewLayout()
     }
