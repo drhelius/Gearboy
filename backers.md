@@ -4,7 +4,7 @@ Gearboy is an open source project with its ongoing development made possible tha
 
 - [Become a backer or sponsor on GitHub](https://github.com/sponsors/drhelius).
 
-## Backers
+## Special Thanks To
 
 - [Michael Mellor](https://github.com/dinglyburrow)
-
+- [Francisco Javier Trujillo](https://github.com/fjtrujy)
