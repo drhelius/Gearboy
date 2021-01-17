@@ -164,14 +164,14 @@ inline void Processor::InvalidOPCode()
     Log("--> ** INVALID OP Code");
 }
 
-inline void Processor::OPCodes_LD(EightBitRegister* reg1, u8 reg2)
+inline void Processor::OPCodes_LD(u8* reg1, u8 reg2)
 {
-    reg1->SetValue(reg2);
+    *reg1 = reg2;
 }
 
-inline void Processor::OPCodes_LD(EightBitRegister* reg, u16 address)
+inline void Processor::OPCodes_LD(u8* reg, u16 address)
 {
-    reg->SetValue(m_pMemory->Read(address));
+    *reg = m_pMemory->Read(address);
 }
 
 inline void Processor::OPCodes_LD(u16 address, u8 reg)
@@ -220,10 +220,10 @@ inline void Processor::OPCodes_CP(u8 number)
     }
 }
 
-inline void Processor::OPCodes_INC(EightBitRegister* reg)
+inline void Processor::OPCodes_INC(u8* reg)
 {
-    u8 result = reg->GetValue() + 1;
-    reg->SetValue(result);
+    u8 result = *reg + 1;
+    *reg = result;
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleZeroFlagFromResult(result);
     if ((result & 0x0F) == 0x00)
@@ -248,10 +248,10 @@ inline void Processor::OPCodes_INC_HL()
     }
 }
 
-inline void Processor::OPCodes_DEC(EightBitRegister* reg)
+inline void Processor::OPCodes_DEC(u8* reg)
 {
-    u8 result = reg->GetValue() - 1;
-    reg->SetValue(result);
+    u8 result = *reg - 1;
+    *reg = result;
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleFlag(FLAG_SUB);
     ToggleZeroFlagFromResult(result);
@@ -376,13 +376,13 @@ inline void Processor::OPCodes_ADD_SP(s8 number)
     SP.SetValue(static_cast<u16> (result));
 }
 
-inline void Processor::OPCodes_SWAP_Register(EightBitRegister* reg)
+inline void Processor::OPCodes_SWAP_Register(u8* reg)
 {
-    u8 low_half = reg->GetValue() & 0x0F;
-    u8 high_half = (reg->GetValue() >> 4) & 0x0F;
-    reg->SetValue((low_half << 4) + high_half);
+    u8 low_half = *reg & 0x0F;
+    u8 high_half = (*reg >> 4) & 0x0F;
+    *reg = (low_half << 4) + high_half;
     ClearAllFlags();
-    ToggleZeroFlagFromResult(reg->GetValue());
+    ToggleZeroFlagFromResult(*reg);
 }
 
 inline void Processor::OPCodes_SWAP_HL()
@@ -400,11 +400,11 @@ inline void Processor::OPCodes_SWAP_HL()
     ToggleZeroFlagFromResult(m_iReadCache);
 }
 
-inline void Processor::OPCodes_SLA(EightBitRegister* reg)
+inline void Processor::OPCodes_SLA(u8* reg)
 {
-    (reg->GetValue() & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
-    u8 result = reg->GetValue() << 1;
-    reg->SetValue(result);
+    (*reg & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
+    u8 result = *reg << 1;
+    *reg = result;
     ToggleZeroFlagFromResult(result);
 }
 
@@ -421,9 +421,9 @@ inline void Processor::OPCodes_SLA_HL()
     ToggleZeroFlagFromResult(m_iReadCache);
 }
 
-inline void Processor::OPCodes_SRA(EightBitRegister* reg)
+inline void Processor::OPCodes_SRA(u8* reg)
 {
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     (result & 0x01) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     if ((result & 0x80) != 0)
     {
@@ -434,7 +434,7 @@ inline void Processor::OPCodes_SRA(EightBitRegister* reg)
     {
         result >>= 1;
     }
-    reg->SetValue(result);
+    *reg = result;
     ToggleZeroFlagFromResult(result);
 }
 
@@ -459,12 +459,12 @@ inline void Processor::OPCodes_SRA_HL()
     ToggleZeroFlagFromResult(m_iReadCache);
 }
 
-inline void Processor::OPCodes_SRL(EightBitRegister* reg)
+inline void Processor::OPCodes_SRL(u8* reg)
 {
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     (result & 0x01) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result >>= 1;
-    reg->SetValue(result);
+    *reg = result;
     ToggleZeroFlagFromResult(result);
 }
 
@@ -481,9 +481,9 @@ inline void Processor::OPCodes_SRL_HL()
     ToggleZeroFlagFromResult(m_iReadCache);
 }
 
-inline void Processor::OPCodes_RLC(EightBitRegister* reg, bool isRegisterA)
+inline void Processor::OPCodes_RLC(u8* reg, bool isRegisterA)
 {
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     if ((result & 0x80) != 0)
     {
         SetFlag(FLAG_CARRY);
@@ -495,7 +495,7 @@ inline void Processor::OPCodes_RLC(EightBitRegister* reg, bool isRegisterA)
         ClearAllFlags();
         result <<= 1;
     }
-    reg->SetValue(result);
+    *reg = result;
     if (!isRegisterA)
     {
         ToggleZeroFlagFromResult(result);
@@ -524,14 +524,14 @@ inline void Processor::OPCodes_RLC_HL()
     ToggleZeroFlagFromResult(m_iReadCache);
 }
 
-inline void Processor::OPCodes_RL(EightBitRegister* reg, bool isRegisterA)
+inline void Processor::OPCodes_RL(u8* reg, bool isRegisterA)
 {
     u8 carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     ((result & 0x80) != 0) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result <<= 1;
     result |= carry;
-    reg->SetValue(result);
+    *reg = result;
     if (!isRegisterA)
     {
         ToggleZeroFlagFromResult(result);
@@ -553,9 +553,9 @@ inline void Processor::OPCodes_RL_HL()
     ToggleZeroFlagFromResult(m_iReadCache);
 }
 
-inline void Processor::OPCodes_RRC(EightBitRegister* reg, bool isRegisterA)
+inline void Processor::OPCodes_RRC(u8* reg, bool isRegisterA)
 {
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     if ((result & 0x01) != 0)
     {
         SetFlag(FLAG_CARRY);
@@ -567,7 +567,7 @@ inline void Processor::OPCodes_RRC(EightBitRegister* reg, bool isRegisterA)
         ClearAllFlags();
         result >>= 1;
     }
-    reg->SetValue(result);
+    *reg = result;
     if (!isRegisterA)
     {
         ToggleZeroFlagFromResult(result);
@@ -596,14 +596,14 @@ inline void Processor::OPCodes_RRC_HL()
     ToggleZeroFlagFromResult(m_iReadCache);
 }
 
-inline void Processor::OPCodes_RR(EightBitRegister* reg, bool isRegisterA)
+inline void Processor::OPCodes_RR(u8* reg, bool isRegisterA)
 {
     u8 carry = IsSetFlag(FLAG_CARRY) ? 0x80 : 0x00;
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     ((result & 0x01) != 0) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result >>= 1;
     result |= carry;
-    reg->SetValue(result);
+    *reg = result;
     if (!isRegisterA)
     {
         ToggleZeroFlagFromResult(result);
@@ -625,9 +625,9 @@ inline void Processor::OPCodes_RR_HL()
     ToggleZeroFlagFromResult(m_iReadCache);
 }
 
-inline void Processor::OPCodes_BIT(EightBitRegister* reg, int bit)
+inline void Processor::OPCodes_BIT(u8* reg, int bit)
 {
-    if (((reg->GetValue() >> bit) & 0x01) == 0)
+    if (((*reg >> bit) & 0x01) == 0)
     {
         ToggleFlag(FLAG_ZERO);
     }
@@ -653,9 +653,9 @@ inline void Processor::OPCodes_BIT_HL(int bit)
     UntoggleFlag(FLAG_SUB);
 }
 
-inline void Processor::OPCodes_SET(EightBitRegister* reg, int bit)
+inline void Processor::OPCodes_SET(u8* reg, int bit)
 {
-    reg->SetValue(reg->GetValue() | (0x1 << bit));
+    *reg = (*reg | (0x1 << bit));
 }
 
 inline void Processor::OPCodes_SET_HL(int bit)
@@ -669,9 +669,9 @@ inline void Processor::OPCodes_SET_HL(int bit)
     m_pMemory->Write(HL.GetValue(), m_iReadCache);
 }
 
-inline void Processor::OPCodes_RES(EightBitRegister* reg, int bit)
+inline void Processor::OPCodes_RES(u8* reg, int bit)
 {
-    reg->SetValue(reg->GetValue() & (~(0x1 << bit)));
+    *reg = (*reg & (~(0x1 << bit)));
 }
 
 inline void Processor::OPCodes_RES_HL(int bit)

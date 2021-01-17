@@ -21,7 +21,6 @@
 #define	SIXTEENBITREGISTER_H
 
 #include "definitions.h"
-#include "EightBitRegister.h"
 
 class SixteenBitRegister
 {
@@ -31,75 +30,79 @@ public:
     u8 GetLow() const;
     void SetHigh(u8 high);
     u8 GetHigh() const;
-    EightBitRegister* GetHighRegister();
-    EightBitRegister* GetLowRegister();
+    u8* GetHighRegister();
+    u8* GetLowRegister();
     void SetValue(u16 value);
     u16 GetValue() const;
     void Increment();
     void Decrement();
 
 private:
-    EightBitRegister m_High;
-    EightBitRegister m_Low;
+    union sixteenBit
+    {
+        u16 v;
+        struct 
+        {
+#ifdef IS_LITTLE_ENDIAN
+            uint8_t low;
+            uint8_t high;
+#else
+            uint8_t high;
+            uint8_t low;
+#endif
+        };
+    } m_Value;
 };
 
 
 inline void SixteenBitRegister::SetLow(u8 low)
 {
-    m_Low.SetValue(low);
+    m_Value.low = low;
 }
 
 inline u8 SixteenBitRegister::GetLow() const
 {
-    return m_Low.GetValue();
+    return m_Value.low;
 }
 
 inline void SixteenBitRegister::SetHigh(u8 high)
 {
-    m_High.SetValue(high);
+    m_Value.high = high;
 }
 
 inline u8 SixteenBitRegister::GetHigh() const
 {
-    return m_High.GetValue();
+    return m_Value.high;
 }
 
-inline EightBitRegister* SixteenBitRegister::GetHighRegister()
+inline u8* SixteenBitRegister::GetHighRegister()
 {
-    return &m_High;
+    return &m_Value.high;
 }
 
-inline EightBitRegister* SixteenBitRegister::GetLowRegister()
+inline u8* SixteenBitRegister::GetLowRegister()
 {
-    return &m_Low;
+    return &m_Value.low;
 }
 
 inline void SixteenBitRegister::SetValue(u16 value)
 {
-    m_Low.SetValue((u8) (value & 0xFF));
-    m_High.SetValue((u8) ((value >> 8) & 0xFF));
+    m_Value.v = value;
 }
 
 inline u16 SixteenBitRegister::GetValue() const
 {
-    u8 high = m_High.GetValue();
-    u8 low = m_Low.GetValue();
-
-    return (high << 8) + low;
+    return m_Value.v;
 }
 
 inline void SixteenBitRegister::Increment()
 {
-    u16 value = this->GetValue();
-    value++;
-    this->SetValue(value);
+    m_Value.v++;
 }
 
 inline void SixteenBitRegister::Decrement()
 {
-    u16 value = this->GetValue();
-    value--;
-    this->SetValue(value);
+    m_Value.v--;
 }
 
 #endif	/* SIXTEENBITREGISTER_H */
