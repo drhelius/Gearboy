@@ -92,14 +92,14 @@ extension RomListViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, indexPathForIndexTitle title: String, at index: Int) -> IndexPath {
-        guard let index = allRoms.firstIndex(where: { $0.file.prefix(1) == title }) else {
+        guard let index = allRoms.firstIndex(where: { $0.file.prefix(1).uppercased() == title }) else {
             return IndexPath(item: .zero, section: .zero)
         }
         return IndexPath(item: index, section: .zero)
     }
     
     func indexTitles(for collectionView: UICollectionView) -> [String]? {
-        return Array(Set(allRoms.map{ String($0.file.prefix(1)) })).sorted(by: { $0 < $1 })
+        return Array(Set(allRoms.map{ String($0.file.prefix(1).uppercased()) })).sorted(by: { $0 < $1 })
     }
 }
 
@@ -136,6 +136,7 @@ extension RomListViewController {
     
     func apply(_ roms: [Rom]) {
         collectionView.reloadSections([Section.main.rawValue])
+        collectionView.reloadData()
     }
 
 }

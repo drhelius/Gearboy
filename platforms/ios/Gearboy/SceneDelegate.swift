@@ -23,7 +23,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
         
         if url.isFileURL {
-            dataStore.addFromURL(url)
+            _ = dataStore.addFromURL(url, downloadImage: true)
         }
     }
 

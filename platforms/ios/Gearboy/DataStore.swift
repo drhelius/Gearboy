@@ -10,6 +10,8 @@ import Foundation
 
 class DataStore: ObservableObject {
     @Published var allRoms: [Rom]
+    
+    var runningUpdate = false
 
     init(roms: [Rom]) {
         self.allRoms = roms
@@ -41,7 +43,7 @@ class DataStore: ObservableObject {
         }
     }
     
-    func addFromURL(_ url: URL) {
+    func addFromURL(_ url: URL, downloadImage: Bool) -> Rom? {
         
         let dataDir = getDataDir()
         let fileName = url.lastPathComponent
@@ -69,7 +71,11 @@ class DataStore: ObservableObject {
             rom = dataStore.add(new)
         }
         
-        ImageStore.shared.downloadImage(rom: rom!)
+        if downloadImage {
+            ImageStore.shared.downloadImage(rom: rom!, blocking: false)
+        }
+        
+        return rom
     }
     
     func add(_ rom: Rom) -> Rom {
@@ -108,31 +114,63 @@ class DataStore: ObservableObject {
     }
     
     func updateAll() {
-        let romsDirectory = getDataDir()
         
-        allRoms.forEach { rom in
-            
-            let romFile = rom.file
-            let romFileURL = romsDirectory.appendingPathComponent(romFile)
-            
-            if !FileManager.default.fileExists(atPath: romFileURL.path) {
-                _ = delete(rom)
-            } else {
-                ImageStore.shared.downloadImage(rom: rom)
+        if !runningUpdate {
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                
+                self?.runningUpdate = true;
+                
+                let romsDirectory = getDataDir()
+                
+                self?.allRoms.forEach { rom in
+                    
+                    let romFile = rom.file
+                    let romFileURL = romsDirectory.appendingPathComponent(romFile)
+                    
+                    debugPrint("DB: \(rom.file)")
+                    
+                    if !FileManager.default.fileExists(atPath: romFileURL.path) {
+                        _ = self?.delete(rom)
+                    }
+                }
+                
+                do {
+                    let directoryContents = try FileManager.default.contentsOfDirectory(at: romsDirectory, includingPropertiesForKeys: nil)
+
+                    let romFiles = directoryContents.filter{ romExtensions.contains($0.pathExtension.lowercased()) }
+                    
+                    romFiles.forEach { file in
+                        debugPrint("File: \(file)")
+                        
+                        let fileName = file.lastPathComponent
+                        
+                        let rom = dataStore.rom(with: fileName)
+                        
+                        if (rom == nil) {
+                            let newRom = self?.addFromURL(file, downloadImage: false)
+                            
+                            if (newRom != nil) {
+                                ImageStore.shared.downloadImage(rom: newRom!, blocking: true)
+                            }
+                        }
+                    }
+                    
+                    romFiles.forEach { file in
+                        debugPrint("Image: \(file)")
+                        
+                        let fileName = file.lastPathComponent
+                        let rom = dataStore.rom(with: fileName)
+                        if (rom != nil) {
+                            ImageStore.shared.downloadImage(rom: rom!, blocking: true)
+                        }
+                    }
+
+                } catch {
+                    debugPrint(error)
+                }
+                
+                self?.runningUpdate = false;
             }
-        }
-
-        do {
-            let directoryContents = try FileManager.default.contentsOfDirectory(at: romsDirectory, includingPropertiesForKeys: nil)
-
-            let romFiles = directoryContents.filter{ romExtensions.contains($0.pathExtension.lowercased()) }
-            
-            romFiles.forEach { rom in
-                addFromURL(rom)
-            }
-
-        } catch {
-            debugPrint(error)
         }
     }
     
@@ -146,7 +184,10 @@ class DataStore: ObservableObject {
     
     fileprivate func save() {
         
+        allRoms.sort { $0.file.uppercased() < $1.file.uppercased() }
+        
         let file = getDBDir().appendingPathComponent(dbFileName)
+        
     
         do {
             let encoder = JSONEncoder()

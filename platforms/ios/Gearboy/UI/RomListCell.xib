@@ -30,7 +30,7 @@
                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ITi-tw-xSb">
                         <rect key="frame" x="0.0" y="187.5" width="250" height="62.5"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Rom Title asas sa as asd a as as as asd as sa dsa as sad as das sa da fin" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" minimumScaleFactor="0.29999999999999999" adjustsLetterSpacingToFitWidth="YES" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="DOp-Aj-fLO">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Rom Title" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" minimumScaleFactor="0.29999999999999999" adjustsLetterSpacingToFitWidth="YES" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="DOp-Aj-fLO">
                                 <rect key="frame" x="2" y="1" width="246" height="60.5"/>
                                 <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                                 <nil key="textColor"/>

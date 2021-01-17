@@ -12,7 +12,7 @@ final class ImageStore {
     typealias _ImageDictionary = [String: UIImage]
     fileprivate var images: _ImageDictionary = [:]
 
-    fileprivate static var scale = 2
+    fileprivate static var scale = 64
     
     static var shared = ImageStore()
     
@@ -21,7 +21,7 @@ final class ImageStore {
         return images.values[index]
     }
     
-    func downloadImage(rom: Rom) {
+    func downloadImage(rom: Rom, blocking: Bool) {
         
         if rom.title == "" {
             return
@@ -43,17 +43,23 @@ final class ImageStore {
             return
         }
         
-        DispatchQueue.global().async { [weak self] in
-            if let data = try? Data(contentsOf: imageURL) {
-                
-                FileManager.default.createFile(atPath: dstURL.path, contents: data)
-                
-                self?.images[imageFile] = ImageStore.loadImage(name: imageFile)
-                
-                var updatedRom = rom
-                updatedRom.image = imageFile
-                _ = dataStore.update(updatedRom)
+        if blocking {
+            _download(rom: rom, imageURL: imageURL, imageFile: imageFile, dstURL: dstURL)
+        } else {
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                self?._download(rom: rom, imageURL: imageURL, imageFile: imageFile, dstURL: dstURL)
             }
+        }
+    }
+    
+    func resizedImage(at url: URL, for size: CGSize) -> UIImage? {
+        guard let image = UIImage(contentsOfFile: url.path) else {
+            return nil
+        }
+
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { (context) in
+            image.draw(in: CGRect(origin: .zero, size: size))
         }
     }
 
@@ -61,13 +67,16 @@ final class ImageStore {
         
         let url = getDBDir().appendingPathComponent(name)
         
-        guard
-            let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
-            let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
-        else {
+        guard let image = UIImage(contentsOfFile: url.path) else {
             return #imageLiteral(resourceName: "Cartridge.jpg")
         }
-        return UIImage(cgImage: cgImage, scale: CGFloat(ImageStore.scale), orientation: .up)
+        
+        let size = CGSize(width: scale, height: scale)
+        
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { (context) in
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }
     }
     
     fileprivate func _guaranteeImage(name: String) -> _ImageDictionary.Index {
@@ -75,5 +84,18 @@ final class ImageStore {
         
         images[name] = ImageStore.loadImage(name: name)
         return images.index(forKey: name)!
+    }
+    
+    fileprivate func _download(rom: Rom, imageURL: URL, imageFile: String, dstURL: URL) {
+        if let data = try? Data(contentsOf: imageURL) {
+            
+            FileManager.default.createFile(atPath: dstURL.path, contents: data)
+            
+            self.images[imageFile] = ImageStore.loadImage(name: imageFile)
+            
+            var updatedRom = rom
+            updatedRom.image = imageFile
+            _ = dataStore.update(updatedRom)
+        }
     }
 }
