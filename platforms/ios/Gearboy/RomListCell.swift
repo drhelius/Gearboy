@@ -38,7 +38,7 @@ class RomListCell: UICollectionViewCell {
     override var isSelected: Bool {
         didSet {
             layer.borderColor = isSelected ? selectedBorderColor : borderColor
-            layer.borderWidth = isSelected ? 2 : 1
+            layer.borderWidth = isSelected ? 3 : 2
         }
     }
 
