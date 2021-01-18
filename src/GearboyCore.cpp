@@ -362,10 +362,10 @@ void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& co
     }
     else
     {
-        m_DMGPalette[0] = (((color1.blue * 31) / 255) << shift ) | (((color1.red * multiplier) / 255) << 5 ) | ((color1.blue * 31) / 255);
-        m_DMGPalette[1] = (((color2.blue * 31) / 255) << shift ) | (((color2.red * multiplier) / 255) << 5 ) | ((color2.blue * 31) / 255);
-        m_DMGPalette[2] = (((color3.blue * 31) / 255) << shift ) | (((color3.red * multiplier) / 255) << 5 ) | ((color3.blue * 31) / 255);
-        m_DMGPalette[3] = (((color4.blue * 31) / 255) << shift ) | (((color4.red * multiplier) / 255) << 5 ) | ((color4.blue * 31) / 255);
+        m_DMGPalette[0] = (((color1.blue * 31) / 255) << shift ) | (((color1.green * multiplier) / 255) << 5 ) | ((color1.red * 31) / 255);
+        m_DMGPalette[1] = (((color2.blue * 31) / 255) << shift ) | (((color2.green * multiplier) / 255) << 5 ) | ((color2.red * 31) / 255);
+        m_DMGPalette[2] = (((color3.blue * 31) / 255) << shift ) | (((color3.green * multiplier) / 255) << 5 ) | ((color3.red * 31) / 255);
+        m_DMGPalette[3] = (((color4.blue * 31) / 255) << shift ) | (((color4.green * multiplier) / 255) << 5 ) | ((color4.red * 31) / 255);
     }   
 
     if (!format_565)
