@@ -21,7 +21,6 @@
 		684CD667242BCF60004090E5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 684CD665242BCF60004090E5 /* Main.storyboard */; };
 		684CD669242BCF61004090E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 684CD668242BCF61004090E5 /* Assets.xcassets */; };
 		684CD66C242BCF61004090E5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 684CD66A242BCF61004090E5 /* LaunchScreen.storyboard */; };
-		684CD679242BFF0E004090E5 /* StoresUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684CD678242BFF0E004090E5 /* StoresUtil.swift */; };
 		684CD67B242C0119004090E5 /* Rom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684CD67A242C0119004090E5 /* Rom.swift */; };
 		68DC4A02247FFE5100579B91 /* RomListCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 68DC4A01247FFE5100579B91 /* RomListCell.xib */; };
 		68E6C2E124829FC000F79593 /* RomController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E6C2E024829FC000F79593 /* RomController.swift */; };
@@ -29,6 +28,9 @@
 		68E6C2F02482F62100F79593 /* TabBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E6C2EF2482F62100F79593 /* TabBarItem.swift */; };
 		68FAA50C242E8E7E0061EF86 /* RomDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FAA50B242E8E7E0061EF86 /* RomDetailViewController.swift */; };
 		68FBC9FE2437A6A100002F7C /* SplitViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FBC9FD2437A6A100002F7C /* SplitViewDelegate.swift */; };
+		B58C0E6225B7714F00AF3468 /* StoresUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58C0E6125B7714F00AF3468 /* StoresUtil.swift */; };
+		B58C0E6525B7715400AF3468 /* Localized.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58C0E6425B7715400AF3468 /* Localized.swift */; };
+		B58C0E7B25B7727B00AF3468 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B58C0E7D25B7727B00AF3468 /* Localizable.strings */; };
 		B5FDD38825B742A30099BA60 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = B5FDD38725B742A30099BA60 /* SDWebImage */; };
 		B5FDD39125B75D7D0099BA60 /* RomExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FDD39025B75D7D0099BA60 /* RomExtension.swift */; };
 		B5FDD39525B762EB0099BA60 /* BoxArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FDD39425B762EB0099BA60 /* BoxArt.swift */; };
@@ -49,9 +51,7 @@
 		684CD661242BCF60004090E5 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		684CD666242BCF60004090E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		684CD668242BCF61004090E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		684CD66B242BCF61004090E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		684CD66D242BCF61004090E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		684CD678242BFF0E004090E5 /* StoresUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoresUtil.swift; sourceTree = "<group>"; };
 		684CD67A242C0119004090E5 /* Rom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rom.swift; sourceTree = "<group>"; };
 		68B706542483FE420047D7E8 /* Gearboy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gearboy.entitlements; sourceTree = "<group>"; };
 		68DC4A01247FFE5100579B91 /* RomListCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RomListCell.xib; sourceTree = "<group>"; };
@@ -60,6 +60,11 @@
 		68E6C2EF2482F62100F79593 /* TabBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarItem.swift; sourceTree = "<group>"; };
 		68FAA50B242E8E7E0061EF86 /* RomDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomDetailViewController.swift; sourceTree = "<group>"; };
 		68FBC9FD2437A6A100002F7C /* SplitViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplitViewDelegate.swift; sourceTree = "<group>"; };
+		B58C0E6125B7714F00AF3468 /* StoresUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoresUtil.swift; sourceTree = "<group>"; };
+		B58C0E6425B7715400AF3468 /* Localized.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Localized.swift; sourceTree = "<group>"; };
+		B58C0E7C25B7727B00AF3468 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B58C0E7F25B7728A00AF3468 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B58C0E8125B772D000AF3468 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B5FDD39025B75D7D0099BA60 /* RomExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomExtension.swift; sourceTree = "<group>"; };
 		B5FDD39425B762EB0099BA60 /* BoxArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxArt.swift; sourceTree = "<group>"; };
 		EF40A35A46209F3A32E65009 /* LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
@@ -132,7 +137,6 @@
 				680A3B4E242D332E00630335 /* RomListViewController.swift */,
 				684CD661242BCF60004090E5 /* SceneDelegate.swift */,
 				68FBC9FD2437A6A100002F7C /* SplitViewDelegate.swift */,
-				684CD678242BFF0E004090E5 /* StoresUtil.swift */,
 				6840AA69248B00F300BBED58 /* TabBarController.swift */,
 				68E6C2EF2482F62100F79593 /* TabBarItem.swift */,
 			);
@@ -146,6 +150,7 @@
 				2BE8F40525ACBF6F00E6FE62 /* gbdb.json */,
 				68B706542483FE420047D7E8 /* Gearboy.entitlements */,
 				684CD66D242BCF61004090E5 /* Info.plist */,
+				B58C0E7D25B7727B00AF3468 /* Localizable.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -153,6 +158,8 @@
 		B5FDD38F25B75D730099BA60 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				B58C0E6425B7715400AF3468 /* Localized.swift */,
+				B58C0E6125B7714F00AF3468 /* StoresUtil.swift */,
 				B5FDD39025B75D7D0099BA60 /* RomExtension.swift */,
 				B5FDD39425B762EB0099BA60 /* BoxArt.swift */,
 			);
@@ -204,6 +211,7 @@
 			knownRegions = (
 				en,
 				Base,
+				es,
 			);
 			mainGroup = 684CD653242BCF60004090E5;
 			packageReferences = (
@@ -226,6 +234,7 @@
 				2BE8F40625ACBF6F00E6FE62 /* gbdb.json in Resources */,
 				684CD66C242BCF61004090E5 /* LaunchScreen.storyboard in Resources */,
 				684CD669242BCF61004090E5 /* Assets.xcassets in Resources */,
+				B58C0E7B25B7727B00AF3468 /* Localizable.strings in Resources */,
 				68E6C2EC2482AD0800F79593 /* RomDetail.storyboard in Resources */,
 				684CD667242BCF60004090E5 /* Main.storyboard in Resources */,
 				68DC4A02247FFE5100579B91 /* RomListCell.xib in Resources */,
@@ -249,11 +258,12 @@
 				2B3AF72325AE5C8800576A38 /* GameStore.swift in Sources */,
 				68FAA50C242E8E7E0061EF86 /* RomDetailViewController.swift in Sources */,
 				68E6C2F02482F62100F79593 /* TabBarItem.swift in Sources */,
+				B58C0E6525B7715400AF3468 /* Localized.swift in Sources */,
 				684CD662242BCF60004090E5 /* SceneDelegate.swift in Sources */,
 				2BE8F40925ACC3D000E6FE62 /* Game.swift in Sources */,
 				68FBC9FE2437A6A100002F7C /* SplitViewDelegate.swift in Sources */,
+				B58C0E6225B7714F00AF3468 /* StoresUtil.swift in Sources */,
 				2B3AF72925AE5CE700576A38 /* CRC32.swift in Sources */,
-				684CD679242BFF0E004090E5 /* StoresUtil.swift in Sources */,
 				684CD67B242C0119004090E5 /* Rom.swift in Sources */,
 				680A3B51242D389200630335 /* RomListCell.swift in Sources */,
 				B5FDD39525B762EB0099BA60 /* BoxArt.swift in Sources */,
@@ -274,7 +284,7 @@
 		684CD66A242BCF61004090E5 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				684CD66B242BCF61004090E5 /* Base */,
+				B58C0E8125B772D000AF3468 /* Base */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
@@ -287,6 +297,15 @@
 			name = RomDetail.storyboard;
 			sourceTree = "<group>";
 		};
+		B58C0E7D25B7727B00AF3468 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B58C0E7C25B7727B00AF3468 /* en */,
+				B58C0E7F25B7728A00AF3468 /* es */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
@@ -294,6 +313,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -356,6 +376,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";

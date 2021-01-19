@@ -10,29 +10,21 @@ import UIKit
 enum TabBarItem: Int, CaseIterable {
     case all, favorites, recents, settings
     
-    func title() -> String {
+    var title: String {
         switch self {
-        case .all:
-            return "All ROMs"
-        case .favorites:
-            return "Favorites"
-        case .recents:
-            return "Recents"
-        case .settings:
-            return "Settings"
+        case .all: return L10n("Common::AllRoms")
+        case .favorites: return L10n("Common::Favourites")
+        case .recents: return L10n("Common::Recents")
+        case .settings: return L10n("Common::Settings")
         }
     }
     
-    func image() -> UIImage? {
+    var image: UIImage? {
         switch self {
-        case .all:
-            return UIImage(systemName: "memorychip")
-        case .favorites:
-            return UIImage(systemName: "star")
-        case .recents:
-            return UIImage(systemName: "clock")
-        case .settings:
-            return UIImage(systemName: "gearshape")
+        case .all: return UIImage(systemName: "memorychip")
+        case .favorites: return UIImage(systemName: "star")
+        case .recents: return UIImage(systemName: "clock")
+        case .settings: return UIImage(systemName: "gearshape")
         }
     }
 }

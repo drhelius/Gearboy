@@ -1,0 +1,17 @@
+/* 
+  Localizable.strings
+  Gearboy
+
+  Created by Francisco Javier Trujillo Mata on 19/01/2021.
+  Copyright © 2021 Apple. All rights reserved.
+*/
+
+"Common::Gearboy" = "Gearboy";
+"Common::Delete" = "Eliminar";
+"Common::Cancel" = "Cancelar";
+"Common::DeleteRom" = "¿Estás seguro de que deseas eliminar %@?";
+"Common::NoRomSelected" = "Ninguna ROM Seleccionada";
+"Common::AllRoms" = "Todas las ROMS";
+"Common::Favourites" = "Favoritas";
+"Common::Recents" = "Recientes";
+"Common::Settings" = "Ajustes";

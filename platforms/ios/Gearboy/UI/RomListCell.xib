@@ -10,7 +10,7 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
-        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="romListCell" id="cqd-WL-g3o" customClass="RomListCell" customModule="Gearboy" customModuleProvider="target">
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="RomListCell" id="cqd-WL-g3o" customClass="RomListCell" customModule="Gearboy" customModuleProvider="target">
             <rect key="frame" x="0.0" y="0.0" width="250" height="250"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="Mkx-zz-mfb">
@@ -69,7 +69,7 @@
         </collectionViewCell>
     </objects>
     <resources>
-        <image name="placeholder" width="230" height="183"/>
+        <image name="placeholder" width="80" height="60"/>
         <image name="star.fill" catalog="system" width="128" height="116"/>
         <namedColor name="overlayBackground">
             <color red="1" green="1" blue="1" alpha="0.80000001192092896" colorSpace="custom" customColorSpace="sRGB"/>

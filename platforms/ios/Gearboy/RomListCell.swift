@@ -9,10 +9,6 @@ import UIKit
 import SDWebImage
 
 class RomListCell: UICollectionViewCell {
-    
-    static let reuseIdentifier = "romListCell"
-    static let nib = UINib(nibName: "RomListCell", bundle: .main)
-
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var favoriteImageView: UIImageView!

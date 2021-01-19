@@ -15,11 +15,11 @@ class TabBarController: UITabBarController {
         if let items = tabBar.items {
             for item in TabBarItem.allCases {
                 if traitCollection.userInterfaceIdiom == .phone {
-                    items[item.rawValue].title = item.title()
+                    items[item.rawValue].title = item.title
                 } else {
                     items[item.rawValue].title = ""
                 }
-                items[item.rawValue].image = item.image()
+                items[item.rawValue].image = item.image
             }
         }
     }
