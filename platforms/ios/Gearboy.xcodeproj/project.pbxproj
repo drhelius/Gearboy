@@ -31,6 +31,7 @@
 		68E6C2F02482F62100F79593 /* TabBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E6C2EF2482F62100F79593 /* TabBarItem.swift */; };
 		68FAA50C242E8E7E0061EF86 /* RomDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FAA50B242E8E7E0061EF86 /* RomDetailViewController.swift */; };
 		68FBC9FE2437A6A100002F7C /* SplitViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FBC9FD2437A6A100002F7C /* SplitViewDelegate.swift */; };
+		B5FDD38825B742A30099BA60 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = B5FDD38725B742A30099BA60 /* SDWebImage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -69,6 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B5FDD38825B742A30099BA60 /* SDWebImage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,6 +167,9 @@
 			dependencies = (
 			);
 			name = Gearboy;
+			packageProductDependencies = (
+				B5FDD38725B742A30099BA60 /* SDWebImage */,
+			);
 			productName = Recipes;
 			productReference = 684CD65C242BCF60004090E5 /* Gearboy.app */;
 			productType = "com.apple.product-type.application";
@@ -193,6 +198,9 @@
 				Base,
 			);
 			mainGroup = 684CD653242BCF60004090E5;
+			packageReferences = (
+				B5FDD38625B742A30099BA60 /* XCRemoteSwiftPackageReference "SDWebImage" */,
+			);
 			productRefGroup = 684CD65D242BCF60004090E5 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -462,6 +470,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B5FDD38625B742A30099BA60 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImage";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B5FDD38725B742A30099BA60 /* SDWebImage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B5FDD38625B742A30099BA60 /* XCRemoteSwiftPackageReference "SDWebImage" */;
+			productName = SDWebImage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 684CD654242BCF60004090E5 /* Project object */;
 }
