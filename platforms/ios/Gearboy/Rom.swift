@@ -7,28 +7,17 @@ Abstract:
 
 import UIKit
 
-struct Rom: Hashable, Codable, Identifiable {
-    var id: Int
-    var file: String
-    var title: String
-    var isFavorite: Bool
-    var crc: String
+struct Rom: Hashable, Codable {
+    let crc: String
+    let title: String
+    let file: String
+    var isFavorite: Bool = false
     var usedOn: Date? = Date()
-    var image: String
-}
-
-extension Rom {
-    var usedOnDate: Date {
-        usedOn ?? Date()
-    }
-
-//    var image: UIImage {
-//        guard let name = imageName, !name.isEmpty else { return #imageLiteral(resourceName: "Cartridge.jpg") }
-//        return ImageStore.shared.image(name: name)
-//    }
+    var urlImages: [URL] { BoxArt.allCases.compactMap { $0.urlWithName(title) } }
     
-//    func add(_ image: UIImage) {
-//        guard let name = imageName, !name.isEmpty else { return }
-//        ImageStore.shared.add(image, with: name)
-//    }
+    init(crc: String, title: String, file: String) {
+        self.crc = crc
+        self.title = title
+        self.file = file
+    }
 }

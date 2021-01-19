@@ -17,35 +17,9 @@ class DataStore: ObservableObject {
         self.allRoms = roms
     }
     
-    func newRom() -> Rom {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-
-        let json = """
-            {
-                "id": 0,
-                "file": "",
-                "title": "",
-                "isFavorite": false,
-                "crc": "00000000",
-                "image": ""
-            }
-        """
-        let data = Data(json.utf8)
+    func addFromURL(_ url: URL) {
         
-        do {
-            let decoder = JSONDecoder()
-            return try decoder.decode(Rom.self, from: data)
-        } catch {
-            fatalError("Invalid ROM JSON.")
-        }
-    }
-    
-    func addFromURL(_ url: URL, downloadImage: Bool) -> Rom? {
-        
-        let dataDir = getDataDir()
+        let dataDir = PathUtils.getDataDir
         let fileName = url.lastPathComponent
         let dstURL = dataDir.appendingPathComponent(fileName)
         
@@ -63,48 +37,32 @@ class DataStore: ObservableObject {
             url.stopAccessingSecurityScopedResource()
         }
         
-        var rom = dataStore.rom(with: fileName)
-        
-        if (rom == nil) {
-            var new = newRom()
-            new.file = fileName
-            rom = dataStore.add(new)
-        }
-        
-        if downloadImage {
-            ImageStore.shared.downloadImage(rom: rom!, blocking: false)
-        }
-        
-        return rom
+        guard dataStore.rom(with: fileName) != nil else { return }
+        dataStore.addWithFileName(fileName)
     }
     
-    func add(_ rom: Rom) -> Rom {
-        var romToAdd = rom
-        romToAdd.id = (allRoms.map { $0.id }.max() ?? 0) + 1
+    func addWithFileName(_ fileName: String) {
+        let romURL = PathUtils.getDataDir.appendingPathComponent(fileName)
+        guard let romData = FileManager.default.contents(atPath: romURL.path) else { return }
         
-        let romURL = getDataDir().appendingPathComponent(rom.file)
-        let romData = FileManager.default.contents(atPath: romURL.path)
-        let checksum = CRC32.checksum(bytes: romData!)
-        romToAdd.crc = String(format:"%08X", checksum)
-        romToAdd.title = gameStore.title(crc: romToAdd.crc)
-        allRoms.append(romToAdd)
+        let checksum = CRC32.checksum(bytes: romData)
+        let crc = String(format:"%08X", checksum)
+        let title = gameStore.titleWithCRC(crc)
+        
+        allRoms.append(Rom(crc: crc, title: title, file: fileName))
         save()
-        return romToAdd
     }
     
     func delete(_ rom: Rom) -> Bool {
-        var deleted = false
-        if let index = allRoms.firstIndex(where: { $0.id == rom.id }) {
-            allRoms.remove(at: index)
-            deleted = true
-            save()
-        }
-        return deleted
+        guard let index = (allRoms.firstIndex { $0.crc == rom.crc }) else { return false }
+        
+        allRoms.remove(at: index)
+        return true
     }
     
     func update(_ rom: Rom) -> Rom? {
         var romToReturn: Rom? = nil // Return nil if the rom doesn't exist.
-        if let index = allRoms.firstIndex(where: { $0.id == rom.id }) {
+        if let index = allRoms.firstIndex(where: { $0.crc == rom.crc }) {
             allRoms.remove(at: index)
             allRoms.insert(rom, at: index)
             romToReturn = rom
@@ -120,7 +78,7 @@ class DataStore: ObservableObject {
                 
                 self?.runningUpdate = true;
                 
-                let romsDirectory = getDataDir()
+                let romsDirectory = PathUtils.getDataDir
                 
                 self?.allRoms.forEach { rom in
                     
@@ -137,34 +95,14 @@ class DataStore: ObservableObject {
                 do {
                     let directoryContents = try FileManager.default.contentsOfDirectory(at: romsDirectory, includingPropertiesForKeys: nil)
 
-                    let romFiles = directoryContents.filter{ romExtensions.contains($0.pathExtension.lowercased()) }
+                    let romFiles = directoryContents.filter{ RomExtension(rawValue: $0.pathExtension.lowercased()) != nil }
                     
                     romFiles.forEach { file in
                         debugPrint("File: \(file)")
                         
-                        let fileName = file.lastPathComponent
-                        
-                        let rom = dataStore.rom(with: fileName)
-                        
-                        if (rom == nil) {
-                            let newRom = self?.addFromURL(file, downloadImage: false)
-                            
-                            if (newRom != nil) {
-                                ImageStore.shared.downloadImage(rom: newRom!, blocking: true)
-                            }
-                        }
+                        guard dataStore.rom(with: file.lastPathComponent) == nil else { return }
+                        self?.addFromURL(file)
                     }
-                    
-                    romFiles.forEach { file in
-                        debugPrint("Image: \(file)")
-                        
-                        let fileName = file.lastPathComponent
-                        let rom = dataStore.rom(with: fileName)
-                        if (rom != nil) {
-                            ImageStore.shared.downloadImage(rom: rom!, blocking: true)
-                        }
-                    }
-
                 } catch {
                     debugPrint(error)
                 }
@@ -172,10 +110,6 @@ class DataStore: ObservableObject {
                 self?.runningUpdate = false;
             }
         }
-    }
-    
-    func rom(with id: Int) -> Rom? {
-        return allRoms.first(where: { $0.id == id })
     }
     
     func rom(with file: String) -> Rom? {
@@ -186,7 +120,7 @@ class DataStore: ObservableObject {
         
         allRoms.sort { $0.file.uppercased() < $1.file.uppercased() }
         
-        let file = getDBDir().appendingPathComponent(dbFileName)
+        let file = PathUtils.getDBDir.appendingPathComponent(PathUtils.dbFileName)
         
     
         do {

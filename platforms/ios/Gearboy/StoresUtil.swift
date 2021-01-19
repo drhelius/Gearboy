@@ -7,10 +7,9 @@ Abstract:
 
 import Foundation
 
-
-
-let gameStore = GameStore(games: load(gamedbFileName, bundle: true) ?? [Game]())
-let dataStore = DataStore(roms: load(dbFileName, bundle: false) ?? [Rom]())
+// SINGLETONS !!
+let gameStore = GameStore(games: load(PathUtils.gamedbFileName, bundle: true) ?? [Game]())
+let dataStore = DataStore(roms: load(PathUtils.dbFileName, bundle: false) ?? [Rom]())
 
 
 
@@ -21,7 +20,7 @@ func load<T: Decodable>(_ filename: String, bundle: Bool) -> T? {
     if bundle {
         file = Bundle.main.url(forResource: filename, withExtension: nil)!
     } else {
-        file = getDBDir().appendingPathComponent(filename)
+        file = PathUtils.getDBDir.appendingPathComponent(filename)
     }
     
     let data: Data

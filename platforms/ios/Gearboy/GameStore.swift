@@ -8,18 +8,12 @@
 
 import Foundation
 
-class GameStore {
-    typealias _GameDictionary = [String: String]
-    
-    var gamesDict: _GameDictionary = [:]
+struct GameStore {
+    private let store: [String: String]
     
     init(games: [Game]) {
-        for g in games {
-            gamesDict[g.crc] = g.title
-        }
+        store = games.reduce(into: [String: String]()) { $0[$1.crc] = $1.title }
     }
     
-    func title(crc: String) -> String {
-        return gamesDict[crc] ?? ""
-    }
+    func titleWithCRC(_ crc: String) -> String { store[crc] ?? "" }
 }

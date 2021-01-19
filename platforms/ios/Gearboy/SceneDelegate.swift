@@ -18,16 +18,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
-        guard let url = URLContexts.first?.url else {
-            return
-        }
-        
-        if url.isFileURL {
-            _ = dataStore.addFromURL(url, downloadImage: true)
-        }
+        guard let url = URLContexts.first?.url, url.isFileURL else { return }
+        dataStore.addFromURL(url)
     }
+}
 
-    private func configureSplitViewController() {
+// MARK: - Private Methods
+private extension SceneDelegate {
+    func configureSplitViewController() {
         guard
             let window = window,
             let splitViewController = window.rootViewController as? UISplitViewController
@@ -37,6 +35,5 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         splitViewController.delegate = splitViewDelegate
     }
-
 }
 
