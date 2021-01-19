@@ -48,7 +48,7 @@ class RomDetailViewController: UIViewController, RomController {
                 guard
                     let self = self,
                     let rom = self.rom,
-                    let updatedRom = roms.first(where: { $0.id == rom.id })
+                    let updatedRom = roms.first(where: { $0.crc == rom.crc })
                 else { return }
                 
                 self.rom = updatedRom

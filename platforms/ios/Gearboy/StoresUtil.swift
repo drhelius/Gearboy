@@ -7,8 +7,7 @@ Abstract:
 
 import Foundation
 
-
-
+// SINGLETONS !!
 let gameStore = GameStore(games: load(gamedbFileName, bundle: true) ?? [Game]())
 let dataStore = DataStore(roms: load(dbFileName, bundle: false) ?? [Rom]())
 

@@ -9,6 +9,6 @@
 import UIKit
 
 struct Game: Hashable, Codable {
-    var title: String
-    var crc: String
+    let title: String
+    let crc: String
 }

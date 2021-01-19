@@ -7,20 +7,17 @@ Abstract:
 
 import UIKit
 
-struct Rom: Hashable, Codable, Identifiable {
-    var id: Int = .zero
-    var file: String
-    var title: String = ""
+struct Rom: Hashable, Codable {
+    let crc: String
+    let title: String
+    let file: String
     var isFavorite: Bool = false
-    var crc: String = ""
     var usedOn: Date? = Date()
+    var urlImage: URL? { URL(string: gbBoxartsPath)?.appendingPathComponent( title + boxartExtension) }
     
-    init(file: String) {
+    init(crc: String, title: String, file: String) {
+        self.crc = crc
+        self.title = title
         self.file = file
     }
-}
-
-extension Rom {
-    var usedOnDate: Date { usedOn ?? Date() }
-    var urlImage: URL? { URL(string: gbBoxartsPath)?.appendingPathComponent( title + boxartExtension) }
 }

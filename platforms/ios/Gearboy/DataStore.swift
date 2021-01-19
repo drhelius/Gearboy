@@ -38,35 +38,31 @@ class DataStore: ObservableObject {
         }
         
         guard dataStore.rom(with: fileName) != nil else { return }
-        dataStore.add(Rom(file: fileName))
+        dataStore.addWithFileName(fileName)
     }
     
-    func add(_ rom: Rom) {
-        var romToAdd = rom
-        romToAdd.id = (allRoms.map { $0.id }.max() ?? 0) + 1
+    func addWithFileName(_ fileName: String) {
+        let romURL = getDataDir().appendingPathComponent(fileName)
+        guard let romData = FileManager.default.contents(atPath: romURL.path) else { return }
         
-        let romURL = getDataDir().appendingPathComponent(rom.file)
-        let romData = FileManager.default.contents(atPath: romURL.path)
-        let checksum = CRC32.checksum(bytes: romData!)
-        romToAdd.crc = String(format:"%08X", checksum)
-        romToAdd.title = gameStore.title(crc: romToAdd.crc)
-        allRoms.append(romToAdd)
+        let checksum = CRC32.checksum(bytes: romData)
+        let crc = String(format:"%08X", checksum)
+        let title = gameStore.titleWithCRC(crc)
+        
+        allRoms.append(Rom(crc: crc, title: title, file: fileName))
         save()
     }
     
     func delete(_ rom: Rom) -> Bool {
-        var deleted = false
-        if let index = allRoms.firstIndex(where: { $0.id == rom.id }) {
-            allRoms.remove(at: index)
-            deleted = true
-            save()
-        }
-        return deleted
+        guard let index = (allRoms.firstIndex { $0.crc == rom.crc }) else { return false }
+        
+        allRoms.remove(at: index)
+        return true
     }
     
     func update(_ rom: Rom) -> Rom? {
         var romToReturn: Rom? = nil // Return nil if the rom doesn't exist.
-        if let index = allRoms.firstIndex(where: { $0.id == rom.id }) {
+        if let index = allRoms.firstIndex(where: { $0.crc == rom.crc }) {
             allRoms.remove(at: index)
             allRoms.insert(rom, at: index)
             romToReturn = rom
@@ -114,10 +110,6 @@ class DataStore: ObservableObject {
                 self?.runningUpdate = false;
             }
         }
-    }
-    
-    func rom(with id: Int) -> Rom? {
-        return allRoms.first(where: { $0.id == id })
     }
     
     func rom(with file: String) -> Rom? {
