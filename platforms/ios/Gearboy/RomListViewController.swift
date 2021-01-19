@@ -42,7 +42,7 @@ class RomListViewController: UIViewController {
         }
 
         configureCollectionView()
-        configureDataSource()
+        registerCells()
         
         // Listen for rom changes in the data store.
         dataStoreSubscriber = dataStore.$allRoms
@@ -52,11 +52,7 @@ class RomListViewController: UIViewController {
                 self.apply(roms)
             }
     }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        debugPrint("list appearing")
-    }
-    
+
     @IBAction func updateAll(_ sender: Any) {
         dataStore.updateAll()
     }
@@ -85,7 +81,8 @@ extension RomListViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RomListCell.reuseIdentifier, for: indexPath)
+        let identifier = String(describing: RomListCell.self)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath)
 
         (cell as? RomListCell)?.configure(with: allRoms[indexPath.row])
         return cell
@@ -127,16 +124,15 @@ extension RomListViewController {
     
 }
 
-extension RomListViewController {
-    
-    func configureDataSource() {
-        // Register the cell that displays a rom in the collection view.
-        collectionView.register(RomListCell.nib, forCellWithReuseIdentifier: RomListCell.reuseIdentifier)
+// MARK: - Private Methods
+private extension RomListViewController {
+    func registerCells() {
+        let identifier = String(describing: RomListCell.self)
+        let nibFile = UINib(nibName: identifier, bundle: .main)
+        collectionView.register(nibFile, forCellWithReuseIdentifier: identifier)
     }
     
     func apply(_ roms: [Rom]) {
         collectionView.reloadSections([Section.main.rawValue])
-        collectionView.reloadData()
     }
-
 }

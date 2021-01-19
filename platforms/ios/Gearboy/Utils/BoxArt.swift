@@ -9,21 +9,20 @@
 import Foundation
 
 enum BoxArt: String, CaseIterable {
-    case gb
-    case gbc
+    case libretroGB
+    case libretroGBC
     
     var pathExtension: String {
         switch self {
-        case .gb, .gbc: return ".png"
+        case .libretroGB, .libretroGBC: return ".png"
         }
     }
-    
     
     func urlWithName(_ name: String) -> URL? {
         let baseURL: URL?
         switch self {
-        case .gb: baseURL = URL(string: "http://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/")
-        case .gbc: baseURL = URL(string: "http://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/")
+        case .libretroGB: baseURL = URL(string: "http://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/")
+        case .libretroGBC: baseURL = URL(string: "http://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/")
         }
         return baseURL?.appendingPathComponent(name + pathExtension)
     }
