@@ -13,7 +13,7 @@ struct Rom: Hashable, Codable {
     let file: String
     var isFavorite: Bool = false
     var usedOn: Date? = Date()
-    var urlImage: URL? { URL(string: gbBoxartsPath)?.appendingPathComponent( title + boxartExtension) }
+    var urlImages: [URL] { BoxArt.allCases.compactMap { $0.urlWithName(title) } }
     
     init(crc: String, title: String, file: String) {
         self.crc = crc

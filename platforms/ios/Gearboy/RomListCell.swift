@@ -45,8 +45,20 @@ class RomListCell: UICollectionViewCell {
 
     func configure(with rom: Rom) {
         titleLabel.text = rom.file
-        imageView.sd_setImage(with: rom.urlImage, placeholderImage: #imageLiteral(resourceName: "Cartridge"))
         favoriteImageView.alpha = rom.isFavorite ? 1 : 0
+        downloadImage(boxarts: rom.urlImages)
     }
     
+}
+
+// MARK: - Private Methods
+private extension RomListCell {
+    // Best way for now to do it. Searching in all boxarts, using a recursive function
+    func downloadImage(boxarts: [URL], index: Int = .zero) {
+        guard boxarts.count > index else { return }
+        imageView.sd_setImage(with: boxarts[index], placeholderImage: #imageLiteral(resourceName: "Cartridge")) { (_, error, _, _) in
+            guard error != nil else { return }
+            self.downloadImage(boxarts: boxarts, index: index + 1)
+        }
+    }
 }

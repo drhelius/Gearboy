@@ -19,7 +19,7 @@ class DataStore: ObservableObject {
     
     func addFromURL(_ url: URL) {
         
-        let dataDir = getDataDir()
+        let dataDir = PathUtils.getDataDir
         let fileName = url.lastPathComponent
         let dstURL = dataDir.appendingPathComponent(fileName)
         
@@ -42,7 +42,7 @@ class DataStore: ObservableObject {
     }
     
     func addWithFileName(_ fileName: String) {
-        let romURL = getDataDir().appendingPathComponent(fileName)
+        let romURL = PathUtils.getDataDir.appendingPathComponent(fileName)
         guard let romData = FileManager.default.contents(atPath: romURL.path) else { return }
         
         let checksum = CRC32.checksum(bytes: romData)
@@ -78,7 +78,7 @@ class DataStore: ObservableObject {
                 
                 self?.runningUpdate = true;
                 
-                let romsDirectory = getDataDir()
+                let romsDirectory = PathUtils.getDataDir
                 
                 self?.allRoms.forEach { rom in
                     
@@ -95,7 +95,7 @@ class DataStore: ObservableObject {
                 do {
                     let directoryContents = try FileManager.default.contentsOfDirectory(at: romsDirectory, includingPropertiesForKeys: nil)
 
-                    let romFiles = directoryContents.filter{ romExtensions.contains($0.pathExtension.lowercased()) }
+                    let romFiles = directoryContents.filter{ RomExtension(rawValue: $0.pathExtension.lowercased()) != nil }
                     
                     romFiles.forEach { file in
                         debugPrint("File: \(file)")
@@ -120,7 +120,7 @@ class DataStore: ObservableObject {
         
         allRoms.sort { $0.file.uppercased() < $1.file.uppercased() }
         
-        let file = getDBDir().appendingPathComponent(dbFileName)
+        let file = PathUtils.getDBDir.appendingPathComponent(PathUtils.dbFileName)
         
     
         do {

@@ -10,7 +10,7 @@
 		2B3AF72025AE5C7900576A38 /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AF71F25AE5C7900576A38 /* DataStore.swift */; };
 		2B3AF72325AE5C8800576A38 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AF72225AE5C8800576A38 /* GameStore.swift */; };
 		2B3AF72925AE5CE700576A38 /* CRC32.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AF72825AE5CE700576A38 /* CRC32.swift */; };
-		2B3AF72D25AE5E8700576A38 /* Paths.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AF72C25AE5E8700576A38 /* Paths.swift */; };
+		2B3AF72D25AE5E8700576A38 /* PathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AF72C25AE5E8700576A38 /* PathUtils.swift */; };
 		2BE8F40625ACBF6F00E6FE62 /* gbdb.json in Resources */ = {isa = PBXBuildFile; fileRef = 2BE8F40525ACBF6F00E6FE62 /* gbdb.json */; };
 		2BE8F40925ACC3D000E6FE62 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE8F40825ACC3D000E6FE62 /* Game.swift */; };
 		680A3B4F242D332E00630335 /* RomListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680A3B4E242D332E00630335 /* RomListViewController.swift */; };
@@ -30,13 +30,15 @@
 		68FAA50C242E8E7E0061EF86 /* RomDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FAA50B242E8E7E0061EF86 /* RomDetailViewController.swift */; };
 		68FBC9FE2437A6A100002F7C /* SplitViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FBC9FD2437A6A100002F7C /* SplitViewDelegate.swift */; };
 		B5FDD38825B742A30099BA60 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = B5FDD38725B742A30099BA60 /* SDWebImage */; };
+		B5FDD39125B75D7D0099BA60 /* RomExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FDD39025B75D7D0099BA60 /* RomExtension.swift */; };
+		B5FDD39525B762EB0099BA60 /* BoxArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FDD39425B762EB0099BA60 /* BoxArt.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		2B3AF71F25AE5C7900576A38 /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
 		2B3AF72225AE5C8800576A38 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
 		2B3AF72825AE5CE700576A38 /* CRC32.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRC32.swift; sourceTree = "<group>"; };
-		2B3AF72C25AE5E8700576A38 /* Paths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Paths.swift; sourceTree = "<group>"; };
+		2B3AF72C25AE5E8700576A38 /* PathUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathUtils.swift; sourceTree = "<group>"; };
 		2BE8F40525ACBF6F00E6FE62 /* gbdb.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = gbdb.json; sourceTree = "<group>"; };
 		2BE8F40825ACC3D000E6FE62 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
 		680A3B4E242D332E00630335 /* RomListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomListViewController.swift; sourceTree = "<group>"; };
@@ -58,6 +60,8 @@
 		68E6C2EF2482F62100F79593 /* TabBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarItem.swift; sourceTree = "<group>"; };
 		68FAA50B242E8E7E0061EF86 /* RomDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomDetailViewController.swift; sourceTree = "<group>"; };
 		68FBC9FD2437A6A100002F7C /* SplitViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplitViewDelegate.swift; sourceTree = "<group>"; };
+		B5FDD39025B75D7D0099BA60 /* RomExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomExtension.swift; sourceTree = "<group>"; };
+		B5FDD39425B762EB0099BA60 /* BoxArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxArt.swift; sourceTree = "<group>"; };
 		EF40A35A46209F3A32E65009 /* LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -112,6 +116,7 @@
 		684CD65E242BCF60004090E5 /* Gearboy */ = {
 			isa = PBXGroup;
 			children = (
+				B5FDD38F25B75D730099BA60 /* Utils */,
 				684CD674242BFD43004090E5 /* Resources */,
 				2B3AF73125AE5F6E00576A38 /* UI */,
 				684CD65F242BCF60004090E5 /* AppDelegate.swift */,
@@ -119,7 +124,7 @@
 				2B3AF71F25AE5C7900576A38 /* DataStore.swift */,
 				2BE8F40825ACC3D000E6FE62 /* Game.swift */,
 				2B3AF72225AE5C8800576A38 /* GameStore.swift */,
-				2B3AF72C25AE5E8700576A38 /* Paths.swift */,
+				2B3AF72C25AE5E8700576A38 /* PathUtils.swift */,
 				684CD67A242C0119004090E5 /* Rom.swift */,
 				68E6C2E024829FC000F79593 /* RomController.swift */,
 				68FAA50B242E8E7E0061EF86 /* RomDetailViewController.swift */,
@@ -143,6 +148,15 @@
 				684CD66D242BCF61004090E5 /* Info.plist */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		B5FDD38F25B75D730099BA60 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				B5FDD39025B75D7D0099BA60 /* RomExtension.swift */,
+				B5FDD39425B762EB0099BA60 /* BoxArt.swift */,
+			);
+			path = Utils;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -228,9 +242,10 @@
 				2B3AF72025AE5C7900576A38 /* DataStore.swift in Sources */,
 				684CD660242BCF60004090E5 /* AppDelegate.swift in Sources */,
 				6840AA6A248B00F300BBED58 /* TabBarController.swift in Sources */,
-				2B3AF72D25AE5E8700576A38 /* Paths.swift in Sources */,
+				2B3AF72D25AE5E8700576A38 /* PathUtils.swift in Sources */,
 				680A3B4F242D332E00630335 /* RomListViewController.swift in Sources */,
 				68E6C2E124829FC000F79593 /* RomController.swift in Sources */,
+				B5FDD39125B75D7D0099BA60 /* RomExtension.swift in Sources */,
 				2B3AF72325AE5C8800576A38 /* GameStore.swift in Sources */,
 				68FAA50C242E8E7E0061EF86 /* RomDetailViewController.swift in Sources */,
 				68E6C2F02482F62100F79593 /* TabBarItem.swift in Sources */,
@@ -241,6 +256,7 @@
 				684CD679242BFF0E004090E5 /* StoresUtil.swift in Sources */,
 				684CD67B242C0119004090E5 /* Rom.swift in Sources */,
 				680A3B51242D389200630335 /* RomListCell.swift in Sources */,
+				B5FDD39525B762EB0099BA60 /* BoxArt.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
