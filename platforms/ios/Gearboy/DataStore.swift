@@ -17,33 +17,7 @@ class DataStore: ObservableObject {
         self.allRoms = roms
     }
     
-    func newRom() -> Rom {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-
-        let json = """
-            {
-                "id": 0,
-                "file": "",
-                "title": "",
-                "isFavorite": false,
-                "crc": "00000000",
-                "image": ""
-            }
-        """
-        let data = Data(json.utf8)
-        
-        do {
-            let decoder = JSONDecoder()
-            return try decoder.decode(Rom.self, from: data)
-        } catch {
-            fatalError("Invalid ROM JSON.")
-        }
-    }
-    
-    func addFromURL(_ url: URL, downloadImage: Bool) -> Rom? {
+    func addFromURL(_ url: URL) {
         
         let dataDir = getDataDir()
         let fileName = url.lastPathComponent
@@ -63,22 +37,11 @@ class DataStore: ObservableObject {
             url.stopAccessingSecurityScopedResource()
         }
         
-        var rom = dataStore.rom(with: fileName)
-        
-        if (rom == nil) {
-            var new = newRom()
-            new.file = fileName
-            rom = dataStore.add(new)
-        }
-        
-        if downloadImage {
-            ImageStore.shared.downloadImage(rom: rom!, blocking: false)
-        }
-        
-        return rom
+        guard dataStore.rom(with: fileName) != nil else { return }
+        dataStore.add(Rom(file: fileName))
     }
     
-    func add(_ rom: Rom) -> Rom {
+    func add(_ rom: Rom) {
         var romToAdd = rom
         romToAdd.id = (allRoms.map { $0.id }.max() ?? 0) + 1
         
@@ -89,7 +52,6 @@ class DataStore: ObservableObject {
         romToAdd.title = gameStore.title(crc: romToAdd.crc)
         allRoms.append(romToAdd)
         save()
-        return romToAdd
     }
     
     func delete(_ rom: Rom) -> Bool {
@@ -142,29 +104,9 @@ class DataStore: ObservableObject {
                     romFiles.forEach { file in
                         debugPrint("File: \(file)")
                         
-                        let fileName = file.lastPathComponent
-                        
-                        let rom = dataStore.rom(with: fileName)
-                        
-                        if (rom == nil) {
-                            let newRom = self?.addFromURL(file, downloadImage: false)
-                            
-                            if (newRom != nil) {
-                                ImageStore.shared.downloadImage(rom: newRom!, blocking: true)
-                            }
-                        }
+                        guard dataStore.rom(with: file.lastPathComponent) == nil else { return }
+                        self?.addFromURL(file)
                     }
-                    
-                    romFiles.forEach { file in
-                        debugPrint("Image: \(file)")
-                        
-                        let fileName = file.lastPathComponent
-                        let rom = dataStore.rom(with: fileName)
-                        if (rom != nil) {
-                            ImageStore.shared.downloadImage(rom: rom!, blocking: true)
-                        }
-                    }
-
                 } catch {
                     debugPrint(error)
                 }

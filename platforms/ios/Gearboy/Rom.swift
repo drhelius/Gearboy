@@ -8,27 +8,19 @@ Abstract:
 import UIKit
 
 struct Rom: Hashable, Codable, Identifiable {
-    var id: Int
+    var id: Int = .zero
     var file: String
-    var title: String
-    var isFavorite: Bool
-    var crc: String
+    var title: String = ""
+    var isFavorite: Bool = false
+    var crc: String = ""
     var usedOn: Date? = Date()
-    var image: String
+    
+    init(file: String) {
+        self.file = file
+    }
 }
 
 extension Rom {
-    var usedOnDate: Date {
-        usedOn ?? Date()
-    }
-
-//    var image: UIImage {
-//        guard let name = imageName, !name.isEmpty else { return #imageLiteral(resourceName: "Cartridge.jpg") }
-//        return ImageStore.shared.image(name: name)
-//    }
-    
-//    func add(_ image: UIImage) {
-//        guard let name = imageName, !name.isEmpty else { return }
-//        ImageStore.shared.add(image, with: name)
-//    }
+    var usedOnDate: Date { usedOn ?? Date() }
+    var urlImage: URL? { URL(string: gbBoxartsPath)?.appendingPathComponent( title + boxartExtension) }
 }

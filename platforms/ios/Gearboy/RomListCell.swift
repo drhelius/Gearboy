@@ -6,6 +6,7 @@ A cell of the rom list collection view.
 */
 
 import UIKit
+import SDWebImage
 
 class RomListCell: UICollectionViewCell {
     
@@ -44,7 +45,7 @@ class RomListCell: UICollectionViewCell {
 
     func configure(with rom: Rom) {
         titleLabel.text = rom.file
-        imageView.image = ImageStore.shared.image(name: rom.image)
+        imageView.sd_setImage(with: rom.urlImage, placeholderImage: #imageLiteral(resourceName: "Cartridge"))
         favoriteImageView.alpha = rom.isFavorite ? 1 : 0
     }
     
