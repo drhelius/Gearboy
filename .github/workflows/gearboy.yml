@@ -1,0 +1,19 @@
+name: Gearboy CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Linux Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: sudo apt-get install -y build-essential libsdl2-dev libglew-dev
+    - name: make
+      run: make
+      working-directory: platforms/linux
