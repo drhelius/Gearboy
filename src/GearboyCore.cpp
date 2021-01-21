@@ -110,24 +110,29 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
         int totalClocks = 0;
         while (!vblank)
         {
-            #ifdef PS2
+            #ifdef PERFORMANCE
                 unsigned int clockCycles = m_pProcessor->RunFor(50);
             #else
-                unsigned int clockCycles = m_pProcessor->Tick();
+                unsigned int clockCycles = m_pProcessor->RunFor(1);
             #endif
+
+            m_pProcessor->UpdateTimers(clockCycles);
+            m_pProcessor->UpdateSerial(clockCycles);
             
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
 
+            totalClocks += clockCycles;
+
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
             if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())) && !m_pProcessor->Halted() && !m_pProcessor->DuringOpCode())
             {
                 vblank = true;
                 if (m_pProcessor->BreakpointHit())
                     breakpoint = true;
             }
-
-            totalClocks += clockCycles;
+#endif
 
             if (totalClocks > 702240)
                 vblank = true;

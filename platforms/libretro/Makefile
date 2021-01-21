@@ -212,7 +212,7 @@ else ifeq ($(platform), psp1)
    CC = psp-gcc
    CXX = psp-g++
    AR = psp-ar
-   CXXFLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant
+   CXXFLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant -DPSP
 	STATIC_LINKING = 1
 # Vita
 else ifeq ($(platform), vita)

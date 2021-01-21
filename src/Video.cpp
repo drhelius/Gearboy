@@ -230,6 +230,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
             // During transfering data to LCD driver
             case 3:
             {
+#ifndef PERFORMANCE
                 if (m_iPixelCounter < 160)
                 {
                     m_iTileCycleCounter += clockCycles;
@@ -253,6 +254,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                         }
                     }
                 }
+#endif
 
                 if (m_iStatusModeCounter >= 160 && !m_bScanLineTransfered)
                 {
@@ -443,6 +445,9 @@ void Video::ScanLine(int line)
 
         if (m_bScreenEnabled && IsSetBit(lcdc, 7))
         {
+#ifdef PERFORMANCE
+            RenderBG(line, 0);
+#endif
             RenderWindow(line);
             RenderSprites(line);
         }
@@ -470,8 +475,13 @@ void Video::RenderBG(int line, int pixel)
     
     if (m_bCGB || IsSetBit(lcdc, 0))
     {
+#ifdef PERFORMANCE
+        int pixels_to_render = 160;
+#else
+        int pixels_to_render = 4;
+#endif
         int offset_x_init = pixel & 0x7;
-        int offset_x_end = offset_x_init + 4;
+        int offset_x_end = offset_x_init + pixels_to_render;
         int screen_tile = pixel >> 3;
         int tile_start_addr = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
         int map_start_addr = IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;

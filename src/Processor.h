@@ -57,7 +57,6 @@ public:
     void Init();
     void Reset(bool bCGB);
     u8 RunFor(u8 ticks);
-    u8 Tick();
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
     void ResetDIVCycles();
@@ -73,6 +72,8 @@ public:
     ProcessorState* GetState();
     bool Disassemble(u16 address);
     bool BreakpointHit();
+    void UpdateTimers(u8 ticks);
+    void UpdateSerial(u8 ticks);
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -115,12 +116,8 @@ private:
     ProcessorState m_ProcessorState;
 
 private:
-    u8 FetchOPCode();
-    void ExecuteOPCode(u8 opcode);
     Processor::Interrupts InterruptPending();
     void ServeInterrupt(Interrupts interrupt);
-    void UpdateTimers();
-    void UpdateSerial();
     void UpdateGameShark();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);

@@ -4,19 +4,6 @@
 #include "definitions.h"
 #include "Memory.h"
 
-inline u8 Processor::FetchOPCode()
-{
-    u8 opcode = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-
-    if (m_bSkipPCBug)
-    {
-        m_bSkipPCBug = false;
-        PC.Decrement();
-    }
-    return opcode;
-}
-
 inline bool Processor::InterruptIsAboutToRaise()
 {
     u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
