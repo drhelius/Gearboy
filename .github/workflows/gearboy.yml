@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  linux:
     name: Linux Build
     runs-on: ubuntu-latest
     steps:
@@ -19,3 +19,11 @@ jobs:
     - name: make
       run: make
       working-directory: platforms/linux
+  libretro:
+    name: Libretro Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: make
+      run: make
+      working-directory: platforms/libretro
