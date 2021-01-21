@@ -394,29 +394,31 @@ void Video::SetColorPalette(bool background, u8 value)
     *palette_color_gbc = hl ? (*palette_color_gbc & 0x00FF) | (value << 8) : (*palette_color_gbc & 0xFF00) | value;
     
     u8 red_5bit = *palette_color_gbc & 0x1F;
-    u8 green_5bit = (*palette_color_gbc >> 5) & 0x1F;
-    u8 green_6bit = green_5bit << 1;
     u8 blue_5bit = (*palette_color_gbc >> 10) & 0x1F;
 
     switch (m_pixelFormat)
     {
         case GB_PIXEL_RGB565:
         {
+            u8 green_6bit = (*palette_color_gbc >> 4) & 0x3E;
             *palette_color_final = (red_5bit << 11) | (green_6bit << 5) | blue_5bit;
             break;
         }
         case GB_PIXEL_BGR565:
         {
+            u8 green_6bit = (*palette_color_gbc >> 4) & 0x3E;
             *palette_color_final = (blue_5bit << 11) | (green_6bit << 5) | red_5bit;
             break;
         }
         case GB_PIXEL_RGB555:
         {
+            u8 green_5bit = (*palette_color_gbc >> 5) & 0x1F;
             *palette_color_final = 0x8000 | (red_5bit << 10) | (green_5bit << 5) | blue_5bit;
             break;
         }
         case GB_PIXEL_BGR555:
         {
+            u8 green_5bit = (*palette_color_gbc >> 5) & 0x1F;
             *palette_color_final = 0x8000 | (blue_5bit << 10) | (green_5bit << 5) | red_5bit;
             break;
         }

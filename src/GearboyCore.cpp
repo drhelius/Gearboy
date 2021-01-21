@@ -111,7 +111,7 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
         while (!vblank)
         {
             #ifdef PERFORMANCE
-                unsigned int clockCycles = m_pProcessor->RunFor(50);
+                unsigned int clockCycles = m_pProcessor->RunFor(75);
             #else
                 unsigned int clockCycles = m_pProcessor->RunFor(1);
             #endif
