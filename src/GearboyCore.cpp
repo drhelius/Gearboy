@@ -164,7 +164,9 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::Cart
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         bool romTypeOK = AddMemoryRules(forceType);
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
         m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
+#endif
 
         if (!romTypeOK)
         {
@@ -304,7 +306,9 @@ void GearboyCore::ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType)
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         AddMemoryRules(forceType);
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
         m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
+#endif
     }
 }
 
