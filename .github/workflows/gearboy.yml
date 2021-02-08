@@ -1,10 +1,6 @@
 name: Gearboy CI
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: [push, pull_request]
 
 jobs:
   linux:
@@ -27,3 +23,19 @@ jobs:
     - name: make
       run: make
       working-directory: platforms/libretro
+  ios:
+    name: iOS Build
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: xcodebuild
+      run: xcodebuild clean build -sdk iphonesimulator -project Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO
+      working-directory: platforms/ios
+  windows:
+    name: Windows Build
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: msbuild
+      run: msbuild Gearboy.sln
+      working-directory: platforms/windows
