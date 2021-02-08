@@ -31,6 +31,16 @@ jobs:
     - name: xcodebuild
       run: xcodebuild clean build -sdk iphonesimulator -project Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO
       working-directory: platforms/ios
+  macos:
+    name: macOS Build
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: brew install sdl2
+    - name: make
+      run: make
+      working-directory: platforms/macos
   windows:
     name: Windows Build
     runs-on: windows-latest
