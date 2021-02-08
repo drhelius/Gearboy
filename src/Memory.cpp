@@ -51,7 +51,6 @@ Memory::~Memory()
     InitPointer(m_pProcessor);
     InitPointer(m_pVideo);
     SafeDeleteArray(m_pMap);
-    SafeDeleteArray(m_pDisassembledMap);
     SafeDeleteArray(m_pWRAMBanks);
     SafeDeleteArray(m_pLCDRAMBank1);
     InitPointer(m_pCommonMemoryRule);
