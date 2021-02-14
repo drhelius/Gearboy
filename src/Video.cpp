@@ -230,6 +230,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
             // During transfering data to LCD driver
             case 3:
             {
+#ifndef PERFORMANCE
                 if (m_iPixelCounter < 160)
                 {
                     m_iTileCycleCounter += clockCycles;
@@ -253,6 +254,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                         }
                     }
                 }
+#endif
 
                 if (m_iStatusModeCounter >= 160 && !m_bScanLineTransfered)
                 {
@@ -392,29 +394,31 @@ void Video::SetColorPalette(bool background, u8 value)
     *palette_color_gbc = hl ? (*palette_color_gbc & 0x00FF) | (value << 8) : (*palette_color_gbc & 0xFF00) | value;
     
     u8 red_5bit = *palette_color_gbc & 0x1F;
-    u8 green_5bit = (*palette_color_gbc >> 5) & 0x1F;
-    u8 green_6bit = green_5bit << 1;
     u8 blue_5bit = (*palette_color_gbc >> 10) & 0x1F;
 
     switch (m_pixelFormat)
     {
         case GB_PIXEL_RGB565:
         {
+            u8 green_6bit = (*palette_color_gbc >> 4) & 0x3E;
             *palette_color_final = (red_5bit << 11) | (green_6bit << 5) | blue_5bit;
             break;
         }
         case GB_PIXEL_BGR565:
         {
+            u8 green_6bit = (*palette_color_gbc >> 4) & 0x3E;
             *palette_color_final = (blue_5bit << 11) | (green_6bit << 5) | red_5bit;
             break;
         }
         case GB_PIXEL_RGB555:
         {
+            u8 green_5bit = (*palette_color_gbc >> 5) & 0x1F;
             *palette_color_final = 0x8000 | (red_5bit << 10) | (green_5bit << 5) | blue_5bit;
             break;
         }
         case GB_PIXEL_BGR555:
         {
+            u8 green_5bit = (*palette_color_gbc >> 5) & 0x1F;
             *palette_color_final = 0x8000 | (blue_5bit << 10) | (green_5bit << 5) | red_5bit;
             break;
         }
@@ -443,6 +447,9 @@ void Video::ScanLine(int line)
 
         if (m_bScreenEnabled && IsSetBit(lcdc, 7))
         {
+#ifdef PERFORMANCE
+            RenderBG(line, 0);
+#endif
             RenderWindow(line);
             RenderSprites(line);
         }
@@ -470,8 +477,13 @@ void Video::RenderBG(int line, int pixel)
     
     if (m_bCGB || IsSetBit(lcdc, 0))
     {
+#ifdef PERFORMANCE
+        int pixels_to_render = 160;
+#else
+        int pixels_to_render = 4;
+#endif
         int offset_x_init = pixel & 0x7;
-        int offset_x_end = offset_x_init + 4;
+        int offset_x_end = offset_x_init + pixels_to_render;
         int screen_tile = pixel >> 3;
         int tile_start_addr = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
         int map_start_addr = IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;

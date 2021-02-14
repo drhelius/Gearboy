@@ -25,6 +25,7 @@
 #define CONFIG_IMPORT
 #include "config.h"
 
+static bool check_portable(void);
 static int read_int(const char* group, const char* key, int default_value);
 static void write_int(const char* group, const char* key, int integer);
 static float read_float(const char* group, const char* key, float default_value);
@@ -36,8 +37,11 @@ static void write_string(const char* group, const char* key, std::string value);
 
 void config_init(void)
 {
-    config_root_path = SDL_GetPrefPath("Geardome", GEARBOY_TITLE);
-    
+    if (check_portable())
+        config_root_path = SDL_GetBasePath();
+    else
+        config_root_path = SDL_GetPrefPath("Geardome", GEARBOY_TITLE);
+
     strcpy(config_emu_file_path, config_root_path);
     strcat(config_emu_file_path, "config.ini");
 
@@ -214,6 +218,27 @@ void config_write(void)
     {
         Log("Settings saved");
     }
+}
+
+static bool check_portable(void)
+{
+    char* base_path;
+    char portable_file_path[260];
+
+    base_path = SDL_GetBasePath();
+
+    strcpy(portable_file_path, base_path);
+    strcat(portable_file_path, "portable.ini");
+
+    FILE* file = fopen(portable_file_path, "r");
+
+    if (IsValidPointer(file))
+    {
+        fclose(file);
+        return true;
+    }
+
+    return false;
 }
 
 static int read_int(const char* group, const char* key, int default_value)

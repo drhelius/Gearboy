@@ -1,0 +1,53 @@
+name: Gearboy CI
+
+on: [push, pull_request]
+
+jobs:
+  linux:
+    name: Linux Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Update OS
+      run: sudo apt-get update -qq
+    - name: Install dependencies
+      run: sudo apt-get install -y libsdl2-dev libglew-dev
+    - name: make
+      run: make
+      working-directory: platforms/linux
+  libretro:
+    name: Libretro Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: make
+      run: make
+      working-directory: platforms/libretro
+  ios:
+    name: iOS Build
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: xcodebuild
+      run: xcodebuild clean build -sdk iphonesimulator -project Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO
+      working-directory: platforms/ios
+  macos:
+    name: macOS Build
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: brew install sdl2
+    - name: make
+      run: make
+      working-directory: platforms/macos
+  windows:
+    name: Windows Build
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+    - name: msbuild
+      run: msbuild Gearboy.sln
+      working-directory: platforms/windows

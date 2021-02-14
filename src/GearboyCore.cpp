@@ -110,24 +110,29 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
         int totalClocks = 0;
         while (!vblank)
         {
-            #ifdef PS2
-                unsigned int clockCycles = m_pProcessor->RunFor(50);
+            #ifdef PERFORMANCE
+                unsigned int clockCycles = m_pProcessor->RunFor(75);
             #else
-                unsigned int clockCycles = m_pProcessor->Tick();
+                unsigned int clockCycles = m_pProcessor->RunFor(1);
             #endif
+
+            m_pProcessor->UpdateTimers(clockCycles);
+            m_pProcessor->UpdateSerial(clockCycles);
             
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
 
+            totalClocks += clockCycles;
+
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
             if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())) && !m_pProcessor->Halted() && !m_pProcessor->DuringOpCode())
             {
                 vblank = true;
                 if (m_pProcessor->BreakpointHit())
                     breakpoint = true;
             }
-
-            totalClocks += clockCycles;
+#endif
 
             if (totalClocks > 702240)
                 vblank = true;
@@ -159,7 +164,9 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::Cart
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         bool romTypeOK = AddMemoryRules(forceType);
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
         m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
+#endif
 
         if (!romTypeOK)
         {
@@ -299,7 +306,9 @@ void GearboyCore::ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType)
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         AddMemoryRules(forceType);
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
         m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
+#endif
     }
 }
 
@@ -362,10 +371,10 @@ void GearboyCore::SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& co
     }
     else
     {
-        m_DMGPalette[0] = (((color1.blue * 31) / 255) << shift ) | (((color1.red * multiplier) / 255) << 5 ) | ((color1.blue * 31) / 255);
-        m_DMGPalette[1] = (((color2.blue * 31) / 255) << shift ) | (((color2.red * multiplier) / 255) << 5 ) | ((color2.blue * 31) / 255);
-        m_DMGPalette[2] = (((color3.blue * 31) / 255) << shift ) | (((color3.red * multiplier) / 255) << 5 ) | ((color3.blue * 31) / 255);
-        m_DMGPalette[3] = (((color4.blue * 31) / 255) << shift ) | (((color4.red * multiplier) / 255) << 5 ) | ((color4.blue * 31) / 255);
+        m_DMGPalette[0] = (((color1.blue * 31) / 255) << shift ) | (((color1.green * multiplier) / 255) << 5 ) | ((color1.red * 31) / 255);
+        m_DMGPalette[1] = (((color2.blue * 31) / 255) << shift ) | (((color2.green * multiplier) / 255) << 5 ) | ((color2.red * 31) / 255);
+        m_DMGPalette[2] = (((color3.blue * 31) / 255) << shift ) | (((color3.green * multiplier) / 255) << 5 ) | ((color3.red * 31) / 255);
+        m_DMGPalette[3] = (((color4.blue * 31) / 255) << shift ) | (((color4.green * multiplier) / 255) << 5 ) | ((color4.red * 31) / 255);
     }   
 
     if (!format_565)

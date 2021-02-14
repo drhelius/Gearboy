@@ -1,6 +1,6 @@
 # Gearboy
 
-[![Build Status](https://travis-ci.org/drhelius/Gearboy.svg?branch=master)](https://travis-ci.org/drhelius/Gearboy)
+[![Gearboy CI](https://github.com/drhelius/Gearboy/workflows/Gearboy%20CI/badge.svg)](https://github.com/drhelius/Gearboy/actions)
 
 Gearboy is a cross-platform Game Boy / GameBoy Color emulator written in C++ that runs on Windows, macOS, Linux, iOS, Raspberry Pi and RetroArch.
 
@@ -12,12 +12,12 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 
 ## Downloads
 
-- **Windows**: [Gearboy-3.2.0-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.2.0/Gearboy-3.2.0-Windows.zip)
+- **Windows**: [Gearboy-3.3.0-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.3.0/Gearboy-3.3.0-Windows.zip)
   + NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
 - **macOS**:
   + `brew install --cask gearboy`
-  + Or install manually: [Gearboy-3.2.0-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.2.0/Gearboy-3.2.0-macOS.zip)
-- **Linux**: [Gearboy-3.2.0-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.2.0/Gearboy-3.2.0-Linux.tar.xz)
+  + Or install manually: [Gearboy-3.3.0-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.3.0/Gearboy-3.3.0-macOS.zip)
+- **Linux**: [Gearboy-3.3.0-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.3.0/Gearboy-3.3.0-Linux.tar.xz)
   + NOTE: You may need to install `libsdl2` and `libglew`
 - **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **RetroArch**: [Libretro core documentation](https://libretro.readthedocs.io/en/latest/library/gearboy/).
@@ -36,9 +36,11 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Save battery powered RAM cartridges to file.
 - Save states.
 - Compressed rom support (ZIP).
-- Game Genie and GameShark cheat support.
-- Supported platforms: Windows, Linux, macOS, Raspberry Pi, iOS and RetroArch (libretro).
+- *Game Genie* and *GameShark* cheat support.
+- Supported platforms (standalone): Windows, Linux, macOS, Raspberry Pi and iOS.
+- Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch Emscripten, Classic Mini systemts (NES, SNES, C64 ...) and QNX.
 - Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
+- Windows and Linux *Portable Mode* by creating a file named `portable.ini` in the same directory as the application binary.
 
 <img src="http://www.geardome.com/files/gearboy/gearboy_debug_01.png" width="880" height="455">
 
@@ -53,7 +55,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 ### macOS
 
 - Install Xcode and run `xcode-select --install` in the terminal for the compiler to be available on the command line.
-- Run this commands to generate a Mac *app* bundle:
+- Run these commands to generate a Mac *app* bundle:
 
 ``` shell
 brew install sdl2
@@ -81,8 +83,8 @@ make
 
 ### iOS
 
-- Install Xcode for macOS. You need iOS 13 SDK or later.
-- Build the project `platforms/ios/Gearboy.xcodeproj`
+- Install latest Xcode for macOS.
+- Build the project `platforms/ios/Gearboy.xcodeproj`.
 - Run it on real hardware using your iOS developer certificate. Make sure it builds on *Release* for better performance.
 
 ### Libretro
@@ -144,6 +146,12 @@ Tests from [blargg's test roms](https://github.com/retrio/gb-test-roms):
 ## Screenshots
 
 ![Screenshot](http://www.geardome.com/files/gearboy/gearboy_004.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_006.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_008.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_022.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_013.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_023.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_015.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_029.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_011.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_024.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_017.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_016.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_034.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_026.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_018.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_025.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_021.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_027.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_019.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_020.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_031.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_028.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_007.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_009.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_010.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_005.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_012.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_014.png)
+
+## Contributors
+
+Thank you to all the people who have already contributed to Gearboy!
+
+[![Contributors](https://contrib.rocks/image?repo=drhelius/gearboy)]("https://github.com/drhelius/gearboy/graphs/contributors)
 
 ## License
 

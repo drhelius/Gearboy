@@ -104,146 +104,153 @@ u8 Processor::RunFor(u8 ticks)
 
     while (executed < ticks)
     {
-        executed += Tick();
-    }
+        m_iCurrentClockCycles = 0;
+        m_bBreakpointHit = false;
 
-    return executed;
-}
-
-u8 Processor::Tick()
-{
-    m_iCurrentClockCycles = 0;
-    m_bBreakpointHit = false;
-
-    if (m_iAccurateOPCodeState == 0 && m_bHalt)
-    {
-        m_iCurrentClockCycles += AdjustedCycles(4);
-
-        if (m_iUnhaltCycles > 0)
+        if (m_iAccurateOPCodeState == 0 && m_bHalt)
         {
-            m_iUnhaltCycles -= m_iCurrentClockCycles;
+            m_iCurrentClockCycles += AdjustedCycles(4);
 
-            if (m_iUnhaltCycles <= 0)
+            if (m_iUnhaltCycles > 0)
             {
-                m_iUnhaltCycles = 0;
-                m_bHalt = false;
+                m_iUnhaltCycles -= m_iCurrentClockCycles;
+
+                if (m_iUnhaltCycles <= 0)
+                {
+                    m_iUnhaltCycles = 0;
+                    m_bHalt = false;
+                }
+            }
+
+            if (m_bHalt && (InterruptPending() != None_Interrupt) && (m_iUnhaltCycles == 0))
+            {
+                m_iUnhaltCycles = AdjustedCycles(12);
             }
         }
 
-        if (m_bHalt && (InterruptPending() != None_Interrupt) && (m_iUnhaltCycles == 0))
+        bool interrupt_served = false;
+
+        if (!m_bHalt)
         {
-            m_iUnhaltCycles = AdjustedCycles(12);
-        }
-    }
+            Interrupts interrupt = InterruptPending();
 
-    bool interrupt_served = false;
-
-    if (!m_bHalt)
-    {
-        Interrupts interrupt = InterruptPending();
-
-        if (m_bIME && (interrupt != None_Interrupt) && (m_iAccurateOPCodeState == 0))
-        {
-            ServeInterrupt(interrupt);
-            interrupt_served = true;
-        }
-        else
-            ExecuteOPCode(FetchOPCode());
-
-        #ifndef GEARBOY_DISABLE_DISASSEMBLER
-        m_bBreakpointHit = Disassemble(PC.GetValue());
-        #endif
-    }
-    
-    if (!interrupt_served && (m_iInterruptDelayCycles > 0))
-    {
-        m_iInterruptDelayCycles -= m_iCurrentClockCycles;
-    }
-
-    UpdateTimers();
-    UpdateSerial();
-
-    if (!interrupt_served && (m_iAccurateOPCodeState == 0) && (m_iIMECycles > 0))
-    {
-        m_iIMECycles -= m_iCurrentClockCycles;
-
-        if (m_iIMECycles <= 0)
-        {
-            m_iIMECycles = 0;
-            m_bIME = true;
-        }
-    }
-
-    return m_iCurrentClockCycles;
-}
-
-void Processor::ExecuteOPCode(u8 opcode)
-{
-    const u8* accurateOPcodes;
-    const u8* machineCycles;
-    OPCptr* opcodeTable;
-    bool isCB = (opcode == 0xCB);
-
-    if (isCB)
-    {
-        accurateOPcodes = kOPCodeCBAccurate;
-        machineCycles = kOPCodeCBMachineCycles;
-        opcodeTable = m_OPCodesCB;
-        opcode = FetchOPCode();
-    }
-    else
-    {
-        accurateOPcodes = kOPCodeAccurate;
-        machineCycles = kOPCodeMachineCycles;
-        opcodeTable = m_OPCodes;
-    }
-
-    if ((accurateOPcodes[opcode] != 0) && (m_iAccurateOPCodeState == 0))
-    {
-        int left_cycles = (accurateOPcodes[opcode] < 3 ? 2 : 3);
-        m_iCurrentClockCycles += (machineCycles[opcode] - left_cycles) * AdjustedCycles(4);
-        m_iAccurateOPCodeState = 1;
-        PC.Decrement();
-        if (isCB)
-            PC.Decrement();
-        return;
-    }
-
-    (this->*opcodeTable[opcode])();
-
-    if (m_bBranchTaken)
-    {
-        m_bBranchTaken = false;
-        m_iCurrentClockCycles += kOPCodeBranchMachineCycles[opcode] * AdjustedCycles(4);
-    }
-    else
-    {
-        switch (m_iAccurateOPCodeState)
-        {
-        case 0:
-            m_iCurrentClockCycles += machineCycles[opcode] * AdjustedCycles(4);
-            break;
-        case 1:
-            if (accurateOPcodes[opcode] == 3)
+            if (m_bIME && (interrupt != None_Interrupt) && (m_iAccurateOPCodeState == 0))
             {
-                m_iCurrentClockCycles += 1 * AdjustedCycles(4);
-                m_iAccurateOPCodeState = 2;
-                PC.Decrement();
-                if (isCB)
-                    PC.Decrement();
+                ServeInterrupt(interrupt);
+                interrupt_served = true;
             }
             else
             {
-                m_iCurrentClockCycles += 2 * AdjustedCycles(4);
-                m_iAccurateOPCodeState = 0;
+                u8 opcode = m_pMemory->Read(PC.GetValue());
+                PC.Increment();
+
+                if (m_bSkipPCBug)
+                {
+                    m_bSkipPCBug = false;
+                    PC.Decrement();
+                }
+
+                const u8* accurateOPcodes;
+                const u8* machineCycles;
+                OPCptr* opcodeTable;
+                bool isCB = (opcode == 0xCB);
+
+                if (isCB)
+                {
+                    accurateOPcodes = kOPCodeCBAccurate;
+                    machineCycles = kOPCodeCBMachineCycles;
+                    opcodeTable = m_OPCodesCB;
+
+                    opcode = m_pMemory->Read(PC.GetValue());
+                    PC.Increment();
+
+                    if (m_bSkipPCBug)
+                    {
+                        m_bSkipPCBug = false;
+                        PC.Decrement();
+                    }
+                }
+                else
+                {
+                    accurateOPcodes = kOPCodeAccurate;
+                    machineCycles = kOPCodeMachineCycles;
+                    opcodeTable = m_OPCodes;
+                }
+
+                if ((accurateOPcodes[opcode] != 0) && (m_iAccurateOPCodeState == 0))
+                {
+                    int left_cycles = (accurateOPcodes[opcode] < 3 ? 2 : 3);
+                    m_iCurrentClockCycles += (machineCycles[opcode] - left_cycles) * AdjustedCycles(4);
+                    m_iAccurateOPCodeState = 1;
+                    PC.Decrement();
+                    if (isCB)
+                        PC.Decrement();
+                }
+                else
+                {
+                    (this->*opcodeTable[opcode])();
+
+                    if (m_bBranchTaken)
+                    {
+                        m_bBranchTaken = false;
+                        m_iCurrentClockCycles += kOPCodeBranchMachineCycles[opcode] * AdjustedCycles(4);
+                    }
+                    else
+                    {
+                        switch (m_iAccurateOPCodeState)
+                        {
+                        case 0:
+                            m_iCurrentClockCycles += machineCycles[opcode] * AdjustedCycles(4);
+                            break;
+                        case 1:
+                            if (accurateOPcodes[opcode] == 3)
+                            {
+                                m_iCurrentClockCycles += 1 * AdjustedCycles(4);
+                                m_iAccurateOPCodeState = 2;
+                                PC.Decrement();
+                                if (isCB)
+                                    PC.Decrement();
+                            }
+                            else
+                            {
+                                m_iCurrentClockCycles += 2 * AdjustedCycles(4);
+                                m_iAccurateOPCodeState = 0;
+                            }
+                            break;
+                        case 2:
+                            m_iCurrentClockCycles += 2 * AdjustedCycles(4);
+                            m_iAccurateOPCodeState = 0;
+                            break;
+                        }
+                    }
+                }
             }
-            break;
-        case 2:
-            m_iCurrentClockCycles += 2 * AdjustedCycles(4);
-            m_iAccurateOPCodeState = 0;
-            break;
+
+            #ifndef GEARBOY_DISABLE_DISASSEMBLER
+            m_bBreakpointHit = Disassemble(PC.GetValue());
+            #endif
         }
+
+        if (!interrupt_served && (m_iInterruptDelayCycles > 0))
+        {
+            m_iInterruptDelayCycles -= m_iCurrentClockCycles;
+        }
+
+        if (!interrupt_served && (m_iAccurateOPCodeState == 0) && (m_iIMECycles > 0))
+        {
+            m_iIMECycles -= m_iCurrentClockCycles;
+
+            if (m_iIMECycles <= 0)
+            {
+                m_iIMECycles = 0;
+                m_bIME = true;
+            }
+        }
+
+        executed += m_iCurrentClockCycles;
     }
+
+    return executed;
 }
 
 void Processor::ServeInterrupt(Interrupts interrupt)
@@ -282,9 +289,9 @@ void Processor::ServeInterrupt(Interrupts interrupt)
     }
 }
 
-void Processor::UpdateTimers()
+void Processor::UpdateTimers(u8 ticks)
 {
-    m_iDIVCycles += m_iCurrentClockCycles;
+    m_iDIVCycles += ticks;
 
     unsigned int div_cycles = AdjustedCycles(256);
 
@@ -301,7 +308,7 @@ void Processor::UpdateTimers()
     // if tima is running
     if (tac & 0x04)
     {
-        m_iTIMACycles += m_iCurrentClockCycles;
+        m_iTIMACycles += ticks;
 
         unsigned int freq = 0;
 
@@ -339,13 +346,13 @@ void Processor::UpdateTimers()
     }
 }
 
-void Processor::UpdateSerial()
+void Processor::UpdateSerial(u8 ticks)
 {
     u8 sc = m_pMemory->Retrieve(0xFF02);
 
     if (IsSetBit(sc, 7) && IsSetBit(sc, 0))
     {
-        m_iSerialCycles += m_iCurrentClockCycles;
+        m_iSerialCycles += ticks;
 
         if (m_iSerialBit < 0)
         {
