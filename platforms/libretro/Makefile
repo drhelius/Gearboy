@@ -144,13 +144,13 @@ else ifneq (,$(filter $(platform), ngc wii wiiu))
       CXXFLAGS += -DHW_DOL -mrvl
    endif
 # PS3
-else ifeq ($(platform), ps3)
+else ifneq (,$(filter $(platform), ps3 psl1ght))
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
-   CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
-   CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
-   AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
+   CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
+   CXX = $(PS3DEV)/ppu/bin/ppu-g++$(EXE_EXT)
+   AR = $(PS3DEV)/ppu/bin/ppu-ar$(EXE_EXT)
    CXXFLAGS += -DMINIZ_NO_TIME -DMINIZ_NO_STDIO -Wall -D__ppc__ -DMSB_FIRST
-STATIC_LINKING = 1
+   STATIC_LINKING = 1
 # OSX
 else ifneq (,$(findstring osx,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.dylib
@@ -180,6 +180,7 @@ else ifneq (,$(findstring ios,$(platform)))
       CXX += -miphoneos-version-min=5.0
       PLATFORM_DEFINES := -miphoneos-version-min=5.0
    endif
+# tvOS
 else ifeq ($(platform), tvos-arm64)
    TARGET := $(TARGET_NAME)_libretro_tvos.dylib
    fpic := -fPIC
@@ -187,24 +188,35 @@ else ifeq ($(platform), tvos-arm64)
    ifeq ($(IOSSDK),)
       IOSSDK := $(shell xcodebuild -version -sdk appletvos Path)
    endif
-
+# QNX
 else ifneq (,$(findstring qnx,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+# emscripten
 else ifeq ($(platform), emscripten)
    TARGET := $(TARGET_NAME)_libretro_emscripten.bc
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+# PS2
+else ifeq ($(platform), ps2)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   CC = mips64r5900el-ps2-elf-gcc
+   CXX = mips64r5900el-ps2-elf-g++
+   AR = mips64r5900el-ps2-elf-ar
+   CXXFLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant -DPS2
+	STATIC_LINKING = 1
+# PSP
 else ifeq ($(platform), psp1)
-   TARGET := $(TARGET_NAME)_libretro_psp1.a
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = psp-gcc
    CXX = psp-g++
    AR = psp-ar
-   CXXFLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant
+   CXXFLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant -DPSP
 	STATIC_LINKING = 1
+# Vita
 else ifeq ($(platform), vita)
-   TARGET := $(TARGET_NAME)_libretro_vita.a
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = arm-vita-eabi-gcc
    CXX = arm-vita-eabi-g++
    AR = arm-vita-eabi-ar
@@ -232,7 +244,7 @@ endif
 LDFLAGS += $(LIBM)
 
 ifeq ($(DEBUG), 1)
-   CXXFLAGS += -O0 -g
+   CXXFLAGS += -O0 -DDEBUG -g
 else
    CXXFLAGS += -O3
 endif

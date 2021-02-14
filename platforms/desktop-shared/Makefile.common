@@ -32,7 +32,7 @@ CXXFLAGS += -Wall -Wextra -Wformat -std=c++11 -DEMULATOR_BUILD=\"$(GIT_VERSION)\
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
-    CXXFLAGS +=-DDEBUG -g3
+    CXXFLAGS +=-DDEBUG -g3 -fsanitize=address
 else
     CXXFLAGS +=-DNDEBUG -O3
 endif

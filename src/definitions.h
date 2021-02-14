@@ -33,8 +33,12 @@
 #define DEBUG_GEARBOY 1
 #endif
 
+#if defined(PS2) || defined(PSP)
+#define PERFORMANCE
+#endif
+
 #define GEARBOY_TITLE "Gearboy"
-#define GEARBOY_VERSION "3.2.0"
+#define GEARBOY_VERSION "3.3.0"
 
 #ifndef EMULATOR_BUILD
 #define EMULATOR_BUILD "undefined"

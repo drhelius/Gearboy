@@ -28,10 +28,10 @@ class CommonMemoryRule
 {
 public:
     CommonMemoryRule(Memory* pMemory);
-    virtual ~CommonMemoryRule();
-    virtual u8 PerformRead(u16 address);
-    virtual void PerformWrite(u16 address, u8 value);
-    virtual void Reset(bool bCGB);
+    ~CommonMemoryRule();
+    u8 PerformRead(u16 address);
+    void PerformWrite(u16 address, u8 value);
+    void Reset(bool bCGB);
 
 private:
     Memory* m_pMemory;
