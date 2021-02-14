@@ -133,6 +133,7 @@ private extension RomListViewController {
     }
     
     func apply(_ roms: [Rom]) {
-        collectionView.reloadSections([Section.main.rawValue])
+        //collectionView.reloadSections([Section.main.rawValue])
+        collectionView.reloadData()
     }
 }

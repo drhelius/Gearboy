@@ -12,6 +12,6 @@
 "Common::DeleteRom" = "Are you sure you want to delete %@?";
 "Common::NoRomSelected" = "No ROM Selected";
 "Common::AllRoms" = "All ROMS";
-"Common::Favourites" = "Favourites";
+"Common::Favourites" = "Favorites";
 "Common::Recents" = "Recents";
 "Common::Settings" = "Settings";

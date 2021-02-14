@@ -37,7 +37,7 @@ class DataStore: ObservableObject {
             url.stopAccessingSecurityScopedResource()
         }
         
-        guard dataStore.rom(with: fileName) != nil else { return }
+        guard dataStore.rom(with: fileName) == nil else { return }
         dataStore.addWithFileName(fileName)
     }
     
