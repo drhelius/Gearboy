@@ -36,10 +36,11 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Save battery powered RAM cartridges to file.
 - Save states.
 - Compressed rom support (ZIP).
-- Game Genie and GameShark cheat support.
-- Supported platforms: Windows, Linux, macOS, Raspberry Pi, iOS and RetroArch (libretro).
+- *Game Genie* and *GameShark* cheat support.
+- Supported platforms (standalone): Windows, Linux, macOS, Raspberry Pi and iOS.
+- Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch Emscripten, Classic Mini systemts (NES, SNES, C64 ...) and QNX.
 - Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
-- Portable mode by creating a file named `portable.ini` in the same directory as the application binary.
+- Windows and Linux *Portable Mode* by creating a file named `portable.ini` in the same directory as the application binary.
 
 <img src="http://www.geardome.com/files/gearboy/gearboy_debug_01.png" width="880" height="455">
 
@@ -54,7 +55,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 ### macOS
 
 - Install Xcode and run `xcode-select --install` in the terminal for the compiler to be available on the command line.
-- Run this commands to generate a Mac *app* bundle:
+- Run these commands to generate a Mac *app* bundle:
 
 ``` shell
 brew install sdl2
@@ -82,8 +83,8 @@ make
 
 ### iOS
 
-- Install Xcode for macOS. You need iOS 13 SDK or later.
-- Build the project `platforms/ios/Gearboy.xcodeproj`
+- Install latest Xcode for macOS.
+- Build the project `platforms/ios/Gearboy.xcodeproj`.
 - Run it on real hardware using your iOS developer certificate. Make sure it builds on *Release* for better performance.
 
 ### Libretro
@@ -145,7 +146,6 @@ Tests from [blargg's test roms](https://github.com/retrio/gb-test-roms):
 ## Screenshots
 
 ![Screenshot](http://www.geardome.com/files/gearboy/gearboy_004.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_006.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_008.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_022.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_013.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_023.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_015.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_029.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_011.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_024.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_017.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_016.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_034.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_026.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_018.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_025.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_021.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_027.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_019.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_020.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_031.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_028.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_007.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_009.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_010.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_005.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_012.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_014.png)
-
 
 ## Contributors
 
