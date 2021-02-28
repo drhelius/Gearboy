@@ -343,21 +343,26 @@ static void main_menu(void)
             {
                 ImGui::Text("Game Genie or GameShark codes:");
 
-                static char cheat_buffer[12] = "";
+                static char cheat_buffer[12*20] = "";
                 ImGui::PushItemWidth(150);
-                ImGui::InputText("", cheat_buffer, 12);
+                ImGui::InputTextMultiline("", cheat_buffer, IM_ARRAYSIZE(cheat_buffer));
                 ImGui::PopItemWidth();
                 ImGui::SameLine();
 
-                if (ImGui::Button("Add Cheat Code"))
+                if (ImGui::Button("Add Cheat Codes"))
                 {
-                    std::string cheat = cheat_buffer;
+                    std::string cheats = cheat_buffer;
+                    std::istringstream ss(cheats);
+                    std::string cheat;
 
-                    if ((cheat_list.size() < 10) && ((cheat.length() == 7) || (cheat.length() == 8) || (cheat.length() == 11)))
+                    while (getline(ss, cheat))
                     {
-                        cheat_list.push_back(cheat_buffer);
-                        emu_add_cheat(cheat_buffer);
-                        cheat_buffer[0] = 0;
+                        if ((cheat_list.size() < 10) && ((cheat.length() == 7) || (cheat.length() == 8) || (cheat.length() == 11)))
+                        {
+                            cheat_list.push_back(cheat);
+                            emu_add_cheat(cheat.c_str());
+                            cheat_buffer[0] = 0;
+                        }
                     }
                 }
 
