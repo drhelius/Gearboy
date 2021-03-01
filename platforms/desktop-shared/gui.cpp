@@ -343,7 +343,7 @@ static void main_menu(void)
             {
                 ImGui::Text("Game Genie or GameShark codes:");
 
-                static char cheat_buffer[12*20] = "";
+                static char cheat_buffer[20*50] = "";
                 ImGui::PushItemWidth(150);
                 ImGui::InputTextMultiline("", cheat_buffer, IM_ARRAYSIZE(cheat_buffer));
                 ImGui::PopItemWidth();
@@ -357,7 +357,7 @@ static void main_menu(void)
 
                     while (getline(ss, cheat))
                     {
-                        if ((cheat_list.size() < 10) && ((cheat.length() == 7) || (cheat.length() == 8) || (cheat.length() == 11)))
+                        if ((cheat_list.size() < 50) && ((cheat.length() == 7) || (cheat.length() == 8) || (cheat.length() == 11)))
                         {
                             cheat_list.push_back(cheat);
                             emu_add_cheat(cheat.c_str());
