@@ -339,9 +339,10 @@ static void main_menu(void)
 
             ImGui::Separator();
             
+            ImGui::SetNextWindowSizeConstraints({300.0f, 200.0f}, {300.0f, 500.0f});
             if (ImGui::BeginMenu("Cheats"))
             {
-                ImGui::Text("Game Genie or GameShark codes:");
+                ImGui::Text("Game Genie or GameShark codes\n(one code per line):");
 
                 static char cheat_buffer[20*50] = "";
                 ImGui::PushItemWidth(150);
