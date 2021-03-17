@@ -41,16 +41,14 @@ LIBM		    = -lm
 ifeq ($(UNIVERSAL),1)
 ifeq ($(archs),ppc)
    ARCHFLAGS = -arch ppc -arch ppc64
-ifeq ($(archs),arm)
+else ifeq ($(archs),arm)
    ARCHFLAGS = -arch arm64 -arch ppc64
 else
    ARCHFLAGS = -arch i386 -arch x86_64
 endif
 
-ifeq ($(UNIVERSAL),1)
    CXXFLAGS += $(ARCHFLAGS)
    LFLAGS   += $(ARCHFLAGS)
-endif
 endif
 
 ifeq ($(STATIC_LINKING), 1)
