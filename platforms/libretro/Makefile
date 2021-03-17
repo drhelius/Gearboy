@@ -276,13 +276,11 @@ CXXFLAGS += -DGEARBOY_DISABLE_DISASSEMBLER -Wall -D__LIBRETRO__ $(fpic)
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	@echo "** BUILDING $(TARGET) FOR PLATFORM $(platform) **"
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJECTS)
 else
 	$(CXX) $(fpic) $(SHARED) $(INCLUDES) -o $@ $(OBJECTS) $(LDFLAGS)
 endif
-	@echo "** BUILD SUCCESSFUL! **"
   
 %.o: %.c
 	$(CXX) $(CXXFLAGS) $(fpic) -c -o $@ $<
