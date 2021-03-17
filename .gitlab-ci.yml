@@ -152,7 +152,7 @@ android-x86:
     - .core-defs
 
 # iOS 9
-libretro-build-ios-9:
+libretro-build-ios9:
   extends:
     - .libretro-ios9-make-default
     - .core-defs
