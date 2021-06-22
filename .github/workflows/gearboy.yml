@@ -52,8 +52,11 @@ jobs:
     - uses: actions/checkout@v2
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
+    - name: Get git version
+      id: gitversion
+      run: echo "::set-output name=gitversion::$(git describe --abbrev=4 --dirty --always --tags)"
     - name: msbuild
-      run: msbuild Gearboy.sln /property:Configuration=Release
+      run: msbuild Gearboy.sln /t:Clean,Build /p:EmulatorBuild="\"${{ steps.gitversion.outputs.gitversion }}\"" /p:Configuration=Release
       working-directory: platforms/windows
     - name: Archive binary
       uses: actions/upload-artifact@v2
