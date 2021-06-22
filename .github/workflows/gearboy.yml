@@ -1,6 +1,10 @@
 name: Gearboy CI
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 0'
 
 jobs:
   linux:
@@ -49,5 +53,10 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
     - name: msbuild
-      run: msbuild Gearboy.sln
+      run: msbuild Gearboy.sln /property:Configuration=Release
       working-directory: platforms/windows
+    - name: Archive binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: Windows binary
+        path: platforms/windows/release/Gearboy.exe
