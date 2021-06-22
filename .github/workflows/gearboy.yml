@@ -58,5 +58,5 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v2
       with:
-        name: binary
+        name: Windows binary
         path: platforms/windows/release/Gearboy.exe
