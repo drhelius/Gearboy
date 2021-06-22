@@ -43,8 +43,13 @@ jobs:
     - name: Install dependencies
       run: brew install sdl2
     - name: make
-      run: make
+      run: make dist
       working-directory: platforms/macos
+    - name: Archive binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: macOS App bundle
+        path: platforms/macos/Gearboy.app
   windows:
     name: Windows Build
     runs-on: windows-latest
