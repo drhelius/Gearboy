@@ -26,7 +26,10 @@ jobs:
     name: Libretro Build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: make
       run: make
       working-directory: platforms/libretro
@@ -34,7 +37,10 @@ jobs:
     name: iOS Build
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: xcodebuild
       run: xcodebuild clean build -sdk iphonesimulator -project Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO
       working-directory: platforms/ios
@@ -42,7 +48,10 @@ jobs:
     name: macOS Build
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Install dependencies
       run: brew install sdl2
     - name: make
@@ -57,7 +66,10 @@ jobs:
     name: Windows Build
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
     - name: Get git version
