@@ -11,7 +11,10 @@ jobs:
     name: Linux Build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Update OS
       run: sudo apt-get update -qq
     - name: Install dependencies
