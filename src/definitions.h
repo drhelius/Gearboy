@@ -38,7 +38,7 @@
 #endif
 
 #define GEARBOY_TITLE "Gearboy"
-#define GEARBOY_VERSION "3.3.0"
+#define GEARBOY_VERSION "3.3.1"
 
 #ifndef EMULATOR_BUILD
 #define EMULATOR_BUILD "undefined"

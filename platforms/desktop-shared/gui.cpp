@@ -339,36 +339,35 @@ static void main_menu(void)
 
             ImGui::Separator();
             
+            ImGui::SetNextWindowSizeConstraints({300.0f, 200.0f}, {300.0f, 500.0f});
             if (ImGui::BeginMenu("Cheats"))
             {
-                ImGui::Text("Game Genie or GameShark codes:");
+                ImGui::Text("Game Genie or GameShark codes\n(one code per line):");
 
-                static char cheat_buffer[12] = "";
+                ImGui::Columns(2, "cheats", false);
+
+                static char cheat_buffer[20*50] = "";
                 ImGui::PushItemWidth(150);
-                ImGui::InputText("", cheat_buffer, 12);
+                ImGui::InputTextMultiline("", cheat_buffer, IM_ARRAYSIZE(cheat_buffer));
                 ImGui::PopItemWidth();
-                ImGui::SameLine();
 
-                if (ImGui::Button("Add Cheat Code"))
+                ImGui::NextColumn();
+
+                if (ImGui::Button("Add Cheat Codes"))
                 {
-                    std::string cheat = cheat_buffer;
+                    std::string cheats = cheat_buffer;
+                    std::istringstream ss(cheats);
+                    std::string cheat;
 
-                    if ((cheat_list.size() < 10) && ((cheat.length() == 7) || (cheat.length() == 8) || (cheat.length() == 11)))
+                    while (getline(ss, cheat))
                     {
-                        cheat_list.push_back(cheat_buffer);
-                        emu_add_cheat(cheat_buffer);
-                        cheat_buffer[0] = 0;
+                        if ((cheat_list.size() < 50) && ((cheat.length() == 7) || (cheat.length() == 8) || (cheat.length() == 11)))
+                        {
+                            cheat_list.push_back(cheat);
+                            emu_add_cheat(cheat.c_str());
+                            cheat_buffer[0] = 0;
+                        }
                     }
-                }
-
-                std::list<std::string>::iterator it;
-
-                for (it = cheat_list.begin(); it != cheat_list.end(); it++)
-                {
-                    if ((it->length() == 7) || (it->length() == 11))
-                        ImGui::Text("Game Genie: %s", it->c_str());
-                    else
-                        ImGui::Text("GameShark: %s", it->c_str());
                 }
 
                 if (cheat_list.size() > 0)
@@ -379,6 +378,18 @@ static void main_menu(void)
                         emu_clear_cheats();
                     }
                 }
+
+                ImGui::Columns(1);
+
+                std::list<std::string>::iterator it;
+
+                for (it = cheat_list.begin(); it != cheat_list.end(); it++)
+                {
+                    if ((it->length() == 7) || (it->length() == 11))
+                        ImGui::Text("Game Genie: %s", it->c_str());
+                    else
+                        ImGui::Text("GameShark: %s", it->c_str());
+                }                
 
                 ImGui::EndMenu();
             }

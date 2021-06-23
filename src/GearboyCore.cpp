@@ -787,7 +787,8 @@ void GearboyCore::ClearCheats()
 {
     m_pCartridge->ClearGameGenieCheats();
     m_pProcessor->ClearGameSharkCheats();
-    m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
+    if (m_pCartridge->IsLoadedROM())
+        m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
 }
 
 void GearboyCore::SetRamModificationCallback(RamChangedCallback callback)

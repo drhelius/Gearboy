@@ -1,13 +1,20 @@
 name: Gearboy CI
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 0'
 
 jobs:
   linux:
     name: Linux Build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Update OS
       run: sudo apt-get update -qq
     - name: Install dependencies
@@ -19,7 +26,10 @@ jobs:
     name: Libretro Build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: make
       run: make
       working-directory: platforms/libretro
@@ -27,7 +37,10 @@ jobs:
     name: iOS Build
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: xcodebuild
       run: xcodebuild clean build -sdk iphonesimulator -project Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO
       working-directory: platforms/ios
@@ -35,19 +48,38 @@ jobs:
     name: macOS Build
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Install dependencies
       run: brew install sdl2
     - name: make
-      run: make
+      run: make dist
       working-directory: platforms/macos
+    - name: Archive binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: macOS App bundle
+        path: platforms/macos/Gearboy.app
   windows:
     name: Windows Build
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
+    - name: Get git version
+      id: gitversion
+      run: echo "::set-output name=gitversion::$(git describe --abbrev=7 --dirty --always --tags)"
     - name: msbuild
-      run: msbuild Gearboy.sln
+      run: msbuild Gearboy.sln /t:Clean,Build /p:EmulatorBuild="${{ steps.gitversion.outputs.gitversion }}" /p:Configuration=Release
       working-directory: platforms/windows
+    - name: Archive binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: Windows binary
+        path: platforms/windows/release/Gearboy.exe
