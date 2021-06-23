@@ -4,7 +4,7 @@ CXX = g++
 
 EXE = gearboy
 
-GIT_VERSION := "$(shell git describe --abbrev=4 --dirty --always --tags)"
+GIT_VERSION := "$(shell git describe --abbrev=7 --dirty --always --tags)"
 
 EMULATOR_SRC=../../src
 EMULATOR_DESKTOP_SHARED_SRC=../desktop-shared
@@ -34,7 +34,7 @@ DEBUG ?= 0
 ifeq ($(DEBUG), 1)
     CXXFLAGS +=-DDEBUG -g3 -fsanitize=address
 else
-    CXXFLAGS +=-DNDEBUG -O3
+    CXXFLAGS +=-DNDEBUG -O3 -flto
 endif
 
 LIBS =
