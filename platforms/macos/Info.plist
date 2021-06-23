@@ -16,5 +16,9 @@
     <string>iconfile</string>
     <key>NSHighResolutionCapable</key>
     <string>True</string>
+    <key>CFBundleVersion</key>
+    <string>3.3.1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>3.3.1</string>
 </dict>
 </plist>
