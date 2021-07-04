@@ -69,7 +69,7 @@ make dist
 
 ``` shell
 sudo apt-get install build-essential libsdl2-dev libglew-dev
-cd platforms/linux
+cd platforms/unix
 make
 ```
 
@@ -77,8 +77,18 @@ make
 
 ``` shell
 sudo dnf install @development-tools gcc-c++ SDL2-devel glew-devel
-cd platforms/linux
+cd platforms/unix
 make
+```
+
+### BSD
+
+- NetBSD:
+
+``` shell
+su root -c "pkgin install gmake pkgconf SDL2 glew"
+cd platforms/unix
+gmake
 ```
 
 ### iOS
