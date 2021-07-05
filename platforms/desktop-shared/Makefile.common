@@ -48,25 +48,30 @@ ifeq ($(UNAME_S), Linux) #LINUX
 	LIBS += -lGL -lGLEW -ldl `sdl2-config --libs`
 
 	CXXFLAGS += `sdl2-config --cflags`
-	CFLAGS = $(CXXFLAGS)
-endif
-
-ifeq ($(UNAME_S), Darwin) #APPLE
+	CFLAGS += $(CXXFLAGS)
+else ifeq ($(UNAME_S), Darwin) #APPLE
 	ECHO_MESSAGE = "macOS"
 	LIBS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo `sdl2-config --libs`
 	LIBS += -L/usr/local/lib
 
 	CXXFLAGS += `sdl2-config --cflags`
 	CXXFLAGS += -I/usr/local/include -I/opt/local/include
-	CFLAGS = $(CXXFLAGS)
-endif
-
-ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
+	CFLAGS += $(CXXFLAGS)
+else ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
 	ECHO_MESSAGE = "MinGW"
 	LIBS += -lgdi32 -lopengl32 -lglew32 -limm32 `pkg-config --static --libs sdl2`
 
 	CXXFLAGS += `pkg-config --cflags sdl2`
-	CFLAGS = $(CXXFLAGS)
+	CFLAGS += $(CXXFLAGS)
+else
+	ECHO_MESSAGE = "Generic Unix-like/BSD"
+	LIBS += `sdl2-config --libs` -lSDL2
+	LIBS += `pkg-config --libs glew` -lGLEW
+
+	CXXFLAGS += -std=gnu++11
+	CXXFLAGS += `sdl2-config --cflags`
+	CXXFLAGS += `pkg-config --cflags glew`
+	CFLAGS += $(CXXFLAGS)
 endif
 
 ##---------------------------------------------------------------------
@@ -95,7 +100,7 @@ all: $(EXE)
 	@echo Build complete for $(ECHO_MESSAGE)
 
 $(EXE): $(OBJS)
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
+	$(CXX) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 clean:
 	rm -f $(EXE) $(OBJS)

@@ -81,6 +81,16 @@ cd platforms/linux
 make
 ```
 
+### BSD
+
+- NetBSD:
+
+``` shell
+su root -c "pkgin install gmake pkgconf SDL2 glew"
+cd platforms/bsd
+gmake
+```
+
 ### iOS
 
 - Install latest Xcode for macOS.
