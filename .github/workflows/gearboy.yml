@@ -96,7 +96,7 @@ jobs:
       uses: vmactions/freebsd-vm@v0.1.5
       with:
         usesh: true
-        prepare: pkg install -y gmake pkgconf SDL2 glew
+        prepare: pkg install -y git gmake pkgconf SDL2 glew lang/gcc
         run: |
           cd platforms/bsd
           gmake
