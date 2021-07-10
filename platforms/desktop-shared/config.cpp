@@ -84,6 +84,10 @@ void config_read(void)
     config_emulator.force_gba = read_bool("Emulator", "ForceGBA", false);
     config_emulator.save_in_rom_folder = read_bool("Emulator", "SaveInROMFolder", false);
     config_emulator.mbc = read_int("Emulator", "MBC", 0);
+    config_emulator.dmg_bootrom = read_bool("Emulator", "DMGBootrom", false);
+    config_emulator.dmg_bootrom_path = read_string("Emulator", "DMGBootromPath");
+    config_emulator.gbc_bootrom = read_bool("Emulator", "GBCBootrom", false);
+    config_emulator.gbc_bootrom_path = read_string("Emulator", "GBCBootromPath");
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {
@@ -165,6 +169,10 @@ void config_write(void)
     write_bool("Emulator", "ForceGBA", config_emulator.force_gba);
     write_bool("Emulator", "SaveInROMFolder", config_emulator.save_in_rom_folder);
     write_int("Emulator", "MBC", config_emulator.mbc);
+    write_bool("Emulator", "DMGBootrom", config_emulator.dmg_bootrom);
+    write_string("Emulator", "DMGBootromPath", config_emulator.dmg_bootrom_path);
+    write_bool("Emulator", "GBCBootrom", config_emulator.gbc_bootrom);
+    write_string("Emulator", "GBCBootromPath", config_emulator.gbc_bootrom_path);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {

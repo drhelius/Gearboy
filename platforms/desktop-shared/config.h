@@ -48,6 +48,10 @@ struct config_Emulator
     bool show_info = false;
     int mbc = 0;
     std::string recent_roms[config_max_recent_roms];
+    bool dmg_bootrom;
+    std::string dmg_bootrom_path;
+    bool gbc_bootrom;
+    std::string gbc_bootrom_path;
 };
 
 struct config_Video

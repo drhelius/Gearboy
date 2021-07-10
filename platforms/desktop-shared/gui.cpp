@@ -42,6 +42,8 @@ static ImVec4 custom_palette[config_max_custom_palettes][4];
 static std::list<std::string> cheat_list;
 static bool shortcut_open_rom = false;
 static ImFont* default_font[4];
+static char dmg_bootrom_path[4096] = "";
+static char gbc_bootrom_path[4096] = "";
 
 static void main_menu(void);
 static void main_window(void);
@@ -50,6 +52,8 @@ static void file_dialog_load_ram(void);
 static void file_dialog_save_ram(void);
 static void file_dialog_load_state(void);
 static void file_dialog_save_state(void);
+static void file_dialog_load_dmg_bootrom(void);
+static void file_dialog_load_gbc_bootrom(void);
 static void file_dialog_load_symbols(void);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key);
 static void gamepad_configuration_item(const char* text, int* button);
@@ -94,6 +98,9 @@ void gui_init(void)
 
     emu_audio_volume(config_audio.enable ? 1.0f: 0.0f);
     emu_color_correction(config_video.color_correction);
+
+    strcpy(dmg_bootrom_path, config_emulator.dmg_bootrom_path.c_str());
+    strcpy(gbc_bootrom_path, config_emulator.gbc_bootrom_path.c_str());
 }
 
 void gui_destroy(void)
@@ -201,6 +208,8 @@ static void main_menu(void)
     bool save_state = false;
     bool open_about = false;
     bool open_symbols = false;
+    bool open_dmg_bootrom = false;
+    bool open_gbc_bootrom = false;
 
     for (int i = 0; i < config_max_custom_palettes; i++)
         for (int c = 0; c < 4; c++)
@@ -334,6 +343,40 @@ static void main_menu(void)
             {
                 ImGui::PushItemWidth(140.0f);
                 ImGui::Combo("##mbc", &config_emulator.mbc, "Auto\0ROM Only\0MBC 1\0MBC 2\0MBC 3\0MBC 5\0MBC 1 Multicart\0\0");
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("DMG Bootrom"))
+            {
+                ImGui::MenuItem("Enable", "", &config_emulator.dmg_bootrom);
+                if (ImGui::MenuItem("Load Bootrom...")) 
+                {
+                    open_dmg_bootrom = true;
+                }
+                ImGui::PushItemWidth(350);
+                if (ImGui::InputText("##dmg_bootrom_path", dmg_bootrom_path, IM_ARRAYSIZE(dmg_bootrom_path), ImGuiInputTextFlags_AutoSelectAll))
+                {
+                    config_emulator.dmg_bootrom_path.assign(dmg_bootrom_path);
+                }
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("GBC Bootrom"))
+            {
+                ImGui::MenuItem("Enable", "", &config_emulator.gbc_bootrom);
+                if (ImGui::MenuItem("Load Bootrom...")) 
+                {
+                    open_gbc_bootrom = true;
+                }
+                ImGui::PushItemWidth(350);
+                if (ImGui::InputText("##gbc_bootrom_path", gbc_bootrom_path, IM_ARRAYSIZE(gbc_bootrom_path), ImGuiInputTextFlags_AutoSelectAll))
+                {
+                    config_emulator.gbc_bootrom_path.assign(gbc_bootrom_path);
+                }
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -715,6 +758,12 @@ static void main_menu(void)
     if (save_state)
         ImGui::OpenPopup("Save State As...");
 
+    if (open_dmg_bootrom)
+        ImGui::OpenPopup("Load DMG Bootrom From...");
+    
+    if (open_gbc_bootrom)
+        ImGui::OpenPopup("Load GBC Bootrom From...");
+
     if (open_symbols)
         ImGui::OpenPopup("Load Symbols File...");
 
@@ -730,6 +779,8 @@ static void main_menu(void)
     file_dialog_save_ram();
     file_dialog_load_state();
     file_dialog_save_state();
+    file_dialog_load_dmg_bootrom();
+    file_dialog_load_gbc_bootrom();
     file_dialog_load_symbols();
 
     for (int i = 0; i < config_max_custom_palettes; i++)
@@ -885,6 +936,24 @@ static void file_dialog_save_state(void)
         }
 
         emu_save_state_file(state_path.c_str());
+    }
+}
+
+static void file_dialog_load_dmg_bootrom(void)
+{
+    if(file_dialog.showFileDialog("Load DMG Bootrom From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".bin,.gb,*.*", &dialog_in_use))
+    {
+        strcpy(dmg_bootrom_path, file_dialog.selected_path.c_str());
+        config_emulator.dmg_bootrom_path.assign(file_dialog.selected_path);
+    }
+}
+
+static void file_dialog_load_gbc_bootrom(void)
+{
+    if(file_dialog.showFileDialog("Load GBC Bootrom From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".bin,.gbc,*.*", &dialog_in_use))
+    {
+        strcpy(gbc_bootrom_path, file_dialog.selected_path.c_str());
+        config_emulator.gbc_bootrom_path.assign(file_dialog.selected_path);
     }
 }
 
