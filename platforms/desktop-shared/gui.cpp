@@ -285,7 +285,7 @@ static void main_menu(void)
 
             ImGui::Separator();
            
-            if (ImGui::BeginMenu("Select State Slot"))
+            if (ImGui::BeginMenu("Save State Slot"))
             {
                 ImGui::PushItemWidth(100.0f);
                 ImGui::Combo("##slot", &config_emulator.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
