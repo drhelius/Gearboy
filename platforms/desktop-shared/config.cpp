@@ -100,18 +100,21 @@ void config_read(void)
     config_video.matrix = read_bool("Video", "Matrix", true);
     config_video.matrix_intensity = read_float("Video", "MatrixIntensity", 0.30f);
     config_video.palette = read_int("Video", "Palette", 0);
-    config_video.color[0].red = read_int("Video", "CustomPalette0R", 0xC4);
-    config_video.color[0].green = read_int("Video", "CustomPalette0G", 0xF0);
-    config_video.color[0].blue = read_int("Video", "CustomPalette0B", 0xC2);
-    config_video.color[1].red = read_int("Video", "CustomPalette1R", 0x5A);
-    config_video.color[1].green = read_int("Video", "CustomPalette1G", 0xB9);
-    config_video.color[1].blue = read_int("Video", "CustomPalette1B", 0xA8);
-    config_video.color[2].red = read_int("Video", "CustomPalette2R", 0x1E);
-    config_video.color[2].green = read_int("Video", "CustomPalette2G", 0x60);
-    config_video.color[2].blue = read_int("Video", "CustomPalette2B", 0x6E);
-    config_video.color[3].red = read_int("Video", "CustomPalette3R", 0x2D);
-    config_video.color[3].green = read_int("Video", "CustomPalette3G", 0x1B);
-    config_video.color[3].blue = read_int("Video", "CustomPalette3B", 0x00);
+    for (int i = 0; i < config_max_custom_palettes; i++)
+    {
+        for (int c = 0; c < 4; c++)
+        {
+            char pal_label_r[32];
+            char pal_label_g[32];
+            char pal_label_b[32];
+            sprintf(pal_label_r, "CustomPalette%i%iR", i, c);
+            sprintf(pal_label_g, "CustomPalette%i%iG", i, c);
+            sprintf(pal_label_b, "CustomPalette%i%iB", i, c);
+            config_video.color[i][c].red = read_int("Video", pal_label_r, config_video.color[i][c].red);
+            config_video.color[i][c].green = read_int("Video", pal_label_g, config_video.color[i][c].green);
+            config_video.color[i][c].blue = read_int("Video", pal_label_b, config_video.color[i][c].blue);
+        }
+    }
     config_video.sync = read_bool("Video", "Sync", true);
     config_video.color_correction = read_bool("Video", "ColorCorrection", true);
     
@@ -178,18 +181,21 @@ void config_write(void)
     write_bool("Video", "Matrix", config_video.matrix);
     write_float("Video", "MatrixIntensity", config_video.matrix_intensity);
     write_int("Video", "Palette", config_video.palette);
-    write_int("Video", "CustomPalette0R", config_video.color[0].red);
-    write_int("Video", "CustomPalette0G", config_video.color[0].green);
-    write_int("Video", "CustomPalette0B", config_video.color[0].blue);
-    write_int("Video", "CustomPalette1R", config_video.color[1].red);
-    write_int("Video", "CustomPalette1G", config_video.color[1].green);
-    write_int("Video", "CustomPalette1B", config_video.color[1].blue);
-    write_int("Video", "CustomPalette2R", config_video.color[2].red);
-    write_int("Video", "CustomPalette2G", config_video.color[2].green);
-    write_int("Video", "CustomPalette2B", config_video.color[2].blue);
-    write_int("Video", "CustomPalette3R", config_video.color[3].red);
-    write_int("Video", "CustomPalette3G", config_video.color[3].green);
-    write_int("Video", "CustomPalette3B", config_video.color[3].blue);
+    for (int i = 0; i < config_max_custom_palettes; i++)
+    {
+        for (int c = 0; c < 4; c++)
+        {
+            char pal_label_r[32];
+            char pal_label_g[32];
+            char pal_label_b[32];
+            sprintf(pal_label_r, "CustomPalette%i%iR", i, c);
+            sprintf(pal_label_g, "CustomPalette%i%iG", i, c);
+            sprintf(pal_label_b, "CustomPalette%i%iB", i, c);
+            write_int("Video", pal_label_r, config_video.color[i][c].red);
+            write_int("Video", pal_label_g, config_video.color[i][c].green);
+            write_int("Video", pal_label_b, config_video.color[i][c].blue);
+        }
+    }
     write_bool("Video", "Sync", config_video.sync);
     write_bool("Video", "ColorCorrection", config_video.color_correction);
 
