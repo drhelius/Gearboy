@@ -81,6 +81,7 @@ void config_read(void)
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
     config_emulator.force_dmg = read_bool("Emulator", "ForceDMG", false);
+    config_emulator.force_gba = read_bool("Emulator", "ForceGBA", false);
     config_emulator.save_in_rom_folder = read_bool("Emulator", "SaveInROMFolder", false);
     config_emulator.mbc = read_int("Emulator", "MBC", 0);
 
@@ -158,6 +159,7 @@ void config_write(void)
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);
     write_bool("Emulator", "ForceDMG", config_emulator.force_dmg);
+    write_bool("Emulator", "ForceGBA", config_emulator.force_gba);
     write_bool("Emulator", "SaveInROMFolder", config_emulator.save_in_rom_folder);
     write_int("Emulator", "MBC", config_emulator.mbc);
 

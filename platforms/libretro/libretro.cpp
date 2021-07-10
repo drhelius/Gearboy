@@ -49,6 +49,7 @@ static s16 audio_buf[AUDIO_BUFFER_SIZE];
 static int audio_sample_count;
 
 static bool force_dmg = false;
+static bool force_gba = false;
 static bool allow_up_down = false;
 static bool libretro_supports_bitmasks;
 
@@ -67,7 +68,7 @@ static Cartridge::CartridgeTypes mapper = Cartridge::CartridgeNotSupported;
 static retro_environment_t environ_cb;
 
 static const struct retro_variable vars[] = {
-    { "gearboy_model", "Emulated Model (restart); Auto|Game Boy DMG" },
+    { "gearboy_model", "Emulated Model (restart); Auto|Game Boy DMG|Game Boy Advance" },
     { "gearboy_mapper", "Mapper (restart); Auto|ROM Only|MBC 1|MBC 2|MBC 3|MBC 5|MBC 1 Multicart" },
     { "gearboy_palette", "Palette; Original|Sharp|B/W|Autumn|Soft|Slime" },
     { "gearboy_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
@@ -274,9 +275,20 @@ static void check_variables(void)
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
     {
         if (strcmp(var.value, "Game Boy DMG") == 0)
+        {
             force_dmg = true;
-        else
+            force_gba = false;
+        }
+        else if (strcmp(var.value, "Game Boy Advance") == 0)
+        {
+            force_gba = true;
             force_dmg = false;
+        }
+        else
+        {
+            force_dmg = false;
+            force_gba = false;
+        }
     }
 
     var.key = "gearboy_mapper";
@@ -362,7 +374,7 @@ void retro_reset(void)
 
     core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
 
-    core->ResetROMPreservingRAM(force_dmg, mapper);
+    core->ResetROMPreservingRAM(force_dmg, mapper, force_gba);
 }
 
 
@@ -372,7 +384,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
     core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
 
-    core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, force_dmg, mapper);
+    core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, force_dmg, mapper, force_gba);
 
     struct retro_input_descriptor desc[] = {
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left" },

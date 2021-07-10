@@ -168,7 +168,7 @@ void gui_shortcut(gui_ShortCutEvent event)
 void gui_load_rom(const char* path)
 {
     emu_resume();
-    emu_load_rom(path, config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
+    emu_load_rom(path, config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc), config_emulator.force_gba);
     cheat_list.clear();
     emu_clear_cheats();
 
@@ -317,7 +317,17 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            ImGui::MenuItem("Force Game Boy (DMG)", "", &config_emulator.force_dmg);
+            if (ImGui::MenuItem("Force Game Boy (DMG)", "", &config_emulator.force_dmg))
+            {
+                if (config_emulator.force_dmg)
+                    config_emulator.force_gba = false;
+            }
+
+            if (ImGui::MenuItem("Force Game Boy Advance", "", &config_emulator.force_gba))
+            {
+                if (config_emulator.force_gba)
+                    config_emulator.force_dmg = false;
+            }
 
             if (ImGui::BeginMenu("Memory Bank Controller"))
             {
@@ -820,7 +830,7 @@ static void file_dialog_load_ram(void)
 {
     if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*", &dialog_in_use))
     {
-        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
+        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc), config_emulator.force_gba);
     }
 }
 
@@ -1113,7 +1123,7 @@ static void push_recent_rom(std::string path)
 static void menu_reset(void)
 {
     emu_resume();
-    emu_reset(config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
+    emu_reset(config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc), config_emulator.force_gba);
 
     if (config_emulator.start_paused)
     {

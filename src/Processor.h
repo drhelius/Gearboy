@@ -55,7 +55,7 @@ public:
     Processor(Memory* pMemory);
     ~Processor();
     void Init();
-    void Reset(bool bCGB);
+    void Reset(bool bCGB, bool bGBA);
     u8 RunFor(u8 ticks);
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();

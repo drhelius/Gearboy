@@ -45,16 +45,16 @@ public:
     ~GearboyCore();
     void Init(GB_Color_Format pixelFormat = GB_PIXEL_RGB565);
     bool RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer = false, bool step = false, bool stopOnBreakpoints = false);
-    bool LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
-    bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
+    bool LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
+    bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
     void SaveDisassembledROM();
     void SaveMemoryDump();
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause(bool paused);
     bool IsPaused();
-    void ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
-    void ResetROMPreservingRAM(bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
+    void ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
+    void ResetROMPreservingRAM(bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
     void ResetSound();
     void SetSoundSampleRate(int rate);
     void SetSoundVolume(float volume);
@@ -76,6 +76,7 @@ public:
     void ClearCheats();
     void SetRamModificationCallback(RamChangedCallback callback);
     bool IsCGB();
+    bool IsGBA();
     Memory* GetMemory();
     Cartridge* GetCartridge();
     Processor* GetProcessor();
@@ -87,7 +88,7 @@ private:
     void InitDMGPalette();
     void InitMemoryRules();
     bool AddMemoryRules(Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
-    void Reset(bool bCGB);
+    void Reset(bool bCGB, bool bGBA);
 
 private:
     Memory* m_pMemory;
@@ -105,6 +106,7 @@ private:
     MBC5MemoryRule* m_pMBC5MemoryRule;
     MultiMBC1MemoryRule* m_pMultiMBC1MemoryRule;
     bool m_bCGB;
+    bool m_bGBA;
     bool m_bPaused;
     u16 m_DMGPalette[4];
     bool m_bForceDMG;

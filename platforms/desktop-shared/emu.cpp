@@ -107,11 +107,11 @@ void emu_destroy(void)
     }
 }
 
-void emu_load_rom(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc)
+void emu_load_rom(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc, bool force_gba)
 {
     save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
-    gearboy->LoadROM(file_path, force_dmg, mbc);
+    gearboy->LoadROM(file_path, force_dmg, mbc, force_gba);
     load_ram();
     emu_debug_continue();
 }
@@ -176,11 +176,11 @@ bool emu_is_empty(void)
     return !gearboy->GetCartridge()->IsLoadedROM();
 }
 
-void emu_reset(bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc)
+void emu_reset(bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc, bool force_gba)
 {
     save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
-    gearboy->ResetROM(force_dmg, mbc);
+    gearboy->ResetROM(force_dmg, mbc, force_gba);
     load_ram();
 }
 
@@ -261,13 +261,13 @@ void emu_save_ram(const char* file_path)
         gearboy->SaveRam(file_path, true);
 }
 
-void emu_load_ram(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc)
+void emu_load_ram(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc, bool force_gba)
 {
     if (!emu_is_empty())
     {
         save_files_in_rom_dir = save_in_rom_dir;
         save_ram();
-        gearboy->ResetROM(force_dmg, mbc);
+        gearboy->ResetROM(force_dmg, mbc, force_gba);
         gearboy->LoadRam(file_path, true);
     }
 }

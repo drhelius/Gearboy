@@ -40,6 +40,7 @@ struct config_Emulator
     int save_slot = 0;
     bool start_paused = false;
     bool force_dmg = false;
+    bool force_gba = false;
     bool save_in_rom_folder = false;
     bool ffwd = false;
     int ffwd_speed = 1;

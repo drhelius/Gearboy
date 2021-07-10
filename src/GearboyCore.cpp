@@ -52,6 +52,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC5MemoryRule);
     InitPointer(m_pRamChangedCallback);
     m_bCGB = false;
+    m_bGBA = false;
     m_bPaused = false;
     m_bForceDMG = false;
     m_iRTCUpdateCount = 0;
@@ -156,12 +157,12 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
     return breakpoint;
 }
 
-bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType)
+bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType, bool forceGBA)
 {
     if (m_pCartridge->LoadFromFile(szFilePath))
     {
         m_bForceDMG = forceDMG;
-        Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
+        Reset(m_bForceDMG ? false : m_pCartridge->IsCGB(), forceGBA);
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         bool romTypeOK = AddMemoryRules(forceType);
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
@@ -179,12 +180,12 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::Cart
         return false;
 }
 
-bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType)
+bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType, bool forceGBA)
 {
     if (m_pCartridge->LoadFromBuffer(buffer, size))
     {
         m_bForceDMG = forceDMG;
-        Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
+        Reset(m_bForceDMG ? false : m_pCartridge->IsCGB(), forceGBA);
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         bool romTypeOK = AddMemoryRules(forceType);
 
@@ -298,12 +299,12 @@ bool GearboyCore::IsPaused()
     return m_bPaused;
 }
 
-void GearboyCore::ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType)
+void GearboyCore::ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType, bool forceGBA)
 {
     if (m_pCartridge->IsLoadedROM())
     {
         m_bForceDMG = forceDMG;
-        Reset(m_bForceDMG ? false : m_pCartridge->IsCGB());
+        Reset(m_bForceDMG ? false : m_pCartridge->IsCGB(), forceGBA);
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         AddMemoryRules(forceType);
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
@@ -312,7 +313,7 @@ void GearboyCore::ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType)
     }
 }
 
-void GearboyCore::ResetROMPreservingRAM(bool forceDMG, Cartridge::CartridgeTypes forceType)
+void GearboyCore::ResetROMPreservingRAM(bool forceDMG, Cartridge::CartridgeTypes forceType, bool forceGBA)
 {
     if (m_pCartridge->IsLoadedROM())
     {
@@ -323,7 +324,7 @@ void GearboyCore::ResetROMPreservingRAM(bool forceDMG, Cartridge::CartridgeTypes
 
         m_pMemory->GetCurrentRule()->SaveRam(stream);
 
-        ResetROM(forceDMG, forceType);
+        ResetROM(forceDMG, forceType, forceGBA);
 
         stream.seekg(0, stream.end);
         s32 size = (s32)stream.tellg();
@@ -794,6 +795,11 @@ bool GearboyCore::IsCGB()
     return m_bCGB;
 }
 
+bool GearboyCore::IsGBA()
+{
+    return m_bGBA;
+}
+
 void GearboyCore::InitDMGPalette()
 {
     GB_Color color[4];
@@ -893,11 +899,16 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
     return !notSupported;
 }
 
-void GearboyCore::Reset(bool bCGB)
+void GearboyCore::Reset(bool bCGB, bool bGBA)
 {
     m_bCGB = bCGB;
+    m_bGBA = bGBA;
 
-    if (m_bCGB)
+    if (m_bGBA && m_bCGB)
+    {
+        Log("Reset: Switching to Game Boy Advance");
+    }
+    else if (m_bCGB)
     {
         Log("Reset: Switching to Game Boy Color");
     }
@@ -907,7 +918,7 @@ void GearboyCore::Reset(bool bCGB)
     }
 
     m_pMemory->Reset(m_bCGB);
-    m_pProcessor->Reset(m_bCGB);
+    m_pProcessor->Reset(m_bCGB, m_bGBA);
     m_pVideo->Reset(m_bCGB);
     m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();
