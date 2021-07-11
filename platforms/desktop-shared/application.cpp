@@ -53,6 +53,8 @@ int application_init(const char* arg)
     }
 
     int ret = sdl_init();
+
+    application_fullscreen = false;
     
     config_init();
     config_read();
@@ -103,6 +105,11 @@ void application_trigger_quit(void)
     SDL_Event event;
     event.type = SDL_QUIT;
     SDL_PushEvent(&event);
+}
+
+void application_trigger_fullscreen(bool fullscreen)
+{
+    SDL_SetWindowFullscreen(sdl_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
 static int sdl_init(void)
@@ -338,6 +345,13 @@ static void sdl_events_emu(const SDL_Event* event)
                 break;
             }
 
+            if (key == SDL_SCANCODE_F11)
+            {
+                application_fullscreen = !application_fullscreen;
+                application_trigger_fullscreen(application_fullscreen);
+                break;
+            }
+
             if (key == config_input.key_left)
                 emu_key_pressed(Left_Key);
             else if (key == config_input.key_right)
@@ -407,6 +421,9 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
                 break;
             case SDL_SCANCODE_S:
                 gui_shortcut(gui_ShortcutSaveState);
+                break;
+            case SDL_SCANCODE_M:
+                gui_shortcut(gui_ShortcutShowMainMenu);
                 break;
             case SDL_SCANCODE_F5:
                 gui_shortcut(gui_ShortcutDebugContinue);
