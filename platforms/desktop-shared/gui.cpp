@@ -416,9 +416,9 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            if (ImGui::MenuItem("Full Screen", "F11"))
+            if (ImGui::MenuItem("Full Screen", "F11", &application_fullscreen))
             {
-                application_trigger_fullscreen();
+                application_trigger_fullscreen(application_fullscreen);
             }
 
             ImGui::MenuItem("Show Menu", "CTRL+M", &show_main_menu);

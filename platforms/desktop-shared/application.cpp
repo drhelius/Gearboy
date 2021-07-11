@@ -33,7 +33,6 @@ static SDL_GLContext gl_context;
 static bool running = true;
 static Uint64 frame_time_start;
 static Uint64 frame_time_end;
-static bool fullscreen = false;
 
 static int sdl_init(void);
 static void sdl_destroy(void);
@@ -54,6 +53,8 @@ int application_init(const char* arg)
     }
 
     int ret = sdl_init();
+
+    application_fullscreen = false;
     
     config_init();
     config_read();
@@ -106,9 +107,8 @@ void application_trigger_quit(void)
     SDL_PushEvent(&event);
 }
 
-void application_trigger_fullscreen(void)
+void application_trigger_fullscreen(bool fullscreen)
 {
-    fullscreen = !fullscreen;
     SDL_SetWindowFullscreen(sdl_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
@@ -347,7 +347,8 @@ static void sdl_events_emu(const SDL_Event* event)
 
             if (key == SDL_SCANCODE_F11)
             {
-                application_trigger_fullscreen();
+                application_fullscreen = !application_fullscreen;
+                application_trigger_fullscreen(application_fullscreen);
                 break;
             }
 
