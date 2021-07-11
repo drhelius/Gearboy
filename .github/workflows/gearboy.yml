@@ -8,7 +8,7 @@ on:
 
 jobs:
   linux:
-    name: Linux Build
+    name: Linux
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -23,7 +23,7 @@ jobs:
       run: make
       working-directory: platforms/linux
   libretro:
-    name: Libretro Build
+    name: Libretro (Ubuntu)
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -34,7 +34,7 @@ jobs:
       run: make
       working-directory: platforms/libretro
   ios:
-    name: iOS Build
+    name: iOS
     runs-on: macOS-latest
     steps:
     - name: Checkout
@@ -45,7 +45,7 @@ jobs:
       run: xcodebuild clean build -sdk iphonesimulator -project Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO
       working-directory: platforms/ios
   macos:
-    name: macOS Build
+    name: macOS
     runs-on: macOS-latest
     steps:
     - name: Checkout
@@ -63,7 +63,7 @@ jobs:
         name: macOS App bundle
         path: platforms/macos/Gearboy.app
   windows:
-    name: Windows Build
+    name: Windows
     runs-on: windows-latest
     steps:
     - name: Checkout
@@ -83,3 +83,21 @@ jobs:
       with:
         name: Windows binary
         path: platforms/windows/release/Gearboy.exe
+  bsd:
+    name: FreeBSD
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: make
+      id: test
+      uses: vmactions/freebsd-vm@v0.1.5
+      with:
+        usesh: true
+        prepare: pkg install -y git gmake pkgconf SDL2 glew lang/gcc
+        run: |
+          cd platforms/bsd
+          gmake
+

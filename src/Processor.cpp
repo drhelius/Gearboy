@@ -63,10 +63,10 @@ Processor::~Processor()
 
 void Processor::Init()
 {
-    Reset(false);
+    Reset(false, false);
 }
 
-void Processor::Reset(bool bCGB)
+void Processor::Reset(bool bCGB, bool bGBA)
 {
     m_bCGB = bCGB;
     m_bIME = false;
@@ -88,7 +88,10 @@ void Processor::Reset(bool bCGB)
         AF.SetValue(0x11B0);
     else
         AF.SetValue(0x01B0);
-    BC.SetValue(0x0013);
+    if (m_bCGB && bGBA)
+        BC.SetValue(0x0113);
+    else
+        BC.SetValue(0x0013);
     DE.SetValue(0x00D8);
     HL.SetValue(0x014D);
     m_iInterruptDelayCycles = 0;

@@ -2,7 +2,7 @@
 
 [![Gearboy CI](https://github.com/drhelius/Gearboy/workflows/Gearboy%20CI/badge.svg)](https://github.com/drhelius/Gearboy/actions)
 
-Gearboy is a cross-platform Game Boy / GameBoy Color emulator written in C++ that runs on Windows, macOS, Linux, iOS, Raspberry Pi and RetroArch.
+Gearboy is a cross-platform Game Boy / GameBoy Color emulator written in C++ that runs on Windows, macOS, Linux, BSD, iOS, Raspberry Pi and RetroArch.
 
 This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md).
 
@@ -37,7 +37,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Save states.
 - Compressed rom support (ZIP).
 - *Game Genie* and *GameShark* cheat support.
-- Supported platforms (standalone): Windows, Linux, macOS, Raspberry Pi and iOS.
+- Supported platforms (standalone): Windows, Linux, BSD, macOS, Raspberry Pi and iOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch Emscripten, Classic Mini systemts (NES, SNES, C64 ...) and QNX.
 - Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
 - Windows and Linux *Portable Mode* by creating a file named `portable.ini` in the same directory as the application binary.
@@ -79,6 +79,16 @@ make
 sudo dnf install @development-tools gcc-c++ SDL2-devel glew-devel
 cd platforms/linux
 make
+```
+
+### BSD
+
+- NetBSD:
+
+``` shell
+su root -c "pkgin install gmake pkgconf SDL2 glew"
+cd platforms/bsd
+gmake
 ```
 
 ### iOS

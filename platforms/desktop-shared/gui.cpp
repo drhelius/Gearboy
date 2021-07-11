@@ -38,7 +38,7 @@ static int main_menu_height;
 static bool dialog_in_use = false;
 static SDL_Scancode* configured_key;
 static int* configured_button;
-static ImVec4 custom_palette[4];
+static ImVec4 custom_palette[config_max_custom_palettes][4];
 static std::list<std::string> cheat_list;
 static bool shortcut_open_rom = false;
 static ImFont* default_font[4];
@@ -168,7 +168,7 @@ void gui_shortcut(gui_ShortCutEvent event)
 void gui_load_rom(const char* path)
 {
     emu_resume();
-    emu_load_rom(path, config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
+    emu_load_rom(path, config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc), config_emulator.force_gba);
     cheat_list.clear();
     emu_clear_cheats();
 
@@ -202,8 +202,9 @@ static void main_menu(void)
     bool open_about = false;
     bool open_symbols = false;
 
-    for (int i = 0; i < 4; i++)
-        custom_palette[i] = color_int_to_float(config_video.color[i]);
+    for (int i = 0; i < config_max_custom_palettes; i++)
+        for (int c = 0; c < 4; c++)
+            custom_palette[i][c] = color_int_to_float(config_video.color[i][c]);
     
     if (ImGui::BeginMainMenuBar())
     {
@@ -285,7 +286,7 @@ static void main_menu(void)
 
             ImGui::Separator();
            
-            if (ImGui::BeginMenu("Select State Slot"))
+            if (ImGui::BeginMenu("Save State Slot"))
             {
                 ImGui::PushItemWidth(100.0f);
                 ImGui::Combo("##slot", &config_emulator.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
@@ -317,7 +318,17 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            ImGui::MenuItem("Force Game Boy (DMG)", "", &config_emulator.force_dmg);
+            if (ImGui::MenuItem("Force Game Boy (DMG)", "", &config_emulator.force_dmg))
+            {
+                if (config_emulator.force_dmg)
+                    config_emulator.force_gba = false;
+            }
+
+            if (ImGui::MenuItem("Force Game Boy Advance", "", &config_emulator.force_gba))
+            {
+                if (config_emulator.force_gba)
+                    config_emulator.force_dmg = false;
+            }
 
             if (ImGui::BeginMenu("Memory Bank Controller"))
             {
@@ -460,7 +471,7 @@ static void main_menu(void)
             if (ImGui::BeginMenu("Palette"))
             {
                 ImGui::PushItemWidth(130.0f);
-                if (ImGui::Combo("##palette", &config_video.palette, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0"))
+                if (ImGui::Combo("##palette", &config_video.palette, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom 1\0Custom 2\0Custom 3\0Custom 4\0Custom 5\0\0", 11))
                 {
                     update_palette();
                 }
@@ -468,25 +479,39 @@ static void main_menu(void)
                 ImGui::EndMenu();
             }
 
-            ImGui::Text("Custom Palette:");
+            if (ImGui::BeginMenu("Custom Palettes"))
+            {
 
-            if (ImGui::ColorEdit3("Color #1", (float*)&custom_palette[0], ImGuiColorEditFlags_NoInputs))
+            for (int i = 0; i < config_max_custom_palettes; i++)
             {
-                update_palette();
+                char menu_label[256];
+                sprintf(menu_label, "Palette %i", i + 1);
+
+                if (ImGui::BeginMenu(menu_label))
+                {
+                    if (ImGui::ColorEdit3("Color #1", (float*)&custom_palette[i][0], ImGuiColorEditFlags_NoInputs))
+                    {
+                        update_palette();
+                    }
+                    if (ImGui::ColorEdit3("Color #2", (float*)&custom_palette[i][1], ImGuiColorEditFlags_NoInputs))
+                    {
+                        update_palette();
+                    }
+                    if (ImGui::ColorEdit3("Color #3", (float*)&custom_palette[i][2], ImGuiColorEditFlags_NoInputs))
+                    {
+                        update_palette();
+                    }
+                    if (ImGui::ColorEdit3("Color #4", (float*)&custom_palette[i][3], ImGuiColorEditFlags_NoInputs))
+                    {
+                        update_palette();
+                    }
+                    ImGui::EndMenu();
+                }
             }
-            if (ImGui::ColorEdit3("Color #2", (float*)&custom_palette[1], ImGuiColorEditFlags_NoInputs))
-            {
-                update_palette();
+
+            ImGui::EndMenu();
             }
-            if (ImGui::ColorEdit3("Color #3", (float*)&custom_palette[2], ImGuiColorEditFlags_NoInputs))
-            {
-                update_palette();
-            }
-            if (ImGui::ColorEdit3("Color #4", (float*)&custom_palette[3], ImGuiColorEditFlags_NoInputs))
-            {
-                update_palette();
-            }
-            
+
             ImGui::EndMenu();
         }
 
@@ -707,8 +732,9 @@ static void main_menu(void)
     file_dialog_save_state();
     file_dialog_load_symbols();
 
-    for (int i = 0; i < 4; i++)
-        config_video.color[i] = color_float_to_int(custom_palette[i]);
+    for (int i = 0; i < config_max_custom_palettes; i++)
+        for (int c = 0; c < 4; c++)
+            config_video.color[i][c] = color_float_to_int(custom_palette[i][c]);
 }
 
 static void main_window(void)
@@ -820,7 +846,7 @@ static void file_dialog_load_ram(void)
 {
     if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*", &dialog_in_use))
     {
-        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
+        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc), config_emulator.force_gba);
     }
 }
 
@@ -1094,8 +1120,11 @@ static ImVec4 color_int_to_float(GB_Color color)
 
 static void update_palette(void)
 {
-    if (config_video.palette == 6)
-        emu_dmg_palette(config_video.color[0], config_video.color[1], config_video.color[2], config_video.color[3]);
+    if (config_video.palette > 5)
+    {
+        int palette = config_video.palette - 6;
+        emu_dmg_palette(config_video.color[palette][0], config_video.color[palette][1], config_video.color[palette][2], config_video.color[palette][3]);
+    }
     else
         emu_dmg_predefined_palette(config_video.palette);
 }
@@ -1113,7 +1142,7 @@ static void push_recent_rom(std::string path)
 static void menu_reset(void)
 {
     emu_resume();
-    emu_reset(config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc));
+    emu_reset(config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc), config_emulator.force_gba);
 
     if (config_emulator.start_paused)
     {
