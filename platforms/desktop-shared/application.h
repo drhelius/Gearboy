@@ -38,6 +38,7 @@ EXTERN int application_init(const char* arg);
 EXTERN void application_destroy(void);
 EXTERN void application_mainloop(void);
 EXTERN void application_trigger_quit(void);
+EXTERN void application_trigger_fullscreen(void);
 
 #undef APPLICATION_IMPORT
 #undef EXTERN

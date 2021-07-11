@@ -42,6 +42,7 @@ static ImVec4 custom_palette[config_max_custom_palettes][4];
 static std::list<std::string> cheat_list;
 static bool shortcut_open_rom = false;
 static ImFont* default_font[4];
+static bool show_main_menu = true;
 
 static void main_menu(void);
 static void main_window(void);
@@ -160,6 +161,9 @@ void gui_shortcut(gui_ShortCutEvent event)
         if (config_debug.debug)
             gui_debug_runtocursor();
         break;
+    case gui_ShortcutShowMainMenu:
+        show_main_menu = !show_main_menu;
+        break;
     default:
         break;
     }
@@ -206,7 +210,7 @@ static void main_menu(void)
         for (int c = 0; c < 4; c++)
             custom_palette[i][c] = color_int_to_float(config_video.color[i][c]);
     
-    if (ImGui::BeginMainMenuBar())
+    if (show_main_menu && ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu(GEARBOY_TITLE))
         {
@@ -411,6 +415,15 @@ static void main_menu(void)
         if (ImGui::BeginMenu("Video"))
         {
             gui_in_use = true;
+
+            if (ImGui::MenuItem("Full Screen", "F11"))
+            {
+                application_trigger_fullscreen();
+            }
+
+            ImGui::MenuItem("Show Menu", "CTRL+M", &show_main_menu);
+
+            ImGui::Separator();
 
             if (ImGui::BeginMenu("Scale"))
             {
@@ -740,7 +753,7 @@ static void main_menu(void)
 static void main_window(void)
 {
     int w = ImGui::GetIO().DisplaySize.x;
-    int h = ImGui::GetIO().DisplaySize.y - main_menu_height;
+    int h = ImGui::GetIO().DisplaySize.y - (show_main_menu ? main_menu_height : 0);
 
     int selected_ratio = config_debug.debug ? 0 : config_video.ratio;
     float ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
@@ -787,7 +800,7 @@ static void main_window(void)
     int main_window_height = h_corrected * factor;
 
     int window_x = (w - (w_corrected * factor)) / 2;
-    int window_y = ((h - (h_corrected * factor)) / 2) + main_menu_height;
+    int window_y = ((h - (h_corrected * factor)) / 2) + (show_main_menu ? main_menu_height : 0);
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
