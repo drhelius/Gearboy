@@ -23,7 +23,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-//  /mINI/ v0.9.7
+//  /mINI/ v0.9.10
 //  An INI file reader and writer for the modern age.
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -92,12 +92,13 @@
 #include <memory>
 #include <fstream>
 #include <sys/stat.h>
+#include <cctype>
 
 namespace mINI
 {
 	namespace INIStringUtil
 	{
-		const std::string whitespaceDelimiters = " \t\n\r\f\v";
+		const char* const whitespaceDelimiters = " \t\n\r\f\v";
 		inline void trim(std::string& str)
 		{
 			str.erase(str.find_last_not_of(whitespaceDelimiters) + 1);
@@ -106,7 +107,9 @@ namespace mINI
 #ifndef MINI_CASE_SENSITIVE
 		inline void toLower(std::string& str)
 		{
-			std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+			std::transform(str.begin(), str.end(), str.begin(), [](const char c) {
+				return static_cast<const char>(std::tolower(c));
+			});
 		}
 #endif
 		inline void replace(std::string& str, std::string const& a, std::string const& b)
@@ -122,9 +125,9 @@ namespace mINI
 			}
 		}
 #ifdef _WIN32
-		const std::string endl = "\r\n";
+		const char* const endl = "\r\n";
 #else
-		const std::string endl = "\n";
+		const char* const endl = "\n";
 #endif
 	};
 
