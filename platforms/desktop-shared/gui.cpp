@@ -102,6 +102,14 @@ void gui_init(void)
 
     strcpy(dmg_bootrom_path, config_emulator.dmg_bootrom_path.c_str());
     strcpy(gbc_bootrom_path, config_emulator.gbc_bootrom_path.c_str());
+
+    if (strlen(dmg_bootrom_path) > 0)
+        emu_load_bootrom_dmg(dmg_bootrom_path);
+    if (strlen(dmg_bootrom_path) > 0)
+        emu_load_bootrom_gbc(gbc_bootrom_path);
+
+    emu_enable_bootrom_dmg(config_emulator.dmg_bootrom);
+    emu_enable_bootrom_gbc(config_emulator.gbc_bootrom);
 }
 
 void gui_destroy(void)
@@ -355,7 +363,10 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("DMG Bootrom"))
             {
-                ImGui::MenuItem("Enable", "", &config_emulator.dmg_bootrom);
+                if (ImGui::MenuItem("Enable", "", &config_emulator.dmg_bootrom))
+                {
+                    emu_enable_bootrom_dmg(config_emulator.dmg_bootrom);
+                }
                 if (ImGui::MenuItem("Load Bootrom...")) 
                 {
                     open_dmg_bootrom = true;
@@ -371,7 +382,10 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("GBC Bootrom"))
             {
-                ImGui::MenuItem("Enable", "", &config_emulator.gbc_bootrom);
+                if (ImGui::MenuItem("Enable", "", &config_emulator.gbc_bootrom))
+                {
+                    emu_enable_bootrom_gbc(config_emulator.gbc_bootrom);
+                }
                 if (ImGui::MenuItem("Load Bootrom...")) 
                 {
                     open_gbc_bootrom = true;
@@ -958,6 +972,8 @@ static void file_dialog_load_dmg_bootrom(void)
     {
         strcpy(dmg_bootrom_path, file_dialog.selected_path.c_str());
         config_emulator.dmg_bootrom_path.assign(file_dialog.selected_path);
+
+        emu_load_bootrom_dmg(dmg_bootrom_path);
     }
 }
 
@@ -967,6 +983,8 @@ static void file_dialog_load_gbc_bootrom(void)
     {
         strcpy(gbc_bootrom_path, file_dialog.selected_path.c_str());
         config_emulator.gbc_bootrom_path.assign(file_dialog.selected_path);
+
+        emu_load_bootrom_gbc(gbc_bootrom_path);
     }
 }
 

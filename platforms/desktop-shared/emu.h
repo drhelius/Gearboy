@@ -73,6 +73,10 @@ EXTERN void emu_color_correction(bool correction);
 EXTERN void emu_debug_step(void);
 EXTERN void emu_debug_continue(void);
 EXTERN void emu_debug_next_frame(void);
+EXTERN void emu_load_bootrom_dmg(const char* file_path);
+EXTERN void emu_load_bootrom_gbc(const char* file_path);
+EXTERN void emu_enable_bootrom_dmg(bool enable);
+EXTERN void emu_enable_bootrom_gbc(bool enable);
 
 #undef EMU_IMPORT
 #undef EXTERN

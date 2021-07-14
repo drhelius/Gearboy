@@ -364,6 +364,27 @@ void emu_debug_next_frame(void)
     gearboy->Pause(false);
 }
 
+void emu_load_bootrom_dmg(const char* file_path)
+{
+    gearboy->GetMemory()->LoadBootromDMG(file_path);
+}
+
+void emu_load_bootrom_gbc(const char* file_path)
+{
+    gearboy->GetMemory()->LoadBootromGBC(file_path);
+}
+
+void emu_enable_bootrom_dmg(bool enable)
+{
+    gearboy->GetMemory()->EnableBootromDMG(enable);
+}
+
+void emu_enable_bootrom_gbc(bool enable)
+{
+    gearboy->GetMemory()->EnableBootromGBC(enable);
+}
+
+
 static void save_ram(void)
 {
 #ifdef DEBUG_GEARBOY
