@@ -450,25 +450,36 @@ bool Processor::Disassemble(u16 address)
         map[offset]->name[0] = 0;
         map[offset]->bytes[0] = 0;
         map[offset]->size = 0;
+        for (int i = 0; i < 4; i++)
+            map[offset]->opcodes[i] = 0;
     }
 
-    if (map[offset]->size == 0)
+    u8 opcodes[4];
+    bool changed = false;
+
+    for (int i = 0; i < map[offset]->size; i++)
+    {
+        opcodes[i] = m_pMemory->Read(address + i);
+
+        if (opcodes[i] != map[offset]->opcodes[i])
+            changed = true;
+    }
+
+    if ((map[offset]->size == 0) || changed)
     {
         map[offset]->bank = bank;
         map[offset]->address = address;
 
-        u8 bytes[4];
-
         for (int i = 0; i < 4; i++)
-            bytes[i] = m_pMemory->Read(address + i);
+            map[offset]->opcodes[i] = m_pMemory->Read(address + i);
 
-        u8 opcode = bytes[0];
+        u8 opcode = map[offset]->opcodes[0];
         bool cb = false;
 
         if (opcode == 0xCB)
         {
             cb = true;
-            opcode = bytes[1];
+            opcode = map[offset]->opcodes[1];
         }
 
         stOPCodeInfo info = cb ? kOPCodeCBNames[opcode] : kOPCodeNames[opcode];
@@ -482,7 +493,7 @@ bool Processor::Disassemble(u16 address)
             if (i < info.size)
             {
                 char value[8];
-                sprintf(value, "%02X", bytes[i]);
+                sprintf(value, "%02X", map[offset]->opcodes[i]);
                 strcat(map[offset]->bytes, value);
             }
             else
@@ -500,19 +511,19 @@ bool Processor::Disassemble(u16 address)
                 strcpy(map[offset]->name, info.name);
                 break;
             case 1:
-                sprintf(map[offset]->name, info.name, bytes[1]);
+                sprintf(map[offset]->name, info.name, map[offset]->opcodes[1]);
                 break;
             case 2:
-                sprintf(map[offset]->name, info.name, (bytes[2] << 8) | bytes[1]);
+                sprintf(map[offset]->name, info.name, (map[offset]->opcodes[2] << 8) | map[offset]->opcodes[1]);
                 break;
             case 3:
-                sprintf(map[offset]->name, info.name, (s8)bytes[1]);
+                sprintf(map[offset]->name, info.name, (s8)map[offset]->opcodes[1]);
                 break;
             case 4:
-                sprintf(map[offset]->name, info.name, address + info.size + (s8)bytes[1], (s8)bytes[1]);
+                sprintf(map[offset]->name, info.name, address + info.size + (s8)map[offset]->opcodes[1], (s8)map[offset]->opcodes[1]);
                 break;
             case 5:
-                sprintf(map[offset]->name, info.name, bytes[1], kRegisterNames[bytes[1]]);
+                sprintf(map[offset]->name, info.name, map[offset]->opcodes[1], kRegisterNames[map[offset]->opcodes[1]]);
                 break;
             default:
                 strcpy(map[offset]->name, "PARSE ERROR");

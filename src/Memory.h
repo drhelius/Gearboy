@@ -39,6 +39,7 @@ public:
         char bytes[16];
         int size;
         int bank;
+        u8 opcodes[4];
     };
 
 public:
