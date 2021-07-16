@@ -57,6 +57,7 @@ static ImVec4 dark_gray = ImVec4(0.1f,0.1f,0.1f,1.0f);
 static std::vector<DebugSymbol> symbols;
 static Memory::stDisassembleRecord* selected_record = NULL;
 static char brk_address[8] = "";
+static char goto_address[5] = "";
 
 static void debug_window_processor(void);
 static void debug_window_io(void);
@@ -301,13 +302,8 @@ static void debug_window_disassembler(void)
 
     int pc = proc_state->PC->GetValue();
 
-    static bool follow_pc = true;
-    static bool show_mem = true;
-    static bool show_symbols = true;
-
-    ImGui::Checkbox("Follow PC", &follow_pc); ImGui::SameLine();
-    ImGui::Checkbox("Show Memory", &show_mem);  ImGui::SameLine();
-    ImGui::Checkbox("Show Symbols", &show_symbols);
+    bool goto_address_requested = false;
+    u16 goto_address_target = 0;
 
     if (ImGui::Button("Step Over"))
         emu_debug_step();
@@ -320,6 +316,38 @@ static void debug_window_disassembler(void)
     ImGui::SameLine();
     if (ImGui::Button("Run To Cursor"))
         gui_debug_runtocursor();
+
+    static bool follow_pc = true;
+    static bool show_mem = true;
+    static bool show_symbols = true;
+
+    ImGui::Checkbox("Follow PC", &follow_pc); ImGui::SameLine();
+    ImGui::Checkbox("Show Memory", &show_mem);  ImGui::SameLine();
+    ImGui::Checkbox("Show Symbols", &show_symbols);
+
+    ImGui::Separator();
+
+    ImGui::Text("Go To Address: ");
+    ImGui::SameLine();
+    ImGui::PushItemWidth(45);
+    if (ImGui::InputTextWithHint("##goto_address", "XXXX", goto_address, IM_ARRAYSIZE(goto_address), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue))
+    {
+        goto_address_requested = true;
+        follow_pc = false;
+        goto_address_target = std::stoul(goto_address, 0, 16);
+        goto_address[0] = 0;
+    }
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    if (ImGui::Button("Go", ImVec2(30, 0)))
+    {
+        goto_address_requested = true;
+        follow_pc = false;
+        goto_address_target = std::stoul(goto_address, 0, 16);
+        goto_address[0] = 0;
+    }
+
+    ImGui::Separator();
 
     if (ImGui::CollapsingHeader("Breakpoints"))
     {
@@ -390,6 +418,7 @@ static void debug_window_disassembler(void)
     {
         int dis_size = 0;
         int pc_pos = 0;
+        int goto_address_pos = 0;
         
         std::vector<DisassmeblerLine> vec(0x10000);
         
@@ -432,6 +461,9 @@ static void debug_window_disassembler(void)
 
                 if (vec[dis_size].record->address == pc)
                     pc_pos = dis_size;
+                
+                if (goto_address_requested && (vec[dis_size].record->address <= goto_address_target))
+                    goto_address_pos = dis_size;
 
                 vec[dis_size].is_breakpoint = false;
 
@@ -453,6 +485,11 @@ static void debug_window_disassembler(void)
             float window_offset = ImGui::GetWindowHeight() / 2.0f;
             float offset = window_offset - (ImGui::GetTextLineHeightWithSpacing() - 2.0f);
             ImGui::SetScrollY((pc_pos * ImGui::GetTextLineHeightWithSpacing()) - offset);
+        }
+
+        if (goto_address_requested)
+        {
+            ImGui::SetScrollY((goto_address_pos * ImGui::GetTextLineHeightWithSpacing()) + 2);
         }
 
         ImGuiListClipper clipper(dis_size, ImGui::GetTextLineHeightWithSpacing());
