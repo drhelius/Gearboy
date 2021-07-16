@@ -58,6 +58,8 @@ static std::vector<DebugSymbol> symbols;
 static Memory::stDisassembleRecord* selected_record = NULL;
 static char brk_address[8] = "";
 static char goto_address[5] = "";
+static bool goto_address_requested = false;
+static u16 goto_address_target = 0;
 
 static void debug_window_processor(void);
 static void debug_window_io(void);
@@ -71,6 +73,7 @@ static void debug_window_vram_oam(void);
 static void debug_window_vram_palettes(void);
 static void add_symbol(const char* line);
 static void add_breakpoint(void);
+static void request_goto_address(u16 addr);
 static ImVec4 color_565_to_float(u16 color);
 
 void gui_debug_windows(void)
@@ -302,9 +305,6 @@ static void debug_window_disassembler(void)
 
     int pc = proc_state->PC->GetValue();
 
-    bool goto_address_requested = false;
-    u16 goto_address_target = 0;
-
     if (ImGui::Button("Step Over"))
         emu_debug_step();
     ImGui::SameLine();
@@ -332,19 +332,17 @@ static void debug_window_disassembler(void)
     ImGui::PushItemWidth(45);
     if (ImGui::InputTextWithHint("##goto_address", "XXXX", goto_address, IM_ARRAYSIZE(goto_address), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue))
     {
-        goto_address_requested = true;
-        follow_pc = false;
-        goto_address_target = std::stoul(goto_address, 0, 16);
+        request_goto_address(std::stoul(goto_address, 0, 16));
         goto_address[0] = 0;
+        follow_pc = false;
     }
     ImGui::PopItemWidth();
     ImGui::SameLine();
     if (ImGui::Button("Go", ImVec2(30, 0)))
     {
-        goto_address_requested = true;
-        follow_pc = false;
-        goto_address_target = std::stoul(goto_address, 0, 16);
+        request_goto_address(std::stoul(goto_address, 0, 16));
         goto_address[0] = 0;
+        follow_pc = false;
     }
 
     ImGui::Separator();
@@ -489,6 +487,7 @@ static void debug_window_disassembler(void)
 
         if (goto_address_requested)
         {
+            goto_address_requested = false;
             ImGui::SetScrollY((goto_address_pos * ImGui::GetTextLineHeightWithSpacing()) + 2);
         }
 
@@ -508,9 +507,14 @@ static void debug_window_disassembler(void)
 
                 bool is_selected = (selected_record == vec[item].record);
 
-                if (ImGui::Selectable("", is_selected))
+                if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_AllowDoubleClick))
                 {
-                    if (is_selected)
+                    if (ImGui::IsMouseDoubleClicked(0) && vec[item].record->jump)
+                    {
+                        follow_pc = false;
+                        request_goto_address(vec[item].record->jump_address);
+                    }
+                    else if (is_selected)
                     {
                         InitPointer(selected_record);
                         brk_address[0] = 0;
@@ -1790,6 +1794,12 @@ static void add_breakpoint(void)
     {
         breakpoints->push_back(map[target_offset]);
     }
+}
+
+static void request_goto_address(u16 address)
+{
+    goto_address_requested = true;
+    goto_address_target = address;
 }
 
 static ImVec4 color_565_to_float(u16 color)

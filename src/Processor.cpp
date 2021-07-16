@@ -450,6 +450,8 @@ bool Processor::Disassemble(u16 address)
         map[offset]->name[0] = 0;
         map[offset]->bytes[0] = 0;
         map[offset]->size = 0;
+        map[offset]->jump = false;
+        map[offset]->jump_address = 0;
         for (int i = 0; i < 4; i++)
             map[offset]->opcodes[i] = 0;
     }
@@ -514,13 +516,17 @@ bool Processor::Disassemble(u16 address)
                 sprintf(map[offset]->name, info.name, map[offset]->opcodes[1]);
                 break;
             case 2:
-                sprintf(map[offset]->name, info.name, (map[offset]->opcodes[2] << 8) | map[offset]->opcodes[1]);
+                map[offset]->jump = true;
+                map[offset]->jump_address = (map[offset]->opcodes[2] << 8) | map[offset]->opcodes[1];
+                sprintf(map[offset]->name, info.name, map[offset]->jump_address);
                 break;
             case 3:
                 sprintf(map[offset]->name, info.name, (s8)map[offset]->opcodes[1]);
                 break;
             case 4:
-                sprintf(map[offset]->name, info.name, address + info.size + (s8)map[offset]->opcodes[1], (s8)map[offset]->opcodes[1]);
+                map[offset]->jump = true;
+                map[offset]->jump_address = address + info.size + (s8)map[offset]->opcodes[1];
+                sprintf(map[offset]->name, info.name, map[offset]->jump_address, (s8)map[offset]->opcodes[1]);
                 break;
             case 5:
                 sprintf(map[offset]->name, info.name, map[offset]->opcodes[1], kRegisterNames[map[offset]->opcodes[1]]);

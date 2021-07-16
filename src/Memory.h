@@ -40,6 +40,8 @@ public:
         int size;
         int bank;
         u8 opcodes[4];
+        bool jump;
+        u16 jump_address;
     };
 
 public:
