@@ -104,7 +104,7 @@ u8* MemoryRule::GetCurrentRomBank1()
 int MemoryRule::GetCurrentRomBank1Index()
 {
     Log("MemoryRule::GetCurrentRomBank1Index not implemented");
-    return 0;
+    return 1;
 }
 
 u8* MemoryRule::GetRTCMemory()

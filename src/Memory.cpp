@@ -101,7 +101,7 @@ void Memory::Init()
     m_pBootromGBC = new u8[0x900];
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
     m_pDisassembledMap = new stDisassembleRecord*[65536];
-    for (int i = 0; i < 0x10000; i++)
+    for (int i = 0; i < 65536; i++)
     {
         InitPointer(m_pDisassembledMap[i]);
     }

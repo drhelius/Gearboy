@@ -141,7 +141,7 @@ u8* RomOnlyMemoryRule::GetCurrentRomBank1()
 
 int RomOnlyMemoryRule::GetCurrentRomBank1Index()
 {
-    return 0;
+    return 1;
 }
 
 u8* RomOnlyMemoryRule::GetRomBank0()
