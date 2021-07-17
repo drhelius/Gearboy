@@ -176,6 +176,10 @@ void gui_shortcut(gui_ShortCutEvent event)
         if (config_debug.debug)
             gui_debug_runtocursor();
         break;
+    case gui_ShortcutDebugGoBack:
+        if (config_debug.debug)
+            gui_debug_go_back();
+        break;
     case gui_ShortcutShowMainMenu:
         show_main_menu = !show_main_menu;
         break;
@@ -691,6 +695,13 @@ static void main_menu(void)
             if (ImGui::MenuItem("Run To Cursor", "CTRL + F8", (void*)0, config_debug.debug))
             {
                 gui_debug_runtocursor();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Go Back", "CTRL + BACKSPACE", (void*)0, config_debug.debug))
+            {
+                gui_debug_go_back();
             }
 
             ImGui::Separator();

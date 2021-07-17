@@ -173,6 +173,11 @@ void gui_debug_reset_breakpoints(void)
     brk_address[0] = 0;
 }
 
+void gui_debug_go_back(void)
+{
+    goto_back_requested = true;
+}
+
 static void debug_window_memory(void)
 {
     ImGui::SetNextWindowPos(ImVec2(180, 382), ImGuiCond_FirstUseEver);

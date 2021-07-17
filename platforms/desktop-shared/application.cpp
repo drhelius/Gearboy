@@ -440,6 +440,9 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
             case SDL_SCANCODE_F10:
                 gui_shortcut(gui_ShortcutDebugStep);
                 break;
+            case SDL_SCANCODE_BACKSPACE:
+                gui_shortcut(gui_ShortcutDebugGoBack);
+                break;
         }
     }
 }

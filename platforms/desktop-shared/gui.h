@@ -53,6 +53,7 @@ enum gui_ShortCutEvent
     gui_ShortcutDebugNextFrame,
     gui_ShortcutDebugBreakpoint,
     gui_ShortcutDebugRuntocursor,
+    gui_ShortcutDebugGoBack,
     gui_ShortcutShowMainMenu
 };
 
