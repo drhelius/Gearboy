@@ -112,7 +112,8 @@ void Memory::Init()
         InitPointer(m_pDisassembledROMMap[i]);
     }
 #endif
-    m_Breakpoints.clear();
+    m_BreakpointsCPU.clear();
+    m_BreakpointsMem.clear();
     InitPointer(m_pRunToBreakpoint);
     Reset(false);
 }
@@ -552,9 +553,14 @@ u8* Memory::GetWRAM1()
     return m_bCGB ? m_pWRAMBanks + (0x1000 * m_iCurrentWRAMBank) : m_pMap + 0xD000;
 }
 
-std::vector<Memory::stDisassembleRecord*>* Memory::GetBreakpoints()
+std::vector<Memory::stDisassembleRecord*>* Memory::GetBreakpointsCPU()
 {
-    return &m_Breakpoints;
+    return &m_BreakpointsCPU;
+}
+
+std::vector<Memory::stMemoryBreakpoint>* Memory::GetBreakpointsMem()
+{
+    return &m_BreakpointsMem;
 }
 
 Memory::stDisassembleRecord* Memory::GetRunToBreakpoint()

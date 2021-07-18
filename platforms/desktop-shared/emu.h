@@ -34,7 +34,8 @@ EXTERN GB_Color* emu_debug_tile_buffers[2];
 EXTERN GB_Color* emu_debug_oam_buffers[40];
 
 EXTERN bool emu_audio_sync;
-EXTERN bool emu_debug_disable_breakpoints;
+EXTERN bool emu_debug_disable_breakpoints_cpu;
+EXTERN bool emu_debug_disable_breakpoints_mem;
 EXTERN int emu_debug_background_tile_address;
 EXTERN int emu_debug_background_map_address;
 EXTERN int emu_debug_tile_dmg_palette;

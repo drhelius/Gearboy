@@ -44,6 +44,13 @@ public:
         u16 jump_address;
     };
 
+    struct stMemoryBreakpoint
+    {
+        u16 address;
+        bool read;
+        bool write;
+    };
+
 public:
     Memory();
     ~Memory();
@@ -88,7 +95,8 @@ public:
     u8* GetRAM();
     u8* GetWRAM0();
     u8* GetWRAM1();
-    std::vector<stDisassembleRecord*>* GetBreakpoints();
+    std::vector<stDisassembleRecord*>* GetBreakpointsCPU();
+    std::vector<stMemoryBreakpoint>* GetBreakpointsMem();
     stDisassembleRecord* GetRunToBreakpoint();
     void SetRunToBreakpoint(stDisassembleRecord* pBreakpoint);
     void EnableBootromDMG(bool enable);
@@ -108,7 +116,8 @@ private:
     u8* m_pMap;
     stDisassembleRecord** m_pDisassembledMap;
     stDisassembleRecord** m_pDisassembledROMMap;
-    std::vector<stDisassembleRecord*> m_Breakpoints;
+    std::vector<stDisassembleRecord*> m_BreakpointsCPU;
+    std::vector<stMemoryBreakpoint> m_BreakpointsMem;
     stDisassembleRecord* m_pRunToBreakpoint;
     bool m_bCGB;
     int m_iCurrentWRAMBank;

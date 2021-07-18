@@ -711,12 +711,19 @@ static void main_menu(void)
                 gui_debug_toggle_breakpoint();
             }
 
-            if (ImGui::MenuItem("Clear All Breakpoints", 0, (void*)0, config_debug.debug))
+            if (ImGui::MenuItem("Clear All Processor Breakpoints", 0, (void*)0, config_debug.debug))
             {
-                gui_debug_reset_breakpoints();
+                gui_debug_reset_breakpoints_cpu();
             }
 
-            ImGui::MenuItem("Disable All Breakpoints", 0, &emu_debug_disable_breakpoints, config_debug.debug);
+            if (ImGui::MenuItem("Clear All Memory Breakpoints", 0, (void*)0, config_debug.debug))
+            {
+                gui_debug_reset_breakpoints_mem();
+            }
+
+            ImGui::MenuItem("Disable All Processor Breakpoints", 0, &emu_debug_disable_breakpoints_cpu, config_debug.debug);
+
+            ImGui::MenuItem("Disable All Memory Breakpoints", 0, &emu_debug_disable_breakpoints_mem, config_debug.debug);
 
             ImGui::Separator();
 

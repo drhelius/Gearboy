@@ -537,7 +537,7 @@ bool Processor::Disassemble(u16 address)
     }
 
     Memory::stDisassembleRecord* runtobreakpoint = m_pMemory->GetRunToBreakpoint();
-    std::vector<Memory::stDisassembleRecord*>* breakpoints = m_pMemory->GetBreakpoints();
+    std::vector<Memory::stDisassembleRecord*>* breakpoints = m_pMemory->GetBreakpointsCPU();
 
     if (IsValidPointer(runtobreakpoint))
     {
