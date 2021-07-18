@@ -6,6 +6,10 @@
 
 inline u8 Memory::Read(u16 address)
 {
+    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+    CheckBreakpoints(address, false);
+    #endif
+
     switch (address & 0xE000)
     {
         case 0x0000:
@@ -40,6 +44,10 @@ inline u8 Memory::Read(u16 address)
 
 inline void Memory::Write(u16 address, u8 value)
 {
+    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+    CheckBreakpoints(address, true);
+    #endif
+
     switch (address & 0xE000)
     {
         case 0x0000:
@@ -140,6 +148,43 @@ inline Memory::stDisassembleRecord** Memory::GetDisassembledMemoryMap()
 inline Memory::stDisassembleRecord** Memory::GetDisassembledROMMemoryMap()
 {
     return m_pDisassembledROMMap;
+}
+
+inline void Memory::CheckBreakpoints(u16 address, bool write)
+{
+    long unsigned int size = m_BreakpointsMem.size();
+
+    for (long unsigned int b = 0; b < size; b++)
+    {
+        if (write && !m_BreakpointsMem[b].write)
+            continue;
+
+        if (!write && !m_BreakpointsMem[b].read)
+            continue;
+
+        bool proceed = false;
+
+        if (m_BreakpointsMem[b].range)
+        {
+            if ((address >= m_BreakpointsMem[b].address1) && (address <= m_BreakpointsMem[b].address2))
+            {
+                proceed = true;
+            }
+        }
+        else
+        {
+            if (m_BreakpointsMem[b].address1 == address)
+            {
+                proceed = true;
+            }
+        }
+
+        if (proceed)
+        {
+            m_pProcessor->RequestMemoryBreakpoint();
+            break;
+        }
+    }
 }
 
 #endif	/* MEMORY_INLINE_H */

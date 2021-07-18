@@ -46,6 +46,7 @@ Processor::Processor(Memory* pMemory)
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
     m_bBreakpointHit = false;
+    m_bRequestMemBreakpoint = false;
 
     m_ProcessorState.AF = &AF;
     m_ProcessorState.BC = &BC;
@@ -99,6 +100,7 @@ void Processor::Reset(bool bCGB, bool bGBA)
     m_iReadCache = 0;
     m_GameSharkList.clear();
     m_bBreakpointHit = false;
+    m_bRequestMemBreakpoint = false;
 }
 
 u8 Processor::RunFor(u8 ticks)
@@ -109,6 +111,7 @@ u8 Processor::RunFor(u8 ticks)
     {
         m_iCurrentClockCycles = 0;
         m_bBreakpointHit = false;
+        m_bRequestMemBreakpoint = false;
 
         if (m_iAccurateOPCodeState == 0 && m_bHalt)
         {
@@ -230,7 +233,8 @@ u8 Processor::RunFor(u8 ticks)
             }
 
             #ifndef GEARBOY_DISABLE_DISASSEMBLER
-            m_bBreakpointHit = Disassemble(PC.GetValue());
+            if (Disassemble(PC.GetValue()) || m_bRequestMemBreakpoint)
+                m_bBreakpointHit = true;
             #endif
         }
 
@@ -551,7 +555,9 @@ bool Processor::Disassemble(u16 address)
     }
     else
     {
-        for (long unsigned int b = 0; b < breakpoints->size(); b++)
+        long unsigned int size = breakpoints->size();
+
+        for (long unsigned int b = 0; b < size; b++)
         {
             if ((*breakpoints)[b] == map[offset])
             {
@@ -566,6 +572,11 @@ bool Processor::Disassemble(u16 address)
 bool Processor::BreakpointHit()
 {
     return m_bBreakpointHit;
+}
+
+void Processor::RequestMemoryBreakpoint()
+{
+    m_bRequestMemBreakpoint = true;
 }
 
 void Processor::SaveState(std::ostream& stream)

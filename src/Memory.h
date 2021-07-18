@@ -46,9 +46,11 @@ public:
 
     struct stMemoryBreakpoint
     {
-        u16 address;
+        u16 address1;
+        u16 address2;
         bool read;
         bool write;
+        bool range;
     };
 
 public:
@@ -106,6 +108,7 @@ public:
 
 private:
     void LoadBootroom(const char* szFilePath, bool gbc);
+    void CheckBreakpoints(u16 address, bool write);
 
 private:
     Processor* m_pProcessor;

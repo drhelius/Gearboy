@@ -458,11 +458,7 @@ static void debug_window_disassembler(void)
 
     if (ImGui::CollapsingHeader("Memory Breakpoints"))
     {
-        ImGui::Columns(2, "breakpoints_mem_header");
         ImGui::Checkbox("Disable All##diable_all_mem", &emu_debug_disable_breakpoints_mem);
-        ImGui::NextColumn();
-        ImGui::TextColored(gray, "Single addresses or ranges");
-        ImGui::Columns(1);
 
         ImGui::Columns(2, "breakpoints_mem");
         ImGui::SetColumnOffset(1, 100);
@@ -512,7 +508,10 @@ static void debug_window_disassembler(void)
 
             ImGui::PushFont(gui_default_font);
             ImGui::SameLine();
-            ImGui::TextColored(red, "%04X", (*breakpoints_mem)[b].address);
+            if ((*breakpoints_mem)[b].range)
+                ImGui::TextColored(red, "%04X-%04X", (*breakpoints_mem)[b].address1, (*breakpoints_mem)[b].address2);
+            else
+                ImGui::TextColored(red, "%04X", (*breakpoints_mem)[b].address1);
             if ((*breakpoints_mem)[b].read)
             {
                 ImGui::SameLine(); ImGui::TextColored(gray, "R");
@@ -1943,11 +1942,33 @@ static void add_breakpoint_cpu(void)
 
 static void add_breakpoint_mem(void)
 {
-    u16 address = 0;
+    int input_len = strlen(brk_address_mem);
+    u16 address1 = 0;
+    u16 address2 = 0;
+    bool range = false;
 
     try
     {
-        address = std::stoul(brk_address_mem, 0, 16);
+        if ((input_len == 9) && (brk_address_mem[4] == '-'))
+        {
+            std::string str(brk_address_mem);
+            std::size_t separator = str.find("-");
+
+            if (separator != std::string::npos)
+            {
+                address1 = std::stoul(str.substr(0, separator), 0 , 16);
+                address2 = std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+                range = true;
+            }
+        }
+        else if (input_len == 4)
+        {
+            address1 = std::stoul(brk_address_mem, 0, 16);
+        }
+        else
+        {
+            return;
+        }
     }
     catch(const std::invalid_argument& ia)
     {
@@ -1959,7 +1980,8 @@ static void add_breakpoint_mem(void)
 
     for (long unsigned int b = 0; b < breakpoints->size(); b++)
     {
-        if ((*breakpoints)[b].address == address)
+        Memory::stMemoryBreakpoint temp = (*breakpoints)[b];
+        if ((temp.address1 == address1) && (temp.address2 == address2) && (temp.range == range))
         {
             found = true;
             break;
@@ -1969,7 +1991,9 @@ static void add_breakpoint_mem(void)
     if (!found)
     {
         Memory::stMemoryBreakpoint new_breakpoint;
-        new_breakpoint.address = address;
+        new_breakpoint.address1 = address1;
+        new_breakpoint.address2 = address2;
+        new_breakpoint.range = range;
         new_breakpoint.read = brk_new_mem_read;
         new_breakpoint.write = brk_new_mem_write;
 
