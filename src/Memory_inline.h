@@ -13,6 +13,23 @@ inline u8 Memory::Read(u16 address)
     switch (address & 0xE000)
     {
         case 0x0000:
+        {
+            if (!m_bBootromRegistryDisabled)
+            {
+                if (m_bCGB)
+                {
+                    if (m_bBootromGBCEnabled && m_bBootromGBCLoaded && ((address < 0x0100) || (address < 0x0900 && address > 0x01FF)))
+                        return m_pBootromGBC[address];
+                }
+                else
+                {
+                    if (m_bBootromDMGEnabled && m_bBootromDMGLoaded && (address < 0x0100))
+                        return m_pBootromDMG[address];
+                }
+            }
+
+            return m_pCurrentMemoryRule->PerformRead(address);
+        }
         case 0x2000:
         case 0x4000:
         case 0x6000:

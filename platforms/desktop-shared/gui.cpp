@@ -371,6 +371,8 @@ static void main_menu(void)
                 {
                     emu_enable_bootrom_dmg(config_emulator.dmg_bootrom);
                 }
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("When the bootrom is enabled it will execute as in original hardware,\ncausing invalid roms to lock or forcing hardware like GB Pocket or GBA.");
                 if (ImGui::MenuItem("Load Bootrom...")) 
                 {
                     open_dmg_bootrom = true;
@@ -390,6 +392,8 @@ static void main_menu(void)
                 {
                     emu_enable_bootrom_gbc(config_emulator.gbc_bootrom);
                 }
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("When the bootrom is enabled it will execute as in original hardware,\ncausing invalid roms to lock or forcing hardware like GB Pocket or GBA.");
                 if (ImGui::MenuItem("Load Bootrom...")) 
                 {
                     open_gbc_bootrom = true;

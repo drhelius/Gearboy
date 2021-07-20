@@ -83,18 +83,46 @@ void Processor::Reset(bool bCGB, bool bGBA)
     m_iSerialBit = 0;
     m_iSerialCycles = 0;
     m_iUnhaltCycles = 0;
-    PC.SetValue(0x100);
-    SP.SetValue(0xFFFE);
-    if (m_bCGB)
-        AF.SetValue(0x11B0);
+
+    if(m_pMemory->IsBootromEnabled())
+    {
+        PC.SetValue(0);
+        SP.SetValue(0);
+        AF.SetValue(0);
+        BC.SetValue(0);
+        DE.SetValue(0);
+        HL.SetValue(0);
+    }
     else
-        AF.SetValue(0x01B0);
-    if (m_bCGB && bGBA)
-        BC.SetValue(0x0113);
-    else
-        BC.SetValue(0x0013);
-    DE.SetValue(0x00D8);
-    HL.SetValue(0x014D);
+    {
+        m_pMemory->DisableBootromRegistry();
+        PC.SetValue(0x100);
+        SP.SetValue(0xFFFE);
+
+        if (m_bCGB)
+        {
+            if (bGBA)
+            {
+                AF.SetValue(0x1100);
+                BC.SetValue(0x0100);
+            }
+            else
+            {
+                AF.SetValue(0x1180);
+                BC.SetValue(0x0000);
+            }
+            DE.SetValue(0xFF56);
+            HL.SetValue(0x000D);
+        }
+        else
+        {
+            AF.SetValue(0x01B0);
+            BC.SetValue(0x0013);
+            DE.SetValue(0x00D8);
+            HL.SetValue(0x014D);
+        }
+    }
+
     m_iInterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;

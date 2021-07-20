@@ -725,6 +725,7 @@ static void debug_window_processor(void)
     GearboyCore* core = emu_get_core();
     Processor* processor = core->GetProcessor();
     Processor::ProcessorState* proc_state = processor->GetState();
+    Memory* memory = core->GetMemory();
 
     ImGui::Separator();
 
@@ -818,6 +819,11 @@ static void debug_window_processor(void)
 
     ImGui::TextColored(cyan, " DOUBLE SPEED "); ImGui::SameLine();
     processor->CGBSpeed() ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+
+    ImGui::Separator();
+
+    ImGui::TextColored(cyan, "   BOOTROM "); ImGui::SameLine();
+    memory->IsBootromRegistryEnabled() ? ImGui::TextColored(gray, "OFF") : ImGui::TextColored(green, "ON");
 
     ImGui::PopFont();
 

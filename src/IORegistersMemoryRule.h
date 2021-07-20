@@ -414,6 +414,15 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             m_pMemory->Load(address, value);
             break;
         }
+        case 0xFF50:
+        {
+            // BOOT
+            if ((value & 0x01) > 0)
+            {
+                m_pMemory->DisableBootromRegistry();
+            }
+            break;
+        }
         case 0xFF51:
         {
             // HDMA1

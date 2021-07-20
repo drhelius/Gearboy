@@ -36,12 +36,13 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Battery powered RAM save support.
 - Save states.
 - Compressed rom support (ZIP).
+- Bootrom (bios) support.
 - *Game Genie* and *GameShark* cheat support.
 - Supported platforms (standalone): Windows, Linux, BSD, macOS, Raspberry Pi and iOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...) and QNX.
-- Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
+- Full debugger with on-the-fly disassembler, cpu breakpoints, memory breakpoints, JP JR and CALL navigation (double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
 - Windows and Linux *Portable Mode* by creating a file named `portable.ini` in the same directory as the application binary.
-- Support for multiple game controllers through `gamecontrollerdb.txt` file located in the same directory as the application binary.
+- Support for modern game controllers through `gamecontrollerdb.txt` file located in the same directory as the application binary.
 
 <img src="http://www.geardome.com/files/gearboy/gearboy_debug_01.png" width="880" height="455">
 

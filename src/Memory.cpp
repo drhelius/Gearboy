@@ -46,8 +46,11 @@ Memory::Memory()
         m_HDMA[i] = 0;
     m_HDMASource = 0;
     m_HDMADestination = 0;
-    m_bBootromDMG = false;
-    m_bBootromGBC = false;
+    m_bBootromDMGEnabled = false;
+    m_bBootromGBCEnabled = false;
+    m_bBootromRegistryDisabled = false;
+    m_bBootromDMGLoaded = false;
+    m_bBootromGBCLoaded = false;
 }
 
 Memory::~Memory()
@@ -128,6 +131,7 @@ void Memory::Reset(bool bCGB)
     m_iCurrentLCDRAMBank = 0;
     m_bHDMAEnabled = false;
     m_iHDMABytes = 0;
+    m_bBootromRegistryDisabled = false;
 
     if (IsValidPointer(m_pDisassembledROMMap))
     {
@@ -575,9 +579,9 @@ void Memory::SetRunToBreakpoint(Memory::stDisassembleRecord* pBreakpoint)
 
 void Memory::EnableBootromDMG(bool enable)
 {
-    m_bBootromDMG = enable;
+    m_bBootromDMGEnabled = enable;
 
-    if (m_bBootromDMG)
+    if (m_bBootromDMGEnabled)
         Log("DMG Bootrom enabled");
     else
         Log("DMG Bootrom disabled");
@@ -585,9 +589,9 @@ void Memory::EnableBootromDMG(bool enable)
 
 void Memory::EnableBootromGBC(bool enable)
 {
-    m_bBootromGBC = enable;
+    m_bBootromGBCEnabled = enable;
 
-    if (m_bBootromGBC)
+    if (m_bBootromGBCEnabled)
         Log("GBC Bootrom enabled");
     else
         Log("GBC Bootrom disabled");
@@ -607,6 +611,37 @@ void Memory::LoadBootromGBC(const char* szFilePath)
     LoadBootroom(szFilePath, true);
 }
 
+bool Memory::IsBootromEnabled()
+{
+    return (m_bBootromDMGEnabled && m_bBootromDMGLoaded && !m_bCGB) || (m_bBootromGBCEnabled && m_bBootromGBCLoaded && m_bCGB);
+}
+
+void Memory::DisableBootromRegistry()
+{
+    if (!m_bBootromRegistryDisabled && IsValidPointer(m_pDisassembledROMMap))
+    {
+        for (int i = 0; i < MAX_ROM_SIZE; i++)
+        {
+            SafeDelete(m_pDisassembledROMMap[i]);
+        }
+    }
+
+    if (!m_bBootromRegistryDisabled && IsValidPointer(m_pDisassembledMap))
+    {
+        for (int i = 0; i < 65536; i++)
+        {
+            SafeDelete(m_pDisassembledMap[i]);
+        }
+    }
+
+    m_bBootromRegistryDisabled = true;
+}
+
+bool Memory::IsBootromRegistryEnabled()
+{
+    return m_bBootromRegistryDisabled;
+}
+
 void Memory::LoadBootroom(const char* szFilePath, bool gbc)
 {
     using namespace std;
@@ -615,6 +650,8 @@ void Memory::LoadBootroom(const char* szFilePath, bool gbc)
     u8* bootrom = gbc ? m_pBootromGBC : m_pBootromDMG;
 
     ifstream file(szFilePath, ios::in | ios::binary | ios::ate);
+
+    bool ret = false;
 
     if (file.is_open())
     {
@@ -625,6 +662,8 @@ void Memory::LoadBootroom(const char* szFilePath, bool gbc)
             file.seekg(0, ios::beg);
             file.read(reinterpret_cast<char*>(bootrom), size);
             file.close();
+
+            ret = true;
 
             Log("Bootrom %s loaded", szFilePath);
         }
@@ -637,4 +676,9 @@ void Memory::LoadBootroom(const char* szFilePath, bool gbc)
     {
         Log("There was a problem opening the file %s", szFilePath);
     }
+
+    if (gbc)
+        m_bBootromGBCLoaded = ret;
+    else
+        m_bBootromDMGLoaded = ret;
 }

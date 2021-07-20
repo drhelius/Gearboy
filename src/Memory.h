@@ -105,6 +105,9 @@ public:
     void EnableBootromGBC(bool enable);
     void LoadBootromDMG(const char* szFilePath);
     void LoadBootromGBC(const char* szFilePath);
+    bool IsBootromEnabled();
+    void DisableBootromRegistry();
+    bool IsBootromRegistryEnabled();
 
 private:
     void LoadBootroom(const char* szFilePath, bool gbc);
@@ -132,10 +135,13 @@ private:
     u8 m_HDMA[5];
     u16 m_HDMASource;
     u16 m_HDMADestination;
-    bool m_bBootromDMG;
-    bool m_bBootromGBC;
+    bool m_bBootromDMGEnabled;
+    bool m_bBootromGBCEnabled;
+    bool m_bBootromDMGLoaded;
+    bool m_bBootromGBCLoaded;
     u8* m_pBootromDMG;
     u8* m_pBootromGBC;
+    bool m_bBootromRegistryDisabled;
 };
 
 #include "Memory_inline.h"
