@@ -220,7 +220,7 @@ else ifeq ($(platform), rs90)
    CXX = /opt/rs90-toolchain/usr/bin/mipsel-linux-g++
    AR = /opt/rs90-toolchain/usr/bin/mipsel-linux-ar
    fpic := -fPIC
-   SHARED := -shared -Wl,-version-script=$(version_script)
+   SHARED := -shared -Wl,-version-script=$(CORE_DIR)/link.T
    PLATFORM_DEFINES := -DCC_RESAMPLER -DCC_RESAMPLER_NO_HIGHPASS
    CFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32
    CXXFLAGS += $(CFLAGS)
@@ -231,7 +231,7 @@ else ifeq ($(platform), gcw0)
    CXX = /opt/gcw0-toolchain/usr/bin/mipsel-linux-g++
    AR = /opt/gcw0-toolchain/usr/bin/mipsel-linux-ar
    fpic := -fPIC
-   SHARED := -shared -Wl,-version-script=$(version_script)
+   SHARED := -shared -Wl,-version-script=$(CORE_DIR)/link.T
    PLATFORM_DEFINES := -DCC_RESAMPLER -DCC_RESAMPLER_NO_HIGHPASS
    CFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
    CXXFLAGS += $(CFLAGS)
