@@ -108,6 +108,8 @@ public:
     bool IsBootromEnabled();
     void DisableBootromRegistry();
     bool IsBootromRegistryEnabled();
+    void ResetDisassembledMemory();
+    void ResetBootromDisassembledMemory();
 
 private:
     void LoadBootroom(const char* szFilePath, bool gbc);

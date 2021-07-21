@@ -1911,6 +1911,8 @@ static void add_breakpoint_cpu(void)
     Memory::stDisassembleRecord** romMap = emu_get_core()->GetMemory()->GetDisassembledROMMemoryMap();
     Memory::stDisassembleRecord** map = NULL;
 
+    bool rom = true;
+
     if ((target_address & 0xC000) == 0x0000)
     {
         target_offset = (0x4000 * target_bank) + target_address;
@@ -1924,6 +1926,7 @@ static void add_breakpoint_cpu(void)
     else
     {
         map = memoryMap;
+        rom = false;
     }
 
     brk_address_cpu[0] = 0;
@@ -1931,17 +1934,44 @@ static void add_breakpoint_cpu(void)
     bool found = false;
     std::vector<Memory::stDisassembleRecord*>* breakpoints = emu_get_core()->GetMemory()->GetBreakpointsCPU();
 
-    for (long unsigned int b = 0; b < breakpoints->size(); b++)
+    if (IsValidPointer(map[target_offset]))
     {
-        if ((*breakpoints)[b] == map[target_offset])
+        for (long unsigned int b = 0; b < breakpoints->size(); b++)
         {
-            found = true;
-            break;
+            if ((*breakpoints)[b] == map[target_offset])
+            {
+                found = true;
+                break;
+            }
         }
     }
 
     if (!found)
     {
+        if (!IsValidPointer(map[target_offset]))
+        {
+            map[target_offset] = new Memory::stDisassembleRecord;
+
+            if (rom)
+            {
+                map[target_offset]->address = target_offset & 0x3FFF;
+                map[target_offset]->bank = target_offset >> 14;
+            }
+            else
+            {
+                map[target_offset]->address = 0;
+                map[target_offset]->bank = 0;
+            }
+
+            map[target_offset]->name[0] = 0;
+            map[target_offset]->bytes[0] = 0;
+            map[target_offset]->size = 0;
+            map[target_offset]->jump = false;
+            map[target_offset]->jump_address = 0;
+            for (int i = 0; i < 4; i++)
+                map[target_offset]->opcodes[i] = 0;
+        }
+
         breakpoints->push_back(map[target_offset]);
     }
 }

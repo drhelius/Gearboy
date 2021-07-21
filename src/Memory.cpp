@@ -133,20 +133,11 @@ void Memory::Reset(bool bCGB)
     m_iHDMABytes = 0;
     m_bBootromRegistryDisabled = false;
 
-    if (IsValidPointer(m_pDisassembledROMMap))
-    {
-        for (int i = 0; i < MAX_ROM_SIZE; i++)
-        {
-            SafeDelete(m_pDisassembledROMMap[i]);
-        }
-    }
+    if (IsBootromEnabled())
+        ResetBootromDisassembledMemory();
 
     for (int i = 0; i < 65536; i++)
     {
-        if (IsValidPointer(m_pDisassembledMap))
-        {
-            SafeDelete(m_pDisassembledMap[i]);
-        }
         m_pMap[i] = 0x00;
 
         if ((i >= 0x8000) && (i < 0xA000))
@@ -618,20 +609,9 @@ bool Memory::IsBootromEnabled()
 
 void Memory::DisableBootromRegistry()
 {
-    if (!m_bBootromRegistryDisabled && IsValidPointer(m_pDisassembledROMMap))
+    if (!m_bBootromRegistryDisabled && IsBootromEnabled())
     {
-        for (int i = 0; i < MAX_ROM_SIZE; i++)
-        {
-            SafeDelete(m_pDisassembledROMMap[i]);
-        }
-    }
-
-    if (!m_bBootromRegistryDisabled && IsValidPointer(m_pDisassembledMap))
-    {
-        for (int i = 0; i < 65536; i++)
-        {
-            SafeDelete(m_pDisassembledMap[i]);
-        }
+        ResetBootromDisassembledMemory();
     }
 
     m_bBootromRegistryDisabled = true;
@@ -640,6 +620,68 @@ void Memory::DisableBootromRegistry()
 bool Memory::IsBootromRegistryEnabled()
 {
     return m_bBootromRegistryDisabled;
+}
+
+void Memory::ResetDisassembledMemory()
+{
+    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+
+    if (IsValidPointer(m_pDisassembledROMMap))
+    {
+        for (int i = 0; i < MAX_ROM_SIZE; i++)
+        {
+            SafeDelete(m_pDisassembledROMMap[i]);
+        }
+    }
+    if (IsValidPointer(m_pDisassembledMap))
+    {
+        for (int i = 0; i < 65536; i++)
+        {
+            SafeDelete(m_pDisassembledMap[i]);
+        }
+    }
+
+    #endif
+}
+
+void Memory::ResetBootromDisassembledMemory()
+{
+    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+
+    if (IsValidPointer(m_pDisassembledROMMap))
+    {
+        for (int i = 0; i < 0x0100; i++)
+        {
+            SafeDelete(m_pDisassembledROMMap[i]);
+        }
+    }
+    if (IsValidPointer(m_pDisassembledMap))
+    {
+        for (int i = 0; i < 0x0100; i++)
+        {
+            SafeDelete(m_pDisassembledMap[i]);
+        }
+    }
+
+    if (m_bCGB)
+    {
+        if (IsValidPointer(m_pDisassembledROMMap))
+        {
+            for (int i = 0x0200; i < 0x0900; i++)
+            {
+                SafeDelete(m_pDisassembledROMMap[i]);
+            }
+        }
+        if (IsValidPointer(m_pDisassembledMap))
+        {
+            for (int i = 0x0200; i < 0x0900; i++)
+            {
+                SafeDelete(m_pDisassembledMap[i]);
+            }
+        }
+    }
+
+    #endif
 }
 
 void Memory::LoadBootroom(const char* szFilePath, bool gbc)
