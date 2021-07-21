@@ -38,11 +38,17 @@
 #define VIDEO_HEIGHT 144
 #define VIDEO_PIXELS (VIDEO_WIDTH * VIDEO_HEIGHT)
 
+#ifdef _WIN32
+static const char slash = '\\';
+#else
+static const char slash = '/';
+#endif
+
 static u16* gearboy_frame_buf;
 
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
-static char retro_base_directory[4096];
+static char retro_system_directory[4096];
 static char retro_game_path[4096];
 
 static s16 audio_buf[AUDIO_BUFFER_SIZE];
@@ -51,6 +57,8 @@ static int audio_sample_count;
 static bool force_dmg = false;
 static bool force_gba = false;
 static bool allow_up_down = false;
+static bool bootrom_dmg = false;
+static bool bootrom_gbc = false;
 static bool libretro_supports_bitmasks;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
@@ -68,9 +76,11 @@ static Cartridge::CartridgeTypes mapper = Cartridge::CartridgeNotSupported;
 static retro_environment_t environ_cb;
 
 static const struct retro_variable vars[] = {
-    { "gearboy_model", "Emulated Model (restart); Auto|Game Boy DMG|Game Boy Advance" },
+    { "gearboy_model", "Game Boy Model (restart); Auto|Game Boy DMG|Game Boy Advance" },
     { "gearboy_mapper", "Mapper (restart); Auto|ROM Only|MBC 1|MBC 2|MBC 3|MBC 5|MBC 1 Multicart" },
-    { "gearboy_palette", "Palette; Original|Sharp|B/W|Autumn|Soft|Slime" },
+    { "gearboy_palette", "DMG Palette; Original|Sharp|B/W|Autumn|Soft|Slime" },
+    { "gearboy_bootrom_dmg", "DMG Bootrom (restart); Disabled|Enabled" },
+    { "gearboy_bootrom_gbc", "Game Boy Color Bootrom (restart); Disabled|Enabled" },
     { "gearboy_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
 
     { NULL }
@@ -90,9 +100,11 @@ void retro_init(void)
 {
     const char *dir = NULL;
 
-    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
-    {
-        snprintf(retro_base_directory, sizeof(retro_base_directory), "%s", dir);
+    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir) {
+        snprintf(retro_system_directory, sizeof(retro_system_directory), "%s", dir);
+    }
+    else {
+        snprintf(retro_system_directory, sizeof(retro_system_directory), "%s", ".");
     }
 
     core = new GearboyCore();
@@ -101,7 +113,7 @@ void retro_init(void)
     core->Init(GB_PIXEL_BGR555);
 #else
     core->Init(GB_PIXEL_RGB565);
-#endif  
+#endif
 
     gearboy_frame_buf = new u16[VIDEO_WIDTH * VIDEO_HEIGHT];
 
@@ -198,6 +210,20 @@ void retro_set_input_state(retro_input_state_t cb)
 void retro_set_video_refresh(retro_video_refresh_t cb)
 {
     video_cb = cb;
+}
+
+static void load_bootroms(void)
+{
+    char bootrom_dmg_path[4112];
+    char bootrom_gbc_path[4112];
+
+    sprintf(bootrom_dmg_path, "%s%cdmg_boot.bin", retro_system_directory, slash);
+    sprintf(bootrom_gbc_path, "%s%ccgb_boot.bin", retro_system_directory, slash);
+
+    core->GetMemory()->LoadBootromDMG(bootrom_dmg_path);
+    core->GetMemory()->LoadBootromGBC(bootrom_gbc_path);
+    core->GetMemory()->EnableBootromDMG(bootrom_dmg);
+    core->GetMemory()->EnableBootromGBC(bootrom_gbc);
 }
 
 static void update_input(void)
@@ -335,6 +361,28 @@ static void check_variables(void)
             current_palette = original_palette;
     }
 
+    var.key = "gearboy_bootrom_dmg";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Enabled") == 0)
+            bootrom_dmg = true;
+        else
+            bootrom_dmg = false;
+    }
+
+    var.key = "gearboy_bootrom_gbc";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Enabled") == 0)
+            bootrom_gbc = true;
+        else
+            bootrom_gbc = false;
+    }
+
     var.key = "gearboy_up_down_allowed";
     var.value = NULL;
 
@@ -371,6 +419,7 @@ void retro_run(void)
 void retro_reset(void)
 {
     check_variables();
+    load_bootroms();
 
     core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
 
@@ -381,6 +430,7 @@ void retro_reset(void)
 bool retro_load_game(const struct retro_game_info *info)
 {
     check_variables();
+    load_bootroms();
 
     core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
 
