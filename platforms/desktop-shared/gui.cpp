@@ -105,7 +105,7 @@ void gui_init(void)
 
     if (strlen(dmg_bootrom_path) > 0)
         emu_load_bootrom_dmg(dmg_bootrom_path);
-    if (strlen(dmg_bootrom_path) > 0)
+    if (strlen(gbc_bootrom_path) > 0)
         emu_load_bootrom_gbc(gbc_bootrom_path);
 
     emu_enable_bootrom_dmg(config_emulator.dmg_bootrom);
@@ -381,6 +381,7 @@ static void main_menu(void)
                 if (ImGui::InputText("##dmg_bootrom_path", dmg_bootrom_path, IM_ARRAYSIZE(dmg_bootrom_path), ImGuiInputTextFlags_AutoSelectAll))
                 {
                     config_emulator.dmg_bootrom_path.assign(dmg_bootrom_path);
+                    emu_load_bootrom_dmg(dmg_bootrom_path);
                 }
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
@@ -402,6 +403,7 @@ static void main_menu(void)
                 if (ImGui::InputText("##gbc_bootrom_path", gbc_bootrom_path, IM_ARRAYSIZE(gbc_bootrom_path), ImGuiInputTextFlags_AutoSelectAll))
                 {
                     config_emulator.gbc_bootrom_path.assign(gbc_bootrom_path);
+                    emu_load_bootrom_gbc(gbc_bootrom_path);
                 }
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
