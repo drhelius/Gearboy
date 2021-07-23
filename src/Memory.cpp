@@ -573,9 +573,13 @@ void Memory::EnableBootromDMG(bool enable)
     m_bBootromDMGEnabled = enable;
 
     if (m_bBootromDMGEnabled)
+    {
         Log("DMG Bootrom enabled");
+    }
     else
+    {
         Log("DMG Bootrom disabled");
+    }
 }
 
 void Memory::EnableBootromGBC(bool enable)
@@ -583,9 +587,13 @@ void Memory::EnableBootromGBC(bool enable)
     m_bBootromGBCEnabled = enable;
 
     if (m_bBootromGBCEnabled)
+    {
         Log("GBC Bootrom enabled");
+    }
     else
+    {
         Log("GBC Bootrom disabled");
+    }
 }
 
 void Memory::LoadBootromDMG(const char* szFilePath)
