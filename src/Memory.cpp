@@ -656,6 +656,8 @@ void Memory::ResetBootromDisassembledMemory()
 {
     #ifndef GEARBOY_DISABLE_DISASSEMBLER
 
+    m_BreakpointsCPU.clear();
+
     if (IsValidPointer(m_pDisassembledROMMap))
     {
         for (int i = 0; i < 0x0100; i++)
