@@ -627,7 +627,7 @@ void Memory::DisableBootromRegistry()
 
 bool Memory::IsBootromRegistryEnabled()
 {
-    return m_bBootromRegistryDisabled;
+    return !m_bBootromRegistryDisabled;
 }
 
 void Memory::ResetDisassembledMemory()

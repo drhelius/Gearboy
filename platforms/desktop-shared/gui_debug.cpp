@@ -823,7 +823,7 @@ static void debug_window_processor(void)
     ImGui::Separator();
 
     ImGui::TextColored(cyan, "   BOOTROM "); ImGui::SameLine();
-    memory->IsBootromRegistryEnabled() ? ImGui::TextColored(gray, "OFF") : ImGui::TextColored(green, "ON");
+    memory->IsBootromRegistryEnabled() ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
 
     ImGui::PopFont();
 

@@ -513,6 +513,12 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 
 void GearboyCore::SaveState(int index)
 {
+    if (m_pMemory->IsBootromRegistryEnabled())
+    {
+        Log("Save states disabled when running bootrom");
+        return;
+    }
+
     Log("Creating save state %d...", index);
 
     SaveState(NULL, index);
@@ -522,6 +528,12 @@ void GearboyCore::SaveState(int index)
 
 void GearboyCore::SaveState(const char* szPath, int index)
 {
+    if (m_pMemory->IsBootromRegistryEnabled())
+    {
+        Log("Save states disabled when running bootrom");
+        return;
+    }
+
     Log("Saving state...");
 
     using namespace std;
@@ -571,6 +583,12 @@ void GearboyCore::SaveState(const char* szPath, int index)
 
 bool GearboyCore::SaveState(u8* buffer, size_t& size)
 {
+    if (m_pMemory->IsBootromRegistryEnabled())
+    {
+        Log("Save states disabled when running bootrom");
+        return false;
+    }
+
     bool ret = false;
 
     if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
@@ -599,6 +617,12 @@ bool GearboyCore::SaveState(u8* buffer, size_t& size)
 
 bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
 {
+    if (m_pMemory->IsBootromRegistryEnabled())
+    {
+        Log("Save states disabled when running bootrom");
+        return false;
+    }
+
     if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
         Log("Gathering save state data...");
@@ -634,6 +658,12 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
 
 void GearboyCore::LoadState(int index)
 {
+    if (m_pMemory->IsBootromRegistryEnabled())
+    {
+        Log("Save states disabled when running bootrom");
+        return;
+    }
+
     Log("Loading save state %d...", index);
 
     LoadState(NULL, index);
@@ -643,6 +673,12 @@ void GearboyCore::LoadState(int index)
 
 void GearboyCore::LoadState(const char* szPath, int index)
 {
+    if (m_pMemory->IsBootromRegistryEnabled())
+    {
+        Log("Save states disabled when running bootrom");
+        return;
+    }
+
     Log("Loading save state...");
 
     using namespace std;
@@ -698,6 +734,12 @@ void GearboyCore::LoadState(const char* szPath, int index)
 
 bool GearboyCore::LoadState(const u8* buffer, size_t size)
 {
+    if (m_pMemory->IsBootromRegistryEnabled())
+    {
+        Log("Save states disabled when running bootrom");
+        return false;
+    }
+
     if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
     {
         Log("Gathering load state data [%d bytes]...", size);
@@ -718,6 +760,12 @@ bool GearboyCore::LoadState(const u8* buffer, size_t size)
 
 bool GearboyCore::LoadState(std::istream& stream)
 {
+    if (m_pMemory->IsBootromRegistryEnabled())
+    {
+        Log("Save states disabled when running bootrom");
+        return false;
+    }
+
     if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
         using namespace std;
