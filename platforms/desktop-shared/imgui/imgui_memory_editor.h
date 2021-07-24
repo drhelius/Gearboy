@@ -317,8 +317,6 @@ struct MemoryEditor
                     {
                         ImGui::SetKeyboardFocusHere();
                         ImGui::CaptureKeyboardFromApp(true);
-                        sprintf(AddrInputBuf, format_data, s.AddrDigitsCount, base_display_addr + addr);
-                        sprintf(DataInputBuf, format_byte, ReadFn ? ReadFn(mem_data, addr) : mem_data[addr]);
                     }
                     struct UserData
                     {
@@ -370,6 +368,9 @@ struct MemoryEditor
                             mem_data[addr] = (ImU8)data_input_value;
                     }
                     ImGui::PopID();
+
+                    sprintf(AddrInputBuf, format_data, s.AddrDigitsCount, base_display_addr + addr);
+                    sprintf(DataInputBuf, format_byte, ReadFn ? ReadFn(mem_data, addr) : mem_data[addr]);
                 }
                 else
                 {
