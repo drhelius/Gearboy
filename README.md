@@ -19,9 +19,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
   + Or install manually: [Gearboy-3.3.0-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.3.0/Gearboy-3.3.0-macOS.zip)
 - **Linux**: [Gearboy-3.3.0-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.3.0/Gearboy-3.3.0-Linux.tar.xz)
   + NOTE: You may need to install `libsdl2` and `libglew`
-- **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **RetroArch**: [Libretro core documentation](https://libretro.readthedocs.io/en/latest/library/gearboy/).
-- **Raspberry Pi**: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2, 3 and 4.
 
 ## Features
 
@@ -32,7 +30,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Game Boy Color support.
 - LCD screen ghosting effect as seen in the original Game Boy.
 - LCD dot matrix effect.
-- Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Gb_Snd_Emu).
+- Sound emulation using SDL Audio and [Gb_Snd_Emu library](https://www.slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
 - Battery powered RAM save support.
 - Save states.
 - Compressed rom support (ZIP).
