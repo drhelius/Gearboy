@@ -8,6 +8,8 @@ This is an open source project with its ongoing development made possible thanks
 
 Please, consider [sponsoring](https://github.com/sponsors/drhelius) and following me on [Twitter](https://twitter.com/drhelius) for updates.
 
+If you find a bug or want new features, you can help me [openning an issue](https://github.com/drhelius/Gearboy/issues). 
+
 ----------
 
 ## Downloads
