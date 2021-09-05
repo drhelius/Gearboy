@@ -8,6 +8,8 @@ This is an open source project with its ongoing development made possible thanks
 
 Please, consider [sponsoring](https://github.com/sponsors/drhelius) and following me on [Twitter](https://twitter.com/drhelius) for updates.
 
+If you find a bug or want new features, you can help me [openning an issue](https://github.com/drhelius/Gearboy/issues). 
+
 ----------
 
 ## Downloads
@@ -38,7 +40,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - *Game Genie* and *GameShark* cheat support.
 - Supported platforms (standalone): Windows, Linux, BSD, macOS, Raspberry Pi and iOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux and QNX.
-- Full debugger with on-the-fly disassembler, cpu breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
+- Full debugger with just-in-time disassembler, cpu breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
 - Windows and Linux *Portable Mode* by creating a file named `portable.ini` in the same directory as the application binary.
 - Support for modern game controllers through [gamecontrollerdb.txt](https://github.com/gabomdq/SDL_GameControllerDB) file located in the same directory as the application binary.
 
