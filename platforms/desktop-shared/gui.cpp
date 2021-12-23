@@ -190,6 +190,7 @@ void gui_shortcut(gui_ShortCutEvent event)
 
 void gui_load_rom(const char* path)
 {
+    push_recent_rom(path);
     emu_resume();
     emu_load_rom(path, config_emulator.force_dmg, config_emulator.save_in_rom_folder, get_mbc(config_emulator.mbc), config_emulator.force_gba);
     cheat_list.clear();
@@ -939,7 +940,6 @@ static void file_dialog_open_rom(void)
 {
     if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip", &dialog_in_use))
     {
-        push_recent_rom(file_dialog.selected_path.c_str());
         gui_load_rom(file_dialog.selected_path.c_str());
     }
 }
@@ -1255,7 +1255,18 @@ static void update_palette(void)
 
 static void push_recent_rom(std::string path)
 {
-    for (int i = (config_max_recent_roms - 1); i > 0; i--)
+    int index = 0;
+    for (index = 0; index < config_max_recent_roms; index++)
+    {
+        if (config_emulator.recent_roms[index].compare(path) == 0)
+        {
+            break;
+        }
+    }
+
+    index = std::min(index, config_max_recent_roms - 1);
+
+    for (int i = index; i > 0; i--)
     {
         config_emulator.recent_roms[i] = config_emulator.recent_roms[i - 1];
     }

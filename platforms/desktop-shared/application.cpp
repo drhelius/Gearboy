@@ -178,6 +178,8 @@ static int sdl_init(void)
         application_display_scale = (scale_w > scale_h) ? scale_w : scale_h;
     }
 
+    SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
+
     return 0;
 }
 
@@ -216,6 +218,13 @@ static void sdl_events_emu(const SDL_Event* event)
 {
     switch(event->type)
     {
+        case (SDL_DROPFILE):
+        {
+            char* dropped_filedir = event->drop.file;
+            gui_load_rom(dropped_filedir);
+            SDL_free(dropped_filedir);    // Free dropped_filedir memory
+            break;
+        }
         case SDL_WINDOWEVENT:
         {
             switch (event->window.event)
