@@ -1255,18 +1255,18 @@ static void update_palette(void)
 
 static void push_recent_rom(std::string path)
 {
-    int index = 0;
-    for (index = 0; index < config_max_recent_roms; index++)
+    int slot = 0;
+    for (slot = 0; slot < config_max_recent_roms; slot++)
     {
-        if (config_emulator.recent_roms[index].compare(path) == 0)
+        if (config_emulator.recent_roms[slot].compare(path) == 0)
         {
             break;
         }
     }
 
-    index = std::min(index, config_max_recent_roms - 1);
+    slot = std::min(slot, config_max_recent_roms - 1);
 
-    for (int i = index; i > 0; i--)
+    for (int i = slot; i > 0; i--)
     {
         config_emulator.recent_roms[i] = config_emulator.recent_roms[i - 1];
     }
