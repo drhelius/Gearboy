@@ -59,8 +59,13 @@ int application_init(const char* arg)
     config_init();
     config_read();
 
-    emu_init(config_root_path);
-    
+    emu_init();
+
+    strcpy(emu_savefiles_path, config_emulator.savefiles_path.c_str());
+    strcpy(emu_savestates_path, config_emulator.savestates_path.c_str());
+    emu_savefiles_dir_option = config_emulator.savefiles_dir_option;
+    emu_savestates_dir_option = config_emulator.savestates_dir_option;
+
     gui_init();
 
     ImGui_ImplSDL2_InitForOpenGL(sdl_window, gl_context);

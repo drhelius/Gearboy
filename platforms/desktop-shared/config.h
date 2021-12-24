@@ -42,7 +42,6 @@ struct config_Emulator
     bool start_paused = false;
     bool force_dmg = false;
     bool force_gba = false;
-    bool save_in_rom_folder = false;
     bool ffwd = false;
     int ffwd_speed = 1;
     bool show_info = false;
@@ -52,6 +51,10 @@ struct config_Emulator
     std::string dmg_bootrom_path;
     bool gbc_bootrom;
     std::string gbc_bootrom_path;
+    int savefiles_dir_option = 0;
+    std::string savefiles_path;
+    int savestates_dir_option = 0;
+    std::string savestates_path;
 };
 
 struct config_Video

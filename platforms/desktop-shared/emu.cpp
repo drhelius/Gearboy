@@ -33,13 +33,11 @@ static GB_Color slime_palette[4] = {{0xD4, 0xEB, 0xA5},{0x62, 0xB8, 0x7C},{0x27,
 
 static GearboyCore* gearboy;
 static Sound_Queue* sound_queue;
-static bool save_files_in_rom_dir = false;
 static u16* frame_buffer_565;
 static u16* debug_background_buffer_565;
 static u16* debug_tile_buffers_565[2];
 static u16* debug_oam_buffers_565[40];
 static s16* audio_buffer;
-static char base_save_path[260];
 static bool audio_enabled;
 static bool debugging = false;
 static bool debug_step = false;
@@ -56,10 +54,8 @@ static void update_debug_background_buffer(void);
 static void update_debug_tile_buffers(void);
 static void update_debug_oam_buffers(void);
 
-void emu_init(const char* save_path)
+void emu_init(void)
 {
-    strcpy(base_save_path, save_path);
-
     frame_buffer_565 = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     emu_frame_buffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
 
@@ -84,6 +80,10 @@ void emu_init(const char* save_path)
     emu_debug_background_map_address = -1;
     emu_debug_tile_dmg_palette = 0;
     emu_debug_tile_color_palette = 0;
+    emu_savefiles_dir_option = 0;
+    emu_savestates_dir_option = 0;
+    emu_savefiles_path[0] = 0;
+    emu_savestates_path[0] = 0;
 }
 
 void emu_destroy(void)
@@ -108,9 +108,8 @@ void emu_destroy(void)
     }
 }
 
-void emu_load_rom(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc, bool force_gba)
+void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba)
 {
-    save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
     gearboy->LoadROM(file_path, force_dmg, mbc, force_gba);
     load_ram();
@@ -177,9 +176,8 @@ bool emu_is_empty(void)
     return !gearboy->GetCartridge()->IsLoadedROM();
 }
 
-void emu_reset(bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc, bool force_gba)
+void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba)
 {
-    save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
     gearboy->ResetROM(force_dmg, mbc, force_gba);
     load_ram();
@@ -262,11 +260,10 @@ void emu_save_ram(const char* file_path)
         gearboy->SaveRam(file_path, true);
 }
 
-void emu_load_ram(const char* file_path, bool force_dmg, bool save_in_rom_dir, Cartridge::CartridgeTypes mbc, bool force_gba)
+void emu_load_ram(const char* file_path, bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba)
 {
     if (!emu_is_empty())
     {
-        save_files_in_rom_dir = save_in_rom_dir;
         save_ram();
         gearboy->ResetROM(force_dmg, mbc, force_gba);
         gearboy->LoadRam(file_path, true);
@@ -276,13 +273,23 @@ void emu_load_ram(const char* file_path, bool force_dmg, bool save_in_rom_dir, C
 void emu_save_state_slot(int index)
 {
     if (!emu_is_empty())
-        gearboy->SaveState(index);
+    {
+        if ((emu_savestates_dir_option == 0) && (strcmp(emu_savestates_path, "")))
+            gearboy->SaveState(emu_savestates_path, index);
+        else
+            gearboy->SaveState(index);
+    }
 }
 
 void emu_load_state_slot(int index)
 {
     if (!emu_is_empty())
-        gearboy->LoadState(index);
+    {
+        if ((emu_savestates_dir_option == 0) && (strcmp(emu_savestates_path, "")))
+            gearboy->LoadState(emu_savestates_path, index);
+        else
+            gearboy->LoadState(index);
+    }
 }
 
 void emu_save_state_file(const char* file_path)
@@ -391,19 +398,18 @@ static void save_ram(void)
 #ifdef DEBUG_GEARBOY
     emu_dissasemble_rom();
 #endif
-
-    if (save_files_in_rom_dir)
-        gearboy->SaveRam();
+    if ((emu_savefiles_dir_option == 0) && (strcmp(emu_savefiles_path, "")))
+         gearboy->SaveRam(emu_savefiles_path);
     else
-        gearboy->SaveRam(base_save_path);
+         gearboy->SaveRam();
 }
 
 static void load_ram(void)
 {
-    if (save_files_in_rom_dir)
-        gearboy->LoadRam();
+    if ((emu_savefiles_dir_option == 0) && (strcmp(emu_savefiles_path, "")))
+         gearboy->LoadRam(emu_savefiles_path);
     else
-        gearboy->LoadRam(base_save_path);
+         gearboy->LoadRam();
 }
 
 static void generate_24bit_buffer(GB_Color* dest, u16* src, int size)

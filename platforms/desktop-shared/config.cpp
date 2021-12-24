@@ -82,12 +82,24 @@ void config_read(void)
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
     config_emulator.force_dmg = read_bool("Emulator", "ForceDMG", false);
     config_emulator.force_gba = read_bool("Emulator", "ForceGBA", false);
-    config_emulator.save_in_rom_folder = read_bool("Emulator", "SaveInROMFolder", false);
     config_emulator.mbc = read_int("Emulator", "MBC", 0);
     config_emulator.dmg_bootrom = read_bool("Emulator", "DMGBootrom", false);
     config_emulator.dmg_bootrom_path = read_string("Emulator", "DMGBootromPath");
     config_emulator.gbc_bootrom = read_bool("Emulator", "GBCBootrom", false);
     config_emulator.gbc_bootrom_path = read_string("Emulator", "GBCBootromPath");
+    config_emulator.savefiles_dir_option = read_int("Emulator", "SaveFilesDirOption", 0);
+    config_emulator.savefiles_path = read_string("Emulator", "SaveFilesPath");
+    config_emulator.savestates_dir_option = read_int("Emulator", "SaveStatesDirOption", 0);
+    config_emulator.savestates_path = read_string("Emulator", "SaveStatesPath");
+
+    if (config_emulator.savefiles_path.empty())
+    {
+        config_emulator.savefiles_path = config_root_path;
+    }
+    if (config_emulator.savestates_path.empty())
+    {
+        config_emulator.savestates_path = config_root_path;
+    }
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {
@@ -167,12 +179,15 @@ void config_write(void)
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);
     write_bool("Emulator", "ForceDMG", config_emulator.force_dmg);
     write_bool("Emulator", "ForceGBA", config_emulator.force_gba);
-    write_bool("Emulator", "SaveInROMFolder", config_emulator.save_in_rom_folder);
     write_int("Emulator", "MBC", config_emulator.mbc);
     write_bool("Emulator", "DMGBootrom", config_emulator.dmg_bootrom);
     write_string("Emulator", "DMGBootromPath", config_emulator.dmg_bootrom_path);
     write_bool("Emulator", "GBCBootrom", config_emulator.gbc_bootrom);
     write_string("Emulator", "GBCBootromPath", config_emulator.gbc_bootrom_path);
+    write_int("Emulator", "SaveFilesDirOption", config_emulator.savefiles_dir_option);
+    write_string("Emulator", "SaveFilesPath", config_emulator.savefiles_path);
+    write_int("Emulator", "SaveStatesDirOption", config_emulator.savestates_dir_option);
+    write_string("Emulator", "SaveStatesPath", config_emulator.savestates_path);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {
