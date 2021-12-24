@@ -886,6 +886,8 @@ namespace imgui_addons
                     if (last >= 0 )
                     {
                         std::string extension = subfiles[i].name.substr(last);
+                        std::transform(extension.begin(), extension.end(), extension.begin(),
+    [](unsigned char c){ return std::tolower(c); });
 
                         if(filter.PassFilter(subfiles[i].name.c_str()) && (extension == valid_exts[selected_ext_idx]))
                             filtered_files.push_back(subfiles[i]);
@@ -1007,6 +1009,8 @@ namespace imgui_addons
             {
                 if(max_str.size() < extension.size())
                     max_str = extension;
+                std::transform(extension.begin(), extension.end(), extension.begin(),
+    [](unsigned char c){ return std::tolower(c); });
                 valid_exts.push_back(extension);
             }
         }
@@ -1075,6 +1079,8 @@ namespace imgui_addons
             }
             int idx = (int)selected_fn.find_last_of('.');
             std::string file_ext = idx == (int)std::string::npos ? "" : selected_fn.substr(idx, selected_fn.length() - idx);
+            std::transform(file_ext.begin(), file_ext.end(), file_ext.begin(),
+    [](unsigned char c){ return std::tolower(c); });
             return (std::find(valid_exts.begin(), valid_exts.end(), file_ext) != valid_exts.end());
         }
     }
