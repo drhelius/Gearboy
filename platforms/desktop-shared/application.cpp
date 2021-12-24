@@ -31,6 +31,7 @@
 static SDL_Window* sdl_window;
 static SDL_GLContext gl_context;
 static bool running = true;
+static bool paused_when_focus_lost = false;
 static Uint64 frame_time_start;
 static Uint64 frame_time_end;
 
@@ -236,12 +237,14 @@ static void sdl_events_emu(const SDL_Event* event)
             {
                 case SDL_WINDOWEVENT_FOCUS_GAINED:
                 {
-                    emu_resume();
+                    if (!paused_when_focus_lost)
+                        emu_resume();
                 }
                 break;
 
                 case SDL_WINDOWEVENT_FOCUS_LOST:
                 {
+                    paused_when_focus_lost = emu_is_paused();
                     emu_pause();
                 }
                 break;

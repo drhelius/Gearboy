@@ -871,7 +871,7 @@ static void main_menu(void)
     
     if (save_state)
         ImGui::OpenPopup("Save State As...");
-    
+
     if (choose_save_file_path)
         ImGui::OpenPopup("Choose Save File Folder...");
 
