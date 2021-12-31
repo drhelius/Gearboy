@@ -109,6 +109,9 @@
   <ItemGroup>
     <None Include="..\desktop-shared\Makefile.common" />
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="Gearboy.manifest" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{92D9838A-C6AB-348D-8565-F9E813C3C467}</ProjectGuid>
     <RootNamespace>Gearboy</RootNamespace>
