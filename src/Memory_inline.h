@@ -169,9 +169,9 @@ inline Memory::stDisassembleRecord** Memory::GetDisassembledROMMemoryMap()
 
 inline void Memory::CheckBreakpoints(u16 address, bool write)
 {
-    long unsigned int size = m_BreakpointsMem.size();
+    std::size_t size = m_BreakpointsMem.size();
 
-    for (long unsigned int b = 0; b < size; b++)
+    for (std::size_t b = 0; b < size; b++)
     {
         if (write && !m_BreakpointsMem[b].write)
             continue;

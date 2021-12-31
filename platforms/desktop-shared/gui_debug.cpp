@@ -354,10 +354,10 @@ static void debug_window_disassembler(void)
     {
         try
         {
-            request_goto_address(std::stoul(goto_address, 0, 16));
+            request_goto_address((u16)std::stoul(goto_address, 0, 16));
             follow_pc = false;
         }
-        catch(const std::invalid_argument& ia)
+        catch(const std::invalid_argument&)
         {
         }
         goto_address[0] = 0;
@@ -368,10 +368,10 @@ static void debug_window_disassembler(void)
     {
         try
         {
-            request_goto_address(std::stoul(goto_address, 0, 16));
+            request_goto_address((u16)std::stoul(goto_address, 0, 16));
             follow_pc = false;
         }
-        catch(const std::invalid_argument& ia)
+        catch(const std::invalid_argument&)
         {
         }
         goto_address[0] = 0;
@@ -613,14 +613,14 @@ static void debug_window_disassembler(void)
         if (goto_address_requested)
         {
             goto_address_requested = false;
-            goto_back = ImGui::GetScrollY();
+            goto_back = (int)ImGui::GetScrollY();
             ImGui::SetScrollY((goto_address_pos * ImGui::GetTextLineHeightWithSpacing()) + 2);
         }
 
         if (goto_back_requested)
         {
             goto_back_requested = false;
-            ImGui::SetScrollY(goto_back);
+            ImGui::SetScrollY((float)goto_back);
         }
 
         ImGuiListClipper clipper(dis_size, ImGui::GetTextLineHeightWithSpacing());
@@ -1322,8 +1322,8 @@ static void debug_window_vram_background(void)
     int tile_y = -1;
     if ((mouse_x >= 0.0f) && (mouse_x < size) && (mouse_y >= 0.0f) && (mouse_y < size))
     {
-        tile_x = mouse_x / spacing;
-        tile_y = mouse_y / spacing;
+        tile_x = (int)(mouse_x / spacing);
+        tile_y = (int)(mouse_y / spacing);
 
         draw_list->AddRect(ImVec2(p.x + (tile_x * spacing), p.y + (tile_y * spacing)), ImVec2(p.x + ((tile_x + 1) * spacing), p.y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, 15, 2.0f);
 
@@ -1507,8 +1507,8 @@ static void debug_window_vram_tiles(void)
 
         if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
         {
-            tile_x = mouse_x / spacing;
-            tile_y = mouse_y / spacing;
+            tile_x = (int)(mouse_x / spacing);
+            tile_y = (int)(mouse_y / spacing);
 
             draw_list->AddRect(ImVec2(p[i].x + (tile_x * spacing), p[i].y + (tile_y * spacing)), ImVec2(p[i].x + ((tile_x + 1) * spacing), p[i].y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, 15, 2.0f);
 
@@ -1856,18 +1856,18 @@ static void add_symbol(const char* line)
         {
             if (separator != std::string::npos)
             {
-                s.address = std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+                s.address = (u16)std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
                 s.bank = std::stoul(str.substr(0, separator), 0 , 16);
             }
             else
             {
-                s.address = std::stoul(str, 0, 16);
+                s.address = (u16)std::stoul(str, 0, 16);
                 s.bank = 0;
             }
 
             symbols.push_back(s);
         }
-        catch(const std::invalid_argument& ia)
+        catch(const std::invalid_argument&)
         {
         }
     }
@@ -1875,7 +1875,7 @@ static void add_symbol(const char* line)
 
 static void add_breakpoint_cpu(void)
 {
-    int input_len = strlen(brk_address_cpu);
+    int input_len = (int)strlen(brk_address_cpu);
     u16 target_address = 0;
     int target_bank = 0;
     int target_offset = 0;
@@ -1889,7 +1889,7 @@ static void add_breakpoint_cpu(void)
 
             if (separator != std::string::npos)
             {
-                target_address = std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+                target_address = (u16)std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
 
                 target_bank = std::stoul(str.substr(0, separator), 0 , 16);
                 target_bank &= 0xFF;
@@ -1898,14 +1898,14 @@ static void add_breakpoint_cpu(void)
         else if (input_len == 4)
         {
             target_bank = 0;
-            target_address = std::stoul(brk_address_cpu, 0, 16);
+            target_address = (u16)std::stoul(brk_address_cpu, 0, 16);
         }
         else
         {
             return;
         }
     }
-    catch(const std::invalid_argument& ia)
+    catch(const std::invalid_argument&)
     {
         return;
     }
@@ -1982,7 +1982,7 @@ static void add_breakpoint_cpu(void)
 
 static void add_breakpoint_mem(void)
 {
-    int input_len = strlen(brk_address_mem);
+    int input_len = (int)strlen(brk_address_mem);
     u16 address1 = 0;
     u16 address2 = 0;
     bool range = false;
@@ -1996,21 +1996,21 @@ static void add_breakpoint_mem(void)
 
             if (separator != std::string::npos)
             {
-                address1 = std::stoul(str.substr(0, separator), 0 , 16);
-                address2 = std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+                address1 = (u16)std::stoul(str.substr(0, separator), 0 , 16);
+                address2 = (u16)std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
                 range = true;
             }
         }
         else if (input_len == 4)
         {
-            address1 = std::stoul(brk_address_mem, 0, 16);
+            address1 = (u16)std::stoul(brk_address_mem, 0, 16);
         }
         else
         {
             return;
         }
     }
-    catch(const std::invalid_argument& ia)
+    catch(const std::invalid_argument&)
     {
         return;
     }

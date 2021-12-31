@@ -851,7 +851,7 @@ static void main_menu(void)
             ImGui::EndMenu();
         }
 
-        main_menu_height = ImGui::GetWindowSize().y;
+        main_menu_height = (int)ImGui::GetWindowSize().y;
 
         ImGui::EndMainMenuBar();       
     }
@@ -914,8 +914,8 @@ static void main_menu(void)
 
 static void main_window(void)
 {
-    int w = ImGui::GetIO().DisplaySize.x;
-    int h = ImGui::GetIO().DisplaySize.y - (show_main_menu ? main_menu_height : 0);
+    int w = (int)ImGui::GetIO().DisplaySize.x;
+    int h = (int)ImGui::GetIO().DisplaySize.y - (show_main_menu ? main_menu_height : 0);
 
     int selected_ratio = config_debug.debug ? 0 : config_video.ratio;
     float ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
@@ -938,7 +938,7 @@ static void main_window(void)
             ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
     }
 
-    int w_corrected = selected_ratio == 3 ? w : GAMEBOY_HEIGHT * ratio;
+    int w_corrected = (int)(selected_ratio == 3 ? w : GAMEBOY_HEIGHT * ratio);
     int h_corrected = selected_ratio == 3 ? h : GAMEBOY_HEIGHT;
 
     int factor = 0;
@@ -979,8 +979,8 @@ static void main_window(void)
     }
     else
     {
-        ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
-        ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
+        ImGui::SetNextWindowSize(ImVec2((float)main_window_width, (float)main_window_height));
+        ImGui::SetNextWindowPos(ImVec2((float)window_x, (float)window_y));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav;
@@ -988,7 +988,7 @@ static void main_window(void)
         ImGui::Begin(GEARBOY_TITLE, 0, flags);
     }
 
-    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width, main_window_height));
+    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2((float)main_window_width, (float)main_window_height));
 
     if (config_video.fps)
         show_fps();
@@ -1316,9 +1316,9 @@ static void popup_modal_about(void)
 static GB_Color color_float_to_int(ImVec4 color)
 {
     GB_Color ret;
-    ret.red = floor(color.x >= 1.0 ? 255 : color.x * 256.0);
-    ret.green = floor(color.y >= 1.0 ? 255 : color.y * 256.0);
-    ret.blue = floor(color.z >= 1.0 ? 255 : color.z * 256.0);
+    ret.red = (u8)floor(color.x >= 1.0 ? 255.0 : color.x * 256.0);
+    ret.green = (u8)floor(color.y >= 1.0 ? 255.0 : color.y * 256.0);
+    ret.blue = (u8)floor(color.z >= 1.0 ? 255.0 : color.z * 256.0);
     return ret;
 }
 

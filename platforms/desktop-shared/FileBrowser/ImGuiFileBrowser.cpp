@@ -225,7 +225,7 @@ namespace imgui_addons
         float list_item_height = GImGui->FontSize + style.ItemSpacing.y;
 
         ImVec2 pw_content_size = ImGui::GetWindowSize() - style.WindowPadding * 2.0;
-        ImVec2 sw_size = ImVec2(ImGui::CalcTextSize("Random").x + 140, style.WindowPadding.y * 2.0 + frame_height);
+        ImVec2 sw_size = ImVec2(ImGui::CalcTextSize("Random").x + 140, style.WindowPadding.y * 2.0f + frame_height);
         ImVec2 sw_content_size = sw_size - style.WindowPadding * 2.0;
         ImVec2 nw_size = ImVec2(pw_content_size.x - style.ItemSpacing.x - sw_size.x, sw_size.y);
 
@@ -239,7 +239,7 @@ namespace imgui_addons
             {
                 //If last button clicked, nothing happens
                 if(i != current_dirlist.size() - 1)
-                    show_error |= !(onNavigationButtonClick(i));
+                    show_error |= !(onNavigationButtonClick((int)i));
             }
 
             //Draw Arrow Buttons
@@ -269,7 +269,7 @@ namespace imgui_addons
                             {
                                 if(ImGui::Selectable(current_dirlist[j].c_str(), false) && j != current_dirlist.size() - 1)
                                 {
-                                    show_error |= !(onNavigationButtonClick(j));
+                                    show_error |= !(onNavigationButtonClick((int)j));
                                     ImGui::CloseCurrentPopup();
                                 }
                             }
@@ -322,22 +322,22 @@ namespace imgui_addons
         float list_item_height = ImGui::CalcTextSize("").y + style.ItemSpacing.y;
         float input_bar_ypos = pw_size.y - ImGui::GetFrameHeightWithSpacing() * 2.5f - style.WindowPadding.y;
         float window_height = input_bar_ypos - ImGui::GetCursorPosY() - style.ItemSpacing.y;
-        float window_content_height = window_height - style.WindowPadding.y * 2.0;
+        float window_content_height = window_height - style.WindowPadding.y * 2.0f;
         float min_content_size = pw_size.x - style.WindowPadding.x * 4.0f;
 
         if(window_content_height <= 0.0f)
             return show_error;
 
         //Reinitialize the limit on number of selectables in one column based on height
-        col_items_limit = std::max(1.0f, window_content_height/list_item_height);
-        int num_cols = std::max(1.0f, std::ceil(static_cast<float>(filtered_dirs.size() + filtered_files.size()) / col_items_limit));
+        col_items_limit = (int)std::max(1.0f, window_content_height/list_item_height);
+        int num_cols = (int)std::max(1.0f, std::ceil(static_cast<float>(filtered_dirs.size() + filtered_files.size()) / col_items_limit));
         
         //Limitation by ImGUI in 1.75. If columns are greater than 64 readjust the limit on items per column and recalculate number of columns
         if(num_cols > 64)
         {
             int exceed_items_amount = (num_cols - 64) * col_items_limit;
-            col_items_limit += std::ceil(exceed_items_amount/64.0);
-            num_cols = std::max(1.0f, std::ceil(static_cast<float>(filtered_dirs.size() + filtered_files.size()) / col_items_limit));
+            col_items_limit += (int)std::ceil(exceed_items_amount/64.0);
+            num_cols = (int)std::max(1.0f, std::ceil(static_cast<float>(filtered_dirs.size() + filtered_files.size()) / col_items_limit));
         }
         
         float content_width = num_cols * col_width;
@@ -367,7 +367,7 @@ namespace imgui_addons
 
                     if(ImGui::IsMouseDoubleClicked(0))
                     {
-                        show_error |= !(onDirClick(i));
+                        show_error |= !(onDirClick((int)i));
                         break;
                     }
                 }
@@ -509,7 +509,7 @@ namespace imgui_addons
         float buttons_xpos;
 
         if (dialog_mode == DialogMode::SELECT)
-            buttons_xpos = pw_size.x - opensave_btn_width - (2.0 * selcan_btn_width) - ( 2.0 * style.ItemSpacing.x) - style.WindowPadding.x;
+            buttons_xpos = pw_size.x - opensave_btn_width - (2.0f * selcan_btn_width) - ( 2.0f * style.ItemSpacing.x) - style.WindowPadding.x;
         else
             buttons_xpos = pw_size.x - opensave_btn_width - selcan_btn_width - style.ItemSpacing.x - style.WindowPadding.x;
 
@@ -920,7 +920,7 @@ namespace imgui_addons
             ImGui::TextWrapped("%s", error_msg.c_str());
 
             ImGui::Separator();
-            ImGui::SetCursorPosX(window_size.x/2.0 - getButtonSize("OK").x/2.0);
+            ImGui::SetCursorPosX(window_size.x/2.0f - getButtonSize("OK").x/2.0f);
             if (ImGui::Button("OK", getButtonSize("OK")))
                 ImGui::CloseCurrentPopup();
             ImGui::EndPopup();
@@ -942,7 +942,7 @@ namespace imgui_addons
             ImGui::Separator();
 
             float buttons_width = getButtonSize("Yes").x + getButtonSize("No").x + ImGui::GetStyle().ItemSpacing.x;
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetWindowWidth()/2.0 - buttons_width/2.0 - ImGui::GetStyle().WindowPadding.x);
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetWindowWidth()/2.0f - buttons_width/2.0f - ImGui::GetStyle().WindowPadding.x);
 
             if (ImGui::Button("Yes", getButtonSize("Yes")))
             {
@@ -986,7 +986,7 @@ namespace imgui_addons
                 ImGui::BulletText("%s", valid_exts[i].c_str());
             ImGui::EndChild();
 
-            ImGui::SetCursorPosX(window_size.x/2.0 - button_size.x/2.0);
+            ImGui::SetCursorPosX(window_size.x/2.0f - button_size.x/2.0f);
             if (ImGui::Button("OK", button_size))
                 ImGui::CloseCurrentPopup();
             ImGui::EndPopup();

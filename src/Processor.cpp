@@ -583,9 +583,9 @@ bool Processor::Disassemble(u16 address)
     }
     else
     {
-        long unsigned int size = breakpoints->size();
+        std::size_t size = breakpoints->size();
 
-        for (long unsigned int b = 0; b < size; b++)
+        for (std::size_t b = 0; b < size; b++)
         {
             if ((*breakpoints)[b] == map[offset])
             {
