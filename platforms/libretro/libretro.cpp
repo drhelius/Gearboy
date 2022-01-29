@@ -27,16 +27,12 @@
 #include <math.h>
 
 #include <stdio.h>
-#if defined(_WIN32) && !defined(_XBOX)
-#include <windows.h>
-#endif
 #include "libretro.h"
 
 #include "../../src/gearboy.h"
 
 #define VIDEO_WIDTH 160
 #define VIDEO_HEIGHT 144
-#define VIDEO_PIXELS (VIDEO_WIDTH * VIDEO_HEIGHT)
 
 #ifdef _WIN32
 static const char slash = '\\';
