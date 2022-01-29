@@ -434,7 +434,11 @@ bool retro_load_game(const struct retro_game_info *info)
 
     core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
 
-    core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, force_dmg, mapper, force_gba);
+    if (!core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, force_dmg, mapper, force_gba))
+    {
+        log_cb(RETRO_LOG_ERROR, "Invalid or corrupted ROM.\n");
+        return false;
+    }
 
     struct retro_input_descriptor desc[] = {
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left" },
