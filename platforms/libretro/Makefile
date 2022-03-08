@@ -212,7 +212,7 @@ else ifneq (,$(findstring qnx,$(platform)))
 else ifeq ($(platform), emscripten)
    TARGET := $(TARGET_NAME)_libretro_emscripten.bc
    fpic := -fPIC
-   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl
 # RS90
 else ifeq ($(platform), rs90)
    TARGET := $(TARGET_NAME)_libretro.so
