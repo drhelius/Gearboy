@@ -4,6 +4,7 @@
 static const char * BACKERS_STR = 
 " · Michael Mellor (dinglyburrow)"
 "\n · Francisco Javier Trujillo (fjtrujy)"
+"\n · Libretro / RetroArch team"
 "\n · Rupert Carmichael (carmiker)"
 "\n · Orange Kryptonite (OrangeKryptonite)"
 "\n · KPreston2900050";
