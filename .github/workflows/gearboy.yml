@@ -85,7 +85,7 @@ jobs:
         path: platforms/windows/release/Gearboy.exe
   bsd:
     name: FreeBSD
-    runs-on: macos-10.15
+    runs-on: macos-12
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -93,7 +93,7 @@ jobs:
         fetch-depth: 0
     - name: make
       id: test
-      uses: vmactions/freebsd-vm@v0.1.5
+      uses: vmactions/freebsd-vm@v0
       with:
         usesh: true
         prepare: pkg install -y git gmake pkgconf SDL2 glew lang/gcc
