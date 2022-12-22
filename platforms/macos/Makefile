@@ -1,6 +1,6 @@
 include ../desktop-shared/Makefile.common
 
-DYLIB_PATH=/usr/local/opt/sdl2/lib
+DYLIB_PATH=/opt/homebrew/opt/sdl2/lib
 SDL_DYLIB=libSDL2-2.0.0.dylib
 APP_NAME=Gearboy
 
