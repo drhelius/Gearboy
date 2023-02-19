@@ -1,6 +1,5 @@
 include ../desktop-shared/Makefile.common
 
-
 # Brew use a different path on Apple Silicon as on Intel
 UNAME_P := $(shell uname -m)
 ifneq ($(filter arm64%,$(UNAME_P)),)
