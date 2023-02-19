@@ -16,7 +16,7 @@ If you find a bug or want new features, you can help me [openning an issue](http
 
 - **Windows**: [Gearboy-3.4.0-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.4.0/Gearboy-3.4.0-Windows.zip)
   + NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
-- **macOS**:
+- **macOS (Intel)**:
   + `brew install --cask gearboy`
   + Or install manually: [Gearboy-3.4.0-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.4.0/Gearboy-3.4.0-macOS.zip)
 - **Linux**: [Gearboy-3.4.0-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.4.0/Gearboy-3.4.0-Linux.tar.xz)
