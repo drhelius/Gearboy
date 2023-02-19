@@ -7,46 +7,9 @@ on:
     - cron: '0 0 * * 0'
 
 jobs:
-  linux:
-    name: Linux
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: Update OS
-      run: sudo apt-get update -qq
-    - name: Install dependencies
-      run: sudo apt-get install -y libsdl2-dev libglew-dev
-    - name: make
-      run: make
-      working-directory: platforms/linux
-  libretro:
-    name: Libretro (Ubuntu)
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: make
-      run: make
-      working-directory: platforms/libretro
-  ios:
-    name: iOS
-    runs-on: macOS-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: xcodebuild
-      run: xcodebuild clean build -sdk iphonesimulator -project Gearboy.xcodeproj -scheme Gearboy CODE_SIGNING_REQUIRED=NO
-      working-directory: platforms/ios
   macos:
-    name: macOS
-    runs-on: macOS-latest
+    name: macOS-arm64
+    runs-on: [self-hosted, macos, ARM64]
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -62,42 +25,3 @@ jobs:
       with:
         name: macOS App bundle
         path: platforms/macos/Gearboy.app
-  windows:
-    name: Windows
-    runs-on: windows-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
-    - name: Get git version
-      id: gitversion
-      run: echo "::set-output name=gitversion::$(git describe --abbrev=7 --dirty --always --tags)"
-    - name: msbuild
-      run: msbuild Gearboy.sln /t:Clean,Build /p:EmulatorBuild="${{ steps.gitversion.outputs.gitversion }}" /p:Configuration=Release
-      working-directory: platforms/windows
-    - name: Archive binary
-      uses: actions/upload-artifact@v2
-      with:
-        name: Windows binary
-        path: platforms/windows/release/Gearboy.exe
-  bsd:
-    name: FreeBSD
-    runs-on: macos-12
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: make
-      id: test
-      uses: vmactions/freebsd-vm@v0
-      with:
-        usesh: true
-        prepare: pkg install -y git gmake pkgconf SDL2 glew lang/gcc
-        run: |
-          cd platforms/bsd
-          gmake
-
