@@ -1,6 +1,14 @@
 include ../desktop-shared/Makefile.common
 
-DYLIB_PATH=/usr/local/opt/sdl2/lib
+# Brew use a different path on Apple Silicon as on Intel
+UNAME_P := $(shell uname -m)
+ifneq ($(filter arm64%,$(UNAME_P)),)
+	DYLIB_PATH=/opt/homebrew/lib/
+else
+	DYLIB_PATH=/usr/local/opt/sdl2/lib
+endif
+
+
 SDL_DYLIB=libSDL2-2.0.0.dylib
 APP_NAME=Gearboy
 
