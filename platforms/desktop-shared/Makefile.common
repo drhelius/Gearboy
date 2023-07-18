@@ -35,7 +35,7 @@ DEBUG ?= 0
 ifeq ($(DEBUG), 1)
     CXXFLAGS +=-DDEBUG -g3
 else
-    CXXFLAGS +=-DNDEBUG -O3 -flto
+    CXXFLAGS +=-DNDEBUG -O3 -flto=auto
 endif
 
 SANITIZE ?= 0
