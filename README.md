@@ -1,6 +1,6 @@
 # Gearboy
 
-[![Build](https://github.com/drhelius/Gearboy/workflows/Gearboy%20CI/badge.svg)](https://github.com/drhelius/Gearboy/actions)
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/drhelius/Gearboy/gearboy.yml)
 ![GitHub tag (with filter)](https://img.shields.io/github/v/tag/drhelius/Gearboy?label=version)
 ![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearboy)
 ![GitHub contributors](https://img.shields.io/github/contributors/drhelius/Gearboy)
