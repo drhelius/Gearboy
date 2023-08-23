@@ -1,12 +1,12 @@
 # Gearboy
 
-![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/drhelius/Gearboy/gearboy.yml)
-![GitHub tag (with filter)](https://img.shields.io/github/v/tag/drhelius/Gearboy?label=version)
-![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearboy)
-![GitHub contributors](https://img.shields.io/github/contributors/drhelius/Gearboy)
-![GitHub Sponsors](https://img.shields.io/github/sponsors/drhelius)
-![GitHub](https://img.shields.io/github/license/drhelius/Gearboy)
-![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/drhelius/Gearboy/gearboy.yml)](https://github.com/drhelius/Gearboy/actions/workflows/gearboy.yml)
+[![GitHub Releases)](https://img.shields.io/github/v/tag/drhelius/Gearboy?label=version)](https://github.com/drhelius/Gearboy/releases)
+[![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/commits/master)
+[![GitHub contributors](https://img.shields.io/github/contributors/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/graphs/contributors)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/drhelius)](https://github.com/sponsors/drhelius)
+[![GitHub](https://img.shields.io/github/license/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/blob/master/LICENSE)
+[![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)](https://twitter.com/drhelius)
 
 Gearboy is a cross-platform Game Boy / Game Boy Color emulator written in C++ that runs on Windows, macOS, Linux, BSD, iOS, Raspberry Pi and RetroArch.
 
