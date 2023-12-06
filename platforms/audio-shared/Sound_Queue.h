@@ -46,6 +46,7 @@ private:
 	sample_t* buf( int index );
 	void fill_buffer( Uint8*, int );
 	static void fill_buffer_( void*, Uint8*, int );
+	bool running_in_wsl();
 };
 
 #endif
