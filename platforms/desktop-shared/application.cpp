@@ -123,7 +123,7 @@ static int sdl_init(void)
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
     {
         Log("Error: %s\n", SDL_GetError());
-        return -1;
+        return 1;
     }
 
     SDL_VERSION(&application_sdl_build_version);
