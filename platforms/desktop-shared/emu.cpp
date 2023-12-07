@@ -707,12 +707,10 @@ static void update_debug_oam_buffers(void)
             int pixel_x = pixel & 0x7;
             int pixel_y = pixel / 8;
 
-            u16 line_addr = tile_addr + (2 * pixel_y);
+            u16 line_addr = tile_addr + (2 * (yflip ? (sprites_16 ? 15 : 7) - pixel_y : pixel_y));
 
             if (xflip)
                 pixel_x = 7 - pixel_x;
-            if (yflip)
-                line_addr = (sprites_16 ? 15 : 7) - line_addr;
 
             u8 byte1 = 0;
             u8 byte2 = 0;
