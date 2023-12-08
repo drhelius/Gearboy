@@ -55,6 +55,7 @@ struct config_Emulator
     std::string savefiles_path;
     int savestates_dir_option = 0;
     std::string savestates_path;
+    std::string last_open_path;
 };
 
 struct config_Video

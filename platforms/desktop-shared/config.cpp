@@ -91,6 +91,7 @@ void config_read(void)
     config_emulator.savefiles_path = read_string("Emulator", "SaveFilesPath");
     config_emulator.savestates_dir_option = read_int("Emulator", "SaveStatesDirOption", 0);
     config_emulator.savestates_path = read_string("Emulator", "SaveStatesPath");
+    config_emulator.last_open_path = read_string("Emulator", "LastOpenPath");
 
     if (config_emulator.savefiles_path.empty())
     {
@@ -188,6 +189,7 @@ void config_write(void)
     write_string("Emulator", "SaveFilesPath", config_emulator.savefiles_path);
     write_int("Emulator", "SaveStatesDirOption", config_emulator.savestates_dir_option);
     write_string("Emulator", "SaveStatesPath", config_emulator.savestates_path);
+    write_string("Emulator", "LastOpenPath", config_emulator.last_open_path);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {

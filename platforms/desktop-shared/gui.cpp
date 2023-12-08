@@ -1010,8 +1010,10 @@ static void main_window(void)
 
 static void file_dialog_open_rom(void)
 {
-    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip", &dialog_in_use))
+    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.col,.cv,.rom,.bin,.zip", &dialog_in_use, config_emulator.last_open_path))
     {
+        config_emulator.last_open_path.assign(file_dialog.selected_path_without_file_name);
+
         gui_load_rom(file_dialog.selected_path.c_str());
     }
 }

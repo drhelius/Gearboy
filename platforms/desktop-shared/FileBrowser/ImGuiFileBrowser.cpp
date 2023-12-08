@@ -106,7 +106,8 @@ namespace imgui_addons
         ImGui::CloseCurrentPopup();
     }
 
-    bool ImGuiFileBrowser::showFileDialog(const std::string& label, const DialogMode mode, const ImVec2& sz_xy, const std::string& valid_types, bool* is_open)
+    bool ImGuiFileBrowser::showFileDialog(const std::string& label, const DialogMode mode, const ImVec2& sz_xy,
+        const std::string& valid_types, bool* is_open, const std::string& start_path)
     {
         is_open_ = is_open;
         dialog_mode = mode;
@@ -138,6 +139,13 @@ namespace imgui_addons
                 {
                     this->valid_types = valid_types;
                     setValidExtTypes(valid_types);
+                }
+
+                if (!start_path.empty())
+                {
+                    current_path = start_path;
+                    if (current_path.back() != '/')
+                        current_path += '/';
                 }
 
                 /* If current path is empty (can happen on Windows if user closes dialog while inside MyComputer.
@@ -192,6 +200,7 @@ namespace imgui_addons
                 if(check)
                 {
                     selected_path = current_path + selected_fn;
+                    selected_path_without_file_name = current_path;
 
                     //Add a trailing "/" to emphasize its a directory not a file. If you want just the dir name it's accessible through "selected_fn"
                     if(dialog_mode == DialogMode::SELECT)
