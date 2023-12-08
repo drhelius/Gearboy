@@ -55,8 +55,6 @@ int application_init(const char* arg)
 
     int ret = sdl_init();
 
-    application_fullscreen = false;
-    
     config_init();
     config_read();
 
@@ -74,6 +72,9 @@ int application_init(const char* arg)
     renderer_init();
 
     SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+
+    if (config_emulator.fullscreen)
+        application_trigger_fullscreen(true);
 
     if (IsValidPointer(arg) && (strlen(arg) > 0))
     {
@@ -364,8 +365,8 @@ static void sdl_events_emu(const SDL_Event* event)
 
             if (key == SDL_SCANCODE_F11)
             {
-                application_fullscreen = !application_fullscreen;
-                application_trigger_fullscreen(application_fullscreen);
+                config_emulator.fullscreen = !config_emulator.fullscreen;
+                application_trigger_fullscreen(config_emulator.fullscreen);
                 break;
             }
 

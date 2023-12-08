@@ -16,7 +16,7 @@
  * along with this program.  If not, see http://www.gnu.org/licenses/
  *
  */
-
+#include <math.h>
 #include "imgui/imgui.h"
 #include "imgui/imgui_memory_editor.h"
 #include "imgui/fonts/RobotoMedium.h"
@@ -46,7 +46,6 @@ static char dmg_bootrom_path[4096] = "";
 static char gbc_bootrom_path[4096] = "";
 static char savefiles_path[4096] = "";
 static char savestates_path[4096] = "";
-static bool show_main_menu = true;
 
 static void main_menu(void);
 static void main_window(void);
@@ -187,7 +186,7 @@ void gui_shortcut(gui_ShortCutEvent event)
             gui_debug_go_back();
         break;
     case gui_ShortcutShowMainMenu:
-        show_main_menu = !show_main_menu;
+        config_emulator.show_menu = !config_emulator.show_menu;
         break;
     default:
         break;
@@ -240,7 +239,7 @@ static void main_menu(void)
         for (int c = 0; c < 4; c++)
             custom_palette[i][c] = color_int_to_float(config_video.color[i][c]);
     
-    if (show_main_menu && ImGui::BeginMainMenuBar())
+    if (config_emulator.show_menu && ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu(GEARBOY_TITLE))
         {
@@ -548,12 +547,12 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            if (ImGui::MenuItem("Full Screen", "F11", &application_fullscreen))
+            if (ImGui::MenuItem("Full Screen", "F11", &config_emulator.fullscreen))
             {
-                application_trigger_fullscreen(application_fullscreen);
+                application_trigger_fullscreen(config_emulator.fullscreen);
             }
 
-            ImGui::MenuItem("Show Menu", "CTRL+M", &show_main_menu);
+            ImGui::MenuItem("Show Menu", "CTRL+M", &config_emulator.show_menu);
 
             ImGui::Separator();
 
@@ -915,7 +914,7 @@ static void main_menu(void)
 static void main_window(void)
 {
     int w = (int)ImGui::GetIO().DisplaySize.x;
-    int h = (int)ImGui::GetIO().DisplaySize.y - (show_main_menu ? main_menu_height : 0);
+    int h = (int)ImGui::GetIO().DisplaySize.y - (config_emulator.show_menu ? main_menu_height : 0);
 
     int selected_ratio = config_debug.debug ? 0 : config_video.ratio;
     float ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
@@ -962,7 +961,7 @@ static void main_window(void)
     int main_window_height = h_corrected * factor;
 
     int window_x = (w - (w_corrected * factor)) / 2;
-    int window_y = ((h - (h_corrected * factor)) / 2) + (show_main_menu ? main_menu_height : 0);
+    int window_y = ((h - (h_corrected * factor)) / 2) + (config_emulator.show_menu ? main_menu_height : 0);
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
