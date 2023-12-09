@@ -121,6 +121,10 @@ void application_trigger_fullscreen(bool fullscreen)
 
 static int sdl_init(void)
 {
+#ifdef _WIN32
+    SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
+#endif
+
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
     {
         Log("Error: %s\n", SDL_GetError());
