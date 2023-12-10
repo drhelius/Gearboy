@@ -43,6 +43,7 @@ static void sdl_shortcuts_gui(const SDL_Event* event);
 static void run_emulator(void);
 static void render(void);
 static void frame_throttle(void);
+static void save_window_size(void);
 
 int application_init(const char* arg)
 {
@@ -53,11 +54,10 @@ int application_init(const char* arg)
         Log ("Loading with argv: %s");
     }
 
-    int ret = sdl_init();
-
     config_init();
     config_read();
 
+    int ret = sdl_init();
     emu_init();
 
     strcpy(emu_savefiles_path, config_emulator.savefiles_path.c_str());
@@ -86,6 +86,7 @@ int application_init(const char* arg)
 
 void application_destroy(void)
 {
+    save_window_size();
     config_write();
     config_destroy();
     renderer_destroy();
@@ -140,7 +141,7 @@ static int sdl_init(void)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    sdl_window = SDL_CreateWindow(GEARBOY_TITLE " " GEARBOY_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 700, window_flags);
+    sdl_window = SDL_CreateWindow(GEARBOY_TITLE " " GEARBOY_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, config_emulator.window_width, config_emulator.window_height, window_flags);
     gl_context = SDL_GL_CreateContext(sdl_window);
     SDL_GL_MakeCurrent(sdl_window, gl_context);
     SDL_GL_SetSwapInterval(0);
@@ -532,5 +533,16 @@ static void frame_throttle(void)
 
         if (elapsed < min)
             SDL_Delay((Uint32)(min - elapsed));
+    }
+}
+
+static void save_window_size(void)
+{
+    if (!config_emulator.fullscreen)
+    {
+        int width, height;
+        SDL_GetWindowSize(sdl_window, &width, &height);
+        config_emulator.window_width = width;
+        config_emulator.window_height = height;
     }
 }

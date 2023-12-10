@@ -58,6 +58,8 @@ struct config_Emulator
     int savestates_dir_option = 0;
     std::string savestates_path;
     std::string last_open_path;
+    int window_width = 800;
+    int window_height = 700;
 };
 
 struct config_Video
