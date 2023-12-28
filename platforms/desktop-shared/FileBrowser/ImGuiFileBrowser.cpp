@@ -146,6 +146,7 @@ namespace imgui_addons
                     current_path = start_path;
                     if (current_path.back() != '/')
                         current_path += '/';
+                    parsePathTabs(current_path);
                 }
 
                 /* If current path is empty (can happen on Windows if user closes dialog while inside MyComputer.
@@ -798,11 +799,11 @@ namespace imgui_addons
                 //Remove trailing "*" returned by ** dir->wdirp->patt **
                 current_directory.pop_back();
                 current_path = current_directory;
+
+                //Create a vector of each directory in the file path for the filepath bar. Not Necessary for linux as starting directory is "/"
+                
             }
-
-            //Create a vector of each directory in the file path for the filepath bar. Not Necessary for linux as starting directory is "/"
             parsePathTabs(current_path);
-
             #endif // OSWIN
 
             // store all the files and directories within directory and clear previous entries
@@ -1104,6 +1105,8 @@ namespace imgui_addons
     {
         std::string path_element = "";
         std::string root = "";
+
+        current_dirlist.clear();
 
         #ifdef OSWIN
         current_dirlist.push_back("Computer");
