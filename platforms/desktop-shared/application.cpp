@@ -22,6 +22,7 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "emu.h"
 #include "gui.h"
+#include "gui_debug.h"
 #include "config.h"
 #include "renderer.h"
 
@@ -46,14 +47,9 @@ static void render(void);
 static void frame_throttle(void);
 static void save_window_size(void);
 
-int application_init(const char* arg)
+int application_init(const char* rom_file, const char* symbol_file)
 {
     Log ("<·> %s %s Desktop App <·>", GEARBOY_TITLE, GEARBOY_VERSION);
-
-    if (IsValidPointer(arg) && (strlen(arg) > 0))
-    {
-        Log ("Loading with argv: %s");
-    }
 
     config_init();
     config_read();
@@ -74,12 +70,16 @@ int application_init(const char* arg)
 
     SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
 
-    if (config_emulator.fullscreen)
-        application_trigger_fullscreen(true);
-
-    if (IsValidPointer(arg) && (strlen(arg) > 0))
+    if (IsValidPointer(rom_file) && (strlen(rom_file) > 0))
     {
-        gui_load_rom(arg);
+        Log ("Rom file argument: %s", rom_file);
+        gui_load_rom(rom_file);
+    }
+    if (IsValidPointer(symbol_file) && (strlen(symbol_file) > 0))
+    {
+        Log ("Symbol file argument: %s", symbol_file);
+        gui_debug_reset_symbols();
+        gui_debug_load_symbols_file(symbol_file);
     }
 
     return ret;
