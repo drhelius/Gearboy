@@ -40,6 +40,7 @@ static void sdl_destroy(void);
 static void sdl_events(void);
 static void sdl_events_emu(const SDL_Event* event);
 static void sdl_shortcuts_gui(const SDL_Event* event);
+static void handle_mouse_cursor(void);
 static void run_emulator(void);
 static void render(void);
 static void frame_throttle(void);
@@ -101,6 +102,7 @@ void application_mainloop(void)
     {
         frame_time_start = SDL_GetPerformanceCounter();
         sdl_events();
+        handle_mouse_cursor();
         run_emulator();
         render();
         frame_time_end = SDL_GetPerformanceCounter();
@@ -468,6 +470,22 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
                 break;
         }
     }
+}
+
+static void handle_mouse_cursor(void)
+{
+    bool hide_cursor = false;
+
+    if (gui_main_window_hovered && !config_debug.debug)
+        hide_cursor = true;
+
+    if (!config_emulator.show_menu && !config_debug.debug)
+        hide_cursor = true;
+
+    if (hide_cursor)
+        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+    else
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
 }
 
 static void run_emulator(void)

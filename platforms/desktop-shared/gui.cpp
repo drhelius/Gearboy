@@ -238,9 +238,13 @@ static void main_menu(void)
     for (int i = 0; i < config_max_custom_palettes; i++)
         for (int c = 0; c < 4; c++)
             custom_palette[i][c] = color_int_to_float(config_video.color[i][c]);
-    
+
+    gui_main_menu_hovered = false;
+
     if (config_emulator.show_menu && ImGui::BeginMainMenuBar())
     {
+        gui_main_menu_hovered = ImGui::IsWindowHovered();
+
         if (ImGui::BeginMenu(GEARBOY_TITLE))
         {
             gui_in_use = true;
@@ -975,6 +979,7 @@ static void main_window(void)
         ImGui::SetNextWindowPos(ImVec2(7, 32), ImGuiCond_FirstUseEver);
 
         ImGui::Begin(emu_is_cgb() ? "Game Boy Color###debug_output" : "Game Boy###debug_output", &config_debug.show_gameboy, flags);
+        gui_main_window_hovered = ImGui::IsWindowHovered();
     }
     else
     {
@@ -985,6 +990,7 @@ static void main_window(void)
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav;
 
         ImGui::Begin(GEARBOY_TITLE, 0, flags);
+        gui_main_window_hovered = ImGui::IsWindowHovered();
     }
 
     ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2((float)main_window_width, (float)main_window_height));

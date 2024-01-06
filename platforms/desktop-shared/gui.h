@@ -58,6 +58,8 @@ enum gui_ShortCutEvent
 };
 
 EXTERN bool gui_in_use;
+EXTERN bool gui_main_window_hovered;
+EXTERN bool gui_main_menu_hovered;
 EXTERN ImFont* gui_default_font;
 EXTERN ImFont* gui_roboto_font;
 
