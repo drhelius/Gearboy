@@ -40,17 +40,25 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - Battery powered RAM save support.
 - Save states.
 - Compressed rom support (ZIP).
-- Bootrom (bios) support.
+- Bootrom (BIOS) support.
 - *Game Genie* and *GameShark* cheat support.
 - Supported platforms (standalone): Windows, Linux, BSD, macOS, Raspberry Pi and iOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
 - Full debugger with just-in-time disassembler, cpu breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
-- Windows and Linux *Portable Mode* by creating a file named `portable.ini` in the same directory as the application binary.
+- Windows and Linux *Portable Mode*.
 - Rom loading from the command line by adding the rom path as an argument.
 - Support for modern game controllers through [gamecontrollerdb.txt](https://github.com/gabomdq/SDL_GameControllerDB) file located in the same directory as the application binary.
 
 <img src="http://www.geardome.com/files/gearboy/gearboy_debug_01.png" width="880" height="455">
 
+## Tips
+
+- *Portable Mode*: Create an empty file named `portable.ini` in the same directory as the application binary to enable portable mode.
+- *Debug Symbols*: The emulator always tries to load a symbol file at the same time a rom is being loaded. For example, for ```path_to_rom_file.gb``` it tries to load ```path_to_rom_file.sym```. It is also possible to load a symbol file using the GUI or using the CLI.
+- *Command Line Usage*: ```gearboy [rom_file] [symbol_file]```
+- *Mouse Cursor*: Automatically hides when hovering main output window or when Main Menu is disabled.
+- *Boot ROM*: Gearboy can run with or without a Boot ROM. You can optionally load a Boot ROM and enable it.
+  
 ## Build Instructions
 
 ### Windows
