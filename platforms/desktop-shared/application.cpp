@@ -122,6 +122,11 @@ void application_trigger_fullscreen(bool fullscreen)
     SDL_SetWindowFullscreen(sdl_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
+void application_trigger_fit_to_content(int width, int height)
+{
+    SDL_SetWindowSize(sdl_window, width, height);
+}
+
 static int sdl_init(void)
 {
 #ifdef _WIN32
@@ -148,7 +153,7 @@ static int sdl_init(void)
     SDL_GL_MakeCurrent(sdl_window, gl_context);
     SDL_GL_SetSwapInterval(0);
 
-    SDL_SetWindowMinimumSize(sdl_window, 644, 602);
+    SDL_SetWindowMinimumSize(sdl_window, 500, 300);
 
     application_gamepad_mappings = SDL_GameControllerAddMappingsFromRW(SDL_RWFromFile("gamecontrollerdb.txt", "rb"), 1);
 
