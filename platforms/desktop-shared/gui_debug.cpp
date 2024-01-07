@@ -130,10 +130,27 @@ void gui_debug_load_symbols_file(const char* path)
     if (file.is_open())
     {
         std::string line;
+        bool valid_section = true;
 
         while (std::getline(file, line))
         {
-            add_symbol(line.c_str());
+            size_t comment = line.find_first_of(';');
+            if (comment != std::string::npos)
+                line = line.substr(0, comment);
+            line = line.erase(0, line.find_first_not_of(" \t\r\n"));
+            line = line.erase(line.find_last_not_of(" \t\r\n") + 1);
+
+            if (line.empty())
+                continue;
+
+            if (line.find("[") != std::string::npos)
+            {
+                valid_section = (line.find("[labels]") != std::string::npos);
+                continue;
+            }
+
+            if (valid_section)
+                add_symbol(line.c_str());
         }
 
         file.close();
