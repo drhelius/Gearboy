@@ -8,7 +8,7 @@
 [![GitHub](https://img.shields.io/github/license/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/blob/master/LICENSE)
 [![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)](https://twitter.com/drhelius)
 
-Gearboy is a cross-platform Game Boy / Game Boy Color emulator written in C++ that runs on Windows, macOS, Linux, BSD, iOS, Raspberry Pi and RetroArch.
+Gearboy is a cross-platform Game Boy / Game Boy Color emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch.
 
 This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md). If you find it useful, please, consider [sponsoring](https://github.com/sponsors/drhelius).
 
@@ -42,7 +42,7 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - Compressed rom support (ZIP).
 - Bootrom (BIOS) support.
 - *Game Genie* and *GameShark* cheat support.
-- Supported platforms (standalone): Windows, Linux, BSD, macOS, Raspberry Pi and iOS.
+- Supported platforms (standalone): Windows, Linux, BSD and macOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
 - Full debugger with just-in-time disassembler, cpu breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
 - Windows and Linux *Portable Mode*.
@@ -80,7 +80,7 @@ make dist
 
 ### Linux
 
-- Ubuntu / Debian:
+- Ubuntu / Debian / Raspberry Pi Raspbian:
 
 ``` shell
 sudo apt-get install build-essential libsdl2-dev libglew-dev
@@ -106,15 +106,9 @@ cd platforms/bsd
 gmake
 ```
 
-### iOS
-
-- Install latest Xcode for macOS.
-- Build the project `platforms/ios/Gearboy.xcodeproj`.
-- Run it on real hardware using your iOS developer certificate. Make sure it builds on *Release* for better performance.
-
 ### Libretro
 
-- Ubuntu / Debian:
+- Ubuntu / Debian / Raspberry Pi Raspbian:
 
 ``` shell
 sudo apt-get install build-essential
@@ -129,36 +123,6 @@ sudo dnf install @development-tools gcc-c++
 cd platforms/libretro
 make
 ```
-
-### Raspberry Pi 4 - Raspbian (Desktop)
-
-``` shell
-sudo apt install build-essential libsdl2-dev libglew-dev
-cd platforms/raspberrypi4
-make
-```
-
-### Raspberry Pi 2 & 3 - Raspbian (CLI)
-
-- Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
-
-``` shell
-sudo apt-get update
-sudo apt-get upgrade
-sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg-dev libtiff5-dev libwebp-dev automake
-cd ~
-wget https://www.libsdl.org/release/SDL2-2.0.12.tar.gz
-tar zxvf SDL2-2.0.12.tar.gz
-cd SDL2-2.0.12 && mkdir build && cd build
-../configure --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl --host=armv7l-raspberry-linux-gnueabihf
-make -j 4
-sudo make install
-```
-
-- Install libconfig library dependencies for development: `sudo apt-get install libconfig++-dev`
-- Use `make -j 4` in the `platforms/raspberrypi3/x64/` folder to build the project.
-- Use `export SDL_AUDIODRIVER=ALSA` before running the emulator for the best performance.
-- Gearboy generates a `gearboy.cfg` configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ## Accuracy Tests
 
