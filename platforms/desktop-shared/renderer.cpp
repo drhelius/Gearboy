@@ -218,7 +218,7 @@ static void render_emu_mix(void)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
 
-    float alpha = 0.15f + (0.20f * (1.0f - config_video.mix_frames_intensity));
+    float alpha = 0.15f + (0.50f * (1.0f - config_video.mix_frames_intensity));
 
     if (first_frame)
     {

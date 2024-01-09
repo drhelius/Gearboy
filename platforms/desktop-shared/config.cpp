@@ -117,9 +117,9 @@ void config_read(void)
     config_video.fps = read_bool("Video", "FPS", false);
     config_video.bilinear = read_bool("Video", "Bilinear", false);
     config_video.mix_frames = read_bool("Video", "MixFrames", true);
-    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.50f);
+    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.75f);
     config_video.matrix = read_bool("Video", "Matrix", true);
-    config_video.matrix_intensity = read_float("Video", "MatrixIntensity", 0.30f);
+    config_video.matrix_intensity = read_float("Video", "MatrixIntensity", 0.20f);
     config_video.palette = read_int("Video", "Palette", 0);
     for (int i = 0; i < config_max_custom_palettes; i++)
     {
