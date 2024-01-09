@@ -1,4 +1,4 @@
-nname: Gearboy CI
+name: Gearboy CI
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   linux:
-    name: Linux
+    name: Linux (Ubuntu)
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
