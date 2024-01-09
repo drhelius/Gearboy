@@ -65,7 +65,7 @@ jobs:
       id: get-gitversion
       run: |
         $cmdout = git describe --abbrev=7 --dirty --always --tags
-        echo "$gitversion = $cmdout" >> $Env:GITHUB_OUTPUT
+        echo "gitversion = $cmdout" >> $Env:GITHUB_OUTPUT
     - name: msbuild
       run: msbuild Gearboy.sln /t:Clean,Build /p:EmulatorBuild="${{ steps.gitversion.outputs.gitversion }}" /p:Configuration=Release
       working-directory: platforms/windows
