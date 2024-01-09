@@ -56,14 +56,14 @@ jobs:
     runs-on: windows-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.3.1
     - name: Get git version
       id: gitversion
-      run: echo "::set-output name=gitversion::$(git describe --abbrev=7 --dirty --always --tags)"
+      run: echo "VERSION=$(git describe --abbrev=7 --dirty --always --tags)}" >> $GITHUB_OUTPUT
     - name: msbuild
       run: msbuild Gearboy.sln /t:Clean,Build /p:EmulatorBuild="${{ steps.gitversion.outputs.gitversion }}" /p:Configuration=Release
       working-directory: platforms/windows
