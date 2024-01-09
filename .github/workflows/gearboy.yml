@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Update OS
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: make
@@ -38,7 +38,7 @@ jobs:
     runs-on: macOS-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Install dependencies
@@ -47,7 +47,7 @@ jobs:
       run: make dist
       working-directory: platforms/macos
     - name: Archive binary
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: macOS App bundle
         path: platforms/macos/Gearboy.app
@@ -60,7 +60,7 @@ jobs:
       with:
         fetch-depth: 0
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
+      uses: microsoft/setup-msbuild@v1.3.1
     - name: Get git version
       id: gitversion
       run: echo "::set-output name=gitversion::$(git describe --abbrev=7 --dirty --always --tags)"
@@ -68,7 +68,7 @@ jobs:
       run: msbuild Gearboy.sln /t:Clean,Build /p:EmulatorBuild="${{ steps.gitversion.outputs.gitversion }}" /p:Configuration=Release
       working-directory: platforms/windows
     - name: Archive binary
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Windows binary
         path: platforms/windows/release/Gearboy.exe
