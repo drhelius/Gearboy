@@ -62,7 +62,7 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.3.1
     - name: Get git version
-      id: get-gitversion
+      id: gitversion
       run: |
         $cmdout = git describe --abbrev=7 --dirty --always --tags
         echo "gitversion = $cmdout" >> $Env:GITHUB_OUTPUT
