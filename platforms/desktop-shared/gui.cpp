@@ -572,16 +572,16 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Scale"))
             {
-                ImGui::PushItemWidth(100.0f);
-                ImGui::Combo("##scale", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0Zoom X4\0\0");
+                ImGui::PushItemWidth(250.0f);
+                ImGui::Combo("##scale", &config_video.scale, "Integer Scale (Auto)\0Integer Scale (X1)\0Integer Scale (X2)\0Integer Scale (X3)\0Integer Scale (X4)\0Scale to Window Height\0Scale to Window Width & Height\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Aspect Ratio"))
             {
-                ImGui::PushItemWidth(160.0f);
-                ImGui::Combo("##ratio", &config_video.ratio, "Game Boy\0Standard (4:3)\0Wide (16:9)\0Fit Content to Window\0\0");
+                ImGui::PushItemWidth(170.0f);
+                ImGui::Combo("##ratio", &config_video.ratio, "Game Boy (1:1 PAR)\0Standard (4:3 PAR)\0Wide (16:9 PAR)\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -935,47 +935,60 @@ static void main_window(void)
 
     switch (selected_ratio)
     {
-        case 0:
-            ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
-            break;
         case 1:
             ratio = 4.0f / 3.0f;
             break;
         case 2:
             ratio = 16.0f / 9.0f;
             break;
-        case 3:
-            ratio = (float)w / (float)h;
-            break;
         default:
             ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
     }
 
-    int w_corrected = (int)(selected_ratio == 3 ? w : GAMEBOY_HEIGHT * ratio);
-    int h_corrected = selected_ratio == 3 ? h : GAMEBOY_HEIGHT;
-
-    int factor = 0;
-
-    if (config_video.scale > 0)
+    if (!config_debug.debug && config_video.scale == 6)
     {
-        factor = config_video.scale;
+        ratio = (float)w / (float)h;
     }
-    else if (config_debug.debug)
+
+    int w_corrected = GAMEBOY_HEIGHT * ratio;
+    int h_corrected = GAMEBOY_HEIGHT;
+    int scale_multiplier = 0;
+
+    if (config_debug.debug)
     {
-        factor = 1;
+        if ((config_video.scale > 0) && (config_video.scale < 5))
+            scale_multiplier = config_video.scale;
+        else
+            scale_multiplier = 1;
     }
     else
     {
-        int factor_w = w / w_corrected;
-        int factor_h = h / h_corrected;
-        factor = (factor_w < factor_h) ? factor_w : factor_h;
+        if ((config_video.scale > 0) && (config_video.scale < 5))
+        {
+            scale_multiplier = config_video.scale;
+        }
+        else if (config_video.scale == 0)
+        {
+            int factor_w = w / w_corrected;
+            int factor_h = h / h_corrected;
+            scale_multiplier = (factor_w < factor_h) ? factor_w : factor_h;
+        }
+        else if (config_video.scale == 5)
+        {
+            scale_multiplier = 1;
+            h_corrected = h;
+            w_corrected = h * ratio;
+        }
+        else if (config_video.scale == 6)
+        {
+            scale_multiplier = 1;
+            w_corrected = w;
+            h_corrected = h;
+        }
     }
 
-    main_window_width = w_corrected * factor;
-    main_window_height = h_corrected * factor;
-
-    int window_x = (w - (w_corrected * factor)) / 2;
-    int window_y = ((h - (h_corrected * factor)) / 2) + (config_emulator.show_menu ? main_menu_height : 0);
+    main_window_width = w_corrected * scale_multiplier;
+    main_window_height = h_corrected * scale_multiplier;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -993,6 +1006,9 @@ static void main_window(void)
     }
     else
     {
+        int window_x = (w - (w_corrected * scale_multiplier)) / 2;
+        int window_y = ((h - (h_corrected * scale_multiplier)) / 2) + (config_emulator.show_menu ? main_menu_height : 0);
+
         ImGui::SetNextWindowSize(ImVec2((float)main_window_width, (float)main_window_height));
         ImGui::SetNextWindowPos(ImVec2((float)window_x, (float)window_y));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
