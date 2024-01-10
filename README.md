@@ -36,7 +36,6 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - Game Boy Color support.
 - LCD screen ghosting effect as seen in the original Game Boy.
 - LCD dot matrix effect.
-- Sound emulation using SDL Audio and [Gb_Snd_Emu library](https://www.slack.net/~ant/libs/audio.html#Gb_Snd_Emu).
 - Battery powered RAM save support.
 - Save states.
 - Compressed rom support (ZIP).
@@ -53,11 +52,11 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 
 ## Tips
 
+- *Boot ROM*: Gearboy can run with or without a Boot ROM. You can optionally load a Boot ROM and enable it.
+- *Mouse Cursor*: Automatically hides when hovering main output window or when Main Menu is disabled.
 - *Portable Mode*: Create an empty file named `portable.ini` in the same directory as the application binary to enable portable mode.
 - *Debug Symbols*: The emulator always tries to load a symbol file at the same time a rom is being loaded. For example, for ```path_to_rom_file.gb``` it tries to load ```path_to_rom_file.sym```. It is also possible to load a symbol file using the GUI or using the CLI.
 - *Command Line Usage*: ```gearboy [rom_file] [symbol_file]```
-- *Mouse Cursor*: Automatically hides when hovering main output window or when Main Menu is disabled.
-- *Boot ROM*: Gearboy can run with or without a Boot ROM. You can optionally load a Boot ROM and enable it.
   
 ## Build Instructions
 
