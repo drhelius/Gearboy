@@ -73,20 +73,20 @@ jobs:
       with:
         name: Windows binary
         path: platforms/windows/release/Gearboy.exe
-#  bsd:
-#    name: FreeBSD
-#    runs-on: macos-12
-#    steps:
-#    - name: Checkout
-#      uses: actions/checkout@v2
-#      with:
-#        fetch-depth: 0
-#    - name: make
-#      id: test
-#      uses: vmactions/freebsd-vm@v0
-#      with:
-#        usesh: true
-#        prepare: pkg install -y git gmake pkgconf SDL2 glew lang/gcc
-#        run: |
-#          cd platforms/bsd
-#          gmake
+  bsd:
+    name: FreeBSD
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: make
+      id: test
+      uses: vmactions/freebsd-vm@v1
+      with:
+        usesh: true
+        prepare: pkg install -y git gmake pkgconf SDL2 glew lang/gcc
+        run: |
+          cd platforms/bsd
+          gmake
