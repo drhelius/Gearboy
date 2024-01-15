@@ -39,7 +39,6 @@
     <ClCompile Include="..\desktop-shared\application.cpp" />
     <ClCompile Include="..\desktop-shared\config.cpp" />
     <ClCompile Include="..\desktop-shared\emu.cpp" />
-    <ClCompile Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.cpp" />
     <ClCompile Include="..\desktop-shared\gui.cpp" />
     <ClCompile Include="..\desktop-shared\gui_debug.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui.cpp" />
@@ -49,6 +48,7 @@
     <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\desktop-shared\main.cpp" />
+    <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp" />
     <ClCompile Include="..\desktop-shared\renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -89,8 +89,6 @@
     <ClInclude Include="..\desktop-shared\application.h" />
     <ClInclude Include="..\desktop-shared\config.h" />
     <ClInclude Include="..\desktop-shared\emu.h" />
-    <ClInclude Include="..\desktop-shared\FileBrowser\Dirent\dirent.h" />
-    <ClInclude Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.h" />
     <ClInclude Include="..\desktop-shared\gui.h" />
     <ClInclude Include="..\desktop-shared\gui_debug.h" />
     <ClInclude Include="..\desktop-shared\gui_debug_constants.h" />

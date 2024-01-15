@@ -20,7 +20,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_memory_editor.h"
 #include "imgui/fonts/RobotoMedium.h"
-#include "FileBrowser/ImGuiFileBrowser.h"
+#include "nfd/nfd.h"
 #include "config.h"
 #include "emu.h"
 #include "../../src/gearboy.h"
@@ -33,7 +33,6 @@
 #define GUI_IMPORT
 #include "gui.h"
 
-static imgui_addons::ImGuiFileBrowser file_dialog;
 static int main_menu_height;
 static bool dialog_in_use = false;
 static SDL_Scancode* configured_key;
@@ -79,6 +78,11 @@ static Cartridge::CartridgeTypes get_mbc(int index);
 
 void gui_init(void)
 {
+    if (NFD_Init() != NFD_OKAY)
+    {
+        Log("Error: %s", NFD_GetError());
+    }
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -122,6 +126,7 @@ void gui_init(void)
 void gui_destroy(void)
 {
     ImGui::DestroyContext();
+    NFD_Quit();
 }
 
 void gui_render(void)
@@ -872,35 +877,35 @@ static void main_menu(void)
     if (open_rom || shortcut_open_rom)
     {
         shortcut_open_rom = false;
-        ImGui::OpenPopup("Open ROM...");
+        file_dialog_open_rom();
     }
 
     if (open_ram)
-        ImGui::OpenPopup("Load RAM From...");
+        file_dialog_load_ram();
 
     if (save_ram)
-        ImGui::OpenPopup("Save RAM As...");
+        file_dialog_save_ram();
 
     if (open_state)
-        ImGui::OpenPopup("Load State From...");
+        file_dialog_load_state();
     
     if (save_state)
-        ImGui::OpenPopup("Save State As...");
+        file_dialog_save_state();
 
     if (choose_save_file_path)
-        ImGui::OpenPopup("Choose Save File Folder...");
+        file_dialog_choose_save_file_path();
 
     if (choose_savestates_path)
-        ImGui::OpenPopup("Choose Savestate Folder...");
+        file_dialog_choose_savestate_path();
 
     if (open_dmg_bootrom)
-        ImGui::OpenPopup("Load DMG Bootrom From...");
+        file_dialog_load_dmg_bootrom();
     
     if (open_gbc_bootrom)
-        ImGui::OpenPopup("Load GBC Bootrom From...");
+        file_dialog_load_gbc_bootrom();
 
     if (open_symbols)
-        ImGui::OpenPopup("Load Symbols File...");
+        file_dialog_load_symbols();
 
     if (open_about)
     {
@@ -909,16 +914,6 @@ static void main_menu(void)
     }
     
     popup_modal_about();
-    file_dialog_open_rom();
-    file_dialog_load_ram();
-    file_dialog_save_ram();
-    file_dialog_load_state();
-    file_dialog_save_state();
-    file_dialog_choose_save_file_path();
-    file_dialog_choose_savestate_path();
-    file_dialog_load_dmg_bootrom();
-    file_dialog_load_gbc_bootrom();
-    file_dialog_load_symbols();
 
     for (int i = 0; i < config_max_custom_palettes; i++)
         for (int c = 0; c < 4; c++)
@@ -1041,106 +1036,169 @@ static void main_window(void)
 
 static void file_dialog_open_rom(void)
 {
-    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.col,.cv,.rom,.bin,.zip", &dialog_in_use, config_emulator.last_open_path))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[4] = { { "ROM Files", "gb,gbc,cgb,sgb,dmg,rom,zip" }, { "Game Boy", "gb,dmg" }, { "Game Boy Color", "gbc,cgb" }, { "Super Game Boy", "sgb" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 4, config_emulator.last_open_path.c_str());
+    if (result == NFD_OKAY)
     {
-        config_emulator.last_open_path.assign(file_dialog.selected_path_without_file_name);
-
-        gui_load_rom(file_dialog.selected_path.c_str());
+        std::string path = outPath;
+        std::string::size_type pos = path.find_last_of("\\/");
+        config_emulator.last_open_path.assign(path.substr(0, pos));
+        gui_load_rom(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Open ROM Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_load_ram(void)
 {
-    if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "RAM Files", "sav" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    if (result == NFD_OKAY)
     {
-        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.force_dmg, get_mbc(config_emulator.mbc), config_emulator.force_gba);
+        emu_load_ram(outPath, config_emulator.force_dmg, get_mbc(config_emulator.mbc), config_emulator.force_gba);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Load RAM Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_save_ram(void)
 {
-    if(file_dialog.showFileDialog("Save RAM As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".sav", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "RAM Files", "sav" } };
+    nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
+    if (result == NFD_OKAY)
     {
-        std::string save_path = file_dialog.selected_path;
-
-        if (save_path.rfind(file_dialog.ext) != (save_path.size()-file_dialog.ext.size()))
-        {
-            save_path += file_dialog.ext;
-        }
-
-        emu_save_ram(save_path.c_str());
+        emu_save_ram(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Save RAM Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_load_state(void)
 {
-    if(file_dialog.showFileDialog("Load State From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".state,*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "Save State Files", "state" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    if (result == NFD_OKAY)
     {
-        emu_load_state_file(file_dialog.selected_path.c_str());
+        emu_load_state_file(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Load State Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_save_state(void)
 {
-    if(file_dialog.showFileDialog("Save State As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".state", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "Save State Files", "state" } };
+    nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
+    if (result == NFD_OKAY)
     {
-        std::string state_path = file_dialog.selected_path;
-
-        if (state_path.rfind(file_dialog.ext) != (state_path.size()-file_dialog.ext.size()))
-        {
-            state_path += file_dialog.ext;
-        }
-
-        emu_save_state_file(state_path.c_str());
+        emu_save_state_file(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Save State Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_choose_save_file_path(void)
 {
-    if(file_dialog.showFileDialog("Choose Save File Folder...", imgui_addons::ImGuiFileBrowser::DialogMode::SELECT, ImVec2(700, 310), "*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdresult_t result = NFD_PickFolder(&outPath, savefiles_path);
+    if (result == NFD_OKAY)
     {
-        strcpy(savefiles_path, file_dialog.selected_path.c_str());
-        config_emulator.savefiles_path.assign(file_dialog.selected_path);
+        strcpy(savefiles_path, outPath);
+        config_emulator.savefiles_path.assign(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Savefile Path Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_choose_savestate_path(void)
 {
-    if(file_dialog.showFileDialog("Choose Savestate Folder...", imgui_addons::ImGuiFileBrowser::DialogMode::SELECT, ImVec2(700, 310), "*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdresult_t result = NFD_PickFolder(&outPath, savestates_path);
+    if (result == NFD_OKAY)
     {
-        strcpy(savestates_path, file_dialog.selected_path.c_str());
-        config_emulator.savestates_path.assign(file_dialog.selected_path);
+        strcpy(savestates_path, outPath);
+        config_emulator.savestates_path.assign(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Savestate Path Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_load_dmg_bootrom(void)
 {
-    if(file_dialog.showFileDialog("Load DMG Bootrom From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".bin,.gb,*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "BIOS Files", "bin,rom,bios,gb" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    if (result == NFD_OKAY)
     {
-        strcpy(dmg_bootrom_path, file_dialog.selected_path.c_str());
-        config_emulator.dmg_bootrom_path.assign(file_dialog.selected_path);
-
+        strcpy(dmg_bootrom_path, outPath);
+        config_emulator.dmg_bootrom_path.assign(outPath);
         emu_load_bootrom_dmg(dmg_bootrom_path);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Load SMS Bios Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_load_gbc_bootrom(void)
 {
-    if(file_dialog.showFileDialog("Load GBC Bootrom From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".bin,.gbc,*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "BIOS Files", "bin,rom,bios,gbc" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    if (result == NFD_OKAY)
     {
-        strcpy(gbc_bootrom_path, file_dialog.selected_path.c_str());
-        config_emulator.gbc_bootrom_path.assign(file_dialog.selected_path);
-
+        strcpy(gbc_bootrom_path, outPath);
+        config_emulator.gbc_bootrom_path.assign(outPath);
         emu_load_bootrom_gbc(gbc_bootrom_path);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Load SMS Bios Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_load_symbols(void)
 {
-    if(file_dialog.showFileDialog("Load Symbols File...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), ".sym,*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "Symbol Files", "sym" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    if (result == NFD_OKAY)
     {
         gui_debug_reset_symbols();
-        gui_debug_load_symbols_file(file_dialog.selected_path.c_str());
+        gui_debug_load_symbols_file(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Load Symbols Error: %s", NFD_GetError());
     }
 }
 

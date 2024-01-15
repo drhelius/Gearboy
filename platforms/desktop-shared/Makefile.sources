@@ -1,0 +1,44 @@
+SRC_DIR = ../../src
+DESKTOP_SRC_DIR=../desktop-shared
+AUDIO_SRC_DIR=../audio-shared
+
+SOURCES_C :=
+
+SOURCES_CXX := \
+    $(DESKTOP_SRC_DIR)/main.cpp \
+    $(DESKTOP_SRC_DIR)/emu.cpp \
+    $(DESKTOP_SRC_DIR)/gui.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug.cpp \
+    $(DESKTOP_SRC_DIR)/application.cpp \
+    $(DESKTOP_SRC_DIR)/config.cpp \
+    $(DESKTOP_SRC_DIR)/renderer.cpp \
+    $(DESKTOP_SRC_DIR)/imgui/imgui_impl_sdl.cpp \
+    $(DESKTOP_SRC_DIR)/imgui/imgui_impl_opengl2.cpp \
+    $(DESKTOP_SRC_DIR)/imgui/imgui.cpp \
+    $(DESKTOP_SRC_DIR)/imgui/imgui_draw.cpp \
+    $(DESKTOP_SRC_DIR)/imgui/imgui_widgets.cpp \
+    $(AUDIO_SRC_DIR)/Sound_Queue.cpp \
+    $(SRC_DIR)/Audio.cpp \
+    $(SRC_DIR)/Cartridge.cpp \
+    $(SRC_DIR)/CommonMemoryRule.cpp \
+    $(SRC_DIR)/GearboyCore.cpp \
+    $(SRC_DIR)/Input.cpp \
+    $(SRC_DIR)/IORegistersMemoryRule.cpp \
+    $(SRC_DIR)/MBC1MemoryRule.cpp \
+    $(SRC_DIR)/MBC2MemoryRule.cpp \
+    $(SRC_DIR)/MBC3MemoryRule.cpp \
+    $(SRC_DIR)/MBC5MemoryRule.cpp \
+    $(SRC_DIR)/Memory.cpp \
+    $(SRC_DIR)/MemoryRule.cpp \
+    $(SRC_DIR)/MultiMBC1MemoryRule.cpp \
+    $(SRC_DIR)/opcodes.cpp \
+    $(SRC_DIR)/opcodes_cb.cpp \
+    $(SRC_DIR)/Processor.cpp \
+    $(SRC_DIR)/RomOnlyMemoryRule.cpp \
+    $(SRC_DIR)/Video.cpp \
+    $(SRC_DIR)/audio/Blip_Buffer.cpp \
+    $(SRC_DIR)/audio/Effects_Buffer.cpp \
+    $(SRC_DIR)/audio/Gb_Apu.cpp \
+    $(SRC_DIR)/audio/Gb_Apu_State.cpp \
+    $(SRC_DIR)/audio/Gb_Oscs.cpp \
+    $(SRC_DIR)/audio/Multi_Buffer.cpp

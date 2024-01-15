@@ -16,17 +16,14 @@
     <Filter Include="desktop-shared\imgui">
       <UniqueIdentifier>{4642afc7-a495-4170-b504-7283adcdce92}</UniqueIdentifier>
     </Filter>
-    <Filter Include="desktop-shared\filebrowser">
-      <UniqueIdentifier>{fff362e7-09c1-4dae-baa1-7022b57d90b8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="desktop-shared\mini">
       <UniqueIdentifier>{741038af-a906-4314-be4b-3522c4db0e8d}</UniqueIdentifier>
     </Filter>
     <Filter Include="desktop-shared\imgui\fonts">
       <UniqueIdentifier>{e4192cc4-2be0-4f65-87ee-74901af5e89c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="desktop-shared\filebrowser\dirent">
-      <UniqueIdentifier>{91ae7ec4-31db-4763-bcd0-caf62486f29d}</UniqueIdentifier>
+    <Filter Include="desktop_shared\nfd">
+      <UniqueIdentifier>{db3b4a89-bbfe-4ee9-a1a5-1ccfceb83f2d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -141,11 +138,11 @@
     <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp">
       <Filter>desktop-shared\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.cpp">
-      <Filter>desktop-shared\filebrowser</Filter>
-    </ClCompile>
     <ClCompile Include="..\desktop-shared\gui_debug.cpp">
       <Filter>desktop-shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp">
+      <Filter>desktop_shared\nfd</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -292,12 +289,6 @@
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h">
       <Filter>desktop-shared\imgui\fonts</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.h">
-      <Filter>desktop-shared\filebrowser</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\FileBrowser\Dirent\dirent.h">
-      <Filter>desktop-shared\filebrowser\dirent</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\mINI\ini.h">
       <Filter>desktop-shared\mini</Filter>

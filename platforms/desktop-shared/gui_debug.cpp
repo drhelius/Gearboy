@@ -20,7 +20,6 @@
 #include <math.h>
 #include "imgui/imgui.h"
 #include "imgui/imgui_memory_editor.h"
-#include "FileBrowser/ImGuiFileBrowser.h"
 #include "config.h"
 #include "emu.h"
 #include "renderer.h"
