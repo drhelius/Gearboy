@@ -14,7 +14,7 @@ else
 	DYLIB_PATH=/usr/local/opt/sdl2/lib
 endif
 SDL_DYLIB=libSDL2-2.0.0.dylib
-APP_NAME=Gearsystem
+APP_NAME=Gearboy
 
 bundle:
 	rm -rf $(APP_NAME).app
