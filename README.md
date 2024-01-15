@@ -97,10 +97,18 @@ make
 
 ### BSD
 
+- FreeBSD:
+
+``` shell
+su root -c "pkg install -y git gmake pkgconf SDL2 glew lang/gcc"
+cd platforms/bsd
+gmake
+```
+
 - NetBSD:
 
 ``` shell
-su root -c "pkgin install gmake pkgconf SDL2 glew"
+su root -c "pkgin install gmake pkgconf SDL2 glew lang/gcc"
 cd platforms/bsd
 gmake
 ```
