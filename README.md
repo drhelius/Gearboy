@@ -82,7 +82,7 @@ make dist
 - Ubuntu / Debian / Raspberry Pi (Raspbian):
 
 ``` shell
-sudo apt-get install build-essential libsdl2-dev libglew-dev
+sudo apt-get install build-essential libsdl2-dev libglew-dev libgtk-3-dev
 cd platforms/linux
 make
 ```
@@ -90,7 +90,7 @@ make
 - Fedora:
 
 ``` shell
-sudo dnf install @development-tools gcc-c++ SDL2-devel glew-devel
+sudo dnf install @development-tools gcc-c++ SDL2-devel glew-devel gtk3-devel
 cd platforms/linux
 make
 ```
@@ -100,7 +100,7 @@ make
 - FreeBSD:
 
 ``` shell
-su root -c "pkg install -y git gmake pkgconf SDL2 glew lang/gcc"
+su root -c "pkg install -y git gmake pkgconf SDL2 glew lang/gcc gtk3"
 cd platforms/bsd
 gmake
 ```
@@ -108,7 +108,7 @@ gmake
 - NetBSD:
 
 ``` shell
-su root -c "pkgin install gmake pkgconf SDL2 glew lang/gcc"
+su root -c "pkgin install gmake pkgconf SDL2 glew lang/gcc gtk3"
 cd platforms/bsd
 gmake
 ```
