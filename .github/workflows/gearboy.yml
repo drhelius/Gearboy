@@ -22,6 +22,11 @@ jobs:
     - name: make
       run: make
       working-directory: platforms/linux
+    - name: Archive binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: Linux (Ubuntu) binary
+        path: platforms/linux/gearboy
   libretro:
     name: Libretro (Ubuntu)
     runs-on: ubuntu-latest
@@ -33,6 +38,11 @@ jobs:
     - name: make
       run: make
       working-directory: platforms/libretro
+    - name: Archive binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: Libretro (Linux) core
+        path: platforms/libretro/gearboy_libretro.so
   macos:
     name: macOS
     runs-on: macOS-latest
@@ -87,6 +97,11 @@ jobs:
       with:
         usesh: true
         prepare: pkg install -y git gmake pkgconf SDL2 glew lang/gcc gtk3
+    - name: Archive binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: BSD (FreeBSD) binary
+        path: platforms/bsd/gearboy
         run: |
           cd platforms/bsd
           gmake
