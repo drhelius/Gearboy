@@ -97,11 +97,11 @@ jobs:
       with:
         usesh: true
         prepare: pkg install -y git gmake pkgconf SDL2 glew lang/gcc gtk3
+        run: |
+          cd platforms/bsd
+          gmake
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
         name: BSD (FreeBSD) binary
         path: platforms/bsd/gearboy
-        run: |
-          cd platforms/bsd
-          gmake
