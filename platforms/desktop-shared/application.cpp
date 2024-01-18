@@ -452,6 +452,9 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
             case SDL_SCANCODE_S:
                 gui_shortcut(gui_ShortcutSaveState);
                 break;
+            case SDL_SCANCODE_X:
+                gui_shortcut(gui_ShortcutScreenshot);
+                break;
             case SDL_SCANCODE_M:
                 gui_shortcut(gui_ShortcutShowMainMenu);
                 break;

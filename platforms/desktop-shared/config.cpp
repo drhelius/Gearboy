@@ -96,6 +96,7 @@ void config_read(void)
     config_emulator.last_open_path = read_string("Emulator", "LastOpenPath");
     config_emulator.window_width = read_int("Emulator", "WindowWidth", 800);
     config_emulator.window_height = read_int("Emulator", "WindowHeight", 700);
+    config_emulator.status_messages = read_bool("Emulator", "StatusMessages", false);
 
     if (config_emulator.savefiles_path.empty())
     {
@@ -198,6 +199,7 @@ void config_write(void)
     write_string("Emulator", "LastOpenPath", config_emulator.last_open_path);
     write_int("Emulator", "WindowWidth", config_emulator.window_width);
     write_int("Emulator", "WindowHeight", config_emulator.window_height);
+    write_bool("Emulator", "StatusMessages", config_emulator.status_messages);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {

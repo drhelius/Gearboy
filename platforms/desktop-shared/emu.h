@@ -82,6 +82,7 @@ EXTERN void emu_load_bootrom_dmg(const char* file_path);
 EXTERN void emu_load_bootrom_gbc(const char* file_path);
 EXTERN void emu_enable_bootrom_dmg(bool enable);
 EXTERN void emu_enable_bootrom_gbc(bool enable);
+EXTERN void emu_save_screenshot(const char* file_path);
 
 #undef EMU_IMPORT
 #undef EXTERN
