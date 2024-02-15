@@ -16,6 +16,9 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-20.04]
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -36,6 +39,9 @@ jobs:
   libretro:
     name: Libretro (Ubuntu)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -55,6 +61,9 @@ jobs:
       matrix:
         os: [macos-13, macos-14]
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -73,6 +82,9 @@ jobs:
   windows:
     name: Windows
     runs-on: windows-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -95,6 +107,9 @@ jobs:
   bsd:
     name: FreeBSD
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -114,3 +129,24 @@ jobs:
       with:
         name: BSD (FreeBSD) binary
         path: platforms/bsd/gearboy
+  release:
+    name: Release
+    needs: [linux, macos, windows]
+    if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Get changes since lastest tag
+      run: |
+        echo "CHANGE_LOG=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline)" >> $GITHUB_ENV
+    - name: Release
+      uses: ncipollo/release-action@v1
+      with:
+        name: Gearboy ${{ github.ref }}
+        draft: true
+        body: ${{ env.CHANGE_LOG }}
