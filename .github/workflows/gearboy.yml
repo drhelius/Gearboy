@@ -1,7 +1,10 @@
 name: Gearboy CI
 
 on:
+  workflow_dispatch:
   push:
+    paths-ignore:
+      - '**.md'
   pull_request:
   schedule:
     - cron: '0 0 * * 0'
