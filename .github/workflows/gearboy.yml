@@ -194,44 +194,28 @@ jobs:
     - name: Prepare release directory
       run: |
         mkdir -p release
-    - name: Download Windows artifact
+    - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-windows
+        pattern: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-*
         path: release
-    - name: Download macOS Intel artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-intel
-        path: release
-    - name: Download macOS ARM artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-arm
-        path: release
-    - name: Download Ubuntu 22.04 artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-ubuntu-22.04
-        path: release
-    - name: Download Ubuntu 20.04 artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-ubuntu-20.04
-        path: release
-    - name: Download BSD artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-bsd
-        path: release
+    - name: Zip directories
+      run: |
+        ls -lsR release
+        cd release
+        for d in */ ; do
+            cd $d
+            zip -r ../$d.zip *
+            cd ..
+        done
     - name: Create release
       run: | 
         cd release
         ls -lsR
         gh release create ${{ github.ref }} \
           '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-windows.zip' \
-          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-13.zip' \
-          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-14.zip' \
+          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-intel.zip' \
+          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-arm.zip' \
           '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-ubuntu-22.04.zip' \
           '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-ubuntu-20.04.zip' \
           '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-bsd.zip' \
