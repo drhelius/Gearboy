@@ -144,9 +144,60 @@ jobs:
     - name: Get changes since lastest tag
       run: |
         echo "CHANGE_LOG=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline)" >> $GITHUB_ENV
-    - name: Release
-      uses: ncipollo/release-action@v1
+    - name: Prepare release directories
+      run: |
+        mkdir -p release/windows
+        mkdir -p release/macos/intel
+        mkdir -p release/macos/arm
+        mkdir -p release/linux/ubuntu-22.04
+        mkdir -p release/linux/ubuntu-20.04
+        cp platforms/README.txt release/windows
+        cp platforms/README.txt release/macos/intel
+        cp platforms/README.txt release/macos/arm
+        cp platforms/README.txt release/linux/ubuntu-22.04
+        cp platforms/README.txt release/linux/ubuntu-20.04
+    - name: Download Windows artifact
+      uses: actions/download-artifact@v4
       with:
-        name: Gearboy ${{ github.ref }}
-        draft: true
-        body: ${{ env.CHANGE_LOG }}
+        name: Windows binary
+        path: release/windows
+    - name: Download macOS Intel artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: macos-13 App bundle
+        path: release/macos/intel
+    - name: Download macOS ARM artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: macos-14 App bundle
+        path: release/macos/arm
+    - name: Download Ubuntu 22.04 artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: Linux (ubuntu-22.04) binary
+        path: release/linux/ubuntu-22.04
+    - name: Download Ubuntu 20.04 artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: Linux (ubuntu-20.04) binary
+        path: release/linux/ubuntu-20.04
+    - name: Zip release directories
+      run: |
+        cd release
+        zip ${{ github.ref }}-windows.zip windows
+        zip ${{ github.ref }}-macos-intel.zip macos/intel
+        zip ${{ github.ref }}-macos-arm.zip macos/arm
+        zip ${{ github.ref }}-ubuntu-22.04.zip linux/ubuntu-22.04
+        zip ${{ github.ref }}-ubuntu-20.04.zip linux/ubuntu-20.04
+    - name: Create release
+      run: |  
+        gh release create ${{ github.ref }} \
+          '${{ github.ref }}-windows.zip' \
+          '${{ github.ref }}-macos-intel.zip' \
+          '${{ github.ref }}-macos-arm.zip' \
+          '${{ github.ref }}-ubuntu-22.04.zip' \
+          '${{ github.ref }}-ubuntu-20.04.zip' \
+          --generate-notes \
+          --draft          
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
