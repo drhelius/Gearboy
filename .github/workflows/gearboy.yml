@@ -184,19 +184,19 @@ jobs:
     - name: Zip release directories
       run: |
         cd release
-        zip ${{ github.ref }}-windows.zip windows
-        zip ${{ github.ref }}-macos-intel.zip macos/intel
-        zip ${{ github.ref }}-macos-arm.zip macos/arm
-        zip ${{ github.ref }}-ubuntu-22.04.zip linux/ubuntu-22.04
-        zip ${{ github.ref }}-ubuntu-20.04.zip linux/ubuntu-20.04
+        zip ${{ github.ref_name }}-windows.zip windows
+        zip ${{ github.ref_name }}-macos-intel.zip macos/intel
+        zip ${{ github.ref_name }}-macos-arm.zip macos/arm
+        zip ${{ github.ref_name }}-ubuntu-22.04.zip linux/ubuntu-22.04
+        zip ${{ github.ref_name }}-ubuntu-20.04.zip linux/ubuntu-20.04
     - name: Create release
       run: |  
         gh release create ${{ github.ref }} \
-          '${{ github.ref }}-windows.zip' \
-          '${{ github.ref }}-macos-intel.zip' \
-          '${{ github.ref }}-macos-arm.zip' \
-          '${{ github.ref }}-ubuntu-22.04.zip' \
-          '${{ github.ref }}-ubuntu-20.04.zip' \
+          '${{ github.ref_name }}-windows.zip' \
+          '${{ github.ref_name }}-macos-intel.zip' \
+          '${{ github.ref_name }}-macos-arm.zip' \
+          '${{ github.ref_name }}-ubuntu-22.04.zip' \
+          '${{ github.ref_name }}-ubuntu-20.04.zip' \
           --generate-notes \
           --draft          
       env:
