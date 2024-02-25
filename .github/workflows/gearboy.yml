@@ -1,4 +1,4 @@
-name: Gearboy CI
+name: Main Workflow
 
 on:
   workflow_dispatch:
@@ -8,6 +8,10 @@ on:
   pull_request:
   schedule:
     - cron: '0 0 * * 0'
+
+env:
+  name-lowercase: gearboy
+  name-uppercase: Gearboy
 
 jobs:
   linux:
@@ -31,11 +35,17 @@ jobs:
     - name: make
       run: make
       working-directory: platforms/linux
+    - name: Prepare artifact directory
+      run: |
+        mkdir -p artifact
+        cp platforms/README.txt artifact
+        cp platforms/gamecontrollerdb.txt artifact
+        cp platforms/linux/${{ env.name-lowercase }} artifact
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: Linux (${{ matrix.os }}) binary
-        path: platforms/linux/gearboy
+        name: Linux binary (${{ matrix.os }})
+        path: artifact/*
   libretro:
     name: Libretro (Ubuntu)
     runs-on: ubuntu-latest
@@ -53,8 +63,8 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: Libretro (Linux) core
-        path: platforms/libretro/gearboy_libretro.so
+        name: Libretro core (Linux)
+        path: platforms/libretro/${{ env.name-lowercase }}_libretro.so
   macos:
     name: macOS
     strategy:
@@ -74,11 +84,17 @@ jobs:
     - name: make
       run: make dist
       working-directory: platforms/macos
+    - name: Prepare artifact directory
+      run: |
+        mkdir -p artifact
+        cp platforms/README.txt artifact
+        cp platforms/gamecontrollerdb.txt artifact
+        cp platforms/macos/${{ env.name-uppercase }}.app artifact
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.os }} App bundle
-        path: platforms/macos/Gearboy.app
+        name: macOS app bundle (${{ matrix.os }})
+        path: artifact/*
   windows:
     name: Windows
     runs-on: windows-latest
@@ -97,13 +113,21 @@ jobs:
       shell: bash
       run: echo "gitversion=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_OUTPUT
     - name: msbuild
-      run: msbuild Gearboy.sln /t:Clean,Build /p:EmulatorBuild="${{ steps.gitversion.outputs.gitversion }}" /p:Configuration=Release
+      run: msbuild ${{ env.name-uppercase }}.sln /t:Clean,Build /p:EmulatorBuild="${{ steps.gitversion.outputs.gitversion }}" /p:Configuration=Release
       working-directory: platforms/windows
+    - name: Prepare artifact directory
+      run: |
+        mkdir -p artifact
+        cp platforms/README.txt artifact
+        cp platforms/gamecontrollerdb.txt artifact
+        cp platforms/windows/dependencies/glew-2.1.0/bin/Release/x64/glew32.dll artifact
+        cp platforms/windows/dependencies/SDL2-2.28.5/lib/x64/SDL2.dll artifact
+        cp platforms/windows/release/${{ env.name-uppercase }}.exe artifact
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
         name: Windows binary
-        path: platforms/windows/release/Gearboy.exe
+        path: artifact/*
   bsd:
     name: FreeBSD
     runs-on: ubuntu-latest
@@ -124,11 +148,17 @@ jobs:
         run: |
           cd platforms/bsd
           gmake
+    - name: Prepare artifact directory
+      run: |
+        mkdir -p artifact
+        cp platforms/README.txt artifact
+        cp platforms/gamecontrollerdb.txt artifact
+        cp platforms/linux/${{ env.name-lowercase }} artifact
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: BSD (FreeBSD) binary
-        path: platforms/bsd/gearboy
+        name: BSD binary (FreeBSD)
+        path: artifact/*
   release:
     name: Release
     needs: [linux, macos, windows]
@@ -141,52 +171,34 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: Prepare release directories
+    - name: Prepare release directory
       run: |
-        mkdir -p release/windows
-        mkdir -p release/macos/intel
-        mkdir -p release/macos/arm
-        mkdir -p release/linux/ubuntu-22.04
-        mkdir -p release/linux/ubuntu-20.04
-        cp platforms/README.txt release/windows
-        cp platforms/README.txt release/macos/intel
-        cp platforms/README.txt release/macos/arm
-        cp platforms/README.txt release/linux/ubuntu-22.04
-        cp platforms/README.txt release/linux/ubuntu-20.04
+        mkdir -p release
     - name: Download Windows artifact
       uses: actions/download-artifact@v4
       with:
         name: Windows binary
-        path: release/windows
+        path: release
     - name: Download macOS Intel artifact
       uses: actions/download-artifact@v4
       with:
         name: macos-13 App bundle
-        path: release/macos/intel
+        path: release
     - name: Download macOS ARM artifact
       uses: actions/download-artifact@v4
       with:
         name: macos-14 App bundle
-        path: release/macos/arm
+        path: release
     - name: Download Ubuntu 22.04 artifact
       uses: actions/download-artifact@v4
       with:
         name: Linux (ubuntu-22.04) binary
-        path: release/linux/ubuntu-22.04
+        path: release
     - name: Download Ubuntu 20.04 artifact
       uses: actions/download-artifact@v4
       with:
         name: Linux (ubuntu-20.04) binary
-        path: release/linux/ubuntu-20.04
-    - name: Zip release directories
-      run: |
-        ls -lsR
-        cd release
-        zip ${{ github.ref_name }}-windows.zip windows
-        zip ${{ github.ref_name }}-macos-intel.zip macos/intel
-        zip ${{ github.ref_name }}-macos-arm.zip macos/arm
-        zip ${{ github.ref_name }}-ubuntu-22.04.zip linux/ubuntu-22.04
-        zip ${{ github.ref_name }}-ubuntu-20.04.zip linux/ubuntu-20.04
+        path: release
     - name: Create release
       run: | 
         cd release
