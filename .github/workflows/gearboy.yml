@@ -206,8 +206,10 @@ jobs:
         for f in *; do
           if [ -d "$f" ]; then
             cd $f
+            echo "Compressing $f"
             zip -r $f.zip *
             mv $f.zip ../
+            cd ..
           fi
         done
     - name: Create release
