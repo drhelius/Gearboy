@@ -212,8 +212,8 @@ jobs:
           fi
         done
     - name: Create release
-      run: | 
-        gh release create ${{ github.ref }} release/*.zip \
+      run: |
+        gh release create ${{ github.ref_name }} ./release/*.zip \
           --title ${{ env.NAME_UPPER }} ${{ github.ref_name }} \
           --draft \
           --generate-notes
