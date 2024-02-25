@@ -31,7 +31,7 @@ jobs:
     - name: Update OS
       run: sudo apt-get update -qq
     - name: Install dependencies
-      run: sudo apt-get install -y libsdl2-dev libglew-dev libgtk-3-
+      run: sudo apt-get install -y libsdl2-dev libglew-dev libgtk-3-dev
     - name: Get build number
       run: |
         echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
@@ -50,7 +50,7 @@ jobs:
         name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-${{ matrix.os }}
         path: artifact/*
   libretro:
-    name: Libretro (Ubuntu)
+    name: Libretro (ubuntu)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -76,6 +76,11 @@ jobs:
     strategy:
       matrix:
         os: [macos-13, macos-14]
+        include:
+        - os: macos-13
+          architecture: intel
+        - os: macos-14
+          architecture: arm
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -102,7 +107,7 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-${{ matrix.os }}
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-${{ matrix.architecture }}
         path: artifact/*
   windows:
     name: Windows
@@ -183,43 +188,52 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    - name: Get build number
+      run: |
+        echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
     - name: Prepare release directory
       run: |
         mkdir -p release
     - name: Download Windows artifact
       uses: actions/download-artifact@v4
       with:
-        name: Windows binary
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-windows
         path: release
     - name: Download macOS Intel artifact
       uses: actions/download-artifact@v4
       with:
-        name: macos-13 App bundle
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-intel
         path: release
     - name: Download macOS ARM artifact
       uses: actions/download-artifact@v4
       with:
-        name: macos-14 App bundle
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-arm
         path: release
     - name: Download Ubuntu 22.04 artifact
       uses: actions/download-artifact@v4
       with:
-        name: Linux (ubuntu-22.04) binary
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-ubuntu-22.04
         path: release
     - name: Download Ubuntu 20.04 artifact
       uses: actions/download-artifact@v4
       with:
-        name: Linux (ubuntu-20.04) binary
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-ubuntu-20.04
+        path: release
+    - name: Download BSD artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-bsd
         path: release
     - name: Create release
       run: | 
         cd release
         gh release create ${{ github.ref }} \
-          '${{ github.ref_name }}-windows.zip' \
-          '${{ github.ref_name }}-macos-intel.zip' \
-          '${{ github.ref_name }}-macos-arm.zip' \
-          '${{ github.ref_name }}-ubuntu-22.04.zip' \
-          '${{ github.ref_name }}-ubuntu-20.04.zip' \
+          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-windows.zip' \
+          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-13.zip' \
+          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-14.zip' \
+          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-ubuntu-22.04.zip' \
+          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-ubuntu-20.04.zip' \
+          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-bsd.zip' \
           --generate-notes \
           --draft          
       env:
