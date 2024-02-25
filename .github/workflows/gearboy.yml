@@ -205,7 +205,8 @@ jobs:
         cd release
         for d in */ ; do
             cd $d
-            zip -r ../$d.zip *
+            zip -r $d.zip *
+            mv $d.zip ../
             cd ..
         done
     - name: Create release
