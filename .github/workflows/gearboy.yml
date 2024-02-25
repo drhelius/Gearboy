@@ -190,7 +190,8 @@ jobs:
         zip ${{ github.ref_name }}-ubuntu-22.04.zip linux/ubuntu-22.04
         zip ${{ github.ref_name }}-ubuntu-20.04.zip linux/ubuntu-20.04
     - name: Create release
-      run: |  
+      run: | 
+        cd release
         gh release create ${{ github.ref }} \
           '${{ github.ref_name }}-windows.zip' \
           '${{ github.ref_name }}-macos-intel.zip' \
