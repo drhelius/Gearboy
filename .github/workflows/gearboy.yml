@@ -201,7 +201,6 @@ jobs:
         path: release
     - name: Zip directories
       run: |
-        ls -lsR release
         cd release
         for f in *; do
           if [ -d "$f" ]; then
@@ -214,16 +213,9 @@ jobs:
         done
     - name: Create release
       run: | 
-        cd release
-        ls -lsR
-        gh release create ${{ github.ref }} \
-          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-windows.zip' \
-          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-intel.zip' \
-          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-arm.zip' \
-          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-ubuntu-22.04.zip' \
-          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-ubuntu-20.04.zip' \
-          '${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-bsd.zip' \
-          --generate-notes \
-          --draft          
+        gh release create ${{ github.ref }} release/*.zip \
+          --title ${{ env.NAME_UPPER }} ${{ github.ref_name }} \
+          --draft \
+          --generate-notes
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
