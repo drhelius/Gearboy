@@ -89,7 +89,7 @@ jobs:
         mkdir -p artifact
         cp platforms/README.txt artifact
         cp platforms/gamecontrollerdb.txt artifact
-        cp platforms/macos/${{ env.name-uppercase }}.app artifact
+        cp -R platforms/macos/${{ env.name-uppercase }}.app artifact
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
