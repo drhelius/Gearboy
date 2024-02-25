@@ -143,7 +143,7 @@ jobs:
         name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-windows
         path: artifact/*
   bsd:
-    name: FreeBSD
+    name: BSD
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -178,7 +178,7 @@ jobs:
         path: artifact/*
   release:
     name: Release
-    needs: [linux, macos, windows]
+    needs: [linux, macos, windows, bsd]
     if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
