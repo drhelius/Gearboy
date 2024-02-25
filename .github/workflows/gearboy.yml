@@ -10,8 +10,8 @@ on:
     - cron: '0 0 * * 0'
 
 env:
-  name-lowercase: gearboy
-  name-uppercase: Gearboy
+  NAME_LOWER: gearboy
+  NAME_UPPER: Gearboy
 
 jobs:
   linux:
@@ -31,7 +31,10 @@ jobs:
     - name: Update OS
       run: sudo apt-get update -qq
     - name: Install dependencies
-      run: sudo apt-get install -y libsdl2-dev libglew-dev libgtk-3-dev
+      run: sudo apt-get install -y libsdl2-dev libglew-dev libgtk-3-
+    - name: Get build number
+      run: |
+        echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
     - name: make
       run: make
       working-directory: platforms/linux
@@ -40,11 +43,11 @@ jobs:
         mkdir -p artifact
         cp platforms/README.txt artifact
         cp platforms/gamecontrollerdb.txt artifact
-        cp platforms/linux/${{ env.name-lowercase }} artifact
+        cp platforms/linux/${{ env.NAME_LOWER }} artifact
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: Linux binary (${{ matrix.os }})
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-${{ matrix.os }}
         path: artifact/*
   libretro:
     name: Libretro (Ubuntu)
@@ -57,14 +60,17 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    - name: Get build number
+      run: |
+        echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
     - name: make
       run: make
       working-directory: platforms/libretro
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: Libretro core (Linux)
-        path: platforms/libretro/${{ env.name-lowercase }}_libretro.so
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-libretro-linux
+        path: platforms/libretro/${{ env.NAME_LOWER }}_libretro.so
   macos:
     name: macOS
     strategy:
@@ -81,6 +87,9 @@ jobs:
         fetch-depth: 0
     - name: Install dependencies
       run: brew install sdl2
+    - name: Get build number
+      run: |
+        echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
     - name: make
       run: make dist
       working-directory: platforms/macos
@@ -89,11 +98,11 @@ jobs:
         mkdir -p artifact
         cp platforms/README.txt artifact
         cp platforms/gamecontrollerdb.txt artifact
-        cp -R platforms/macos/${{ env.name-uppercase }}.app artifact
+        cp -R platforms/macos/${{ env.NAME_UPPER }}.app artifact
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: macOS app bundle (${{ matrix.os }})
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-${{ matrix.os }}
         path: artifact/*
   windows:
     name: Windows
@@ -108,12 +117,12 @@ jobs:
         fetch-depth: 0
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
-    - name: Get git version
-      id: gitversion
+    - name: Get build number
       shell: bash
-      run: echo "gitversion=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_OUTPUT
+      run: |
+        echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
     - name: msbuild
-      run: msbuild ${{ env.name-uppercase }}.sln /t:Clean,Build /p:EmulatorBuild="${{ steps.gitversion.outputs.gitversion }}" /p:Configuration=Release
+      run: msbuild ${{ env.NAME_UPPER }}.sln /t:Clean,Build /p:EmulatorBuild="${{ env.BUILD_NUMBER }}" /p:Configuration=Release
       working-directory: platforms/windows
     - name: Prepare artifact directory
       run: |
@@ -122,11 +131,11 @@ jobs:
         cp platforms/gamecontrollerdb.txt artifact
         cp platforms/windows/dependencies/glew-2.1.0/bin/Release/x64/glew32.dll artifact
         cp platforms/windows/dependencies/SDL2-2.28.5/lib/x64/SDL2.dll artifact
-        cp platforms/windows/release/${{ env.name-uppercase }}.exe artifact
+        cp platforms/windows/release/${{ env.NAME_UPPER }}.exe artifact
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: Windows binary
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-windows
         path: artifact/*
   bsd:
     name: FreeBSD
@@ -139,6 +148,9 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    - name: Get build number
+      run: |
+        echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
     - name: make
       id: test
       uses: vmactions/freebsd-vm@v1
@@ -153,11 +165,11 @@ jobs:
         mkdir -p artifact
         cp platforms/README.txt artifact
         cp platforms/gamecontrollerdb.txt artifact
-        cp platforms/bsd/${{ env.name-lowercase }} artifact
+        cp platforms/bsd/${{ env.NAME_LOWER }} artifact
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: BSD binary (FreeBSD)
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-bsd
         path: artifact/*
   release:
     name: Release
