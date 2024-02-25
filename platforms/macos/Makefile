@@ -24,7 +24,7 @@ bundle:
 	cp iconfile.icns $(APP_NAME).app/Contents/Resources/
 	cp $(TARGET) $(APP_NAME).app/Contents/MacOS/
 	cp run.sh $(APP_NAME).app/Contents/MacOS/
-	cp gamecontrollerdb.txt $(APP_NAME).app/Contents/MacOS/
+	cp ../gamecontrollerdb.txt $(APP_NAME).app/Contents/MacOS/
 	install_name_tool -change $(DYLIB_PATH)/$(SDL_DYLIB) @$(APP_NAME).app/Contents/MacOS/$(SDL_DYLIB) $(APP_NAME).app/Contents/MacOS/$(APP_NAME)
 
 dist: clean all bundle
