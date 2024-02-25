@@ -153,7 +153,7 @@ jobs:
         mkdir -p artifact
         cp platforms/README.txt artifact
         cp platforms/gamecontrollerdb.txt artifact
-        cp platforms/linux/${{ env.name-lowercase }} artifact
+        cp platforms/bsd/${{ env.name-lowercase }} artifact
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
