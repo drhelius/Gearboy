@@ -141,9 +141,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: Get changes since lastest tag
-      run: |
-        echo "CHANGE_LOG=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline)" >> $GITHUB_ENV
     - name: Prepare release directories
       run: |
         mkdir -p release/windows
@@ -183,6 +180,7 @@ jobs:
         path: release/linux/ubuntu-20.04
     - name: Zip release directories
       run: |
+        ls -lsR
         cd release
         zip ${{ github.ref_name }}-windows.zip windows
         zip ${{ github.ref_name }}-macos-intel.zip macos/intel
