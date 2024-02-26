@@ -120,7 +120,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: Add msbuild to PATH
+    - name: Setup msbuild
       uses: microsoft/setup-msbuild@v2
     - name: Get build number
       shell: bash
@@ -156,7 +156,7 @@ jobs:
     - name: Get build number
       run: |
         echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
-    - name: make
+    - name: Run FreeBSD and gmake
       id: test
       uses: vmactions/freebsd-vm@v1
       with:
@@ -214,7 +214,7 @@ jobs:
     - name: Create release
       run: |
         gh release create ${{ github.ref_name }} ./release/*.zip \
-          --title ${{ env.NAME_UPPER }} ${{ github.ref_name }} \
+          --title "${{ env.NAME_UPPER }} ${{ github.ref_name }}" \
           --draft \
           --generate-notes
       env:
