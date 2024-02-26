@@ -215,7 +215,6 @@ jobs:
       run: |
         gh release create ${{ github.ref_name }} ./release/*.zip \
           --title "${{ env.NAME_UPPER }} ${{ github.ref_name }}" \
-          --draft \
           --generate-notes
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
