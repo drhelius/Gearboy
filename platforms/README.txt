@@ -29,7 +29,6 @@ Features:
 -----------------------------------------------------
 Gearboy is licensed under the GNU General Public License v3.0 License:
 
-Game Boy / Gameboy Color emulator for iOS, Mac, Raspberry Pi, Windows and Linux
 Copyright (C) 2012 Ignacio Sanchez
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
