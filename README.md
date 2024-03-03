@@ -18,14 +18,17 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 
 ## Downloads
 
-- **Windows**: [Gearboy-3.4.0-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.4.0/Gearboy-3.4.0-Windows.zip)
-  + NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
+- **Windows**:
+  - [Gearboy-3.5.0-windows.zip](https://github.com/drhelius/Gearboy/releases/download/3.5.0/Gearboy-3.5.0-windows.zip)
+  - NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
 - **macOS**:
-  + `brew install --cask gearboy`
-  + Or install manually: [Gearboy-3.4.0-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.4.0/Gearboy-3.4.0-macOS.zip)
-- **Linux**: [Gearboy-3.4.0-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.4.0/Gearboy-3.4.0-Linux.tar.xz)
-  + NOTE: You may need to install `libsdl2` and `libglew`
-- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/).
+  - [Gearboy-3.5.0-macos-arm.zip](https://github.com/drhelius/Gearboy/releases/download/3.5.0/Gearboy-3.5.0-macos-arm.zip)
+  - [Gearboy-3.5.0-macos-intel.zip](https://github.com/drhelius/Gearboy/releases/download/3.5.0/Gearboy-3.5.0-macos-intel.zip)
+- **Linux**:
+  - [Gearboy-3.5.0-ubuntu-22.04.zip](https://github.com/drhelius/Gearboy/releases/download/3.5.0/Gearboy-3.5.0-ubuntu-22.04.zip)
+  - [Gearboy-3.5.0-ubuntu-20.04.zip](https://github.com/drhelius/Gearboy/releases/download/3.5.0/Gearboy-3.5.0-ubuntu-20.04.zip) 
+  - NOTE: You may need to install `libsdl2` and `libglew`
+- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearcoleco/).
 
 ## Features
 
