@@ -1396,7 +1396,9 @@ static void popup_modal_about(void)
 
         ImGui::Separator();
         
-        #ifdef _WIN64
+        #ifdef _M_ARM64
+        ImGui::Text("Windows ARM64 build");
+        #elif defined(_WIN64)
         ImGui::Text("Windows 64 bit build");
         #elif defined(_WIN32)
         ImGui::Text("Windows 32 bit build");

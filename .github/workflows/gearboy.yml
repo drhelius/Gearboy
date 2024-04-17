@@ -111,6 +111,9 @@ jobs:
         path: artifact/*
   windows:
     name: Windows
+    strategy:
+      matrix:
+        architecture: [x64, arm64]
     runs-on: windows-latest
     permissions:
       contents: read
@@ -127,20 +130,20 @@ jobs:
       run: |
         echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
     - name: msbuild
-      run: msbuild ${{ env.NAME_UPPER }}.sln /t:Clean,Build /p:EmulatorBuild="${{ env.BUILD_NUMBER }}" /p:Configuration=Release
+      run: msbuild ${{ env.NAME_UPPER }}.sln /t:Clean,Build /p:EmulatorBuild="${{ env.BUILD_NUMBER }}" /p:Configuration=Release /p:Platform=${{ matrix.architecture }}
       working-directory: platforms/windows
     - name: Prepare artifact directory
       run: |
         mkdir -p artifact
         cp platforms/README.txt artifact
         cp platforms/gamecontrollerdb.txt artifact
-        cp platforms/windows/dependencies/glew-2.1.0/bin/Release/x64/glew32.dll artifact
-        cp platforms/windows/dependencies/SDL2-2.28.5/lib/x64/SDL2.dll artifact
+        cp platforms/windows/dependencies/glew-2.2.0/bin/Release/${{ matrix.architecture }}/glew32.dll artifact
+        cp platforms/windows/dependencies/SDL2-2.28.5/lib/${{ matrix.architecture }}/SDL2.dll artifact
         cp platforms/windows/release/${{ env.NAME_UPPER }}.exe artifact
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-windows
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-windows-${{ matrix.architecture }}
         path: artifact/*
   bsd:
     name: BSD
