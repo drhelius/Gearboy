@@ -20,7 +20,6 @@
 #include <math.h>
 #include "imgui/imgui.h"
 #include "imgui/imgui_memory_editor.h"
-#include "FileBrowser/ImGuiFileBrowser.h"
 #include "config.h"
 #include "emu.h"
 #include "renderer.h"
@@ -47,11 +46,14 @@ struct DisassmeblerLine
 };
 
 static MemoryEditor mem_edit;
-static ImVec4 cyan = ImVec4(0.0f,1.0f,1.0f,1.0f);
+static ImVec4 cyan = ImVec4(0.1f,0.9f,0.9f,1.0f);
 static ImVec4 magenta = ImVec4(1.0f,0.502f,0.957f,1.0f);
-static ImVec4 yellow = ImVec4(1.0f,1.0f,0.0f,1.0f);
-static ImVec4 red = ImVec4(1.0f,0.149f,0.447f,1.0f);
-static ImVec4 green = ImVec4(0.0f,1.0f,0.0f,1.0f);
+static ImVec4 yellow = ImVec4(1.0f,0.90f,0.05f,1.0f);
+static ImVec4 orange = ImVec4(0.992f,0.592f,0.122f,1.0f);
+static ImVec4 red = ImVec4(0.976f,0.149f,0.447f,1.0f);
+static ImVec4 green = ImVec4(0.1f,0.9f,0.1f,1.0f);
+static ImVec4 violet = ImVec4(0.682f,0.506f,1.0f,1.0f);
+static ImVec4 blue = ImVec4(0.2f,0.4f,1.0f,1.0f);
 static ImVec4 white = ImVec4(1.0f,1.0f,1.0f,1.0f);
 static ImVec4 gray = ImVec4(0.5f,0.5f,0.5f,1.0f);
 static ImVec4 dark_gray = ImVec4(0.1f,0.1f,0.1f,1.0f);
@@ -82,6 +84,7 @@ static void add_breakpoint_cpu(void);
 static void add_breakpoint_mem(void);
 static void request_goto_address(u16 addr);
 static ImVec4 color_565_to_float(u16 color);
+static bool is_return_instruction(u8 opcode);
 
 void gui_debug_windows(void)
 {
@@ -130,10 +133,27 @@ void gui_debug_load_symbols_file(const char* path)
     if (file.is_open())
     {
         std::string line;
+        bool valid_section = true;
 
         while (std::getline(file, line))
         {
-            add_symbol(line.c_str());
+            size_t comment = line.find_first_of(';');
+            if (comment != std::string::npos)
+                line = line.substr(0, comment);
+            line = line.erase(0, line.find_first_not_of(" \t\r\n"));
+            line = line.erase(line.find_last_not_of(" \t\r\n") + 1);
+
+            if (line.empty())
+                continue;
+
+            if (line.find("[") != std::string::npos)
+            {
+                valid_section = (line.find("[labels]") != std::string::npos);
+                continue;
+            }
+
+            if (valid_section)
+                add_symbol(line.c_str());
         }
 
         file.close();
@@ -702,6 +722,15 @@ static void debug_window_disassembler(void)
                     ImGui::TextColored(white, "%s", vec[item].record->name);
                 }
 
+                bool is_ret = is_return_instruction(vec[item].record->opcodes[0]);
+                if (is_ret)
+                {
+                    bool is_cond = (vec[item].record->opcodes[0] != 0xC9) && (vec[item].record->opcodes[0] != 0xD9);
+                    ImGui::PushStyleColor(ImGuiCol_Separator, is_cond ? dark_gray : gray);
+                    ImGui::Separator();
+                    ImGui::PopStyleColor();
+                }
+
                 ImGui::PopID();
             }
         }
@@ -731,16 +760,16 @@ static void debug_window_processor(void)
 
     u8 flags = proc_state->AF->GetLow();
 
-    ImGui::TextColored(magenta, "   Z"); ImGui::SameLine();
+    ImGui::TextColored(orange, "   Z"); ImGui::SameLine();
     ImGui::Text("= %d", (bool)(flags & FLAG_ZERO)); ImGui::SameLine();
 
-    ImGui::TextColored(magenta, "  N"); ImGui::SameLine();
+    ImGui::TextColored(orange, "  N"); ImGui::SameLine();
     ImGui::Text("= %d", (bool)(flags & FLAG_SUB));
 
-    ImGui::TextColored(magenta, "   H"); ImGui::SameLine();
+    ImGui::TextColored(orange, "   H"); ImGui::SameLine();
     ImGui::Text("= %d", (bool)(flags & FLAG_HALF)); ImGui::SameLine();
 
-    ImGui::TextColored(magenta, "  C"); ImGui::SameLine();
+    ImGui::TextColored(orange, "  C"); ImGui::SameLine();
     ImGui::Text("= %d", (bool)(flags & FLAG_CARRY));
 
     ImGui::Columns(2, "registers");
@@ -2057,4 +2086,20 @@ static ImVec4 color_565_to_float(u16 color)
     ret.y = (1.0f / 63.0f) * ((color >> 5) & 0x3F);
     ret.z = (1.0f / 31.0f) * (color & 0x1F);
     return ret;
+}
+
+static bool is_return_instruction(u8 opcode)
+{
+    switch (opcode)
+    {
+        case 0xC9: // RET
+        case 0xD9: // RETI
+        case 0xC0: // RET NZ
+        case 0xC8: // RET Z
+        case 0xD0: // RET NC
+        case 0xD8: // RET C
+            return true;
+        default:
+            return false;
+    }
 }

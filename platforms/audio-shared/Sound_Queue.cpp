@@ -39,7 +39,7 @@ Sound_Queue::Sound_Queue()
 	sync_output = true;
 
 	std::string platform = SDL_GetPlatform();
-	if (platform == "Linux")
+	if ((platform == "Linux") && (!running_in_wsl()))
 	{
 		SDL_InitSubSystem(SDL_INIT_AUDIO);
 		SDL_AudioInit("alsa");
@@ -171,4 +171,17 @@ void Sound_Queue::fill_buffer( Uint8* out, int count )
 void Sound_Queue::fill_buffer_( void* user_data, Uint8* out, int count )
 {
 	((Sound_Queue*) user_data)->fill_buffer( out, count );
+}
+
+bool Sound_Queue::running_in_wsl()
+{
+    FILE *file;
+
+    if ((file = fopen("/proc/sys/fs/binfmt_misc/WSLInterop", "r")))
+    {
+        fclose(file);
+        return true;
+    }
+
+    return false;
 }

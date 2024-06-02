@@ -16,11 +16,11 @@
  * along with this program.  If not, see http://www.gnu.org/licenses/
  *
  */
-
+#include <math.h>
 #include "imgui/imgui.h"
 #include "imgui/imgui_memory_editor.h"
 #include "imgui/fonts/RobotoMedium.h"
-#include "FileBrowser/ImGuiFileBrowser.h"
+#include "nfd/nfd.h"
 #include "config.h"
 #include "emu.h"
 #include "../../src/gearboy.h"
@@ -33,7 +33,6 @@
 #define GUI_IMPORT
 #include "gui.h"
 
-static imgui_addons::ImGuiFileBrowser file_dialog;
 static int main_menu_height;
 static bool dialog_in_use = false;
 static SDL_Scancode* configured_key;
@@ -46,7 +45,12 @@ static char dmg_bootrom_path[4096] = "";
 static char gbc_bootrom_path[4096] = "";
 static char savefiles_path[4096] = "";
 static char savestates_path[4096] = "";
-static bool show_main_menu = true;
+static int main_window_width = 0;
+static int main_window_height = 0;
+static bool status_message_active = false;
+static char status_message[4096] = "";
+static u32 status_message_start_time = 0;
+static u32 status_message_duration = 0;
 
 static void main_menu(void);
 static void main_window(void);
@@ -60,6 +64,7 @@ static void file_dialog_choose_savestate_path(void);
 static void file_dialog_load_dmg_bootrom(void);
 static void file_dialog_load_gbc_bootrom(void);
 static void file_dialog_load_symbols(void);
+static void file_dialog_save_screenshot(void);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key);
 static void gamepad_configuration_item(const char* text, int* button);
 static void popup_modal_keyboard(void);
@@ -74,10 +79,17 @@ static void menu_pause(void);
 static void menu_ffwd(void);
 static void show_info(void);
 static void show_fps(void);
+static void show_status_message(void);
+static void call_save_screenshot(const char* path);
 static Cartridge::CartridgeTypes get_mbc(int index);
 
 void gui_init(void)
 {
+    if (NFD_Init() != NFD_OKAY)
+    {
+        Log("Error: %s", NFD_GetError());
+    }
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -121,6 +133,7 @@ void gui_init(void)
 void gui_destroy(void)
 {
     ImGui::DestroyContext();
+    NFD_Quit();
 }
 
 void gui_render(void)
@@ -135,6 +148,11 @@ void gui_render(void)
         main_window();
 
     gui_debug_windows();
+
+    if (config_emulator.show_info)
+        show_info();
+
+    show_status_message();
 
     ImGui::Render();
 }
@@ -162,6 +180,9 @@ void gui_shortcut(gui_ShortCutEvent event)
     case gui_ShortcutLoadState:
         emu_load_state_slot(config_emulator.save_slot + 1);
         break;
+    case gui_ShortcutScreenshot:
+        call_save_screenshot(NULL);
+        break;
     case gui_ShortcutDebugStep:
         if (config_debug.debug)
             emu_debug_step();
@@ -187,7 +208,7 @@ void gui_shortcut(gui_ShortCutEvent event)
             gui_debug_go_back();
         break;
     case gui_ShortcutShowMainMenu:
-        show_main_menu = !show_main_menu;
+        config_emulator.show_menu = !config_emulator.show_menu;
         break;
     default:
         break;
@@ -196,6 +217,10 @@ void gui_shortcut(gui_ShortCutEvent event)
 
 void gui_load_rom(const char* path)
 {
+    std::string message("Loading ROM ");
+    message += path;
+    gui_set_status_message(message.c_str(), 3000);
+
     push_recent_rom(path);
     emu_resume();
     emu_load_rom(path, config_emulator.force_dmg, get_mbc(config_emulator.mbc), config_emulator.force_gba);
@@ -222,6 +247,17 @@ void gui_load_rom(const char* path)
     }
 }
 
+void gui_set_status_message(const char* message, u32 milliseconds)
+{
+    if (config_emulator.status_messages)
+    {
+        strcpy(status_message, message);
+        status_message_active = true;
+        status_message_start_time = SDL_GetTicks();
+        status_message_duration = milliseconds;
+    }
+}
+
 static void main_menu(void)
 {
     bool open_rom = false;
@@ -231,6 +267,7 @@ static void main_menu(void)
     bool save_state = false;
     bool open_about = false;
     bool open_symbols = false;
+    bool save_screenshot = false;
     bool choose_save_file_path = false;
     bool choose_savestates_path = false;
     bool open_dmg_bootrom = false;
@@ -239,9 +276,13 @@ static void main_menu(void)
     for (int i = 0; i < config_max_custom_palettes; i++)
         for (int c = 0; c < 4; c++)
             custom_palette[i][c] = color_int_to_float(config_video.color[i][c]);
-    
-    if (show_main_menu && ImGui::BeginMainMenuBar())
+
+    gui_main_menu_hovered = false;
+
+    if (config_emulator.show_menu && ImGui::BeginMainMenuBar())
     {
+        gui_main_menu_hovered = ImGui::IsWindowHovered();
+
         if (ImGui::BeginMenu(GEARBOY_TITLE))
         {
             gui_in_use = true;
@@ -332,12 +373,30 @@ static void main_menu(void)
 
             if (ImGui::MenuItem("Save State", "Ctrl+S")) 
             {
+                std::string message("Saving state to slot ");
+                message += std::to_string(config_emulator.save_slot + 1);
+                gui_set_status_message(message.c_str(), 3000);
                 emu_save_state_slot(config_emulator.save_slot + 1);
             }
 
             if (ImGui::MenuItem("Load State", "Ctrl+L"))
             {
+                std::string message("Loading state from slot ");
+                message += std::to_string(config_emulator.save_slot + 1);
+                gui_set_status_message(message.c_str(), 3000);
                 emu_load_state_slot(config_emulator.save_slot + 1);
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Save Screenshot As..."))
+            {
+                save_screenshot = true;
+            }
+
+            if (ImGui::MenuItem("Save Screenshot", "Ctrl+X"))
+            {
+                call_save_screenshot(NULL);
             }
 
             ImGui::Separator();
@@ -484,6 +543,8 @@ static void main_menu(void)
 
             ImGui::MenuItem("Show ROM info", "", &config_emulator.show_info);
 
+            ImGui::MenuItem("Status Messages", "", &config_emulator.status_messages);
+
             ImGui::Separator();
             
             ImGui::SetNextWindowSizeConstraints({300.0f, 200.0f}, {300.0f, 500.0f});
@@ -548,27 +609,35 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            if (ImGui::MenuItem("Full Screen", "F11", &application_fullscreen))
+            if (ImGui::MenuItem("Full Screen", "F11", &config_emulator.fullscreen))
             {
-                application_trigger_fullscreen(application_fullscreen);
+                application_trigger_fullscreen(config_emulator.fullscreen);
             }
 
-            ImGui::MenuItem("Show Menu", "CTRL+M", &show_main_menu);
+            ImGui::MenuItem("Show Menu", "CTRL+M", &config_emulator.show_menu);
+
+            if (ImGui::MenuItem("Resize Window to Content"))
+            {
+                if (!config_debug.debug && (config_video.ratio != 3))
+                {
+                    application_trigger_fit_to_content(main_window_width, main_window_height + main_menu_height);
+                }
+            }
 
             ImGui::Separator();
 
             if (ImGui::BeginMenu("Scale"))
             {
-                ImGui::PushItemWidth(100.0f);
-                ImGui::Combo("##scale", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0Zoom X4\0\0");
+                ImGui::PushItemWidth(250.0f);
+                ImGui::Combo("##scale", &config_video.scale, "Integer Scale (Auto)\0Integer Scale (X1)\0Integer Scale (X2)\0Integer Scale (X3)\0Integer Scale (X4)\0Scale to Window Height\0Scale to Window Width & Height\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Aspect Ratio"))
             {
-                ImGui::PushItemWidth(130.0f);
-                ImGui::Combo("##ratio", &config_video.ratio, "Game Boy\0Standard (4:3)\0Wide (16:9)\0Fit Window\0\0");
+                ImGui::PushItemWidth(170.0f);
+                ImGui::Combo("##ratio", &config_video.ratio, "Game Boy (1:1 PAR)\0Standard (4:3 PAR)\0Wide (16:9 PAR)\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -859,35 +928,38 @@ static void main_menu(void)
     if (open_rom || shortcut_open_rom)
     {
         shortcut_open_rom = false;
-        ImGui::OpenPopup("Open ROM...");
+        file_dialog_open_rom();
     }
 
     if (open_ram)
-        ImGui::OpenPopup("Load RAM From...");
+        file_dialog_load_ram();
 
     if (save_ram)
-        ImGui::OpenPopup("Save RAM As...");
+        file_dialog_save_ram();
 
     if (open_state)
-        ImGui::OpenPopup("Load State From...");
+        file_dialog_load_state();
     
     if (save_state)
-        ImGui::OpenPopup("Save State As...");
+        file_dialog_save_state();
+
+    if (save_screenshot)
+        file_dialog_save_screenshot();
 
     if (choose_save_file_path)
-        ImGui::OpenPopup("Choose Save File Folder...");
+        file_dialog_choose_save_file_path();
 
     if (choose_savestates_path)
-        ImGui::OpenPopup("Choose Savestate Folder...");
+        file_dialog_choose_savestate_path();
 
     if (open_dmg_bootrom)
-        ImGui::OpenPopup("Load DMG Bootrom From...");
+        file_dialog_load_dmg_bootrom();
     
     if (open_gbc_bootrom)
-        ImGui::OpenPopup("Load GBC Bootrom From...");
+        file_dialog_load_gbc_bootrom();
 
     if (open_symbols)
-        ImGui::OpenPopup("Load Symbols File...");
+        file_dialog_load_symbols();
 
     if (open_about)
     {
@@ -896,16 +968,6 @@ static void main_menu(void)
     }
     
     popup_modal_about();
-    file_dialog_open_rom();
-    file_dialog_load_ram();
-    file_dialog_save_ram();
-    file_dialog_load_state();
-    file_dialog_save_state();
-    file_dialog_choose_save_file_path();
-    file_dialog_choose_savestate_path();
-    file_dialog_load_dmg_bootrom();
-    file_dialog_load_gbc_bootrom();
-    file_dialog_load_symbols();
 
     for (int i = 0; i < config_max_custom_palettes; i++)
         for (int c = 0; c < 4; c++)
@@ -915,54 +977,67 @@ static void main_menu(void)
 static void main_window(void)
 {
     int w = (int)ImGui::GetIO().DisplaySize.x;
-    int h = (int)ImGui::GetIO().DisplaySize.y - (show_main_menu ? main_menu_height : 0);
+    int h = (int)ImGui::GetIO().DisplaySize.y - (config_emulator.show_menu ? main_menu_height : 0);
 
     int selected_ratio = config_debug.debug ? 0 : config_video.ratio;
     float ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
 
     switch (selected_ratio)
     {
-        case 0:
-            ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
-            break;
         case 1:
             ratio = 4.0f / 3.0f;
             break;
         case 2:
             ratio = 16.0f / 9.0f;
             break;
-        case 3:
-            ratio = (float)w / (float)h;
-            break;
         default:
             ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
     }
 
-    int w_corrected = (int)(selected_ratio == 3 ? w : GAMEBOY_HEIGHT * ratio);
-    int h_corrected = selected_ratio == 3 ? h : GAMEBOY_HEIGHT;
-
-    int factor = 0;
-
-    if (config_video.scale > 0)
+    if (!config_debug.debug && config_video.scale == 6)
     {
-        factor = config_video.scale;
+        ratio = (float)w / (float)h;
     }
-    else if (config_debug.debug)
+
+    int w_corrected = GAMEBOY_HEIGHT * ratio;
+    int h_corrected = GAMEBOY_HEIGHT;
+    int scale_multiplier = 0;
+
+    if (config_debug.debug)
     {
-        factor = 1;
+        if ((config_video.scale > 0) && (config_video.scale < 5))
+            scale_multiplier = config_video.scale;
+        else
+            scale_multiplier = 1;
     }
     else
     {
-        int factor_w = w / w_corrected;
-        int factor_h = h / h_corrected;
-        factor = (factor_w < factor_h) ? factor_w : factor_h;
+        if ((config_video.scale > 0) && (config_video.scale < 5))
+        {
+            scale_multiplier = config_video.scale;
+        }
+        else if (config_video.scale == 0)
+        {
+            int factor_w = w / w_corrected;
+            int factor_h = h / h_corrected;
+            scale_multiplier = (factor_w < factor_h) ? factor_w : factor_h;
+        }
+        else if (config_video.scale == 5)
+        {
+            scale_multiplier = 1;
+            h_corrected = h;
+            w_corrected = h * ratio;
+        }
+        else if (config_video.scale == 6)
+        {
+            scale_multiplier = 1;
+            w_corrected = w;
+            h_corrected = h;
+        }
     }
 
-    int main_window_width = w_corrected * factor;
-    int main_window_height = h_corrected * factor;
-
-    int window_x = (w - (w_corrected * factor)) / 2;
-    int window_y = ((h - (h_corrected * factor)) / 2) + (show_main_menu ? main_menu_height : 0);
+    main_window_width = w_corrected * scale_multiplier;
+    main_window_height = h_corrected * scale_multiplier;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -976,25 +1051,27 @@ static void main_window(void)
         ImGui::SetNextWindowPos(ImVec2(7, 32), ImGuiCond_FirstUseEver);
 
         ImGui::Begin(emu_is_cgb() ? "Game Boy Color###debug_output" : "Game Boy###debug_output", &config_debug.show_gameboy, flags);
+        gui_main_window_hovered = ImGui::IsWindowHovered();
     }
     else
     {
+        int window_x = (w - (w_corrected * scale_multiplier)) / 2;
+        int window_y = ((h - (h_corrected * scale_multiplier)) / 2) + (config_emulator.show_menu ? main_menu_height : 0);
+
         ImGui::SetNextWindowSize(ImVec2((float)main_window_width, (float)main_window_height));
         ImGui::SetNextWindowPos(ImVec2((float)window_x, (float)window_y));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-        flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav;
+        flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
         ImGui::Begin(GEARBOY_TITLE, 0, flags);
+        gui_main_window_hovered = ImGui::IsWindowHovered();
     }
 
     ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2((float)main_window_width, (float)main_window_height));
 
     if (config_video.fps)
         show_fps();
-
-    if (config_emulator.show_info)
-        show_info();
 
     ImGui::End();
 
@@ -1003,111 +1080,197 @@ static void main_window(void)
 
     if (!config_debug.debug)
     {
-        
         ImGui::PopStyleVar();
     }
 }
 
 static void file_dialog_open_rom(void)
 {
-    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[4] = { { "ROM Files", "gb,gbc,cgb,sgb,dmg,rom,zip" }, { "Game Boy", "gb,dmg" }, { "Game Boy Color", "gbc,cgb" }, { "Super Game Boy", "sgb" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 4, config_emulator.last_open_path.c_str());
+    if (result == NFD_OKAY)
     {
-        gui_load_rom(file_dialog.selected_path.c_str());
+        std::string path = outPath;
+        std::string::size_type pos = path.find_last_of("\\/");
+        config_emulator.last_open_path.assign(path.substr(0, pos));
+        gui_load_rom(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Open ROM Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_load_ram(void)
 {
-    if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "RAM Files", "sav" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    if (result == NFD_OKAY)
     {
-        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.force_dmg, get_mbc(config_emulator.mbc), config_emulator.force_gba);
+        emu_load_ram(outPath, config_emulator.force_dmg, get_mbc(config_emulator.mbc), config_emulator.force_gba);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Load RAM Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_save_ram(void)
 {
-    if(file_dialog.showFileDialog("Save RAM As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".sav", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "RAM Files", "sav" } };
+    nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
+    if (result == NFD_OKAY)
     {
-        std::string save_path = file_dialog.selected_path;
-
-        if (save_path.rfind(file_dialog.ext) != (save_path.size()-file_dialog.ext.size()))
-        {
-            save_path += file_dialog.ext;
-        }
-
-        emu_save_ram(save_path.c_str());
+        emu_save_ram(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Save RAM Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_load_state(void)
 {
-    if(file_dialog.showFileDialog("Load State From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".state,*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "Save State Files", "state" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    if (result == NFD_OKAY)
     {
-        emu_load_state_file(file_dialog.selected_path.c_str());
+        std::string message("Loading state from ");
+        message += outPath;
+        gui_set_status_message(message.c_str(), 3000);
+        emu_load_state_file(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Load State Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_save_state(void)
 {
-    if(file_dialog.showFileDialog("Save State As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".state", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "Save State Files", "state" } };
+    nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
+    if (result == NFD_OKAY)
     {
-        std::string state_path = file_dialog.selected_path;
-
-        if (state_path.rfind(file_dialog.ext) != (state_path.size()-file_dialog.ext.size()))
-        {
-            state_path += file_dialog.ext;
-        }
-
-        emu_save_state_file(state_path.c_str());
+        std::string message("Saving state to ");
+        message += outPath;
+        gui_set_status_message(message.c_str(), 3000);
+        emu_save_state_file(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Save State Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_choose_save_file_path(void)
 {
-    if(file_dialog.showFileDialog("Choose Save File Folder...", imgui_addons::ImGuiFileBrowser::DialogMode::SELECT, ImVec2(700, 310), "*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdresult_t result = NFD_PickFolder(&outPath, savefiles_path);
+    if (result == NFD_OKAY)
     {
-        strcpy(savefiles_path, file_dialog.selected_path.c_str());
-        config_emulator.savefiles_path.assign(file_dialog.selected_path);
+        strcpy(savefiles_path, outPath);
+        config_emulator.savefiles_path.assign(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Savefile Path Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_choose_savestate_path(void)
 {
-    if(file_dialog.showFileDialog("Choose Savestate Folder...", imgui_addons::ImGuiFileBrowser::DialogMode::SELECT, ImVec2(700, 310), "*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdresult_t result = NFD_PickFolder(&outPath, savestates_path);
+    if (result == NFD_OKAY)
     {
-        strcpy(savestates_path, file_dialog.selected_path.c_str());
-        config_emulator.savestates_path.assign(file_dialog.selected_path);
+        strcpy(savestates_path, outPath);
+        config_emulator.savestates_path.assign(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Savestate Path Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_load_dmg_bootrom(void)
 {
-    if(file_dialog.showFileDialog("Load DMG Bootrom From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".bin,.gb,*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "BIOS Files", "bin,rom,bios,gb" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    if (result == NFD_OKAY)
     {
-        strcpy(dmg_bootrom_path, file_dialog.selected_path.c_str());
-        config_emulator.dmg_bootrom_path.assign(file_dialog.selected_path);
-
+        strcpy(dmg_bootrom_path, outPath);
+        config_emulator.dmg_bootrom_path.assign(outPath);
         emu_load_bootrom_dmg(dmg_bootrom_path);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Load SMS Bios Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_load_gbc_bootrom(void)
 {
-    if(file_dialog.showFileDialog("Load GBC Bootrom From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".bin,.gbc,*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "BIOS Files", "bin,rom,bios,gbc" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    if (result == NFD_OKAY)
     {
-        strcpy(gbc_bootrom_path, file_dialog.selected_path.c_str());
-        config_emulator.gbc_bootrom_path.assign(file_dialog.selected_path);
-
+        strcpy(gbc_bootrom_path, outPath);
+        config_emulator.gbc_bootrom_path.assign(outPath);
         emu_load_bootrom_gbc(gbc_bootrom_path);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Load SMS Bios Error: %s", NFD_GetError());
     }
 }
 
 static void file_dialog_load_symbols(void)
 {
-    if(file_dialog.showFileDialog("Load Symbols File...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), ".sym,*.*", &dialog_in_use))
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "Symbol Files", "sym" } };
+    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    if (result == NFD_OKAY)
     {
         gui_debug_reset_symbols();
-        gui_debug_load_symbols_file(file_dialog.selected_path.c_str());
+        gui_debug_load_symbols_file(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Load Symbols Error: %s", NFD_GetError());
+    }
+}
+
+static void file_dialog_save_screenshot(void)
+{
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "PNG Files", "png" } };
+    nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
+    if (result == NFD_OKAY)
+    {
+        call_save_screenshot(outPath);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Save Screenshot Error: %s", NFD_GetError());
     }
 }
 
@@ -1233,30 +1396,46 @@ static void popup_modal_about(void)
 
         ImGui::Separator();
         
-        #ifdef _WIN64
+        #if defined(_M_ARM64)
+        ImGui::Text("Windows ARM64 build");
+        #endif
+        #if defined(_WIN64)
         ImGui::Text("Windows 64 bit build");
-        #elif defined(_WIN32)
+        #endif
+        #if defined(_WIN32)
         ImGui::Text("Windows 32 bit build");
         #endif
-        #ifdef __linux__
-        ImGui::Text("Linux build");
+        #if defined(__linux__) && defined(__x86_64__)
+        ImGui::Text("Linux 64 bit build");
         #endif
-        #ifdef __APPLE__
-        ImGui::Text("macOS build");
+        #if defined(__linux__) && defined(__i386__)
+        ImGui::Text("Linux 32 bit build");
         #endif
-        #ifdef _MSC_VER
+        #if defined(__linux__) && defined(__arm__)
+        ImGui::Text("Linux ARM build");
+        #endif
+        #if defined(__linux__) && defined(__aarch64__)
+        ImGui::Text("Linux ARM64 build");
+        #endif
+        #if defined(__APPLE__) && defined(__arm64__ )
+        ImGui::Text("macOS build (Apple Silicon)");
+        #endif
+        #if defined(__APPLE__) && defined(__x86_64__)
+        ImGui::Text("macOS build (Intel)");
+        #endif
+        #if defined(_MSC_VER)
         ImGui::Text("Microsoft C++ %d.", _MSC_VER);
         #endif
-        #ifdef __MINGW32__
+        #if defined(__MINGW32__)
         ImGui::Text("MinGW 32 bit (%d.%d)", __MINGW32_MAJOR_VERSION, __MINGW32_MINOR_VERSION);
         #endif
-        #ifdef __MINGW64__
+        #if defined(__MINGW64__)
         ImGui::Text("MinGW 64 bit (%d.%d)", __MINGW64_VERSION_MAJOR, __MINGW64_VERSION_MINOR);
         #endif
         #if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
         ImGui::Text("GCC %d.%d.%d", (int)__GNUC__, (int)__GNUC_MINOR__, (int)__GNUC_PATCHLEVEL__);
         #endif
-        #ifdef __clang_version__
+        #if defined(__clang_version__)
         ImGui::Text("Clang %s", __clang_version__);
         #endif
 
@@ -1366,6 +1545,8 @@ static void push_recent_rom(std::string path)
 
 static void menu_reset(void)
 {
+    gui_set_status_message("Resetting...", 3000);
+
     emu_resume();
     emu_reset(config_emulator.force_dmg, get_mbc(config_emulator.mbc), config_emulator.force_gba);
 
@@ -1385,9 +1566,15 @@ static void menu_reset(void)
 static void menu_pause(void)
 {
     if (emu_is_paused())
+    {
+        gui_set_status_message("Resumed", 3000);
         emu_resume();
+    }
     else
+    {
+        gui_set_status_message("Paused", 3000);
         emu_pause();
+    }
 }
 
 static void menu_ffwd(void)
@@ -1395,9 +1582,13 @@ static void menu_ffwd(void)
     config_audio.sync = !config_emulator.ffwd;
 
     if (config_emulator.ffwd)
+    {
+        gui_set_status_message("Fast Forward ON", 3000);
         SDL_GL_SetSwapInterval(0);
+    }
     else
     {
+        gui_set_status_message("Fast Forward OFF", 3000);
         SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
         emu_audio_reset();
     }
@@ -1405,21 +1596,89 @@ static void menu_ffwd(void)
 
 static void show_info(void)
 {
-    if (config_video.fps)
-        ImGui::SetCursorPosX(5.0f);
-    else
-        ImGui::SetCursorPos(ImVec2(5.0f, config_debug.debug ? 25.0f : 5.0f));
+    ImGui::Begin("ROM Info", &config_emulator.show_info, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
 
     static char info[512];
-
     emu_get_info(info);
+
+    ImGui::PushFont(gui_default_font);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f,0.90f,0.05f,1.0f));
+    ImGui::SetCursorPosX(5.0f);
     ImGui::Text("%s", info);
+    ImGui::PopStyleColor();
+    ImGui::PopFont();
+
+    ImGui::End();
 }
 
 static void show_fps(void)
 {
-    ImGui::SetCursorPos(ImVec2(5.0f, config_debug.debug ? 25.0f : 5.0f ));
-    ImGui::Text("Frame Rate: %.2f FPS\nFrame Time: %.2f ms", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::PushFont(gui_default_font);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f,1.0f,1.0f,1.0f));
+    ImGui::SetCursorPos(ImVec2(5.0f, config_debug.debug ? 25.0f : 5.0f));
+    ImGui::Text("FPS:  %.2f\nTIME: %.2f ms", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::PopStyleColor();
+    ImGui::PopFont();
+}
+
+static void show_status_message(void)
+{
+    if (status_message_active)
+    {
+        u32 current_time = SDL_GetTicks();
+        if ((current_time - status_message_start_time) > status_message_duration)
+            status_message_active = false;
+        else
+            ImGui::OpenPopup("Status");
+    }
+
+    if (status_message_active)
+    {
+        ImGui::SetNextWindowPos(ImVec2(0.0f, config_emulator.show_menu ? main_menu_height : 0.0f));
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, 0.0f));
+        ImGui::SetNextWindowBgAlpha(0.9f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNav;
+
+        if (ImGui::BeginPopup("Status", flags))
+        {
+            ImGui::PushFont(gui_default_font);
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f,0.9f,0.1f,1.0f));
+            ImGui::TextWrapped("%s", status_message);
+            ImGui::PopStyleColor();
+            ImGui::PopFont();
+            ImGui::EndPopup();
+        }
+
+        ImGui::PopStyleVar();
+    }
+}
+
+static void call_save_screenshot(const char* path)
+{
+    using namespace std;
+
+    if (!emu_get_core()->GetCartridge()->IsLoadedROM())
+        return;
+
+    time_t now = time(0);
+    tm* ltm = localtime(&now);
+
+    string date_time = to_string(1900 + ltm->tm_year) + "-" + to_string(1 + ltm->tm_mon) + "-" + to_string(ltm->tm_mday) + " " + to_string(ltm->tm_hour) + to_string(ltm->tm_min) + to_string(ltm->tm_sec);
+
+    string file_path;
+
+    if (path != NULL)
+        file_path = path;
+    else if ((emu_savestates_dir_option == 0) && (strcmp(emu_savestates_path, "")))
+         file_path = file_path.assign(emu_savestates_path)+ "/" + string(emu_get_core()->GetCartridge()->GetFileName()) + " - " + date_time + ".png";
+    else
+         file_path = file_path.assign(emu_get_core()->GetCartridge()->GetFilePath()) + " - " + date_time + ".png";
+
+    emu_save_screenshot(file_path.c_str());
+
+    string message = "Screenshot saved to " + file_path;
+    gui_set_status_message(message.c_str(), 3000);
 }
 
 static Cartridge::CartridgeTypes get_mbc(int index)

@@ -35,7 +35,7 @@ public:
     struct stDisassembleRecord
     {
         u16 address;
-        char name[32];
+        char name[64];
         char bytes[16];
         int size;
         int bank;

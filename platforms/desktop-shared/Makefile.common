@@ -1,111 +1,75 @@
-
 CXX = g++
+CC = gcc
 #CXX = clang++
+#CC = clang
 
-EXE = gearboy
-
+TARGET_NAME = gearboy
 GIT_VERSION := "$(shell git describe --abbrev=7 --dirty --always --tags)"
-
-EMULATOR_SRC=../../src
-EMULATOR_DESKTOP_SHARED_SRC=../desktop-shared
-EMULATOR_AUDIO_SRC=$(EMULATOR_SRC)/audio
-EMULATOR_AUDIO_SHARED_SRC=../audio-shared
-IMGUI_SRC=$(EMULATOR_DESKTOP_SHARED_SRC)/imgui
-IMGUI_FILEBROWSER_SRC=$(EMULATOR_DESKTOP_SHARED_SRC)/FileBrowser
-
-SOURCES = $(EMULATOR_DESKTOP_SHARED_SRC)/main.cpp $(EMULATOR_DESKTOP_SHARED_SRC)/emu.cpp $(EMULATOR_DESKTOP_SHARED_SRC)/gui.cpp $ (EMULATOR_DESKTOP_SHARED_SRC)/gui_debug.cpp $ (EMULATOR_DESKTOP_SHARED_SRC)/application.cpp $(EMULATOR_DESKTOP_SHARED_SRC)/config.cpp $(EMULATOR_DESKTOP_SHARED_SRC)/renderer.cpp
-
-SOURCES += $(IMGUI_SRC)/imgui_impl_sdl.cpp $(IMGUI_SRC)/imgui_impl_opengl2.cpp $(IMGUI_SRC)/imgui.cpp $(IMGUI_SRC)/imgui_demo.cpp $(IMGUI_SRC)/imgui_draw.cpp $(IMGUI_SRC)/imgui_widgets.cpp $(IMGUI_FILEBROWSER_SRC)/ImGuiFileBrowser.cpp
-
-SOURCES += $(EMULATOR_SRC)/Audio.cpp $(EMULATOR_SRC)/Cartridge.cpp $(EMULATOR_SRC)/CommonMemoryRule.cpp $(EMULATOR_SRC)/GearboyCore.cpp $(EMULATOR_SRC)/Input.cpp $(EMULATOR_SRC)/IORegistersMemoryRule.cpp $(EMULATOR_SRC)/MBC1MemoryRule.cpp $(EMULATOR_SRC)/MBC2MemoryRule.cpp $(EMULATOR_SRC)/MBC3MemoryRule.cpp $(EMULATOR_SRC)/MBC5MemoryRule.cpp $(EMULATOR_SRC)/Memory.cpp $(EMULATOR_SRC)/MemoryRule.cpp $(EMULATOR_SRC)/MultiMBC1MemoryRule.cpp $(EMULATOR_SRC)/opcodes.cpp $(EMULATOR_SRC)/opcodes_cb.cpp $(EMULATOR_SRC)/Processor.cpp $(EMULATOR_SRC)/RomOnlyMemoryRule.cpp $(EMULATOR_SRC)/Video.cpp
-
-SOURCES += $(EMULATOR_AUDIO_SRC)/Blip_Buffer.cpp $(EMULATOR_AUDIO_SRC)/Effects_Buffer.cpp $(EMULATOR_AUDIO_SRC)/Gb_Apu.cpp $(EMULATOR_AUDIO_SRC)/Gb_Apu_State.cpp $(EMULATOR_AUDIO_SRC)/Gb_Oscs.cpp $(EMULATOR_AUDIO_SRC)/Multi_Buffer.cpp
-
-SOURCES += $(EMULATOR_AUDIO_SHARED_SRC)/Sound_Queue.cpp
-
-OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
-
 UNAME_S := $(shell uname -s)
+PLATFORM = "undefined"
 
-CXXFLAGS = -I../ -I../../
-CXXFLAGS += -Wall -Wextra -Wformat -std=c++11 -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
-LIBS =
+OBJECTS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
+
+CPPFLAGS += -I../ -I../../
+CPPFLAGS += -Wall -Wextra -Wformat  -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
+CXXFLAGS += -std=c++11
+CFLAGS += -std=c99
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
-    CXXFLAGS +=-DDEBUG -g3
+    CPPFLAGS +=-DDEBUG -g3
 else
-    CXXFLAGS +=-DNDEBUG -O3 -flto
+    CPPFLAGS +=-DNDEBUG -O3 -flto
+    LDFLAGS += -flto
 endif
 
 SANITIZE ?= 0
 ifeq ($(SANITIZE), 1)
-	CXXFLAGS +=-fsanitize=address
-    LIBS += -lasan
+    CPPFLAGS +=-fsanitize=address
+    LDFLAGS += -lasan
 endif
-
-##---------------------------------------------------------------------
-## BUILD FLAGS PER PLATFORM
-##---------------------------------------------------------------------
 
 ifeq ($(UNAME_S), Linux) #LINUX
-	ECHO_MESSAGE = "Linux"
-	LIBS += -lGL -lGLEW -ldl `sdl2-config --libs`
-
-	CXXFLAGS += `sdl2-config --cflags`
-	CFLAGS += $(CXXFLAGS)
+    PLATFORM = "Linux"
+    LDFLAGS += -lGL -lGLEW -ldl `sdl2-config --libs`
+    CPPFLAGS += `sdl2-config --cflags`
+    TARGET := $(TARGET_NAME)
 else ifeq ($(UNAME_S), Darwin) #APPLE
-	ECHO_MESSAGE = "macOS"
-	LIBS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo `sdl2-config --libs`
-	LIBS += -L/usr/local/lib
-
-	CXXFLAGS += `sdl2-config --cflags`
-	CXXFLAGS += -I/usr/local/include -I/opt/local/include
-	CFLAGS += $(CXXFLAGS)
+    PLATFORM = "macOS"
+    LDFLAGS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo `sdl2-config --libs`
+    LDFLAGS += -L/usr/local/lib
+    CPPFLAGS += `sdl2-config --cflags`
+    CPPFLAGS += -I/usr/local/include -I/opt/local/include
+    TARGET := $(TARGET_NAME)
 else ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
-	ECHO_MESSAGE = "MinGW"
-	LIBS += -lgdi32 -lopengl32 -lglew32 -limm32 `pkg-config --static --libs sdl2`
-
-	CXXFLAGS += `pkg-config --cflags sdl2`
-	CFLAGS += $(CXXFLAGS)
+    PLATFORM = "MinGW"
+    LDFLAGS += -lgdi32 -lopengl32 -lglew32 -limm32 `pkg-config --static --libs sdl2`
+    CPPFLAGS += `pkg-config --cflags sdl2`
+    TARGET := $(TARGET_NAME).exe
 else
-	ECHO_MESSAGE = "Generic Unix-like/BSD"
-	LIBS += `sdl2-config --libs` -lSDL2
-	LIBS += `pkg-config --libs glew` -lGLEW
-
-	CXXFLAGS += -std=gnu++11
-	CXXFLAGS += `sdl2-config --cflags`
-	CXXFLAGS += `pkg-config --cflags glew`
-	CFLAGS += $(CXXFLAGS)
+    PLATFORM = "Generic Unix-like/BSD"
+    LDFLAGS += `sdl2-config --libs` -lSDL2
+    LDFLAGS += `pkg-config --libs glew` -lGLEW
+    CXXFLAGS += -std=gnu++11
+    CPPFLAGS += `sdl2-config --cflags`
+    CPPFLAGS += `pkg-config --cflags glew`
+    TARGET := $(TARGET_NAME)
 endif
 
-##---------------------------------------------------------------------
-## BUILD RULES
-##---------------------------------------------------------------------
+all: $(TARGET)
+	@echo Build complete for $(PLATFORM)
 
-%.o:$(IMGUI_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+$(TARGET): $(OBJECTS)
+	$(CXX) -o $@ $(OBJECTS) $(LDFLAGS)
 
-%.o:$(IMGUI_FILEBROWSER_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+%.o: %.mm
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(EMULATOR_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+%.o: %.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(EMULATOR_DESKTOP_SHARED_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-%.o:$(EMULATOR_AUDIO_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-%.o:$(EMULATOR_AUDIO_SHARED_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-all: $(EXE)
-	@echo Build complete for $(ECHO_MESSAGE)
-
-$(EXE): $(OBJS)
-	$(CXX) -o $@ $^ $(LDFLAGS) $(LIBS)
+%.o: %.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(EXE) $(OBJS)
+	rm -f $(OBJECTS) $(TARGET)

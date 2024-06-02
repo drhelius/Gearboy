@@ -54,10 +54,9 @@ inline void Input::Tick(unsigned int clockCycles)
 {
     m_iInputCycles += clockCycles;
 
-    // Joypad Poll Speed (64 Hz)
-    if (m_iInputCycles >= 65536)
+    if (m_iInputCycles >= 10000)
     {
-        m_iInputCycles -= 65536;
+        m_iInputCycles -= 10000;
         Update();
     }
 }

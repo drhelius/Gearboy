@@ -23,6 +23,12 @@
 #define EMU_IMPORT
 #include "emu.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#ifdef _WIN32
+#define STBIW_WINDOWS_UTF8
+#endif
+#include "stb/stb_image_write.h"
+
 // red, green, blue
 static GB_Color original_palette[4] = {{0x87, 0x96, 0x03},{0x4D, 0x6B, 0x03},{0x2B, 0x55, 0x03},{0x14, 0x44, 0x03}};
 static GB_Color sharp_palette[4] = {{0xF5, 0xFA, 0xEF},{0x86, 0xC2, 0x70},{0x2F, 0x69, 0x57},{0x0B, 0x19, 0x20}};
@@ -392,6 +398,17 @@ void emu_enable_bootrom_gbc(bool enable)
     gearboy->GetMemory()->EnableBootromGBC(enable);
 }
 
+void emu_save_screenshot(const char* file_path)
+{
+    if (!gearboy->GetCartridge()->IsLoadedROM())
+        return;
+
+    Log("Saving screenshot to %s", file_path);
+
+    stbi_write_png(file_path, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 3, emu_frame_buffer, GAMEBOY_WIDTH * 3);
+
+    Log("Screenshot saved!");
+}
 
 static void save_ram(void)
 {
@@ -707,12 +724,10 @@ static void update_debug_oam_buffers(void)
             int pixel_x = pixel & 0x7;
             int pixel_y = pixel / 8;
 
-            u16 line_addr = tile_addr + (2 * pixel_y);
+            u16 line_addr = tile_addr + (2 * (yflip ? (sprites_16 ? 15 : 7) - pixel_y : pixel_y));
 
             if (xflip)
                 pixel_x = 7 - pixel_x;
-            if (yflip)
-                line_addr = (sprites_16 ? 15 : 7) - line_addr;
 
             u8 byte1 = 0;
             u8 byte2 = 0;

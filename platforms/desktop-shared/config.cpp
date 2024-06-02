@@ -76,7 +76,9 @@ void config_read(void)
     config_debug.show_processor = read_bool("Debug", "Processor", true);
     config_debug.show_video = read_bool("Debug", "Video", false);
     config_debug.font_size = read_int("Debug", "FontSize", 0);
-    
+
+    config_emulator.fullscreen = read_bool("Emulator", "FullScreen", false);
+    config_emulator.show_menu = read_bool("Emulator", "ShowMenu", true);
     config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
@@ -91,6 +93,10 @@ void config_read(void)
     config_emulator.savefiles_path = read_string("Emulator", "SaveFilesPath");
     config_emulator.savestates_dir_option = read_int("Emulator", "SaveStatesDirOption", 0);
     config_emulator.savestates_path = read_string("Emulator", "SaveStatesPath");
+    config_emulator.last_open_path = read_string("Emulator", "LastOpenPath");
+    config_emulator.window_width = read_int("Emulator", "WindowWidth", 800);
+    config_emulator.window_height = read_int("Emulator", "WindowHeight", 700);
+    config_emulator.status_messages = read_bool("Emulator", "StatusMessages", false);
 
     if (config_emulator.savefiles_path.empty())
     {
@@ -112,9 +118,9 @@ void config_read(void)
     config_video.fps = read_bool("Video", "FPS", false);
     config_video.bilinear = read_bool("Video", "Bilinear", false);
     config_video.mix_frames = read_bool("Video", "MixFrames", true);
-    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.50f);
+    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.75f);
     config_video.matrix = read_bool("Video", "Matrix", true);
-    config_video.matrix_intensity = read_float("Video", "MatrixIntensity", 0.30f);
+    config_video.matrix_intensity = read_float("Video", "MatrixIntensity", 0.20f);
     config_video.palette = read_int("Video", "Palette", 0);
     for (int i = 0; i < config_max_custom_palettes; i++)
     {
@@ -174,6 +180,8 @@ void config_write(void)
     write_bool("Debug", "Video", config_debug.show_video);
     write_int("Debug", "FontSize", config_debug.font_size);
 
+    write_bool("Emulator", "FullScreen", config_emulator.fullscreen);
+    write_bool("Emulator", "ShowMenu", config_emulator.show_menu);
     write_int("Emulator", "FFWD", config_emulator.ffwd_speed);
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);
@@ -188,6 +196,10 @@ void config_write(void)
     write_string("Emulator", "SaveFilesPath", config_emulator.savefiles_path);
     write_int("Emulator", "SaveStatesDirOption", config_emulator.savestates_dir_option);
     write_string("Emulator", "SaveStatesPath", config_emulator.savestates_path);
+    write_string("Emulator", "LastOpenPath", config_emulator.last_open_path);
+    write_int("Emulator", "WindowWidth", config_emulator.window_width);
+    write_int("Emulator", "WindowHeight", config_emulator.window_height);
+    write_bool("Emulator", "StatusMessages", config_emulator.status_messages);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {

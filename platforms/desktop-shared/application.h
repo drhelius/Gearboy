@@ -33,13 +33,13 @@ EXTERN int application_gamepad_mappings;
 EXTERN float application_display_scale;
 EXTERN SDL_version application_sdl_build_version;
 EXTERN SDL_version application_sdl_link_version;
-EXTERN bool application_fullscreen;
 
-EXTERN int application_init(const char* arg);
+EXTERN int application_init(const char* rom_file, const char* symbol_file);
 EXTERN void application_destroy(void);
 EXTERN void application_mainloop(void);
 EXTERN void application_trigger_quit(void);
 EXTERN void application_trigger_fullscreen(bool fullscreen);
+EXTERN void application_trigger_fit_to_content(int width, int height);
 
 #undef APPLICATION_IMPORT
 #undef EXTERN

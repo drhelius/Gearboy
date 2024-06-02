@@ -37,6 +37,8 @@ static const int config_max_custom_palettes = 5;
 
 struct config_Emulator
 {
+    bool fullscreen = false;
+    bool show_menu = true;
     bool paused = false;
     int save_slot = 0;
     bool start_paused = false;
@@ -55,6 +57,10 @@ struct config_Emulator
     std::string savefiles_path;
     int savestates_dir_option = 0;
     std::string savestates_path;
+    std::string last_open_path;
+    int window_width = 800;
+    int window_height = 700;
+    bool status_messages = false;
 };
 
 struct config_Video
@@ -64,9 +70,9 @@ struct config_Video
     bool fps = false;
     bool bilinear = false;
     bool mix_frames = true;
-    float mix_frames_intensity = 0.50f;
+    float mix_frames_intensity = 0.75f;
     bool matrix = true;
-    float matrix_intensity = 0.30f;
+    float matrix_intensity = 0.20f;
     int palette = 0;
     GB_Color color[config_max_custom_palettes][4] = {
         {{0xC4, 0xF0, 0xC2}, {0x5A, 0xB9, 0xA8}, {0x1E, 0x60, 0x6E}, {0x2D, 0x1B, 0x00}},
