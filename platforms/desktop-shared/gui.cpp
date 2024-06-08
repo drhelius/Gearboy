@@ -1395,14 +1395,14 @@ static void popup_modal_about(void)
         }
 
         ImGui::Separator();
-        
+
         #if defined(_M_ARM64)
         ImGui::Text("Windows ARM64 build");
         #endif
-        #if defined(_WIN64)
+        #if defined(_M_X64)
         ImGui::Text("Windows 64 bit build");
         #endif
-        #if defined(_WIN32)
+        #if defined(_M_IX86)
         ImGui::Text("Windows 32 bit build");
         #endif
         #if defined(__linux__) && defined(__x86_64__)
@@ -1423,8 +1423,11 @@ static void popup_modal_about(void)
         #if defined(__APPLE__) && defined(__x86_64__)
         ImGui::Text("macOS build (Intel)");
         #endif
-        #if defined(_MSC_VER)
-        ImGui::Text("Microsoft C++ %d.", _MSC_VER);
+        #if defined(_MSC_FULL_VER)
+        ImGui::Text("Microsoft C++ %d", _MSC_FULL_VER);
+        #endif
+        #if defined(__CLR_VER)
+        ImGui::Text("CLR version: %d", __CLR_VER);
         #endif
         #if defined(__MINGW32__)
         ImGui::Text("MinGW 32 bit (%d.%d)", __MINGW32_MAJOR_VERSION, __MINGW32_MINOR_VERSION);
@@ -1437,6 +1440,9 @@ static void popup_modal_about(void)
         #endif
         #if defined(__clang_version__)
         ImGui::Text("Clang %s", __clang_version__);
+        #endif
+        #if defined(__TIMESTAMP__)
+        ImGui::Text("Generated on: %s", __TIMESTAMP__);
         #endif
 
         ImGui::Separator();
