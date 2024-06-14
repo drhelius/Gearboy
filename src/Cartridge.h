@@ -21,6 +21,7 @@
 #define	CARTRIDGE_H
 
 #include <list>
+#include <ctime>
 #include "definitions.h"
 
 class Cartridge
