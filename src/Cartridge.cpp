@@ -20,7 +20,6 @@
 #include <string>
 #include <algorithm>
 #include <ctype.h>
-#include <time.h>
 #include "Cartridge.h"
 #include "miniz/miniz.c"
 
