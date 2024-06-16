@@ -1,0 +1,139 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Clean",
+            "command": "make -f ${workspaceFolder}/platforms/linux/Makefile clean",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "close": false,
+                "clear": true,
+                "revealProblems": "onProblem"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/platforms/linux"
+            },
+            "problemMatcher": [
+                {
+                    "base": "$gcc",
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}/platforms/linux"
+                    ]
+                }
+            ],
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "Build (RELEASE)",
+            "command": "make -j8 -f ${workspaceFolder}/platforms/linux/Makefile",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "close": false,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/platforms/linux"
+            },
+            "problemMatcher": [
+                {
+                    "base": "$gcc",
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}/platforms/linux"
+                    ]
+                }
+            ],
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "Clean + Build (RELEASE)",
+            "command": "make -j8 -f ${workspaceFolder}/platforms/linux/Makefile",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "close": false,
+                "clear": true,
+                "revealProblems": "onProblem"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/platforms/linux"
+            },
+            "problemMatcher": [
+                {
+                    "base": "$gcc",
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}/platforms/linux"
+                    ]
+                }
+            ],
+            "group": "build",
+            "dependsOn": "Clean"
+        },
+        {
+            "type": "shell",
+            "label": "Build (DEBUG)",
+            "command": "make -j8 -f ${workspaceFolder}/platforms/linux/Makefile DEBUG=1",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "close": false,
+                "clear": true,
+                "revealProblems": "onProblem"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/platforms/linux"
+            },
+            "problemMatcher": [
+                {
+                    "base": "$gcc",
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}/platforms/linux"
+                    ]
+                }
+            ],
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "Clean + Build (DEBUG)",
+            "command": "make -j8 -f ${workspaceFolder}/platforms/linux/Makefile DEBUG=1",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "close": false,
+                "clear": true,
+                "revealProblems": "onProblem"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/platforms/linux"
+            },
+            "problemMatcher": [
+                {
+                    "base": "$gcc",
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}/platforms/linux"
+                    ]
+                }
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": "Clean"
+        }
+    ]
+}

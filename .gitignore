@@ -4,7 +4,6 @@
 *.app/
 
 # Visual Studio files
-.vscode/
 .vs/
 ipch/
 [Oo]bj
