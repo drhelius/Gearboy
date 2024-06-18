@@ -11,3 +11,4 @@
 - [Rupert Carmichael](https://github.com/carmiker)
 - [Libretro / RetroArch team](https://github.com/libretro)
 - [Nicholas Piegdon](https://github.com/npiegdon)
+- [TomChapple](https://github.com/TomChapple)
