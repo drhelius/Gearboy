@@ -1,7 +1,8 @@
 {
     "files.exclude": {
         "**/*.o": true,
-        "**/*.so": true
+        "**/*.so": true,
+        "**/gearboy": true
     },
     "cmake.configureOnOpen": false,
     "files.associations": {
@@ -62,6 +63,7 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "optional": "cpp"
     }
 }
