@@ -1,0 +1,42 @@
+{
+  "build": {
+        "dockerfile": "./Dockerfile",
+        "context": "."
+    },
+  "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+          "username": "codespace",
+          "userUid": "1000",
+          "userGid": "1000"
+        },
+        "ghcr.io/devcontainers/features/desktop-lite:1": {}
+  },
+  "forwardPorts": [6080],
+  "portsAttributes": {
+    "6080": {
+      "label": "desktop"
+    }
+  },
+  "remoteUser": "codespace",
+  "containerUser": "codespace",
+  "customizations": {
+        // Configure properties specific to VS Code.
+        "vscode": {
+            // Set *default* container specific settings.json values on container create.
+            "settings": {
+              "editor.wordWrap": "on",
+              "editor.renderWhitespace": "all",
+              "workbench.colorTheme": "Monokai"
+            },
+            // Add the IDs of extensions you want installed when the container is created.
+            "extensions": [
+              "GitHub.vscode-pull-request-github",
+              "github.vscode-github-actions",
+              "GitHub.copilot",
+              "GitHub.copilot-chat",
+              "ms-vscode.cpptools-extension-pack",
+              "ms-vscode.hexeditor"
+            ]
+        }
+    }
+}
