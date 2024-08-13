@@ -39,6 +39,13 @@
 
 #define GEARBOY_TITLE "Gearboy"
 #define GEARBOY_VERSION "3.5.0"
+#define GEARBOY_TITLE_ASCII "" \
+"   ____                 _                  \n" \
+"  / ___| ___  __ _ _ __| |__   ___  _   _  \n" \
+" | |  _ / _ \\/ _` | '__| '_ \\ / _ \\| | | | \n" \
+" | |_| |  __/ (_| | |  | |_) | (_) | |_| | \n" \
+"  \\____|\\___|\\__,_|_|  |_.__/ \\___/ \\__, | \n" \
+"                                    |___/  \n"
 
 #ifndef EMULATOR_BUILD
 #define EMULATOR_BUILD "undefined"

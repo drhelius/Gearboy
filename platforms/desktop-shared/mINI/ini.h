@@ -23,7 +23,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-//  /mINI/ v0.9.10
+//  /mINI/ v0.9.16
 //  An INI file reader and writer for the modern age.
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,7 +108,7 @@ namespace mINI
 		inline void toLower(std::string& str)
 		{
 			std::transform(str.begin(), str.end(), str.begin(), [](const char c) {
-				return static_cast<const char>(std::tolower(c));
+				return static_cast<char>(std::tolower(c));
 			});
 		}
 #endif
@@ -129,7 +129,7 @@ namespace mINI
 #else
 		const char* const endl = "\n";
 #endif
-	};
+	}
 
 	template<typename T>
 	class INIMap
@@ -156,16 +156,8 @@ namespace mINI
 
 		INIMap() { }
 
-		INIMap(INIMap const& other)
+		INIMap(INIMap const& other) : dataIndexMap(other.dataIndexMap), data(other.data)
 		{
-			std::size_t data_size = other.data.size();
-			for (std::size_t i = 0; i < data_size; ++i)
-			{
-				auto const& key = other.data[i].first;
-				auto const& obj = other.data[i].second;
-				data.emplace_back(key, obj);
-			}
-			dataIndexMap = T_DataIndexMap(other.dataIndexMap);
 		}
 
 		T& operator[](std::string key)
@@ -324,7 +316,7 @@ namespace mINI
 			}
 			return PDataType::PDATA_UNKNOWN;
 		}
-	};
+	}
 
 	class INIReader
 	{
@@ -332,17 +324,35 @@ namespace mINI
 		using T_LineData = std::vector<std::string>;
 		using T_LineDataPtr = std::shared_ptr<T_LineData>;
 
+		bool isBOM = false;
+
 	private:
 		std::ifstream fileReadStream;
 		T_LineDataPtr lineData;
 
 		T_LineData readFile()
 		{
-			std::string fileContents;
 			fileReadStream.seekg(0, std::ios::end);
-			fileContents.resize(fileReadStream.tellg());
+			const std::size_t fileSize = static_cast<std::size_t>(fileReadStream.tellg());
 			fileReadStream.seekg(0, std::ios::beg);
-			std::size_t fileSize = fileContents.size();
+			if (fileSize >= 3) {
+				const char header[3] = {
+					static_cast<char>(fileReadStream.get()),
+					static_cast<char>(fileReadStream.get()),
+					static_cast<char>(fileReadStream.get())
+				};
+				isBOM = (
+					header[0] == static_cast<char>(0xEF) &&
+					header[1] == static_cast<char>(0xBB) &&
+					header[2] == static_cast<char>(0xBF)
+				);
+			}
+			else {
+				isBOM = false;
+			}
+			std::string fileContents;
+			fileContents.resize(fileSize);
+			fileReadStream.seekg(isBOM ? 3 : 0, std::ios::beg);
 			fileReadStream.read(&fileContents[0], fileSize);
 			fileReadStream.close();
 			T_LineData output;
@@ -676,11 +686,13 @@ namespace mINI
 			INIStructure originalData;
 			T_LineDataPtr lineData;
 			bool readSuccess = false;
+			bool fileIsBOM = false;
 			{
 				INIReader reader(filename, true);
 				if ((readSuccess = reader >> originalData))
 				{
 					lineData = reader.getLines();
+					fileIsBOM = reader.isBOM;
 				}
 			}
 			if (!readSuccess)
@@ -691,6 +703,14 @@ namespace mINI
 			std::ofstream fileWriteStream(filename, std::ios::out | std::ios::binary);
 			if (fileWriteStream.is_open())
 			{
+				if (fileIsBOM) {
+					const char utf8_BOM[3] = {
+						static_cast<char>(0xEF),
+						static_cast<char>(0xBB),
+						static_cast<char>(0xBF)
+					};
+					fileWriteStream.write(utf8_BOM, 3);
+				}
 				if (output.size())
 				{
 					auto line = output.begin();
