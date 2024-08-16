@@ -14,7 +14,7 @@ This is an open source project with its ongoing development made possible thanks
 
 Don't hesitate to report bugs or ask for new features by [openning an issue](https://github.com/drhelius/Gearboy/issues). 
 
-----------
+<img src="http://www.geardome.com/files/gearboy/gearboy_debug_01.png">
 
 ## Downloads
 
@@ -52,8 +52,6 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - Windows and Linux *Portable Mode*.
 - Rom loading from the command line by adding the rom path as an argument.
 - Support for modern game controllers through [gamecontrollerdb.txt](https://github.com/gabomdq/SDL_GameControllerDB) file located in the same directory as the application binary.
-
-<img src="http://www.geardome.com/files/gearboy/gearboy_debug_01.png" width="880" height="455">
 
 ## Tips
 
