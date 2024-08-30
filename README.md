@@ -67,7 +67,6 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 
 - Install Microsoft Visual Studio Community 2022 or later.
 - Open the Gearboy Visual Studio solution `platforms/windows/Gearboy.sln` and build.
-- You may want to use the `platforms/windows/Makefile` to build the application using MinGW.
 
 ### macOS
 
