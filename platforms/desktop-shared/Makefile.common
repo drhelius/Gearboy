@@ -1,7 +1,16 @@
-CXX = g++
-CC = gcc
-#CXX = clang++
-#CC = clang
+define HEADER
+   ____                 _
+  / ___| ___  __ _ _ __| |__   ___  _   _
+ | |  _ / _ \\/ _` | '__| '_ \\ / _ \\| | | |
+ | |_| |  __/ (_| | |  | |_) | (_) | |_| |
+  \\____|\\___|\\__,_|_|  |_.__/ \\___/ \\__, |
+                                    |___/
+
+  ** Building for $(PLATFORM) platform **
+  ** Git version: $(GIT_VERSION) **
+
+endef
+export HEADER
 
 TARGET_NAME = gearboy
 GIT_VERSION := "$(shell git describe --abbrev=7 --dirty --always --tags)"
@@ -10,6 +19,15 @@ PLATFORM = "undefined"
 
 OBJECTS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
+USE_CLANG ?= 0
+ifeq ($(USE_CLANG), 1)
+    CXX = clang++
+    CC = clang
+else
+    CXX = g++
+    CC = gcc
+endif
+
 CPPFLAGS += -I../ -I../../
 CPPFLAGS += -Wall -Wextra -Wformat  -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
 CXXFLAGS += -std=c++11
@@ -17,10 +35,12 @@ CFLAGS += -std=c99
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
+    BUILD_CONFIG = Debug
     CPPFLAGS +=-DDEBUG -g3
 else
-    CPPFLAGS +=-DNDEBUG -O3 -flto
-    LDFLAGS += -flto
+    BUILD_CONFIG = Release
+    CPPFLAGS +=-DNDEBUG -O3 -flto=auto
+    LDFLAGS += -O3 -flto=auto
 endif
 
 SANITIZE ?= 0
@@ -29,23 +49,17 @@ ifeq ($(SANITIZE), 1)
     LDFLAGS += -lasan
 endif
 
-ifeq ($(UNAME_S), Linux) #LINUX
+ifeq ($(UNAME_S), Linux)
     PLATFORM = "Linux"
     LDFLAGS += -lGL -lGLEW -ldl `sdl2-config --libs`
     CPPFLAGS += `sdl2-config --cflags`
     TARGET := $(TARGET_NAME)
-else ifeq ($(UNAME_S), Darwin) #APPLE
+else ifeq ($(UNAME_S), Darwin)
     PLATFORM = "macOS"
-    LDFLAGS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo `sdl2-config --libs`
-    LDFLAGS += -L/usr/local/lib
+    LDFLAGS += -framework OpenGL `sdl2-config --static-libs`
     CPPFLAGS += `sdl2-config --cflags`
-    CPPFLAGS += -I/usr/local/include -I/opt/local/include
+    CPPFLAGS += -I/opt/local/include
     TARGET := $(TARGET_NAME)
-else ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
-    PLATFORM = "MinGW"
-    LDFLAGS += -lgdi32 -lopengl32 -lglew32 -limm32 `pkg-config --static --libs sdl2`
-    CPPFLAGS += `pkg-config --cflags sdl2`
-    TARGET := $(TARGET_NAME).exe
 else
     PLATFORM = "Generic Unix-like/BSD"
     LDFLAGS += `sdl2-config --libs` -lSDL2
@@ -56,8 +70,8 @@ else
     TARGET := $(TARGET_NAME)
 endif
 
-all: $(TARGET)
-	@echo Build complete for $(PLATFORM)
+all: header $(TARGET)
+	@echo Build complete for $(PLATFORM) \($(BUILD_CONFIG)\)
 
 $(TARGET): $(OBJECTS)
 	$(CXX) -o $@ $(OBJECTS) $(LDFLAGS)
@@ -73,3 +87,6 @@ $(TARGET): $(OBJECTS)
 
 clean:
 	rm -f $(OBJECTS) $(TARGET)
+
+header:
+	@echo "$$HEADER"

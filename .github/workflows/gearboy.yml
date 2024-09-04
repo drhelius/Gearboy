@@ -1,10 +1,13 @@
-name: Main Workflow
+name: Build and Release
 
 on:
   workflow_dispatch:
   push:
     paths-ignore:
       - '**.md'
+      - '.github/**'
+      - '.vscode/**'
+      - '.devcontainer/**'
   pull_request:
   schedule:
     - cron: '0 0 * * 0'
@@ -49,6 +52,28 @@ jobs:
       with:
         name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-${{ matrix.os }}
         path: artifact/*
+  linux-clang:
+    name: Linux (Clang/LLVM)
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Update OS
+      run: sudo apt-get update -qq
+    - name: Install dependencies
+      run: sudo apt-get install -y libsdl2-dev libglew-dev libgtk-3-dev
+    - name: Get build number
+      run: |
+        echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
+    - name: make
+      run: make
+      working-directory: platforms/linux
+      env:
+        USE_CLANG: 1
   libretro:
     name: Libretro (ubuntu)
     runs-on: ubuntu-latest
@@ -98,12 +123,45 @@ jobs:
     - name: make
       run: make dist
       working-directory: platforms/macos
+    - name: Codesign app bundle
+      env:
+        MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
+        MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
+        MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+        MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
+      run: |
+        echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+
+        security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+        security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+
+        codesign -v -f -o runtime --sign "$MACOS_CERTIFICATE_NAME" ${{ env.NAME_UPPER }}.app/Contents/MacOS/gamecontrollerdb.txt
+        codesign -v -f -o runtime --entitlements "app.entitlements" --sign "$MACOS_CERTIFICATE_NAME" ${{ env.NAME_UPPER }}.app/Contents/MacOS/${{ env.NAME_LOWER }}
+        codesign -v -f -o runtime --sign "$MACOS_CERTIFICATE_NAME" ${{ env.NAME_UPPER }}.app
+
+        codesign -v -vvv --deep "${{ env.NAME_UPPER }}.app"
+      working-directory: platforms/macos
+    - name: Notarize app bundle
+      env:
+        PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
+        PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
+        PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
+      run: |
+        xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
+        ditto -c -k --keepParent "${{ env.NAME_UPPER }}.app" "notarization.zip"
+        xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
+        xcrun stapler staple "${{ env.NAME_UPPER }}.app"
+        spctl -a -vvv -t install "${{ env.NAME_UPPER }}.app"
+        ditto -c -k --keepParent "${{ env.NAME_UPPER }}.app" "${{ env.NAME_UPPER }}.app.zip"
+      working-directory: platforms/macos
     - name: Prepare artifact directory
       run: |
         mkdir -p artifact
-        cp platforms/README.txt artifact
-        cp platforms/gamecontrollerdb.txt artifact
-        cp -R platforms/macos/${{ env.NAME_UPPER }}.app artifact
+        cp platforms/README.txt artifact/
+        mv platforms/macos/${{ env.NAME_UPPER }}.app.zip artifact/
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
