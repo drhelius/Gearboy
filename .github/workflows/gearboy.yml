@@ -162,7 +162,7 @@ jobs:
       run: |
         mkdir -p artifact
         cp platforms/README.txt artifact/
-        ditto -c -k --keepParent "${{ env.NAME_UPPER }}.app" "${{ env.NAME_UPPER }}.app.zip"
+        ditto -c -k --keepParent platforms/macos/"${{ env.NAME_UPPER }}.app" platforms/macos/"${{ env.NAME_UPPER }}.app.zip"
         mv platforms/macos/${{ env.NAME_UPPER }}.app.zip artifact/
     - name: Archive binary
       uses: actions/upload-artifact@v4
