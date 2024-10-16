@@ -146,7 +146,7 @@ jobs:
         codesign -v -vvv --deep "${{ env.NAME_UPPER }}.app"
       working-directory: platforms/macos
     - name: Notarize app bundle
-      if: needs.pr-check.outputs.number == null && github.repository_owner == 'drhelius'
+      if: github.event_name != 'pull_request' && github.repository_owner == 'drhelius'
       env:
         PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
         PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
