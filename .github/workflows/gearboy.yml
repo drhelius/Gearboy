@@ -124,7 +124,7 @@ jobs:
       run: make dist
       working-directory: platforms/macos
     - name: Codesign app bundle
-      if: needs.pr-check.outputs.number == null && github.repository_owner == 'drhelius'
+      if: github.event_name != 'pull_request' && github.repository_owner == 'drhelius'
       env:
         MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
         MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
