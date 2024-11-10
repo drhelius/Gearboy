@@ -18,7 +18,6 @@
  */
 #include <math.h>
 #include "imgui/imgui.h"
-#include "imgui/imgui_memory_editor.h"
 #include "imgui/fonts/RobotoMedium.h"
 #include "nfd/nfd.h"
 #include "config.h"
@@ -1068,7 +1067,7 @@ static void main_window(void)
         gui_main_window_hovered = ImGui::IsWindowHovered();
     }
 
-    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2((float)main_window_width, (float)main_window_height));
+    ImGui::Image((ImTextureID)(intptr_t)renderer_emu_texture, ImVec2((float)main_window_width, (float)main_window_height));
 
     if (config_video.fps)
         show_fps();
@@ -1310,12 +1309,12 @@ static void popup_modal_keyboard(void)
 {
     if (ImGui::BeginPopupModal("Keyboard Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        ImGui::Text("Press any key...\n\n");
+        ImGui::Text("Press any key to assign...\n\n");
         ImGui::Separator();
 
-        for (int i = 0; i < IM_ARRAYSIZE(ImGui::GetIO().KeysDown); i++)
+        for ( int i = 0; i < ImGuiKey_NamedKey_END; ++i )
         {
-            if (ImGui::IsKeyPressed(i))
+            if (ImGui::IsKeyDown((ImGuiKey)i))
             {
                 SDL_Scancode key = (SDL_Scancode)i;
 

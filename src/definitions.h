@@ -132,8 +132,10 @@ enum Gameboy_Keys
         #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "GEARBOY", __VA_ARGS__);
     #endif
 #define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
+#define Debug(msg, ...) (Log_func(msg, ##__VA_ARGS__))
 #else
 #define Log(msg, ...)
+#define Debug(msg, ...)
 #endif
 
 inline void Log_func(const char* const msg, ...)

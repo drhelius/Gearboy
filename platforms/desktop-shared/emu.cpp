@@ -18,7 +18,7 @@
  */
 
 #include "../../src/gearboy.h"
-#include "../audio-shared/Sound_Queue.h"
+#include "../audio-shared/sound_queue.h"
 
 #define EMU_IMPORT
 #include "emu.h"
@@ -38,7 +38,7 @@ static GB_Color soft_palette[4] = {{0xE0, 0xE0, 0xAA},{0xB0, 0xB8, 0x7C},{0x72, 
 static GB_Color slime_palette[4] = {{0xD4, 0xEB, 0xA5},{0x62, 0xB8, 0x7C},{0x27, 0x76, 0x5D},{0x1D, 0x39, 0x39}};
 
 static GearboyCore* gearboy;
-static Sound_Queue* sound_queue;
+static SoundQueue* sound_queue;
 static u16* frame_buffer_565;
 static u16* debug_background_buffer_565;
 static u16* debug_tile_buffers_565[2];
@@ -70,8 +70,8 @@ void emu_init(void)
     gearboy = new GearboyCore();
     gearboy->Init();
 
-    sound_queue = new Sound_Queue();
-    sound_queue->start(44100, 2);
+    sound_queue = new SoundQueue();
+    sound_queue->Start(44100, 2);
 
     audio_buffer = new s16[AUDIO_BUFFER_SIZE];
 
@@ -147,7 +147,7 @@ void emu_update(void)
 
         if ((sampleCount > 0) && !gearboy->IsPaused())
         {
-            sound_queue->write(audio_buffer, sampleCount, emu_audio_sync);
+            sound_queue->Write(audio_buffer, sampleCount, emu_audio_sync);
         }
     }
 }
@@ -207,13 +207,18 @@ void emu_audio_volume(float volume)
 
 void emu_audio_reset(void)
 {
-    sound_queue->stop();
-    sound_queue->start(44100, 2);
+    sound_queue->Stop();
+    sound_queue->Start(44100, 2);
 }
 
 bool emu_is_audio_enabled(void)
 {
     return audio_enabled;
+}
+
+bool emu_is_audio_open(void)
+{
+    return sound_queue->IsOpen();
 }
 
 void emu_dmg_palette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4)

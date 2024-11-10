@@ -19,7 +19,7 @@
 
 #include <SDL.h>
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_sdl.h"
+#include "imgui/imgui_impl_sdl2.h"
 #include "emu.h"
 #include "gui.h"
 #include "gui_debug.h"
@@ -91,6 +91,7 @@ void application_destroy(void)
     config_write();
     config_destroy();
     renderer_destroy();
+    ImGui_ImplSDL2_Shutdown();
     gui_destroy();
     emu_destroy();
     sdl_destroy();
@@ -205,7 +206,6 @@ static int sdl_init(void)
 static void sdl_destroy(void)
 {
     SDL_GameControllerClose(application_gamepad);
-    ImGui_ImplSDL2_Shutdown();
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(sdl_window);
     SDL_Quit();
@@ -520,7 +520,7 @@ static void run_emulator(void)
 static void render(void)
 {
     renderer_begin_render();
-    ImGui_ImplSDL2_NewFrame(sdl_window);  
+    ImGui_ImplSDL2_NewFrame();
     gui_render();
     renderer_render();
     renderer_end_render();
@@ -530,7 +530,7 @@ static void render(void)
 
 static void frame_throttle(void)
 {
-    if (emu_is_empty() || emu_is_paused() || config_emulator.ffwd)
+    if (emu_is_empty() || emu_is_paused() || !emu_is_audio_open() || config_emulator.ffwd)
     {
         float elapsed = (float)((frame_time_end - frame_time_start) * 1000) / SDL_GetPerformanceFrequency();
 

@@ -12,12 +12,14 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/application.cpp \
     $(DESKTOP_SRC_DIR)/config.cpp \
     $(DESKTOP_SRC_DIR)/renderer.cpp \
-    $(DESKTOP_SRC_DIR)/imgui/imgui_impl_sdl.cpp \
+    $(DESKTOP_SRC_DIR)/imgui/imgui_impl_sdl2.cpp \
     $(DESKTOP_SRC_DIR)/imgui/imgui_impl_opengl2.cpp \
     $(DESKTOP_SRC_DIR)/imgui/imgui.cpp \
     $(DESKTOP_SRC_DIR)/imgui/imgui_draw.cpp \
     $(DESKTOP_SRC_DIR)/imgui/imgui_widgets.cpp \
-    $(AUDIO_SRC_DIR)/Sound_Queue.cpp \
+    $(DESKTOP_SRC_DIR)/imgui/imgui_tables.cpp \
+    $(DESKTOP_SRC_DIR)/imgui/memory_editor.cpp \
+    $(AUDIO_SRC_DIR)/sound_queue.cpp \
     $(SRC_DIR)/Audio.cpp \
     $(SRC_DIR)/Cartridge.cpp \
     $(SRC_DIR)/CommonMemoryRule.cpp \
