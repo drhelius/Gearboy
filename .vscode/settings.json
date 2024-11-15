@@ -2,7 +2,8 @@
     "files.exclude": {
         "**/*.o": true,
         "**/*.so": true,
-        "**/gearboy": true
+        "**/gearboy": true,
+        "**/binary_to_compressed_c": true
     },
     "cmake.configureOnOpen": false,
     "files.associations": {

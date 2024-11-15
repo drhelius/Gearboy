@@ -2,16 +2,34 @@
     "configurations": [
         {
             "name": "Linux",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c99",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "linux-gcc-x64",
             "includePath": [
                 "${workspaceFolder}/**",
                 "/usr/include/SDL2"
             ],
-            "defines": [],
-            "compilerPath": "/usr/bin/gcc",
+            "browse": {
+              "path": ["${workspaceFolder}"]
+            }
+        },
+        {
+            "name": "Mac",
+            "compilerPath": "/usr/bin/clang",
             "cStandard": "c99",
             "cppStandard": "c++11",
-            "intelliSenseMode": "linux-gcc-x64"
+            "intelliSenseMode": "macos-clang-arm64",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/homebrew/include/SDL2"
+            ],
+            "macFrameworkPath": ["/System/Library/Frameworks", "/Library/Frameworks"],
+            "browse": {
+              "path": ["${workspaceFolder}"]
+            }
         }
     ],
-    "version": 4
+    "version": 4,
+    "enableConfigurationSquiggles": true
 }

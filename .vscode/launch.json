@@ -5,13 +5,20 @@
             "name": "Build and debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/platforms/linux/gearboy",
+            "linux": {
+                "program": "${workspaceFolder}/platforms/linux/gearboy",
+                "cwd": "${workspaceFolder}/platforms/linux",
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "program": "${workspaceFolder}/platforms/macos/gearboy",
+                "cwd": "${workspaceFolder}/platforms/macos",
+                "MIMode": "lldb"
+            },
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/platforms/linux",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",
             "preLaunchTask": "Build (DEBUG)",
             "setupCommands": [
                 {

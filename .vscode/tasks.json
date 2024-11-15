@@ -4,7 +4,36 @@
         {
             "type": "shell",
             "label": "Clean",
-            "command": "make -f ${workspaceFolder}/platforms/linux/Makefile clean",
+            "linux": {
+                "command": "make -f ${workspaceFolder}/platforms/linux/Makefile clean",
+                "options": {
+                    "cwd": "${workspaceFolder}/platforms/linux"
+                },
+                "problemMatcher": [
+                    {
+                        "base": "$gcc",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/platforms/linux"
+                        ]
+                    }
+                ],
+            },
+            "osx": {
+                "command": "make -f ${workspaceFolder}/platforms/macos/Makefile clean",
+                "options": {
+                    "cwd": "${workspaceFolder}/platforms/macos"
+                },
+                "problemMatcher": [
+                    {
+                        "base": "$gcc",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/platforms/macos"
+                        ]
+                    }
+                ],
+            },
             "presentation": {
                 "reveal": "silent",
                 "panel": "dedicated",
@@ -13,24 +42,41 @@
                 "clear": true,
                 "revealProblems": "onProblem"
             },
-            "options": {
-                "cwd": "${workspaceFolder}/platforms/linux"
-            },
-            "problemMatcher": [
-                {
-                    "base": "$gcc",
-                    "fileLocation": [
-                        "relative",
-                        "${workspaceFolder}/platforms/linux"
-                    ]
-                }
-            ],
             "group": "build"
         },
         {
             "type": "shell",
             "label": "Build (RELEASE)",
-            "command": "make -j8 -f ${workspaceFolder}/platforms/linux/Makefile",
+            "linux": {
+                "command": "make -j10 -f ${workspaceFolder}/platforms/linux/Makefile",
+                "options": {
+                    "cwd": "${workspaceFolder}/platforms/linux"
+                },
+                "problemMatcher": [
+                    {
+                        "base": "$gcc",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/platforms/linux"
+                        ]
+                    }
+                ],
+            },
+            "osx": {
+                "command": "make -j10 -f ${workspaceFolder}/platforms/macos/Makefile",
+                "options": {
+                    "cwd": "${workspaceFolder}/platforms/macos"
+                },
+                "problemMatcher": [
+                    {
+                        "base": "$gcc",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/platforms/macos"
+                        ]
+                    }
+                ],
+            },
             "presentation": {
                 "reveal": "silent",
                 "panel": "dedicated",
@@ -38,24 +84,41 @@
                 "close": false,
                 "clear": true
             },
-            "options": {
-                "cwd": "${workspaceFolder}/platforms/linux"
-            },
-            "problemMatcher": [
-                {
-                    "base": "$gcc",
-                    "fileLocation": [
-                        "relative",
-                        "${workspaceFolder}/platforms/linux"
-                    ]
-                }
-            ],
             "group": "build"
         },
         {
             "type": "shell",
             "label": "Clean + Build (RELEASE)",
-            "command": "make -j8 -f ${workspaceFolder}/platforms/linux/Makefile",
+            "linux": {
+                "command": "make -j10 -f ${workspaceFolder}/platforms/linux/Makefile",
+                "options": {
+                    "cwd": "${workspaceFolder}/platforms/linux"
+                },
+                "problemMatcher": [
+                    {
+                        "base": "$gcc",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/platforms/linux"
+                        ]
+                    }
+                ],
+            },
+            "osx": {
+                "command": "make -j10 -f ${workspaceFolder}/platforms/macos/Makefile",
+                "options": {
+                    "cwd": "${workspaceFolder}/platforms/macos"
+                },
+                "problemMatcher": [
+                    {
+                        "base": "$gcc",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/platforms/macos"
+                        ]
+                    }
+                ],
+            },
             "presentation": {
                 "reveal": "silent",
                 "panel": "dedicated",
@@ -64,25 +127,42 @@
                 "clear": true,
                 "revealProblems": "onProblem"
             },
-            "options": {
-                "cwd": "${workspaceFolder}/platforms/linux"
-            },
-            "problemMatcher": [
-                {
-                    "base": "$gcc",
-                    "fileLocation": [
-                        "relative",
-                        "${workspaceFolder}/platforms/linux"
-                    ]
-                }
-            ],
             "group": "build",
             "dependsOn": "Clean"
         },
         {
             "type": "shell",
             "label": "Build (DEBUG)",
-            "command": "make -j8 -f ${workspaceFolder}/platforms/linux/Makefile DEBUG=1",
+            "linux": {
+                "command": "make -j10 -f ${workspaceFolder}/platforms/linux/Makefile DEBUG=1",
+                "options": {
+                    "cwd": "${workspaceFolder}/platforms/linux"
+                },
+                "problemMatcher": [
+                    {
+                        "base": "$gcc",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/platforms/linux"
+                        ]
+                    }
+                ],
+            },
+            "osx": {
+                "command": "make -j10 -f ${workspaceFolder}/platforms/macos/Makefile DEBUG=1",
+                "options": {
+                    "cwd": "${workspaceFolder}/platforms/macos"
+                },
+                "problemMatcher": [
+                    {
+                        "base": "$gcc",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/platforms/macos"
+                        ]
+                    }
+                ],
+            },
             "presentation": {
                 "reveal": "silent",
                 "panel": "dedicated",
@@ -91,24 +171,41 @@
                 "clear": true,
                 "revealProblems": "onProblem"
             },
-            "options": {
-                "cwd": "${workspaceFolder}/platforms/linux"
-            },
-            "problemMatcher": [
-                {
-                    "base": "$gcc",
-                    "fileLocation": [
-                        "relative",
-                        "${workspaceFolder}/platforms/linux"
-                    ]
-                }
-            ],
             "group": "build"
         },
         {
             "type": "shell",
             "label": "Clean + Build (DEBUG)",
-            "command": "make -j8 -f ${workspaceFolder}/platforms/linux/Makefile DEBUG=1",
+            "linux": {
+                "command": "make -j10 -f ${workspaceFolder}/platforms/linux/Makefile DEBUG=1",
+                "options": {
+                    "cwd": "${workspaceFolder}/platforms/linux"
+                },
+                "problemMatcher": [
+                    {
+                        "base": "$gcc",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/platforms/linux"
+                        ]
+                    }
+                ],
+            },
+            "osx": {
+                "command": "make -j10 -f ${workspaceFolder}/platforms/macos/Makefile DEBUG=1",
+                "options": {
+                    "cwd": "${workspaceFolder}/platforms/macos"
+                },
+                "problemMatcher": [
+                    {
+                        "base": "$gcc",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/platforms/macos"
+                        ]
+                    }
+                ],
+            },
             "presentation": {
                 "reveal": "silent",
                 "panel": "dedicated",
@@ -117,18 +214,6 @@
                 "clear": true,
                 "revealProblems": "onProblem"
             },
-            "options": {
-                "cwd": "${workspaceFolder}/platforms/linux"
-            },
-            "problemMatcher": [
-                {
-                    "base": "$gcc",
-                    "fileLocation": [
-                        "relative",
-                        "${workspaceFolder}/platforms/linux"
-                    ]
-                }
-            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
