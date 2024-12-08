@@ -646,7 +646,9 @@ static void main_menu(void)
             if (ImGui::BeginMenu("Scale"))
             {
                 ImGui::PushItemWidth(250.0f);
-                ImGui::Combo("##scale", &config_video.scale, "Integer Scale (Auto)\0Integer Scale (X1)\0Integer Scale (X2)\0Integer Scale (X3)\0Integer Scale (X4)\0Scale to Window Height\0Scale to Window Width & Height\0\0");
+                ImGui::Combo("##scale", &config_video.scale, "Integer Scale (Auto)\0Integer Scale (Manual)\0Scale to Window Height\0Scale to Window Width & Height\0\0");
+                if (config_video.scale == 1)
+                    ImGui::SliderInt("##scale_manual", &config_video.scale_manual, 1, 10);
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -1016,7 +1018,7 @@ static void main_window(void)
             ratio = (float)GAMEBOY_WIDTH / (float)GAMEBOY_HEIGHT;
     }
 
-    if (!config_debug.debug && config_video.scale == 6)
+    if (!config_debug.debug && config_video.scale == 3)
     {
         ratio = (float)w / (float)h;
     }
@@ -1027,34 +1029,38 @@ static void main_window(void)
 
     if (config_debug.debug)
     {
-        if ((config_video.scale > 0) && (config_video.scale < 5))
-            scale_multiplier = config_video.scale;
+        if (config_video.scale != 0)
+            scale_multiplier = config_video.scale_manual;
         else
             scale_multiplier = 1;
     }
     else
     {
-        if ((config_video.scale > 0) && (config_video.scale < 5))
+        switch (config_video.scale)
         {
-            scale_multiplier = config_video.scale;
-        }
-        else if (config_video.scale == 0)
+        case 0:
         {
             int factor_w = w / w_corrected;
             int factor_h = h / h_corrected;
             scale_multiplier = (factor_w < factor_h) ? factor_w : factor_h;
+            break;
         }
-        else if (config_video.scale == 5)
-        {
+        case 1:
+            scale_multiplier = config_video.scale_manual;
+            break;
+        case 2:
             scale_multiplier = 1;
             h_corrected = h;
             w_corrected = h * ratio;
-        }
-        else if (config_video.scale == 6)
-        {
+            break;
+        case 3:
             scale_multiplier = 1;
             w_corrected = w;
             h_corrected = h;
+            break;
+        default:
+            scale_multiplier = 1;
+            break;
         }
     }
 
@@ -1081,7 +1087,7 @@ static void main_window(void)
         int window_y = ((h - (h_corrected * scale_multiplier)) / 2) + (config_emulator.show_menu ? main_menu_height : 0);
 
         ImGui::SetNextWindowSize(ImVec2((float)main_window_width, (float)main_window_height));
-        ImGui::SetNextWindowPos(ImVec2((float)window_x, (float)window_y));
+        ImGui::SetNextWindowPos(ImGui::GetMainViewport()->Pos + ImVec2((float)window_x, (float)window_y));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus;
