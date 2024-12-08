@@ -230,6 +230,12 @@ static void sdl_events(void)
             break;
         }
 
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(sdl_window))
+        {
+            running = false;
+            break;
+        }
+
         ImGui_ImplSDL2_ProcessEvent(&event);
 
         if (!gui_in_use)

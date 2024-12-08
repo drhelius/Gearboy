@@ -125,6 +125,7 @@ struct config_Debug
     bool show_audio = false;
     bool show_video = false;
     int font_size = 0;
+    bool multi_viewport = false;
 };
 
 EXTERN mINI::INIFile* config_ini_file;
