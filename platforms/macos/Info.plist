@@ -20,5 +20,7 @@
     <string>@version@</string>
     <key>CFBundleShortVersionString</key>
     <string>@version@</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.arcade-games</string>
 </dict>
 </plist>
