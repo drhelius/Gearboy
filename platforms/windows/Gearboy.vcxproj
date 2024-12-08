@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\miniz\miniz.c" />
     <ClCompile Include="..\..\src\Audio.cpp" />
     <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp" />
     <ClCompile Include="..\..\src\audio\Effects_Buffer.cpp" />
@@ -62,6 +63,7 @@
     <ClCompile Include="..\desktop-shared\renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\miniz\miniz.h" />
     <ClInclude Include="..\..\src\Audio.h" />
     <ClInclude Include="..\..\src\audio\blargg_common.h" />
     <ClInclude Include="..\..\src\audio\blargg_config.h" />

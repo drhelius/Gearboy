@@ -1,4 +1,5 @@
-SOURCES_C   :=
+SOURCES_C   :=  $(SOURCE_DIR)/miniz/miniz.c \
+
 SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/GearboyCore.cpp \
                $(SOURCE_DIR)/Memory.cpp \

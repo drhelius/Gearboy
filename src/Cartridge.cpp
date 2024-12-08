@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <ctype.h>
 #include "Cartridge.h"
-#include "miniz/miniz.c"
+#include "miniz/miniz.h"
 
 Cartridge::Cartridge()
 {

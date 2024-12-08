@@ -2,7 +2,8 @@ SRC_DIR = ../../src
 DESKTOP_SRC_DIR=../desktop-shared
 AUDIO_SRC_DIR=../audio-shared
 
-SOURCES_C :=
+SOURCES_C := \
+    $(SRC_DIR)/miniz/miniz.c \
 
 SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/main.cpp \
