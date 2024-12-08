@@ -25,6 +25,7 @@
 #include "renderer.h"
 #include "../../src/gearboy.h"
 #include "gui.h"
+#include "gui_colors.h"
 #include "gui_debug_constants.h"
 
 #define GUI_DEBUG_IMPORT
@@ -48,17 +49,6 @@ struct DisassmeblerLine
 static MemEditor mem_edit[10];
 static int mem_edit_select = -1;
 static int current_mem_edit = 0;
-static ImVec4 cyan = ImVec4(0.1f,0.9f,0.9f,1.0f);
-static ImVec4 magenta = ImVec4(1.0f,0.502f,0.957f,1.0f);
-static ImVec4 yellow = ImVec4(1.0f,0.90f,0.05f,1.0f);
-static ImVec4 orange = ImVec4(0.992f,0.592f,0.122f,1.0f);
-static ImVec4 red = ImVec4(0.976f,0.149f,0.447f,1.0f);
-static ImVec4 green = ImVec4(0.1f,0.9f,0.1f,1.0f);
-static ImVec4 violet = ImVec4(0.682f,0.506f,1.0f,1.0f);
-static ImVec4 blue = ImVec4(0.2f,0.4f,1.0f,1.0f);
-static ImVec4 white = ImVec4(1.0f,1.0f,1.0f,1.0f);
-static ImVec4 gray = ImVec4(0.5f,0.5f,0.5f,1.0f);
-static ImVec4 dark_gray = ImVec4(0.1f,0.1f,0.1f,1.0f);
 static std::vector<DebugSymbol> symbols;
 static Memory::stDisassembleRecord* selected_record = NULL;
 static char brk_address_cpu[8] = "";

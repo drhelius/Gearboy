@@ -37,8 +37,12 @@
 #define PERFORMANCE
 #endif
 
+#if !defined(EMULATOR_BUILD)
+    #define EMULATOR_BUILD "undefined"
+#endif
+
 #define GEARBOY_TITLE "Gearboy"
-#define GEARBOY_VERSION "3.5.0"
+#define GEARBOY_VERSION EMULATOR_BUILD
 #define GEARBOY_TITLE_ASCII "" \
 "   ____                 _                  \n" \
 "  / ___| ___  __ _ _ __| |__   ___  _   _  \n" \
@@ -46,10 +50,6 @@
 " | |_| |  __/ (_| | |  | |_) | (_) | |_| | \n" \
 "  \\____|\\___|\\__,_|_|  |_.__/ \\___/ \\__, | \n" \
 "                                    |___/  \n"
-
-#ifndef EMULATOR_BUILD
-#define EMULATOR_BUILD "undefined"
-#endif
 
 #ifndef NULL
 #define NULL 0
@@ -174,5 +174,19 @@ inline int AsHex(const char c)
 {
   return c >= 'A' ? c - 'A' + 0xA : c - '0';
 }
+
+#if !defined(DEBUG_GEARBOY)
+    #if defined(__GNUC__) || defined(__clang__)
+        #if !defined(__OPTIMIZE__) && !defined(__OPTIMIZE_SIZE__)
+            #warning "Compiling without optimizations."
+            #define GEARBOY_NO_OPTIMIZATIONS
+        #endif
+    #elif defined(_MSC_VER)
+        #if !defined(NDEBUG)
+            #pragma message("Compiling without optimizations.")
+            #define GEARBOY_NO_OPTIMIZATIONS
+        #endif
+    #endif
+#endif
 
 #endif	/* DEFINITIONS_H */

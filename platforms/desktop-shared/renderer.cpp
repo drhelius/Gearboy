@@ -56,20 +56,19 @@ static void render_matrix(void);
 
 void renderer_init(void)
 {
-    #ifndef __APPLE__
+#if !defined(__APPLE__)
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
-        /* Problem: glewInit failed, something is seriously wrong. */
-        Log("GLEW Error: %s\n", glewGetErrorString(err));
+        Log("GLEW Error: %s", glewGetErrorString(err));
     }
 
     renderer_glew_version = (const char*)glewGetString(GLEW_VERSION);
-    renderer_opengl_version = (const char*)glGetString(GL_VERSION);
+    Log("Using GLEW %s", renderer_glew_version);
+#endif
 
-    Log("Using GLEW %s\n", renderer_glew_version);
-    
-    #endif
+    renderer_opengl_version = (const char*)glGetString(GL_VERSION);
+    Log("Using OpenGL %s", renderer_opengl_version);
 
     init_ogl_gui();
     init_ogl_emu();
