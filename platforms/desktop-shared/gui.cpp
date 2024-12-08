@@ -563,7 +563,7 @@ static void main_menu(void)
 
                 static char cheat_buffer[20*50] = "";
                 ImGui::PushItemWidth(150);
-                ImGui::InputTextMultiline("", cheat_buffer, IM_ARRAYSIZE(cheat_buffer));
+                ImGui::InputTextMultiline("##cheats_input", cheat_buffer, IM_ARRAYSIZE(cheat_buffer));
                 ImGui::PopItemWidth();
 
                 ImGui::NextColumn();
