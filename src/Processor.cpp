@@ -527,7 +527,7 @@ bool Processor::Disassemble(u16 address)
             if (i < info.size)
             {
                 char value[8];
-                sprintf(value, "%02X", map[offset]->opcodes[i]);
+                snprintf(value, sizeof(value), "%02X", map[offset]->opcodes[i]);
                 strcat(map[offset]->bytes, value);
             }
             else
@@ -545,23 +545,23 @@ bool Processor::Disassemble(u16 address)
                 strcpy(map[offset]->name, info.name);
                 break;
             case 1:
-                sprintf(map[offset]->name, info.name, map[offset]->opcodes[1]);
+                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, map[offset]->opcodes[1]);
                 break;
             case 2:
                 map[offset]->jump = true;
                 map[offset]->jump_address = (map[offset]->opcodes[2] << 8) | map[offset]->opcodes[1];
-                sprintf(map[offset]->name, info.name, map[offset]->jump_address);
+                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, map[offset]->jump_address);
                 break;
             case 3:
-                sprintf(map[offset]->name, info.name, (s8)map[offset]->opcodes[1]);
+                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, (s8)map[offset]->opcodes[1]);
                 break;
             case 4:
                 map[offset]->jump = true;
                 map[offset]->jump_address = address + info.size + (s8)map[offset]->opcodes[1];
-                sprintf(map[offset]->name, info.name, map[offset]->jump_address, (s8)map[offset]->opcodes[1]);
+                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, map[offset]->jump_address, (s8)map[offset]->opcodes[1]);
                 break;
             case 5:
-                sprintf(map[offset]->name, info.name, map[offset]->opcodes[1], kRegisterNames[map[offset]->opcodes[1]]);
+                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, map[offset]->opcodes[1], kRegisterNames[map[offset]->opcodes[1]]);
                 break;
             default:
                 strcpy(map[offset]->name, "PARSE ERROR");

@@ -83,7 +83,7 @@ void MemEditor::Draw(uint8_t* mem_data, int mem_size, int base_display_addr)
                 if (IsColumnSeparator(i, m_bytes_per_row))
                     ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, m_separator_column_width);
 
-                sprintf(buf, "%02X", i);
+                snprintf(buf, sizeof(buf), "%02X", i);
 
                 ImGui::TableSetupColumn(buf, ImGuiTableColumnFlags_WidthFixed, character_size.x * max_chars_per_cell + (6 + byte_cell_padding) * 1);
             }
@@ -119,7 +119,7 @@ void MemEditor::Draw(uint8_t* mem_data, int mem_size, int base_display_addr)
                 if (IsColumnSeparator(i, m_bytes_per_row))
                     ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, m_separator_column_width);
 
-                sprintf(buf, "%02X", i);
+                snprintf(buf, sizeof(buf), "%02X", i);
 
                 ImGui::TableSetupColumn(buf, ImGuiTableColumnFlags_WidthFixed, character_size.x * max_chars_per_cell + (6 + byte_cell_padding) * 1);
             }
@@ -166,7 +166,7 @@ void MemEditor::Draw(uint8_t* mem_data, int mem_size, int base_display_addr)
                         if (m_editing_address == byte_address)
                         {
                             ImGui::PushItemWidth((character_size).x *2);
-                            sprintf(buf, "%02X", mem_data[byte_address]);
+                            snprintf(buf, sizeof(buf), "%02X", mem_data[byte_address]);
 
                             if (m_set_keyboard_here)
                             {
@@ -234,7 +234,7 @@ void MemEditor::Draw(uint8_t* mem_data, int mem_size, int base_display_addr)
                     {
                         for (int x = 0; x < m_bytes_per_row; x++)
                         {
-                            sprintf(buf, "##ascii_cell%d", x);
+                            snprintf(buf, sizeof(buf), "##ascii_cell%d", x);
                             ImGui::TableSetupColumn(buf, ImGuiTableColumnFlags_WidthFixed, character_size.x + character_cell_padding * 1);
                         }
 

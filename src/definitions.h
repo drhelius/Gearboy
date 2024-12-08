@@ -145,12 +145,14 @@ inline void Log_func(const char* const msg, ...)
 
     va_list args;
     va_start(args, msg);
-    vsprintf(szBuf, msg, args);
+    vsnprintf(szBuf, 512, msg, args);
     va_end(args);
 
     printf("%d: %s\n", count, szBuf);
 
     count++;
+
+    fflush(stdout);
 }
 
 inline u8 SetBit(const u8 value, const u8 bit)

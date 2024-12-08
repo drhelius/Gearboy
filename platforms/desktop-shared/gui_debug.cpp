@@ -447,7 +447,7 @@ static void debug_window_disassembler(void)
         ImGui::Separator();
 
         if (IsValidPointer(selected_record))
-            sprintf(brk_address_cpu, "%02X:%04X", selected_record->bank, selected_record->address);
+            snprintf(brk_address_cpu, sizeof(brk_address_cpu), "%02X:%04X", selected_record->bank, selected_record->address);
         
         ImGui::PushItemWidth(70);
         if (ImGui::InputTextWithHint("##add_breakpoint_cpu", "XX:XXXX", brk_address_cpu, IM_ARRAYSIZE(brk_address_cpu), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue))
@@ -1755,7 +1755,7 @@ static void debug_window_vram_palettes(void)
         int color = palette[index];
         ImVec4 float_color = color_565_to_float(color);
         char id[16];
-        sprintf(id, "##dmg_bg_%d", i);
+        snprintf(id, sizeof(id), "##dmg_bg_%d", i);
         ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
         ImGui::Text("%d  ", index);
         if (i < 3)
@@ -1772,7 +1772,7 @@ static void debug_window_vram_palettes(void)
         int color = palette[index];
         ImVec4 float_color = color_565_to_float(color);
         char id[16];
-        sprintf(id, "##dmg_bg_%d", i);
+        snprintf(id, sizeof(id), "##dmg_bg_%d", i);
         ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
         ImGui::Text("%d  ", index);
         if (i < 3)
@@ -1789,7 +1789,7 @@ static void debug_window_vram_palettes(void)
         int color = palette[index];
         ImVec4 float_color = color_565_to_float(color);
         char id[16];
-        sprintf(id, "##dmg_bg_%d", i);
+        snprintf(id, sizeof(id), "##dmg_bg_%d", i);
         ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
         ImGui::Text("%d  ", index);
         if (i < 3)
@@ -1822,7 +1822,7 @@ static void debug_window_vram_palettes(void)
             u16 color = (*bg_palettes)[p][c][1];
             ImVec4 float_color = color_565_to_float(color);
             char id[16];
-            sprintf(id, "##cgb_bg_%d_%d", p, c);
+            snprintf(id, sizeof(id), "##cgb_bg_%d_%d", p, c);
             ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker);
             if (c < 3)
             {   
@@ -1853,7 +1853,7 @@ static void debug_window_vram_palettes(void)
             u16 color = (*sprite_palettes)[p][c][1];
             ImVec4 float_color = color_565_to_float(color);
             char id[16];
-            sprintf(id, "##cgb_bg_%d_%d", p, c);
+            snprintf(id, sizeof(id), "##cgb_bg_%d_%d", p, c);
             ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker);
             if (c < 3)
             {

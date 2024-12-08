@@ -508,7 +508,7 @@ static void run_emulator(void)
             i = 0;
 
             char title[256];
-            sprintf(title, "%s %s - %s", GEARBOY_TITLE, GEARBOY_VERSION, emu_get_core()->GetCartridge()->GetFileName());
+            snprintf(title, sizeof(title), "%s %s - %s", GEARBOY_TITLE, GEARBOY_VERSION, emu_get_core()->GetCartridge()->GetFileName());
             SDL_SetWindowTitle(sdl_window, title);
         }
     }

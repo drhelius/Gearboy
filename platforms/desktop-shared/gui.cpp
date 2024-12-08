@@ -698,7 +698,7 @@ static void main_menu(void)
             for (int i = 0; i < config_max_custom_palettes; i++)
             {
                 char menu_label[256];
-                sprintf(menu_label, "Palette %i", i + 1);
+                snprintf(menu_label, sizeof(menu_label), "Palette %i", i + 1);
 
                 if (ImGui::BeginMenu(menu_label))
                 {
@@ -1279,7 +1279,7 @@ static void keyboard_configuration_item(const char* text, SDL_Scancode* key)
     ImGui::SameLine(90);
 
     char button_label[256];
-    sprintf(button_label, "%s##%s", SDL_GetScancodeName(*key), text);
+    snprintf(button_label, sizeof(button_label), "%s##%s", SDL_GetScancodeName(*key), text);
 
     if (ImGui::Button(button_label, ImVec2(70,0)))
     {
@@ -1296,7 +1296,7 @@ static void gamepad_configuration_item(const char* text, int* button)
     static const char* gamepad_names[16] = {"A", "B", "X" ,"Y", "BACK", "GUID", "START", "L3", "R3", "L1", "R1", "UP", "DOWN", "LEFT", "RIGHT", "15"};
 
     char button_label[256];
-    sprintf(button_label, "%s##%s", gamepad_names[*button], text);
+    snprintf(button_label, sizeof(button_label), "%s##%s", gamepad_names[*button], text);
 
     if (ImGui::Button(button_label, ImVec2(70,0)))
     {

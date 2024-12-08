@@ -345,11 +345,11 @@ void emu_get_info(char* info)
 
         const char* mbc = get_mbc(cart->GetType());
 
-        sprintf(info, "File Name: %s\nMBC: %s\nGame Boy Color: %s\nSuper Game Boy: %s\nCartridge Name: %s\nCartridge Version: %d\nCartridge Checksum: %s\nROM Banks: %d\nRAM Banks: %d\nBattery: %s\nReal Time Clock: %s\nRumble: %s\n", filename, mbc, gbc, sgb, name, version, checksum, rom_banks, ram_banks, battery, rtc, rumble);
+        snprintf(info, 512, "File Name: %s\nMBC: %s\nGame Boy Color: %s\nSuper Game Boy: %s\nCartridge Name: %s\nCartridge Version: %d\nCartridge Checksum: %s\nROM Banks: %d\nRAM Banks: %d\nBattery: %s\nReal Time Clock: %s\nRumble: %s\n", filename, mbc, gbc, sgb, name, version, checksum, rom_banks, ram_banks, battery, rtc, rumble);
     }
     else
     {
-        sprintf(info, "No data!");
+        snprintf(info, 512, "No data!");
     }
 }
 
