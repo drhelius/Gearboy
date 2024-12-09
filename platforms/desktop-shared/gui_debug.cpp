@@ -1745,7 +1745,7 @@ static void debug_window_vram_palettes(void)
         int color = palette[index];
         ImVec4 float_color = color_565_to_float(color);
         char id[16];
-        snprintf(id, sizeof(id), "##dmg_bg_%d", i);
+        snprintf(id, sizeof(id), "##dmg_bgp_%d", i);
         ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
         ImGui::Text("%d  ", index);
         if (i < 3)
@@ -1762,7 +1762,7 @@ static void debug_window_vram_palettes(void)
         int color = palette[index];
         ImVec4 float_color = color_565_to_float(color);
         char id[16];
-        snprintf(id, sizeof(id), "##dmg_bg_%d", i);
+        snprintf(id, sizeof(id), "##dmg_obp0_%d", i);
         ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
         ImGui::Text("%d  ", index);
         if (i < 3)
@@ -1779,7 +1779,7 @@ static void debug_window_vram_palettes(void)
         int color = palette[index];
         ImVec4 float_color = color_565_to_float(color);
         char id[16];
-        snprintf(id, sizeof(id), "##dmg_bg_%d", i);
+        snprintf(id, sizeof(id), "##dmg_obp1_%d", i);
         ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
         ImGui::Text("%d  ", index);
         if (i < 3)
@@ -1843,7 +1843,7 @@ static void debug_window_vram_palettes(void)
             u16 color = (*sprite_palettes)[p][c][1];
             ImVec4 float_color = color_565_to_float(color);
             char id[16];
-            snprintf(id, sizeof(id), "##cgb_bg_%d_%d", p, c);
+            snprintf(id, sizeof(id), "##cgb_spr_%d_%d", p, c);
             ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker);
             if (c < 3)
             {
