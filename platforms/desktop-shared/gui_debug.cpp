@@ -1290,6 +1290,7 @@ static void debug_window_vram_background(void)
 {
     Memory* memory = emu_get_core()->GetMemory();
 
+    bool window_hovered = ImGui::IsWindowHovered();
     static bool show_grid = true;
     static bool show_screen = true;
     static int tile_address_radio = 0;
@@ -1372,7 +1373,7 @@ static void debug_window_vram_background(void)
 
     int tile_x = -1;
     int tile_y = -1;
-    if ((mouse_x >= 0.0f) && (mouse_x < size) && (mouse_y >= 0.0f) && (mouse_y < size))
+    if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < size) && (mouse_y >= 0.0f) && (mouse_y < size))
     {
         tile_x = (int)(mouse_x / spacing);
         tile_y = (int)(mouse_y / spacing);
@@ -1492,6 +1493,7 @@ static void debug_window_vram_background(void)
 static void debug_window_vram_tiles(void)
 {
     static bool show_grid = true;
+    bool window_hovered = ImGui::IsWindowHovered();
     float scale = 1.5f;
     float width = 8.0f * 16.0f * scale;
     float height = 8.0f * 24.0f * scale;
@@ -1557,7 +1559,7 @@ static void debug_window_vram_tiles(void)
         int tile_x = -1;
         int tile_y = -1;
 
-        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
+        if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
         {
             tile_x = (int)(mouse_x / spacing);
             tile_y = (int)(mouse_y / spacing);
@@ -1611,6 +1613,8 @@ static void debug_window_vram_oam(void)
 
     ImGui::BeginChild("sprites", ImVec2(0, 0), true);
 
+    bool window_hovered = ImGui::IsWindowHovered();
+
     for (int s = 0; s < 40; s++)
     {
         p[s] = ImGui::GetCursorScreenPos();
@@ -1620,7 +1624,7 @@ static void debug_window_vram_oam(void)
         float mouse_x = io.MousePos.x - p[s].x;
         float mouse_y = io.MousePos.y - p[s].y;
 
-        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
+        if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
         {
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
             draw_list->AddRect(ImVec2(p[s].x, p[s].y), ImVec2(p[s].x + width, p[s].y + (sprites_16 ? height_16 : height_8)), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 3.0f);
@@ -1648,7 +1652,7 @@ static void debug_window_vram_oam(void)
         float mouse_x = io.MousePos.x - p[s].x;
         float mouse_y = io.MousePos.y - p[s].y;
 
-        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
+        if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
         {
             u16 address = 0xFE00 + (4 * s);
 
