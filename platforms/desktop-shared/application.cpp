@@ -448,6 +448,12 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
         
         switch (key)
         {
+            case SDL_SCANCODE_C:
+                gui_shortcut(gui_ShortcutDebugCopy);
+                break;
+            case SDL_SCANCODE_V:
+                gui_shortcut(gui_ShortcutDebugPaste);
+                break;
             case SDL_SCANCODE_O:
                 gui_shortcut(gui_ShortcutOpenROM);
                 break;

@@ -28,7 +28,7 @@
 #include "license.h"
 #include "backers.h"
 #include "gui_debug.h"
-#include "gui_colors.h"
+#include "imgui/colors.h"
 
 #define GUI_IMPORT
 #include "gui.h"
@@ -216,6 +216,12 @@ void gui_shortcut(gui_ShortCutEvent event)
     case gui_ShortcutDebugGoBack:
         if (config_debug.debug)
             gui_debug_go_back();
+        break;
+    case gui_ShortcutDebugCopy:
+        gui_debug_copy_memory();
+        break;
+    case gui_ShortcutDebugPaste:
+        gui_debug_paste_memory();
         break;
     case gui_ShortcutShowMainMenu:
         config_emulator.show_menu = !config_emulator.show_menu;
