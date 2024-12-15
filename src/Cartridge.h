@@ -23,6 +23,7 @@
 #include <list>
 #include <ctime>
 #include "definitions.h"
+#include "log.h"
 
 class Cartridge
 {

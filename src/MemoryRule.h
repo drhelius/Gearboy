@@ -21,6 +21,7 @@
 #define	MEMORYRULE_H
 
 #include "definitions.h"
+#include "log.h"
 #include <vector>
 
 class Memory;

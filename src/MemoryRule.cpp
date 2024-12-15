@@ -39,12 +39,12 @@ MemoryRule::~MemoryRule()
 
 void MemoryRule::SaveRam(std::ostream&)
 {
-    Log("MemoryRule::SaveRam not implemented");
+    Debug("MemoryRule::SaveRam not implemented");
 }
 
 bool MemoryRule::LoadRam(std::istream&, s32)
 {
-    Log("MemoryRule::LoadRam not implemented");
+    Debug("MemoryRule::LoadRam not implemented");
     return false;
 }
 
@@ -55,70 +55,70 @@ void MemoryRule::SetRamChangedCallback(RamChangedCallback callback)
 
 size_t MemoryRule::GetRamSize()
 {
-    Log("MemoryRule::GetRamSize not implemented");
+    Debug("MemoryRule::GetRamSize not implemented");
     return 0;
 }
 
 size_t MemoryRule::GetRTCSize()
 {
-    Log("MemoryRule::GetRTCSize not implemented");
+    Debug("MemoryRule::GetRTCSize not implemented");
     return 0;
 }
 
 u8* MemoryRule::GetRamBanks()
 {
-    Log("MemoryRule::GetRamBanks not implemented");
+    Debug("MemoryRule::GetRamBanks not implemented");
     return NULL;
 }
 
 u8* MemoryRule::GetCurrentRamBank()
 {
-    Log("MemoryRule::GetCurrentRamBank not implemented");
+    Debug("MemoryRule::GetCurrentRamBank not implemented");
     return NULL;
 }
 
 int MemoryRule::GetCurrentRamBankIndex()
 {
-    Log("MemoryRule::GetCurrentRamBankIndex not implemented");
+    Debug("MemoryRule::GetCurrentRamBankIndex not implemented");
     return 0;
 }
 
 u8* MemoryRule::GetRomBank0()
 {
-    Log("MemoryRule::GetRomBank0 not implemented");
+    Debug("MemoryRule::GetRomBank0 not implemented");
     return NULL;
 }
 
 int MemoryRule::GetCurrentRomBank0Index()
 {
-    Log("MemoryRule::GetCurrentRomBank0Index not implemented");
+    Debug("MemoryRule::GetCurrentRomBank0Index not implemented");
     return 0;
 }
 
 u8* MemoryRule::GetCurrentRomBank1()
 {
-    Log("MemoryRule::GetCurrentRomBank1 not implemented");
+    Debug("MemoryRule::GetCurrentRomBank1 not implemented");
     return NULL;
 }
 
 int MemoryRule::GetCurrentRomBank1Index()
 {
-    Log("MemoryRule::GetCurrentRomBank1Index not implemented");
+    Debug("MemoryRule::GetCurrentRomBank1Index not implemented");
     return 1;
 }
 
 u8* MemoryRule::GetRTCMemory()
 {
-    Log("MemoryRule::GetRTCMemory not implemented");
+    Debug("MemoryRule::GetRTCMemory not implemented");
     return NULL;
 }
 
 void MemoryRule::SaveState(std::ostream&)
 {
-    Log("MemoryRule::SaveState not implemented");
+    Debug("MemoryRule::SaveState not implemented");
 }
 
 void MemoryRule::LoadState(std::istream&)
 {
-    Log("MemoryRule::LoadState not implemented");
+    Debug("MemoryRule::LoadState not implemented");
 }

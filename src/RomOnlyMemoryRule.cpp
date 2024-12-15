@@ -49,7 +49,7 @@ u8 RomOnlyMemoryRule::PerformRead(u16 address)
             return m_pMemory->Retrieve(address);
         else
         {
-            Log("--> ** Attempting to read from RAM without ram in cart %X", address);
+            Debug("--> ** Attempting to read from RAM without ram in cart %X", address);
             return 0xFF;
         }
     }
@@ -62,7 +62,7 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
     if (address < 0x8000)
     {
         // ROM
-        Log("--> ** Attempting to write on ROM address %X %X", address, value);
+        Debug("--> ** Attempting to write on ROM address %X %X", address, value);
     }
     else if (address >= 0xA000 && address < 0xC000)
     {
@@ -72,7 +72,7 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
         }
         else
         {
-            Log("--> ** Attempting to write to RAM without ram in cart  %X %X", address, value);
+            Debug("--> ** Attempting to write to RAM without ram in cart  %X %X", address, value);
         }
     }
     else
@@ -81,7 +81,7 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
 
 void RomOnlyMemoryRule::SaveRam(std::ostream &file)
 {
-    Log("RomOnlyMemoryRule save RAM...");
+    Debug("RomOnlyMemoryRule save RAM...");
 
     for (int i = 0xA000; i < 0xC000; i++)
     {
@@ -89,12 +89,12 @@ void RomOnlyMemoryRule::SaveRam(std::ostream &file)
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
 
-    Log("RomOnlyMemoryRule save RAM done");
+    Debug("RomOnlyMemoryRule save RAM done");
 }
 
 bool RomOnlyMemoryRule::LoadRam(std::istream &file, s32 fileSize)
 {
-    Log("RomOnlyMemoryRule load RAM...");
+    Debug("RomOnlyMemoryRule load RAM...");
 
     if ((fileSize > 0) && (fileSize != 0x2000))
     {
@@ -109,7 +109,7 @@ bool RomOnlyMemoryRule::LoadRam(std::istream &file, s32 fileSize)
         m_pMemory->Load(i, ram_byte);
     }
 
-    Log("RomOnlyMemoryRule load RAM done");
+    Debug("RomOnlyMemoryRule load RAM done");
 
     return true;
 }

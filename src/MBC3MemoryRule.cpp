@@ -86,7 +86,7 @@ u8 MBC3MemoryRule::PerformRead(u16 address)
                 }
                 else
                 {
-                    Log("--> ** Attempting to read from disabled ram %X", address);
+                    Debug("--> ** Attempting to read from disabled ram %X", address);
                     return 0xFF;
                 }
             }
@@ -115,7 +115,7 @@ u8 MBC3MemoryRule::PerformRead(u16 address)
             }
             else
             {
-                Log("--> ** Attempting to read from disabled RTC %X", address);
+                Debug("--> ** Attempting to read from disabled RTC %X", address);
                 return 0xFF;
             }
         }
@@ -166,7 +166,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                 }
                 else
                 {
-                    Log("--> ** Attempting to select RTC register when RTC is disabled or not present %X %X", address, value);
+                    Debug("--> ** Attempting to select RTC register when RTC is disabled or not present %X %X", address, value);
                 }
             }
             else if (value <= 0x03)
@@ -177,7 +177,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else
             {
-                Log("--> ** Attempting to select unkwon register %X %X", address, value);
+                Debug("--> ** Attempting to select unkwon register %X %X", address, value);
             }
             break;
         }
@@ -210,7 +210,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                 }
                 else
                 {
-                    Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+                    Debug("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
                 }
             }
             else if (m_pCartridge->IsRTCPresent() && m_bRTCEnabled)
@@ -236,7 +236,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else
             {
-                Log("--> ** Attempting to write on RTC when RTC is disabled or not present %X %X", address, value);
+                Debug("--> ** Attempting to write on RTC when RTC is disabled or not present %X %X", address, value);
             }
             break;
         }
@@ -306,7 +306,7 @@ void MBC3MemoryRule::UpdateRTC()
 
 void MBC3MemoryRule::SaveRam(std::ostream & file)
 {
-    Log("MBC3MemoryRule save RAM...");
+    Debug("MBC3MemoryRule save RAM...");
 
     for (int i = 0; i < 0x8000; i++)
     {
@@ -319,12 +319,12 @@ void MBC3MemoryRule::SaveRam(std::ostream & file)
         file.write(reinterpret_cast<const char*> (&m_RTC), sizeof(m_RTC));
     }
 
-    Log("MBC3MemoryRule save RAM done");
+    Debug("MBC3MemoryRule save RAM done");
 }
 
 bool MBC3MemoryRule::LoadRam(std::istream & file, s32 fileSize)
 {
-    Log("MBC3MemoryRule load RAM...");
+    Debug("MBC3MemoryRule load RAM...");
 
     bool loadRTC = m_pCartridge->IsRTCPresent();
 
@@ -366,7 +366,7 @@ bool MBC3MemoryRule::LoadRam(std::istream & file, s32 fileSize)
         file.read(reinterpret_cast<char*> (&m_RTC), 44);
     }
 
-    Log("MBC3MemoryRule load RAM done");
+    Debug("MBC3MemoryRule load RAM done");
 
     return true;
 }

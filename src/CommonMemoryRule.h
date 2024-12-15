@@ -21,6 +21,7 @@
 #define	COMMONMEMORYRULE_H
 
 #include "definitions.h"
+#include "log.h"
 
 class Memory;
 
@@ -116,7 +117,7 @@ inline void CommonMemoryRule::PerformWrite(u16 address, u8 value)
         }
         default:
         {
-            Log("--> ** Writing to invalid area %X %X", address, value);
+            Debug("--> ** Writing to invalid area %X %X", address, value);
             m_pMemory->Load(address, value);
         }
     }

@@ -73,7 +73,7 @@ u8 MBC1MemoryRule::PerformRead(u16 address)
                     if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
                     {
                         // only 2KB of ram
-                        Log("--> ** Attempting to read from invalid RAM %X", address);
+                        Debug("--> ** Attempting to read from invalid RAM %X", address);
                     }
                     return m_pRAMBanks[address - 0xA000];
                 }
@@ -82,7 +82,7 @@ u8 MBC1MemoryRule::PerformRead(u16 address)
             }
             else
             {
-                Log("--> ** Attempting to read from disabled ram %X", address);
+                Debug("--> ** Attempting to read from disabled ram %X", address);
                 return 0xFF;
             }
         }
@@ -156,7 +156,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             if ((m_pCartridge->GetRAMSize() != 3) && (value & 0x01))
             {
-                Log("--> ** Attempting to change MBC1 to mode 1 with incorrect RAM banks %X %X", address, value);
+                Debug("--> ** Attempting to change MBC1 to mode 1 with incorrect RAM banks %X %X", address, value);
             }
             else
             {
@@ -173,7 +173,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
                     if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
                     {
                         // only 2KB of ram
-                        Log("--> ** Attempting to write on invalid RAM %X %X", address, value);
+                        Debug("--> ** Attempting to write on invalid RAM %X %X", address, value);
                     }
 
                     m_pRAMBanks[address - 0xA000] = value;
@@ -183,7 +183,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else
             {
-                Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+                Debug("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
             }
             break;
         }
@@ -197,8 +197,8 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
 
 void MBC1MemoryRule::SaveRam(std::ostream &file)
 {
-    Log("MBC1MemoryRule save RAM...");
-    Log("MBC1MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
+    Debug("MBC1MemoryRule save RAM...");
+    Debug("MBC1MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
 
     u32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
 
@@ -208,13 +208,13 @@ void MBC1MemoryRule::SaveRam(std::ostream &file)
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
 
-    Log("MBC1MemoryRule save RAM done");
+    Debug("MBC1MemoryRule save RAM done");
 }
 
 bool MBC1MemoryRule::LoadRam(std::istream &file, s32 fileSize)
 {
-    Log("MBC1MemoryRule load RAM...");
-    Log("MBC1MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
+    Debug("MBC1MemoryRule load RAM...");
+    Debug("MBC1MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
 
     s32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
 
@@ -238,7 +238,7 @@ bool MBC1MemoryRule::LoadRam(std::istream &file, s32 fileSize)
         m_pRAMBanks[i] = ram_byte;
     }
 
-    Log("MBC1MemoryRule load RAM done");
+    Debug("MBC1MemoryRule load RAM done");
 
     return true;
 }

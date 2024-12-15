@@ -2,6 +2,7 @@
 #define	PROCESSOR_INLINE_H
 
 #include "definitions.h"
+#include "log.h"
 #include "Memory.h"
 
 inline bool Processor::InterruptIsAboutToRaise()
@@ -148,7 +149,7 @@ inline int Processor::AdjustedCycles(int cycles)
 
 inline void Processor::InvalidOPCode()
 {
-    Log("--> ** INVALID OP Code");
+    Debug("--> ** INVALID OP Code");
 }
 
 inline void Processor::OPCodes_LD(u8* reg1, u8 reg2)

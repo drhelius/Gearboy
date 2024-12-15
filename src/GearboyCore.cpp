@@ -79,7 +79,7 @@ GearboyCore::~GearboyCore()
 
 void GearboyCore::Init(GB_Color_Format pixelFormat)
 {
-    Log("--== %s %s by Ignacio Sanchez ==--", GEARBOY_TITLE, GEARBOY_VERSION);
+    Log("Loading %s core %s by Ignacio Sanchez", GEARBOY_TITLE, GEARBOY_VERSION);
 
     m_pixelFormat = pixelFormat;
 
@@ -217,7 +217,7 @@ void GearboyCore::SaveMemoryDump()
 
         m_pMemory->MemoryDump(path);
 
-        Log("Memory Dump Saved");
+        Debug("Memory Dump Saved");
     }
 }
 
@@ -252,7 +252,7 @@ void GearboyCore::SaveDisassembledROM()
             myfile.close();
         }
 
-        Log("Disassembled ROM Saved");
+        Debug("Disassembled ROM Saved");
     }
 }
 
@@ -319,7 +319,7 @@ void GearboyCore::ResetROMPreservingRAM(bool forceDMG, Cartridge::CartridgeTypes
 {
     if (m_pCartridge->IsLoadedROM())
     {
-        Log("Resetting preserving RAM...");
+        Debug("Resetting preserving RAM...");
 
         using namespace std;
         stringstream stream;
@@ -398,7 +398,7 @@ void GearboyCore::SaveRam(const char* szPath, bool fullPath)
 {
     if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
-        Log("Saving RAM...");
+        Debug("Saving RAM...");
 
         using namespace std;
 
@@ -431,7 +431,7 @@ void GearboyCore::SaveRam(const char* szPath, bool fullPath)
 
         m_pMemory->GetCurrentRule()->SaveRam(file);
 
-        Log("RAM saved");
+        Debug("RAM saved");
     }
 }
 
@@ -444,7 +444,7 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 {
     if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
-        Log("Loading RAM...");
+        Debug("Loading RAM...");
 
         using namespace std;
 
@@ -497,7 +497,7 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 
             if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
             {
-                Log("RAM loaded");
+                Debug("RAM loaded");
             }
             else
             {
@@ -515,7 +515,7 @@ void GearboyCore::SaveState(int index)
 {
     if (m_pMemory->IsBootromRegistryEnabled())
     {
-        Log("Save states disabled when running bootrom");
+        Debug("Save states disabled when running bootrom");
         return;
     }
 
@@ -523,18 +523,18 @@ void GearboyCore::SaveState(int index)
 
     SaveState(NULL, index);
 
-    Log("Save state %d created", index);
+    Debug("Save state %d created", index);
 }
 
 void GearboyCore::SaveState(const char* szPath, int index)
 {
     if (m_pMemory->IsBootromRegistryEnabled())
     {
-        Log("Save states disabled when running bootrom");
+        Debug("Save states disabled when running bootrom");
         return;
     }
 
-    Log("Saving state...");
+    Debug("Saving state...");
 
     using namespace std;
 
@@ -578,14 +578,14 @@ void GearboyCore::SaveState(const char* szPath, int index)
 
     file.close();
 
-    Log("Save state created");
+    Debug("Save state created");
 }
 
 bool GearboyCore::SaveState(u8* buffer, size_t& size)
 {
     if (m_pMemory->IsBootromRegistryEnabled())
     {
-        Log("Save states disabled when running bootrom");
+        Debug("Save states disabled when running bootrom");
         return false;
     }
 
@@ -619,13 +619,13 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
 {
     if (m_pMemory->IsBootromRegistryEnabled())
     {
-        Log("Save states disabled when running bootrom");
+        Debug("Save states disabled when running bootrom");
         return false;
     }
 
     if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
-        Log("Gathering save state data...");
+        Debug("Gathering save state data...");
 
         using namespace std;
 
@@ -660,7 +660,7 @@ void GearboyCore::LoadState(int index)
 {
     if (m_pMemory->IsBootromRegistryEnabled())
     {
-        Log("Save states disabled when running bootrom");
+        Debug("Save states disabled when running bootrom");
         return;
     }
 
@@ -675,11 +675,11 @@ void GearboyCore::LoadState(const char* szPath, int index)
 {
     if (m_pMemory->IsBootromRegistryEnabled())
     {
-        Log("Save states disabled when running bootrom");
+        Debug("Save states disabled when running bootrom");
         return;
     }
 
-    Log("Loading save state...");
+    Debug("Loading save state...");
 
     using namespace std;
 
@@ -721,7 +721,7 @@ void GearboyCore::LoadState(const char* szPath, int index)
     {
         if (LoadState(file))
         {
-            Log("Save state loaded");
+            Debug("Save state loaded");
         }
     }
     else
@@ -736,13 +736,13 @@ bool GearboyCore::LoadState(const u8* buffer, size_t size)
 {
     if (m_pMemory->IsBootromRegistryEnabled())
     {
-        Log("Save states disabled when running bootrom");
+        Debug("Save states disabled when running bootrom");
         return false;
     }
 
     if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
     {
-        Log("Gathering load state data [%d bytes]...", size);
+        Debug("Gathering load state data [%d bytes]...", size);
 
         using namespace std;
 
@@ -762,7 +762,7 @@ bool GearboyCore::LoadState(std::istream& stream)
 {
     if (m_pMemory->IsBootromRegistryEnabled())
     {
-        Log("Save states disabled when running bootrom");
+        Debug("Save states disabled when running bootrom");
         return false;
     }
 
@@ -776,19 +776,19 @@ bool GearboyCore::LoadState(std::istream& stream)
         stream.seekg(0, ios::end);
         size_t size = static_cast<size_t>(stream.tellg());
 
-        Log("Load state stream size: %d", size);
+        Debug("Load state stream size: %d", size);
 
         stream.seekg(size - (2 * sizeof(u32)), ios::beg);
         stream.read(reinterpret_cast<char*> (&header_magic), sizeof(header_magic));
         stream.read(reinterpret_cast<char*> (&header_size), sizeof(header_size));
         stream.seekg(0, ios::beg);
 
-        Log("Load state magic: 0x%08x", header_magic);
-        Log("Load state size: %d", header_size);
+        Debug("Load state magic: 0x%08x", header_magic);
+        Debug("Load state size: %d", header_size);
 
         if ((header_size == size) && (header_magic == SAVESTATE_MAGIC))
         {
-            Log("Loading state...");
+            Debug("Loading state...");
 
             m_pMemory->LoadState(stream);
             m_pProcessor->LoadState(stream);

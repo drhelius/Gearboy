@@ -717,7 +717,7 @@ void Memory::LoadBootroom(const char* szFilePath, bool gbc)
 
             ret = true;
 
-            Log("Bootrom %s loaded", szFilePath);
+            Debug("Bootrom %s loaded", szFilePath);
         }
         else
         {

@@ -51,7 +51,6 @@ int application_init(const char* rom_file, const char* symbol_file)
 {
     Log("\n%s", GEARBOY_TITLE_ASCII);
     Log("%s %s Desktop App", GEARBOY_TITLE, GEARBOY_VERSION);
-    Log("By Ignacio Sánchez (drhelius)");
 
     config_init();
     config_read();
@@ -167,7 +166,7 @@ static int sdl_init(void)
 
     if (application_gamepad_mappings > 0)
     {
-        Log("Succesfuly loaded %d game controller mappings", application_gamepad_mappings);
+        Debug("Succesfuly loaded %d game controller mappings", application_gamepad_mappings);
     }
     else
     {
@@ -185,7 +184,7 @@ static int sdl_init(void)
             }
             else
             {
-                Log("Game controller %d correctly detected", i);
+                Debug("Game controller %d correctly detected", i);
             }
 
             break;

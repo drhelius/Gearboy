@@ -21,6 +21,7 @@
 #define	GEARBOY_H
 
 #include "definitions.h"
+#include "log.h"
 #include "GearboyCore.h"
 #include "Memory.h"
 #include "Processor.h"

@@ -69,7 +69,7 @@ u8 MBC5MemoryRule::PerformRead(u16 address)
             }
             else
             {
-                Log("--> ** Attempting to read from disabled ram %X", address);
+                Debug("--> ** Attempting to read from disabled ram %X", address);
                 return 0xFF;
             }
         }
@@ -122,7 +122,7 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
         }
         case 0x6000:
         {
-            Log("--> ** Attempting to write on invalid address %X %X", address, value);
+            Debug("--> ** Attempting to write on invalid address %X %X", address, value);
             break;
         }
         case 0xA000:
@@ -133,7 +133,7 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else
             {
-                Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+                Debug("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
             }
             break;
         }
@@ -147,8 +147,8 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
 
 void MBC5MemoryRule::SaveRam(std::ostream & file)
 {
-    Log("MBC5MemoryRule save RAM...");
-    Log("MBC5MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
+    Debug("MBC5MemoryRule save RAM...");
+    Debug("MBC5MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
 
     s32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
 
@@ -158,13 +158,13 @@ void MBC5MemoryRule::SaveRam(std::ostream & file)
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
 
-    Log("MBC5MemoryRule save RAM done");
+    Debug("MBC5MemoryRule save RAM done");
 }
 
 bool MBC5MemoryRule::LoadRam(std::istream & file, s32 fileSize)
 {
-    Log("MBC5MemoryRule load RAM...");
-    Log("MBC5MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
+    Debug("MBC5MemoryRule load RAM...");
+    Debug("MBC5MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
 
     s32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
 
@@ -181,7 +181,7 @@ bool MBC5MemoryRule::LoadRam(std::istream & file, s32 fileSize)
         m_pRAMBanks[i] = ram_byte;
     }
 
-    Log("MBC5MemoryRule load RAM done");
+    Debug("MBC5MemoryRule load RAM done");
 
     return true;
 }

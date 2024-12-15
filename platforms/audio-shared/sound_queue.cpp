@@ -26,9 +26,9 @@ static void sdl_error(const char* str)
 {
     const char* sdl_str = SDL_GetError();
     if (sdl_str && *sdl_str)
-        str = sdl_str;
-
-    Log("Sound Queue: %s", str);
+        Log("Sound Queue: %s - SDL Error: %s", str, sdl_str);
+    else
+        Log("Sound Queue: %s", str);
 }
 
 SoundQueue::SoundQueue()

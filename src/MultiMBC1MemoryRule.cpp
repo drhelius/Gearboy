@@ -112,7 +112,7 @@ void MultiMBC1MemoryRule::PerformWrite(u16 address, u8 value)
         }
         default:
         {
-            Log("--> ** Attempting to write on invalid address %X %X", address, value);
+            Debug("--> ** Attempting to write on invalid address %X %X", address, value);
             break;
         }
     }
