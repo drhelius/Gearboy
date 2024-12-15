@@ -341,7 +341,7 @@ CFLAGS   += -DGG_DISABLE_DISASSEMBLER -Wall -D__LIBRETRO__ $(fpic)
 CXXFLAGS += -DGG_DISABLE_DISASSEMBLER -Wall -D__LIBRETRO__ $(fpic)
 
 all: $(TARGET)
-	@echo Build complete for $(platform)
+	@echo Build complete: $(TARGET_NAME) $(DEBUG) - $(GIT_VERSION) - $(platform)
 
 $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)

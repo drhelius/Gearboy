@@ -71,7 +71,7 @@ else
 endif
 
 all: header $(TARGET)
-	@echo Build complete for $(PLATFORM) \($(BUILD_CONFIG)\)
+	@echo Build complete: $(TARGET_NAME) \($(BUILD_CONFIG)\) - $(GIT_VERSION) - $(PLATFORM)
 
 $(TARGET): $(OBJECTS)
 	$(CXX) -o $@ $(OBJECTS) $(LDFLAGS)
