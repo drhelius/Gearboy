@@ -320,13 +320,16 @@ endif
 
 LDFLAGS += $(LIBM)
 
+DEBUG ?= 0
 ifeq ($(DEBUG), 1)
+	BUILD_CONFIG = Debug
 	CXXFLAGS += -O0 -DDEBUG -g
 else
+	BUILD_CONFIG = Release
 	CXXFLAGS += -O3
 endif
 
-GIT_VERSION ?= " $(shell git describe --abbrev=7 --dirty --always --tags || echo unknown)"
+GIT_VERSION ?= "$(shell git describe --abbrev=7 --dirty --always --tags || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
 	CXXFLAGS += -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
 endif
@@ -341,7 +344,7 @@ CFLAGS   += -DGEARBOY_DISABLE_DISASSEMBLER -Wall -D__LIBRETRO__ $(fpic)
 CXXFLAGS += -DGEARBOY_DISABLE_DISASSEMBLER -Wall -D__LIBRETRO__ $(fpic)
 
 all: $(TARGET)
-	@echo Build complete: $(TARGET_NAME) $(DEBUG) - $(GIT_VERSION) - $(platform)
+	@echo Build complete: $(TARGET_NAME) $(BUILD_CONFIG) - $(GIT_VERSION) - $(platform)
 
 $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
