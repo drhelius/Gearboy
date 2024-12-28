@@ -19,16 +19,16 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 ## Downloads
 
 - **Windows**:
-  - [Gearboy-3.6.0-windows.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.0/Gearboy-3.6.0-windows.zip)
+  - [Gearboy-3.6.1-windows.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.1/Gearboy-3.6.1-windows.zip)
   - NOTE: If you have errors you may need to install:
     - [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
     - [OpenGL Compatibility Pack](https://apps.microsoft.com/detail/9nqpsl29bfff)
 - **macOS**:
-  - [Gearboy-3.6.0-macos-arm.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.0/Gearboy-3.6.0-macos-arm.zip)
-  - [Gearboy-3.6.0-macos-intel.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.0/Gearboy-3.6.0-macos-intel.zip)
+  - [Gearboy-3.6.1-macos-arm.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.1/Gearboy-3.6.1-macos-arm.zip)
+  - [Gearboy-3.6.1-macos-intel.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.1/Gearboy-3.6.1-macos-intel.zip)
 - **Linux**:
-  - [Gearboy-3.6.0-ubuntu-22.04.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.0/Gearboy-3.6.0-ubuntu-22.04.zip)
-  - [Gearboy-3.6.0-ubuntu-20.04.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.0/Gearboy-3.6.0-ubuntu-20.04.zip) 
+  - [Gearboy-3.6.1-ubuntu-22.04.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.1/Gearboy-3.6.1-ubuntu-22.04.zip)
+  - [Gearboy-3.6.1-ubuntu-20.04.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.1/Gearboy-3.6.1-ubuntu-20.04.zip) 
   - NOTE: You may need to install `libsdl2` and `libglew`
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/).
 
