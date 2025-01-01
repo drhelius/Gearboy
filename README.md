@@ -14,7 +14,7 @@ This is an open source project with its ongoing development made possible thanks
 
 Don't hesitate to report bugs or ask for new features by [openning an issue](https://github.com/drhelius/Gearboy/issues). 
 
-<img src="http://www.geardome.com/files/gearboy/gearboy_debug_01.png">
+<img src="http://www.geardome.com/files/gearboy/gearboy_debug_02.png">
 
 ## Downloads
 
