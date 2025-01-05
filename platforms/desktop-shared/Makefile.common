@@ -1,9 +1,9 @@
 define HEADER
    ____                 _
   / ___| ___  __ _ _ __| |__   ___  _   _
- | |  _ / _ \\/ _` | '__| '_ \\ / _ \\| | | |
+ | |  _ / _ \/ _` | '__| '_ \ / _ \| | | |
  | |_| |  __/ (_| | |  | |_) | (_) | |_| |
-  \\____|\\___|\\__,_|_|  |_.__/ \\___/ \\__, |
+  \____|\___|\__,_|_|  |_.__/ \___/ \__, |
                                     |___/
 
   ** Building for $(PLATFORM) platform **
@@ -13,7 +13,7 @@ endef
 export HEADER
 
 TARGET_NAME = gearboy
-GIT_VERSION := "$(shell git describe --abbrev=7 --dirty --always --tags)"
+GIT_VERSION := $(shell git describe --abbrev=7 --dirty --always --tags)
 UNAME_S := $(shell uname -s)
 PLATFORM = "undefined"
 
@@ -36,17 +36,17 @@ CFLAGS += -std=c99
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
     BUILD_CONFIG = Debug
-    CPPFLAGS +=-DDEBUG -g3
+    CPPFLAGS += -DDEBUG -g3
 else
     BUILD_CONFIG = Release
-    CPPFLAGS +=-DNDEBUG -O3 -flto=auto
+    CPPFLAGS += -DNDEBUG -O3 -flto=auto
     LDFLAGS += -O3 -flto=auto
 endif
 
 SANITIZE ?= 0
 ifeq ($(SANITIZE), 1)
-    CPPFLAGS +=-fsanitize=address
-    LDFLAGS += -lasan
+    CPPFLAGS += -fsanitize=address
+    LDFLAGS += -fsanitize=address
 endif
 
 ifeq ($(UNAME_S), Linux)
