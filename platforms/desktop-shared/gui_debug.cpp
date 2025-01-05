@@ -21,6 +21,7 @@
 #include "imgui/imgui.h"
 #include "imgui/memory_editor.h"
 #include "nfd/nfd.h"
+#include "nfd/nfd_sdl2.h"
 #include "config.h"
 #include "emu.h"
 #include "renderer.h"
@@ -28,6 +29,7 @@
 #include "gui.h"
 #include "imgui/colors.h"
 #include "gui_debug_constants.h"
+#include "application.h"
 
 #define GUI_DEBUG_IMPORT
 #include "gui_debug.h"
@@ -226,7 +228,17 @@ static void memory_editor_menu(void)
         {
             nfdchar_t *outPath;
             nfdfilteritem_t filterItem[1] = { { "Memory Dump Files", "txt" } };
-            nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
+            nfdsavedialogu8args_t args = { };
+            args.filterList = filterItem;
+            args.filterCount = 1;
+            args.defaultPath = NULL;
+            args.defaultName = NULL;
+            if (!NFD_GetNativeWindowFromSDLWindow(application_sdl_window, &args.parentWindow))
+            {
+                Log("NFD_GetNativeWindowFromSDLWindow failed: %s\n", SDL_GetError());
+            }
+
+            nfdresult_t result = NFD_SaveDialogU8_With(&outPath, &args);
             if (result == NFD_OKAY)
             {
                 mem_edit[current_mem_edit].SaveToFile(outPath);
