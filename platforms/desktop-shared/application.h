@@ -28,6 +28,7 @@
     #define EXTERN extern
 #endif
 
+EXTERN SDL_Window* application_sdl_window;
 EXTERN SDL_GameController* application_gamepad;
 EXTERN int application_gamepad_mappings;
 EXTERN float application_display_scale;
