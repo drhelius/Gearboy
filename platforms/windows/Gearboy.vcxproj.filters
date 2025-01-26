@@ -22,11 +22,14 @@
     <Filter Include="desktop-shared\imgui\fonts">
       <UniqueIdentifier>{e4192cc4-2be0-4f65-87ee-74901af5e89c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="desktop_shared\nfd">
-      <UniqueIdentifier>{db3b4a89-bbfe-4ee9-a1a5-1ccfceb83f2d}</UniqueIdentifier>
+    <Filter Include="desktop-shared\nfd">
+      <UniqueIdentifier>{853c056e-bb07-406b-8ecf-994c10b8aadb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\miniz">
-      <UniqueIdentifier>{637c4ee0-6e40-4be6-b0b7-027f70325ac6}</UniqueIdentifier>
+    <Filter Include="desktop-shared\stb">
+      <UniqueIdentifier>{0f1a9f96-e6db-44a3-b6ae-54a5add23b29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\miniz">
+      <UniqueIdentifier>{66c2b733-8a64-4749-957f-c06123dbe5ba}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -135,20 +138,20 @@
     <ClCompile Include="..\desktop-shared\imgui\imgui_impl_opengl2.cpp">
       <Filter>desktop-shared\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl.cpp">
-      <Filter>desktop-shared\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp">
       <Filter>desktop-shared\imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\desktop-shared\gui_debug.cpp">
       <Filter>desktop-shared</Filter>
     </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl2.cpp" />
+    <ClCompile Include="..\desktop-shared\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\desktop-shared\imgui\memory_editor.cpp" />
     <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp">
-      <Filter>desktop_shared\nfd</Filter>
+      <Filter>desktop-shared\nfd</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\miniz\miniz.c">
-      <Filter>src\miniz</Filter>
+      <Filter>source\miniz</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -251,9 +254,6 @@
     <ClInclude Include="..\..\src\audio\Multi_Buffer.h">
       <Filter>source\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\audio-shared\Sound_Queue.h">
-      <Filter>audio-shared</Filter>
-    </ClInclude>
     <ClInclude Include="..\desktop-shared\application.h">
       <Filter>desktop-shared</Filter>
     </ClInclude>
@@ -276,9 +276,6 @@
       <Filter>desktop-shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imgui_impl_opengl2.h">
-      <Filter>desktop-shared\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl.h">
       <Filter>desktop-shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imgui_internal.h">
@@ -305,14 +302,38 @@
     <ClInclude Include="..\desktop-shared\gui_debug_constants.h">
       <Filter>desktop-shared</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\miniz\miniz.h">
-      <Filter>src\miniz</Filter>
+    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl2.h" />
+    <ClInclude Include="..\desktop-shared\imgui\memory_editor.h" />
+    <ClInclude Include="..\audio-shared\sound_queue.h">
+      <Filter>audio-shared</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\desktop-shared\Makefile.common">
+    <ClInclude Include="..\desktop-shared\backers.h">
       <Filter>desktop-shared</Filter>
-    </None>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\license.h">
+      <Filter>desktop-shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\colors.h">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\keyboard.h">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\stb\stb_image_write.h">
+      <Filter>desktop-shared\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\nfd\nfd.h">
+      <Filter>desktop-shared\nfd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\nfd\nfd_sdl2.h">
+      <Filter>desktop-shared\nfd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\miniz\miniz.h">
+      <Filter>source\miniz</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\log.h">
+      <Filter>source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Gearboy.manifest" />

@@ -63,6 +63,7 @@
     <ClCompile Include="..\desktop-shared\renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\log.h" />
     <ClInclude Include="..\..\src\miniz\miniz.h" />
     <ClInclude Include="..\..\src\Audio.h" />
     <ClInclude Include="..\..\src\audio\blargg_common.h" />
@@ -97,13 +98,15 @@
     <ClInclude Include="..\..\src\RomOnlyMemoryRule.h" />
     <ClInclude Include="..\..\src\SixteenBitRegister.h" />
     <ClInclude Include="..\..\src\Video.h" />
-    <ClInclude Include="..\audio-shared\Sound_Queue.h" />
+    <ClInclude Include="..\audio-shared\sound_queue.h" />
     <ClInclude Include="..\desktop-shared\application.h" />
+    <ClInclude Include="..\desktop-shared\backers.h" />
     <ClInclude Include="..\desktop-shared\config.h" />
     <ClInclude Include="..\desktop-shared\emu.h" />
     <ClInclude Include="..\desktop-shared\gui.h" />
     <ClInclude Include="..\desktop-shared\gui_debug.h" />
     <ClInclude Include="..\desktop-shared\gui_debug_constants.h" />
+    <ClInclude Include="..\desktop-shared\imgui\colors.h" />
     <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h" />
     <ClInclude Include="..\desktop-shared\imgui\imconfig.h" />
     <ClInclude Include="..\desktop-shared\imgui\imgui.h" />
@@ -113,12 +116,14 @@
     <ClInclude Include="..\desktop-shared\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\desktop-shared\imgui\imstb_textedit.h" />
     <ClInclude Include="..\desktop-shared\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\desktop-shared\imgui\keyboard.h" />
     <ClInclude Include="..\desktop-shared\imgui\memory_editor.h" />
+    <ClInclude Include="..\desktop-shared\license.h" />
     <ClInclude Include="..\desktop-shared\mINI\ini.h" />
+    <ClInclude Include="..\desktop-shared\nfd\nfd.h" />
+    <ClInclude Include="..\desktop-shared\nfd\nfd_sdl2.h" />
     <ClInclude Include="..\desktop-shared\renderer.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\desktop-shared\Makefile.common" />
+    <ClInclude Include="..\desktop-shared\stb\stb_image_write.h" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Gearboy.manifest" />
