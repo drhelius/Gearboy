@@ -1039,7 +1039,7 @@ static void main_window(void)
         ratio = (float)w / (float)h;
     }
 
-    int w_corrected = GAMEBOY_HEIGHT * ratio;
+    int w_corrected = (int)(GAMEBOY_HEIGHT * ratio);
     int h_corrected = GAMEBOY_HEIGHT;
     int scale_multiplier = 0;
 
@@ -1067,7 +1067,7 @@ static void main_window(void)
         case 2:
             scale_multiplier = 1;
             h_corrected = h;
-            w_corrected = h * ratio;
+            w_corrected = (int)(h * ratio);
             break;
         case 3:
             scale_multiplier = 1;

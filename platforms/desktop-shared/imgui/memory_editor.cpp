@@ -436,7 +436,7 @@ void MemEditor::DrawSelectionFrame(int x, int y, int address, ImVec2 cell_pos, I
         m_draw_list->AddLine(cell_pos + ImVec2(-1, -1), cell_pos + ImVec2(-1, cell_size.y), ImColor(frame_color), 1);
 
     if ((x == (m_bytes_per_row - 1)) || (address == end))
-        m_draw_list->AddLine(cell_pos + ImVec2(cell_size.x, multiline && (address == end) && (x != (m_bytes_per_row - 1)) ? 0 : -1), cell_pos + ImVec2(cell_size.x, cell_size.y), ImColor(frame_color), 1);
+        m_draw_list->AddLine(cell_pos + ImVec2(cell_size.x, multiline && (address == end) && (x != (m_bytes_per_row - 1)) ? 0.0f : -1.0f), cell_pos + ImVec2(cell_size.x, cell_size.y), ImColor(frame_color), 1);
 
     if ((y == 0) || ((address - m_bytes_per_row) < start))
         m_draw_list->AddLine(cell_pos + ImVec2(-1, -1), cell_pos + ImVec2(cell_size.x, -1), ImColor(frame_color), 1);
