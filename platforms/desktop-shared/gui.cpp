@@ -1039,7 +1039,7 @@ static void main_window(void)
         ratio = (float)w / (float)h;
     }
 
-    int w_corrected = (int)(GAMEBOY_HEIGHT * ratio);
+    int w_corrected = GAMEBOY_HEIGHT * ratio;
     int h_corrected = GAMEBOY_HEIGHT;
     int scale_multiplier = 0;
 
@@ -1067,7 +1067,7 @@ static void main_window(void)
         case 2:
             scale_multiplier = 1;
             h_corrected = h;
-            w_corrected = (int)(h * ratio);
+            w_corrected = h * ratio;
             break;
         case 3:
             scale_multiplier = 1;
@@ -1638,8 +1638,11 @@ static void popup_modal_about(void)
         else
             ImGui::Text("> No gamepad detected");
 
-        if (application_gamepad_mappings > 0)
-            ImGui::Text("%d game controller mappings loaded from gamecontrollerdb.txt", application_gamepad_mappings);
+        if (application_added_gamepad_mappings || application_updated_gamepad_mappings)
+        {
+            ImGui::Text("%d game controller mappings added from gamecontrollerdb.txt", application_added_gamepad_mappings);
+            ImGui::Text("%d game controller mappings updated from gamecontrollerdb.txt", application_updated_gamepad_mappings);
+        }
         else
             ImGui::Text("ERROR: Game controller database not found (gamecontrollerdb.txt)!!");
 

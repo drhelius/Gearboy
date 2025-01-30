@@ -30,7 +30,8 @@
 
 EXTERN SDL_Window* application_sdl_window;
 EXTERN SDL_GameController* application_gamepad;
-EXTERN int application_gamepad_mappings;
+EXTERN int application_added_gamepad_mappings;
+EXTERN int application_updated_gamepad_mappings;
 EXTERN float application_display_scale;
 EXTERN SDL_version application_sdl_build_version;
 EXTERN SDL_version application_sdl_link_version;
