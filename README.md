@@ -19,7 +19,8 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 ## Downloads
 
 - **Windows**:
-  - [Gearboy-3.6.1-windows.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.1/Gearboy-3.6.1-windows.zip)
+  - [Gearboy-3.6.1-windows-x64.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.1/Gearboy-3.6.1-windows-x64.zip)
+  - [Gearboy-3.6.1-windows-arm64.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.1/Gearboy-3.6.1-windows-arm64.zip)
   - NOTE: If you have errors you may need to install:
     - [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
     - [OpenGL Compatibility Pack](https://apps.microsoft.com/detail/9nqpsl29bfff)
