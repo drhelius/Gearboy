@@ -54,6 +54,8 @@ static bool status_message_active = false;
 static char status_message[4096] = "";
 static u32 status_message_start_time = 0;
 static u32 status_message_duration = 0;
+static float original_ui_scale = 1.0f;
+static bool ui_scale_changed = false;
 
 static void main_menu(void);
 static void main_window(void);
@@ -96,6 +98,10 @@ void gui_init(void)
         Log("Error: %s", NFD_GetError());
     }
 
+    // Store the original UI scale value to detect changes
+    original_ui_scale = config_video.ui_scale;
+    ui_scale_changed = false;
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -104,8 +110,6 @@ void gui_init(void)
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigDockingWithShift = true;
     io.IniFilename = config_imgui_file_path;
-
-    io.FontGlobalScale /= application_display_scale;
 
 #if defined(__APPLE__) || defined(_WIN32)
     if (config_debug.multi_viewport)
@@ -698,6 +702,30 @@ static void main_menu(void)
                 emu_color_correction(config_video.color_correction);
             }
 
+            ImGui::Separator();
+
+            // Always show the warning if scale is different from original
+            if (ui_scale_changed)
+            {
+                ImGui::Text("UI Scale:");
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+                ImGui::Text("(restart required)");
+                ImGui::PopStyleColor();
+            }
+            else
+            {
+                ImGui::Text("UI Scale:");
+            }
+
+            ImGui::PushItemWidth(250.0f);
+            if (ImGui::SliderFloat("##ui_scale", &config_video.ui_scale, 1.0f, 3.0f, "%.1f"))
+            {
+                // Check if the value has changed from the original value
+                ui_scale_changed = (config_video.ui_scale != original_ui_scale);
+            }
+            ImGui::PopItemWidth();
+
             if (ImGui::BeginMenu("Screen Ghosting"))
             {
                 ImGui::MenuItem("Enable Screen Ghosting", "", &config_video.mix_frames);
@@ -1046,9 +1074,9 @@ static void main_window(void)
     if (config_debug.debug)
     {
         if (config_video.scale != 0)
-            scale_multiplier = config_video.scale_manual;
+            scale_multiplier = config_video.scale_manual * application_display_scale;
         else
-            scale_multiplier = 1;
+            scale_multiplier = 1 * application_display_scale;
     }
     else
     {
@@ -1878,29 +1906,29 @@ static void set_style(void)
 
     style.Alpha = 1.0f;
     style.DisabledAlpha = 0.6000000238418579f;
-    style.WindowPadding = ImVec2(8.0f, 8.0f);
-    style.WindowRounding = 4.0f;
-    style.WindowBorderSize = 1.0f;
-    style.WindowMinSize = ImVec2(32.0f, 32.0f);
+    style.WindowPadding = ImVec2(8.0f, 8.0f) * application_display_scale;
+    style.WindowRounding = 4.0f * application_display_scale;
+    style.WindowBorderSize = 1.0f * application_display_scale;
+    style.WindowMinSize = ImVec2(32.0f, 32.0f) * application_display_scale;
     style.WindowTitleAlign = ImVec2(0.0f, 0.5f);
     style.WindowMenuButtonPosition = ImGuiDir_Left;
     style.ChildRounding = 0.0f;
-    style.ChildBorderSize = 1.0f;
-    style.PopupRounding = 4.0f;
-    style.PopupBorderSize = 1.0f;
-    style.FramePadding = ImVec2(4.0f, 3.0f);
-    style.FrameRounding = 2.5f;
+    style.ChildBorderSize = 1.0f * application_display_scale;
+    style.PopupRounding = 4.0f * application_display_scale;
+    style.PopupBorderSize = 1.0f * application_display_scale;
+    style.FramePadding = ImVec2(4.0f, 3.0f) * application_display_scale;
+    style.FrameRounding = 2.5f * application_display_scale;
     style.FrameBorderSize = 0.0f;
-    style.ItemSpacing = ImVec2(8.0f, 4.0f);
-    style.ItemInnerSpacing = ImVec2(4.0f, 4.0f);
-    style.CellPadding = ImVec2(4.0f, 2.0f);
-    style.IndentSpacing = 21.0f;
-    style.ColumnsMinSpacing = 6.0f;
-    style.ScrollbarSize = 11.0f;
-    style.ScrollbarRounding = 2.5f;
-    style.GrabMinSize = 10.0f;
-    style.GrabRounding = 2.0f;
-    style.TabRounding = 3.5f;
+    style.ItemSpacing = ImVec2(8.0f, 4.0f) * application_display_scale;
+    style.ItemInnerSpacing = ImVec2(4.0f, 4.0f) * application_display_scale;
+    style.CellPadding = ImVec2(4.0f, 2.0f) * application_display_scale;
+    style.IndentSpacing = 21.0f * application_display_scale;
+    style.ColumnsMinSpacing = 6.0f * application_display_scale;
+    style.ScrollbarSize = 11.0f * application_display_scale;
+    style.ScrollbarRounding = 2.5f * application_display_scale;
+    style.GrabMinSize = 10.0f * application_display_scale;
+    style.GrabRounding = 2.0f * application_display_scale;
+    style.TabRounding = 3.5f * application_display_scale;
     style.TabBorderSize = 0.0f;
     style.TabMinWidthForCloseButton = 0.0f;
     style.ColorButtonPosition = ImGuiDir_Right;

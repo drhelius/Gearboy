@@ -143,6 +143,7 @@ void config_read(void)
     }
     config_video.sync = read_bool("Video", "Sync", true);
     config_video.color_correction = read_bool("Video", "ColorCorrection", true);
+    config_video.ui_scale = read_float("Video", "UIScale", 1.0f);
     
     config_audio.enable = read_bool("Audio", "Enable", true);
     config_audio.sync = read_bool("Audio", "Sync", true);
@@ -239,6 +240,7 @@ void config_write(void)
     }
     write_bool("Video", "Sync", config_video.sync);
     write_bool("Video", "ColorCorrection", config_video.color_correction);
+    write_float("Video", "UIScale", config_video.ui_scale);
 
     write_bool("Audio", "Enable", config_audio.enable);
     write_bool("Audio", "Sync", config_audio.sync);

@@ -87,6 +87,13 @@ void gui_debug_windows(void)
 {
     if (config_debug.debug)
     {
+        // Set display scale for all memory editors
+        for (int i = 0; i < 10; i++)
+        {
+            mem_edit[i].SetDisplayScale(application_display_scale);
+            mem_edit[i].SetGuiFont(gui_default_font);
+        }
+
         if (config_debug.show_processor)
             debug_window_processor();
         if (config_debug.show_memory)
@@ -1443,7 +1450,7 @@ static void debug_window_vram_background(void)
     static bool show_screen = true;
     static int tile_address_radio = 0;
     static int map_address_radio = 0;
-    float scale = 1.5f;
+    float scale = 1.5f * application_display_scale;
     float size = 256.0f * scale;
     float spacing = 8.0f * scale;
 
@@ -1642,7 +1649,7 @@ static void debug_window_vram_tiles(void)
 {
     static bool show_grid = true;
     bool window_hovered = ImGui::IsWindowHovered();
-    float scale = 1.5f;
+    float scale = 1.5f * application_display_scale;
     float width = 8.0f * 16.0f * scale;
     float height = 8.0f * 24.0f * scale;
     float spacing = 8.0f * scale;
@@ -1739,7 +1746,7 @@ static void debug_window_vram_tiles(void)
 
 static void debug_window_vram_oam(void)
 {
-    float scale = 5.0f;
+    float scale = 3.0f * application_display_scale;
     float width = 8.0f * scale;
     float height_8 = 8.0f * scale;
     float height_16 = 16.0f * scale;
@@ -1757,7 +1764,7 @@ static void debug_window_vram_oam(void)
     ImGui::PushFont(gui_default_font);
 
     ImGui::Columns(2, "oam", false);
-    ImGui::SetColumnOffset(1, 280.0f);
+    ImGui::SetColumnOffset(1, 280.0f * application_display_scale);
 
     ImGui::BeginChild("sprites", ImVec2(0, 0), true);
 
@@ -1788,7 +1795,7 @@ static void debug_window_vram_oam(void)
 
     ImVec2 p_screen = ImGui::GetCursorScreenPos();
 
-    float screen_scale = 1.5f;
+    float screen_scale = 1.5f * application_display_scale;
 
     ImGui::Image((ImTextureID)(intptr_t)renderer_emu_texture, ImVec2(GAMEBOY_WIDTH * screen_scale, GAMEBOY_HEIGHT * screen_scale));
 

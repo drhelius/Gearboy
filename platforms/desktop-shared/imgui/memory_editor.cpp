@@ -46,6 +46,7 @@ MemEditor::MemEditor()
     m_goto_address[0] = 0;
     m_add_bookmark = false;
     m_draw_list = 0;
+    m_display_scale = 1.0f;
 }
 
 MemEditor::~MemEditor()
@@ -86,7 +87,7 @@ void MemEditor::Draw(uint8_t* mem_data, int mem_size, int base_display_addr, int
     int separator_count = (m_bytes_per_row - 1) / 4;
     int byte_column_count = 2 + m_bytes_per_row + separator_count + 2;
     int byte_cell_padding = 0;
-    int ascii_padding = 4;
+    int ascii_padding = 4 * m_display_scale;
     int character_cell_padding = 0;
     int max_chars_per_cell = 2 * m_mem_word;
     ImVec2 character_size = ImGui::CalcTextSize("0");
@@ -95,7 +96,7 @@ void MemEditor::Draw(uint8_t* mem_data, int mem_size, int base_display_addr, int
     if (options)
         footer_height += ImGui::GetFrameHeightWithSpacing();
     if (preview)
-        footer_height += ((character_size.y + 4) * 3) + 4;
+        footer_height += ((character_size.y + 4 * m_display_scale) * 3) + 4 * m_display_scale;
     if (cursors)
         footer_height += ImGui::GetFrameHeightWithSpacing();
 
@@ -931,4 +932,9 @@ std::vector<MemEditor::Bookmark>* MemEditor::GetBookmarks()
 void MemEditor::SetGuiFont(ImFont* gui_font)
 {
     m_gui_font = gui_font;
+}
+
+void MemEditor::SetDisplayScale(float scale)
+{
+    m_display_scale = scale;
 }

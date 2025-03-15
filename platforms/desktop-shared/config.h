@@ -84,6 +84,7 @@ struct config_Video
     };
     bool sync = true;
     bool color_correction = true;
+    float ui_scale = 1.0f;
 };
 
 struct config_Audio

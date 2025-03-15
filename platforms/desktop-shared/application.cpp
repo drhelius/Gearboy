@@ -196,6 +196,8 @@ static int sdl_init(void)
         float scale_h = (float)display_h / h;
 
         application_display_scale = (scale_w > scale_h) ? scale_w : scale_h;
+
+        application_display_scale *= config_video.ui_scale;
     }
 
     SDL_EventState(SDL_DROPFILE, SDL_ENABLE);

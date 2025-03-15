@@ -50,6 +50,7 @@ public:
     void RemoveBookmarks();
     std::vector<Bookmark>* GetBookmarks();
     void SetGuiFont(ImFont* gui_font);
+    void SetDisplayScale(float scale);
 
 private:
     bool IsColumnSeparator(int current_column, int column_count);
@@ -91,6 +92,7 @@ private:
     std::vector<Bookmark> m_bookmarks;
     ImFont* m_gui_font;
     ImDrawList* m_draw_list;
+    float m_display_scale;
 };
 
 #endif	/* MEM_EDITOR_H */
