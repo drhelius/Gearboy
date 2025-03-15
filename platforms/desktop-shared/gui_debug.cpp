@@ -1746,7 +1746,7 @@ static void debug_window_vram_tiles(void)
 
 static void debug_window_vram_oam(void)
 {
-    float scale = 3.0f * application_display_scale;
+    float scale = 5.0f * application_display_scale;
     float width = 8.0f * scale;
     float height_8 = 8.0f * scale;
     float height_16 = 16.0f * scale;
