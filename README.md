@@ -5,14 +5,14 @@
 [![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/commits/master)
 [![GitHub contributors](https://img.shields.io/github/contributors/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/graphs/contributors)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/drhelius)](https://github.com/sponsors/drhelius)
-[![GitHub](https://img.shields.io/github/license/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/blob/master/LICENSE)
 [![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)](https://x.com/drhelius)
 
 Gearboy is a cross-platform Game Boy / Game Boy Color emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch.
 
-This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md). If you find it useful, please, consider [sponsoring](https://github.com/sponsors/drhelius).
+This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md). If you find it useful, please consider [sponsoring](https://github.com/sponsors/drhelius).
 
-Don't hesitate to report bugs or ask for new features by [openning an issue](https://github.com/drhelius/Gearboy/issues). 
+Don't hesitate to report bugs or ask for new features by [opening an issue](https://github.com/drhelius/Gearboy/issues).
 
 <img src="http://www.geardome.com/files/gearboy/gearboy_debug_03.png">
 
@@ -50,21 +50,28 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - *Game Genie* and *GameShark* cheat support.
 - Supported platforms (standalone): Windows, Linux, BSD and macOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
-- Full debugger with just-in-time disassembler, cpu breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
+- Full debugger with just-in-time disassembler, CPU breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
 - Windows and Linux *Portable Mode*.
-- Rom loading from the command line by adding the rom path as an argument.
-- Support for modern game controllers through [gamecontrollerdb.txt](https://github.com/gabomdq/SDL_GameControllerDB) file located in the same directory as the application binary.
+- ROM loading from the command line by adding the ROM path as an argument.
+- Support for modern game controllers through [gamecontrollerdb.txt](https://github.com/mdqinc/SDL_GameControllerDB) file located in the same directory as the application binary.
 
 ## Tips
 
-- *Boot ROM*: Gearboy can run with or without a Boot ROM. You can optionally load a Boot ROM and enable it.
-- *Mouse Cursor*: Automatically hides when hovering main output window or when Main Menu is disabled.
-- *Portable Mode*: Create an empty file named `portable.ini` in the same directory as the application binary to enable portable mode.
-- *Docking windows*: In debug mode you can dock windows together by pressing SHIFT and drag'n drop a window into another.
-- *Debug multi-viewport*: In Windows or macOS you can enable "multi-viewport" in debug menu. You must restart the emulator for the change to take effect. Once enabled you can drag debugger windows outside the main window. 
-- *Debug Symbols*: The emulator always tries to load a symbol file at the same time a rom is being loaded. For example, for ```path_to_rom_file.gb``` it tries to load ```path_to_rom_file.sym```. It is also possible to load a symbol file using the GUI or using the CLI.
-- *Command Line Usage*: ```gearboy [rom_file] [symbol_file]```
- 
+### Basic Usage
+- **Boot ROM**: Gearboy can run with or without a Boot ROM. You can optionally load a Boot ROM and enable it.
+- **Mouse Cursor**: Automatically hides when hovering over the main output window or when Main Menu is disabled.
+- **Portable Mode**: Create an empty file named `portable.ini` in the same directory as the application binary to enable portable mode.
+
+### Debugging Features
+- **Docking Windows**: In debug mode, you can dock windows together by pressing SHIFT and dragging a window onto another.
+- **Multi-viewport**: In Windows or macOS, you can enable "multi-viewport" in the debug menu. You must restart the emulator for the change to take effect. Once enabled, you can drag debugger windows outside the main window.
+- **Debug Symbols**: The emulator automatically tries to load a symbol file when loading a ROM. For example, for ```path_to_rom_file.gb``` it tries to load ```path_to_rom_file.sym```. You can also load a symbol file using the GUI or the CLI.
+
+### Command Line Usage
+```
+gearboy [rom_file] [symbol_file]
+```
+
 ## Build Instructions
 
 ### Windows
@@ -137,6 +144,14 @@ cd platforms/libretro
 make
 ```
 
+- Arch Linux:
+
+``` shell
+sudo pacman -S base-devel sdl2 glew gtk3
+cd platforms/linux
+make
+```
+
 ## Accuracy Tests
 
 Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/GBAccuracyTests.html).
@@ -153,7 +168,7 @@ Tests from [blargg's test roms](https://github.com/retrio/gb-test-roms):
 
 Thank you to all the people who have already contributed to Gearboy!
 
-[![Contributors](https://contrib.rocks/image?repo=drhelius/gearboy)]("https://github.com/drhelius/gearboy/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=drhelius/gearboy)](https://github.com/drhelius/gearboy/graphs/contributors)
 
 ## License
 
