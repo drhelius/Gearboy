@@ -108,6 +108,14 @@ cd platforms/linux
 make
 ```
 
+- Arch Linux:
+
+``` shell
+sudo pacman -S base-devel sdl2 glew gtk3
+cd platforms/linux
+make
+```
+
 ### BSD
 
 - FreeBSD:
@@ -141,14 +149,6 @@ make
 ``` shell
 sudo dnf install @development-tools gcc-c++
 cd platforms/libretro
-make
-```
-
-- Arch Linux:
-
-``` shell
-sudo pacman -S base-devel sdl2 glew gtk3
-cd platforms/linux
 make
 ```
 
