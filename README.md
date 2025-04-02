@@ -32,7 +32,8 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
   - [Gearboy-3.6.1-ubuntu-22.04.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.1/Gearboy-3.6.1-ubuntu-22.04.zip)
   - [Gearboy-3.6.1-ubuntu-20.04.zip](https://github.com/drhelius/Gearboy/releases/download/3.6.1/Gearboy-3.6.1-ubuntu-20.04.zip) 
   - NOTE: You may need to install `libsdl2` and `libglew`
-- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/).
+- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/)
+- **Dev Builds**: [GitHub Actions](https://github.com/drhelius/Gearboy/actions/workflows/gearboy.yml)
 
 ## Features
 
