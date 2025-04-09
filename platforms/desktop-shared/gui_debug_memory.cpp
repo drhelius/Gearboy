@@ -83,14 +83,14 @@ void gui_debug_window_memory(void)
     Memory* memory = core->GetMemory();
 
     ImGui::PushFont(gui_default_font);
-    ImGui::TextColored(cyan, "  BANKS: ");ImGui::SameLine();
-    ImGui::TextColored(magenta, "ROM1");ImGui::SameLine();
+    ImGui::TextColored(magenta, "  BANKS: ");ImGui::SameLine();
+    ImGui::TextColored(cyan, "ROM1");ImGui::SameLine();
     ImGui::Text("$%02X", memory->GetCurrentRule()->GetCurrentRomBank1Index()); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  RAM");ImGui::SameLine();
+    ImGui::TextColored(cyan, "  RAM");ImGui::SameLine();
     ImGui::Text("$%02X", memory->GetCurrentRule()->GetCurrentRamBankIndex()); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  WRAM1");ImGui::SameLine();
+    ImGui::TextColored(cyan, "  WRAM1");ImGui::SameLine();
     ImGui::Text("$%02X", memory->GetCurrentCGBRAMBank()); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  VRAM");ImGui::SameLine();
+    ImGui::TextColored(cyan, "  VRAM");ImGui::SameLine();
     ImGui::Text("$%02X", memory->GetCurrentLCDRAMBank());
     ImGui::PopFont();
 
