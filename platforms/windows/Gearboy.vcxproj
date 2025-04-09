@@ -50,6 +50,8 @@
     <ClCompile Include="..\desktop-shared\emu.cpp" />
     <ClCompile Include="..\desktop-shared\gui.cpp" />
     <ClCompile Include="..\desktop-shared\gui_debug.cpp" />
+    <ClCompile Include="..\desktop-shared\gui_debug_memory.cpp" />
+    <ClCompile Include="..\desktop-shared\gui_debug_memeditor.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_draw.cpp" />
@@ -57,7 +59,6 @@
     <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl2.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_tables.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\memory_editor.cpp" />
     <ClCompile Include="..\desktop-shared\main.cpp" />
     <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp" />
     <ClCompile Include="..\desktop-shared\renderer.cpp" />
@@ -105,8 +106,9 @@
     <ClInclude Include="..\desktop-shared\emu.h" />
     <ClInclude Include="..\desktop-shared\gui.h" />
     <ClInclude Include="..\desktop-shared\gui_debug.h" />
+    <ClInclude Include="..\desktop-shared\gui_debug_memory.h" />
+    <ClInclude Include="..\desktop-shared\gui_debug_memeditor.h" />
     <ClInclude Include="..\desktop-shared\gui_debug_constants.h" />
-    <ClInclude Include="..\desktop-shared\imgui\colors.h" />
     <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h" />
     <ClInclude Include="..\desktop-shared\imgui\imconfig.h" />
     <ClInclude Include="..\desktop-shared\imgui\imgui.h" />
@@ -117,7 +119,6 @@
     <ClInclude Include="..\desktop-shared\imgui\imstb_textedit.h" />
     <ClInclude Include="..\desktop-shared\imgui\imstb_truetype.h" />
     <ClInclude Include="..\desktop-shared\imgui\keyboard.h" />
-    <ClInclude Include="..\desktop-shared\imgui\memory_editor.h" />
     <ClInclude Include="..\desktop-shared\license.h" />
     <ClInclude Include="..\desktop-shared\mINI\ini.h" />
     <ClInclude Include="..\desktop-shared\nfd\nfd.h" />

@@ -17,13 +17,13 @@
  *
  */
 
-#ifndef MEM_EDITOR_H
-#define	MEM_EDITOR_H
+#ifndef GUI_DEBUG_MEMEDITOR_H
+#define	GUI_DEBUG_MEMEDITOR_H
 
 #include <stdint.h>
 #include <stdio.h>
 #include <vector>
-#include "imgui.h"
+#include "imgui/imgui.h"
 
 class MemEditor
 {
@@ -34,22 +34,50 @@ public:
         char name[32];
     };
 
+    struct Watch
+    {
+        int address;
+        char notes[128];
+    };
+
+    struct Search
+    {
+        int address;
+        int value;
+        int prev_value;
+    };
+
 public:
     MemEditor();
     ~MemEditor();
 
-    void Draw(uint8_t* mem_data, int mem_size, int base_display_addr = 0x0000, int word = 1, bool ascii = true, bool preview = true, bool options = true, bool cursors = true);
+    void Reset(const char* title, uint8_t* mem_data, int mem_size, int base_display_addr = 0x0000, int word = 1);
+    void Draw(bool ascii = true, bool preview = true, bool options = true, bool cursors = true);
+    void DrawWatchWindow();
+    void DrawSearchWindow();
     void Copy();
     void Paste();
     void JumpToAddress(int address);
+    void FindNextValue(int value);
     void SelectAll();
     void ClearSelection();
     void SetValueToSelection(int value);
-    void SaveToFile(const char* file_path);
+    void SaveToTextFile(const char* file_path);
+    void SaveToBinaryFile(const char* file_path);
     void AddBookmark();
     void RemoveBookmarks();
     std::vector<Bookmark>* GetBookmarks();
+    void OpenWatchWindow();
+    void OpenSearchWindow();
+    void AddWatch();
+    void RemoveWatches();
     void SetGuiFont(ImFont* gui_font);
+    void BookMarkPopup();
+    void WatchPopup();
+    void SearchCapture();
+    void StepFrame();
+    int GetWordBytes();
+    char* GetTitle();
 
 private:
     bool IsColumnSeparator(int current_column, int column_count);
@@ -64,10 +92,14 @@ private:
     void DrawDataPreviewAsDec(int data);
     void DrawDataPreviewAsBin(int data);
     int DataPreviewSize();
-    void DrawContexMenu(int address, bool cell_hovered);
-    void BookMarkPopup();
+    void DrawContexMenu(int address, bool cell_hovered, bool options);
+    void WatchWindow();
+    void SearchWindow();
+    void CalculateSearchResults();
+    void DrawSearchValue(int value, ImVec4 color);
 
 private:
+    char m_title[32];
     float m_separator_column_width;
     int m_selection_start;
     int m_selection_end;
@@ -84,13 +116,29 @@ private:
     uint8_t* m_mem_data;
     int m_mem_size;
     int m_mem_base_addr;
-    char m_hex_mem_format[8];
+    char m_hex_addr_format[8];
+    int m_hex_addr_digits;
     int m_mem_word;
     char m_goto_address[7];
+    char m_find_next[5];
     bool m_add_bookmark;
     std::vector<Bookmark> m_bookmarks;
+    bool m_watch_window;
+    bool m_add_watch;
+    std::vector<Watch> m_watches;
     ImFont* m_gui_font;
     ImDrawList* m_draw_list;
+    bool m_search_window;
+    int m_search_operator;
+    int m_search_compare_type;
+    int m_search_data_type;
+    char m_search_compare_specific_value_str[5];
+    int m_search_compare_specific_value;
+    char m_search_compare_specific_address_str[7];
+    int m_search_compare_specific_address;
+    uint8_t* m_search_data;
+    std::vector<Search> m_search_results;
+    bool m_search_auto;
 };
 
-#endif	/* MEM_EDITOR_H */
+#endif /* GUI_DEBUG_MEMEDITOR_H */

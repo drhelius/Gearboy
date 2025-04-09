@@ -47,8 +47,6 @@ EXTERN void gui_debug_reset_breakpoints_cpu(void);
 EXTERN void gui_debug_reset_breakpoints_mem(void);
 EXTERN void gui_debug_runtocursor(void);
 EXTERN void gui_debug_go_back(void);
-EXTERN void gui_debug_copy_memory(void);
-EXTERN void gui_debug_paste_memory(void);
 
 #undef GUI_DEBUG_IMPORT
 #undef EXTERN

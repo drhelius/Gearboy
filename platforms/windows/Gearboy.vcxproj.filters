@@ -144,9 +144,14 @@
     <ClCompile Include="..\desktop-shared\gui_debug.cpp">
       <Filter>desktop-shared</Filter>
     </ClCompile>
+    <ClCompile Include="..\desktop-shared\gui_debug_memory.cpp">
+      <Filter>desktop-shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\gui_debug_memeditor.cpp">
+      <Filter>desktop-shared</Filter>
+    </ClCompile>
     <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl2.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_tables.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\memory_editor.cpp" />
     <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp">
       <Filter>desktop-shared\nfd</Filter>
     </ClCompile>
@@ -299,11 +304,16 @@
     <ClInclude Include="..\desktop-shared\gui_debug.h">
       <Filter>desktop-shared</Filter>
     </ClInclude>
+    <ClInclude Include="..\desktop-shared\gui_debug_memory.h">
+      <Filter>desktop-shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\gui_debug_memeditor.h">
+      <Filter>desktop-shared</Filter>
+    </ClInclude>
     <ClInclude Include="..\desktop-shared\gui_debug_constants.h">
       <Filter>desktop-shared</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl2.h" />
-    <ClInclude Include="..\desktop-shared\imgui\memory_editor.h" />
     <ClInclude Include="..\audio-shared\sound_queue.h">
       <Filter>audio-shared</Filter>
     </ClInclude>
@@ -312,9 +322,6 @@
     </ClInclude>
     <ClInclude Include="..\desktop-shared\license.h">
       <Filter>desktop-shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\colors.h">
-      <Filter>desktop-shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\keyboard.h">
       <Filter>desktop-shared\imgui</Filter>
