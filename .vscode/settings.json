@@ -2,6 +2,7 @@
     "files.exclude": {
         "**/*.o": true,
         "**/*.so": true,
+        "**/*.tmp": true,
         "**/gearboy": true,
         "**/binary_to_compressed_c": true
     },
