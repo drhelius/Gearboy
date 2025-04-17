@@ -19,6 +19,7 @@
 
 #include "../../src/gearboy.h"
 #include "../audio-shared/sound_queue.h"
+#include "config.h"
 
 #define EMU_IMPORT
 #include "emu.h"
@@ -143,7 +144,8 @@ void emu_update(void)
 
         generate_24bit_buffer(emu_frame_buffer, frame_buffer_565, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
 
-        update_debug();
+        if (config_debug.debug)
+            update_debug();
 
         if ((sampleCount > 0) && !gearboy->IsPaused())
         {
