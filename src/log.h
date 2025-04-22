@@ -18,41 +18,53 @@
  */
 
 #ifndef LOG_H
-#define	LOG_H
+#define LOG_H
 
-#include <cstdio>
-#include <cstdarg>
+#include <stdio.h>
+#include <stdarg.h>
 #include "definitions.h"
+
+#if defined(__LIBRETRO__)
+#include "libretro.h"
+extern retro_log_printf_t log_cb;
+#endif
 
 #if defined(DEBUG_GEARBOY)
     #if defined(__ANDROID__)
         #include <android/log.h>
         #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, GG_TITLE, __VA_ARGS__);
     #endif
-    #define Debug(msg, ...) (Log_func(true, msg, ##__VA_ARGS__))
+    #define Debug(msg, ...) (Log_func(msg, ##__VA_ARGS__))
 #else
     #define Debug(msg, ...)
 #endif
 
-#define Log(msg, ...) (Log_func(false, msg, ##__VA_ARGS__))
+#define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
 
-inline void Log_func(bool debug, const char* const msg, ...)
+inline void Log_func(const char* const msg, ...)
 {
-    static int count = 1;
     char buffer[512];
     va_list args;
     va_start(args, msg);
     vsnprintf(buffer, 512, msg, args);
     va_end(args);
 
-    if (debug)
+#if defined(__LIBRETRO__)
+    if (log_cb)
     {
-        printf("%d: [DEBUG] %s\n", count, buffer);
-        count++;
+        log_cb(RETRO_LOG_INFO, "%s\n", buffer);
+        return;
     }
-    else
-        printf("%s\n", buffer);
-    
+#endif
+
+#if defined(DEBUG_GEARBOY)
+    static int count = 1;
+    printf("%d: %s\n", count, buffer);
+    count++;
+#else
+    printf("%s\n", buffer);
+#endif
+
     fflush(stdout);
 }
 

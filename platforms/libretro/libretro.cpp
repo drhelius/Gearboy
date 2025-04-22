@@ -43,7 +43,7 @@ static const char slash = '/';
 static u16* gearboy_frame_buf;
 
 static struct retro_log_callback logging;
-static retro_log_printf_t log_cb;
+retro_log_printf_t log_cb;
 static char retro_system_directory[4096];
 static char retro_game_path[4096];
 
@@ -213,8 +213,8 @@ static void load_bootroms(void)
     char bootrom_dmg_path[4112];
     char bootrom_gbc_path[4112];
 
-    sprintf(bootrom_dmg_path, "%s%cdmg_boot.bin", retro_system_directory, slash);
-    sprintf(bootrom_gbc_path, "%s%ccgb_boot.bin", retro_system_directory, slash);
+    snprintf(bootrom_dmg_path, 4112, "%s%cdmg_boot.bin", retro_system_directory, slash);
+    snprintf(bootrom_gbc_path, 4112, "%s%ccgb_boot.bin", retro_system_directory, slash);
 
     core->GetMemory()->LoadBootromDMG(bootrom_dmg_path);
     core->GetMemory()->LoadBootromGBC(bootrom_gbc_path);
