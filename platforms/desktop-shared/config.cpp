@@ -332,9 +332,10 @@ static float read_float(const char* group, const char* key, float default_value)
 
 static void write_float(const char* group, const char* key, float value)
 {
-    std::string value_str = std::to_string(value);
-    config_ini_data[group][key] = value_str;
-    Debug("Save setting: [%s][%s]=%s", group, key, value_str.c_str());
+    char value_str[32];
+    snprintf(value_str, sizeof(value_str), "%.2f", value);
+    config_ini_data[group][key] = std::string(value_str);
+    Debug("Save float setting: [%s][%s]=%s", group, key, value_str);
 }
 
 static bool read_bool(const char* group, const char* key, bool default_value)
