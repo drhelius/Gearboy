@@ -174,6 +174,9 @@ void config_write(void)
 {
     Log("Saving settings to %s", config_emu_file_path);
 
+    if (config_emulator.ffwd)
+        config_audio.sync = true;
+
     write_bool("Debug", "Debug", config_debug.debug);
     write_bool("Debug", "Audio", config_debug.show_audio);
     write_bool("Debug", "Disassembler", config_debug.show_disassembler);
