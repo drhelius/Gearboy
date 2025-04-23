@@ -18,6 +18,7 @@
  */
 
 #include <SDL.h>
+#include <iomanip>
 #include "../../src/gearboy.h"
 #define MINI_CASE_SENSITIVE
 #include "mINI/ini.h"
@@ -332,10 +333,12 @@ static float read_float(const char* group, const char* key, float default_value)
 
 static void write_float(const char* group, const char* key, float value)
 {
-    char value_str[32];
-    snprintf(value_str, sizeof(value_str), "%.2f", value);
-    config_ini_data[group][key] = std::string(value_str);
-    Debug("Save float setting: [%s][%s]=%s", group, key, value_str);
+    std::ostringstream oss;
+    oss.imbue(std::locale::classic());
+    oss << std::fixed << std::setprecision(2) << value;
+    std::string value_str = oss.str();
+    config_ini_data[group][key] = oss.str();
+    Debug("Save float setting: [%s][%s]=%s", group, key, value_str.c_str());
 }
 
 static bool read_bool(const char* group, const char* key, bool default_value)
