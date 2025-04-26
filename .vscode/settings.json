@@ -69,6 +69,19 @@
         "optional": "cpp",
         "__bit_reference": "cpp",
         "__hash_table": "cpp",
-        "__split_buffer": "cpp"
+        "__split_buffer": "cpp",
+        "__locale": "cpp",
+        "__node_handle": "cpp",
+        "__verbose_abort": "cpp",
+        "bitset": "cpp",
+        "complex": "cpp",
+        "cstring": "cpp",
+        "execution": "cpp",
+        "ios": "cpp",
+        "locale": "cpp",
+        "print": "cpp",
+        "queue": "cpp",
+        "stack": "cpp",
+        "variant": "cpp"
     }
 }
