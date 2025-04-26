@@ -172,9 +172,6 @@
     <ClInclude Include="..\..\src\definitions.h">
       <Filter>source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\EightBitRegister.h">
-      <Filter>source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\gearboy.h">
       <Filter>source</Filter>
     </ClInclude>

@@ -79,7 +79,6 @@
     <ClInclude Include="..\..\src\Cartridge.h" />
     <ClInclude Include="..\..\src\CommonMemoryRule.h" />
     <ClInclude Include="..\..\src\definitions.h" />
-    <ClInclude Include="..\..\src\EightBitRegister.h" />
     <ClInclude Include="..\..\src\gearboy.h" />
     <ClInclude Include="..\..\src\GearboyCore.h" />
     <ClInclude Include="..\..\src\Input.h" />
