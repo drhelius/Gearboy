@@ -50,13 +50,24 @@ static void render(void);
 static void frame_throttle(void);
 static void save_window_size(void);
 
-int application_init(const char* rom_file, const char* symbol_file)
+int application_init(const char* rom_file, const char* symbol_file, bool force_fullscreen, bool force_windowed)
 {
     Log("\n%s", GEARBOY_TITLE_ASCII);
     Log("%s %s Desktop App", GEARBOY_TITLE, GEARBOY_VERSION);
 
     config_init();
     config_read();
+
+    if (force_fullscreen)
+    {
+        config_emulator.fullscreen = true;
+        config_emulator.show_menu = false;
+    }
+    else if (force_windowed)
+    {
+        config_emulator.fullscreen = false;
+        config_emulator.show_menu = true;
+    }
 
     int ret = sdl_init();
     emu_init();
