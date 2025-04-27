@@ -29,51 +29,59 @@ int main(int argc, char* argv[])
     bool force_windowed = false;
     int ret = 0;
 
-    for (int i = 0; i < argc; i++)
+    for (int i = 1; i < argc; i++)
     {
-        if ((strcmp(argv[i], "-h") == 0) || (strcmp(argv[i], "-?") == 0) ||
-            (strcmp(argv[i], "--help") == 0) || (strcmp(argv[i], "/?") == 0))
+        if (argv[i][0] == '-')
         {
-            show_usage = true;
-            ret = 0;
-        } 
-        else if ((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--version") == 0))
-        {
-            printf("%s\n", GEARBOY_TITLE_ASCII);
-            printf("Build: %s\n", GEARBOY_VERSION);
-            printf("Author: Ignacio Sánchez (drhelius)\n");
-            return 0;
-        }
-        else if ((strcmp(argv[i], "-f") == 0) || (strcmp(argv[i], "--fullscreen") == 0))
-        {
-            force_fullscreen = true;
-        }
-        else if ((strcmp(argv[i], "-w") == 0) || (strcmp(argv[i], "--windowed") == 0))
-        {
-            force_windowed = true;
-        }
-        else if (argv[i][0] == '-')
-        {
-            show_usage = true;
-            ret = -1;
+            if ((strcmp(argv[i], "-h") == 0) || (strcmp(argv[i], "-?") == 0) ||
+                (strcmp(argv[i], "--help") == 0) || (strcmp(argv[i], "/?") == 0))
+            {
+                show_usage = true;
+                ret = 0;
+            }
+            else if ((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--version") == 0))
+            {
+                printf("%s\n", GEARBOY_TITLE_ASCII);
+                printf("Build: %s\n", GEARBOY_VERSION);
+                printf("Author: Ignacio Sánchez (drhelius)\n");
+                return 0;
+            }
+            else if ((strcmp(argv[i], "-f") == 0) || (strcmp(argv[i], "--fullscreen") == 0))
+            {
+                force_fullscreen = true;
+            }
+            else if ((strcmp(argv[i], "-w") == 0) || (strcmp(argv[i], "--windowed") == 0))
+            {
+                force_windowed = true;
+            }
+            else
+            {
+                printf("Unknown option: %s\n", argv[i]);
+                show_usage = true;
+                ret = -1;
+            }
         }
     }
 
-    switch (argc)
+    int non_option_count = 0;
+    for (int i = 1; i < argc; i++)
     {
-        case 3:
-            rom_file = argv[1];
-            symbol_file = argv[2];
-            break;
-        case 2:
-            rom_file = argv[1];
-            break;
-        case 1:
-            break;
-        default:
-            show_usage = true;
-            ret = -1;
-            break;
+        if (argv[i][0] != '-')
+        {
+            if (non_option_count == 0)
+                rom_file = argv[i];
+            else if (non_option_count == 1)
+                symbol_file = argv[i];
+            
+            non_option_count++;
+            
+            if (non_option_count > 2)
+            {
+                show_usage = true;
+                ret = -1;
+                break;
+            }
+        }
     }
 
     if (show_usage)
@@ -87,7 +95,6 @@ int main(int argc, char* argv[])
         return ret;
     }
 
-    // Don't allow both fullscreen and windowed at the same time
     if (force_fullscreen && force_windowed)
         force_fullscreen = false;
 
