@@ -18,21 +18,60 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 
 ## Downloads
 
-- **Windows**:
-  - [Gearboy-3.7.0-windows-x64.zip](https://github.com/drhelius/Gearboy/releases/download/3.7.0/Gearboy-3.7.0-windows-x64.zip)
-  - [Gearboy-3.7.0-windows-arm64.zip](https://github.com/drhelius/Gearboy/releases/download/3.7.0/Gearboy-3.7.0-windows-arm64.zip)
-  - NOTE: If you have errors you may need to install:
-    - [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
-    - [OpenGL Compatibility Pack](https://apps.microsoft.com/detail/9nqpsl29bfff)
-- **macOS**:
-  - [Gearboy-3.7.0-macos-arm.zip](https://github.com/drhelius/Gearboy/releases/download/3.7.0/Gearboy-3.7.0-macos-arm.zip)
-  - [Gearboy-3.7.0-macos-intel.zip](https://github.com/drhelius/Gearboy/releases/download/3.7.0/Gearboy-3.7.0-macos-intel.zip)
-- **Linux**:
-  - [Gearboy-3.7.0-ubuntu-24.04.zip](https://github.com/drhelius/Gearboy/releases/download/3.7.0/Gearboy-3.7.0-ubuntu-24.04.zip)
-  - [Gearboy-3.7.0-ubuntu-22.04.zip](https://github.com/drhelius/Gearboy/releases/download/3.7.0/Gearboy-3.7.0-ubuntu-22.04.zip)
-  - NOTE: You may need to install `libsdl2` and `libglew`
-- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/)
-- **Dev Builds**: [GitHub Actions](https://github.com/drhelius/Gearboy/actions/workflows/gearboy.yml)
+<table>
+  <thead>
+    <tr>
+      <th>Platform</th>
+      <th>Architecture</th>
+      <th>Download Link</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2"><strong>Windows</strong></td>
+      <td>x64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.1/Gearboy-3.7.1-windows-x64.zip">Gearboy-3.7.1-windows-x64.zip</a></td>
+      <td rowspan="2">May need <a href="https://go.microsoft.com/fwlink/?LinkId=746572">Visual C++ Redistributable</a> and <a href="https://apps.microsoft.com/detail/9nqpsl29bfff">OpenGL Compatibility Pack</a></td>
+    </tr>
+    <tr>
+      <td>ARM64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.1/Gearboy-3.7.1-windows-arm64.zip">Gearboy-3.7.1-windows-arm64.zip</a></td>
+    </tr>
+    <tr>
+      <td rowspan="2"><strong>macOS</strong></td>
+      <td>Apple Silicon</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.1/Gearboy-3.7.1-macos-arm.zip">Gearboy-3.7.1-macos-arm.zip</a></td>
+      <td rowspan="2"></td>
+    </tr>
+    <tr>
+      <td>Intel</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.1/Gearboy-3.7.1-macos-intel.zip">Gearboy-3.7.1-macos-intel.zip</a></td>
+    </tr>
+    <tr>
+      <td rowspan="2"><strong>Linux</strong></td>
+      <td>Ubuntu 24.04</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.1/Gearboy-3.7.1-ubuntu-24.04.zip">Gearboy-3.7.1-ubuntu-24.04.zip</a></td>
+      <td rowspan="2">May need <code>libsdl2</code> and <code>libglew</code></td>
+    </tr>
+    <tr>
+      <td>Ubuntu 22.04</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.1/Gearboy-3.7.1-ubuntu-22.04.zip">Gearboy-3.7.1-ubuntu-22.04.zip</a></td>
+    </tr>
+    <tr>
+      <td><strong>RetroArch</strong></td>
+      <td>All platforms</td>
+      <td><a href="https://docs.libretro.com/library/gearboy/">Libretro core documentation</a></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td><strong>Dev Builds</strong></td>
+      <td>All platforms</td>
+      <td><a href="https://github.com/drhelius/Gearboy/actions/workflows/gearboy.yml">GitHub Actions</a></td>
+      <td>Latest development builds</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Features
 
