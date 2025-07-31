@@ -587,7 +587,7 @@ bool Processor::Disassemble(u16 address)
 
         for (std::size_t b = 0; b < size; b++)
         {
-            if ((*breakpoints)[b] == map[offset])
+            if (((*breakpoints)[b] == map[offset]) && !(*breakpoints)[b]->disabled)
             {
                 return true;
             }
