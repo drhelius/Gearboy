@@ -324,14 +324,24 @@ static void debug_window_disassembler(void)
             if (!IsValidPointer((*breakpoints_cpu)[b]))
                 continue;
 
-            ImGui::PushID(b);
+            ImGui::PushID(2 * b);
             if (ImGui::SmallButton("X"))
             {
                remove = b;
                ImGui::PopID();
                continue;
             }
+            ImGui::PopID();
 
+            ImGui::SameLine();
+
+            ImGui::PushID(2 * b + 1);
+            ImGui::PushStyleColor(ImGuiCol_Button, !(*breakpoints_cpu)[b]->disabled ? green : ImGui::GetStyle().Colors[ImGuiCol_Button]);
+            if (ImGui::SmallButton("E"))
+            {
+                (*breakpoints_cpu)[b]->disabled = !(*breakpoints_cpu)[b]->disabled;
+            }
+            ImGui::PopStyleColor(1);
             ImGui::PopID();
 
             ImGui::PushFont(gui_default_font);
@@ -1882,6 +1892,7 @@ static void add_breakpoint_cpu(void)
             map[target_offset]->size = 0;
             map[target_offset]->jump = false;
             map[target_offset]->jump_address = 0;
+            map[target_offset]->disabled = false;
             for (int i = 0; i < 4; i++)
                 map[target_offset]->opcodes[i] = 0;
         }

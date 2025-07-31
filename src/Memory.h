@@ -42,6 +42,7 @@ public:
         u8 opcodes[4];
         bool jump;
         u16 jump_address;
+        bool disabled;
     };
 
     struct stMemoryBreakpoint
