@@ -484,6 +484,7 @@ bool Processor::Disassemble(u16 address)
         map[offset]->size = 0;
         map[offset]->jump = false;
         map[offset]->jump_address = 0;
+        map[offset]->disabled = false;
         for (int i = 0; i < 4; i++)
             map[offset]->opcodes[i] = 0;
     }

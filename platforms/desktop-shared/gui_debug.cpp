@@ -1892,6 +1892,7 @@ static void add_breakpoint_cpu(void)
             map[target_offset]->size = 0;
             map[target_offset]->jump = false;
             map[target_offset]->jump_address = 0;
+            map[target_offset]->disabled = false;
             for (int i = 0; i < 4; i++)
                 map[target_offset]->opcodes[i] = 0;
         }
