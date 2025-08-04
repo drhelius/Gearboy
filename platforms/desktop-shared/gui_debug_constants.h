@@ -46,7 +46,7 @@ static const ImVec4 black =         ImVec4(0.00f, 0.00f, 0.00f, 1.0f);
 
 static const int gui_debug_symbols_count = 14;
 
-static const char* gui_debug_symbols[gui_debug_symbols_count] = {
+static const char* const gui_debug_symbols[gui_debug_symbols_count] = {
     "00:0000 RST_00",
     "00:0008 RST_08",
     "00:0010 RST_10",
