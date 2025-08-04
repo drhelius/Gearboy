@@ -1594,9 +1594,6 @@ static void popup_modal_about(void)
                 ImGui::Text("SDL %d.%d.%d (build)", application_sdl_build_version.major, application_sdl_build_version.minor, application_sdl_build_version.patch);
                 ImGui::Text("SDL %d.%d.%d (link) ", application_sdl_link_version.major, application_sdl_link_version.minor, application_sdl_link_version.patch);
                 ImGui::Text("OpenGL %s", renderer_opengl_version);
-                #if !defined(__APPLE__)
-                ImGui::Text("GLEW %s", renderer_glew_version);
-                #endif
                 ImGui::Text("Dear ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
 
                 #if defined(DEBUG)

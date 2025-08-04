@@ -34,7 +34,7 @@ jobs:
     - name: Update OS
       run: sudo apt-get update -qq
     - name: Install dependencies
-      run: sudo apt-get install -y libsdl2-dev libglew-dev libgtk-3-dev
+      run: sudo apt-get install -y libsdl2-dev libgtk-3-dev
     - name: Get build number
       run: |
         echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
@@ -65,7 +65,7 @@ jobs:
     - name: Update OS
       run: sudo apt-get update -qq
     - name: Install dependencies
-      run: sudo apt-get install -y libsdl2-dev libglew-dev libgtk-3-dev
+      run: sudo apt-get install -y libsdl2-dev libgtk-3-dev
     - name: Get build number
       run: |
         echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
@@ -197,7 +197,6 @@ jobs:
         mkdir -p artifact
         cp platforms/README.txt artifact
         cp platforms/gamecontrollerdb.txt artifact
-        cp platforms/windows/dependencies/glew-2.2.0/bin/Release/${{ matrix.architecture }}/glew32.dll artifact
         cp platforms/windows/dependencies/SDL2-2.30.6/lib/${{ matrix.architecture }}/SDL2.dll artifact
         cp platforms/windows/release/${{ env.NAME_UPPER }}.exe artifact
     - name: Archive binary
@@ -224,7 +223,7 @@ jobs:
       uses: vmactions/freebsd-vm@v1
       with:
         usesh: true
-        prepare: pkg install -y git gmake pkgconf SDL2 glew lang/gcc gtk3
+        prepare: pkg install -y git gmake pkgconf SDL2 lang/gcc gtk3
         run: |
           cd platforms/bsd
           gmake

@@ -52,7 +52,7 @@ endif
 
 ifeq ($(UNAME_S), Linux)
     PLATFORM = "Linux"
-    LDFLAGS += -lGL -lGLEW -ldl `sdl2-config --libs`
+    LDFLAGS += -lGL -ldl `sdl2-config --static-libs`
     CPPFLAGS += `sdl2-config --cflags`
     TARGET := $(TARGET_NAME)
 else ifeq ($(UNAME_S), Darwin)
@@ -63,11 +63,9 @@ else ifeq ($(UNAME_S), Darwin)
     TARGET := $(TARGET_NAME)
 else
     PLATFORM = "Generic Unix-like/BSD"
-    LDFLAGS += `sdl2-config --libs` -lSDL2
-    LDFLAGS += `pkg-config --libs glew` -lGLEW
+    LDFLAGS += -lGL `sdl2-config --libs`
     CXXFLAGS += -std=gnu++11
     CPPFLAGS += `sdl2-config --cflags`
-    CPPFLAGS += `pkg-config --cflags glew`
     TARGET := $(TARGET_NAME)
 endif
 

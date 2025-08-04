@@ -17,7 +17,6 @@ RUN apt-get update \
         clang \
         lldb \
         libsdl2-dev \
-        libglew-dev \
         libgtk-3-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get autoremove -y && apt-get clean -y

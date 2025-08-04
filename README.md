@@ -52,7 +52,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
       <td rowspan="2"><strong>Linux</strong></td>
       <td>Ubuntu 24.04</td>
       <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.1/Gearboy-3.7.1-ubuntu-24.04.zip">Gearboy-3.7.1-ubuntu-24.04.zip</a></td>
-      <td rowspan="2">May need <code>libsdl2</code> and <code>libglew</code></td>
+      <td rowspan="2">May need <code>libsdl2</code></td>
     </tr>
     <tr>
       <td>Ubuntu 22.04</td>
@@ -141,7 +141,7 @@ make dist
 - Ubuntu / Debian / Raspberry Pi (Raspbian):
 
 ``` shell
-sudo apt install build-essential libsdl2-dev libglew-dev libgtk-3-dev
+sudo apt install build-essential libsdl2-dev libgtk-3-dev
 cd platforms/linux
 make
 ```
@@ -149,7 +149,7 @@ make
 - Fedora:
 
 ``` shell
-sudo dnf install @development-tools gcc-c++ SDL2-devel glew-devel gtk3-devel
+sudo dnf install @development-tools gcc-c++ SDL2-devel gtk3-devel
 cd platforms/linux
 make
 ```
@@ -157,7 +157,7 @@ make
 - Arch Linux:
 
 ``` shell
-sudo pacman -S base-devel sdl2 glew gtk3
+sudo pacman -S base-devel sdl2 gtk3
 cd platforms/linux
 make
 ```
@@ -167,7 +167,7 @@ make
 - FreeBSD:
 
 ``` shell
-su root -c "pkg install -y git gmake pkgconf SDL2 glew lang/gcc gtk3"
+su root -c "pkg install -y git gmake pkgconf SDL2 lang/gcc gtk3"
 cd platforms/bsd
 gmake
 ```
@@ -175,7 +175,7 @@ gmake
 - NetBSD:
 
 ``` shell
-su root -c "pkgin install gmake pkgconf SDL2 glew lang/gcc gtk3"
+su root -c "pkgin install gmake pkgconf SDL2 lang/gcc gtk3"
 cd platforms/bsd
 gmake
 ```

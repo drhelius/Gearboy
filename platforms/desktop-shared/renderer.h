@@ -30,7 +30,6 @@ EXTERN uint32_t renderer_emu_texture;
 EXTERN uint32_t renderer_emu_debug_vram_background;
 EXTERN uint32_t renderer_emu_debug_vram_tiles[2];
 EXTERN uint32_t renderer_emu_debug_vram_oam[40];
-EXTERN const char* renderer_glew_version;
 EXTERN const char* renderer_opengl_version;
 
 EXTERN bool renderer_init(void);
