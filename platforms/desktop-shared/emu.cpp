@@ -61,7 +61,7 @@ static void update_debug_background_buffer(void);
 static void update_debug_tile_buffers(void);
 static void update_debug_oam_buffers(void);
 
-void emu_init(void)
+bool emu_init(void)
 {
     frame_buffer_565 = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     emu_frame_buffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
@@ -72,7 +72,8 @@ void emu_init(void)
     gearboy->Init();
 
     sound_queue = new SoundQueue();
-    sound_queue->Start(44100, 2);
+    if (!sound_queue->Start(44100, 2))
+        return false;
 
     audio_buffer = new s16[AUDIO_BUFFER_SIZE];
 
@@ -91,6 +92,8 @@ void emu_init(void)
     emu_savestates_dir_option = 0;
     emu_savefiles_path[0] = 0;
     emu_savestates_path[0] = 0;
+
+    return true;
 }
 
 void emu_destroy(void)

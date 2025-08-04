@@ -29,6 +29,7 @@
 #include "gui_debug_constants.h"
 #include "gui_debug_memory.h"
 #include "application.h"
+#include "utils.h"
 
 #define GUI_DEBUG_IMPORT
 #include "gui_debug.h"

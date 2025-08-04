@@ -45,7 +45,7 @@ EXTERN bool emu_savestates_dir_option;
 EXTERN char emu_savefiles_path[4096];
 EXTERN char emu_savestates_path[4096];
 
-EXTERN void emu_init(void);
+EXTERN bool emu_init(void);
 EXTERN void emu_destroy(void);
 EXTERN void emu_update(void);
 EXTERN void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba);

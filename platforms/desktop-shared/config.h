@@ -37,8 +37,9 @@ static const int config_max_custom_palettes = 5;
 
 struct config_Emulator
 {
+    bool maximized = false;
     bool fullscreen = false;
-    bool show_menu = true;
+    bool always_show_menu = false;
     bool paused = false;
     int save_slot = 0;
     bool start_paused = false;

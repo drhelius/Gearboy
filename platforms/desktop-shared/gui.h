@@ -66,7 +66,7 @@ EXTERN bool gui_main_menu_hovered;
 EXTERN ImFont* gui_default_font;
 EXTERN ImFont* gui_roboto_font;
 
-EXTERN void gui_init(void);
+EXTERN bool gui_init(void);
 EXTERN void gui_destroy(void);
 EXTERN void gui_render(void);
 EXTERN void gui_shortcut(gui_ShortCutEvent event);

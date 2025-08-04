@@ -123,7 +123,7 @@ bool SoundQueue::Start(int sample_rate, int channel_count, int buffer_size, int 
     spec.callback = FillBufferCallback;
     spec.userdata = this;
 
-    Log("SoundQueue: Desired - frequency: %d format: f %d s %d be %d sz %d channels: %d samples: %d", spec.freq, SDL_AUDIO_ISFLOAT(spec.format), SDL_AUDIO_ISSIGNED(spec.format), SDL_AUDIO_ISBIGENDIAN(spec.format), SDL_AUDIO_BITSIZE(spec.format), spec.channels, spec.samples);
+    Log("SoundQueue: Desired -  frequency: %d format: f %d s %d be %d sz %d channels: %d samples: %d", spec.freq, SDL_AUDIO_ISFLOAT(spec.format), SDL_AUDIO_ISSIGNED(spec.format), SDL_AUDIO_ISBIGENDIAN(spec.format), SDL_AUDIO_BITSIZE(spec.format), spec.channels, spec.samples);
 
     if (SDL_OpenAudio(&spec, NULL) < 0)
     {

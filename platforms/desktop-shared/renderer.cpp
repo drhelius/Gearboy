@@ -54,13 +54,14 @@ static void update_system_texture(void);
 static void update_debug_textures(void);
 static void render_matrix(void);
 
-void renderer_init(void)
+bool renderer_init(void)
 {
 #if !defined(__APPLE__)
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
         Log("GLEW Error: %s", glewGetErrorString(err));
+        return false;
     }
 
     renderer_glew_version = (const char*)glewGetString(GLEW_VERSION);
@@ -75,6 +76,7 @@ void renderer_init(void)
     init_ogl_debug();
 
     first_frame = true;
+    return true;
 }
 
 void renderer_destroy(void)
