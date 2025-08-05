@@ -59,7 +59,9 @@ static void run_emulator(void);
 static void render(void);
 static void frame_throttle(void);
 static void save_window_size(void);
-static void log_sdl_error(void);
+static void log_sdl_error(const char* action, const char* file, int line);
+
+#define SDL_ERROR(action) log_sdl_error(action, __FILE__, __LINE__)
 
 #if defined(__APPLE__)
 #include <SDL_syswm.h>
@@ -199,7 +201,7 @@ void application_trigger_fullscreen(bool fullscreen)
     macos_set_native_fullscreen(macos_nswindow, fullscreen);
 #else
     SDL_SetWindowFullscreen(application_sdl_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-    log_sdl_error();
+    SDL_ERROR("SDL_SetWindowFullscreen");
 #endif
     mouse_last_motion_time = SDL_GetTicks();
 }
@@ -207,7 +209,7 @@ void application_trigger_fullscreen(bool fullscreen)
 void application_trigger_fit_to_content(int width, int height)
 {
     SDL_SetWindowSize(application_sdl_window, width, height);
-    log_sdl_error();
+    SDL_ERROR("SDL_SetWindowSize");
 }
 
 void application_update_title_with_rom(const char* rom)
@@ -215,7 +217,7 @@ void application_update_title_with_rom(const char* rom)
     char final_title[256];
     snprintf(final_title, 256, "%s - %s", WINDOW_TITLE, rom);
     SDL_SetWindowTitle(application_sdl_window, final_title);
-    log_sdl_error();
+    SDL_ERROR("SDL_SetWindowTitle");
 }
 
 static bool sdl_init(void)
@@ -225,12 +227,12 @@ static bool sdl_init(void)
 
 #if defined(_WIN32)
     SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
-    log_sdl_error();
+    SDL_ERROR("SDL_SetHint SDL_HINT_WINDOWS_DPI_SCALING");
 #endif
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
     {
-        log_sdl_error();
+        SDL_ERROR("SDL_Init");
         return false;
     }
 
@@ -254,7 +256,7 @@ static bool sdl_init(void)
 
     if (!application_sdl_window)
     {
-        log_sdl_error();
+        SDL_ERROR("SDL_CreateWindow");
         return false;
     }
 
@@ -262,12 +264,12 @@ static bool sdl_init(void)
 
     if (!gl_context)
     {
-        log_sdl_error();
+        SDL_ERROR("SDL_GL_CreateContext");
         return false;
     }
 
     SDL_GL_MakeCurrent(application_sdl_window, gl_context);
-    log_sdl_error();
+    SDL_ERROR("SDL_GL_MakeCurrent");
 
 #if defined(__APPLE__)
     SDL_SysWMinfo info;
@@ -281,7 +283,7 @@ static bool sdl_init(void)
 #endif
 
     SDL_GL_SetSwapInterval(0);
-    log_sdl_error();
+    SDL_ERROR("SDL_GL_SetSwapInterval");
 
     SDL_SetWindowMinimumSize(application_sdl_window, 500, 300);
 
@@ -299,7 +301,7 @@ static bool sdl_init(void)
     }
 
     SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
-    log_sdl_error();
+    SDL_ERROR("SDL_EventState SDL_DROPFILE");
 
     sdl_load_gamepad_mappings();
     sdl_add_gamepads();
@@ -366,7 +368,7 @@ static void sdl_load_gamepad_mappings(void)
             else if (result == -1)
             {
                 Log("ERROR: Unable to load game controller mapping in line %d from gamecontrollerdb.txt", line_number);
-                Log("SDL: %s", SDL_GetError());
+                SDL_ERROR("SDL_GameControllerAddMapping");
             }
             line_number++;
         }
@@ -750,7 +752,8 @@ static void sdl_add_gamepads(void)
         SDL_GameController* controller = SDL_GameControllerOpen(i);
         if (!IsValidPointer(controller))
         {
-            Log("Warning: Unable to open game controller %d! SDL Error: %s\n", i, SDL_GetError());
+            Log("Warning: Unable to open game controller %d!\n", i);
+            SDL_ERROR("SDL_GameControllerOpen");
             continue;
         }
 
@@ -851,9 +854,12 @@ static void save_window_size(void)
     }
 }
 
-static void log_sdl_error(void)
+static void log_sdl_error(const char* action, const char* file, int line)
 {
-    const char* sdl_error = SDL_GetError();
-    if (sdl_error && sdl_error[0] != '\0')
-        Log("SDL Error: %s", sdl_error);
+    const char* error = SDL_GetError();
+    if (error && error[0] != '\0')
+    {
+        Log("SDL Error: %s (%s:%d) - %s", action, file, line, error);
+        SDL_ClearError();
+    }
 }
