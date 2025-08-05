@@ -619,6 +619,7 @@ static void sdl_events_emu(const SDL_Event* event)
 
             if (key == SDL_SCANCODE_ESCAPE)
             {
+                config_emulator.fullscreen = false;
                 application_trigger_fullscreen(false);
                 break;
             }
