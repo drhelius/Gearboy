@@ -612,6 +612,9 @@ static void sdl_events_emu(const SDL_Event* event)
 
         case SDL_KEYDOWN:
         {
+            if (event->key.repeat != 0)
+                break;
+
             if (event->key.keysym.mod & KMOD_CTRL)
                 break;
 
