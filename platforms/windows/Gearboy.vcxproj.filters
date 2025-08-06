@@ -150,13 +150,17 @@
     <ClCompile Include="..\desktop-shared\gui_debug_memeditor.cpp">
       <Filter>desktop-shared</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl2.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp">
       <Filter>desktop-shared\nfd</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\miniz\miniz.c">
       <Filter>source\miniz</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl2.cpp">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\imgui_tables.cpp">
+      <Filter>desktop-shared\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -310,7 +314,6 @@
     <ClInclude Include="..\desktop-shared\gui_debug_constants.h">
       <Filter>desktop-shared</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl2.h" />
     <ClInclude Include="..\audio-shared\sound_queue.h">
       <Filter>audio-shared</Filter>
     </ClInclude>
@@ -338,8 +341,18 @@
     <ClInclude Include="..\..\src\log.h">
       <Filter>source</Filter>
     </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl2.h">
+      <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Gearboy.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="iconfile.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Gearboy.rc" />
   </ItemGroup>
 </Project>

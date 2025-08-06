@@ -124,9 +124,16 @@
     <ClInclude Include="..\desktop-shared\nfd\nfd_sdl2.h" />
     <ClInclude Include="..\desktop-shared\renderer.h" />
     <ClInclude Include="..\desktop-shared\stb\stb_image_write.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Gearboy.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="iconfile.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Gearboy.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{92D9838A-C6AB-348D-8565-F9E813C3C467}</ProjectGuid>
