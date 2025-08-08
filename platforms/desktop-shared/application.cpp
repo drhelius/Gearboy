@@ -220,6 +220,58 @@ void application_update_title_with_rom(const char* rom)
     SDL_ERROR("SDL_SetWindowTitle");
 }
 
+void application_assign_gamepad(int device_index)
+{
+    if (device_index < 0)
+    {
+        if (IsValidPointer(application_gamepad))
+        {
+            SDL_GameControllerClose(application_gamepad);
+            application_gamepad = NULL;
+            Debug("Player controller set to None");
+        }
+        return;
+    }
+
+    if (device_index >= SDL_NumJoysticks())
+    {
+        Log("Warning: device_index %d out of range", device_index);
+        return;
+    }
+
+    if (!SDL_IsGameController(device_index))
+    {
+        Log("Warning: device_index %d is not a game controller", device_index);
+        return;
+    }
+
+    SDL_JoystickID wanted_id = SDL_JoystickGetDeviceInstanceID(device_index);
+
+    if (IsValidPointer(application_gamepad))
+    {
+        SDL_JoystickID current_id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad));
+        if (current_id == wanted_id)
+            return;
+    }
+
+    if (IsValidPointer(application_gamepad))
+    {
+        SDL_GameControllerClose(application_gamepad);
+        application_gamepad = NULL;
+    }
+
+    SDL_GameController* controller = SDL_GameControllerOpen(device_index);
+    if (!IsValidPointer(controller))
+    {
+        Log("SDL_GameControllerOpen failed for device_index %d", device_index);
+        SDL_ERROR("SDL_GameControllerOpen");
+        return;
+    }
+
+    application_gamepad = controller;
+    Debug("Game controller %d assigned", device_index);
+}
+
 static bool sdl_init(void)
 {
     Debug("Initializing SDL...");
@@ -509,9 +561,14 @@ static void sdl_events_emu(const SDL_Event* event)
             if (!IsValidPointer(application_gamepad))
                 break;
 
+            SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad));
+
             if (!config_input.gamepad)
                 break;
-            
+
+            if (event->cbutton.which != id)
+                break;
+
             if (event->cbutton.button == config_input.gamepad_b)
                 emu_key_pressed(B_Key);
             else if (event->cbutton.button == config_input.gamepad_a)
@@ -520,10 +577,10 @@ static void sdl_events_emu(const SDL_Event* event)
                 emu_key_pressed(Select_Key);
             else if (event->cbutton.button == config_input.gamepad_start)
                 emu_key_pressed(Start_Key);
-            
+
             if (config_input.gamepad_directional == 1)
                 break;
-            
+
             if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
                 emu_key_pressed(Up_Key);
             else if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
@@ -540,7 +597,12 @@ static void sdl_events_emu(const SDL_Event* event)
             if (!IsValidPointer(application_gamepad))
                 break;
 
+            SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad));
+
             if (!config_input.gamepad)
+                break;
+
+            if (event->cbutton.which != id)
                 break;
 
             if (event->cbutton.button == config_input.gamepad_b)
@@ -551,10 +613,10 @@ static void sdl_events_emu(const SDL_Event* event)
                 emu_key_released(Select_Key);
             else if (event->cbutton.button == config_input.gamepad_start)
                 emu_key_released(Start_Key);
-            
+
             if (config_input.gamepad_directional == 1)
                 break;
-            
+
             if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
                 emu_key_released(Up_Key);
             else if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
@@ -571,14 +633,19 @@ static void sdl_events_emu(const SDL_Event* event)
             if (!IsValidPointer(application_gamepad))
                 break;
 
+            SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad));
+
             if (!config_input.gamepad)
                 break;
-            
+
             if (config_input.gamepad_directional == 0)
                 break;
 
+            if (event->caxis.which != id)
+                break;
+
             const int STICK_DEAD_ZONE = 8000;
-                
+
             if(event->caxis.axis == config_input.gamepad_x_axis)
             {
                 int x_motion = event->caxis.value * (config_input.gamepad_invert_x_axis ? -1 : 1);
@@ -596,7 +663,7 @@ static void sdl_events_emu(const SDL_Event* event)
             else if(event->caxis.axis == config_input.gamepad_y_axis)
             {
                 int y_motion = event->caxis.value * (config_input.gamepad_invert_y_axis ? -1 : 1);
-                
+
                 if (y_motion < -STICK_DEAD_ZONE)
                     emu_key_pressed(Up_Key);
                 else if (y_motion > STICK_DEAD_ZONE)
@@ -683,7 +750,7 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
     if ((event->type == SDL_KEYDOWN) && (event->key.keysym.mod & KMOD_CTRL))
     {
         int key = event->key.keysym.scancode;
-        
+
         switch (key)
         {
             case SDL_SCANCODE_Q:
@@ -743,6 +810,18 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
 
 static void sdl_add_gamepads(void)
 {
+    if (IsValidPointer(application_gamepad))
+    {
+        SDL_Joystick* js = SDL_GameControllerGetJoystick(application_gamepad);
+
+        if (!IsValidPointer(js) || SDL_JoystickGetAttached(js) == SDL_FALSE)
+        {
+            SDL_GameControllerClose(application_gamepad);
+            application_gamepad = NULL;
+            Debug("Game controller closed when adding a new gamepad");
+        }
+    }
+
     bool connected = IsValidPointer(application_gamepad);
 
     if (connected)
