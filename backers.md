@@ -12,3 +12,4 @@
 - [Libretro / RetroArch team](https://github.com/libretro)
 - [Nicholas Piegdon](https://github.com/npiegdon)
 - [TomChapple](https://github.com/TomChapple)
+- [Desmoquattro](https://github.com/Desmo5574)
