@@ -55,7 +55,7 @@ public:
     void Draw(bool ascii = true, bool preview = true, bool options = true, bool cursors = true);
     void DrawWatchWindow();
     void DrawSearchWindow();
-    void Copy();
+    void Copy(bool as_decimal = false);
     void Paste();
     void JumpToAddress(int address);
     void FindNextValue(int value);
@@ -97,6 +97,8 @@ private:
     void SearchWindow();
     void CalculateSearchResults();
     void DrawSearchValue(int value, ImVec4 color);
+    void PushGuiFont();
+    void PopGuiFont();
 
 private:
     char m_title[32];

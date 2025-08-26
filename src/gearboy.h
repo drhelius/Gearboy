@@ -20,6 +20,7 @@
 #ifndef GEARBOY_H
 #define	GEARBOY_H
 
+#include "common.h"
 #include "definitions.h"
 #include "log.h"
 #include "GearboyCore.h"
