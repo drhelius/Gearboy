@@ -28,6 +28,11 @@
     #define EXTERN extern
 #endif
 
+#define GAMEPAD_VBTN_AXIS_BASE 1000
+#define GAMEPAD_VBTN_AXIS_THRESHOLD 3000
+#define GAMEPAD_VBTN_L2 (GAMEPAD_VBTN_AXIS_BASE + SDL_CONTROLLER_AXIS_TRIGGERLEFT)
+#define GAMEPAD_VBTN_R2 (GAMEPAD_VBTN_AXIS_BASE + SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+
 EXTERN SDL_Window* application_sdl_window;
 EXTERN SDL_GameController* application_gamepad;
 EXTERN int application_added_gamepad_mappings;

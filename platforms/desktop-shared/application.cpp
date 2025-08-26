@@ -638,40 +638,75 @@ static void sdl_events_emu(const SDL_Event* event)
             if (!config_input.gamepad)
                 break;
 
-            if (config_input.gamepad_directional == 0)
-                break;
-
             if (event->caxis.which != id)
                 break;
 
-            const int STICK_DEAD_ZONE = 8000;
-
-            if(event->caxis.axis == config_input.gamepad_x_axis)
+            if (config_input.gamepad_directional == 1)
             {
-                int x_motion = event->caxis.value * (config_input.gamepad_invert_x_axis ? -1 : 1);
+                const int STICK_DEAD_ZONE = 8000;
 
-                if (x_motion < -STICK_DEAD_ZONE)
-                    emu_key_pressed(Left_Key);
-                else if (x_motion > STICK_DEAD_ZONE)
-                    emu_key_pressed(Right_Key);
-                else
+                if(event->caxis.axis == config_input.gamepad_x_axis)
                 {
-                    emu_key_released(Left_Key);
-                    emu_key_released(Right_Key);
+                    int x_motion = event->caxis.value * (config_input.gamepad_invert_x_axis ? -1 : 1);
+
+                    if (x_motion < -STICK_DEAD_ZONE)
+                        emu_key_pressed(Left_Key);
+                    else if (x_motion > STICK_DEAD_ZONE)
+                        emu_key_pressed(Right_Key);
+                    else
+                    {
+                        emu_key_released(Left_Key);
+                        emu_key_released(Right_Key);
+                    }
+                }
+                else if(event->caxis.axis == config_input.gamepad_y_axis)
+                {
+                    int y_motion = event->caxis.value * (config_input.gamepad_invert_y_axis ? -1 : 1);
+
+                    if (y_motion < -STICK_DEAD_ZONE)
+                        emu_key_pressed(Up_Key);
+                    else if (y_motion > STICK_DEAD_ZONE)
+                        emu_key_pressed(Down_Key);
+                    else
+                    {
+                        emu_key_released(Up_Key);
+                        emu_key_released(Down_Key);
+                    }
                 }
             }
-            else if(event->caxis.axis == config_input.gamepad_y_axis)
-            {
-                int y_motion = event->caxis.value * (config_input.gamepad_invert_y_axis ? -1 : 1);
 
-                if (y_motion < -STICK_DEAD_ZONE)
-                    emu_key_pressed(Up_Key);
-                else if (y_motion > STICK_DEAD_ZONE)
-                    emu_key_pressed(Down_Key);
-                else
+            if (event->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT || event->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+            {
+                int vbtn = GAMEPAD_VBTN_AXIS_BASE + event->caxis.axis;
+                bool pressed = event->caxis.value > GAMEPAD_VBTN_AXIS_THRESHOLD;
+
+                if (config_input.gamepad_a == vbtn)
                 {
-                    emu_key_released(Up_Key);
-                    emu_key_released(Down_Key);
+                    if (pressed)
+                        emu_key_pressed(A_Key);
+                    else
+                        emu_key_released(A_Key);
+                }
+                if (config_input.gamepad_b == vbtn)
+                {
+                    if (pressed)
+                        emu_key_pressed(B_Key);
+                    else
+                        emu_key_released(B_Key);
+                }
+                if (config_input.gamepad_start == vbtn)
+                {
+                    if (pressed)
+                        emu_key_pressed(Start_Key);
+                    else
+                        emu_key_released(Start_Key);
+                }
+                if (config_input.gamepad_select == vbtn)
+                {
+                    if (pressed)
+                        emu_key_pressed(Select_Key);
+                    else
+                        emu_key_released(Select_Key);
                 }
             }
         }
