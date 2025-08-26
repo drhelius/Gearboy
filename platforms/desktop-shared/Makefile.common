@@ -37,7 +37,7 @@ CFLAGS += -std=c99
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
     BUILD_CONFIG = Debug
-    CPPFLAGS += -DDEBUG -g3
+    CPPFLAGS += -DDEBUG -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls
 else
     BUILD_CONFIG = Release
     CPPFLAGS += -DNDEBUG -O3 -flto=auto
@@ -46,8 +46,8 @@ endif
 
 SANITIZE ?= 0
 ifeq ($(SANITIZE), 1)
-    CPPFLAGS += -fsanitize=address
-    LDFLAGS += -fsanitize=address
+    CPPFLAGS += -fsanitize=address,undefined -fno-sanitize-recover=all
+    LDFLAGS += -fsanitize=address,undefined
 endif
 
 ifeq ($(UNAME_S), Linux)
