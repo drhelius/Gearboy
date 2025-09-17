@@ -13,3 +13,4 @@
 - [Nicholas Piegdon](https://github.com/npiegdon)
 - [TomChapple](https://github.com/TomChapple)
 - [Desmoquattro](https://github.com/Desmo5574)
+- [Proudnerd2](https://github.com/Proudnerd2)
