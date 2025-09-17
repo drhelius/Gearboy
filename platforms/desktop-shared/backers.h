@@ -9,6 +9,7 @@ static const char * BACKERS_STR =
 "\n · Orange Kryptonite (OrangeKryptonite)"
 "\n · Danny Van den Heuve (Danny-VdH)"
 "\n · KPreston2900050"
-"\n · Nicholas Piegdon";
+"\n · Nicholas Piegdon"
+"\n · Proudnerd2";
 
 #endif	/* BACKERS_H */
