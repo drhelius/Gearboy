@@ -100,11 +100,11 @@ jobs:
     name: macOS
     strategy:
       matrix:
-        os: [macos-13, macos-14]
+        os: [macos-15-intel, macos-15]
         include:
-        - os: macos-13
+        - os: macos-15-intel
           architecture: intel
-        - os: macos-14
+        - os: macos-15
           architecture: arm
     runs-on: ${{ matrix.os }}
     permissions:
