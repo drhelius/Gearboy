@@ -50,7 +50,7 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-${{ matrix.os }}.zip
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-${{ matrix.os }}
         path: artifact/*
   linux-clang:
     name: Linux (Clang/LLVM)
@@ -94,7 +94,7 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-libretro-linux.zip
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-libretro-linux
         path: platforms/libretro/${{ env.NAME_LOWER }}_libretro.so
   macos:
     name: macOS
@@ -167,7 +167,7 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-${{ matrix.architecture }}.zip
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-macos-${{ matrix.architecture }}
         path: artifact/*
   windows:
     name: Windows
@@ -202,7 +202,7 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-windows-${{ matrix.architecture }}.zip
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-windows-${{ matrix.architecture }}
         path: artifact/*
   bsd:
     name: BSD
@@ -236,7 +236,7 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-bsd.zip
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-bsd
         path: artifact/*
   release:
     name: Release
