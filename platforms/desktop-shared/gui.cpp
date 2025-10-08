@@ -520,6 +520,7 @@ static void main_menu(void)
             ImGui::Separator();
 
             ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
+            ImGui::MenuItem("Pause When Inactive", "", &config_emulator.pause_when_inactive);
 
             ImGui::Separator();
 

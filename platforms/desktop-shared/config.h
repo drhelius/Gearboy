@@ -43,6 +43,7 @@ struct config_Emulator
     bool paused = false;
     int save_slot = 0;
     bool start_paused = false;
+    bool pause_when_inactive = true;
     bool force_dmg = false;
     bool force_gba = false;
     bool ffwd = false;

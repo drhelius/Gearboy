@@ -535,15 +535,18 @@ static void sdl_events_emu(const SDL_Event* event)
             {
                 case SDL_WINDOWEVENT_FOCUS_GAINED:
                 {
-                    if (!paused_when_focus_lost)
+                    if (config_emulator.pause_when_inactive && !paused_when_focus_lost)
                         emu_resume();
                 }
                 break;
 
                 case SDL_WINDOWEVENT_FOCUS_LOST:
                 {
-                    paused_when_focus_lost = emu_is_paused();
-                    emu_pause();
+                    if (config_emulator.pause_when_inactive)
+                    {
+                        paused_when_focus_lost = emu_is_paused();
+                        emu_pause();
+                    }
                 }
                 break;
             }
