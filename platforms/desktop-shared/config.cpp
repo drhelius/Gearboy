@@ -287,7 +287,7 @@ static bool check_portable(void)
     strcpy(portable_file_path, base_path);
     strcat(portable_file_path, "portable.ini");
 
-    FILE* file = fopen(portable_file_path, "r");
+    FILE* file = fopen_utf8(portable_file_path, "r");
 
     if (IsValidPointer(file))
     {

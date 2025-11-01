@@ -1558,7 +1558,7 @@ void MemEditor::SaveToTextFile(const char* file_path)
 {
     int total_bytes = m_mem_size * m_mem_word;
     int row_bytes   = m_bytes_per_row * m_mem_word;
-    FILE* file = fopen(file_path, "w");
+    FILE* file = fopen_utf8(file_path, "w");
 
     if (file)
     {
@@ -1597,7 +1597,7 @@ void MemEditor::SaveToBinaryFile(const char* file_path)
 {
     int size = m_mem_size * m_mem_word;
 
-    FILE* file = fopen(file_path, "wb");
+    FILE* file = fopen_utf8(file_path, "wb");
 
     if (file)
     {

@@ -22,6 +22,7 @@
 #include "Memory.h"
 #include "Processor.h"
 #include "Video.h"
+#include "common.h"
 
 Memory::Memory()
 {
@@ -256,7 +257,8 @@ void Memory::MemoryDump(const char* szFilePath)
 
     using namespace std;
 
-    ofstream myfile(szFilePath, ios::out | ios::trunc);
+    ofstream myfile;
+    open_ofstream_utf8(myfile, szFilePath, ios::out | ios::trunc);
 
     if (myfile.is_open())
     {
@@ -701,7 +703,8 @@ void Memory::LoadBootroom(const char* szFilePath, bool gbc)
     int expectedSize = gbc ? 0x900 : 0x100;
     u8* bootrom = gbc ? m_pBootromGBC : m_pBootromDMG;
 
-    ifstream file(szFilePath, ios::in | ios::binary | ios::ate);
+    ifstream file;
+    open_ifstream_utf8(file, szFilePath, ios::in | ios::binary | ios::ate);
 
     bool ret = false;
 

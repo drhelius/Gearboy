@@ -121,7 +121,8 @@ void gui_debug_load_symbols_file(const char* path)
 {
     Log("Loading symbol file %s", path);
 
-    std::ifstream file(path);
+    std::ifstream file;
+    open_ifstream_utf8(file, path, std::ios::in);
 
     if (file.is_open())
     {

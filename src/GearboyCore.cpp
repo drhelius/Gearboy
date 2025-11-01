@@ -33,6 +33,7 @@
 #include "MBC3MemoryRule.h"
 #include "MBC5MemoryRule.h"
 #include "MultiMBC1MemoryRule.h"
+#include "common.h"
 
 GearboyCore::GearboyCore()
 {
@@ -236,7 +237,8 @@ void GearboyCore::SaveDisassembledROM()
 
         Log("Saving Disassembled ROM %s...", path);
 
-        ofstream myfile(path, ios::out | ios::trunc);
+        ofstream myfile;
+        open_ofstream_utf8(myfile, path, ios::out | ios::trunc);
 
         if (myfile.is_open())
         {
@@ -427,7 +429,8 @@ void GearboyCore::SaveRam(const char* szPath, bool fullPath)
 
         Log("Save file: %s", path.c_str());
 
-        ofstream file(path.c_str(), ios::out | ios::binary);
+        ofstream file;
+        open_ofstream_utf8(file, path.c_str(), ios::out | ios::binary);
 
         m_pMemory->GetCurrentRule()->SaveRam(file);
 
@@ -477,7 +480,7 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 
         ifstream file;
 
-        file.open(sav_path.c_str(), ios::in | ios::binary);
+        open_ifstream_utf8(file, sav_path.c_str(), ios::in | ios::binary);
 
         // check for old .gearboy saves
         if (file.fail())
@@ -486,7 +489,7 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
             string old_sav_file = rom_path + ".gearboy";
 
             Log("Opening old save file: %s", old_sav_file.c_str());
-            file.open(old_sav_file.c_str(), ios::in | ios::binary);
+            open_ifstream_utf8(file, old_sav_file.c_str(), ios::in | ios::binary);
         }
 
         if (!file.fail())
@@ -570,7 +573,8 @@ void GearboyCore::SaveState(const char* szPath, int index)
 
     Log("Save state file: %s", sstm.str().c_str());
 
-    ofstream file(sstm.str().c_str(), ios::out | ios::binary);
+    ofstream file;
+    open_ofstream_utf8(file, sstm.str().c_str(), ios::out | ios::binary);
 
     SaveState(file, size);
 
@@ -715,7 +719,7 @@ void GearboyCore::LoadState(const char* szPath, int index)
 
     ifstream file;
 
-    file.open(sstm.str().c_str(), ios::in | ios::binary);
+    open_ifstream_utf8(file, sstm.str().c_str(), ios::in | ios::binary);
 
     if (!file.fail())
     {
