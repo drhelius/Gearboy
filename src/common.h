@@ -27,6 +27,7 @@
 #include <time.h>
 #if defined(_WIN32)
 #include <direct.h>
+#include <windows.h>
 #endif
 #include "definitions.h"
 #include "log.h"
