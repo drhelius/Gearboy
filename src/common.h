@@ -26,6 +26,7 @@
 #include <fstream>
 #include <time.h>
 #if defined(_WIN32)
+#define NOMINMAX
 #include <direct.h>
 #include <windows.h>
 #endif
