@@ -23,6 +23,7 @@
 #include "definitions.h"
 #include "audio/Multi_Buffer.h"
 #include "audio/Gb_Apu.h"
+#include "VgmRecorder.h"
 
 class Audio
 {
@@ -40,6 +41,9 @@ public:
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
     Gb_Apu* GetApu();
+    bool StartVgmRecording(const char* file_path, int clock_rate, bool is_double_speed);
+    void StopVgmRecording();
+    bool IsVgmRecording() const;
 
 private:
     Gb_Apu* m_pApu;
@@ -48,6 +52,8 @@ private:
     int m_SampleRate;
     blip_sample_t* m_pSampleBuffer;
     bool m_bCGB;
+    VgmRecorder m_VgmRecorder;
+    bool m_bVgmRecordingEnabled;
 };
 
 inline void Audio::Tick(unsigned int clockCycles)
@@ -63,6 +69,10 @@ inline u8 Audio::ReadAudioRegister(u16 address)
 inline void Audio::WriteAudioRegister(u16 address, u8 value)
 {
     m_pApu->write_register(m_ElapsedCycles, address, value);
+#ifndef GEARBOY_DISABLE_VGMRECORDER
+    if (m_bVgmRecordingEnabled)
+        m_VgmRecorder.WriteGbDmg(address, value);
+#endif
 }
 
 #endif	/* AUDIO_H */

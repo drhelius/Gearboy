@@ -40,6 +40,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/Processor.cpp \
     $(SRC_DIR)/RomOnlyMemoryRule.cpp \
     $(SRC_DIR)/Video.cpp \
+    $(SRC_DIR)/VgmRecorder.cpp \
     $(SRC_DIR)/audio/Blip_Buffer.cpp \
     $(SRC_DIR)/audio/Effects_Buffer.cpp \
     $(SRC_DIR)/audio/Gb_Apu.cpp \

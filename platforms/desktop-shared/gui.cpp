@@ -70,6 +70,7 @@ static void file_dialog_load_dmg_bootrom(void);
 static void file_dialog_load_gbc_bootrom(void);
 static void file_dialog_load_symbols(void);
 static void file_dialog_save_screenshot(void);
+static void file_dialog_save_vgm(void);
 static void file_dialog_set_native_window(SDL_Window* window, nfdwindowhandle_t* native_window);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key);
 static void gamepad_configuration_item(const char* text, int* button);
@@ -312,6 +313,7 @@ static void main_menu(void)
     bool open_about = false;
     bool open_symbols = false;
     bool save_screenshot = false;
+    bool save_vgm = false;
     bool choose_save_file_path = false;
     bool choose_savestates_path = false;
     bool open_dmg_bootrom = false;
@@ -930,6 +932,23 @@ static void main_menu(void)
                 }
             }
 
+#ifndef GEARBOY_DISABLE_VGMRECORDER
+            ImGui::Separator();
+
+            bool is_recording = emu_is_vgm_recording();
+
+            if (ImGui::MenuItem("Start VGM Recording...", "", false, !is_recording && !emu_is_empty()))
+            {
+                save_vgm = true;
+            }
+
+            if (ImGui::MenuItem("Stop VGM Recording", "", false, is_recording))
+            {
+                emu_stop_vgm_recording();
+                gui_set_status_message("VGM recording stopped", 3000);
+            }
+#endif
+
             ImGui::EndMenu();
         }
 
@@ -1081,6 +1100,9 @@ static void main_menu(void)
 
     if (save_screenshot)
         file_dialog_save_screenshot();
+
+    if (save_vgm)
+        file_dialog_save_vgm();
 
     if (choose_save_file_path)
         file_dialog_choose_save_file_path();
@@ -1479,6 +1501,30 @@ static void file_dialog_save_screenshot(void)
     else if (result != NFD_CANCEL)
     {
         Log("Save Screenshot Error: %s", NFD_GetError());
+    }
+}
+
+static void file_dialog_save_vgm(void)
+{
+    nfdchar_t *outPath;
+    nfdfilteritem_t filterItem[1] = { { "VGM Files", "vgm" } };
+    nfdsavedialogu8args_t args = { };
+    args.filterList = filterItem;
+    args.filterCount = 1;
+    args.defaultPath = NULL;
+    args.defaultName = NULL;
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_SaveDialogU8_With(&outPath, &args);
+    if (result == NFD_OKAY)
+    {
+        emu_start_vgm_recording(outPath);
+        gui_set_status_message("VGM recording started", 3000);
+        NFD_FreePath(outPath);
+    }
+    else if (result != NFD_CANCEL)
+    {
+        Log("Save VGM Error: %s", NFD_GetError());
     }
 }
 

@@ -28,6 +28,7 @@ Audio::Audio()
     InitPointer(m_pApu);
     InitPointer(m_pBuffer);
     InitPointer(m_pSampleBuffer);
+    m_bVgmRecordingEnabled = false;
 }
 
 Audio::~Audio()
@@ -101,6 +102,11 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
         }
     }
 
+#ifndef GEARBOY_DISABLE_VGMRECORDER
+    if (m_bVgmRecordingEnabled)
+        m_VgmRecorder.UpdateTiming(count / 2);
+#endif
+
     m_ElapsedCycles = 0;
 }
 
@@ -136,4 +142,53 @@ void Audio::LoadState(std::istream& stream)
 Gb_Apu* Audio::GetApu()
 {
     return m_pApu;
+}
+
+bool Audio::StartVgmRecording(const char* file_path, int clock_rate, bool is_double_speed)
+{
+    if (m_bVgmRecordingEnabled)
+        return false;
+
+    m_VgmRecorder.Start(file_path, clock_rate, is_double_speed);
+    m_bVgmRecordingEnabled = m_VgmRecorder.IsRecording();
+
+    // Write initial state of all audio registers to VGM
+    if (m_bVgmRecordingEnabled)
+    {
+        // Get APU state without impacting emulation
+        gb_apu_state_t apu_state;
+        m_pApu->save_state(&apu_state);
+
+        // First, ensure sound is enabled (NR52)
+        m_VgmRecorder.WriteGbDmg(0xFF26, 0x80);
+
+        // Write all audio control registers (FF10-FF26)
+        for (u16 addr = 0xFF10; addr <= 0xFF26; addr++)
+        {
+            u8 value = apu_state.regs[addr - 0xFF10];
+            m_VgmRecorder.WriteGbDmg(addr, value);
+        }
+        // Write wave RAM (FF30-FF3F)
+        for (u16 addr = 0xFF30; addr <= 0xFF3F; addr++)
+        {
+            u8 value = apu_state.regs[addr - 0xFF10];
+            m_VgmRecorder.WriteGbDmg(addr, value);
+        }
+    }
+
+    return m_bVgmRecordingEnabled;
+}
+
+void Audio::StopVgmRecording()
+{
+    if (m_bVgmRecordingEnabled)
+    {
+        m_VgmRecorder.Stop();
+        m_bVgmRecordingEnabled = false;
+    }
+}
+
+bool Audio::IsVgmRecording() const
+{
+    return m_bVgmRecordingEnabled;
 }

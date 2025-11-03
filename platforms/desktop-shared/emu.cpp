@@ -420,6 +420,40 @@ void emu_save_screenshot(const char* file_path)
     Debug("Screenshot saved!");
 }
 
+void emu_start_vgm_recording(const char* file_path)
+{
+    if (!gearboy->GetCartridge()->IsLoadedROM())
+        return;
+
+    if (gearboy->GetAudio()->IsVgmRecording())
+    {
+        emu_stop_vgm_recording();
+    }
+
+    // Game Boy audio chip always runs at 4.194304 MHz
+    // The CPU can run at double speed in CGB mode, but the audio hardware doesn't change speed
+    int clock_rate = 4194304;
+
+    if (gearboy->GetAudio()->StartVgmRecording(file_path, clock_rate, false))
+    {
+        Log("VGM recording started: %s", file_path);
+    }
+}
+
+void emu_stop_vgm_recording()
+{
+    if (gearboy->GetAudio()->IsVgmRecording())
+    {
+        gearboy->GetAudio()->StopVgmRecording();
+        Log("VGM recording stopped");
+    }
+}
+
+bool emu_is_vgm_recording()
+{
+    return gearboy->GetAudio()->IsVgmRecording();
+}
+
 static void save_ram(void)
 {
 #ifdef DEBUG_GEARBOY

@@ -87,6 +87,9 @@
     <ClCompile Include="..\..\src\Video.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\VgmRecorder.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp">
       <Filter>source\audio</Filter>
     </ClCompile>
@@ -231,6 +234,9 @@
       <Filter>source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Video.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\VgmRecorder.h">
       <Filter>source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\blargg_common.h">

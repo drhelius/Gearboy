@@ -19,6 +19,7 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/MultiMBC1MemoryRule.cpp \
                $(SOURCE_DIR)/opcodes.cpp \
                $(SOURCE_DIR)/opcodes_cb.cpp \
+               $(SOURCE_DIR)/VgmRecorder.cpp \
                $(SOURCE_DIR)/audio/Blip_Buffer.cpp \
                $(SOURCE_DIR)/audio/Effects_Buffer.cpp \
                $(SOURCE_DIR)/audio/Gb_Apu.cpp \

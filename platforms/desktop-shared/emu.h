@@ -84,6 +84,9 @@ EXTERN void emu_load_bootrom_gbc(const char* file_path);
 EXTERN void emu_enable_bootrom_dmg(bool enable);
 EXTERN void emu_enable_bootrom_gbc(bool enable);
 EXTERN void emu_save_screenshot(const char* file_path);
+EXTERN void emu_start_vgm_recording(const char* file_path);
+EXTERN void emu_stop_vgm_recording();
+EXTERN bool emu_is_vgm_recording();
 
 #undef EMU_IMPORT
 #undef EXTERN
