@@ -878,6 +878,32 @@ static void main_menu(void)
 
                     ImGui::EndMenu();
                 }
+
+                if (ImGui::BeginMenu("Shortcut Configuration"))
+                {
+                    ImGui::TextDisabled("Gamepad - Shortcuts");
+                    ImGui::Separator();
+
+                    gamepad_configuration_item("Save State:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_SaveState]);
+                    gamepad_configuration_item("Load State:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_LoadState]);
+                    gamepad_configuration_item("Save State Slot 1:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_SelectSlot1]);
+                    gamepad_configuration_item("Save State Slot 2:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_SelectSlot2]);
+                    gamepad_configuration_item("Save State Slot 3:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_SelectSlot3]);
+                    gamepad_configuration_item("Save State Slot 4:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_SelectSlot4]);
+                    gamepad_configuration_item("Save State Slot 5:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_SelectSlot5]);
+
+                    ImGui::Separator();
+
+                    gamepad_configuration_item("Reset:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Reset]);
+                    gamepad_configuration_item("Pause:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Pause]);
+                    gamepad_configuration_item("Fast Forward:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_FFWD]);
+                    gamepad_configuration_item("Screenshot:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Screenshot]);
+
+                    popup_modal_gamepad();
+
+                    ImGui::EndMenu();
+                }
+
                 ImGui::EndMenu();
             }
 
@@ -1492,7 +1518,7 @@ static void keyboard_configuration_item(const char* text, SDL_Scancode* key)
 static void gamepad_configuration_item(const char* text, int* button)
 {
     ImGui::Text("%s", text);
-    ImGui::SameLine(120);
+    ImGui::SameLine(130);
 
     const char* button_name = "";
 

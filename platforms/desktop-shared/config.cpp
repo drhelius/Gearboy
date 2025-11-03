@@ -74,6 +74,11 @@ void config_init(void)
     config_hotkeys[config_HotkeyIndex_SelectSlot4] = make_hotkey(SDL_SCANCODE_4, KMOD_CTRL);
     config_hotkeys[config_HotkeyIndex_SelectSlot5] = make_hotkey(SDL_SCANCODE_5, KMOD_CTRL);
 
+    for (int i = 0; i < config_HotkeyIndex_COUNT; i++)
+    {
+        config_input_gamepad_shortcuts.gamepad_shortcuts[i] = SDL_CONTROLLER_BUTTON_INVALID;
+    }
+
     config_ini_file = new mINI::INIFile(config_emu_file_path);
 }
 
@@ -194,6 +199,13 @@ void config_read(void)
     config_input.gamepad_select = read_int("Input", "GamepadSelect", SDL_CONTROLLER_BUTTON_BACK);
     config_input.gamepad_x_axis = read_int("Input", "GamepadX", SDL_CONTROLLER_AXIS_LEFTX);
     config_input.gamepad_y_axis = read_int("Input", "GamepadY", SDL_CONTROLLER_AXIS_LEFTY);
+
+    for (int i = 0; i < config_HotkeyIndex_COUNT; i++)
+    {
+        char key_name[32];
+        snprintf(key_name, sizeof(key_name), "Shortcut%d", i);
+        config_input_gamepad_shortcuts.gamepad_shortcuts[i] = read_int("InputGamepadShortcuts", key_name, SDL_CONTROLLER_BUTTON_INVALID);
+    }
 
     // Read hotkeys
     config_hotkeys[config_HotkeyIndex_OpenROM] = read_hotkey("Hotkeys", "OpenROM", make_hotkey(SDL_SCANCODE_O, KMOD_CTRL));
@@ -318,6 +330,13 @@ void config_write(void)
     write_int("Input", "GamepadSelect", config_input.gamepad_select);
     write_int("Input", "GamepadX", config_input.gamepad_x_axis);
     write_int("Input", "GamepadY", config_input.gamepad_y_axis);
+
+    for (int i = 0; i < config_HotkeyIndex_COUNT; i++)
+    {
+        char key_name[32];
+        snprintf(key_name, sizeof(key_name), "Shortcut%d", i);
+        write_int("InputGamepadShortcuts", key_name, config_input_gamepad_shortcuts.gamepad_shortcuts[i]);
+    }
 
     // Write hotkeys
     write_hotkey("Hotkeys", "OpenROM", config_hotkeys[config_HotkeyIndex_OpenROM]);

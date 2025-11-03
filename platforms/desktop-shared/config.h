@@ -143,6 +143,11 @@ enum config_HotkeyIndex
     config_HotkeyIndex_COUNT
 };
 
+struct config_Input_Gamepad_Shortcuts
+{
+    int gamepad_shortcuts[config_HotkeyIndex_COUNT];
+};
+
 struct config_Hotkey
 {
     SDL_Scancode key;
@@ -173,6 +178,7 @@ EXTERN config_Emulator config_emulator;
 EXTERN config_Video config_video;
 EXTERN config_Audio config_audio;
 EXTERN config_Input config_input;
+EXTERN config_Input_Gamepad_Shortcuts config_input_gamepad_shortcuts;
 EXTERN config_Hotkey config_hotkeys[config_HotkeyIndex_COUNT];
 EXTERN config_Debug config_debug;
 
