@@ -1221,7 +1221,7 @@ void MemEditor::SearchWindow()
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
-        ImGui::Text("Automatically takes a snapshot each\ntime \"Step Frame (F6)\" is pressed");
+        ImGui::Text("Automatically takes a snapshot each\ntime \"Step Frame\" is pressed");
         ImGui::EndTooltip();
     }
 
