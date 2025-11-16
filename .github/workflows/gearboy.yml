@@ -223,7 +223,7 @@ jobs:
       uses: vmactions/freebsd-vm@v1
       with:
         usesh: true
-        prepare: pkg install -y git gmake pkgconf SDL2 lang/gcc gtk3
+        prepare: pkg install -y git gmake pkgconf sdl2 lang/gcc gtk3
         run: |
           cd platforms/bsd
           gmake
