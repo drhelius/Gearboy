@@ -55,6 +55,7 @@ static bool force_gba = false;
 static bool allow_up_down = false;
 static bool bootrom_dmg = false;
 static bool bootrom_gbc = false;
+static bool color_correction = true;
 static bool libretro_supports_bitmasks;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
@@ -75,8 +76,9 @@ static const struct retro_variable vars[] = {
     { "gearboy_model", "Game Boy Model (restart); Auto|Game Boy DMG|Game Boy Advance" },
     { "gearboy_mapper", "Mapper (restart); Auto|ROM Only|MBC 1|MBC 2|MBC 3|MBC 5|MBC 1 Multicart" },
     { "gearboy_palette", "DMG Palette; Original|Sharp|B/W|Autumn|Soft|Slime" },
+    { "gearboy_color_correction", "GBC Color Correction; Disabled|Enabled" },
     { "gearboy_bootrom_dmg", "DMG Bootrom (restart); Disabled|Enabled" },
-    { "gearboy_bootrom_gbc", "Game Boy Color Bootrom (restart); Disabled|Enabled" },
+    { "gearboy_bootrom_gbc", "GBC Bootrom (restart); Disabled|Enabled" },
     { "gearboy_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
 
     { NULL }
@@ -379,6 +381,19 @@ static void check_variables(void)
             bootrom_gbc = false;
     }
 
+    var.key = "gearboy_color_correction";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Enabled") == 0)
+            color_correction = true;
+        else
+            color_correction = false;
+
+        core->EnableColorCorrection(color_correction);
+    }
+
     var.key = "gearboy_up_down_allowed";
     var.value = NULL;
 
@@ -418,6 +433,7 @@ void retro_reset(void)
     load_bootroms();
 
     core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
+    core->EnableColorCorrection(color_correction);
 
     core->ResetROMPreservingRAM(force_dmg, mapper, force_gba);
 }
