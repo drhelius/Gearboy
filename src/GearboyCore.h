@@ -60,6 +60,7 @@ public:
     void SetSoundVolume(float volume);
     void SetDMGPalette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
     u16* GetDMGInternalPalette();
+    void EnableColorCorrection(bool enabled);
     void SaveRam();
     void SaveRam(const char* szPath, bool fullPath = false);
     void LoadRam();
@@ -85,6 +86,7 @@ public:
 
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;
+    void ApplyColorCorrection(u16* pFrameBuffer, int size);
     void InitDMGPalette();
     void InitMemoryRules();
     bool AddMemoryRules(Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
@@ -113,6 +115,7 @@ private:
     int m_iRTCUpdateCount;
     RamChangedCallback m_pRamChangedCallback;
     GB_Color_Format m_pixelFormat;
+    bool m_bColorCorrectionEnabled;
 };
 
 #endif	/* CORE_H */

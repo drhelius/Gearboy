@@ -25,6 +25,7 @@
 #include <string.h>
 #include <fstream>
 #include <time.h>
+#include <math.h>
 #if defined(_WIN32)
 #define NOMINMAX
 #include <direct.h>
@@ -225,5 +226,19 @@ inline void open_ofstream_utf8(std::ofstream& stream, const char* path, std::ios
     stream.open(path, mode);
 }
 #endif
+
+inline float to_linear(float value, float gamma)
+{
+    const float inv255 = 1.0f / 255.0f;
+    float normalized = CLAMP(value * inv255, 0.0f, 1.0f);
+    return 255.0f * powf(normalized, gamma);
+}
+
+inline float to_gamma(float value, float gamma)
+{
+    const float inv255 = 1.0f / 255.0f;
+    float normalized = CLAMP(value * inv255, 0.0f, 1.0f);
+    return 255.0f * powf(normalized, gamma);
+}
 
 #endif /* COMMON_H */

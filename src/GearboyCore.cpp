@@ -17,6 +17,7 @@
  *
  */
 
+#include <math.h>
 #include "GearboyCore.h"
 #include "Memory.h"
 #include "Processor.h"
@@ -58,6 +59,7 @@ GearboyCore::GearboyCore()
     m_bForceDMG = false;
     m_iRTCUpdateCount = 0;
     m_pixelFormat = GB_PIXEL_RGB565;
+    m_bColorCorrectionEnabled = false;
 }
 
 GearboyCore::~GearboyCore()
@@ -152,6 +154,10 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
         if (!m_bCGB && !bDMGbuffer)
         {
             RenderDMGFrame(pFrameBuffer);
+        }
+        else if (m_bCGB && m_bColorCorrectionEnabled)
+        {
+            ApplyColorCorrection(pFrameBuffer, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
         }
     }
 
@@ -852,6 +858,90 @@ bool GearboyCore::IsCGB()
 bool GearboyCore::IsGBA()
 {
     return m_bGBA;
+}
+
+void GearboyCore::EnableColorCorrection(bool enabled)
+{
+    m_bColorCorrectionEnabled = enabled;
+}
+
+void GearboyCore::ApplyColorCorrection(u16* pFrameBuffer, int size)
+{
+    if (!IsValidPointer(pFrameBuffer))
+        return;
+
+    const float kGamma = 0.6f;
+    const float kR1 = 16.0f;
+    const float kR2 = 0.0f;
+    const float kR3 = 0.0f;
+    const float kG1 = 0.0f;
+    const float kG2 = 13.0f;
+    const float kG3 = 4.0f;
+    const float kB1 = 0.0f;
+    const float kB2 = 1.0f;
+    const float kB3 = 16.0f;
+    const float kLinearGamma = 2.2f;
+    const float kOutputGamma = (1.0f / kLinearGamma) * kGamma;
+    const float kRScale = 255.0f / 31.0f;
+    const float kBScale = 255.0f / 31.0f;
+
+    bool format_565 = (m_pixelFormat == GB_PIXEL_RGB565) || (m_pixelFormat == GB_PIXEL_BGR565);
+    bool order_RGB = (m_pixelFormat == GB_PIXEL_RGB565) || (m_pixelFormat == GB_PIXEL_RGB555);
+
+    int r_shift = format_565 ? 11 : 10;
+    int g_shift = 5;
+    int g_mask = format_565 ? 0x3F : 0x1F;
+    int g_max = format_565 ? 63 : 31;
+    const float kGScale = 255.0f / (float)g_max;
+
+    for (int i = 0; i < size; i++)
+    {
+        u16 color = pFrameBuffer[i];
+        float r8, g8, b8;
+
+        if (order_RGB)
+        {
+            r8 = ((color >> r_shift) & 0x1F) * kRScale;
+            g8 = ((color >> g_shift) & g_mask) * kGScale;
+            b8 = (color & 0x1F) * kBScale;
+        }
+        else
+        {
+            b8 = ((color >> r_shift) & 0x1F) * kBScale;
+            g8 = ((color >> g_shift) & g_mask) * kGScale;
+            r8 = (color & 0x1F) * kRScale;
+        }
+
+        float r_lin = to_linear(r8, kLinearGamma);
+        float g_lin = to_linear(g8, kLinearGamma);
+        float b_lin = to_linear(b8, kLinearGamma);
+
+        float r_out = (r_lin * kR1 + g_lin * kR2 + b_lin * kR3) / 16.0f;
+        float g_out = (r_lin * kG1 + g_lin * kG2 + b_lin * kG3) / 16.0f;
+        float b_out = (r_lin * kB1 + g_lin * kB2 + b_lin * kB3) / 16.0f;
+
+        r_out = to_gamma(r_out, kOutputGamma);
+        g_out = to_gamma(g_out, kOutputGamma);
+        b_out = to_gamma(b_out, kOutputGamma);
+
+        u16 r_final = (u16)((CLAMP(r_out, 0.0f, 255.0f) / 255.0f) * 31.0f + 0.5f);
+        u16 g_final = (u16)((CLAMP(g_out, 0.0f, 255.0f) / 255.0f) * (float)g_max + 0.5f);
+        u16 b_final = (u16)((CLAMP(b_out, 0.0f, 255.0f) / 255.0f) * 31.0f + 0.5f);
+
+        if (order_RGB)
+        {
+            pFrameBuffer[i] = (r_final << r_shift) | (g_final << g_shift) | b_final;
+        }
+        else
+        {
+            pFrameBuffer[i] = (b_final << r_shift) | (g_final << g_shift) | r_final;
+        }
+
+        if (!format_565)
+        {
+            pFrameBuffer[i] |= 0x8000;
+        }
+    }
 }
 
 void GearboyCore::InitDMGPalette()
