@@ -21,6 +21,8 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/imgui/imgui_draw.cpp \
     $(DESKTOP_SRC_DIR)/imgui/imgui_widgets.cpp \
     $(DESKTOP_SRC_DIR)/imgui/imgui_tables.cpp \
+    $(DESKTOP_SRC_DIR)/imgui/implot.cpp \
+    $(DESKTOP_SRC_DIR)/imgui/implot_items.cpp \
     $(AUDIO_SRC_DIR)/sound_queue.cpp \
     $(SRC_DIR)/Audio.cpp \
     $(SRC_DIR)/Cartridge.cpp \
