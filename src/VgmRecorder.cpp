@@ -79,7 +79,7 @@ void VgmRecorder::Stop()
         header[0x03] = 0x20;
 
         // EOF offset (file length - 4)
-        u32 eof_offset = (256 + m_CommandBuffer.size()) - 4;
+        u32 eof_offset = (256 + (u32)m_CommandBuffer.size()) - 4;
         header[0x04] = (eof_offset >> 0) & 0xFF;
         header[0x05] = (eof_offset >> 8) & 0xFF;
         header[0x06] = (eof_offset >> 16) & 0xFF;
