@@ -101,11 +101,6 @@ int application_init(const char* rom_file, const char* symbol_file, bool force_f
         return 1;
     }
 
-    strcpy(emu_savefiles_path, config_emulator.savefiles_path.c_str());
-    strcpy(emu_savestates_path, config_emulator.savestates_path.c_str());
-    emu_savefiles_dir_option = config_emulator.savefiles_dir_option;
-    emu_savestates_dir_option = config_emulator.savestates_dir_option;
-
     if (!emu_init())
     {
         Log("ERROR: Failed to initialize emulator");
@@ -140,12 +135,18 @@ int application_init(const char* rom_file, const char* symbol_file, bool force_f
         Log ("Rom file argument: %s", rom_file);
         gui_load_rom(rom_file);
     }
+
     if (IsValidPointer(symbol_file) && (strlen(symbol_file) > 0))
     {
         Log ("Symbol file argument: %s", symbol_file);
         gui_debug_reset_symbols();
         gui_debug_load_symbols_file(symbol_file);
     }
+
+    strcpy(emu_savefiles_path, config_emulator.savefiles_path.c_str());
+    strcpy(emu_savestates_path, config_emulator.savestates_path.c_str());
+    emu_savefiles_dir_option = config_emulator.savefiles_dir_option;
+    emu_savestates_dir_option = config_emulator.savestates_dir_option;
 
     return 0;
 }
