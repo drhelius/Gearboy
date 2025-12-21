@@ -114,7 +114,7 @@ void renderer_render(void)
 
     render_emu_bilinear();
 
-    ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
+    ImVec4 clear_color = ImVec4(config_video.background_color[0], config_video.background_color[1], config_video.background_color[2], 1.00f);
 
     glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);

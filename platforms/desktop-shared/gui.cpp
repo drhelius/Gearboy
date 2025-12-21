@@ -795,35 +795,51 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Custom Palettes"))
             {
-
-            for (int i = 0; i < config_max_custom_palettes; i++)
-            {
-                char menu_label[256];
-                snprintf(menu_label, sizeof(menu_label), "Palette %i", i + 1);
-
-                if (ImGui::BeginMenu(menu_label))
+                for (int i = 0; i < config_max_custom_palettes; i++)
                 {
-                    if (ImGui::ColorEdit3("Color #1", (float*)&custom_palette[i][0], ImGuiColorEditFlags_NoInputs))
+                    char menu_label[256];
+                    snprintf(menu_label, sizeof(menu_label), "Palette %i", i + 1);
+
+                    if (ImGui::BeginMenu(menu_label))
                     {
-                        update_palette();
+                        if (ImGui::ColorEdit3("Color #1", (float*)&custom_palette[i][0], ImGuiColorEditFlags_NoInputs))
+                        {
+                            update_palette();
+                        }
+                        if (ImGui::ColorEdit3("Color #2", (float*)&custom_palette[i][1], ImGuiColorEditFlags_NoInputs))
+                        {
+                            update_palette();
+                        }
+                        if (ImGui::ColorEdit3("Color #3", (float*)&custom_palette[i][2], ImGuiColorEditFlags_NoInputs))
+                        {
+                            update_palette();
+                        }
+                        if (ImGui::ColorEdit3("Color #4", (float*)&custom_palette[i][3], ImGuiColorEditFlags_NoInputs))
+                        {
+                            update_palette();
+                        }
+                        ImGui::EndMenu();
                     }
-                    if (ImGui::ColorEdit3("Color #2", (float*)&custom_palette[i][1], ImGuiColorEditFlags_NoInputs))
-                    {
-                        update_palette();
-                    }
-                    if (ImGui::ColorEdit3("Color #3", (float*)&custom_palette[i][2], ImGuiColorEditFlags_NoInputs))
-                    {
-                        update_palette();
-                    }
-                    if (ImGui::ColorEdit3("Color #4", (float*)&custom_palette[i][3], ImGuiColorEditFlags_NoInputs))
-                    {
-                        update_palette();
-                    }
-                    ImGui::EndMenu();
                 }
+
+                ImGui::EndMenu();
             }
 
-            ImGui::EndMenu();
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Background Color"))
+            {
+                ImGui::ColorEdit3("##normal_bg", config_video.background_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float);
+                ImGui::SameLine();
+                ImGui::Text("Normal Background");
+
+                ImGui::Separator();
+
+                ImGui::ColorEdit3("##debug_bg", config_video.background_color_debugger, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float);
+                ImGui::SameLine();
+                ImGui::Text("Debugger Background");
+
+                ImGui::EndMenu();
             }
 
             ImGui::EndMenu();
@@ -2291,7 +2307,7 @@ static void set_style(void)
     style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.1450980454683304f, 0.1450980454683304f, 0.1490196138620377f, 0.7f);
 
     style.Colors[ImGuiCol_DockingPreview] = style.Colors[ImGuiCol_HeaderActive] * ImVec4(1.0f, 1.0f, 1.0f, 0.7f);
-    style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(config_video.background_color_debugger[0], config_video.background_color_debugger[1], config_video.background_color_debugger[2], 1.00f);
     style.Colors[ImGuiCol_TabHovered] = style.Colors[ImGuiCol_HeaderHovered];
     //style.Colors[ImGuiCol_Tab] = lerp(style.Colors[ImGuiCol_Header], style.Colors[ImGuiCol_TitleBgActive], 0.80f);
     style.Colors[ImGuiCol_TabSelected] = lerp(style.Colors[ImGuiCol_HeaderActive], style.Colors[ImGuiCol_TitleBgActive], 0.60f);

@@ -86,6 +86,8 @@ struct config_Video
     };
     bool sync = true;
     bool color_correction = true;
+    float background_color[3] = {0.1f, 0.1f, 0.1f};
+    float background_color_debugger[3] = {0.2f, 0.2f, 0.2f};
 };
 
 struct config_Audio
