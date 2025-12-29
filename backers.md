@@ -14,3 +14,4 @@
 - [TomChapple](https://github.com/TomChapple)
 - [Desmoquattro](https://github.com/Desmo5574)
 - [Allan Curtis](https://github.com/Proudnerd2)
+- [Alice Mikhaylenko](https://github.com/alice-mkh)

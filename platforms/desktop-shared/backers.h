@@ -10,6 +10,7 @@ static const char * BACKERS_STR =
 "\n · Danny Van den Heuve (Danny-VdH)"
 "\n · KPreston2900050"
 "\n · Nicholas Piegdon"
-"\n · Allan Curtis (Proudnerd2)";
+"\n · Allan Curtis (Proudnerd2)"
+"\n · Alice Mikhaylenko (alice-mkh)";
 
 #endif	/* BACKERS_H */
