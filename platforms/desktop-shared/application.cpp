@@ -45,6 +45,13 @@ static Uint64 frame_time_end = 0;
 static bool input_gamepad_shortcut_prev[config_HotkeyIndex_COUNT] = { };
 static Uint32 mouse_last_motion_time = 0;
 static const Uint32 mouse_hide_timeout_ms = 1500;
+#if !defined(__APPLE__)
+static int borderless_saved_x = 0;
+static int borderless_saved_y = 0;
+static int borderless_saved_w = 0;
+static int borderless_saved_h = 0;
+static bool borderless_active = false;
+#endif
 
 static bool sdl_init(void);
 static void sdl_destroy(void);
@@ -206,9 +213,100 @@ void application_trigger_fullscreen(bool fullscreen)
 #if defined(__APPLE__)
     macos_set_native_fullscreen(macos_nswindow, fullscreen);
 #else
-    SDL_SetWindowFullscreen(application_sdl_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-    SDL_ERROR("SDL_SetWindowFullscreen");
+    if (fullscreen)
+    {
+        // Exit borderless first if switching to an SDL fullscreen mode
+        if (borderless_active && config_emulator.fullscreen_mode != 2)
+        {
+            SDL_SetWindowBordered(application_sdl_window, SDL_TRUE);
+            SDL_ERROR("SDL_SetWindowBordered");
+
+            SDL_SetWindowPosition(application_sdl_window, borderless_saved_x, borderless_saved_y);
+            SDL_ERROR("SDL_SetWindowPosition");
+
+            SDL_SetWindowSize(application_sdl_window, borderless_saved_w, borderless_saved_h);
+            SDL_ERROR("SDL_SetWindowSize");
+
+            borderless_active = false;
+        }
+
+        switch (config_emulator.fullscreen_mode)
+        {
+            case 0:  // Exclusive (SDL_WINDOW_FULLSCREEN)
+            {
+                int display = SDL_GetWindowDisplayIndex(application_sdl_window);
+                SDL_ERROR("SDL_GetWindowDisplayIndex");
+
+                SDL_DisplayMode mode;
+                SDL_GetDesktopDisplayMode(display, &mode);
+                SDL_ERROR("SDL_GetDesktopDisplayMode");
+
+                SDL_SetWindowDisplayMode(application_sdl_window, &mode);
+                SDL_ERROR("SDL_SetWindowDisplayMode");
+
+                SDL_SetWindowFullscreen(application_sdl_window, SDL_WINDOW_FULLSCREEN);
+                SDL_ERROR("SDL_SetWindowFullscreen");
+                break;
+            }
+            case 1:  // Fake Exclusive (SDL_WINDOW_FULLSCREEN_DESKTOP)
+                SDL_SetWindowFullscreen(application_sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+                SDL_ERROR("SDL_SetWindowFullscreen");
+                break;
+            case 2:  // Borderless windowed
+            {
+                SDL_SetWindowFullscreen(application_sdl_window, 0);
+                SDL_ERROR("SDL_SetWindowFullscreen");
+
+                SDL_GetWindowPosition(application_sdl_window, &borderless_saved_x, &borderless_saved_y);
+                SDL_GetWindowSize(application_sdl_window, &borderless_saved_w, &borderless_saved_h);
+
+                SDL_SetWindowBordered(application_sdl_window, SDL_FALSE);
+                SDL_ERROR("SDL_SetWindowBordered");
+
+                int display = SDL_GetWindowDisplayIndex(application_sdl_window);
+                SDL_ERROR("SDL_GetWindowDisplayIndex");
+
+                SDL_Rect rect;
+                SDL_GetDisplayBounds(display, &rect);
+                SDL_ERROR("SDL_GetDisplayBounds");
+
+                SDL_SetWindowPosition(application_sdl_window, rect.x, rect.y);
+                SDL_ERROR("SDL_SetWindowPosition");
+
+                SDL_SetWindowSize(application_sdl_window, rect.w, rect.h);
+                SDL_ERROR("SDL_SetWindowSize");
+
+                borderless_active = true;
+                break;
+            }
+            default:
+                Log("Invalid fullscreen mode: %d", config_emulator.fullscreen_mode);
+                break;
+        }
+    }
+    else
+    {
+        if (borderless_active)
+        {
+            SDL_SetWindowBordered(application_sdl_window, SDL_TRUE);
+            SDL_ERROR("SDL_SetWindowBordered");
+
+            SDL_SetWindowPosition(application_sdl_window, borderless_saved_x, borderless_saved_y);
+            SDL_ERROR("SDL_SetWindowPosition");
+
+            SDL_SetWindowSize(application_sdl_window, borderless_saved_w, borderless_saved_h);
+            SDL_ERROR("SDL_SetWindowSize");
+
+            borderless_active = false;
+        }
+        else
+        {
+            SDL_SetWindowFullscreen(application_sdl_window, 0);
+            SDL_ERROR("SDL_SetWindowFullscreen");
+        }
+    }
 #endif
+
     mouse_last_motion_time = SDL_GetTicks();
 }
 
