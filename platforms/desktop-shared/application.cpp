@@ -74,6 +74,7 @@ static bool should_run_emu_frame(void);
 static void render(void);
 static void frame_throttle(void);
 static void update_frame_pacing(void);
+static void recreate_gl_context_for_display_change(void);
 static void save_window_size(void);
 static void log_sdl_error(const char* action, const char* file, int line);
 static bool check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
@@ -671,7 +672,8 @@ static void sdl_events_emu(const SDL_Event* event)
 
                 case SDL_WINDOWEVENT_DISPLAY_CHANGED:
                 {
-                    application_set_vsync(config_video.sync);
+                    if (config_video.sync)
+                        recreate_gl_context_for_display_change();
                 }
                 break;
             }
@@ -1229,5 +1231,24 @@ static void log_sdl_error(const char* action, const char* file, int line)
     {
         Log("SDL Error: %s (%s:%d) - %s", action, file, line, error);
         SDL_ClearError();
+    }
+}
+
+static void recreate_gl_context_for_display_change(void)
+{
+    renderer_destroy();
+    ImGui_ImplSDL2_Shutdown();
+
+    SDL_GLContext old_context = gl_context;
+    gl_context = SDL_GL_CreateContext(application_sdl_window);
+
+    if (gl_context)
+    {
+        SDL_GL_MakeCurrent(application_sdl_window, gl_context);
+        SDL_GL_DeleteContext(old_context);
+        SDL_GL_SetSwapInterval(1);
+        ImGui_ImplSDL2_InitForOpenGL(application_sdl_window, gl_context);
+        renderer_init();
+        update_frame_pacing();
     }
 }
