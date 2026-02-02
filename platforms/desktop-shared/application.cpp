@@ -42,6 +42,9 @@ static bool running = true;
 static bool paused_when_focus_lost = false;
 static Uint64 frame_time_start = 0;
 static Uint64 frame_time_end = 0;
+static int monitor_refresh_rate = 60;
+static int vsync_frames_per_emu_frame = 1;
+static int vsync_frame_counter = 0;
 static bool input_gamepad_shortcut_prev[config_HotkeyIndex_COUNT] = { };
 static Uint32 mouse_last_motion_time = 0;
 static const Uint32 mouse_hide_timeout_ms = 1500;
@@ -67,8 +70,10 @@ static bool input_get_button(SDL_GameController* controller, int mapping);
 static void handle_mouse_cursor(void);
 static void handle_menu(void);
 static void run_emulator(void);
+static bool should_run_emu_frame(void);
 static void render(void);
 static void frame_throttle(void);
+static void update_frame_pacing(void);
 static void save_window_size(void);
 static void log_sdl_error(const char* action, const char* file, int line);
 static bool check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
@@ -132,7 +137,7 @@ int application_init(const char* rom_file, const char* symbol_file, bool force_f
         return 5;
     }
 
-    SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+    application_set_vsync(config_video.sync);
 
     if (config_emulator.fullscreen)
         application_trigger_fullscreen(true);
@@ -308,12 +313,19 @@ void application_trigger_fullscreen(bool fullscreen)
 #endif
 
     mouse_last_motion_time = SDL_GetTicks();
+    update_frame_pacing();
 }
 
 void application_trigger_fit_to_content(int width, int height)
 {
     SDL_SetWindowSize(application_sdl_window, width, height);
     SDL_ERROR("SDL_SetWindowSize");
+}
+
+void application_set_vsync(bool enabled)
+{
+    SDL_GL_SetSwapInterval(enabled ? 1 : 0);
+    update_frame_pacing();
 }
 
 void application_update_title_with_rom(const char* rom)
@@ -640,6 +652,7 @@ static void sdl_events_emu(const SDL_Event* event)
             {
                 case SDL_WINDOWEVENT_FOCUS_GAINED:
                 {
+                    application_set_vsync(config_video.sync);
                     if (config_emulator.pause_when_inactive && !paused_when_focus_lost)
                         emu_resume();
                 }
@@ -647,11 +660,18 @@ static void sdl_events_emu(const SDL_Event* event)
 
                 case SDL_WINDOWEVENT_FOCUS_LOST:
                 {
+                    application_set_vsync(false);
                     if (config_emulator.pause_when_inactive)
                     {
                         paused_when_focus_lost = emu_is_paused();
                         emu_pause();
                     }
+                }
+                break;
+
+                case SDL_WINDOWEVENT_DISPLAY_CHANGED:
+                {
+                    application_set_vsync(config_video.sync);
                 }
                 break;
             }
@@ -1061,9 +1081,26 @@ static bool input_get_button(SDL_GameController* controller, int mapping)
 
 static void run_emulator(void)
 {
+    if (!should_run_emu_frame())
+        return;
+
     config_emulator.paused = emu_is_paused();
     emu_audio_sync = config_audio.sync;
     emu_update();
+}
+
+static bool should_run_emu_frame(void)
+{
+    if (config_video.sync && vsync_frames_per_emu_frame > 1 && !config_emulator.ffwd)
+    {
+        bool should_run = (vsync_frame_counter == 0);
+        vsync_frame_counter++;
+        if (vsync_frame_counter >= vsync_frames_per_emu_frame)
+            vsync_frame_counter = 0;
+        return should_run;
+    }
+
+    return true;
 }
 
 static void render(void)
@@ -1111,6 +1148,37 @@ static void frame_throttle(void)
         if (elapsed < min)
             SDL_Delay((Uint32)(min - elapsed));
     }
+}
+
+static void update_frame_pacing(void)
+{
+    int display = SDL_GetWindowDisplayIndex(application_sdl_window);
+    SDL_ERROR("SDL_GetWindowDisplayIndex");
+
+    if (display < 0)
+        display = 0;
+
+    SDL_DisplayMode mode;
+    if (SDL_GetCurrentDisplayMode(display, &mode) == 0 && mode.refresh_rate > 0)
+        monitor_refresh_rate = mode.refresh_rate;
+    else
+    {
+        SDL_ERROR("SDL_GetCurrentDisplayMode");
+        monitor_refresh_rate = 60;
+    }
+
+    const int emu_fps = 60;
+
+    if (monitor_refresh_rate <= emu_fps + 5)
+        vsync_frames_per_emu_frame = 1;
+    else
+        vsync_frames_per_emu_frame = (monitor_refresh_rate + emu_fps / 2) / emu_fps;
+
+    vsync_frames_per_emu_frame = CLAMP(vsync_frames_per_emu_frame, 1, 8);
+
+    vsync_frame_counter = 0;
+
+    Debug("Monitor refresh rate: %d Hz, vsync frames per emu frame: %d", monitor_refresh_rate, vsync_frames_per_emu_frame);
 }
 
 static void save_window_size(void)

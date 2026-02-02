@@ -758,7 +758,7 @@ static void main_menu(void)
 
             if (ImGui::MenuItem("Vertical Sync", "", &config_video.sync))
             {
-                SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+                application_set_vsync(config_video.sync);
 
                 if (config_video.sync)
                 {
@@ -956,7 +956,7 @@ static void main_menu(void)
                 if (!config_audio.sync)
                 {
                     config_video.sync = false;
-                    SDL_GL_SetSwapInterval(0);
+                    application_set_vsync(false);
                 }
             }
 
@@ -2109,12 +2109,12 @@ static void menu_ffwd(void)
     if (config_emulator.ffwd)
     {
         gui_set_status_message("Fast Forward ON", 3000);
-        SDL_GL_SetSwapInterval(0);
+        application_set_vsync(false);
     }
     else
     {
         gui_set_status_message("Fast Forward OFF", 3000);
-        SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+        application_set_vsync(config_video.sync);
         emu_audio_reset();
     }
 }
