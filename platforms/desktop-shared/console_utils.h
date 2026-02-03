@@ -41,7 +41,7 @@ inline bool attach_parent_console(int argc, char* argv[])
     if (is_mcp_stdio)
         return false;
 
-    if (AttachConsole(ATTACH_PARENT_CONSOLE))
+    if (AttachConsole(ATTACH_PARENT_PROCESS))
     {
         FILE* fp_stdout = nullptr;
         FILE* fp_stderr = nullptr;
