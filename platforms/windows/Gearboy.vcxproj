@@ -78,6 +78,7 @@
     <ClInclude Include="..\..\src\audio\Gb_Oscs.h" />
     <ClInclude Include="..\..\src\audio\Multi_Buffer.h" />
     <ClInclude Include="..\..\src\Cartridge.h" />
+    <ClInclude Include="..\..\src\common.h" />
     <ClInclude Include="..\..\src\CommonMemoryRule.h" />
     <ClInclude Include="..\..\src\definitions.h" />
     <ClInclude Include="..\..\src\gearboy.h" />
@@ -104,7 +105,9 @@
     <ClInclude Include="..\desktop-shared\application.h" />
     <ClInclude Include="..\desktop-shared\backers.h" />
     <ClInclude Include="..\desktop-shared\config.h" />
+    <ClInclude Include="..\desktop-shared\console_utils.h" />
     <ClInclude Include="..\desktop-shared\emu.h" />
+    <ClInclude Include="..\desktop-shared\glad\glad.h" />
     <ClInclude Include="..\desktop-shared\gui.h" />
     <ClInclude Include="..\desktop-shared\gui_debug.h" />
     <ClInclude Include="..\desktop-shared\gui_debug_memory.h" />
@@ -126,6 +129,7 @@
     <ClInclude Include="..\desktop-shared\nfd\nfd_sdl2.h" />
     <ClInclude Include="..\desktop-shared\renderer.h" />
     <ClInclude Include="..\desktop-shared\stb\stb_image_write.h" />
+    <ClInclude Include="..\desktop-shared\utils.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

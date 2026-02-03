@@ -28,6 +28,9 @@
     <Filter Include="desktop-shared\stb">
       <UniqueIdentifier>{0f1a9f96-e6db-44a3-b6ae-54a5add23b29}</UniqueIdentifier>
     </Filter>
+    <Filter Include="desktop-shared\glad">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567890}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\miniz">
       <UniqueIdentifier>{66c2b733-8a64-4749-957f-c06123dbe5ba}</UniqueIdentifier>
     </Filter>
@@ -173,6 +176,9 @@
     <ClInclude Include="..\..\src\Cartridge.h">
       <Filter>source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\common.h">
+      <Filter>source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\CommonMemoryRule.h">
       <Filter>source</Filter>
     </ClInclude>
@@ -272,8 +278,14 @@
     <ClInclude Include="..\desktop-shared\config.h">
       <Filter>desktop-shared</Filter>
     </ClInclude>
+    <ClInclude Include="..\desktop-shared\console_utils.h">
+      <Filter>desktop-shared</Filter>
+    </ClInclude>
     <ClInclude Include="..\desktop-shared\emu.h">
       <Filter>desktop-shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\glad\glad.h">
+      <Filter>desktop-shared\glad</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\gui.h">
       <Filter>desktop-shared</Filter>
@@ -349,6 +361,9 @@
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl2.h">
       <Filter>desktop-shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\utils.h">
+      <Filter>desktop-shared</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
   </ItemGroup>
