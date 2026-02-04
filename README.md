@@ -37,7 +37,11 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
       <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-windows-arm64.zip">Gearboy-3.7.5-windows-arm64.zip</a></td>
     </tr>
     <tr>
-      <td rowspan="2"><strong>macOS</strong></td>
+      <td rowspan="3"><strong>macOS</strong></td>
+      <td>Homebrew</td>
+      <td><code>brew install --cask drhelius/geardome/gearboy</code></td>
+    </tr>
+    <tr>
       <td>Apple Silicon</td>
       <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-macos-arm.zip">Gearboy-3.7.5-macos-arm.zip</a></td>
     </tr>

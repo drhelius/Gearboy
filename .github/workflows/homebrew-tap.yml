@@ -1,0 +1,101 @@
+name: Update Homebrew Tap
+
+on:
+  workflow_dispatch:
+  release:
+    types: [released]
+
+env:
+  NAME_LOWER: gearboy
+  NAME_UPPER: Gearboy
+  APP_DESC: "Game Boy / Game Boy Color emulator"
+  GITHUB_OWNER: drhelius
+  TAP_REPO: drhelius/homebrew-geardome
+  PLIST_ID: com.drhelius.gearboy
+
+jobs:
+  update-tap:
+    name: Update Homebrew Tap
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'drhelius'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get release version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION=$(gh release view --json tagName -q '.tagName')
+            echo "Manual trigger - using latest release: $VERSION"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+            echo "Release trigger - version: $VERSION"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Download macOS release artifacts
+        run: |
+          curl -L -o macos-arm.zip "https://github.com/${{ github.repository }}/releases/download/${{ env.VERSION }}/${{ env.NAME_UPPER }}-${{ env.VERSION }}-macos-arm.zip"
+          curl -L -o macos-intel.zip "https://github.com/${{ github.repository }}/releases/download/${{ env.VERSION }}/${{ env.NAME_UPPER }}-${{ env.VERSION }}-macos-intel.zip"
+
+      - name: Calculate SHA256 hashes
+        run: |
+          ARM_SHA=$(sha256sum macos-arm.zip | cut -d' ' -f1)
+          INTEL_SHA=$(sha256sum macos-intel.zip | cut -d' ' -f1)
+          echo "ARM_SHA=$ARM_SHA" >> $GITHUB_ENV
+          echo "INTEL_SHA=$INTEL_SHA" >> $GITHUB_ENV
+          echo "ARM SHA256: $ARM_SHA"
+          echo "Intel SHA256: $INTEL_SHA"
+
+      - name: Checkout Homebrew tap repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.TAP_REPO }}
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update Cask formula
+        run: |
+          cat > homebrew-tap/Casks/${{ env.NAME_LOWER }}.rb << EOF
+          cask "${{ env.NAME_LOWER }}" do
+            arch arm: "arm", intel: "intel"
+
+            version "${{ env.VERSION }}"
+            sha256 arm:   "${{ env.ARM_SHA }}",
+                   intel: "${{ env.INTEL_SHA }}"
+
+            url "https://github.com/${{ env.GITHUB_OWNER }}/${{ env.NAME_UPPER }}/releases/download/#{version}/${{ env.NAME_UPPER }}-#{version}-macos-#{arch}.zip"
+            name "${{ env.NAME_UPPER }}"
+            desc "${{ env.APP_DESC }}"
+            homepage "https://github.com/${{ env.GITHUB_OWNER }}/${{ env.NAME_UPPER }}"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+
+            depends_on macos: ">= :monterey"
+
+            container nested: "${{ env.NAME_UPPER }}.app.zip"
+
+            app "${{ env.NAME_UPPER }}.app"
+
+            zap trash: [
+              "~/Library/Preferences/${{ env.PLIST_ID }}.plist",
+              "~/Library/Application Support/${{ env.NAME_LOWER }}",
+            ]
+          end
+          EOF
+
+      - name: Commit and push to tap repository
+        run: |
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/${{ env.NAME_LOWER }}.rb
+          git commit -m "Update ${{ env.NAME_UPPER }} to ${{ env.VERSION }}"
+          git push
