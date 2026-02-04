@@ -1,7 +1,7 @@
 include ../desktop-shared/Makefile.sources
 
 SOURCES_MM += $(DESKTOP_SRC_DIR)/nfd/nfd_cocoa.mm
-SOURCES_MM += $(DESKTOP_SRC_DIR)/macos/fullscreen.mm
+SOURCES_MM += macos.mm
 OBJECTS += $(SOURCES_MM:.mm=.o)
 LDFLAGS += -framework AppKit -framework UniformTypeIdentifiers
 

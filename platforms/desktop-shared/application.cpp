@@ -87,6 +87,7 @@ static void* macos_fullscreen_observer = NULL;
 static void* macos_nswindow = NULL;
 extern "C" void* macos_install_fullscreen_observer(void* nswindow, void(*enter_cb)(), void(*exit_cb)());
 extern "C" void macos_set_native_fullscreen(void* nswindow, bool enter);
+extern "C" void macos_kill_autofill_helpers(const char* app_name);
 #endif
 
 int application_init(const char* rom_file, const char* symbol_file, bool force_fullscreen, bool force_windowed)
@@ -174,6 +175,10 @@ void application_destroy(void)
     ImGui_ImplSDL2_Shutdown();
     gui_destroy();
     sdl_destroy();
+
+#if defined(__APPLE__)
+    macos_kill_autofill_helpers(GEARBOY_TITLE);
+#endif
 }
 
 void application_mainloop(void)
