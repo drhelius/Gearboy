@@ -21,7 +21,14 @@ jobs:
     name: Linux
     strategy:
       matrix:
-        os: [ubuntu-24.04, ubuntu-22.04]
+        os: [ubuntu-24.04, ubuntu-22.04, ubuntu-24.04-arm]
+        include:
+        - os: ubuntu-24.04
+          artifact_name: ubuntu24.04-x64
+        - os: ubuntu-22.04
+          artifact_name: ubuntu22.04-x64
+        - os: ubuntu-24.04-arm
+          artifact_name: ubuntu24.04-arm64
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -50,7 +57,7 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-${{ matrix.os }}
+        name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-${{ matrix.artifact_name }}
         path: artifact/*
   linux-clang:
     name: Linux (Clang/LLVM)

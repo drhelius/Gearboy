@@ -50,13 +50,17 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
       <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-macos-intel.zip">Gearboy-3.7.5-macos-intel.zip</a></td>
     </tr>
     <tr>
-      <td rowspan="2"><strong>Linux</strong></td>
-      <td>Ubuntu 24.04</td>
-      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-ubuntu-24.04.zip">Gearboy-3.7.5-ubuntu-24.04.zip</a></td>
+      <td rowspan="3"><strong>Linux</strong></td>
+      <td>Ubuntu 24.04 x64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-ubuntu24.04-x64.zip">Gearboy-3.7.5-ubuntu24.04-x64.zip</a></td>
     </tr>
     <tr>
-      <td>Ubuntu 22.04</td>
-      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-ubuntu-22.04.zip">Gearboy-3.7.5-ubuntu-22.04.zip</a></td>
+      <td>Ubuntu 22.04 x64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-ubuntu22.04-x64.zip">Gearboy-3.7.5-ubuntu22.04-x64.zip</a></td>
+    </tr>
+    <tr>
+      <td>Ubuntu 24.04 ARM64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-ubuntu24.04-arm64.zip">Gearboy-3.7.5-ubuntu24.04-arm64.zip</a></td>
     </tr>
     <tr>
       <td><strong>RetroArch</strong></td>
