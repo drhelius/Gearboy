@@ -39,7 +39,6 @@ SoundQueue::SoundQueue()
     m_sync_output = true;
 
     int audio_drivers_count = SDL_GetNumAudioDrivers();
-    int audio_devices_count = SDL_GetNumAudioDevices(0);
 
     Debug("SoundQueue: %d audio backends", audio_drivers_count);
 
@@ -48,41 +47,33 @@ SoundQueue::SoundQueue()
         Debug("SoundQueue: %s", SDL_GetAudioDriver(i));
     }
 
+    std::string platform = SDL_GetPlatform();
+    if (platform == "Linux")
+    {
+        if (IsRunningInWSL())
+        {
+            Debug("SoundQueue: Running in WSL");
+            SDL_SetHint("SDL_AUDIODRIVER", "pulseaudio");
+        }
+        else
+        {
+            Debug("SoundQueue: Running in Linux");
+        }
+    }
+
+    if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
+        sdl_error("Couldn't init AUDIO subsystem");
+
+    Log("SoundQueue: %s driver selected", SDL_GetCurrentAudioDriver());
+
+    int audio_devices_count = SDL_GetNumAudioDevices(0);
+
     Debug("SoundQueue: %d audio devices", audio_devices_count);
 
     for (int i = 0; i < audio_devices_count; i++)
     {
         Debug("SoundQueue: %s", SDL_GetAudioDeviceName(i, 0));
     }
-
-    std::string platform = SDL_GetPlatform();
-    if (platform == "Linux")
-    {
-        if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
-            sdl_error("Couldn't init AUDIO subsystem");
-
-        if (IsRunningInWSL())
-        {
-            Debug("SoundQueue: Running in WSL");
-            if (SDL_AudioInit("pulseaudio") < 0)
-                sdl_error("Couldn't init pulseaudio audio driver");
-        }
-        else
-        {
-            Debug("SoundQueue: Running in Linux");
-            if (SDL_AudioInit("alsa") < 0)
-                sdl_error("Couldn't init alsa audio driver");
-        }
-    }
-    else
-    {
-        if (SDL_Init(SDL_INIT_AUDIO) < 0)
-            sdl_error("Couldn't init AUDIO");
-    }
-
-    Log("SoundQueue: %s driver selected", SDL_GetCurrentAudioDriver());
-
-    atexit(SDL_Quit);
 }
 
 SoundQueue::~SoundQueue()
