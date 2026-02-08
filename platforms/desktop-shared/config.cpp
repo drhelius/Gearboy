@@ -433,9 +433,14 @@ static float read_float(const char* group, const char* key, float default_value)
     if(value.empty())
         ret = default_value;
     else
-        ret = strtof(value.c_str(), NULL);
+    {
+        std::istringstream iss(value);
+        iss.imbue(std::locale::classic());
+        if (!(iss >> ret))
+            ret = default_value;
+    }
 
-    Debug("Load setting: [%s][%s]=%.2f", group, key, ret);
+    Debug("Load float setting: [%s][%s]=%.2f", group, key, ret);
     return ret;
 }
 
