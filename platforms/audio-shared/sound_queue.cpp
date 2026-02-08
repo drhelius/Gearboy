@@ -186,20 +186,35 @@ void SoundQueue::Write(int16_t* samples, int count, bool sync)
         if (m_write_position >= m_buffer_size)
         {
             m_write_position = 0;
-            m_write_buffer = (m_write_buffer + 1) % m_buffer_count;
-            
+
             if (m_sync_output)
+            {
+                m_write_buffer = (m_write_buffer + 1) % m_buffer_count;
                 SDL_SemWait(m_free_sem);
+            }
+            else
+            {
+                int next = (m_write_buffer + 1) % m_buffer_count;
+                if (next != m_read_buffer)
+                    m_write_buffer = next;
+            }
         }
     }
 }
 
 void SoundQueue::FillBuffer(uint8_t* buffer, int count)
 {
-    if ((SDL_SemValue(m_free_sem) < (unsigned int)m_buffer_count - 1) || !m_sync_output)
+    bool has_data;
+
+    if (m_sync_output)
+        has_data = (SDL_SemValue(m_free_sem) < (unsigned int)m_buffer_count - 1);
+    else
+        has_data = (m_read_buffer != m_write_buffer);
+
+    if (has_data)
     {
         m_currently_playing = Buffer(m_read_buffer);
-        memcpy( buffer, Buffer(m_read_buffer), count);
+        memcpy(buffer, Buffer(m_read_buffer), count);
         m_read_buffer = (m_read_buffer + 1) % m_buffer_count;
 
         if (m_sync_output)

@@ -41,7 +41,7 @@ private:
     SDL_sem* volatile m_free_sem;
     int16_t* volatile m_currently_playing;
     int volatile m_read_buffer;
-    int m_write_buffer;
+    int volatile m_write_buffer;
     int m_write_position;
     bool m_sound_open;
     bool m_sync_output;
