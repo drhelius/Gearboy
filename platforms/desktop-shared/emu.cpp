@@ -121,6 +121,7 @@ void emu_destroy(void)
 
 void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba)
 {
+    emu_audio_reset();
     save_ram();
     gearboy->LoadROM(file_path, force_dmg, mbc, force_gba);
     load_ram();
@@ -201,6 +202,7 @@ bool emu_is_empty(void)
 
 void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba)
 {
+    emu_audio_reset();
     save_ram();
     gearboy->ResetROM(force_dmg, mbc, force_gba);
     load_ram();
