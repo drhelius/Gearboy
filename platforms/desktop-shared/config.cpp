@@ -93,10 +93,11 @@ void config_read(void)
     if (!config_ini_file->read(config_ini_data))
     {
         Log("Unable to load settings from %s", config_emu_file_path);
-        return;
     }
-
-    Log("Loading settings from %s", config_emu_file_path);
+    else
+    {
+        Log("Loading settings from %s", config_emu_file_path);
+    }
 
     config_debug.debug = read_bool("Debug", "Debug", false);
     config_debug.show_audio = read_bool("Debug", "Audio", false);
