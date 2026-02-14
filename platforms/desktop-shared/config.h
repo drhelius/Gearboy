@@ -52,9 +52,9 @@ struct config_Emulator
     bool show_info = false;
     int mbc = 0;
     std::string recent_roms[config_max_recent_roms];
-    bool dmg_bootrom;
+    bool dmg_bootrom = false;
     std::string dmg_bootrom_path;
-    bool gbc_bootrom;
+    bool gbc_bootrom = false;
     std::string gbc_bootrom_path;
     int savefiles_dir_option = 0;
     std::string savefiles_path;
