@@ -30,6 +30,7 @@
 #include "libretro.h"
 
 #include "../../src/gearboy.h"
+#include "libretro_core_options.h"
 
 #define VIDEO_WIDTH 160
 #define VIDEO_HEIGHT 144
@@ -57,6 +58,7 @@ static bool bootrom_dmg = false;
 static bool bootrom_gbc = false;
 static bool color_correction = true;
 static bool libretro_supports_bitmasks;
+static bool categories_supported = false;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -71,18 +73,6 @@ static GearboyCore* core;
 static Cartridge::CartridgeTypes mapper = Cartridge::CartridgeNotSupported;
 
 static retro_environment_t environ_cb;
-
-static const struct retro_variable vars[] = {
-    { "gearboy_model", "Game Boy Model (restart); Auto|Game Boy DMG|Game Boy Advance" },
-    { "gearboy_mapper", "Mapper (restart); Auto|ROM Only|MBC 1|MBC 2|MBC 3|MBC 5|MBC 1 Multicart" },
-    { "gearboy_palette", "DMG Palette; Original|Sharp|B/W|Autumn|Soft|Slime" },
-    { "gearboy_color_correction", "GBC Color Correction; Disabled|Enabled" },
-    { "gearboy_bootrom_dmg", "DMG Bootrom (restart); Disabled|Enabled" },
-    { "gearboy_bootrom_gbc", "GBC Bootrom (restart); Disabled|Enabled" },
-    { "gearboy_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
-
-    { NULL }
-};
 
 // red, green, blue
 static GB_Color original_palette[4] = {{0x87, 0x96, 0x03},{0x4D, 0x6B, 0x03},{0x2B, 0x55, 0x03},{0x14, 0x44, 0x03}};
@@ -182,7 +172,7 @@ void retro_set_environment(retro_environment_t cb)
 
     cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
 
-    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void *)vars);
+    libretro_set_core_options(environ_cb, &categories_supported);
 }
 
 void retro_set_audio_sample(retro_audio_sample_t cb)
