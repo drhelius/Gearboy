@@ -192,8 +192,8 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                     m_RTC.LatchedSeconds = m_RTC.Seconds;
                     m_RTC.LatchedMinutes = m_RTC.Minutes;
                     m_RTC.LatchedHours = m_RTC.Hours;
-                    m_RTC.LatchedDays = m_RTC.Days;
-                    m_RTC.LatchedControl = m_RTC.Control;
+                    m_RTC.LatchedDays = m_RTC.Days & 0xFF;
+                    m_RTC.LatchedControl = (m_RTC.Control & 0xC0) | ((m_RTC.Days >> 8) & 0x01);
                 }
 
                 m_iRTCLatch = value;
@@ -227,10 +227,11 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                         m_RTC.Hours = value;
                         break;
                     case 0x0B:
-                        m_RTC.Days = value;
+                        m_RTC.Days = (m_RTC.Days & 0x100) | value;
                         break;
                     case 0x0C:
-                        m_RTC.Control = (m_RTC.Control & 0x80) | (value & 0xC1);
+                        m_RTC.Days = (m_RTC.Days & 0xFF) | ((value & 0x01) << 8);
+                        m_RTC.Control = value & 0xC1;
                         break;
                 }
             }
@@ -289,16 +290,10 @@ void MBC3MemoryRule::UpdateRTC()
             difference /= 24;
             m_RTC.Days += (s32) (difference & 0xffffffff);
 
-            if (m_RTC.Days > 0xFF)
+            if (m_RTC.Days > 0x1FF)
             {
-                m_RTC.Control = (m_RTC.Control & 0xC1) | 0x01;
-
-                if (m_RTC.Days > 511)
-                {
-                    m_RTC.Days %= 512;
-                    m_RTC.Control |= 0x80;
-                    m_RTC.Control &= 0xC0;
-                }
+                m_RTC.Days &= 0x1FF;
+                m_RTC.Control |= 0x80;
             }
         }
     }
@@ -316,7 +311,10 @@ void MBC3MemoryRule::SaveRam(std::ostream & file)
 
     if (m_pCartridge->IsRTCPresent())
     {
-        file.write(reinterpret_cast<const char*> (&m_RTC), sizeof(m_RTC));
+        RTC_Registers rtcOut = m_RTC;
+        rtcOut.Days = m_RTC.Days & 0xFF;
+        rtcOut.Control = (m_RTC.Control & 0xC0) | ((m_RTC.Days >> 8) & 0x01);
+        file.write(reinterpret_cast<const char*> (&rtcOut), sizeof(rtcOut));
     }
 
     Debug("MBC3MemoryRule save RAM done");
@@ -364,6 +362,7 @@ bool MBC3MemoryRule::LoadRam(std::istream & file, s32 fileSize)
     if (loadRTC)
     {
         file.read(reinterpret_cast<char*> (&m_RTC), 44);
+        m_RTC.Days = (m_RTC.Days & 0xFF) | ((m_RTC.Control & 0x01) << 8);
     }
 
     Debug("MBC3MemoryRule load RAM done");
@@ -454,4 +453,5 @@ void MBC3MemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
     stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
     stream.read(reinterpret_cast<char*> (&m_RTC), sizeof(m_RTC));
+    m_RTC.Days = (m_RTC.Days & 0xFF) | ((m_RTC.Control & 0x01) << 8);
 }
