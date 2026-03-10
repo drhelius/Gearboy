@@ -598,6 +598,9 @@ bool Cartridge::GatherMetadata()
         case 0x04:
             m_iRAMBankCount = 16;
             break;
+        case 0x05:
+            m_iRAMBankCount = (m_Type == Cartridge::CartridgeMBC5) ? 8 : 4;
+            break;
         default:
             m_iRAMBankCount = 4;
             break;
