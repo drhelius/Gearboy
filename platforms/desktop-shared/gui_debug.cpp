@@ -1481,6 +1481,9 @@ static void debug_window_vram_oam(void)
 
     bool window_hovered = ImGui::IsWindowHovered();
 
+    static int selected_sprite = -1;
+    int hovered_sprite = -1;
+
     for (int s = 0; s < 40; s++)
     {
         p[s] = ImGui::GetCursorScreenPos();
@@ -1490,7 +1493,16 @@ static void debug_window_vram_oam(void)
         float mouse_x = io.MousePos.x - p[s].x;
         float mouse_y = io.MousePos.y - p[s].y;
 
-        if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
+        bool is_hovered = window_hovered && (mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8));
+
+        if (is_hovered)
+        {
+            hovered_sprite = s;
+            if (ImGui::IsMouseClicked(0))
+                selected_sprite = (selected_sprite == s) ? -1 : s;
+        }
+
+        if (is_hovered || selected_sprite == s)
         {
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
             draw_list->AddRect(ImVec2(p[s].x, p[s].y), ImVec2(p[s].x + width, p[s].y + (sprites_16 ? height_16 : height_8)), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 3.0f);
@@ -1510,78 +1522,79 @@ static void debug_window_vram_oam(void)
 
     ImGui::Image((ImTextureID)(intptr_t)renderer_emu_texture, ImVec2(GAMEBOY_WIDTH * screen_scale, GAMEBOY_HEIGHT * screen_scale));
 
-    for (int s = 0; s < 40; s++)
+    int display_sprite = (hovered_sprite >= 0) ? hovered_sprite : selected_sprite;
+
+    if (display_sprite >= 0)
     {
-        if ((p[s].x == 0) && (p[s].y == 0))
-            continue;
+        int s = display_sprite;
+        u16 address = 0xFE00 + (4 * s);
 
-        float mouse_x = io.MousePos.x - p[s].x;
-        float mouse_y = io.MousePos.y - p[s].y;
+        u8 y = memory->Retrieve(address);
+        u8 x = memory->Retrieve(address + 1);
+        u8 tile = memory->Retrieve(address + 2);
+        u8 flags = memory->Retrieve(address + 3);
+        int palette = IsSetBit(flags, 4) ? 1 : 0;
+        bool xflip = IsSetBit(flags, 5);
+        bool yflip = IsSetBit(flags, 6);
+        bool priority = !IsSetBit(flags, 7);
+        bool cgb_bank = IsSetBit(flags, 3);
+        int cgb_pal = flags & 0x07;
 
-        if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
-        {
-            u16 address = 0xFE00 + (4 * s);
+        float real_x = x - 8.0f;
+        float real_y = y - 16.0f;
+        float rectx_min = p_screen.x + (real_x * screen_scale);
+        float rectx_max = p_screen.x + ((real_x + 8.0f) * screen_scale);
+        float recty_min = p_screen.y + (real_y * screen_scale);
+        float recty_max = p_screen.y + ((real_y + (sprites_16 ? 16.0f : 8.0f)) * screen_scale);
 
-            u8 y = memory->Retrieve(address);
-            u8 x = memory->Retrieve(address + 1);
-            u8 tile = memory->Retrieve(address + 2);
-            u8 flags = memory->Retrieve(address + 3);
-            int palette = IsSetBit(flags, 4) ? 1 : 0;
-            bool xflip = IsSetBit(flags, 5);
-            bool yflip = IsSetBit(flags, 6);
-            bool priority = !IsSetBit(flags, 7);
-            bool cgb_bank = IsSetBit(flags, 3);
-            int cgb_pal = flags & 0x07;
+        rectx_min = fminf(fmaxf(rectx_min, p_screen.x), p_screen.x + (GAMEBOY_WIDTH * screen_scale));
+        rectx_max = fminf(fmaxf(rectx_max, p_screen.x), p_screen.x + (GAMEBOY_WIDTH * screen_scale));
+        recty_min = fminf(fmaxf(recty_min, p_screen.y), p_screen.y + (GAMEBOY_HEIGHT * screen_scale));
+        recty_max = fminf(fmaxf(recty_max, p_screen.y), p_screen.y + (GAMEBOY_HEIGHT * screen_scale));
 
-            float real_x = x - 8.0f;
-            float real_y = y - 16.0f;
-            float rectx_min = p_screen.x + (real_x * screen_scale);
-            float rectx_max = p_screen.x + ((real_x + 8.0f) * screen_scale);
-            float recty_min = p_screen.y + (real_y * screen_scale);
-            float recty_max = p_screen.y + ((real_y + (sprites_16 ? 16.0f : 8.0f)) * screen_scale);
+        float t = (float)(0.5 + 0.5 * sin(ImGui::GetTime() * 4.0));
+        ImVec4 pulse_color = ImVec4(
+            red.x + (white.x - red.x) * t,
+            red.y + (white.y - red.y) * t,
+            red.z + (white.z - red.z) * t,
+            1.0f);
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        draw_list->AddRect(ImVec2(rectx_min, recty_min), ImVec2(rectx_max, recty_max), ImColor(pulse_color), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
 
-            rectx_min = fminf(fmaxf(rectx_min, p_screen.x), p_screen.x + (GAMEBOY_WIDTH * screen_scale));
-            rectx_max = fminf(fmaxf(rectx_max, p_screen.x), p_screen.x + (GAMEBOY_WIDTH * screen_scale));
-            recty_min = fminf(fmaxf(recty_min, p_screen.y), p_screen.y + (GAMEBOY_HEIGHT * screen_scale));
-            recty_max = fminf(fmaxf(recty_max, p_screen.y), p_screen.y + (GAMEBOY_HEIGHT * screen_scale));
+        ImGui::NewLine();
 
-            ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            draw_list->AddRect(ImVec2(rectx_min, recty_min), ImVec2(rectx_max, recty_max), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+        ImGui::TextColored(magenta, "DETAILS:");
+        ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
+        ImGui::Text("$%02X", x); ImGui::SameLine();
+        ImGui::TextColored(cyan, "  Y:"); ImGui::SameLine();
+        ImGui::Text("$%02X", y); ImGui::SameLine();
 
-            ImGui::TextColored(magenta, "DETAILS:");
-            ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
-            ImGui::Text("$%02X", x); ImGui::SameLine();
-            ImGui::TextColored(cyan, "  Y:"); ImGui::SameLine();
-            ImGui::Text("$%02X", y); ImGui::SameLine();
+        ImGui::TextColored(cyan, "   Tile:"); ImGui::SameLine();
+        ImGui::Text("$%02X", tile);
 
-            ImGui::TextColored(cyan, "   Tile:"); ImGui::SameLine();
-            ImGui::Text("$%02X", tile);
+        ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
+        ImGui::Text("$%04X", 0x8000 + (tile * 16)); ImGui::SameLine();
 
-            ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
-            ImGui::Text("$%04X", 0x8000 + (tile * 16)); ImGui::SameLine();
+        ImGui::TextColored(cyan, "  Bank:"); ImGui::SameLine();
+        ImGui::Text("%d", cgb_bank);
 
-            ImGui::TextColored(cyan, "  Bank:"); ImGui::SameLine();
-            ImGui::Text("%d", cgb_bank);
+        ImGui::TextColored(cyan, " OAM Addr:"); ImGui::SameLine();
+        ImGui::Text("$%04X", address); ImGui::SameLine();
 
-            ImGui::TextColored(cyan, " OAM Addr:"); ImGui::SameLine();
-            ImGui::Text("$%04X", address); ImGui::SameLine();
+        ImGui::TextColored(cyan, "  Flags:"); ImGui::SameLine();
+        ImGui::Text("$%02X", flags);
 
-            
-            ImGui::TextColored(cyan, "  Flags:"); ImGui::SameLine();
-            ImGui::Text("$%02X", flags); 
+        ImGui::TextColored(cyan, " Priority:"); ImGui::SameLine();
+        priority ? ImGui::TextColored(green, "ON ") : ImGui::TextColored(gray, "OFF"); ImGui::SameLine();
 
-            ImGui::TextColored(cyan, " Priority:"); ImGui::SameLine();
-            priority ? ImGui::TextColored(green, "ON ") : ImGui::TextColored(gray, "OFF"); ImGui::SameLine();
+        ImGui::TextColored(cyan, "  Palette:"); ImGui::SameLine();
+        ImGui::Text("%d", emu_is_cgb() ? cgb_pal : palette);
 
-            ImGui::TextColored(cyan, "  Palette:"); ImGui::SameLine();
-            ImGui::Text("%d", emu_is_cgb() ? cgb_pal : palette);
+        ImGui::TextColored(cyan, " X-Flip:"); ImGui::SameLine();
+        xflip ? ImGui::TextColored(green, "ON ") : ImGui::TextColored(gray, "OFF"); ImGui::SameLine();
 
-            ImGui::TextColored(cyan, " X-Flip:"); ImGui::SameLine();
-            xflip ? ImGui::TextColored(green, "ON ") : ImGui::TextColored(gray, "OFF"); ImGui::SameLine();
-
-            ImGui::TextColored(cyan, "  Y-Flip:"); ImGui::SameLine();
-            yflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
-        }
+        ImGui::TextColored(cyan, "  Y-Flip:"); ImGui::SameLine();
+        yflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
     }
 
     ImGui::Columns(1);
