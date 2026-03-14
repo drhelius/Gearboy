@@ -178,7 +178,10 @@ u8* MultiMBC1MemoryRule::GetCurrentRomBank1()
 
 int MultiMBC1MemoryRule::GetCurrentRomBank1Index()
 {
-    return m_iMBC1Bank_1;
+    if (m_iMulticartMode == 0)
+        return m_iMBC1Bank_1;
+    else
+        return m_iMBC1MBank_1;
 }
 
 void MultiMBC1MemoryRule::SaveState(std::ostream& stream)
