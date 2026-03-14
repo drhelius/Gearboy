@@ -58,6 +58,17 @@ u8 MBC1MemoryRule::PerformRead(u16 address)
 {
     switch (address & 0xE000)
     {
+        case 0x0000:
+        case 0x2000:
+        {
+            if (m_iMode == 1)
+            {
+                u8* pROM = m_pCartridge->GetTheROM();
+                int bank0 = (m_HigherRomBankBits << 5) & (m_pCartridge->GetROMBankCount() - 1);
+                return pROM[(bank0 * 0x4000) + address];
+            }
+            return m_pMemory->Retrieve(address);
+        }
         case 0x4000:
         case 0x6000:
         {
@@ -276,11 +287,19 @@ int MBC1MemoryRule::GetCurrentRomBank1Index()
 
 u8* MBC1MemoryRule::GetRomBank0()
 {
+    if (m_iMode == 1)
+    {
+        u8* pROM = m_pCartridge->GetTheROM();
+        int bank0 = (m_HigherRomBankBits << 5) & (m_pCartridge->GetROMBankCount() - 1);
+        return pROM + (bank0 * 0x4000);
+    }
     return m_pMemory->GetMemoryMap() + 0x0000;
 }
 
 int MBC1MemoryRule::GetCurrentRomBank0Index()
 {
+    if (m_iMode == 1)
+        return (m_HigherRomBankBits << 5) & (m_pCartridge->GetROMBankCount() - 1);
     return 0;
 }
 
