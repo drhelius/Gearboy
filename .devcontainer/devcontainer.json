@@ -4,12 +4,12 @@
         "context": "."
     },
   "features": {
-        "ghcr.io/devcontainers/features/common-utils:2": {
-          "username": "codespace",
-          "userUid": "1000",
-          "userGid": "1000"
-        },
-        "ghcr.io/devcontainers/features/desktop-lite:1": {}
+      "ghcr.io/devcontainers/features/common-utils:2": {
+        "username": "codespace",
+        "userUid": "automatic",
+        "userGid": "automatic"
+      },
+      "ghcr.io/devcontainers/features/desktop-lite:1": {}
   },
   "forwardPorts": [6080],
   "portsAttributes": {
