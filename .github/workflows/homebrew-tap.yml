@@ -22,7 +22,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get release version
         run: |
@@ -39,20 +39,20 @@ jobs:
 
       - name: Download macOS release artifacts
         run: |
-          curl -L -o macos-arm.zip "https://github.com/${{ github.repository }}/releases/download/${{ env.VERSION }}/${{ env.NAME_UPPER }}-${{ env.VERSION }}-macos-arm.zip"
-          curl -L -o macos-intel.zip "https://github.com/${{ github.repository }}/releases/download/${{ env.VERSION }}/${{ env.NAME_UPPER }}-${{ env.VERSION }}-macos-intel.zip"
+          curl -L -o macos-arm64.zip "https://github.com/${{ github.repository }}/releases/download/${{ env.VERSION }}/${{ env.NAME_UPPER }}-${{ env.VERSION }}-desktop-macos-arm64.zip"
+          curl -L -o macos-intel.zip "https://github.com/${{ github.repository }}/releases/download/${{ env.VERSION }}/${{ env.NAME_UPPER }}-${{ env.VERSION }}-desktop-macos-intel.zip"
 
       - name: Calculate SHA256 hashes
         run: |
-          ARM_SHA=$(sha256sum macos-arm.zip | cut -d' ' -f1)
+          ARM64_SHA=$(sha256sum macos-arm64.zip | cut -d' ' -f1)
           INTEL_SHA=$(sha256sum macos-intel.zip | cut -d' ' -f1)
-          echo "ARM_SHA=$ARM_SHA" >> $GITHUB_ENV
+          echo "ARM64_SHA=$ARM64_SHA" >> $GITHUB_ENV
           echo "INTEL_SHA=$INTEL_SHA" >> $GITHUB_ENV
-          echo "ARM SHA256: $ARM_SHA"
+          echo "ARM64 SHA256: $ARM64_SHA"
           echo "Intel SHA256: $INTEL_SHA"
 
       - name: Checkout Homebrew tap repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ env.TAP_REPO }}
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
@@ -62,13 +62,13 @@ jobs:
         run: |
           cat > homebrew-tap/Casks/${{ env.NAME_LOWER }}.rb << EOF
           cask "${{ env.NAME_LOWER }}" do
-            arch arm: "arm", intel: "intel"
+            arch arm: "arm64", intel: "intel"
 
             version "${{ env.VERSION }}"
-            sha256 arm:   "${{ env.ARM_SHA }}",
+            sha256 arm:   "${{ env.ARM64_SHA }}",
                    intel: "${{ env.INTEL_SHA }}"
 
-            url "https://github.com/${{ env.GITHUB_OWNER }}/${{ env.NAME_UPPER }}/releases/download/#{version}/${{ env.NAME_UPPER }}-#{version}-macos-#{arch}.zip"
+            url "https://github.com/${{ env.GITHUB_OWNER }}/${{ env.NAME_UPPER }}/releases/download/#{version}/${{ env.NAME_UPPER }}-#{version}-desktop-macos-#{arch}.zip"
             name "${{ env.NAME_UPPER }}"
             desc "${{ env.APP_DESC }}"
             homepage "https://github.com/${{ env.GITHUB_OWNER }}/${{ env.NAME_UPPER }}"
