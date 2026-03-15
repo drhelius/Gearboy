@@ -8,7 +8,7 @@
             "intelliSenseMode": "linux-gcc-x64",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/include/SDL2"
+                "/usr/include"
             ],
             "browse": {
               "path": ["${workspaceFolder}"]
@@ -22,7 +22,7 @@
             "intelliSenseMode": "macos-clang-arm64",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/opt/homebrew/include/SDL2"
+                "/opt/homebrew/include"
             ],
             "macFrameworkPath": ["/System/Library/Frameworks", "/Library/Frameworks"],
             "browse": {

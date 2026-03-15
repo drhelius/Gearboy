@@ -8,17 +8,19 @@
             "linux": {
                 "program": "${workspaceFolder}/platforms/linux/gearboy",
                 "cwd": "${workspaceFolder}/platforms/linux",
-                "MIMode": "gdb"
+                "MIMode": "gdb",
+                "externalConsole": false,
             },
             "osx": {
                 "program": "${workspaceFolder}/platforms/macos/gearboy",
                 "cwd": "${workspaceFolder}/platforms/macos",
-                "MIMode": "lldb"
+                "MIMode": "lldb",
+                "externalConsole": true,
+                "targetArchitecture": "arm64"
             },
             "args": [],
             "stopAtEntry": false,
             "environment": [],
-            "externalConsole": false,
             "preLaunchTask": "Build (DEBUG)",
             "setupCommands": [
                 {
@@ -29,6 +31,11 @@
                 {
                     "description": "Set Disassembly Flavor to Intel",
                     "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                },
+                {
+                    "text": "process handle SIGUSR1 -n false -p true -s false",
+                    "description": "Ignore SIGUSR1 for single instance",
                     "ignoreFailures": true
                 }
             ]
