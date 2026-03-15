@@ -1,4 +1,4 @@
-!*.dll
-!*.exe
-![Rr]elease*/
-![Bb]in
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore

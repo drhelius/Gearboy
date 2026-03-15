@@ -35,6 +35,7 @@ endif
 export DEPSDIR := $(CURDIR)/
 CORE_DIR    += .
 SOURCE_DIR  += ../../src
+DEPS_DIR    += ../shared/dependencies
 TARGET_NAME := gearboy
 LIBM         = -lm
 
@@ -214,6 +215,8 @@ else ifneq (,$(findstring qnx,$(platform)))
 else ifeq ($(platform), emscripten)
 	TARGET := $(TARGET_NAME)_libretro_emscripten.bc
 	STATIC_LINKING = 1
+	CFLAGS += -D_POSIX_C_SOURCE=200809L
+	CXXFLAGS += $(CFLAGS)
 # RS90
 else ifeq ($(platform), rs90)
 	TARGET := $(TARGET_NAME)_libretro.so
@@ -337,10 +340,13 @@ include Makefile.common
 
 OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
-INCLUDES += -I$(CORE_DIR)
+INCLUDES += -I$(CORE_DIR) -I$(SOURCE_DIR)
+INCLUDES += -I$(DEPS_DIR)/miniz
 
-CFLAGS   += -DGEARBOY_DISABLE_DISASSEMBLER -DGEARBOY_DISABLE_VGMRECORDER -Wall -D__LIBRETRO__ $(INCLUDES) $(fpic)
-CXXFLAGS += -DGEARBOY_DISABLE_DISASSEMBLER -DGEARBOY_DISABLE_VGMRECORDER -Wall -D__LIBRETRO__ $(INCLUDES) $(fpic)
+CFLAGS   += -DGEARBOY_DISABLE_DISASSEMBLER -DGEARBOY_DISABLE_VGMRECORDER -Wall -fno-exceptions -D__LIBRETRO__ $(INCLUDES) $(fpic)
+CXXFLAGS += -DGEARBOY_DISABLE_DISASSEMBLER -DGEARBOY_DISABLE_VGMRECORDER -Wall -fno-exceptions -D__LIBRETRO__ $(INCLUDES) $(fpic)
+
+$(DEPS_DIR)/%.o: CXXFLAGS += -w
 
 all: $(TARGET)
 	@echo Build complete: $(TARGET_NAME) $(BUILD_CONFIG) - $(GIT_VERSION) - $(platform)
