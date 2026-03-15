@@ -1,0 +1,5 @@
+paths:
+  - src
+  - platforms/shared
+paths-ignore:
+  - platforms/shared/dependencies
