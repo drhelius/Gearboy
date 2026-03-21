@@ -44,12 +44,12 @@ void Input::Reset()
 
 void Input::KeyPressed(Gameboy_Keys key)
 {
-    m_JoypadState = UnsetBit(m_JoypadState, key);
+    m_JoypadState &= ~key;
 }
 
 void Input::KeyReleased(Gameboy_Keys key)
 {
-    m_JoypadState = SetBit(m_JoypadState, key);
+    m_JoypadState |= key;
 }
 
 void Input::Update()

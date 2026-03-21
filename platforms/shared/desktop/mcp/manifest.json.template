@@ -1,0 +1,33 @@
+{
+  "manifest_version": "0.3",
+  "name": "{{NAME_LOWER}}-mcp",
+  "display_name": "{{NAME_UPPER}} MCP Server",
+  "version": "{{VERSION}}",
+  "description": "Model Context Protocol server for {{NAME_UPPER}} Sega Master System / Game Gear / SG-1000 emulator",
+  "long_description": "{{NAME_UPPER}} is a high-accuracy Sega Master System / Game Gear / SG-1000 emulator with comprehensive debugging capabilities exposed through the Model Context Protocol. This MCP server allows AI assistants to debug, inspect, and control the emulator, providing tools for memory inspection, breakpoint management, Z80 register access, VDP/PSG/YM2413 hardware state monitoring.",
+  "author": {
+    "name": "Nacho Sanchez",
+    "url": "https://github.com/drhelius/{{NAME_LOWER}}"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drhelius/{{NAME_LOWER}}.git"
+  },
+  "homepage": "https://github.com/drhelius/{{NAME_LOWER}}",
+  "documentation": "https://github.com/drhelius/{{NAME_LOWER}}/blob/main/MCP_README.md",
+  "support": "https://github.com/drhelius/{{NAME_LOWER}}/issues",
+  "keywords": ["emulator", "sega", "master-system", "game-gear", "debugging", "retro-gaming", "hardware-emulation"],
+  "license": "GPL-3.0",
+  "icon": "icon.png",
+  "server": {
+    "type": "binary",
+    "entry_point": "server/{{BINARY_NAME}}",
+    "mcp_config": {
+      "command": "${__dirname}/server/{{BINARY_NAME}}",
+      "args": ["--mcp-stdio"]
+    }
+  },
+  "compatibility": {
+    "platforms": ["{{PLATFORM}}"]
+  }
+}

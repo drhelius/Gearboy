@@ -60,6 +60,7 @@ public:
     const char* GetName() const;
     const char* GetFilePath() const;
     const char* GetFileName() const;
+    const char* GetFileDirectory() const;
     int GetTotalSize() const;
     bool HasBattery() const;
     u8* GetTheROM() const;
@@ -97,6 +98,7 @@ private:
     bool m_bBattery;
     char m_szFilePath[512];
     char m_szFileName[512];
+    char m_szFileDirectory[512];
     bool m_bRTCPresent;
     bool m_bRumblePresent;
     int m_iRAMBankCount;

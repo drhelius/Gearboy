@@ -60,6 +60,7 @@ GearboyCore::GearboyCore()
     m_iRTCUpdateCount = 0;
     m_pixelFormat = GB_PIXEL_RGB565;
     m_bColorCorrectionEnabled = false;
+    m_pSaveStateFrameBuffer = NULL;
 }
 
 GearboyCore::~GearboyCore()
@@ -138,7 +139,7 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             }
 #endif
 
-            if (totalClocks > 702240)
+            if (totalClocks > GAMEBOY_CLOCKS_SAFE_LIMIT)
                 vblank = true;
         }
 
@@ -522,76 +523,74 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 
 void GearboyCore::SaveState(int index)
 {
-    if (m_pMemory->IsBootromRegistryEnabled())
-    {
-        Debug("Save states disabled when running bootrom");
-        return;
-    }
-
-    Log("Creating save state %d...", index);
-
-    SaveState(NULL, index);
-
-    Debug("Save state %d created", index);
+    SaveState(NULL, index, false);
 }
 
 void GearboyCore::SaveState(const char* szPath, int index)
 {
+    SaveState(szPath, index, false);
+}
+
+void GearboyCore::SetFrameBuffer(u8* frame_buffer)
+{
+    m_pSaveStateFrameBuffer = frame_buffer;
+}
+
+std::string GearboyCore::GetSaveStatePath(const char* path, int index)
+{
+    if (index < 0)
+        return path;
+
+    using namespace std;
+    string full_path;
+
+    if (IsValidPointer(path))
+    {
+        full_path = path;
+        full_path += "/";
+        full_path += m_pCartridge->GetFileName();
+    }
+    else
+        full_path = m_pCartridge->GetFilePath();
+
+    string::size_type dot_index = full_path.rfind('.');
+
+    if (dot_index != string::npos)
+        full_path.replace(dot_index + 1, full_path.length() - dot_index - 1, "state");
+
+    stringstream ss;
+    ss << index;
+    full_path += ss.str();
+
+    return full_path;
+}
+
+bool GearboyCore::SaveState(const char* path, int index, bool screenshot)
+{
+    using namespace std;
+
     if (m_pMemory->IsBootromRegistryEnabled())
     {
         Debug("Save states disabled when running bootrom");
-        return;
+        return false;
     }
 
-    Debug("Saving state...");
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Saving state to %s...", full_path.c_str());
 
-    using namespace std;
+    ofstream stream;
+    open_ofstream_utf8(stream, full_path.c_str(), ios::out | ios::binary);
 
     size_t size;
-    SaveState(NULL, size);
-
-    u8* buffer = new u8[size];
-    string path = "";
-
-    if (IsValidPointer(szPath))
-    {
-        path += szPath;
-        path += "/";
-        path += m_pCartridge->GetFileName();
-    }
+    bool ret = SaveState(stream, size, screenshot);
+    if (ret)
+        Log("Saved state to %s", full_path.c_str());
     else
-    {
-        path = m_pCartridge->GetFilePath();
-    }
-
-    string::size_type i = path.rfind('.', path.length());
-
-    if (i != string::npos) {
-        path.replace(i + 1, 3, "state");
-    }
-
-    std::stringstream sstm;
-
-    if (index < 0)
-        sstm << szPath;
-    else
-        sstm << path << index;
-
-    Log("Save state file: %s", sstm.str().c_str());
-
-    ofstream file;
-    open_ofstream_utf8(file, sstm.str().c_str(), ios::out | ios::binary);
-
-    SaveState(file, size);
-
-    SafeDeleteArray(buffer);
-
-    file.close();
-
-    Debug("Save state created");
+        Log("Failed to save state to %s", full_path.c_str());
+    return ret;
 }
 
-bool GearboyCore::SaveState(u8* buffer, size_t& size)
+bool GearboyCore::SaveState(u8* buffer, size_t& size, bool screenshot)
 {
     if (m_pMemory->IsBootromRegistryEnabled())
     {
@@ -607,7 +606,7 @@ bool GearboyCore::SaveState(u8* buffer, size_t& size)
 
         stringstream stream;
 
-        if (SaveState(stream, size))
+        if (SaveState(stream, size, screenshot))
             ret = true;
 
         if (IsValidPointer(buffer))
@@ -625,7 +624,7 @@ bool GearboyCore::SaveState(u8* buffer, size_t& size)
     return ret;
 }
 
-bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
+bool GearboyCore::SaveState(std::ostream& stream, size_t& size, bool screenshot)
 {
     if (m_pMemory->IsBootromRegistryEnabled())
     {
@@ -635,7 +634,7 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
 
     if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
-        Debug("Gathering save state data...");
+        Debug("Serializing save state...");
 
         using namespace std;
 
@@ -646,23 +645,62 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
         m_pAudio->SaveState(stream);
         m_pMemory->GetCurrentRule()->SaveState(stream);
 
+#if defined(__LIBRETRO__)
+        GB_SaveState_Header_Libretro header;
+        header.magic = GB_SAVESTATE_MAGIC;
+        header.version = GB_SAVESTATE_VERSION;
+        Debug("Save state header magic: 0x%08x", header.magic);
+        Debug("Save state header version: %d", header.version);
+#else
+        GB_SaveState_Header header;
+        memset(&header, 0, sizeof(header));
+        header.magic = GB_SAVESTATE_MAGIC;
+        header.version = GB_SAVESTATE_VERSION;
+
+        header.timestamp = (s64)time(NULL);
+        strncpy(header.rom_name, m_pCartridge->GetFileName(), sizeof(header.rom_name) - 1);
+        header.rom_name[sizeof(header.rom_name) - 1] = 0;
+        header.rom_crc = 0;
+        strncpy(header.emu_build, GEARBOY_VERSION, sizeof(header.emu_build) - 1);
+        header.emu_build[sizeof(header.emu_build) - 1] = 0;
+
+        Debug("Save state header magic: 0x%08x", header.magic);
+        Debug("Save state header version: %d", header.version);
+        Debug("Save state header rom name: %s", header.rom_name);
+        Debug("Save state header emu build: %s", header.emu_build);
+
+        if (screenshot && IsValidPointer(m_pSaveStateFrameBuffer))
+        {
+            header.screenshot_width = GAMEBOY_WIDTH;
+            header.screenshot_height = GAMEBOY_HEIGHT;
+            header.screenshot_size = GAMEBOY_WIDTH * GAMEBOY_HEIGHT * 3;
+            stream.write(reinterpret_cast<const char*>(m_pSaveStateFrameBuffer), header.screenshot_size);
+        }
+        else
+        {
+            header.screenshot_size = 0;
+            header.screenshot_width = 0;
+            header.screenshot_height = 0;
+        }
+
+        Debug("Save state header screenshot size: %d", header.screenshot_size);
+#endif
+
         size = static_cast<size_t>(stream.tellp());
+        size += sizeof(header);
 
-        size += (sizeof(u32) * 2);
+#if !defined(__LIBRETRO__)
+        header.size = static_cast<u32>(size);
+        Debug("Save state header size: %d", header.size);
+#endif
 
-        u32 header_magic = SAVESTATE_MAGIC;
-        u32 header_size = static_cast<u32>(size);
+        stream.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
-        stream.write(reinterpret_cast<const char*> (&header_magic), sizeof(header_magic));
-        stream.write(reinterpret_cast<const char*> (&header_size), sizeof(header_size));
-
-        Log("Save state size: %d", static_cast<size_t>(stream.tellp()));
-
+        Log("Save state size: %d", static_cast<int>(size));
         return true;
     }
 
     Log("Invalid rom or memory rule.");
-
     return false;
 }
 
@@ -675,71 +713,47 @@ void GearboyCore::LoadState(int index)
     }
 
     Log("Loading save state %d...", index);
-
-    LoadState(NULL, index);
-
+    LoadState(NULL, index, false);
     Log("State %d file loaded", index);
 }
 
 void GearboyCore::LoadState(const char* szPath, int index)
 {
+    LoadState(szPath, index, false);
+}
+
+bool GearboyCore::LoadState(const char* path, int index, bool)
+{
+    using namespace std;
+
     if (m_pMemory->IsBootromRegistryEnabled())
     {
         Debug("Save states disabled when running bootrom");
-        return;
+        return false;
     }
 
-    Debug("Loading save state...");
+    bool ret = false;
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Loading state from %s...", full_path.c_str());
 
-    using namespace std;
+    ifstream stream;
+    open_ifstream_utf8(stream, full_path.c_str(), ios::in | ios::binary);
 
-    string sav_path = "";
-
-    if (IsValidPointer(szPath))
+    if (!stream.fail())
     {
-        sav_path += szPath;
-        sav_path += "/";
-        sav_path += m_pCartridge->GetFileName();
+        ret = LoadState(stream);
+        if (ret)
+            Log("Loaded state from %s", full_path.c_str());
+        else
+            Log("Failed to load state from %s", full_path.c_str());
     }
     else
     {
-        sav_path = m_pCartridge->GetFilePath();
+        Log("Save state file doesn't exist: %s", full_path.c_str());
     }
 
-    string rom_path = sav_path;
-
-    string::size_type i = sav_path.rfind('.', sav_path.length());
-
-    if (i != string::npos) {
-        sav_path.replace(i + 1, 3, "state");
-    }
-
-    std::stringstream sstm;
-
-    if (index < 0)
-        sstm << szPath;
-    else
-        sstm << sav_path << index;
-
-    Log("Opening save file: %s", sstm.str().c_str());
-
-    ifstream file;
-
-    open_ifstream_utf8(file, sstm.str().c_str(), ios::in | ios::binary);
-
-    if (!file.fail())
-    {
-        if (LoadState(file))
-        {
-            Debug("Save state loaded");
-        }
-    }
-    else
-    {
-        Log("Save state file doesn't exist");
-    }
-
-    file.close();
+    stream.close();
+    return ret;
 }
 
 bool GearboyCore::LoadState(const u8* buffer, size_t size)
@@ -752,19 +766,17 @@ bool GearboyCore::LoadState(const u8* buffer, size_t size)
 
     if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
     {
-        Debug("Gathering load state data [%d bytes]...", size);
+        Debug("Loading state from buffer [%d bytes]...", size);
 
         using namespace std;
 
         stringstream stream;
-
-        stream.write(reinterpret_cast<const char*> (buffer), size);
+        stream.write(reinterpret_cast<const char*>(buffer), size);
 
         return LoadState(stream);
     }
 
     Log("Invalid rom or memory rule.");
-
     return false;
 }
 
@@ -776,50 +788,254 @@ bool GearboyCore::LoadState(std::istream& stream)
         return false;
     }
 
-    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
-    {
-        using namespace std;
-
-        u32 header_magic = 0;
-        u32 header_size = 0;
-
-        stream.seekg(0, ios::end);
-        size_t size = static_cast<size_t>(stream.tellg());
-
-        Debug("Load state stream size: %d", size);
-
-        stream.seekg(size - (2 * sizeof(u32)), ios::beg);
-        stream.read(reinterpret_cast<char*> (&header_magic), sizeof(header_magic));
-        stream.read(reinterpret_cast<char*> (&header_size), sizeof(header_size));
-        stream.seekg(0, ios::beg);
-
-        Debug("Load state magic: 0x%08x", header_magic);
-        Debug("Load state size: %d", header_size);
-
-        if ((header_size == size) && (header_magic == SAVESTATE_MAGIC))
-        {
-            Debug("Loading state...");
-
-            m_pMemory->LoadState(stream);
-            m_pProcessor->LoadState(stream);
-            m_pVideo->LoadState(stream);
-            m_pInput->LoadState(stream);
-            m_pAudio->LoadState(stream);
-            m_pMemory->GetCurrentRule()->LoadState(stream);
-
-            return true;
-        }
-        else
-        {
-            Log("Invalid save state size");
-        }
-    }
-    else
+    if (!(m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule())))
     {
         Log("Invalid rom or memory rule");
+        return false;
     }
 
-    return false;
+    using namespace std;
+
+    stream.seekg(0, ios::end);
+    size_t size = static_cast<size_t>(stream.tellg());
+    stream.seekg(0, ios::beg);
+
+#if defined(__LIBRETRO__)
+    GB_SaveState_Header_Libretro header;
+#else
+    GB_SaveState_Header header;
+#endif
+
+    if (size < sizeof(header))
+    {
+        Log("Save state too small for current header (%d bytes), trying legacy format...", static_cast<int>(size));
+        return LoadStateLegacy(stream, size);
+    }
+
+    stream.seekg(size - sizeof(header), ios::beg);
+    stream.read(reinterpret_cast<char*>(&header), sizeof(header));
+    stream.seekg(0, ios::beg);
+
+    Debug("Load state header magic: 0x%08x", header.magic);
+    Debug("Load state header version: %d", header.version);
+
+    if (header.magic != GB_SAVESTATE_MAGIC || header.version < GB_SAVESTATE_MIN_VERSION || header.version > GB_SAVESTATE_VERSION)
+    {
+        Log("Save state header does not match current version, trying legacy format...");
+        return LoadStateLegacy(stream, size);
+    }
+
+#if !defined(__LIBRETRO__)
+    Debug("Load state header size: %d", header.size);
+    Debug("Load state header rom name: %s", header.rom_name);
+    Debug("Load state header emu build: %s", header.emu_build);
+    Debug("Load state header screenshot size: %d", header.screenshot_size);
+
+    if (header.size != size)
+    {
+        Log("Invalid save state size: %d (expected %d)", header.size, static_cast<int>(size));
+        return false;
+    }
+#endif
+
+    Debug("Loading state...");
+
+    m_pMemory->LoadState(stream);
+    m_pProcessor->LoadState(stream);
+    m_pVideo->LoadState(stream);
+    m_pInput->LoadState(stream);
+    m_pAudio->LoadState(stream);
+    m_pMemory->GetCurrentRule()->LoadState(stream);
+
+    return true;
+}
+
+bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
+{
+    using namespace std;
+
+    if (size < (2 * sizeof(u32)))
+    {
+        Log("Save state too small for legacy header (%d bytes)", static_cast<int>(size));
+        return false;
+    }
+
+    u32 legacy_magic = 0;
+    u32 legacy_size = 0;
+
+    stream.seekg(size - (2 * sizeof(u32)), ios::beg);
+    stream.read(reinterpret_cast<char*>(&legacy_magic), sizeof(legacy_magic));
+    stream.read(reinterpret_cast<char*>(&legacy_size), sizeof(legacy_size));
+    stream.seekg(0, ios::beg);
+
+    Debug("Load state legacy magic: 0x%08x", legacy_magic);
+    Debug("Load state legacy size: %d", legacy_size);
+
+    if (legacy_magic != SAVESTATE_MAGIC)
+    {
+        Log("Invalid legacy save state magic: 0x%08x", legacy_magic);
+        return false;
+    }
+
+    if (legacy_size != size)
+    {
+        Log("Invalid legacy save state size: %d (expected %d)", legacy_size, static_cast<int>(size));
+        return false;
+    }
+
+    Log("Loading legacy save state (%d bytes)...", static_cast<int>(size));
+
+    m_pMemory->LoadState(stream);
+    m_pProcessor->LoadState(stream);
+    m_pVideo->LoadState(stream);
+    m_pInput->LoadState(stream);
+    m_pAudio->LoadState(stream);
+    m_pMemory->GetCurrentRule()->LoadState(stream);
+
+    return true;
+}
+
+bool GearboyCore::GetSaveStateHeader(int index, const char* path, GB_SaveState_Header* header)
+{
+    using namespace std;
+
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Loading state header from %s...", full_path.c_str());
+
+    ifstream stream;
+    open_ifstream_utf8(stream, full_path.c_str(), ios::in | ios::binary);
+
+    if (stream.fail())
+    {
+        Debug("Savestate file doesn't exist %s", full_path.c_str());
+        stream.close();
+        return false;
+    }
+
+    stream.seekg(0, ios::end);
+    size_t savestate_size = static_cast<size_t>(stream.tellg());
+    stream.seekg(0, ios::beg);
+
+    if (savestate_size < sizeof(GB_SaveState_Header))
+    {
+        // Try legacy format (8-byte footer: magic + size)
+        if (savestate_size < (2 * sizeof(u32)))
+        {
+            stream.close();
+            return false;
+        }
+
+        u32 legacy_magic = 0;
+        u32 legacy_size = 0;
+
+        stream.seekg(savestate_size - (2 * sizeof(u32)), ios::beg);
+        stream.read(reinterpret_cast<char*>(&legacy_magic), sizeof(legacy_magic));
+        stream.read(reinterpret_cast<char*>(&legacy_size), sizeof(legacy_size));
+        stream.close();
+
+        if (legacy_magic != SAVESTATE_MAGIC || legacy_size != savestate_size)
+            return false;
+
+        memset(header, 0, sizeof(GB_SaveState_Header));
+        header->magic = legacy_magic;
+        header->version = GB_SAVESTATE_LEGACY_VERSION;
+        header->size = legacy_size;
+        strncpy(header->rom_name, m_pCartridge->GetFileName(), sizeof(header->rom_name) - 1);
+        header->rom_name[sizeof(header->rom_name) - 1] = 0;
+        return true;
+    }
+
+    stream.seekg(savestate_size - sizeof(GB_SaveState_Header), ios::beg);
+    stream.read(reinterpret_cast<char*>(header), sizeof(GB_SaveState_Header));
+    stream.close();
+
+    if (header->magic != GB_SAVESTATE_MAGIC)
+    {
+        // Try legacy format
+        ifstream stream2;
+        open_ifstream_utf8(stream2, full_path.c_str(), ios::in | ios::binary);
+
+        u32 legacy_magic = 0;
+        u32 legacy_size = 0;
+
+        stream2.seekg(savestate_size - (2 * sizeof(u32)), ios::beg);
+        stream2.read(reinterpret_cast<char*>(&legacy_magic), sizeof(legacy_magic));
+        stream2.read(reinterpret_cast<char*>(&legacy_size), sizeof(legacy_size));
+        stream2.close();
+
+        if (legacy_magic != SAVESTATE_MAGIC || legacy_size != savestate_size)
+            return false;
+
+        memset(header, 0, sizeof(GB_SaveState_Header));
+        header->magic = legacy_magic;
+        header->version = GB_SAVESTATE_LEGACY_VERSION;
+        header->size = legacy_size;
+        strncpy(header->rom_name, m_pCartridge->GetFileName(), sizeof(header->rom_name) - 1);
+        header->rom_name[sizeof(header->rom_name) - 1] = 0;
+        return true;
+    }
+
+    return true;
+}
+
+bool GearboyCore::GetSaveStateScreenshot(int index, const char* path, GB_SaveState_Screenshot* screenshot)
+{
+    using namespace std;
+
+    if (!IsValidPointer(screenshot->data) || (screenshot->size == 0))
+    {
+        Log("Invalid save state screenshot buffer");
+        return false;
+    }
+
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Loading state screenshot from %s...", full_path.c_str());
+
+    ifstream stream;
+    open_ifstream_utf8(stream, full_path.c_str(), ios::in | ios::binary);
+
+    if (stream.fail())
+    {
+        Log("Savestate file doesn't exist %s", full_path.c_str());
+        stream.close();
+        return false;
+    }
+
+    GB_SaveState_Header header;
+    GetSaveStateHeader(index, path, &header);
+
+    if (header.screenshot_size == 0)
+    {
+        Debug("No screenshot data");
+        stream.close();
+        return false;
+    }
+
+    if (screenshot->size < header.screenshot_size)
+    {
+        Log("Invalid screenshot buffer size %d < %d", screenshot->size, header.screenshot_size);
+        stream.close();
+        return false;
+    }
+
+    screenshot->size = header.screenshot_size;
+    screenshot->width = header.screenshot_width;
+    screenshot->height = header.screenshot_height;
+
+    Debug("Screenshot size: %d bytes", screenshot->size);
+
+    if (header.size < sizeof(header) + screenshot->size)
+    {
+        Log("Invalid screenshot offset");
+        stream.close();
+        return false;
+    }
+
+    stream.seekg(header.size - sizeof(header) - screenshot->size, ios::beg);
+    stream.read(reinterpret_cast<char*>(screenshot->data), screenshot->size);
+    stream.close();
+
+    return true;
 }
 
 void GearboyCore::SetCheat(const char* szCheat)

@@ -27,12 +27,14 @@
 #if defined(__LIBRETRO__)
 #include "libretro.h"
 extern retro_log_printf_t log_cb;
+#else
+//extern bool g_mcp_stdio_mode;
 #endif
 
 #if defined(DEBUG_GEARBOY)
     #if defined(__ANDROID__)
         #include <android/log.h>
-        #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, GG_TITLE, __VA_ARGS__);
+        #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, GEARBOY_TITLE, __VA_ARGS__);
     #endif
     #define Debug(msg, ...) (Log_func(msg, ##__VA_ARGS__))
 #else
@@ -40,6 +42,7 @@ extern retro_log_printf_t log_cb;
 #endif
 
 #define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
+#define Error(msg, ...) (Log_func("ERROR [%s:%d] " msg, __FILE__, __LINE__, ##__VA_ARGS__))
 
 inline void Log_func(const char* const msg, ...)
 {
@@ -55,17 +58,20 @@ inline void Log_func(const char* const msg, ...)
         log_cb(RETRO_LOG_INFO, "%s\n", buffer);
         return;
     }
-#endif
-
-#if defined(DEBUG_GEARBOY)
-    static int count = 1;
-    printf("%d: %s\n", count, buffer);
-    count++;
+    else
+    {
+        printf("%s\n", buffer);
+        fflush(stdout);
+        return;
+    }
 #else
-    printf("%s\n", buffer);
-#endif
+    //if (g_mcp_stdio_mode)
+    //    return;
 
+    printf("%s\n", buffer);
     fflush(stdout);
+    return;
+#endif
 }
 
 #endif /* LOG_H */

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.drhelius/{{NAME_LOWER}}",
+  "title": "{{NAME_UPPER}} MCP Server",
+  "description": "MCP server for {{NAME_UPPER}} Sega Master System / Game Gear / SG-1000 emulator",
+  "version": "{{VERSION}}",
+  "repository": {
+    "url": "https://github.com/drhelius/{{NAME_LOWER}}",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/drhelius/{{NAME_LOWER}}/releases/download/{{VERSION}}/{{NAME_UPPER}}-{{VERSION}}-mcpb-macos-arm64.mcpb",
+      "fileSha256": "{{SHA256_MACOS_ARM64}}",
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/drhelius/{{NAME_LOWER}}/releases/download/{{VERSION}}/{{NAME_UPPER}}-{{VERSION}}-mcpb-macos-x64.mcpb",
+      "fileSha256": "{{SHA256_MACOS_X64}}",
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/drhelius/{{NAME_LOWER}}/releases/download/{{VERSION}}/{{NAME_UPPER}}-{{VERSION}}-mcpb-windows-arm64.mcpb",
+      "fileSha256": "{{SHA256_WINDOWS_ARM64}}",
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/drhelius/{{NAME_LOWER}}/releases/download/{{VERSION}}/{{NAME_UPPER}}-{{VERSION}}-mcpb-windows-x64.mcpb",
+      "fileSha256": "{{SHA256_WINDOWS_X64}}",
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/drhelius/{{NAME_LOWER}}/releases/download/{{VERSION}}/{{NAME_UPPER}}-{{VERSION}}-mcpb-linux-x64.mcpb",
+      "fileSha256": "{{SHA256_LINUX_X64}}",
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/drhelius/{{NAME_LOWER}}/releases/download/{{VERSION}}/{{NAME_UPPER}}-{{VERSION}}-mcpb-linux-arm64.mcpb",
+      "fileSha256": "{{SHA256_LINUX_ARM64}}",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

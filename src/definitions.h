@@ -101,9 +101,47 @@ typedef void (*RamChangedCallback) (void);
 #define GAMEBOY_WIDTH 160
 #define GAMEBOY_HEIGHT 144
 
+#define GAMEBOY_CLOCKS_PER_FRAME 70224
+#define GAMEBOY_CLOCKS_SAFE_LIMIT ((GAMEBOY_CLOCKS_PER_FRAME * 5) / 4)
+
 #define AUDIO_BUFFER_SIZE 4096
+#define GB_AUDIO_SAMPLE_RATE 44100
+#define GB_AUDIO_QUEUE_SIZE 1850
 
 #define SAVESTATE_MAGIC 0x28011983
+
+#define GB_SAVESTATE_MAGIC 0x28011983
+#define GB_SAVESTATE_VERSION 100
+#define GB_SAVESTATE_MIN_VERSION 100
+#define GB_SAVESTATE_LEGACY_VERSION 0
+
+struct GB_SaveState_Header
+{
+    u32 magic;
+    u32 version;
+    u32 size;
+    s64 timestamp;
+    char rom_name[128];
+    u32 rom_crc;
+    u32 screenshot_size;
+    u16 screenshot_width;
+    u16 screenshot_height;
+    char emu_build[32];
+};
+
+struct GB_SaveState_Header_Libretro
+{
+    u32 magic;
+    u32 version;
+};
+
+struct GB_SaveState_Screenshot
+{
+    u32 width;
+    u32 height;
+    u32 size;
+    u8* data;
+};
 
 struct GB_Color
 {
@@ -122,14 +160,14 @@ enum GB_Color_Format
 
 enum Gameboy_Keys
 {
-    A_Key = 4,
-    B_Key = 5,
-    Start_Key = 7,
-    Select_Key = 6,
-    Right_Key = 0,
-    Left_Key = 1,
-    Up_Key = 2,
-    Down_Key = 3
+    A_Key = 0x10,
+    B_Key = 0x20,
+    Start_Key = 0x80,
+    Select_Key = 0x40,
+    Right_Key = 0x01,
+    Left_Key = 0x02,
+    Up_Key = 0x04,
+    Down_Key = 0x08
 };
 
 inline u8 SetBit(const u8 value, const u8 bit)
@@ -151,6 +189,31 @@ inline int AsHex(const char c)
 {
   return c >= 'A' ? c - 'A' + 0xA : c - '0';
 }
+
+#if !defined(DEBUG_GEARBOY)
+    #if defined(__GNUC__) || defined(__clang__)
+        #if !defined(__OPTIMIZE__) && !defined(__OPTIMIZE_SIZE__)
+            #warning "Compiling without optimizations."
+            #define GEARBOY_NO_OPTIMIZATIONS
+        #endif
+    #elif defined(_MSC_VER)
+        #if !defined(NDEBUG)
+            #pragma message("Compiling without optimizations.")
+            #define GEARBOY_NO_OPTIMIZATIONS
+        #endif
+    #endif
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define INLINE inline __attribute__((always_inline))
+    #define NO_INLINE __attribute__((noinline))
+#elif defined(_MSC_VER)
+    #define INLINE __forceinline
+    #define NO_INLINE __declspec(noinline)
+#else
+    #define INLINE inline
+    #define NO_INLINE
+#endif
 
 #if !defined(DEBUG_GEARBOY)
     #if defined(__GNUC__) || defined(__clang__)
