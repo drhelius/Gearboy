@@ -173,6 +173,7 @@ void config_read(void)
     config_debug.show_call_stack = read_bool("Debug", "CallStack", false);
     config_debug.show_breakpoints = read_bool("Debug", "Breakpoints", false);
     config_debug.show_symbols = read_bool("Debug", "Symbols", false);
+    config_debug.show_video = read_bool("Debug", "Video", false);
     config_debug.show_trace_logger = read_bool("Debug", "TraceLogger", false);
     config_debug.trace_counter = read_bool("Debug", "TraceCounter", true);
     config_debug.trace_bank = read_bool("Debug", "TraceBank", true);
@@ -245,9 +246,9 @@ void config_read(void)
     config_video.fps = read_bool("Video", "FPS", false);
     config_video.bilinear = read_bool("Video", "Bilinear", false);
     config_video.mix_frames = read_bool("Video", "MixFrames", true);
-    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.75f);
+    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.80f);
     config_video.matrix = read_bool("Video", "Matrix", true);
-    config_video.matrix_intensity = read_float("Video", "MatrixIntensity", 0.20f);
+    config_video.matrix_intensity = read_float("Video", "MatrixIntensity", 0.05f);
     config_video.palette = read_int("Video", "Palette", 0);
     config_video.color_correction = read_bool("Video", "ColorCorrection", true);
     config_video.sync = read_bool("Video", "Sync", true);
