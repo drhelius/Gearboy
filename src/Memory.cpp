@@ -306,7 +306,7 @@ void Memory::PerformDMA(u8 value)
     else
     {
         u16 address = value << 8;
-        if (address >= 0x8000 && address < 0xE000)
+        if (address < 0xE000)
         {
             for (int i = 0; i < 0xA0; i++)
                 Load(0xFE00 + i, Read(address + i));
