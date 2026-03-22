@@ -120,15 +120,18 @@ void MultiMBC1MemoryRule::PerformWrite(u16 address, u8 value)
 
 void MultiMBC1MemoryRule::SetROMBanks()
 {
+    int mask = m_pCartridge->GetROMBankCount() - 1;
     int full_bank = (m_iROMBankHi << 5) | m_iROMBankLo;
 
     m_iMBC1Bank_1 = full_bank;
 
     if (full_bank == 0x00 || full_bank == 0x20 || full_bank == 0x40 || full_bank == 0x60)
         m_iMBC1Bank_1 = full_bank + 1;
+
+    m_iMBC1Bank_1 &= mask;
     
-    m_iMBC1MBank_0 = ((full_bank >> 1) & 0x30);
-    m_iMBC1MBank_1 = ((full_bank >> 1) & 0x30) | (full_bank & 0x0F);
+    m_iMBC1MBank_0 = ((full_bank >> 1) & 0x30) & mask;
+    m_iMBC1MBank_1 = (((full_bank >> 1) & 0x30) | (full_bank & 0x0F)) & mask;
 }
 
 size_t MultiMBC1MemoryRule::GetRamSize()
