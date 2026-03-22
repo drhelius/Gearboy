@@ -55,6 +55,12 @@ inline u8 CommonMemoryRule::PerformRead(u16 address)
             {
                 return m_pMemory->ReadCGBWRAM(address);
             }
+            case 0xE000:
+            {
+                if (address < 0xFE00)
+                    return m_pMemory->ReadCGBWRAM(address - 0x2000);
+                break;
+            }
         }
     }
     else if (address >= 0xFEA0 && address < 0xFF00)
