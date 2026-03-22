@@ -1699,7 +1699,7 @@ void Processor::OPCode0xE7()
 void Processor::OPCode0xE8()
 {
     // ADD SP,n
-    OPCodes_ADD_SP(static_cast<u8> (m_pMemory->Read(PC.GetValue())));
+    OPCodes_ADD_SP(static_cast<s8>(m_pMemory->Read(PC.GetValue())));
     PC.Increment();
 }
 
