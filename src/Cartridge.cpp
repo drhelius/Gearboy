@@ -216,7 +216,7 @@ bool Cartridge::LoadFromFile(const char* path)
 
     Reset();
 
-    strcpy(m_szFilePath, path);
+    snprintf(m_szFilePath, sizeof(m_szFilePath), "%s", path);
 
     std::string pathstr(path);
     std::string filename;
@@ -234,8 +234,8 @@ bool Cartridge::LoadFromFile(const char* path)
         directory = "";
     }
 
-    strcpy(m_szFileName, filename.c_str());
-    strcpy(m_szFileDirectory, directory.c_str());
+    snprintf(m_szFileName, sizeof(m_szFileName), "%s", filename.c_str());
+    snprintf(m_szFileDirectory, sizeof(m_szFileDirectory), "%s", directory.c_str());
 
     ifstream file;
     open_ifstream_utf8(file, path, ios::in | ios::binary | ios::ate);
@@ -578,7 +578,7 @@ bool Cartridge::GatherMetadata()
         }
     }
 
-    strcpy(m_szName, name);
+    snprintf(m_szName, sizeof(m_szName), "%s", name);
 
     m_bCGB = (m_pTheROM[0x143] == 0x80) || (m_pTheROM[0x143] == 0xC0);
     m_bSGB = (m_pTheROM[0x146] == 0x03);
