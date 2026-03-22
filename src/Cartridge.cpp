@@ -526,6 +526,9 @@ void Cartridge::SetGameGenieCheat(const char* szCheat)
         {
             int bank_address = (bank * 0x4000) + (cheat_address & 0x3FFF);
 
+            if (bank_address >= m_iTotalSize)
+                continue;
+
             if (avoid_compare || (m_pTheROM[bank_address] == compare_value))
             {
                 GameGenieCode undo_data;
