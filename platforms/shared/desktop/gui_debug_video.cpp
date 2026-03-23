@@ -636,21 +636,19 @@ void gui_debug_window_vram_sprites(void)
     ImGui::End();
 }
 
-void gui_debug_window_vram_palettes(void)
+void gui_debug_window_vram_dmg_palettes(void)
 {
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(544, 400), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(544, 0), ImGuiCond_FirstUseEver);
 
-    ImGui::Begin("Palettes", &config_debug.show_video_palettes);
+    ImGui::Begin("DMG Palettes", &config_debug.show_video_palettes);
 
     GearboyCore* core = emu_get_core();
-    Video* video = core->GetVideo();
     Memory* memory = core->GetMemory();
     u16* palette = core->GetDMGInternalPalette();
 
     ImGui::PushFont(gui_default_font);
 
-    ImGui::TextColored(magenta, "DMG:"); ImGui::SameLine();
     ImGui::TextColored(cyan, "                          0       1       2       3");
 
     u8 bgp = memory->Retrieve(0xFF47);
@@ -708,18 +706,32 @@ void gui_debug_window_vram_palettes(void)
             ImGui::SameLine();
     }
 
-    ImGui::Text(" ");
+    ImGui::PopFont();
+
+    ImGui::End();
+}
+
+void gui_debug_window_vram_gbc_palettes(void)
+{
+    ImGui::SetNextWindowPos(ImVec2(80, 80), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(544, 0), ImGuiCond_FirstUseEver);
+
+    ImGui::Begin("GBC Palettes", &config_debug.show_video_gbc_palettes);
+
+    Video* video = emu_get_core()->GetVideo();
+
+    ImGui::PushFont(gui_default_font);
 
     PaletteMatrix bg_palettes = video->GetCGBBackgroundPalettes();
     PaletteMatrix sprite_palettes = video->GetCGBSpritePalettes();
 
-    ImGui::Columns(2, "palettes");
+    ImGui::Columns(2, "gbc_palettes");
 
-    ImGui::TextColored(magenta, "GBC BACKGROUND:");
+    ImGui::TextColored(magenta, "BACKGROUND:");
 
     ImGui::NextColumn();
 
-    ImGui::TextColored(magenta, "GBC SPRITES:");
+    ImGui::TextColored(magenta, "SPRITES:");
 
     ImGui::NextColumn();
 
@@ -786,66 +798,6 @@ void gui_debug_window_vram_palettes(void)
     }
 
     ImGui::Columns(1);
-
-    ImGui::PopFont();
-
-    ImGui::End();
-}
-
-void gui_debug_window_vram_regs(void)
-{
-    ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(340, 0), ImGuiCond_FirstUseEver);
-
-    ImGui::Begin("Video Registers", &config_debug.show_video_regs);
-
-    ImGui::PushFont(gui_default_font);
-
-    Memory* memory = emu_get_core()->GetMemory();
-
-    ImGui::TextColored(cyan, " $FF40"); ImGui::SameLine();
-    ImGui::TextColored(violet, "LCDC"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF40), BYTE_TO_BINARY(memory->Retrieve(0xFF40)));
-
-    ImGui::TextColored(cyan, " $FF41"); ImGui::SameLine();
-    ImGui::TextColored(violet, "STAT"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF41), BYTE_TO_BINARY(memory->Retrieve(0xFF41)));
-
-    ImGui::TextColored(cyan, " $FF42"); ImGui::SameLine();
-    ImGui::TextColored(violet, "SCY "); ImGui::SameLine();
-    ImGui::Text("$%02X", memory->Retrieve(0xFF42));
-
-    ImGui::TextColored(cyan, " $FF43"); ImGui::SameLine();
-    ImGui::TextColored(violet, "SCX "); ImGui::SameLine();
-    ImGui::Text("$%02X", memory->Retrieve(0xFF43));
-
-    ImGui::TextColored(cyan, " $FF44"); ImGui::SameLine();
-    ImGui::TextColored(violet, "LY  "); ImGui::SameLine();
-    ImGui::Text("$%02X", memory->Retrieve(0xFF44));
-
-    ImGui::TextColored(cyan, " $FF45"); ImGui::SameLine();
-    ImGui::TextColored(violet, "LYC "); ImGui::SameLine();
-    ImGui::Text("$%02X", memory->Retrieve(0xFF45));
-
-    ImGui::TextColored(cyan, " $FF47"); ImGui::SameLine();
-    ImGui::TextColored(violet, "BGP "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF47), BYTE_TO_BINARY(memory->Retrieve(0xFF47)));
-
-    ImGui::TextColored(cyan, " $FF48"); ImGui::SameLine();
-    ImGui::TextColored(violet, "OBP0"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF48), BYTE_TO_BINARY(memory->Retrieve(0xFF48)));
-
-    ImGui::TextColored(cyan, " $FF49"); ImGui::SameLine();
-    ImGui::TextColored(violet, "OBP1"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF49), BYTE_TO_BINARY(memory->Retrieve(0xFF49)));
-
-    ImGui::TextColored(cyan, " $FF4A"); ImGui::SameLine();
-    ImGui::TextColored(violet, "WY  "); ImGui::SameLine();
-    ImGui::Text("$%02X", memory->Retrieve(0xFF4A));
-
-    ImGui::TextColored(cyan, " $FF4B"); ImGui::SameLine();
-    ImGui::TextColored(violet, "WX  "); ImGui::SameLine();
-    ImGui::Text("$%02X", memory->Retrieve(0xFF4B));
 
     ImGui::PopFont();
 

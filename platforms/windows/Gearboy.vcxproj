@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\miniz\miniz.c" />
     <ClCompile Include="..\..\src\Audio.cpp" />
     <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp" />
     <ClCompile Include="..\..\src\audio\Effects_Buffer.cpp" />
@@ -45,28 +44,65 @@
     <ClCompile Include="..\..\src\RomOnlyMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Video.cpp" />
     <ClCompile Include="..\..\src\VgmRecorder.cpp" />
-    <ClCompile Include="..\audio-shared\sound_queue.cpp" />
-    <ClCompile Include="..\desktop-shared\application.cpp" />
-    <ClCompile Include="..\desktop-shared\config.cpp" />
-    <ClCompile Include="..\desktop-shared\emu.cpp" />
-    <ClCompile Include="..\desktop-shared\gui.cpp" />
-    <ClCompile Include="..\desktop-shared\gui_debug.cpp" />
-    <ClCompile Include="..\desktop-shared\gui_debug_memory.cpp" />
-    <ClCompile Include="..\desktop-shared\gui_debug_memeditor.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_demo.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_opengl2.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl2.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_tables.cpp" />
-    <ClCompile Include="..\desktop-shared\main.cpp" />
-    <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp" />
-    <ClCompile Include="..\desktop-shared\renderer.cpp" />
+    <ClCompile Include="..\shared\dependencies\miniz\miniz.c">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\sound_queue.cpp" />
+    <ClCompile Include="..\shared\desktop\application.cpp" />
+    <ClCompile Include="..\shared\desktop\config.cpp" />
+    <ClCompile Include="..\shared\desktop\emu.cpp" />
+    <ClCompile Include="..\shared\desktop\gui.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_actions.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_disassembler.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_memeditor.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_memory.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_processor.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_video.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_io.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_trace_logger.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_filedialogs.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_menus.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_popups.cpp" />
+    <ClCompile Include="..\shared\desktop\main.cpp" />
+    <ClCompile Include="..\shared\desktop\ogl_renderer.cpp" />
+    <ClCompile Include="..\shared\desktop\display.cpp" />
+    <ClCompile Include="..\shared\desktop\events.cpp" />
+    <ClCompile Include="..\shared\desktop\gamepad.cpp" />
+    <ClCompile Include="..\shared\desktop\single_instance.cpp" />
+    <ClCompile Include="..\shared\dependencies\imgui\imgui.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_demo.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_draw.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_impl_opengl3.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_impl_sdl3.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_tables.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_widgets.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\implot.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\implot_demo.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\implot_items.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\log.h" />
-    <ClInclude Include="..\..\src\miniz\miniz.h" />
     <ClInclude Include="..\..\src\Audio.h" />
     <ClInclude Include="..\..\src\audio\blargg_common.h" />
     <ClInclude Include="..\..\src\audio\blargg_config.h" />
@@ -101,35 +137,54 @@
     <ClInclude Include="..\..\src\SixteenBitRegister.h" />
     <ClInclude Include="..\..\src\Video.h" />
     <ClInclude Include="..\..\src\VgmRecorder.h" />
-    <ClInclude Include="..\audio-shared\sound_queue.h" />
-    <ClInclude Include="..\desktop-shared\application.h" />
-    <ClInclude Include="..\desktop-shared\backers.h" />
-    <ClInclude Include="..\desktop-shared\config.h" />
-    <ClInclude Include="..\desktop-shared\console_utils.h" />
-    <ClInclude Include="..\desktop-shared\emu.h" />
-    <ClInclude Include="..\desktop-shared\glad\glad.h" />
-    <ClInclude Include="..\desktop-shared\gui.h" />
-    <ClInclude Include="..\desktop-shared\gui_debug.h" />
-    <ClInclude Include="..\desktop-shared\gui_debug_memory.h" />
-    <ClInclude Include="..\desktop-shared\gui_debug_memeditor.h" />
-    <ClInclude Include="..\desktop-shared\gui_debug_constants.h" />
-    <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imconfig.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imgui.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_opengl2.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl2.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imgui_internal.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imstb_truetype.h" />
-    <ClInclude Include="..\desktop-shared\imgui\keyboard.h" />
-    <ClInclude Include="..\desktop-shared\license.h" />
-    <ClInclude Include="..\desktop-shared\mINI\ini.h" />
-    <ClInclude Include="..\desktop-shared\nfd\nfd.h" />
-    <ClInclude Include="..\desktop-shared\nfd\nfd_sdl2.h" />
-    <ClInclude Include="..\desktop-shared\renderer.h" />
-    <ClInclude Include="..\desktop-shared\stb\stb_image_write.h" />
-    <ClInclude Include="..\desktop-shared\utils.h" />
+    <ClInclude Include="..\shared\dependencies\glad\glad.h" />
+    <ClInclude Include="..\shared\dependencies\miniz\miniz.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_impl_sdl3.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\fonts\IconsMaterialDesign.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\fonts\MaterialIcons.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\fonts\RobotoMedium.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imconfig.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imgui.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_internal.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\implot.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\implot_internal.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\shared\dependencies\mINI\ini.h" />
+    <ClInclude Include="..\shared\dependencies\stb\stb_image_write.h" />
+    <ClInclude Include="..\shared\desktop\keyboard.h" />
+    <ClInclude Include="..\shared\desktop\sound_queue.h" />
+    <ClInclude Include="..\shared\desktop\single_instance.h" />
+    <ClInclude Include="..\shared\desktop\application.h" />
+    <ClInclude Include="..\shared\desktop\backers.h" />
+    <ClInclude Include="..\shared\desktop\config.h" />
+    <ClInclude Include="..\shared\desktop\console_utils.h" />
+    <ClInclude Include="..\shared\desktop\emu.h" />
+    <ClInclude Include="..\shared\desktop\gui.h" />
+    <ClInclude Include="..\shared\desktop\gui_actions.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_constants.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_disassembler.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_memeditor.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_memory.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_processor.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_video.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_io.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_text.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_trace_logger.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_widgets.h" />
+    <ClInclude Include="..\shared\desktop\gui_filedialogs.h" />
+    <ClInclude Include="..\shared\desktop\gui_menus.h" />
+    <ClInclude Include="..\shared\desktop\gui_popups.h" />
+    <ClInclude Include="..\shared\desktop\license.h" />
+    <ClInclude Include="..\shared\desktop\ogl_renderer.h" />
+    <ClInclude Include="..\shared\desktop\display.h" />
+    <ClInclude Include="..\shared\desktop\events.h" />
+    <ClInclude Include="..\shared\desktop\gamepad.h" />
+    <ClInclude Include="..\shared\desktop\utils.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -142,9 +197,10 @@
     <ResourceCompile Include="Gearboy.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{92D9838A-C6AB-348D-8565-F9E813C3C467}</ProjectGuid>
     <RootNamespace>Gearboy</RootNamespace>
-    <Keyword>Qt4VSv1.0</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -221,7 +277,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;dependencies/SDL2-2.30.6/include;dependencies/SDL2-2.30.6/include/sdl2;release;.;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../../src;../shared/dependencies/imgui;../shared/dependencies/mINI;../shared/dependencies/stb;../shared/dependencies/miniz;../shared/dependencies/glad;../shared/dependencies/json;dependencies/SDL3/include;release;.;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>release\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -230,7 +286,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;NDEBUG;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;UNICODE;WIN32;WIN64;NDEBUG;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -240,8 +296,8 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>dependencies\SDL2-2.30.6\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>dependencies\SDL3\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -257,12 +313,12 @@
       <WarningLevel>0</WarningLevel>
     </Midl>
     <ResourceCompile>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_NO_DEBUG;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;dependencies/SDL2-2.30.6/include;dependencies/SDL2-2.30.6/include/sdl2;release;.;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../../src;../shared/dependencies/imgui;../shared/dependencies/mINI;../shared/dependencies/stb;../shared/dependencies/miniz;../shared/dependencies/glad;../shared/dependencies/json;dependencies/SDL3/include;release;.;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>release\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -271,7 +327,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;NDEBUG;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;UNICODE;WIN32;WIN64;NDEBUG;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -281,8 +337,8 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>dependencies\SDL2-2.30.6\lib\arm64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>dependencies\SDL3\lib\arm64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -298,12 +354,12 @@
       <WarningLevel>0</WarningLevel>
     </Midl>
     <ResourceCompile>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_NO_DEBUG;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;dependencies/SDL2-2.30.6/include;dependencies/SDL2-2.30.6/include/sdl2;debug;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../../src;../shared/dependencies/imgui;../shared/dependencies/mINI;../shared/dependencies/stb;../shared/dependencies/miniz;../shared/dependencies/glad;../shared/dependencies/json;dependencies/SDL3/include;debug;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>debug\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -312,7 +368,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>DEBUG;UNICODE;WIN32;WIN64;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;DEBUG;UNICODE;WIN32;WIN64;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -322,8 +378,8 @@
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2main.lib;SDL2.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>dependencies\SDL2-2.30.6\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>dependencies\SDL3\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -338,12 +394,12 @@
       <WarningLevel>0</WarningLevel>
     </Midl>
     <ResourceCompile>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;dependencies/SDL2-2.30.6/include;dependencies/SDL2-2.30.6/include/sdl2;debug;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../../src;../shared/dependencies/imgui;../shared/dependencies/mINI;../shared/dependencies/stb;../shared/dependencies/miniz;../shared/dependencies/glad;../shared/dependencies/json;dependencies/SDL3/include;debug;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>debug\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -352,7 +408,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>DEBUG;UNICODE;WIN32;WIN64;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;DEBUG;UNICODE;WIN32;WIN64;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -362,8 +418,8 @@
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2main.lib;SDL2.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>dependencies\SDL2-2.30.6\lib\arm64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>dependencies\SDL3\lib\arm64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -378,14 +434,9 @@
       <WarningLevel>0</WarningLevel>
     </Midl>
     <ResourceCompile>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" Qt5Version_x0020_x64="$(DefaultQtVersion)" />
-    </VisualStudio>
-  </ProjectExtensions>
 </Project>

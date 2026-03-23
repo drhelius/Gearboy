@@ -1,374 +1,467 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="source">
-      <UniqueIdentifier>{b930aa5d-6e83-4226-a05b-f18413a2c91a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\audio">
-      <UniqueIdentifier>{bff59648-7448-4d09-8230-3574b68d277f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="audio-shared">
-      <UniqueIdentifier>{b0db2bbb-3da9-4f05-8d93-cbdd7b21824d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="desktop-shared">
-      <UniqueIdentifier>{0100a978-2962-4046-80a0-b51ab4a9534c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="desktop-shared\imgui">
-      <UniqueIdentifier>{4642afc7-a495-4170-b504-7283adcdce92}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="desktop-shared\mini">
-      <UniqueIdentifier>{741038af-a906-4314-be4b-3522c4db0e8d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="desktop-shared\imgui\fonts">
-      <UniqueIdentifier>{e4192cc4-2be0-4f65-87ee-74901af5e89c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="desktop-shared\nfd">
-      <UniqueIdentifier>{853c056e-bb07-406b-8ecf-994c10b8aadb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="desktop-shared\stb">
-      <UniqueIdentifier>{0f1a9f96-e6db-44a3-b6ae-54a5add23b29}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="desktop-shared\glad">
-      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567890}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\miniz">
-      <UniqueIdentifier>{66c2b733-8a64-4749-957f-c06123dbe5ba}</UniqueIdentifier>
-    </Filter>
+    <Manifest Include="Gearboy.manifest" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\shared\desktop\application.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\config.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\emu.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_actions.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_disassembler.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_memeditor.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_memory.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_processor.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_video.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_io.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_trace_logger.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_popups.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_menus.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_filedialogs.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\main.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\ogl_renderer.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\display.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\events.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gamepad.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\sound_queue.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\single_instance.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\Audio.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Cartridge.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CommonMemoryRule.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\GearboyCore.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Input.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\IORegistersMemoryRule.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\MBC1MemoryRule.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\MBC2MemoryRule.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\MBC3MemoryRule.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\MBC5MemoryRule.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Memory.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\MemoryRule.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\MultiMBC1MemoryRule.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\opcodes.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\opcodes_cb.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Processor.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\RomOnlyMemoryRule.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Video.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\VgmRecorder.cpp">
-      <Filter>source</Filter>
+      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\audio\Effects_Buffer.cpp">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\audio\Gb_Apu.cpp">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\audio\Gb_Apu_State.cpp">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\audio\Gb_Oscs.cpp">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\audio\Multi_Buffer.cpp">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\audio-shared\Sound_Queue.cpp">
-      <Filter>audio-shared</Filter>
+    <ClCompile Include="..\..\src\Cartridge.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\application.cpp">
-      <Filter>desktop-shared</Filter>
+    <ClCompile Include="..\..\src\CommonMemoryRule.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\config.cpp">
-      <Filter>desktop-shared</Filter>
+    <ClCompile Include="..\..\src\GearboyCore.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\emu.cpp">
-      <Filter>desktop-shared</Filter>
+    <ClCompile Include="..\..\src\Input.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\gui.cpp">
-      <Filter>desktop-shared</Filter>
+    <ClCompile Include="..\..\src\IORegistersMemoryRule.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\main.cpp">
-      <Filter>desktop-shared</Filter>
+    <ClCompile Include="..\..\src\MBC1MemoryRule.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\renderer.cpp">
-      <Filter>desktop-shared</Filter>
+    <ClCompile Include="..\..\src\MBC2MemoryRule.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\imgui\imgui.cpp">
-      <Filter>desktop-shared\imgui</Filter>
+    <ClCompile Include="..\..\src\MBC3MemoryRule.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\imgui\imgui_demo.cpp">
-      <Filter>desktop-shared\imgui</Filter>
+    <ClCompile Include="..\..\src\MBC5MemoryRule.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\imgui\imgui_draw.cpp">
-      <Filter>desktop-shared\imgui</Filter>
+    <ClCompile Include="..\..\src\Memory.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_opengl2.cpp">
-      <Filter>desktop-shared\imgui</Filter>
+    <ClCompile Include="..\..\src\MemoryRule.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp">
-      <Filter>desktop-shared\imgui</Filter>
+    <ClCompile Include="..\..\src\MultiMBC1MemoryRule.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\gui_debug.cpp">
-      <Filter>desktop-shared</Filter>
+    <ClCompile Include="..\..\src\opcodes.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\gui_debug_memory.cpp">
-      <Filter>desktop-shared</Filter>
+    <ClCompile Include="..\..\src\opcodes_cb.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\gui_debug_memeditor.cpp">
-      <Filter>desktop-shared</Filter>
+    <ClCompile Include="..\..\src\Processor.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp">
-      <Filter>desktop-shared\nfd</Filter>
+    <ClCompile Include="..\..\src\RomOnlyMemoryRule.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\miniz\miniz.c">
-      <Filter>source\miniz</Filter>
+    <ClCompile Include="..\..\src\Video.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl2.cpp">
-      <Filter>desktop-shared\imgui</Filter>
+    <ClCompile Include="..\..\src\VgmRecorder.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\imgui\imgui_tables.cpp">
-      <Filter>desktop-shared\imgui</Filter>
+    <ClCompile Include="..\shared\dependencies\miniz\miniz.c">
+      <Filter>dependencies\miniz</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui.cpp">
+      <Filter>dependencies\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_demo.cpp">
+      <Filter>dependencies\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_draw.cpp">
+      <Filter>dependencies\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_impl_opengl3.cpp">
+      <Filter>dependencies\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_impl_sdl3.cpp">
+      <Filter>dependencies\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_tables.cpp">
+      <Filter>dependencies\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_widgets.cpp">
+      <Filter>dependencies\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\implot.cpp">
+      <Filter>dependencies\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\implot_demo.cpp">
+      <Filter>dependencies\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\implot_items.cpp">
+      <Filter>dependencies\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\shared\desktop\application.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\backers.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\config.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\console_utils.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\emu.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_actions.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_constants.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_disassembler.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_memeditor.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_memory.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_processor.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_video.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_io.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_text.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_trace_logger.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_widgets.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_filedialogs.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_menus.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_popups.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\license.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\ogl_renderer.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\display.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\events.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gamepad.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\utils.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\sound_queue.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\single_instance.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\keyboard.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\Audio.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Cartridge.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\common.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\CommonMemoryRule.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\definitions.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\gearboy.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\GearboyCore.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Input.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\IORegistersMemoryRule.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\MBC1MemoryRule.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\MBC2MemoryRule.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\MBC3MemoryRule.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\MBC5MemoryRule.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Memory.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Memory_inline.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\MemoryRule.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\MultiMBC1MemoryRule.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\opcode_names.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\opcode_timing.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Processor.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Processor_inline.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\RomOnlyMemoryRule.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\SixteenBitRegister.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Video.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\VgmRecorder.h">
-      <Filter>source</Filter>
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\blargg_common.h">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\blargg_config.h">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\blargg_source.h">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\Blip_Buffer.h">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\Blip_Synth.h">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\Effects_Buffer.h">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\Gb_Apu.h">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\Gb_Oscs.h">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\Multi_Buffer.h">
-      <Filter>source\audio</Filter>
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\application.h">
-      <Filter>desktop-shared</Filter>
+    <ClInclude Include="..\..\src\Cartridge.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\config.h">
-      <Filter>desktop-shared</Filter>
+    <ClInclude Include="..\..\src\common.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\console_utils.h">
-      <Filter>desktop-shared</Filter>
+    <ClInclude Include="..\..\src\CommonMemoryRule.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\emu.h">
-      <Filter>desktop-shared</Filter>
+    <ClInclude Include="..\..\src\definitions.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\glad\glad.h">
-      <Filter>desktop-shared\glad</Filter>
+    <ClInclude Include="..\..\src\gearboy.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\gui.h">
-      <Filter>desktop-shared</Filter>
+    <ClInclude Include="..\..\src\GearboyCore.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\renderer.h">
-      <Filter>desktop-shared</Filter>
+    <ClInclude Include="..\..\src\Input.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imconfig.h">
-      <Filter>desktop-shared\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imgui.h">
-      <Filter>desktop-shared\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_opengl2.h">
-      <Filter>desktop-shared\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imgui_internal.h">
-      <Filter>desktop-shared\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imstb_rectpack.h">
-      <Filter>desktop-shared\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imstb_textedit.h">
-      <Filter>desktop-shared\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imstb_truetype.h">
-      <Filter>desktop-shared\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h">
-      <Filter>desktop-shared\imgui\fonts</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\mINI\ini.h">
-      <Filter>desktop-shared\mini</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\gui_debug.h">
-      <Filter>desktop-shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\gui_debug_memory.h">
-      <Filter>desktop-shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\gui_debug_memeditor.h">
-      <Filter>desktop-shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\gui_debug_constants.h">
-      <Filter>desktop-shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\audio-shared\sound_queue.h">
-      <Filter>audio-shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\backers.h">
-      <Filter>desktop-shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\license.h">
-      <Filter>desktop-shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\keyboard.h">
-      <Filter>desktop-shared\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\stb\stb_image_write.h">
-      <Filter>desktop-shared\stb</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\nfd\nfd.h">
-      <Filter>desktop-shared\nfd</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\nfd\nfd_sdl2.h">
-      <Filter>desktop-shared\nfd</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\miniz\miniz.h">
-      <Filter>source\miniz</Filter>
+    <ClInclude Include="..\..\src\IORegistersMemoryRule.h">
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\log.h">
-      <Filter>source</Filter>
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl2.h">
-      <Filter>desktop-shared\imgui</Filter>
+    <ClInclude Include="..\..\src\MBC1MemoryRule.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\utils.h">
-      <Filter>desktop-shared</Filter>
+    <ClInclude Include="..\..\src\MBC2MemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MBC3MemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MBC5MemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Memory.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Memory_inline.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MultiMBC1MemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\opcode_names.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\opcode_timing.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Processor.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Processor_inline.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\RomOnlyMemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SixteenBitRegister.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Video.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\VgmRecorder.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\glad\glad.h">
+      <Filter>dependencies\glad</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\miniz\miniz.h">
+      <Filter>dependencies\miniz</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\fonts\IconsMaterialDesign.h">
+      <Filter>dependencies\imgui\fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\fonts\MaterialIcons.h">
+      <Filter>dependencies\imgui\fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\fonts\RobotoMedium.h">
+      <Filter>dependencies\imgui\fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\imconfig.h">
+      <Filter>dependencies\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\imgui.h">
+      <Filter>dependencies\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_impl_opengl3.h">
+      <Filter>dependencies\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_impl_opengl3_loader.h">
+      <Filter>dependencies\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_impl_sdl3.h">
+      <Filter>dependencies\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_internal.h">
+      <Filter>dependencies\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\implot.h">
+      <Filter>dependencies\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\implot_internal.h">
+      <Filter>dependencies\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\imstb_rectpack.h">
+      <Filter>dependencies\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\imstb_textedit.h">
+      <Filter>dependencies\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\imgui\imstb_truetype.h">
+      <Filter>dependencies\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\mINI\ini.h">
+      <Filter>dependencies\mINI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\dependencies\stb\stb_image_write.h">
+      <Filter>dependencies\stb</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="Gearboy.manifest" />
+    <Filter Include="src">
+      <UniqueIdentifier>{39e50856-2108-48fd-a913-eb2000b78c33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dependencies">
+      <UniqueIdentifier>{00c47854-d060-4dd7-ab5b-efaa60880894}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="desktop">
+      <UniqueIdentifier>{b305c14e-49f4-4f2f-9d40-5b15a839fbb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dependencies\miniz">
+      <UniqueIdentifier>{466b2296-06dc-4afd-a898-3c4ed168681e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dependencies\imgui">
+      <UniqueIdentifier>{e0759fc4-5e41-4967-af3f-6c065f466652}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dependencies\stb">
+      <UniqueIdentifier>{6e599b1a-7bc8-4a3f-9481-c8c04182c459}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dependencies\mINI">
+      <UniqueIdentifier>{b20161bf-e4e8-4d15-b5e1-74a0a7c0d526}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dependencies\glad">
+      <UniqueIdentifier>{eee9f957-716d-47d4-a4f4-3d987c06a27a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dependencies\imgui\fonts">
+      <UniqueIdentifier>{0ff4493d-dd39-4604-9082-9f79eae3d893}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="iconfile.ico" />

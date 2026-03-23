@@ -84,9 +84,9 @@ void gui_debug_windows(void)
         if (config_debug.show_video_sprites)
             gui_debug_window_vram_sprites();
         if (config_debug.show_video_palettes)
-            gui_debug_window_vram_palettes();
-        if (config_debug.show_video_regs)
-            gui_debug_window_vram_regs();
+            gui_debug_window_vram_dmg_palettes();
+        if (config_debug.show_video_gbc_palettes)
+            gui_debug_window_vram_gbc_palettes();
         if (config_debug.show_trace_logger)
             gui_debug_window_trace_logger();
 

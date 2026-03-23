@@ -1795,6 +1795,9 @@ void gui_debug_window_call_stack(void)
             {
                 DebugSymbol* symbol = fixed_symbols[entry.bank][entry.dest];
 
+                if (!IsValidPointer(symbol))
+                    symbol = dynamic_symbols[entry.bank][entry.dest];
+
                 if (IsValidPointer(symbol))
                     snprintf(symbol_text, sizeof(symbol_text), "%s", symbol->text);
                 else if (record->auto_symbol[0] != 0)

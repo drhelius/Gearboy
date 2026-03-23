@@ -29,8 +29,8 @@
 EXTERN void gui_debug_window_vram_nametable(void);
 EXTERN void gui_debug_window_vram_tiles(void);
 EXTERN void gui_debug_window_vram_sprites(void);
-EXTERN void gui_debug_window_vram_palettes(void);
-EXTERN void gui_debug_window_vram_regs(void);
+EXTERN void gui_debug_window_vram_dmg_palettes(void);
+EXTERN void gui_debug_window_vram_gbc_palettes(void);
 
 #undef GUI_DEBUG_VIDEO_IMPORT
 #undef EXTERN

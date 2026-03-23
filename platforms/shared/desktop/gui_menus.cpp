@@ -1016,8 +1016,8 @@ static void menu_debug(void)
             ImGui::MenuItem("Show Name Table", "", &config_debug.show_video_nametable);
             ImGui::MenuItem("Show Pattern Table", "", &config_debug.show_video_tiles);
             ImGui::MenuItem("Show Sprites", "", &config_debug.show_video_sprites);
-            ImGui::MenuItem("Show Palettes", "", &config_debug.show_video_palettes);
-            ImGui::MenuItem("Show Video Registers", "", &config_debug.show_video_regs);
+            ImGui::MenuItem("Show DMG Palettes", "", &config_debug.show_video_palettes);
+            ImGui::MenuItem("Show GBC Palettes", "", &config_debug.show_video_gbc_palettes);
             ImGui::EndMenu();
         }
 
@@ -1025,7 +1025,6 @@ static void menu_debug(void)
         // if (ImGui::BeginMenu("Audio", config_debug.debug))
         // {
         //     ImGui::MenuItem("Show PSG", "", &config_debug.show_psg, config_debug.debug);
-        //     ImGui::MenuItem("Show YM2413 FM", "", &config_debug.show_ym2413, config_debug.debug);
         //     ImGui::EndMenu();
         // }
 
