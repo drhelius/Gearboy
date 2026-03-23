@@ -1009,15 +1009,16 @@ static void menu_debug(void)
 
         ImGui::MenuItem("Show Memory Editor", "", &config_debug.show_memory, config_debug.debug);
 
+        ImGui::MenuItem("Show IO Map", "", &config_debug.show_io, config_debug.debug);
+
         if (ImGui::BeginMenu("Video", config_debug.debug))
         {
-            // ImGui::MenuItem("Show Name Table", "", &config_debug.show_video_nametable);
-            // ImGui::MenuItem("Show Pattern Table", "", &config_debug.show_video_tiles);
-            // ImGui::MenuItem("Show Sprites", "", &config_debug.show_video_sprites);
-            // if (!false)
-            //     ImGui::MenuItem("Show Palettes", "", &config_debug.show_video_palettes);
-            // ImGui::MenuItem("Show Video Registers", "", &config_debug.show_video_regs);
-            // ImGui::EndMenu();
+            ImGui::MenuItem("Show Name Table", "", &config_debug.show_video_nametable);
+            ImGui::MenuItem("Show Pattern Table", "", &config_debug.show_video_tiles);
+            ImGui::MenuItem("Show Sprites", "", &config_debug.show_video_sprites);
+            ImGui::MenuItem("Show Palettes", "", &config_debug.show_video_palettes);
+            ImGui::MenuItem("Show Video Registers", "", &config_debug.show_video_regs);
+            ImGui::EndMenu();
         }
 
         // Audio debug not yet implemented for Gearboy

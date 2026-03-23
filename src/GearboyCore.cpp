@@ -53,6 +53,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
     InitPointer(m_pRamChangedCallback);
+    InitPointer(m_debug_callback);
     m_bCGB = false;
     m_bGBA = false;
     m_bPaused = false;
@@ -105,43 +106,58 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     InitDMGPalette();
 }
 
-bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer, bool step, bool stopOnBreakpoints)
+bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer, GB_Debug_Run* debug)
 {
-    bool breakpoint = false;
+    bool breakpoint_result = false;
 
     if (!m_bPaused && m_pCartridge->IsLoadedROM())
     {
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        bool debug_enable = false;
+
+        if (IsValidPointer(debug))
+        {
+            debug_enable = true;
+            m_pProcessor->EnableBreakpoints(debug->stop_on_breakpoint, debug->stop_on_irq);
+        }
+
         bool vblank = false;
         int totalClocks = 0;
-        while (!vblank)
+
+        do
         {
-            #ifdef PERFORMANCE
-                unsigned int clockCycles = m_pProcessor->RunFor(75);
-            #else
-                unsigned int clockCycles = m_pProcessor->RunFor(1);
-            #endif
+            if (debug_enable && IsValidPointer(m_debug_callback))
+                m_debug_callback();
+
+            unsigned int clockCycles = m_pProcessor->RunFor(1);
 
             m_pProcessor->UpdateTimers(clockCycles);
             m_pProcessor->UpdateSerial(clockCycles);
-            
+
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
-
             totalClocks += clockCycles;
 
-#ifndef GEARBOY_DISABLE_DISASSEMBLER
-            if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())) && !m_pProcessor->Halted() && !m_pProcessor->DuringOpCode())
+            if (debug_enable)
             {
-                vblank = true;
+                if (debug->step_debugger && !m_pProcessor->DuringOpCode() && !m_pProcessor->Halted())
+                    vblank = true;
+
+                if (m_pProcessor->MemoryBreakpointHit())
+                    vblank = true;
+
                 if (m_pProcessor->BreakpointHit())
-                    breakpoint = true;
+                    vblank = true;
+
+                if (debug->stop_on_run_to_breakpoint && m_pProcessor->RunToBreakpointHit())
+                    vblank = true;
             }
-#endif
 
             if (totalClocks > GAMEBOY_CLOCKS_SAFE_LIMIT)
                 vblank = true;
         }
+        while (!vblank);
 
         m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
 
@@ -160,9 +176,55 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
         {
             ApplyColorCorrection(pFrameBuffer, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
         }
+
+        breakpoint_result = m_pProcessor->BreakpointHit() || m_pProcessor->RunToBreakpointHit();
+#else
+        UNUSED(debug);
+        bool vblank = false;
+        int totalClocks = 0;
+
+        do
+        {
+            #ifdef PERFORMANCE
+                unsigned int clockCycles = m_pProcessor->RunFor(75);
+            #else
+                unsigned int clockCycles = m_pProcessor->RunFor(1);
+            #endif
+
+            m_pProcessor->UpdateTimers(clockCycles);
+            m_pProcessor->UpdateSerial(clockCycles);
+
+            vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
+            m_pAudio->Tick(clockCycles);
+            m_pInput->Tick(clockCycles);
+            totalClocks += clockCycles;
+
+            if (totalClocks > GAMEBOY_CLOCKS_SAFE_LIMIT)
+                vblank = true;
+        }
+        while (!vblank);
+
+        m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
+
+        m_iRTCUpdateCount++;
+        if (m_iRTCUpdateCount == 20)
+        {
+            m_iRTCUpdateCount = 0;
+            m_pCartridge->UpdateCurrentRTC();
+        }
+
+        if (!m_bCGB && !bDMGbuffer)
+        {
+            RenderDMGFrame(pFrameBuffer);
+        }
+        else if (m_bCGB && m_bColorCorrectionEnabled)
+        {
+            ApplyColorCorrection(pFrameBuffer, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
+        }
+#endif
     }
 
-    return breakpoint;
+    return breakpoint_result;
 }
 
 bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType, bool forceGBA)
@@ -171,11 +233,11 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::Cart
     {
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB(), forceGBA);
-        m_pMemory->ResetDisassembledMemory();
+        m_pMemory->ResetDisassemblerRecords();
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         bool romTypeOK = AddMemoryRules(forceType);
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
-        m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
+        m_pProcessor->DisassembleNextOPCode();
 #endif
 
         if (!romTypeOK)
@@ -195,7 +257,7 @@ bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, C
     {
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB(), forceGBA);
-        m_pMemory->ResetDisassembledMemory();
+        m_pMemory->ResetDisassemblerRecords();
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         bool romTypeOK = AddMemoryRules(forceType);
 
@@ -231,7 +293,7 @@ void GearboyCore::SaveMemoryDump()
 
 void GearboyCore::SaveDisassembledROM()
 {
-    Memory::stDisassembleRecord** romMap = m_pMemory->GetDisassembledROMMemoryMap();
+    GB_Disassembler_Record** romMap = m_pMemory->GetAllDisassemblerRecords();
 
     if (m_pCartridge->IsLoadedROM() && (strlen(m_pCartridge->GetFilePath()) > 0) && IsValidPointer(romMap))
     {
@@ -290,6 +352,18 @@ Video* GearboyCore::GetVideo()
     return m_pVideo;
 }
 
+void GearboyCore::SetDebugCallback(GB_Debug_Callback callback)
+{
+    m_debug_callback = callback;
+}
+
+bool GearboyCore::GetRuntimeInfo(GB_RuntimeInfo& runtime_info)
+{
+    runtime_info.screen_width = GAMEBOY_WIDTH;
+    runtime_info.screen_height = GAMEBOY_HEIGHT;
+    return m_pCartridge->IsLoadedROM();
+}
+
 void GearboyCore::KeyPressed(Gameboy_Keys key)
 {
     m_pInput->KeyPressed(key);
@@ -319,7 +393,7 @@ void GearboyCore::ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType, b
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         AddMemoryRules(forceType);
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
-        m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
+        m_pProcessor->DisassembleNextOPCode();
 #endif
     }
 }

@@ -34,7 +34,6 @@ static Uint16 input_last_state[1] = { };
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
 static Uint16 input_build_state(int controller);
 static void input_apply_state(int controller, Uint16 before, Uint16 now);
-static bool input_check_reset(int controller);
 
 void events_shortcuts(const SDL_Event* event)
 {
@@ -262,20 +261,6 @@ static void input_apply_state(int controller, Uint16 before, Uint16 now)
         if (pressed & key)  emu_key_pressed((Gameboy_Keys)key);
         if (released & key) emu_key_released((Gameboy_Keys)key);
     }
-}
-
-static bool input_check_reset(int controller)
-{
-    const bool* keyboard_state = SDL_GetKeyboardState(NULL);
-    if (config_input.key_select != SDL_SCANCODE_UNKNOWN && keyboard_state[config_input.key_select])
-        return true;
-
-    SDL_Gamepad* sdl_controller = gamepad_controller[controller];
-    if (IsValidPointer(sdl_controller) && config_input.gamepad &&
-        gamepad_get_button(sdl_controller, config_input.gamepad_select))
-        return true;
-
-    return false;
 }
 
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat)

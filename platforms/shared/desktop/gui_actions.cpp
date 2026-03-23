@@ -20,7 +20,7 @@
 #define GUI_ACTIONS_IMPORT
 #include "gui_actions.h"
 #include "gui.h"
-// #include "gui_debug_trace_logger.h"
+#include "gui_debug_trace_logger.h"
 #include "config.h"
 #include "emu.h"
 #include "gearboy.h"
@@ -30,7 +30,7 @@
 void gui_action_reset(void)
 {
     gui_set_status_message("Resetting...", 3000);
-    // gui_debug_trace_logger_clear();
+    gui_debug_trace_logger_clear();
 
     emu_resume();
     emu_reset(config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);
@@ -143,7 +143,7 @@ void gui_action_save_sprite(const char* path, int index)
     if (!emu_get_core()->GetCartridge()->IsLoadedROM())
         return;
 
-    // emu_save_sprite(path, index);
+    emu_save_sprite(path, index);
 
     string message = "Sprite saved to " + string(path);
     gui_set_status_message(message.c_str(), 3000);
@@ -156,11 +156,11 @@ void gui_action_save_all_sprites(const char* folder_path)
     if (!emu_get_core()->GetCartridge()->IsLoadedROM())
         return;
 
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < 40; i++)
     {
         char file_path[512];
         snprintf(file_path, sizeof(file_path), "%s/sprite_id%02d.png", folder_path, i);
-        // emu_save_sprite(file_path, i);
+        emu_save_sprite(file_path, i);
     }
 
     string message = "All sprites saved to " + string(folder_path);
@@ -174,7 +174,7 @@ void gui_action_save_background(const char* path)
     if (!emu_get_core()->GetCartridge()->IsLoadedROM())
         return;
 
-    // emu_save_background(path);
+    emu_save_background(path);
 
     string message = "Background saved to " + string(path);
     gui_set_status_message(message.c_str(), 3000);
@@ -187,7 +187,7 @@ void gui_action_save_tiles(const char* path)
     if (!emu_get_core()->GetCartridge()->IsLoadedROM())
         return;
 
-    // emu_save_tiles(path);
+    emu_save_tiles(path);
 
     string message = "Pattern table saved to " + string(path);
     gui_set_status_message(message.c_str(), 3000);

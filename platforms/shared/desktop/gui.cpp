@@ -35,11 +35,9 @@
 #include "gui_menus.h"
 #include "gui_popups.h"
 #include "gui_actions.h"
-// #include "gui_debug.h"
-// #include "gui_debug_memory.h"
-// #include "gui_debug_disassembler.h"
-// #include "gui_debug_psg.h"
-// #include "gui_debug_trace_logger.h"
+#include "gui_debug_disassembler.h"
+#include "gui_debug_memory.h"
+#include "gui_debug.h"
 
 static bool status_message_active = false;
 static char status_message[4096] = "";
@@ -136,7 +134,7 @@ bool gui_init(void)
     strcpy(gui_savestates_path, config_emulator.savestates_path.c_str());
     strcpy(gui_screenshots_path, config_emulator.screenshots_path.c_str());
 
-    // gui_debug_init();
+    gui_debug_init();
     gui_init_menus();
 
     return true;
@@ -144,8 +142,8 @@ bool gui_init(void)
 
 void gui_destroy(void)
 {
-    // gui_debug_auto_save_settings();
-    // gui_debug_destroy();
+    gui_debug_auto_save_settings();
+    gui_debug_destroy();
     ImPlot::DestroyContext();
     ImGui::DestroyContext();
 }
@@ -166,7 +164,7 @@ void gui_render(void)
     if((!config_debug.debug && !emu_is_empty()) || (config_debug.debug && config_debug.show_screen))
         main_window();
 
-    // gui_debug_windows();
+    gui_debug_windows();
 
     if (config_emulator.show_info)
         gui_show_info();
@@ -224,22 +222,21 @@ void gui_shortcut(gui_ShortCutEvent event)
         break;
     case gui_ShortcutDebugStepInto:
         if (config_debug.debug)
-            emu_debug_step_over();
+            emu_debug_step_into();
         break;
     case gui_ShortcutDebugStepOut:
         if (config_debug.debug)
-            emu_debug_step_over();
+            emu_debug_step_out();
         break;
     case gui_ShortcutDebugStepFrame:
         if (config_debug.debug)
         {
-            emu_debug_next_frame();
-            // gui_debug_memory_step_frame();
+            emu_debug_step_frame();
         }
         break;
     case gui_ShortcutDebugBreak:
         if (config_debug.debug)
-            emu_debug_step_over();
+            emu_debug_break();
         break;
     case gui_ShortcutDebugContinue:
         if (config_debug.debug)
@@ -247,24 +244,24 @@ void gui_shortcut(gui_ShortCutEvent event)
         break;
     case gui_ShortcutDebugRuntocursor:
         if (config_debug.debug)
-            // gui_debug_runtocursor();
+            gui_debug_runtocursor();
         break;
     case gui_ShortcutDebugGoBack:
         if (config_debug.debug)
-            // gui_debug_go_back();
+            gui_debug_go_back();
         break;
     case gui_ShortcutDebugBreakpoint:
         if (config_debug.debug)
-            // gui_debug_toggle_breakpoint();
+            gui_debug_toggle_breakpoint();
         break;
     case gui_ShortcutDebugCopy:
-        // gui_debug_memory_copy();
+        gui_debug_memory_copy();
         break;
     case gui_ShortcutDebugPaste:
-        // gui_debug_memory_paste();
+        gui_debug_memory_paste();
         break;
     case gui_ShortcutDebugSelectAll:
-        // gui_debug_memory_select_all();
+        gui_debug_memory_select_all();
         break;
     case gui_ShortcutShowMainMenu:
         config_emulator.always_show_menu = !config_emulator.always_show_menu;
@@ -279,7 +276,7 @@ void gui_load_rom(const char* path)
     if (loading_rom_active)
         return;
 
-    // gui_debug_auto_save_settings();
+    gui_debug_auto_save_settings();
     push_recent_rom(path);
     emu_resume();
 
@@ -289,8 +286,6 @@ void gui_load_rom(const char* path)
 
     emu_load_rom_async(path, config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);
 }
-
-// Force configuration is handled inline in Gearboy
 
 void gui_set_status_message(const char* message, Uint64 milliseconds)
 {
@@ -432,8 +427,6 @@ static void main_window(void)
     float tex_h = (float)screen_width / (float)SYSTEM_TEXTURE_WIDTH;
     float tex_v = (float)screen_height / (float)SYSTEM_TEXTURE_HEIGHT;
 
-    // Light phaser not applicable to Gearboy
-
     ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_texture, ImVec2((float)gui_main_window_width, (float)gui_main_window_height), ImVec2(0, 0), ImVec2(tex_h, tex_v));
 
     if (config_video.fps)
@@ -560,14 +553,14 @@ static void finish_loading_rom(void)
     gui_cheat_list.clear();
     emu_clear_cheats();
 
-    // gui_debug_reset();
+    gui_debug_reset();
 
     std::string str(loading_rom_path);
     str = str.substr(0, str.find_last_of("."));
-    // gui_debug_load_symbols_file((str + ".sym").c_str());
-    // gui_debug_load_symbols_file((str + ".noi").c_str());
+    gui_debug_load_symbols_file((str + ".sym").c_str());
+    gui_debug_load_symbols_file((str + ".noi").c_str());
 
-    // gui_debug_auto_load_settings();
+    gui_debug_auto_load_settings();
 
     if (config_emulator.start_paused)
     {

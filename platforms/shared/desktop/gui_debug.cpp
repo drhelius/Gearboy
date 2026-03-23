@@ -26,9 +26,8 @@
 #include "gui_debug_disassembler.h"
 #include "gui_debug_memory.h"
 #include "gui_debug_processor.h"
-#include "gui_debug_psg.h"
-#include "gui_debug_ym2413.h"
-#include "gui_debug_tms9918.h"
+#include "gui_debug_video.h"
+#include "gui_debug_io.h"
 #include "gui_debug_trace_logger.h"
 #include "emu.h"
 #include "config.h"
@@ -37,15 +36,12 @@
 void gui_debug_init(void)
 {
     gui_debug_disassembler_init();
-    gui_debug_psg_init();
-    gui_debug_ym2413_init();
     gui_debug_memory_reset();
 }
 
 void gui_debug_destroy(void)
 {
     gui_debug_disassembler_destroy();
-    gui_debug_psg_destroy();
 }
 
 void gui_debug_reset(void)
@@ -63,7 +59,7 @@ void gui_debug_callback(void)
 
 void gui_debug_windows(void)
 {
-    emu_get_core()->GetAudio()->EnablePSGDebug(config_debug.debug && config_debug.show_psg);
+    // emu_get_core()->GetAudio()->EnablePSGDebug(config_debug.debug && config_debug.show_psg);
 
     if (config_debug.debug)
     {
@@ -79,10 +75,8 @@ void gui_debug_windows(void)
             gui_debug_window_breakpoints();
         if (config_debug.show_symbols)
             gui_debug_window_symbols();
-        if (config_debug.show_psg)
-            gui_debug_window_psg();
-        // if (config_debug.show_ym2413)
-        //     gui_debug_window_ym2413();
+        if (config_debug.show_io)
+            gui_debug_window_io();
         if (config_debug.show_video_nametable)
             gui_debug_window_vram_nametable();
         if (config_debug.show_video_tiles)
@@ -102,8 +96,8 @@ void gui_debug_windows(void)
     }
 }
 
-static const char* GSDEBUG_MAGIC = "GSDEBUG1";
-static const int GSDEBUG_MAGIC_LEN = 8;
+static const char* GBDEBUG_MAGIC = "GBDEBUG1";
+static const int GBDEBUG_MAGIC_LEN = 8;
 
 void gui_debug_save_settings(const char* file_path)
 {
@@ -114,17 +108,17 @@ void gui_debug_save_settings(const char* file_path)
         return;
     }
 
-    file.write(GSDEBUG_MAGIC, GSDEBUG_MAGIC_LEN);
+    file.write(GBDEBUG_MAGIC, GBDEBUG_MAGIC_LEN);
 
-    GearsystemCore* core = emu_get_core();
+    GearboyCore* core = emu_get_core();
     Processor* processor = core->GetProcessor();
 
-    std::vector<Processor::GS_Breakpoint>* breakpoints = processor->GetBreakpoints();
+    std::vector<Processor::GB_Breakpoint>* breakpoints = processor->GetBreakpoints();
     int bp_count = (int)breakpoints->size();
     file.write((const char*)&bp_count, sizeof(int));
     for (int i = 0; i < bp_count; i++)
     {
-        Processor::GS_Breakpoint& bp = (*breakpoints)[i];
+        Processor::GB_Breakpoint& bp = (*breakpoints)[i];
         file.write((const char*)&bp.enabled, sizeof(bool));
         file.write((const char*)&bp.type, sizeof(int));
         file.write((const char*)&bp.address1, sizeof(u16));
@@ -168,24 +162,24 @@ void gui_debug_load_settings(const char* file_path)
     }
 
     char magic[8];
-    file.read(magic, GSDEBUG_MAGIC_LEN);
-    if (memcmp(magic, GSDEBUG_MAGIC, GSDEBUG_MAGIC_LEN) != 0)
+    file.read(magic, GBDEBUG_MAGIC_LEN);
+    if (memcmp(magic, GBDEBUG_MAGIC, GBDEBUG_MAGIC_LEN) != 0)
     {
         Log("Invalid debug settings file: %s", file_path);
         file.close();
         return;
     }
 
-    GearsystemCore* core = emu_get_core();
+    GearboyCore* core = emu_get_core();
     Processor* processor = core->GetProcessor();
 
     processor->ResetBreakpoints();
     int bp_count = 0;
     file.read((char*)&bp_count, sizeof(int));
-    std::vector<Processor::GS_Breakpoint>* breakpoints = processor->GetBreakpoints();
+    std::vector<Processor::GB_Breakpoint>* breakpoints = processor->GetBreakpoints();
     for (int i = 0; i < bp_count; i++)
     {
-        Processor::GS_Breakpoint bp;
+        Processor::GB_Breakpoint bp;
         file.read((char*)&bp.enabled, sizeof(bool));
         file.read((char*)&bp.type, sizeof(int));
         file.read((char*)&bp.address1, sizeof(u16));
@@ -220,7 +214,7 @@ void gui_debug_load_settings(const char* file_path)
 
 static std::string get_auto_debug_settings_path(void)
 {
-    GearsystemCore* core = emu_get_core();
+    GearboyCore* core = emu_get_core();
     if (!core || !core->GetCartridge() || strlen(core->GetCartridge()->GetFileName()) == 0)
         return "";
 
@@ -228,7 +222,7 @@ static std::string get_auto_debug_settings_path(void)
     std::string::size_type dot = filename.find_last_of('.');
     if (dot != std::string::npos)
         filename = filename.substr(0, dot);
-    filename += ".gsdebug";
+    filename += ".gbdebug";
 
     std::string path = config_root_path;
     path += filename;

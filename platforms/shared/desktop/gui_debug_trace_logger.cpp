@@ -122,13 +122,6 @@ void gui_debug_trace_logger_update(void)
         if (!IsValidPointer(record))
             return;
 
-        if (emu_debug_halt_step_active() && trace_logger_last_valid &&
-            trace_logger_last_pc == state->PC->GetValue() &&
-            trace_logger_last_bank == record->bank)
-        {
-            return;
-        }
-
         char bank[8];
         snprintf(bank, sizeof(bank), "%02X:", record->bank);
 
@@ -144,14 +137,10 @@ void gui_debug_trace_logger_update(void)
             a, bc, de, hl, state->SP->GetValue());
 
         char flags[32];
-        snprintf(flags, sizeof(flags), "F: %c%c%c%c%c%c%c%c   ",
-            (f & FLAG_SIGN) ? 'S' : 's',
+        snprintf(flags, sizeof(flags), "F: %c%c%c%c   ",
             (f & FLAG_ZERO) ? 'Z' : 'z',
-            (f & FLAG_Y) ? 'Y' : 'y',
+            (f & FLAG_SUB) ? 'N' : 'n',
             (f & FLAG_HALF) ? 'H' : 'h',
-            (f & FLAG_X) ? 'X' : 'x',
-            (f & FLAG_PARITY) ? 'P' : 'p',
-            (f & FLAG_NEGATIVE) ? 'N' : 'n',
             (f & FLAG_CARRY) ? 'C' : 'c');
 
         char counter[16];

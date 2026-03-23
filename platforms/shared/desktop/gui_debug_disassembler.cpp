@@ -90,7 +90,6 @@ static void draw_disassembly(void);
 static void draw_context_menu(DisassemblerLine* line);
 static void add_debug_symbols();
 static void add_symbol(const char* line);
-static void add_auto_symbol(GS_Disassembler_Record* record, u16 address);
 static void add_breakpoint(int type);
 static void request_goto_address(u16 addr);
 static bool is_return_instruction(GS_Disassembler_Record* record);
@@ -379,7 +378,7 @@ static void draw_controls(void)
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_REPLAY))
     {
-        emu_reset(gui_get_force_configuration());
+        emu_reset(config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);
     }
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
     {
@@ -514,6 +513,12 @@ static void draw_breakpoints_content(void)
                 ImGui::TextColored(brk->enabled ? green : gray, " %s", symbol->text);
                 symbol_shown = true;
             }
+            else if (record->auto_symbol[0] != 0)
+            {
+                ImGui::SameLine(0, 0);
+                ImGui::TextColored(brk->enabled ? green : gray, " %s", record->auto_symbol);
+                symbol_shown = true;
+            }
         }
 
         if (!symbol_shown && brk->execute && IsValidPointer(record))
@@ -581,15 +586,38 @@ static void prepare_drawable_lines(void)
         GS_Disassembler_Record* record = memory->GetDisassemblerRecord(i);
 
         if (IsValidPointer(record) && (record->name[0] != 0))
-            add_auto_symbol(record, i);
-    }
-
-    for (int i = 0; i < 0x10000; i++)
-    {
-        GS_Disassembler_Record* record = memory->GetDisassemblerRecord(i);
-
-        if (IsValidPointer(record) && (record->name[0] != 0))
         {
+            if (record->auto_symbol[0] != 0)
+            {
+                DebugSymbol* existing = dynamic_symbols[record->bank][i];
+                if (!IsValidPointer(existing))
+                {
+                    existing = new DebugSymbol;
+                    existing->address = (u16)i;
+                    existing->bank = record->bank;
+                    snprintf(existing->text, 64, "%s", record->auto_symbol);
+                    dynamic_symbols[record->bank][i] = existing;
+
+                    SymbolEntry entry;
+                    entry.symbol = existing;
+                    entry.is_manual = false;
+                    entry.bank = record->bank;
+                    dynamic_symbol_list.push_back(entry);
+
+                    if (show_auto_symbols)
+                        symbols_dirty = true;
+                }
+                else if (strcmp(existing->text, record->auto_symbol) != 0)
+                {
+                    if (strncmp(existing->text, "SUB_", 4) == 0 || strncmp(existing->text, "TAG_", 4) == 0)
+                    {
+                        snprintf(existing->text, 64, "%s", record->auto_symbol);
+                        if (show_auto_symbols)
+                            symbols_dirty = true;
+                    }
+                }
+            }
+
             bool fixed_symbol_found = false;
             if (config_debug.dis_show_symbols)
             {
@@ -1066,68 +1094,6 @@ static void add_symbol(const char* line)
     }
 }
 
-static const char* k_irq_symbol_format[4] = {
-    "????_%02X_%04X",
-    "RESET_%02X_%04X",
-    "NMI_%02X_%04X",
-    "INT_%02X_%04X"
-};
-
-static void add_auto_symbol(GS_Disassembler_Record* record, u16 address)
-{
-    DebugSymbol s;
-    bool insert = false;
-
-    if (record->irq > 0 && record->irq < 4)
-    {
-        s.address = address;
-        s.bank = record->bank;
-        insert = true;
-        snprintf(s.text, 64, k_irq_symbol_format[record->irq], record->bank, address);
-    }
-    else if (record->jump)
-    {
-        s.address = record->jump_address;
-        s.bank = record->jump_bank;
-        insert = true;
-        if (record->subroutine)
-            snprintf(s.text, 64, "SUB_%02X_%04X", record->jump_bank, record->jump_address);
-        else
-            snprintf(s.text, 64, "TAG_%02X_%04X", record->jump_bank, record->jump_address);
-    }
-
-    if (insert)
-    {
-        DebugSymbol* new_symbol = dynamic_symbols[s.bank][s.address];
-
-        if (IsValidPointer(new_symbol))
-        {
-           if (record->subroutine && strncmp(dynamic_symbols[s.bank][s.address]->text, "TAG_", 4) == 0)
-               snprintf(dynamic_symbols[s.bank][s.address]->text, 64, "SUB_%02X_%04X", record->jump_bank, record->jump_address);
-           if (show_auto_symbols)
-               symbols_dirty = true;
-        }
-        else
-        {
-            new_symbol = new DebugSymbol;
-            new_symbol->address = s.address;
-            new_symbol->bank = s.bank;
-            snprintf(new_symbol->text, 64, "%s", s.text);
-
-            dynamic_symbols[s.bank][s.address] = new_symbol;
-
-            SymbolEntry entry;
-            entry.symbol = new_symbol;
-            entry.is_manual = false;
-            entry.bank = s.bank;
-            dynamic_symbol_list.push_back(entry);
-
-            if (show_auto_symbols)
-                symbols_dirty = true;
-        }
-    }
-}
-
 static void add_breakpoint(int type)
 {
     bool read = new_breakpoint_read;
@@ -1165,31 +1131,8 @@ static bool is_return_instruction(GS_Disassembler_Record* record)
         case 0xC8: // RET Z
         case 0xD0: // RET NC
         case 0xD8: // RET C
-        case 0xE0: // RET PO
-        case 0xE8: // RET PE
-        case 0xF0: // RET P
-        case 0xF8: // RET M
+        case 0xD9: // RETI
             return true;
-        case 0xED:
-        {
-            if (record->size < 2)
-                return false;
-            u8 second = record->opcodes[1];
-            switch (second)
-            {
-                case 0x45: // RETN
-                case 0x4D: // RETI
-                case 0x55: // RETN*
-                case 0x5D: // RETN*
-                case 0x65: // RETN*
-                case 0x6D: // RETN*
-                case 0x75: // RETN*
-                case 0x7D: // RETN*
-                    return true;
-                default:
-                    return false;
-            }
-        }
         default:
             return false;
     }
@@ -1268,13 +1211,13 @@ bool gui_debug_resolve_symbol(GS_Disassembler_Record* record, std::string& instr
 bool gui_debug_resolve_label(GS_Disassembler_Record* record, std::string& instr, const char* color, const char* original_color, const char** out_name, u16* out_address)
 {
     u8 opcode = record->opcodes[0];
-    bool is_in = (opcode == 0xDB);
-    bool is_out = (opcode == 0xD3);
+    bool is_ldh_out = (opcode == 0xE0);
+    bool is_ldh_in = (opcode == 0xF0);
 
-    if (is_in || is_out)
+    if (is_ldh_out || is_ldh_in)
     {
         u16 port = record->opcodes[1];
-        int dir = is_in ? IO_IN : IO_OUT;
+        int dir = is_ldh_in ? IO_IN : IO_OUT;
 
         for (int i = 0; i < k_debug_io_label_count; i++)
         {
@@ -1324,13 +1267,25 @@ static void replace_symbols(DisassemblerLine* line, const char* jump_color, cons
 
     DebugSymbol* dynamic_symbol = dynamic_symbols[line->record->jump_bank][lookup_address];
 
+    const char* auto_symbol_text = NULL;
     if (IsValidPointer(dynamic_symbol))
     {
-        std::string replacement = std::string(auto_color) + dynamic_symbol->text + original_color;
+        auto_symbol_text = dynamic_symbol->text;
+    }
+    else
+    {
+        GS_Disassembler_Record* target = emu_get_core()->GetMemory()->GetDisassemblerRecord(lookup_address, line->record->jump_bank);
+        if (IsValidPointer(target) && target->auto_symbol[0] != 0)
+            auto_symbol_text = target->auto_symbol;
+    }
+
+    if (auto_symbol_text != NULL)
+    {
+        std::string replacement = std::string(auto_color) + auto_symbol_text + original_color;
         if (replace_address_in_string(instr, lookup_address, is_zp, replacement.c_str()))
         {
             snprintf(line->name_enhanced, 64, "%s", instr.c_str());
-            snprintf(line->tooltip, 128, "%s%s%s = %s$%04X", auto_color, dynamic_symbol->text, c_white, c_cyan, lookup_address);
+            snprintf(line->tooltip, 128, "%s%s%s = %s$%04X", auto_color, auto_symbol_text, c_white, c_cyan, lookup_address);
         }
     }
 }
@@ -1532,7 +1487,7 @@ static void disassembler_menu(void)
 
         if (ImGui::MenuItem("Reset", config_hotkeys[config_HotkeyIndex_Reset].str))
         {
-            emu_reset(gui_get_force_configuration());
+            emu_reset(config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);
         }
 
         ImGui::Separator();
@@ -1805,7 +1760,7 @@ void gui_debug_window_call_stack(void)
 
     ImGui::Begin("Call Stack", &config_debug.show_call_stack);
 
-    GearsystemCore* core = emu_get_core();
+    GearboyCore* core = emu_get_core();
     Memory* memory = core->GetMemory();
     Processor* processor = core->GetProcessor();
     std::stack<Processor::GS_CallStackEntry> temp_stack = *processor->GetDisassemblerCallStack();
@@ -1832,23 +1787,18 @@ void gui_debug_window_call_stack(void)
             Processor::GS_CallStackEntry entry = temp_stack.top();
             temp_stack.pop();
 
-            GS_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.dest);
+            symbol_text[0] = 0;
+
+            GS_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.dest, entry.bank);
 
             if (IsValidPointer(record) && (record->name[0] != 0))
             {
-                DebugSymbol* symbol = fixed_symbols[record->bank][entry.dest];
+                DebugSymbol* symbol = fixed_symbols[entry.bank][entry.dest];
 
                 if (IsValidPointer(symbol))
                     snprintf(symbol_text, sizeof(symbol_text), "%s", symbol->text);
-                else 
-                {
-                    DebugSymbol* symbol = dynamic_symbols[record->bank][entry.dest];
-
-                    if (IsValidPointer(symbol))
-                        snprintf(symbol_text, sizeof(symbol_text), "%s", symbol->text);
-                    else
-                        symbol_text[0] = 0;
-                }
+                else if (record->auto_symbol[0] != 0)
+                    snprintf(symbol_text, sizeof(symbol_text), "%s", record->auto_symbol);
             }
 
             ImGui::TableNextColumn();

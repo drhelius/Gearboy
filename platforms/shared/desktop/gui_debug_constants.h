@@ -93,45 +93,89 @@ struct stDebugIOLabel
     int direction;
 };
 
-static const int k_debug_io_label_count = 25;
+static const int k_debug_io_label_count = 65;
 static const stDebugIOLabel k_debug_io_labels[k_debug_io_label_count] = 
 {
-    // VDP Ports (0x80-0xBF range, even/odd decoding)
-    { 0xBE, "VDP_DATA", IO_BOTH },
-    { 0xBF, "VDP_STATUS", IO_IN },
-    { 0xBF, "VDP_CTRL", IO_OUT },
-    // V/H Counters (0x40-0x7F range, even/odd decoding, read only)
-    { 0x7E, "VDP_VCOUNTER", IO_IN },
-    { 0x7F, "VDP_HCOUNTER", IO_IN },
-    // PSG (0x40-0x7F range, write only)
-    { 0x7E, "PSG", IO_OUT },
-    { 0x7F, "PSG", IO_OUT },
-    // YM2413 FM Synth (0xF0-0xFF range, SMS only)
-    { 0xF0, "FM_STATUS", IO_IN },
-    { 0xF0, "FM_ADDR", IO_OUT },
-    { 0xF1, "FM_STATUS", IO_IN },
-    { 0xF1, "FM_DATA", IO_OUT },
-    { 0xF2, "FM_DETECT", IO_BOTH },
-    // I/O Control (0x00-0x3F odd, write only)
-    { 0x3F, "IO_CTRL", IO_OUT },
-    // Joypad Ports (0xC0-0xFF range, even/odd decoding, read only)
-    { 0xDC, "JOYPAD_1", IO_IN },
-    { 0xDD, "JOYPAD_2", IO_IN },
-    { 0xC0, "JOYPAD_1", IO_IN },
-    { 0xC1, "JOYPAD_2", IO_IN },
-    // Memory Control (0x00-0x3F even, write only)
-    { 0x3E, "MEM_CTRL", IO_OUT },
-    // Game Gear specific (0x00-0x06)
-    { 0x00, "GG_START", IO_IN },
-    { 0x01, "GG_SERIAL_DATA", IO_BOTH },
-    { 0x02, "GG_SERIAL_DIR", IO_BOTH },
-    { 0x03, "GG_SERIAL_TX", IO_BOTH },
-    { 0x04, "GG_SERIAL_RX", IO_BOTH },
-    { 0x05, "GG_SERIAL_STATUS", IO_BOTH },
-    { 0x06, "GG_STEREO", IO_OUT },
+    // Joypad
+    { 0x00, "P1_JOYPAD", IO_BOTH },
+    // Serial
+    { 0x01, "SB_SERIAL", IO_BOTH },
+    { 0x02, "SC_SERIAL", IO_BOTH },
+    // Timer
+    { 0x04, "DIV", IO_BOTH },
+    { 0x05, "TIMA", IO_BOTH },
+    { 0x06, "TMA", IO_BOTH },
+    { 0x07, "TAC", IO_BOTH },
+    // Interrupt Flag
+    { 0x0F, "IF", IO_BOTH },
+    // Sound Channel 1 - Pulse with sweep
+    { 0x10, "NR10", IO_BOTH },
+    { 0x11, "NR11", IO_BOTH },
+    { 0x12, "NR12", IO_BOTH },
+    { 0x13, "NR13", IO_OUT },
+    { 0x14, "NR14", IO_BOTH },
+    // Sound Channel 2 - Pulse
+    { 0x16, "NR21", IO_BOTH },
+    { 0x17, "NR22", IO_BOTH },
+    { 0x18, "NR23", IO_OUT },
+    { 0x19, "NR24", IO_BOTH },
+    // Sound Channel 3 - Wave
+    { 0x1A, "NR30", IO_BOTH },
+    { 0x1B, "NR31", IO_OUT },
+    { 0x1C, "NR32", IO_BOTH },
+    { 0x1D, "NR33", IO_OUT },
+    { 0x1E, "NR34", IO_BOTH },
+    // Sound Channel 4 - Noise
+    { 0x20, "NR41", IO_OUT },
+    { 0x21, "NR42", IO_BOTH },
+    { 0x22, "NR43", IO_BOTH },
+    { 0x23, "NR44", IO_BOTH },
+    // Sound Control
+    { 0x24, "NR50", IO_BOTH },
+    { 0x25, "NR51", IO_BOTH },
+    { 0x26, "NR52", IO_BOTH },
+    // Wave RAM
+    { 0x30, "WAVE_0", IO_BOTH },
+    { 0x31, "WAVE_1", IO_BOTH },
+    { 0x32, "WAVE_2", IO_BOTH },
+    { 0x33, "WAVE_3", IO_BOTH },
+    { 0x34, "WAVE_4", IO_BOTH },
+    { 0x35, "WAVE_5", IO_BOTH },
+    { 0x36, "WAVE_6", IO_BOTH },
+    { 0x37, "WAVE_7", IO_BOTH },
+    { 0x38, "WAVE_8", IO_BOTH },
+    { 0x39, "WAVE_9", IO_BOTH },
+    { 0x3A, "WAVE_A", IO_BOTH },
+    { 0x3B, "WAVE_B", IO_BOTH },
+    { 0x3C, "WAVE_C", IO_BOTH },
+    { 0x3D, "WAVE_D", IO_BOTH },
+    { 0x3E, "WAVE_E", IO_BOTH },
+    { 0x3F, "WAVE_F", IO_BOTH },
+    // LCD
+    { 0x40, "LCDC", IO_BOTH },
+    { 0x41, "STAT", IO_BOTH },
+    { 0x42, "SCY", IO_BOTH },
+    { 0x43, "SCX", IO_BOTH },
+    { 0x44, "LY", IO_IN },
+    { 0x45, "LYC", IO_BOTH },
+    { 0x46, "DMA", IO_OUT },
+    { 0x47, "BGP", IO_BOTH },
+    { 0x48, "OBP0", IO_BOTH },
+    { 0x49, "OBP1", IO_BOTH },
+    { 0x4A, "WY", IO_BOTH },
+    { 0x4B, "WX", IO_BOTH },
+    // CGB registers
+    { 0x4D, "KEY1", IO_BOTH },
+    { 0x4F, "VBK", IO_BOTH },
+    { 0x55, "HDMA5", IO_BOTH },
+    { 0x68, "BCPS", IO_BOTH },
+    { 0x69, "BCPD", IO_BOTH },
+    { 0x6A, "OCPS", IO_BOTH },
+    { 0x6B, "OCPD", IO_BOTH },
+    { 0x70, "SVBK", IO_BOTH },
 };
 
-static const int k_debug_symbol_count = 9;
+static const int k_debug_symbol_count = 14;
 
 static const stDebugLabel k_debug_symbols[k_debug_symbol_count] = 
 {
@@ -143,7 +187,12 @@ static const stDebugLabel k_debug_symbols[k_debug_symbol_count] =
     { 0x0028, "RST_28" },
     { 0x0030, "RST_30" },
     { 0x0038, "RST_38" },
-    { 0x0066, "NMI_Interrupt" },
+    { 0x0040, "VBlank_Handler" },
+    { 0x0048, "LCD_STAT_Handler" },
+    { 0x0050, "Timer_Handler" },
+    { 0x0058, "Serial_Handler" },
+    { 0x0060, "Joypad_Handler" },
+    { 0x0100, "Entry_Point" },
 };
 
 #endif /* GUI_DEBUG_CONSTANTS_H */

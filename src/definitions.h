@@ -69,6 +69,8 @@
 #define InitPointer(pointer) ((pointer) = NULL)
 #define IsValidPointer(pointer) ((pointer) != NULL)
 
+#define UNUSED(expr) (void)(expr)
+
 #if defined(MSB_FIRST) || defined(__BIG_ENDIAN__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 #define IS_BIG_ENDIAN
 #else
@@ -169,6 +171,33 @@ enum Gameboy_Keys
     Up_Key = 0x04,
     Down_Key = 0x08
 };
+
+struct GB_RuntimeInfo
+{
+    int screen_width;
+    int screen_height;
+};
+
+struct GB_Disassembler_Record
+{
+    u32 address;
+    u8 bank;
+    char name[64];
+    char bytes[25];
+    char segment[8];
+    u8 opcodes[4];
+    int size;
+    bool jump;
+    u16 jump_address;
+    u8 jump_bank;
+    bool subroutine;
+    int irq;
+    bool has_operand_address;
+    u16 operand_address;
+    char auto_symbol[64];
+};
+
+typedef GB_Disassembler_Record GS_Disassembler_Record;
 
 inline u8 SetBit(const u8 value, const u8 bit)
 {

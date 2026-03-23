@@ -41,14 +41,28 @@ class MemoryRule;
 class GearboyCore
 {
 public:
+    struct GB_Debug_Run
+    {
+        bool step_debugger;
+        bool stop_on_breakpoint;
+        bool stop_on_run_to_breakpoint;
+        bool stop_on_irq;
+    };
+
+    typedef GB_Debug_Run GS_Debug_Run;
+    typedef void (*GB_Debug_Callback)(void);
+    typedef GB_Debug_Callback GS_Debug_Callback;
+
+public:
     GearboyCore();
     ~GearboyCore();
     void Init(GB_Color_Format pixelFormat = GB_PIXEL_RGB565);
-    bool RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer = false, bool step = false, bool stopOnBreakpoints = false);
+    bool RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer = false, GB_Debug_Run* debug = NULL);
     bool LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
     bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
     void SaveDisassembledROM();
     void SaveMemoryDump();
+    bool GetRuntimeInfo(GB_RuntimeInfo& runtime_info);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     void Pause(bool paused);
@@ -86,6 +100,7 @@ public:
     Processor* GetProcessor();
     Audio* GetAudio();
     Video* GetVideo();
+    void SetDebugCallback(GB_Debug_Callback callback);
 
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;
@@ -124,6 +139,7 @@ private:
     GB_Color_Format m_pixelFormat;
     bool m_bColorCorrectionEnabled;
     u8* m_pSaveStateFrameBuffer;
+    GB_Debug_Callback m_debug_callback;
 };
 
 #endif	/* CORE_H */

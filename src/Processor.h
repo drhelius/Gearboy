@@ -21,6 +21,8 @@
 #define	PROCESSOR_H
 
 #include <list>
+#include <vector>
+#include <stack>
 #include "definitions.h"
 #include "SixteenBitRegister.h"
 
@@ -38,6 +40,45 @@ public:
         Serial_Interrupt = 0x08,
         Joypad_Interrupt = 0x10
     };
+
+    enum GB_Breakpoint_Type
+    {
+        GB_BREAKPOINT_TYPE_ROMRAM = 0,
+        GB_BREAKPOINT_TYPE_VRAM,
+        GB_BREAKPOINT_TYPE_IO,
+        GB_BREAKPOINT_TYPE_COUNT
+    };
+
+    // Compatibility aliases for shared GUI code
+    static const int GS_BREAKPOINT_TYPE_ROMRAM = GB_BREAKPOINT_TYPE_ROMRAM;
+    static const int GS_BREAKPOINT_TYPE_VRAM = GB_BREAKPOINT_TYPE_VRAM;
+    static const int GS_BREAKPOINT_TYPE_VDP_REGISTER = GB_BREAKPOINT_TYPE_IO;
+    static const int GS_BREAKPOINT_TYPE_CRAM = GB_BREAKPOINT_TYPE_IO;
+    static const int GS_BREAKPOINT_TYPE_COUNT = GB_BREAKPOINT_TYPE_COUNT;
+
+    struct GB_Breakpoint
+    {
+        bool enabled;
+        int type;
+        u16 address1;
+        u16 address2;
+        bool read;
+        bool write;
+        bool execute;
+        bool range;
+    };
+
+    typedef GB_Breakpoint GS_Breakpoint;
+
+    struct GB_CallStackEntry
+    {
+        u16 src;
+        u16 dest;
+        u16 back;
+        u8 bank;
+    };
+
+    typedef GB_CallStackEntry GS_CallStackEntry;
 
     struct ProcessorState
     {        
@@ -60,7 +101,6 @@ public:
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
     void ResetDIVCycles();
-    bool Halted() const;
     bool DuringOpCode() const;
     bool CGBSpeed() const;
     void AddCycles(unsigned int cycles);
@@ -70,9 +110,26 @@ public:
     void SetGameSharkCheat(const char* szCheat);
     void ClearGameSharkCheats();
     ProcessorState* GetState();
-    bool Disassemble(u16 address);
+    void DisassembleNextOPCode();
+    void PopulateDisassemblerRecord(GB_Disassembler_Record* record, u16 address);
+    void InvalidateOverlappingRecords(u16 address, u8 opcode_size);
+    void DisassembleAhead(int count);
+    void DisassembleAhead(u16 start_address, int count, int depth);
+    void EnableBreakpoints(bool enable, bool irqs);
     bool BreakpointHit();
-    void RequestMemoryBreakpoint();
+    bool MemoryBreakpointHit();
+    bool RunToBreakpointHit();
+    void ResetBreakpoints();
+    bool AddBreakpoint(int type, char* text, bool read, bool write, bool execute);
+    bool AddBreakpoint(u16 address);
+    void AddRunToBreakpoint(u16 address);
+    void RemoveBreakpoint(int type, u16 address);
+    bool IsBreakpoint(int type, u16 address);
+    std::vector<GB_Breakpoint>* GetBreakpoints();
+    void ClearDisassemblerCallStack();
+    std::stack<GB_CallStackEntry>* GetDisassemblerCallStack();
+    void CheckMemoryBreakpoints(int type, u16 address, bool read);
+    bool Halted();
     void UpdateTimers(u8 ticks);
     void UpdateSerial(u8 ticks);
 
@@ -104,8 +161,16 @@ private:
     int m_iSpeedMultiplier;
     int m_iAccurateOPCodeState;
     u8 m_iReadCache;
-    bool m_bBreakpointHit;
-    bool m_bRequestMemBreakpoint;
+    bool m_breakpoints_enabled;
+    bool m_breakpoints_irq_enabled;
+    bool m_cpu_breakpoint_hit;
+    bool m_memory_breakpoint_hit;
+    bool m_run_to_breakpoint_hit;
+    std::vector<GB_Breakpoint> m_breakpoints;
+    GB_Breakpoint m_run_to_breakpoint;
+    bool m_run_to_breakpoint_requested;
+    std::stack<GB_CallStackEntry> m_disassembler_call_stack;
+    s32 m_debug_next_irq;
 
     struct GameSharkCode
     {        
@@ -118,6 +183,9 @@ private:
     ProcessorState m_ProcessorState;
 
 private:
+    void CheckBreakpoints();
+    void PushCallStack(u16 src, u16 dest, u16 back, u8 bank);
+    void PopCallStack();
     Processor::Interrupts InterruptPending();
     void ServeInterrupt(Interrupts interrupt);
     void UpdateGameShark();

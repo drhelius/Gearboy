@@ -31,6 +31,14 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/emu.cpp \
     $(DESKTOP_SRC_DIR)/sound_queue.cpp \
     $(DESKTOP_SRC_DIR)/single_instance.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_disassembler.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_memory.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_memeditor.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_trace_logger.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_processor.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_video.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_io.cpp \
     $(SRC_DIR)/Audio.cpp \
     $(SRC_DIR)/Cartridge.cpp \
     $(SRC_DIR)/CommonMemoryRule.cpp \

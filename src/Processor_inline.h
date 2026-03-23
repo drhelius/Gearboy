@@ -69,11 +69,6 @@ inline void Processor::ResetDIVCycles()
     m_pMemory->Load(0xFF04, 0x00);
 }
 
-inline bool Processor::Halted() const
-{
-    return m_bHalt;
-}
-
 inline bool Processor::DuringOpCode() const
 {
     return m_iAccurateOPCodeState != 0;
@@ -672,6 +667,40 @@ inline void Processor::OPCodes_RES_HL(int bit)
     m_iReadCache &= ~(0x1 << bit);
     m_pMemory->Write(HL.GetValue(), m_iReadCache);
 }
+inline std::vector<Processor::GB_Breakpoint>* Processor::GetBreakpoints()
+{
+    return &m_breakpoints;
+}
 
+inline std::stack<Processor::GB_CallStackEntry>* Processor::GetDisassemblerCallStack()
+{
+    return &m_disassembler_call_stack;
+}
+
+inline void Processor::PushCallStack(u16 src, u16 dest, u16 back, u8 bank)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    GB_CallStackEntry entry;
+    entry.src = src;
+    entry.dest = dest;
+    entry.back = back;
+    entry.bank = bank;
+    if (m_disassembler_call_stack.size() < 256)
+        m_disassembler_call_stack.push(entry);
+#else
+    UNUSED(src);
+    UNUSED(dest);
+    UNUSED(back);
+    UNUSED(bank);
+#endif
+}
+
+inline void Processor::PopCallStack()
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    if (!m_disassembler_call_stack.empty())
+        m_disassembler_call_stack.pop();
+#endif
+}
 #endif	/* PROCESSOR_INLINE_H */
 

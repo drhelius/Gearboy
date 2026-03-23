@@ -104,21 +104,18 @@ void Memory::Init()
     m_pBootromDMG = new u8[0x100];
     m_pBootromGBC = new u8[0x900];
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
-    m_pDisassembledMap = new stDisassembleRecord*[65536];
+    m_pDisassembledMap = new GB_Disassembler_Record*[65536];
     for (int i = 0; i < 65536; i++)
     {
         InitPointer(m_pDisassembledMap[i]);
     }
 
-    m_pDisassembledROMMap = new stDisassembleRecord*[MAX_ROM_SIZE];
+    m_pDisassembledROMMap = new GB_Disassembler_Record*[MAX_ROM_SIZE];
     for (int i = 0; i < MAX_ROM_SIZE; i++)
     {
         InitPointer(m_pDisassembledROMMap[i]);
     }
 #endif
-    m_BreakpointsCPU.clear();
-    m_BreakpointsMem.clear();
-    InitPointer(m_pRunToBreakpoint);
     Reset(false);
 }
 
@@ -550,24 +547,42 @@ u8* Memory::GetWRAM1()
     return m_bCGB ? m_pWRAMBanks + (0x1000 * m_iCurrentWRAMBank) : m_pMap + 0xD000;
 }
 
-std::vector<Memory::stDisassembleRecord*>* Memory::GetBreakpointsCPU()
+GB_Disassembler_Record* Memory::GetOrCreateDisassemblerRecord(u16 address)
 {
-    return &m_BreakpointsCPU;
-}
+    u32 physical_address = GetPhysicalAddress(address);
+    bool rom = (address < 0x8000);
 
-std::vector<Memory::stMemoryBreakpoint>* Memory::GetBreakpointsMem()
-{
-    return &m_BreakpointsMem;
-}
+    GB_Disassembler_Record** map = rom ? m_pDisassembledROMMap : m_pDisassembledMap;
+    u32 offset = rom ? physical_address : (u32)address;
 
-Memory::stDisassembleRecord* Memory::GetRunToBreakpoint()
-{
-    return m_pRunToBreakpoint;
-}
+    if (rom && offset >= MAX_ROM_SIZE)
+        return NULL;
 
-void Memory::SetRunToBreakpoint(Memory::stDisassembleRecord* pBreakpoint)
-{
-    m_pRunToBreakpoint = pBreakpoint;
+    GB_Disassembler_Record* record = map[offset];
+
+    if (!IsValidPointer(record))
+    {
+        record = new GB_Disassembler_Record();
+        record->address = physical_address;
+        record->bank = GetBank(address);
+        record->segment[0] = 0;
+        record->name[0] = 0;
+        record->bytes[0] = 0;
+        record->size = 0;
+        for (int i = 0; i < 4; i++)
+            record->opcodes[i] = 0;
+        record->jump = false;
+        record->jump_address = 0;
+        record->jump_bank = 0;
+        record->subroutine = false;
+        record->irq = 0;
+        record->has_operand_address = false;
+        record->operand_address = 0;
+        record->auto_symbol[0] = 0;
+        map[offset] = record;
+    }
+
+    return record;
 }
 
 void Memory::EnableBootromDMG(bool enable)
@@ -632,7 +647,7 @@ bool Memory::IsBootromRegistryEnabled()
     return !m_bBootromRegistryDisabled;
 }
 
-void Memory::ResetDisassembledMemory()
+void Memory::ResetDisassemblerRecords()
 {
     #ifndef GEARBOY_DISABLE_DISASSEMBLER
 
@@ -657,8 +672,6 @@ void Memory::ResetDisassembledMemory()
 void Memory::ResetBootromDisassembledMemory()
 {
     #ifndef GEARBOY_DISABLE_DISASSEMBLER
-
-    m_BreakpointsCPU.clear();
 
     if (IsValidPointer(m_pDisassembledROMMap))
     {

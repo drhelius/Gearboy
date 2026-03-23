@@ -177,6 +177,12 @@ struct config_Debug
     bool show_symbols = false;
     bool show_memory = false;
     bool show_video = false;
+    bool show_video_nametable = false;
+    bool show_video_tiles = false;
+    bool show_video_sprites = false;
+    bool show_video_palettes = false;
+    bool show_video_regs = false;
+    bool show_io = false;
     bool show_trace_logger = false;
     bool trace_counter = true;
     bool trace_bank = true;

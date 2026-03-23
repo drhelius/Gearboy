@@ -330,29 +330,29 @@ static void update_system_texture(void)
 
 static void update_debug_textures(void)
 {
-    // if (config_debug.show_video_nametable)
-    // {
-    //     glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_background);
-    //     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256,
-    //             GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_background_buffer);
-    // }
+    if (config_debug.show_video_nametable)
+    {
+        glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_background);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256,
+                GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_background_buffer);
+    }
 
-    // if (config_debug.show_video_sprites)
-    // {
-    //     for (int s = 0; s < 40; s++)
-    //     {
-    //         glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_sprites[s]);
-    //         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 8, 16,
-    //                 GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_oam_buffers[s]);
-    //     }
-    // }
+    if (config_debug.show_video_sprites)
+    {
+        for (int s = 0; s < 40; s++)
+        {
+            glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_sprites[s]);
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 8, 16,
+                    GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_oam_buffers[s]);
+        }
+    }
 
-    // if (config_debug.show_video_tiles)
-    // {
-    //     glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_tiles);
-    //     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 16 * 8, 24 * 8,
-    //             GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_tile_buffers[0]);
-    // }
+    if (config_debug.show_video_tiles)
+    {
+        glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_tiles);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 16 * 8, 24 * 8,
+                GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_tile_buffers[0]);
+    }
 }
 
 static void update_savestates_texture(void)

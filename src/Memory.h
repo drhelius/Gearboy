@@ -32,29 +32,6 @@ class IORegistersMemoryRule;
 class Memory
 {
 public:
-    struct stDisassembleRecord
-    {
-        u16 address;
-        char name[64];
-        char bytes[16];
-        int size;
-        int bank;
-        u8 opcodes[4];
-        bool jump;
-        u16 jump_address;
-        bool disabled;
-    };
-
-    struct stMemoryBreakpoint
-    {
-        u16 address1;
-        u16 address2;
-        bool read;
-        bool write;
-        bool range;
-    };
-
-public:
     Memory();
     ~Memory();
     void SetProcessor(Processor* pProcessor);
@@ -76,8 +53,12 @@ public:
     void SwitchCGBLCDRAM(u8 value);
     u8 Retrieve(u16 address);
     void Load(u16 address, u8 value);
-    stDisassembleRecord** GetDisassembledMemoryMap();
-    stDisassembleRecord** GetDisassembledROMMemoryMap();
+    u8 DebugRetrieve(u16 address);
+    GB_Disassembler_Record* GetDisassemblerRecord(u16 address);
+    GB_Disassembler_Record* GetDisassemblerRecord(u16 address, u8 bank);
+    GB_Disassembler_Record* GetOrCreateDisassemblerRecord(u16 address);
+    void ResetDisassemblerRecords();
+    GB_Disassembler_Record** GetAllDisassemblerRecords();
     void LoadBank0and1FromROM(u8* pTheROM);
     void MemoryDump(const char* szFilePath);
     void PerformDMA(u8 value);
@@ -98,10 +79,8 @@ public:
     u8* GetRAM();
     u8* GetWRAM0();
     u8* GetWRAM1();
-    std::vector<stDisassembleRecord*>* GetBreakpointsCPU();
-    std::vector<stMemoryBreakpoint>* GetBreakpointsMem();
-    stDisassembleRecord* GetRunToBreakpoint();
-    void SetRunToBreakpoint(stDisassembleRecord* pBreakpoint);
+    u32 GetPhysicalAddress(u16 address);
+    u8 GetBank(u16 address);
     void EnableBootromDMG(bool enable);
     void EnableBootromGBC(bool enable);
     void LoadBootromDMG(const char* szFilePath);
@@ -109,7 +88,6 @@ public:
     bool IsBootromEnabled();
     void DisableBootromRegistry();
     bool IsBootromRegistryEnabled();
-    void ResetDisassembledMemory();
     void ResetBootromDisassembledMemory();
 
 private:
@@ -123,11 +101,8 @@ private:
     IORegistersMemoryRule* m_pIORegistersMemoryRule;
     MemoryRule* m_pCurrentMemoryRule;
     u8* m_pMap;
-    stDisassembleRecord** m_pDisassembledMap;
-    stDisassembleRecord** m_pDisassembledROMMap;
-    std::vector<stDisassembleRecord*> m_BreakpointsCPU;
-    std::vector<stMemoryBreakpoint> m_BreakpointsMem;
-    stDisassembleRecord* m_pRunToBreakpoint;
+    GB_Disassembler_Record** m_pDisassembledMap;
+    GB_Disassembler_Record** m_pDisassembledROMMap;
     bool m_bCGB;
     int m_iCurrentWRAMBank;
     int m_iCurrentLCDRAMBank;

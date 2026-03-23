@@ -25,10 +25,10 @@
 #include <cstring>
 #include "gui.h"
 #include "gui_actions.h"
-// #include "gui_debug_memory.h"
-// #include "gui_debug_disassembler.h"
-// #include "gui_debug_trace_logger.h"
-// #include "gui_debug.h"
+#include "gui_debug.h"
+#include "gui_debug_disassembler.h"
+#include "gui_debug_memory.h"
+#include "gui_debug_trace_logger.h"
 #include "gui_menus.h"
 #include "application.h"
 #include "config.h"
@@ -403,8 +403,8 @@ static void process_dialog_result(FileDialogID id, const char* path)
         }
         case FileDialog_LoadSymbols:
         {
-            // gui_debug_reset_symbols();
-            // gui_debug_load_symbols_file(path);
+            gui_debug_reset_symbols();
+            gui_debug_load_symbols_file(path);
             break;
         }
         case FileDialog_SaveScreenshot:
@@ -440,38 +440,38 @@ static void process_dialog_result(FileDialogID id, const char* path)
         }
         case FileDialog_SaveMemoryDumpBinary:
         {
-            // gui_debug_memory_save_dump(path, true);
+            gui_debug_memory_save_dump(path, true);
             break;
         }
         case FileDialog_SaveMemoryDumpText:
         {
-            // gui_debug_memory_save_dump(path, false);
+            gui_debug_memory_save_dump(path, false);
             break;
         }
         case FileDialog_SaveDisassemblerFull:
         {
-            // gui_debug_save_disassembler(path, true);
+            gui_debug_save_disassembler(path, true);
             break;
         }
         case FileDialog_SaveDisassemblerVisible:
         {
-            // gui_debug_save_disassembler(path, false);
+            gui_debug_save_disassembler(path, false);
             break;
         }
         case FileDialog_SaveLog:
         {
-            // gui_debug_save_log(path);
+            gui_debug_save_log(path);
             break;
         }
         case FileDialog_SaveDebugSettings:
         {
-            // gui_debug_save_settings(path);
+            gui_debug_save_settings(path);
             gui_set_status_message("Debug settings saved", 3000);
             break;
         }
         case FileDialog_LoadDebugSettings:
         {
-            // gui_debug_load_settings(path);
+            gui_debug_load_settings(path);
             gui_set_status_message("Debug settings loaded", 3000);
             break;
         }

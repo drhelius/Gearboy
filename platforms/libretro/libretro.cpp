@@ -407,7 +407,7 @@ void retro_run(void)
 
     update_input();
 
-    core->RunToVBlank(gearboy_frame_buf, audio_buf, &audio_sample_count);
+    core->RunToVBlank(gearboy_frame_buf, audio_buf, &audio_sample_count, false, NULL);
 
     video_cb((uint8_t*)gearboy_frame_buf, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_WIDTH * sizeof(u16));
 

@@ -157,51 +157,99 @@ inline void Memory::Load(u16 address, u8 value)
     m_pMap[address] = value;
 }
 
-inline Memory::stDisassembleRecord** Memory::GetDisassembledMemoryMap()
+inline u8 Memory::DebugRetrieve(u16 address)
 {
-    return m_pDisassembledMap;
+    if (address < 0x8000)
+    {
+        if (!m_bBootromRegistryDisabled)
+        {
+            if (m_bCGB)
+            {
+                if (m_bBootromGBCEnabled && m_bBootromGBCLoaded && ((address < 0x0100) || (address < 0x0900 && address > 0x01FF)))
+                    return m_pBootromGBC[address];
+            }
+            else
+            {
+                if (m_bBootromDMGEnabled && m_bBootromDMGLoaded && (address < 0x0100))
+                    return m_pBootromDMG[address];
+            }
+        }
+        if (IsValidPointer(m_pCurrentMemoryRule))
+            return m_pCurrentMemoryRule->PerformRead(address);
+    }
+    return m_pMap[address];
 }
 
-inline Memory::stDisassembleRecord** Memory::GetDisassembledROMMemoryMap()
+inline u32 Memory::GetPhysicalAddress(u16 address)
+{
+    if (address >= 0x8000)
+        return (u32)address;
+
+    if (!IsValidPointer(m_pCurrentMemoryRule))
+        return (u32)address;
+
+    if (address < 0x4000)
+    {
+        int bank = m_pCurrentMemoryRule->GetCurrentRomBank0Index();
+        return (u32)(0x4000 * bank) + address;
+    }
+    else
+    {
+        int bank = m_pCurrentMemoryRule->GetCurrentRomBank1Index();
+        return (u32)(0x4000 * bank) + (address & 0x3FFF);
+    }
+}
+
+inline u8 Memory::GetBank(u16 address)
+{
+    if (address >= 0x8000)
+        return 0;
+
+    if (!IsValidPointer(m_pCurrentMemoryRule))
+        return 0;
+
+    if (address < 0x4000)
+        return (u8)m_pCurrentMemoryRule->GetCurrentRomBank0Index();
+    else
+        return (u8)m_pCurrentMemoryRule->GetCurrentRomBank1Index();
+}
+
+inline GB_Disassembler_Record* Memory::GetDisassemblerRecord(u16 address)
+{
+    u32 physical_address = GetPhysicalAddress(address);
+    bool rom = (address < 0x8000);
+
+    if (rom)
+    {
+        if (physical_address >= MAX_ROM_SIZE)
+            return NULL;
+        return m_pDisassembledROMMap[physical_address];
+    }
+    else
+    {
+        return m_pDisassembledMap[physical_address];
+    }
+}
+
+inline GB_Disassembler_Record* Memory::GetDisassemblerRecord(u16 address, u8 bank)
+{
+    if (address >= 0x8000)
+        return m_pDisassembledMap[address];
+
+    u32 physical_address = (u32)(0x4000 * bank) + (address & 0x3FFF);
+    if (physical_address >= MAX_ROM_SIZE)
+        return NULL;
+    return m_pDisassembledROMMap[physical_address];
+}
+
+inline GB_Disassembler_Record** Memory::GetAllDisassemblerRecords()
 {
     return m_pDisassembledROMMap;
 }
 
 inline void Memory::CheckBreakpoints(u16 address, bool write)
 {
-    std::size_t size = m_BreakpointsMem.size();
-
-    for (std::size_t b = 0; b < size; b++)
-    {
-        if (write && !m_BreakpointsMem[b].write)
-            continue;
-
-        if (!write && !m_BreakpointsMem[b].read)
-            continue;
-
-        bool proceed = false;
-
-        if (m_BreakpointsMem[b].range)
-        {
-            if ((address >= m_BreakpointsMem[b].address1) && (address <= m_BreakpointsMem[b].address2))
-            {
-                proceed = true;
-            }
-        }
-        else
-        {
-            if (m_BreakpointsMem[b].address1 == address)
-            {
-                proceed = true;
-            }
-        }
-
-        if (proceed)
-        {
-            m_pProcessor->RequestMemoryBreakpoint();
-            break;
-        }
-    }
+    m_pProcessor->CheckMemoryBreakpoints(Processor::GB_BREAKPOINT_TYPE_ROMRAM, address, !write);
 }
 
 #endif	/* MEMORY_INLINE_H */
