@@ -998,18 +998,19 @@ static void menu_debug(void)
         ImGui::Separator();
 
         ImGui::MenuItem("Show Disassembler", "", &config_debug.show_disassembler, config_debug.debug);
-
-        ImGui::MenuItem("Show CPU", "", &config_debug.show_processor, config_debug.debug);
-
-        ImGui::MenuItem("Show Call Stack", "", &config_debug.show_call_stack, config_debug.debug);
-
-        ImGui::MenuItem("Show Breakpoints", "", &config_debug.show_breakpoints, config_debug.debug);
-
-        ImGui::MenuItem("Show Symbols", "", &config_debug.show_symbols, config_debug.debug);
-
         ImGui::MenuItem("Show Memory Editor", "", &config_debug.show_memory, config_debug.debug);
+        ImGui::MenuItem("Show Trace Logger", "", &config_debug.show_trace_logger, config_debug.debug);
 
-        ImGui::MenuItem("Show IO Map", "", &config_debug.show_io, config_debug.debug);
+        ImGui::Separator();
+
+        if (ImGui::BeginMenu("CPU", config_debug.debug))
+        {
+            ImGui::MenuItem("Show Status", "", &config_debug.show_processor, config_debug.debug);
+            ImGui::MenuItem("Show Call Stack", "", &config_debug.show_call_stack, config_debug.debug);
+            ImGui::MenuItem("Show Breakpoints", "", &config_debug.show_breakpoints, config_debug.debug);
+            ImGui::MenuItem("Show Symbols", "", &config_debug.show_symbols, config_debug.debug);
+            ImGui::EndMenu();
+        }
 
         if (ImGui::BeginMenu("Video", config_debug.debug))
         {
@@ -1021,15 +1022,14 @@ static void menu_debug(void)
             ImGui::EndMenu();
         }
 
+        ImGui::MenuItem("Show IO Map", "", &config_debug.show_io, config_debug.debug);
+
         // Audio debug not yet implemented for Gearboy
         // if (ImGui::BeginMenu("Audio", config_debug.debug))
         // {
         //     ImGui::MenuItem("Show PSG", "", &config_debug.show_psg, config_debug.debug);
         //     ImGui::EndMenu();
         // }
-
-        ImGui::MenuItem("Show Trace Logger", "", &config_debug.show_trace_logger, config_debug.debug);
-
 
 #if defined(__APPLE__) || defined(_WIN32)
         ImGui::Separator();

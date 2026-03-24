@@ -45,7 +45,7 @@ void gui_debug_window_vram_nametable(void)
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(544, 534), ImGuiCond_FirstUseEver);
 
-    ImGui::Begin("Background Map", &config_debug.show_video_nametable);
+    ImGui::Begin("Name Table", &config_debug.show_video_nametable);
 
     static int selected_bg_tile_x = -1;
     static int selected_bg_tile_y = -1;
@@ -291,7 +291,7 @@ void gui_debug_window_vram_tiles(void)
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(544, 480), ImGuiCond_FirstUseEver);
 
-    ImGui::Begin("Tiles", &config_debug.show_video_tiles);
+    ImGui::Begin("Pattern Table", &config_debug.show_video_tiles);
 
     static int selected_tile_x = -1;
     static int selected_tile_y = -1;
@@ -341,7 +341,6 @@ void gui_debug_window_vram_tiles(void)
 
     p[1] = ImGui::GetCursorScreenPos();
 
-    // Bank 1 - uses same texture for now (TODO: second bank texture)
     ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles, ImVec2(width, height));
 
     for (int i = 0; i < 2; i++)
@@ -649,7 +648,7 @@ void gui_debug_window_vram_dmg_palettes(void)
 
     ImGui::PushFont(gui_default_font);
 
-    ImGui::TextColored(cyan, "                          0       1       2       3");
+    ImGui::TextColored(cyan, "                               0       1       2       3");
 
     u8 bgp = memory->Retrieve(0xFF47);
     u8 obp0 = memory->Retrieve(0xFF48);
