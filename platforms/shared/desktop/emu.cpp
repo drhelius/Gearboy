@@ -503,16 +503,6 @@ void emu_color_correction(bool correction)
     gearboy->EnableColorCorrection(correction);
 }
 
-void emu_memory_dump(void)
-{
-    gearboy->SaveMemoryDump();
-}
-
-void emu_dissasemble_rom(void)
-{
-    gearboy->SaveDisassembledROM();
-}
-
 void emu_debug_step_over(void)
 {
     Processor* processor = emu_get_core()->GetProcessor();

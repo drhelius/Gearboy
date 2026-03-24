@@ -60,8 +60,6 @@ public:
     bool RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer = false, GB_Debug_Run* debug = NULL);
     bool LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
     bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
-    void SaveDisassembledROM();
-    void SaveMemoryDump();
     bool GetRuntimeInfo(GB_RuntimeInfo& runtime_info);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);

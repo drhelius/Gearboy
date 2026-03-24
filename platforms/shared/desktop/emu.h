@@ -94,8 +94,6 @@ EXTERN void emu_clear_cheats(void);
 EXTERN void emu_get_info(char* info, int buffer_size);
 EXTERN GearboyCore* emu_get_core(void);
 EXTERN void emu_color_correction(bool correction);
-EXTERN void emu_memory_dump(void);
-EXTERN void emu_dissasemble_rom(void);
 EXTERN void emu_debug_step_over(void);
 EXTERN void emu_debug_step_into(void);
 EXTERN void emu_debug_step_out(void);

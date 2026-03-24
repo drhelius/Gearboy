@@ -272,61 +272,6 @@ bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, C
         return false;
 }
 
-void GearboyCore::SaveMemoryDump()
-{
-    if (m_pCartridge->IsLoadedROM() && (strlen(m_pCartridge->GetFilePath()) > 0))
-    {
-        using namespace std;
-
-        char path[512];
-
-        strcpy(path, m_pCartridge->GetFilePath());
-        strcat(path, ".dump");
-
-        Log("Saving Memory Dump %s...", path);
-
-        m_pMemory->MemoryDump(path);
-
-        Debug("Memory Dump Saved");
-    }
-}
-
-void GearboyCore::SaveDisassembledROM()
-{
-    GB_Disassembler_Record** romMap = m_pMemory->GetAllDisassemblerRecords();
-
-    if (m_pCartridge->IsLoadedROM() && (strlen(m_pCartridge->GetFilePath()) > 0) && IsValidPointer(romMap))
-    {
-        using namespace std;
-
-        char path[512];
-
-        strcpy(path, m_pCartridge->GetFilePath());
-        strcat(path, ".dis");
-
-        Log("Saving Disassembled ROM %s...", path);
-
-        ofstream myfile;
-        open_ofstream_utf8(myfile, path, ios::out | ios::trunc);
-
-        if (myfile.is_open())
-        {
-            for (int i = 0; i < 65536; i++)
-            {
-                if (IsValidPointer(romMap[i]) && (romMap[i]->name[0] != 0))
-                {
-                    myfile << "0x" << hex << i << "\t " << romMap[i]->name << "\n";
-                    i += (romMap[i]->size - 1);
-                }
-            }
-
-            myfile.close();
-        }
-
-        Debug("Disassembled ROM Saved");
-    }
-}
-
 Memory* GearboyCore::GetMemory()
 {
     return m_pMemory;
