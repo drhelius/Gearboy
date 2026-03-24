@@ -160,6 +160,7 @@ public:
     json MemorySearchCapture(int area);
     json MemorySearch(int area, const std::string& op, const std::string& compare_type, int compare_value, const std::string& data_type);
     json MemoryFindBytes(int area, const std::string& hex_bytes);
+    json GetTraceLog(int start, int count);
 
     // Core access
     GearsystemCore* GetCore() { return m_core; }

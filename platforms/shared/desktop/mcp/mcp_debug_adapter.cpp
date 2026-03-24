@@ -2193,3 +2193,155 @@ json DebugAdapter::MemoryFindBytes(int area, const std::string& hex_bytes)
 
     return result;
 }
+
+json DebugAdapter::GetTraceLog(int start, int count)
+{
+    json result;
+
+    TraceLogger* tl = m_core->GetTraceLogger();
+    if (!tl)
+    {
+        result["error"] = "Trace logger not available";
+        return result;
+    }
+
+    u32 total = tl->GetCount();
+
+    if (count < 1) count = 100;
+    if (count > 1000) count = 1000;
+
+    u32 actual_start;
+    if (start < 0)
+        actual_start = (total > (u32)count) ? (total - (u32)count) : 0;
+    else
+        actual_start = (u32)start;
+
+    if (actual_start >= total)
+    {
+        result["total_entries"] = total;
+        result["start"] = actual_start;
+        result["count"] = 0;
+        result["lines"] = json::array();
+        return result;
+    }
+
+    u32 actual_count = (u32)count;
+    if (actual_start + actual_count > total)
+        actual_count = total - actual_start;
+
+    Memory* memory = m_core->GetMemory();
+
+    json lines = json::array();
+
+    for (u32 i = 0; i < actual_count; i++)
+    {
+        const GB_Trace_Entry& entry = tl->GetEntry(actual_start + i);
+        char buf[256];
+
+        switch (entry.type)
+        {
+            case TRACE_CPU:
+            {
+                GS_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.cpu.pc, entry.cpu.bank);
+                char instr[64] = "???";
+                char bytes[25] = "";
+                if (IsValidPointer(record))
+                {
+                    strncpy(instr, record->name, sizeof(instr) - 1);
+                    instr[sizeof(instr) - 1] = '\0';
+                    char* p = instr;
+                    while (*p)
+                    {
+                        if (*p == '{')
+                        {
+                            char* end = strchr(p, '}');
+                            if (end)
+                                memmove(p, end + 1, strlen(end + 1) + 1);
+                            else
+                                break;
+                        }
+                        else
+                            p++;
+                    }
+                    strncpy(bytes, record->bytes, sizeof(bytes) - 1);
+                    bytes[sizeof(bytes) - 1] = '\0';
+                }
+                u8 a = (entry.cpu.af >> 8) & 0xFF;
+                u8 f = entry.cpu.af & 0xFF;
+                snprintf(buf, sizeof(buf), "%02X:%04X  A:%02X  BC:%04X  DE:%04X  HL:%04X  SP:%04X  %c%c%c%c  %-24s %s",
+                         entry.cpu.bank, entry.cpu.pc, a,
+                         entry.cpu.bc, entry.cpu.de, entry.cpu.hl, entry.cpu.sp,
+                         (f & FLAG_ZERO) ? 'Z' : 'z',
+                         (f & FLAG_SUB) ? 'N' : 'n',
+                         (f & FLAG_HALF) ? 'H' : 'h',
+                         (f & FLAG_CARRY) ? 'C' : 'c',
+                         instr, bytes);
+                break;
+            }
+            case TRACE_CPU_IRQ:
+            {
+                static const char* k_irq_names[] = {"???", "VBlank", "LCDSTAT", "Timer", "Serial", "Joypad"};
+                const char* irq_name = (entry.irq.type >= 1 && entry.irq.type <= 5) ? k_irq_names[entry.irq.type] : "???";
+                snprintf(buf, sizeof(buf), "  [CPU]  %-8s  PC:$%04X  Vector:$%04X",
+                         irq_name, entry.irq.pc, entry.irq.vector);
+                break;
+            }
+            case TRACE_LCD_WRITE:
+            {
+                static const char* k_lcd_regs[] = {"LCDC", "STAT", "SCY", "SCX", "LY", "LYC", "DMA", "BGP", "OBP0", "OBP1", "WY", "WX"};
+                const char* reg_name = (entry.lcd_write.reg < 12) ? k_lcd_regs[entry.lcd_write.reg] : "???";
+                snprintf(buf, sizeof(buf), "  [LCD]  %-5s    Value:$%02X",
+                         reg_name, entry.lcd_write.value);
+                break;
+            }
+            case TRACE_LCD_STATUS:
+            {
+                static const char* k_lcd_events[] = {"VBLANK", "STAT", "LYC", "MODE", "HDMA"};
+                const char* event_name = (entry.lcd_status.event < 5) ? k_lcd_events[entry.lcd_status.event] : "???";
+                switch (entry.lcd_status.event)
+                {
+                    case GB_LCD_EVENT_VBLANK:
+                    case GB_LCD_EVENT_LYC_MATCH:
+                    case GB_LCD_EVENT_HDMA:
+                        snprintf(buf, sizeof(buf), "  [LCD]  %-9s Line:%d",
+                                 event_name, entry.lcd_status.line);
+                        break;
+                    case GB_LCD_EVENT_STAT_IRQ:
+                    case GB_LCD_EVENT_MODE_CHANGE:
+                        snprintf(buf, sizeof(buf), "  [LCD]  %-9s Line:%d  Mode:%d",
+                                 event_name, entry.lcd_status.line, entry.lcd_status.value);
+                        break;
+                    default:
+                        snprintf(buf, sizeof(buf), "  [LCD]  %-9s Line:%d",
+                                 event_name, entry.lcd_status.line);
+                        break;
+                }
+                break;
+            }
+            case TRACE_APU_WRITE:
+                snprintf(buf, sizeof(buf), "  [APU]  WRITE    Addr:$%04X  Value:$%02X",
+                         entry.apu_write.address, entry.apu_write.value);
+                break;
+            case TRACE_IO_WRITE:
+                snprintf(buf, sizeof(buf), "  [IO]   %s     Addr:$%04X  Value:$%02X",
+                         entry.io_write.is_write ? "OUT" : "IN ",
+                         entry.io_write.address, entry.io_write.value);
+                break;
+            case TRACE_BANK_SWITCH:
+                snprintf(buf, sizeof(buf), "  [MAP]  BANK     Addr:$%04X  Value:$%02X",
+                         entry.bank_switch.address, entry.bank_switch.value);
+                break;
+            default:
+                snprintf(buf, sizeof(buf), "  [???]");
+                break;
+        }
+
+        lines.push_back(buf);
+    }
+
+    result["total_entries"] = total;
+    result["start"] = actual_start;
+    result["count"] = actual_count;
+    result["lines"] = lines;
+    return result;
+}

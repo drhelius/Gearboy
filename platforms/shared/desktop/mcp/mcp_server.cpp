@@ -1195,6 +1195,29 @@ void McpServer::HandleToolsList(const json& request)
         }}
     });
 
+    tools.push_back({
+        {"name", "get_trace_log"},
+        {"title", "Get Trace Log"},
+        {"description", "Read trace logger entries (CPU + hardware events). Must be started from the Trace Logger window first."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"start", {
+                    {"type", "integer"},
+                    {"description", "Start index (0=oldest, omit for latest)"},
+                    {"minimum", 0}
+                }},
+                {"count", {
+                    {"type", "integer"},
+                    {"description", "Entries to return (default 100, max 1000)"},
+                    {"minimum", 1},
+                    {"maximum", 1000}
+                }}
+            }},
+            {"additionalProperties", false}
+        }}
+    });
+
     json response;
     response["jsonrpc"] = "2.0";
     response["id"] = id;
@@ -1861,6 +1884,12 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         int area = arguments["area"];
         std::string hex_bytes = arguments["hex_bytes"];
         return m_debugAdapter.MemoryFindBytes(area, hex_bytes);
+    }
+    else if (normalizedTool == "get_trace_log")
+    {
+        int start = arguments.value("start", -1);
+        int count = arguments.value("count", 100);
+        return m_debugAdapter.GetTraceLog(start, count);
     }
     else
     {
