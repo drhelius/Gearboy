@@ -39,6 +39,10 @@ public:
 	Good_Synth const* good_synth;
 	Med_Synth  const* med_synth;
 
+	Blip_Buffer*    debug_buf;      // debug output buffer (NULL if disabled)
+	int             debug_last_amp; // last amplitude written to debug buffer
+	bool            muted;          // channel mute for debug
+
 	int         delay;      // clocks until frequency timer expires
 	int         length_ctr; // length counter
 	unsigned    phase;      // waveform phase (or equivalent)

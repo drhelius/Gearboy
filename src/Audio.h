@@ -41,6 +41,10 @@ public:
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
     Gb_Apu* GetApu();
+    void EnablePSGDebug(bool enable);
+    bool IsPSGDebugEnabled();
+    blip_sample_t* GetDebugChannelBuffer(int channel);
+    int GetDebugChannelSamples(int channel);
     bool StartVgmRecording(const char* file_path, int clock_rate, bool is_double_speed);
     void StopVgmRecording();
     bool IsVgmRecording() const;
@@ -54,6 +58,8 @@ private:
     bool m_bCGB;
     VgmRecorder m_VgmRecorder;
     bool m_bVgmRecordingEnabled;
+    blip_sample_t* m_pDebugChannelBuffer[4];
+    long m_iDebugChannelSamples[4];
 };
 
 inline void Audio::Tick(unsigned int clockCycles)
@@ -73,6 +79,42 @@ inline void Audio::WriteAudioRegister(u16 address, u8 value)
     if (m_bVgmRecordingEnabled)
         m_VgmRecorder.WriteGbDmg(address, value);
 #endif
+}
+
+inline Gb_Apu* Audio::GetApu()
+{
+    return m_pApu;
+}
+
+inline void Audio::EnablePSGDebug(bool enable)
+{
+    if (enable && !m_pApu->is_debug_enabled())
+    {
+        m_pApu->init_debug_buffers(m_SampleRate, Gb_Apu::clock_rate);
+    }
+    else if (!enable && m_pApu->is_debug_enabled())
+    {
+        m_pApu->disable_debug_buffers();
+    }
+}
+
+inline bool Audio::IsPSGDebugEnabled()
+{
+    return m_pApu->is_debug_enabled();
+}
+
+inline blip_sample_t* Audio::GetDebugChannelBuffer(int channel)
+{
+    if (channel < 0 || channel >= 4)
+        return NULL;
+    return m_pDebugChannelBuffer[channel];
+}
+
+inline int Audio::GetDebugChannelSamples(int channel)
+{
+    if (channel < 0 || channel >= 4)
+        return 0;
+    return (int)m_iDebugChannelSamples[channel];
 }
 
 #endif	/* AUDIO_H */

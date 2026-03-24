@@ -29,6 +29,11 @@ Audio::Audio()
     InitPointer(m_pBuffer);
     InitPointer(m_pSampleBuffer);
     m_bVgmRecordingEnabled = false;
+    for (int i = 0; i < 4; i++)
+    {
+        InitPointer(m_pDebugChannelBuffer[i]);
+        m_iDebugChannelSamples[i] = 0;
+    }
 }
 
 Audio::~Audio()
@@ -36,11 +41,16 @@ Audio::~Audio()
     SafeDelete(m_pApu);
     SafeDelete(m_pBuffer);
     SafeDeleteArray(m_pSampleBuffer);
+    for (int i = 0; i < 4; i++)
+        SafeDeleteArray(m_pDebugChannelBuffer[i]);
 }
 
 void Audio::Init()
 {
     m_pSampleBuffer = new blip_sample_t[AUDIO_BUFFER_SIZE];
+
+    for (int i = 0; i < 4; i++)
+        m_pDebugChannelBuffer[i] = new blip_sample_t[AUDIO_BUFFER_SIZE];
 
     m_pApu = new Gb_Apu();
     m_pBuffer = new Stereo_Buffer();
@@ -102,6 +112,9 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
         }
     }
 
+    for (int i = 0; i < 4; i++)
+        m_pApu->read_debug_samples(m_pDebugChannelBuffer[i], i, AUDIO_BUFFER_SIZE, &m_iDebugChannelSamples[i]);
+
 #ifndef GEARBOY_DISABLE_VGMRECORDER
     if (m_bVgmRecordingEnabled)
         m_VgmRecorder.UpdateTiming(count / 2);
@@ -137,11 +150,6 @@ void Audio::LoadState(std::istream& stream)
     m_pApu->reset(mode);
     m_pApu->load_state(apu_state);
     m_pBuffer->clear();
-}
-
-Gb_Apu* Audio::GetApu()
-{
-    return m_pApu;
 }
 
 bool Audio::StartVgmRecording(const char* file_path, int clock_rate, bool is_double_speed)

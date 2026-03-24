@@ -28,6 +28,7 @@
 #include "gui_debug_processor.h"
 #include "gui_debug_video.h"
 #include "gui_debug_io.h"
+#include "gui_debug_psg.h"
 #include "gui_debug_trace_logger.h"
 #include "emu.h"
 #include "config.h"
@@ -37,11 +38,13 @@ void gui_debug_init(void)
 {
     gui_debug_disassembler_init();
     gui_debug_memory_reset();
+    gui_debug_psg_init();
 }
 
 void gui_debug_destroy(void)
 {
     gui_debug_disassembler_destroy();
+    gui_debug_psg_destroy();
 }
 
 void gui_debug_reset(void)
@@ -59,7 +62,7 @@ void gui_debug_callback(void)
 
 void gui_debug_windows(void)
 {
-    // emu_get_core()->GetAudio()->EnablePSGDebug(config_debug.debug && config_debug.show_psg);
+    emu_get_core()->GetAudio()->EnablePSGDebug(config_debug.debug && config_debug.show_psg);
 
     if (config_debug.debug)
     {
@@ -77,6 +80,8 @@ void gui_debug_windows(void)
             gui_debug_window_symbols();
         if (config_debug.show_io)
             gui_debug_window_io();
+        if (config_debug.show_psg)
+            gui_debug_window_psg();
         if (config_debug.show_video_nametable)
             gui_debug_window_vram_nametable();
         if (config_debug.show_video_tiles)

@@ -88,6 +88,14 @@ public:
 	// Loads state. You should call reset() BEFORE this.
 	blargg_err_t load_state( gb_apu_state_t const& in );
 
+// Debug per-channel buffers
+
+	void init_debug_buffers( long sample_rate, long clock_rate );
+	void disable_debug_buffers();
+	bool is_debug_enabled() const;
+	void read_debug_samples( blip_sample_t* out, int channel, long max_samples, long* count );
+	bool* get_mute_ptr( int channel );
+
 public:
 	Gb_Apu();
 
@@ -120,6 +128,9 @@ private:
 	// large objects after everything else
 	Gb_Osc::Good_Synth  good_synth;
 	Gb_Osc::Med_Synth   med_synth;
+
+	Blip_Buffer debug_bufs [osc_count];
+	bool        debug_enabled;
 
 	void reset_lengths();
 	void reset_regs();

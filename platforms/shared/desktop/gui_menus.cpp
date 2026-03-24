@@ -1022,14 +1022,8 @@ static void menu_debug(void)
             ImGui::EndMenu();
         }
 
+        ImGui::MenuItem("Show PSG", "", &config_debug.show_psg);
         ImGui::MenuItem("Show IO Map", "", &config_debug.show_io, config_debug.debug);
-
-        // Audio debug not yet implemented for Gearboy
-        // if (ImGui::BeginMenu("Audio", config_debug.debug))
-        // {
-        //     ImGui::MenuItem("Show PSG", "", &config_debug.show_psg, config_debug.debug);
-        //     ImGui::EndMenu();
-        // }
 
 #if defined(__APPLE__) || defined(_WIN32)
         ImGui::Separator();

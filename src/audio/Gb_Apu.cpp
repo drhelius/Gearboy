@@ -184,8 +184,10 @@ Gb_Apu::Gb_Apu()
 		o.outputs [3] = 0;
 		o.good_synth  = &good_synth;
 		o.med_synth   = &med_synth;
+		o.debug_buf   = 0;
 	}
 
+	debug_enabled  = false;
 	reduce_clicks_ = false;
 	set_tempo( 1.0 );
 	volume_ = 1.0;
@@ -201,10 +203,10 @@ void Gb_Apu::run_until_( blip_time_t end_time )
 		if ( time > frame_time )
 			time = frame_time;
 
-		square1.run( last_time, time );
-		square2.run( last_time, time );
-		wave   .run( last_time, time );
-		noise  .run( last_time, time );
+		if ( !square1.muted ) square1.run( last_time, time );
+		if ( !square2.muted ) square2.run( last_time, time );
+		if ( !wave.muted    ) wave   .run( last_time, time );
+		if ( !noise.muted   ) noise  .run( last_time, time );
 		last_time = time;
 
 		if ( time == end_time )
@@ -255,6 +257,12 @@ void Gb_Apu::end_frame( blip_time_t end_time )
 
 	last_time -= end_time;
 	assert( last_time >= 0 );
+
+	if ( debug_enabled )
+	{
+		for ( int i = 0; i < osc_count; i++ )
+			debug_bufs [i].end_frame( end_time );
+	}
 }
 
 void Gb_Apu::silence_osc( Gb_Osc& o )
@@ -392,4 +400,54 @@ int Gb_Apu::read_register( blip_time_t time, unsigned addr )
 	}
 
 	return data;
+}
+
+void Gb_Apu::init_debug_buffers( long sample_rate, long clock_rate )
+{
+	debug_enabled = true;
+
+	for ( int i = 0; i < osc_count; i++ )
+	{
+		debug_bufs [i].set_sample_rate( sample_rate );
+		debug_bufs [i].clock_rate( clock_rate );
+		debug_bufs [i].clear();
+		oscs [i]->debug_buf = &debug_bufs [i];
+	}
+}
+
+void Gb_Apu::disable_debug_buffers()
+{
+	debug_enabled = false;
+	for ( int i = 0; i < osc_count; i++ )
+		oscs [i]->debug_buf = 0;
+}
+
+bool Gb_Apu::is_debug_enabled() const
+{
+	return debug_enabled;
+}
+
+void Gb_Apu::read_debug_samples( blip_sample_t* out, int channel, long max_samples, long* count )
+{
+	if ( !debug_enabled || channel < 0 || channel >= osc_count )
+	{
+		*count = 0;
+		return;
+	}
+
+	long avail = debug_bufs [channel].samples_avail();
+	if ( avail > max_samples )
+		avail = max_samples;
+
+	if ( avail > 0 )
+		debug_bufs [channel].read_samples( out, avail );
+
+	*count = avail;
+}
+
+bool* Gb_Apu::get_mute_ptr( int channel )
+{
+	if ( channel < 0 || channel >= osc_count )
+		return 0;
+	return &oscs [channel]->muted;
 }

@@ -33,11 +33,23 @@
 static bool exclusive_channel[4] = { false, false, false, false };
 static float* wave_buffer = NULL;
 
-static const char* k_noise_rate_names[4] = { "N/512", "N/1024", "N/2048", "Tone 3" };
+static const char* k_tab_names[4] = { "Square 1", "Square 2", "Wave", "Noise" };
+static const char* k_channel_labels[4] = { "SQUARE 1", "SQUARE 2", "WAVE", "NOISE" };
+static const char* k_duty_names[4] = { "12.5%", "25%", "50%", "75%" };
+static const char* k_wave_vol_names[4] = { "Mute", "100%", "50%", "25%" };
+
+static inline int get_val_helper(const gb_apu_state_t::val_t& v)
+{
+#if GB_APU_CUSTOM_STATE
+    return v;
+#else
+    return (int)(v[3] * 0x1000000u + v[2] * 0x10000u + v[1] * 0x100u + v[0]);
+#endif
+}
 
 void gui_debug_psg_init(void)
 {
-    wave_buffer = new float[GS_AUDIO_BUFFER_SIZE];
+    wave_buffer = new float[AUDIO_BUFFER_SIZE];
 }
 
 void gui_debug_psg_destroy(void)
@@ -49,51 +61,42 @@ void gui_debug_window_psg(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(180, 45), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(296, 316), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(310, 370), ImGuiCond_FirstUseEver);
     ImGui::Begin("PSG", &config_debug.show_psg);
 
-    GearsystemCore* core = emu_get_core();
+    GearboyCore* core = emu_get_core();
     Audio* audio = core->GetAudio();
+    Gb_Apu* apu = audio->GetApu();
 
-    Sms_Apu* psg = audio->GetPSG();
-    Sms_Apu_State psg_state = psg->GetState();
+    gb_apu_state_t apu_state;
+    apu->save_state(&apu_state);
 
-    bool is_gg = core->GetCartridge()->IsGameGear();
-    bool is_sg = core->GetCartridge()->IsSG1000() && !core->GetCartridge()->IsSG1000II();
-
-    GS_RuntimeInfo runtime;
-    core->GetRuntimeInfo(runtime);
-    int master_clock = (runtime.region == Region_PAL) ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+    bool is_cgb = core->IsCGB();
 
     if (ImGui::BeginTabBar("##psg_tabs", ImGuiTabBarFlags_None))
     {
         for (int c = 0; c < 4; c++)
         {
-            Sms_Apu_State::Channel* ch = &psg_state.channels[c];
-
-            char tab_name[32];
-            snprintf(tab_name, 32, "%s", c < 3 ? "Tone" : "Noise");
-            if (c < 3)
-                snprintf(tab_name, 32, "Tone %d", c + 1);
-
-            if (ImGui::BeginTabItem(tab_name))
+            if (ImGui::BeginTabItem(k_tab_names[c]))
             {
                 ImGui::PushFont(gui_default_font);
+
+                bool* mute_ptr = apu->get_mute_ptr(c);
 
                 if (ImGui::BeginTable("##audio", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoPadOuterX))
                 {
                     ImGui::TableNextColumn();
 
-                    ImGui::PushStyleColor(ImGuiCol_Text, *ch->mute ? mid_gray : white);
+                    ImGui::PushStyleColor(ImGuiCol_Text, *mute_ptr ? mid_gray : white);
                     ImGui::PushFont(gui_material_icons_font);
 
                     char label[32];
-                    snprintf(label, 32, "%s##mute%d", *ch->mute ? ICON_MD_MUSIC_OFF : ICON_MD_MUSIC_NOTE, c);
+                    snprintf(label, 32, "%s##mute%d", *mute_ptr ? ICON_MD_MUSIC_OFF : ICON_MD_MUSIC_NOTE, c);
                     if (ImGui::Button(label))
                     {
                         for (int i = 0; i < 4; i++)
                             exclusive_channel[i] = false;
-                        *ch->mute = !*ch->mute;
+                        *mute_ptr = !*mute_ptr;
                     }
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Mute Channel");
@@ -104,13 +107,14 @@ void gui_debug_window_psg(void)
                     if (ImGui::Button(label))
                     {
                         exclusive_channel[c] = !exclusive_channel[c];
-                        *ch->mute = false;
+                        *mute_ptr = false;
                         for (int i = 0; i < 4; i++)
                         {
                             if (i != c)
                             {
                                 exclusive_channel[i] = false;
-                                *psg_state.channels[i].mute = exclusive_channel[c] ? true : false;
+                                bool* other = apu->get_mute_ptr(i);
+                                *other = exclusive_channel[c] ? true : false;
                             }
                         }
                     }
@@ -132,7 +136,7 @@ void gui_debug_window_psg(void)
                     if (ch_buf && data_size > 0)
                     {
                         for (int i = 0; i < data_size; i++)
-                            wave_buffer[i] = (float)ch_buf[i] / 32768.0f * 8.0f;
+                            wave_buffer[i] = (float)ch_buf[i] / 32768.0f * 6.0f;
                     }
                     else
                     {
@@ -172,35 +176,61 @@ void gui_debug_window_psg(void)
 
                 ImGui::Separator();
 
-                ImGui::TextColored(violet, "ATTENUATION "); ImGui::SameLine();
-                ImGui::TextColored(ch->volume_reg == 15 ? gray : white, "$%X", ch->volume_reg); ImGui::SameLine();
-                if (ch->volume_reg == 15)
-                    ImGui::TextColored(gray, " (OFF)");
-                else if (ch->volume_reg == 0)
-                    ImGui::TextColored(green, " (MAX)");
-                else
-                    ImGui::TextColored(gray, " (-%.1f dB)", ch->volume_reg * 2.0f);
+                u8* regs = apu_state.regs;
 
-                if (c < 3)
+                bool ch_enabled = get_val_helper(apu_state.enabled[c]) != 0;
+                int env_volume = (c != 2) ? get_val_helper(apu_state.env_volume[c < 2 ? c : 2]) : 0;
+                int length_ctr = get_val_helper(apu_state.length_ctr[c]);
+                int ch_phase = get_val_helper(apu_state.phase[c]);
+
+                ImGui::TextColored(violet, "ENABLED     "); ImGui::SameLine();
+                ImGui::TextColored(ch_enabled ? green : gray, "%s", ch_enabled ? "YES" : "NO");
+
+                if (c < 2)
                 {
-                    int raw_period = ch->period >> 4;
+                    // Square channels
+                    int base = c * 5;
+                    int freq = (regs[base + 3] | ((regs[base + 4] & 0x07) << 8));
+                    int duty = (regs[base + 1] >> 6) & 0x03;
+                    int env_init = (regs[base + 2] >> 4) & 0x0F;
+                    int env_dir = (regs[base + 2] >> 3) & 0x01;
+                    int env_pace = regs[base + 2] & 0x07;
+                    bool dac_on = (regs[base + 2] & 0xF8) != 0;
+                    bool length_en = (regs[base + 4] & 0x40) != 0;
 
-                    ImGui::TextColored(violet, "PERIOD      "); ImGui::SameLine();
-                    ImGui::TextColored(white, "$%03X", raw_period);
+                    ImGui::TextColored(violet, "DAC         "); ImGui::SameLine();
+                    ImGui::TextColored(dac_on ? green : gray, "%s", dac_on ? "ON" : "OFF");
 
-                    ImGui::TextColored(violet, "FREQ LOW    "); ImGui::SameLine();
-                    ImGui::TextColored(white, "$%02X", raw_period & 0x0F);
+                    ImGui::TextColored(violet, "DUTY        "); ImGui::SameLine();
+                    ImGui::TextColored(white, "%s", k_duty_names[duty]); ImGui::SameLine();
+                    ImGui::TextColored(gray, " (%d)", duty);
 
-                    ImGui::TextColored(violet, "FREQ HIGH   "); ImGui::SameLine();
-                    ImGui::TextColored(white, "$%02X", (raw_period >> 4) & 0x3F);
+                    ImGui::TextColored(violet, "VOLUME      "); ImGui::SameLine();
+                    ImGui::TextColored(env_volume == 0 ? gray : white, "$%X", env_volume); ImGui::SameLine();
+                    if (env_volume == 0)
+                        ImGui::TextColored(gray, " (OFF)");
+                    else if (env_volume == 15)
+                        ImGui::TextColored(green, " (MAX)");
+                    else
+                        ImGui::TextColored(gray, " (%d/15)", env_volume);
+
+                    ImGui::TextColored(violet, "ENVELOPE    "); ImGui::SameLine();
+                    ImGui::TextColored(white, "Init:$%X %s Pace:%d", env_init, env_dir ? "UP" : "DN", env_pace);
+
+                    ImGui::TextColored(violet, "FREQUENCY   "); ImGui::SameLine();
+                    ImGui::TextColored(white, "$%03X", freq);
 
                     ImGui::TextColored(violet, "PHASE       "); ImGui::SameLine();
-                    ImGui::TextColored(white, "%d", ch->phase);
+                    ImGui::TextColored(white, "%d", ch_phase);
+
+                    ImGui::TextColored(violet, "LENGTH      "); ImGui::SameLine();
+                    ImGui::TextColored(length_en ? white : gray, "%d", length_ctr); ImGui::SameLine();
+                    ImGui::TextColored(gray, " (%s)", length_en ? "ON" : "OFF");
 
                     ImGui::TextColored(violet, "OUTPUT HZ   "); ImGui::SameLine();
-                    if (raw_period > 0)
+                    if (freq > 0)
                     {
-                        float freq_hz = (float)master_clock / (32.0f * raw_period);
+                        float freq_hz = 131072.0f / (2048.0f - freq);
                         if (freq_hz >= 1000.0f)
                             ImGui::TextColored(cyan, "%.2f KHz", freq_hz / 1000.0f);
                         else
@@ -210,25 +240,47 @@ void gui_debug_window_psg(void)
                     {
                         ImGui::TextColored(gray, "DC");
                     }
+
+                    if (c == 0)
+                    {
+                        int sweep_pace = (regs[0] >> 4) & 0x07;
+                        int sweep_dir = (regs[0] >> 3) & 0x01;
+                        int sweep_step = regs[0] & 0x07;
+
+                        ImGui::TextColored(violet, "SWEEP       "); ImGui::SameLine();
+                        ImGui::TextColored(white, "Pace:%d %s Step:%d", sweep_pace, sweep_dir ? "DN" : "UP", sweep_step);
+                    }
                 }
-                else
+                else if (c == 2)
                 {
-                    int noise_ctrl = psg_state.noise_rate | (psg_state.noise_white ? 0x04 : 0x00);
+                    // Wave channel
+                    int base = 2 * 5;
+                    int freq = (regs[base + 3] | ((regs[base + 4] & 0x07) << 8));
+                    int vol_code = (regs[base + 2] >> 5) & 0x03;
+                    bool dac_on = (regs[base + 0] & 0x80) != 0;
+                    bool length_en = (regs[base + 4] & 0x40) != 0;
 
-                    ImGui::TextColored(violet, "NOISE CTRL  "); ImGui::SameLine();
-                    ImGui::TextColored(white, "$%02X", noise_ctrl);
+                    ImGui::TextColored(violet, "DAC         "); ImGui::SameLine();
+                    ImGui::TextColored(dac_on ? green : gray, "%s", dac_on ? "ON" : "OFF");
 
-                    ImGui::TextColored(violet, "TYPE        "); ImGui::SameLine();
-                    ImGui::TextColored(psg_state.noise_white ? white : white, "%s", psg_state.noise_white ? "White" : "Periodic");
+                    ImGui::TextColored(violet, "VOLUME      "); ImGui::SameLine();
+                    ImGui::TextColored(vol_code == 0 ? gray : white, "%s", k_wave_vol_names[vol_code]); ImGui::SameLine();
+                    ImGui::TextColored(gray, " (%d)", vol_code);
 
-                    ImGui::TextColored(violet, "RATE        "); ImGui::SameLine();
-                    ImGui::TextColored(white, "%s", k_noise_rate_names[psg_state.noise_rate]);
+                    ImGui::TextColored(violet, "FREQUENCY   "); ImGui::SameLine();
+                    ImGui::TextColored(white, "$%03X", freq);
+
+                    ImGui::TextColored(violet, "PHASE       "); ImGui::SameLine();
+                    ImGui::TextColored(white, "%d", ch_phase);
+
+                    ImGui::TextColored(violet, "LENGTH      "); ImGui::SameLine();
+                    ImGui::TextColored(length_en ? white : gray, "%d", length_ctr); ImGui::SameLine();
+                    ImGui::TextColored(gray, " (%s)", length_en ? "ON" : "OFF");
 
                     ImGui::TextColored(violet, "OUTPUT HZ   "); ImGui::SameLine();
-                    if (psg_state.noise_rate < 3)
+                    if (freq > 0)
                     {
-                        static const int noise_dividers[3] = { 512, 1024, 2048 };
-                        float freq_hz = (float)master_clock / (float)noise_dividers[psg_state.noise_rate];
+                        float freq_hz = 65536.0f / (2048.0f - freq);
                         if (freq_hz >= 1000.0f)
                             ImGui::TextColored(cyan, "%.2f KHz", freq_hz / 1000.0f);
                         else
@@ -236,46 +288,111 @@ void gui_debug_window_psg(void)
                     }
                     else
                     {
-                        int ch3_raw = psg_state.channels[2].period >> 4;
-                        if (ch3_raw > 0)
-                        {
-                            float freq_hz = (float)master_clock / (32.0f * ch3_raw);
-                            ImGui::TextColored(cyan, "%.2f Hz", freq_hz); ImGui::SameLine();
-                            ImGui::TextColored(gray, " (Tone 3)");
-                        }
-                        else
-                            ImGui::TextColored(gray, "N/A");
+                        ImGui::TextColored(gray, "DC");
                     }
 
-                    ImGui::TextColored(violet, "LFSR        "); ImGui::SameLine();
-                    ImGui::TextColored(white, "$%04X", psg_state.noise_shifter);
+                    ImGui::Separator();
+                    ImGui::TextColored(violet, "WAVE RAM");
 
-                    ImGui::TextColored(violet, "FEEDBACK    "); ImGui::SameLine();
-                    ImGui::TextColored(white, "$%04X", psg_state.noise_feedback);
+                    char wave_text[64];
+                    int pos = 0;
+                    for (int i = 0; i < 16; i++)
+                    {
+                        pos += snprintf(wave_text + pos, 64 - pos, "%02X ", regs[0x20 + i]);
+                        if (i == 7)
+                        {
+                            ImGui::TextColored(orange, "  %s", wave_text);
+                            pos = 0;
+                        }
+                    }
+                    ImGui::TextColored(orange, "  %s", wave_text);
+                }
+                else
+                {
+                    // Noise channel
+                    int base = 3 * 5;
+                    int env_init = (regs[base + 2] >> 4) & 0x0F;
+                    int env_dir = (regs[base + 2] >> 3) & 0x01;
+                    int env_pace = regs[base + 2] & 0x07;
+                    bool dac_on = (regs[base + 2] & 0xF8) != 0;
+                    int clock_shift = (regs[base + 3] >> 4) & 0x0F;
+                    int lfsr_width = (regs[base + 3] >> 3) & 0x01;
+                    int divisor_code = regs[base + 3] & 0x07;
+                    bool length_en = (regs[base + 4] & 0x40) != 0;
+
+                    static const int divisors[8] = { 8, 16, 32, 48, 64, 80, 96, 112 };
+
+                    ImGui::TextColored(violet, "DAC         "); ImGui::SameLine();
+                    ImGui::TextColored(dac_on ? green : gray, "%s", dac_on ? "ON" : "OFF");
+
+                    ImGui::TextColored(violet, "VOLUME      "); ImGui::SameLine();
+                    ImGui::TextColored(env_volume == 0 ? gray : white, "$%X", env_volume); ImGui::SameLine();
+                    if (env_volume == 0)
+                        ImGui::TextColored(gray, " (OFF)");
+                    else if (env_volume == 15)
+                        ImGui::TextColored(green, " (MAX)");
+                    else
+                        ImGui::TextColored(gray, " (%d/15)", env_volume);
+
+                    ImGui::TextColored(violet, "ENVELOPE    "); ImGui::SameLine();
+                    ImGui::TextColored(white, "Init:$%X %s Pace:%d", env_init, env_dir ? "UP" : "DN", env_pace);
+
+                    ImGui::TextColored(violet, "CLK SHIFT   "); ImGui::SameLine();
+                    ImGui::TextColored(white, "%d", clock_shift);
+
+                    ImGui::TextColored(violet, "LFSR WIDTH  "); ImGui::SameLine();
+                    ImGui::TextColored(white, "%s", lfsr_width ? "7-bit" : "15-bit");
+
+                    ImGui::TextColored(violet, "DIVISOR     "); ImGui::SameLine();
+                    ImGui::TextColored(white, "%d", divisor_code); ImGui::SameLine();
+                    ImGui::TextColored(gray, " (r=%d)", divisors[divisor_code]);
+
+                    ImGui::TextColored(violet, "LFSR        "); ImGui::SameLine();
+                    ImGui::TextColored(white, "$%04X", ch_phase);
+
+                    ImGui::TextColored(violet, "LENGTH      "); ImGui::SameLine();
+                    ImGui::TextColored(length_en ? white : gray, "%d", length_ctr); ImGui::SameLine();
+                    ImGui::TextColored(gray, " (%s)", length_en ? "ON" : "OFF");
+
+                    ImGui::TextColored(violet, "OUTPUT HZ   "); ImGui::SameLine();
+                    if (clock_shift <= 13)
+                    {
+                        float freq_hz = 262144.0f / (float)divisors[divisor_code] / (float)(1 << clock_shift);
+                        if (freq_hz >= 1000.0f)
+                            ImGui::TextColored(cyan, "%.2f KHz", freq_hz / 1000.0f);
+                        else
+                            ImGui::TextColored(cyan, "%.2f Hz", freq_hz);
+                    }
+                    else
+                    {
+                        ImGui::TextColored(gray, "N/A");
+                    }
                 }
 
                 ImGui::Separator();
 
-                ImGui::TextColored(violet, "CHIP        "); ImGui::SameLine();
-                ImGui::TextColored(white, "%s", is_sg ? "SN76489" : "ASIC");
+                int nr50 = regs[0x14];
+                int nr51 = regs[0x15];
+                int nr52 = regs[0x16];
 
-                int latch_ch = (psg_state.latch >> 5) & 3;
-                bool latch_vol = (psg_state.latch & 0x10) != 0;
-                ImGui::TextColored(violet, "LATCH       "); ImGui::SameLine();
-                ImGui::TextColored(white, "$%02X", psg_state.latch); ImGui::SameLine();
-                ImGui::TextColored(gray, " (CH%d %s)", latch_ch, latch_vol ? "VOL" : "TONE");
+                ImGui::TextColored(violet, "CHIP        "); ImGui::SameLine();
+                ImGui::TextColored(white, "%s", is_cgb ? "CGB" : "DMG");
+
+                ImGui::TextColored(violet, "MASTER      "); ImGui::SameLine();
+                ImGui::TextColored((nr52 & 0x80) ? green : gray, "%s", (nr52 & 0x80) ? "ON" : "OFF");
 
                 {
-                    int gg_flags = psg_state.ggstereo >> c;
-                    bool right = is_gg && (gg_flags & 0x01) != 0;
-                    bool left = is_gg && (gg_flags >> 4 & 0x01) != 0;
+                    bool left = (nr51 >> (c + 4)) & 0x01;
+                    bool right = (nr51 >> c) & 0x01;
+                    int left_vol = (nr50 >> 4) & 0x07;
+                    int right_vol = nr50 & 0x07;
 
-                    ImGui::TextColored(is_gg ? violet : mid_gray, "GG STEREO   "); ImGui::SameLine();
-                    ImGui::TextColored(is_gg ? white : gray, "$%02X", psg_state.ggstereo);
-
-                    ImGui::TextColored(is_gg ? violet : mid_gray, "OUTPUT      "); ImGui::SameLine();
+                    ImGui::TextColored(violet, "PANNING     "); ImGui::SameLine();
                     ImGui::TextColored(left ? green : gray, "L:%s", left ? "ON " : "OFF"); ImGui::SameLine();
                     ImGui::TextColored(right ? green : gray, " R:%s", right ? "ON" : "OFF");
+
+                    ImGui::TextColored(violet, "MASTER VOL  "); ImGui::SameLine();
+                    ImGui::TextColored(white, "L:%d R:%d", left_vol, right_vol);
                 }
 
                 ImGui::PopFont();
@@ -283,39 +400,52 @@ void gui_debug_window_psg(void)
             }
         }
 
-        ImGui::BeginDisabled(!is_gg);
-        if (ImGui::BeginTabItem("Stereo"))
+        if (ImGui::BeginTabItem("Panning"))
         {
             ImGui::PushFont(gui_default_font);
 
-            ImGui::TextColored(violet, "GG STEREO   "); ImGui::SameLine();
-            ImGui::TextColored(white, "$%02X", psg_state.ggstereo);
+            int nr50 = apu_state.regs[0x14];
+            int nr51 = apu_state.regs[0x15];
+            int nr52 = apu_state.regs[0x16];
+
+            ImGui::TextColored(violet, "NR50  "); ImGui::SameLine();
+            ImGui::TextColored(white, "$%02X", nr50);
+
+            ImGui::TextColored(violet, "NR51  "); ImGui::SameLine();
+            ImGui::TextColored(white, "$%02X", nr51);
+
+            ImGui::TextColored(violet, "NR52  "); ImGui::SameLine();
+            ImGui::TextColored(white, "$%02X", nr52); ImGui::SameLine();
+            ImGui::TextColored((nr52 & 0x80) ? green : gray, " (%s)", (nr52 & 0x80) ? "ON" : "OFF");
 
             ImGui::Separator();
 
             for (int ch = 0; ch < 4; ch++)
             {
-                int flags = psg_state.ggstereo >> ch;
-                bool left = (flags >> 4 & 0x01) != 0;
-                bool right = (flags & 0x01) != 0;
+                bool left = (nr51 >> (ch + 4)) & 0x01;
+                bool right = (nr51 >> ch) & 0x01;
 
-                ImGui::TextColored(violet, "%s:  ", ch < 3 ? "TONE " : "NOISE"); ImGui::SameLine();
-                if (ch < 3)
-                {
-                    ImGui::TextColored(violet, "%d  ", ch + 1); ImGui::SameLine();
-                }
-                else
-                {
-                    ImGui::TextColored(violet, "   "); ImGui::SameLine();
-                }
+                ImGui::TextColored(violet, "%-12s", k_channel_labels[ch]); ImGui::SameLine();
                 ImGui::TextColored(left ? green : gray, "L:%s", left ? "ON " : "OFF"); ImGui::SameLine();
                 ImGui::TextColored(right ? green : gray, " R:%s", right ? "ON " : "OFF");
             }
 
+            ImGui::Separator();
+
+            int left_vol = (nr50 >> 4) & 0x07;
+            int right_vol = nr50 & 0x07;
+            ImGui::TextColored(violet, "MASTER VOL  "); ImGui::SameLine();
+            ImGui::TextColored(white, "L:%d R:%d", left_vol, right_vol);
+
+            bool vin_left = (nr50 >> 7) & 0x01;
+            bool vin_right = (nr50 >> 3) & 0x01;
+            ImGui::TextColored(violet, "VIN         "); ImGui::SameLine();
+            ImGui::TextColored(vin_left ? green : gray, "L:%s", vin_left ? "ON " : "OFF"); ImGui::SameLine();
+            ImGui::TextColored(vin_right ? green : gray, " R:%s", vin_right ? "ON" : "OFF");
+
             ImGui::PopFont();
             ImGui::EndTabItem();
         }
-        ImGui::EndDisabled();
 
         ImGui::EndTabBar();
     }

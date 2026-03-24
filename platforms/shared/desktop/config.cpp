@@ -180,6 +180,7 @@ void config_read(void)
     config_debug.show_video_palettes = read_bool("Debug", "VideoPalettes", false);
     config_debug.show_video_gbc_palettes = read_bool("Debug", "VideoGBCPalettes", false);
     config_debug.show_io = read_bool("Debug", "IO", false);
+    config_debug.show_psg = read_bool("Debug", "PSG", false);
     config_debug.show_trace_logger = read_bool("Debug", "TraceLogger", false);
     config_debug.trace_counter = read_bool("Debug", "TraceCounter", true);
     config_debug.trace_bank = read_bool("Debug", "TraceBank", true);
@@ -365,6 +366,7 @@ void config_write(void)
     write_bool("Debug", "VideoPalettes", config_debug.show_video_palettes);
     write_bool("Debug", "VideoGBCPalettes", config_debug.show_video_gbc_palettes);
     write_bool("Debug", "IO", config_debug.show_io);
+    write_bool("Debug", "PSG", config_debug.show_psg);
     write_bool("Debug", "TraceLogger", config_debug.show_trace_logger);
     write_bool("Debug", "TraceCounter", config_debug.trace_counter);
     write_bool("Debug", "TraceBank", config_debug.trace_bank);

@@ -23,11 +23,13 @@ int const length_enabled = 0x40;
 
 void Gb_Osc::reset()
 {
-	output   = 0;
-	last_amp = 0;
-	delay    = 0;
-	phase    = 0;
-	enabled  = false;
+	output         = 0;
+	last_amp       = 0;
+	debug_last_amp = 0;
+	delay          = 0;
+	phase          = 0;
+	enabled        = false;
+	muted          = false;
 }
 
 inline void Gb_Osc::update_amp( blip_time_t time, int new_amp )
@@ -38,6 +40,15 @@ inline void Gb_Osc::update_amp( blip_time_t time, int new_amp )
 	{
 		last_amp = new_amp;
 		med_synth->offset( time, delta, output );
+	}
+	if ( debug_buf )
+	{
+		int dbg_delta = new_amp - debug_last_amp;
+		if ( dbg_delta )
+		{
+			debug_last_amp = new_amp;
+			med_synth->offset( time, dbg_delta, debug_buf );
+		}
 	}
 }
 
@@ -382,12 +393,15 @@ void Gb_Square::run( blip_time_t time, blip_time_t end_time )
 		{
 			// Output amplitude transitions
 			int delta = vol;
+			Blip_Buffer* const dbg_buf = this->debug_buf;
 			do
 			{
 				ph = (ph + 1) & 7;
 				if ( ph == 0 || ph == duty )
 				{
 					good_synth->offset_inline( time, delta, out );
+					if ( dbg_buf )
+						good_synth->offset_inline( time, delta, dbg_buf );
 					delta = -delta;
 				}
 				time += per;
@@ -395,7 +409,11 @@ void Gb_Square::run( blip_time_t time, blip_time_t end_time )
 			while ( time < end_time );
 
 			if ( delta != vol )
+			{
 				last_amp -= delta;
+				if ( dbg_buf )
+					debug_last_amp = last_amp;
+			}
 		}
 		this->phase = (ph - duty_offset) & 7;
 	}
@@ -547,6 +565,7 @@ void Gb_Noise::run( blip_time_t time, blip_time_t end_time )
 		{
 			// Output amplitude transitions
 			int delta = -vol;
+			Blip_Buffer* const dbg_buf = this->debug_buf;
 			do
 			{
 				unsigned changed = bits + 1;
@@ -556,13 +575,19 @@ void Gb_Noise::run( blip_time_t time, blip_time_t end_time )
 					bits |= ~mask;
 					delta = -delta;
 					med_synth->offset_inline( time, delta, out );
+					if ( dbg_buf )
+						med_synth->offset_inline( time, delta, dbg_buf );
 				}
 				time += per;
 			}
 			while ( time < end_time );
 
 			if ( delta == vol )
+			{
 				last_amp += delta;
+				if ( dbg_buf )
+					debug_last_amp = last_amp;
+			}
 		}
 		this->phase = bits;
 	}
@@ -633,6 +658,8 @@ void Gb_Wave::run( blip_time_t time, blip_time_t end_time )
 		{
 			// Output amplitude transitions
 			int lamp = this->last_amp + dac_bias;
+			Blip_Buffer* const dbg_buf = this->debug_buf;
+			int dbg_lamp = dbg_buf ? (this->debug_last_amp + dac_bias) : 0;
 			do
 			{
 				// Extract nybble
@@ -648,10 +675,21 @@ void Gb_Wave::run( blip_time_t time, blip_time_t end_time )
 					lamp = amp;
 					med_synth->offset_inline( time, delta, out );
 				}
+				if ( dbg_buf )
+				{
+					int dbg_delta = amp - dbg_lamp;
+					if ( dbg_delta )
+					{
+						dbg_lamp = amp;
+						med_synth->offset_inline( time, dbg_delta, dbg_buf );
+					}
+				}
 				time += per;
 			}
 			while ( time < end_time );
 			this->last_amp = lamp - dac_bias;
+			if ( dbg_buf )
+				this->debug_last_amp = dbg_lamp - dac_bias;
 		}
 		ph = (ph - 1) & wave_mask; // undo pre-advance and mask position
 
