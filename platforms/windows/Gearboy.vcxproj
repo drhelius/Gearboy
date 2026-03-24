@@ -44,6 +44,7 @@
     <ClCompile Include="..\..\src\RomOnlyMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Video.cpp" />
     <ClCompile Include="..\..\src\VgmRecorder.cpp" />
+    <ClCompile Include="..\..\src\TraceLogger.cpp" />
     <ClCompile Include="..\shared\dependencies\miniz\miniz.c">
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
     </ClCompile>
@@ -138,6 +139,7 @@
     <ClInclude Include="..\..\src\SixteenBitRegister.h" />
     <ClInclude Include="..\..\src\Video.h" />
     <ClInclude Include="..\..\src\VgmRecorder.h" />
+    <ClInclude Include="..\..\src\TraceLogger.h" />
     <ClInclude Include="..\shared\dependencies\glad\glad.h" />
     <ClInclude Include="..\shared\dependencies\miniz\miniz.h" />
     <ClInclude Include="..\shared\dependencies\imgui\imgui_impl_sdl3.h" />

@@ -100,7 +100,6 @@ EXTERN void emu_debug_step_out(void);
 EXTERN void emu_debug_step_frame(void);
 EXTERN void emu_debug_break(void);
 EXTERN void emu_debug_continue(void);
-EXTERN void emu_debug_set_callback(GearboyCore::GB_Debug_Callback callback);
 EXTERN void emu_load_bootrom_dmg(const char* file_path);
 EXTERN void emu_load_bootrom_gbc(const char* file_path);
 EXTERN void emu_enable_bootrom_dmg(bool enable);

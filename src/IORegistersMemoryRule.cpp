@@ -27,11 +27,17 @@ IORegistersMemoryRule::IORegistersMemoryRule(Processor* pProcessor,
     m_pVideo = pVideo;
     m_pInput = pInput;
     m_pAudio = pAudio;
+    InitPointer(m_pTraceLogger);
     m_bCGB = false;
 }
 
 IORegistersMemoryRule::~IORegistersMemoryRule()
 {
+}
+
+void IORegistersMemoryRule::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
 }
 
 void IORegistersMemoryRule::Reset(bool bCGB)

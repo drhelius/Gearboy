@@ -29,7 +29,6 @@
 #endif
 
 EXTERN void gui_debug_window_trace_logger(void);
-EXTERN void gui_debug_trace_logger_update(void);
 EXTERN void gui_debug_trace_logger_clear(void);
 EXTERN void gui_debug_save_log(const char* file_path);
 

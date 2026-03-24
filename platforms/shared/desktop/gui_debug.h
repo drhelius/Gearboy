@@ -31,7 +31,6 @@
 EXTERN void gui_debug_init(void);
 EXTERN void gui_debug_destroy(void);
 EXTERN void gui_debug_reset(void);
-EXTERN void gui_debug_callback(void);
 EXTERN void gui_debug_windows(void);
 EXTERN void gui_debug_save_settings(const char* file_path);
 EXTERN void gui_debug_load_settings(const char* file_path);

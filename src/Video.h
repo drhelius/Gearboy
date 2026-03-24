@@ -24,6 +24,7 @@
 
 class Memory;
 class Processor;
+class TraceLogger;
 
 typedef u16 (*PaletteMatrix)[8][4][2];
 
@@ -50,6 +51,7 @@ public:
     void LoadState(std::istream& stream);
     PaletteMatrix GetCGBBackgroundPalettes();
     PaletteMatrix GetCGBSpritePalettes();
+    void SetTraceLogger(TraceLogger* pTraceLogger);
 
 private:
     void ScanLine(int line);
@@ -82,6 +84,7 @@ private:
     int m_iHideFrames;
     u8 m_IRQ48Signal;
     GB_Color_Format m_pixelFormat;
+    TraceLogger* m_pTraceLogger;
 };
 
 #endif	/* VIDEO_H */

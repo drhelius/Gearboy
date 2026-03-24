@@ -55,11 +55,6 @@ void gui_debug_reset(void)
     gui_debug_reset_symbols();
 }
 
-void gui_debug_callback(void)
-{
-    gui_debug_trace_logger_update();
-}
-
 void gui_debug_windows(void)
 {
     emu_get_core()->GetAudio()->EnablePSGDebug(config_debug.debug && config_debug.show_psg);

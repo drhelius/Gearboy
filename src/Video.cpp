@@ -20,6 +20,7 @@
 #include "Video.h"
 #include "Memory.h"
 #include "Processor.h"
+#include "TraceLogger.h"
 
 Video::Video(Memory* pMemory, Processor* pProcessor)
 {
@@ -30,6 +31,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     InitPointer(m_pColorFrameBuffer);
     InitPointer(m_pSpriteXCacheBuffer);
     InitPointer(m_pColorCacheBuffer);
+    InitPointer(m_pTraceLogger);
     m_iStatusMode = 0;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
@@ -60,6 +62,11 @@ void Video::Init()
     m_pSpriteXCacheBuffer = new int[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     m_pColorCacheBuffer = new u8[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
     Reset(false);
+}
+
+void Video::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
 }
 
 void Video::Reset(bool bCGB)
@@ -119,6 +126,16 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                         unsigned int cycles = m_pMemory->PerformHDMA();
                         m_iStatusModeCounter += cycles;
                         clockCycles += cycles;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                        if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                        {
+                            GB_Trace_Entry e = {};
+                            e.type = TRACE_LCD_STATUS;
+                            e.lcd_status.event = GB_LCD_EVENT_HDMA;
+                            e.lcd_status.line = (u16)m_iStatusModeLYCounter;
+                            m_pTraceLogger->TraceLog(e);
+                        }
+#endif
                     }
 
                     if (m_iStatusModeLYCounter == 144)
@@ -128,6 +145,16 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                         m_iStatusModeCounterAux = m_iStatusModeCounter;
 
                         m_pProcessor->RequestInterrupt(Processor::VBlank_Interrupt);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                        if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                        {
+                            GB_Trace_Entry e = {};
+                            e.type = TRACE_LCD_STATUS;
+                            e.lcd_status.event = GB_LCD_EVENT_VBLANK;
+                            e.lcd_status.line = (u16)m_iStatusModeLYCounter;
+                            m_pTraceLogger->TraceLog(e);
+                        }
+#endif
 
                         m_IRQ48Signal &= 0x09;
                         u8 stat = m_pMemory->Retrieve(0xFF41);
@@ -136,6 +163,17 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                             if (!IsSetBit(m_IRQ48Signal, 0) && !IsSetBit(m_IRQ48Signal, 3))
                             {
                                 m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                                if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                                {
+                                    GB_Trace_Entry e = {};
+                                    e.type = TRACE_LCD_STATUS;
+                                    e.lcd_status.event = GB_LCD_EVENT_STAT_IRQ;
+                                    e.lcd_status.line = (u16)m_iStatusModeLYCounter;
+                                    e.lcd_status.value = 1;
+                                    m_pTraceLogger->TraceLog(e);
+                                }
+#endif
                             }
                             m_IRQ48Signal = SetBit(m_IRQ48Signal, 1);
                         }
@@ -157,6 +195,17 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                             if (m_IRQ48Signal == 0)
                             {
                                 m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                                if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                                {
+                                    GB_Trace_Entry e = {};
+                                    e.type = TRACE_LCD_STATUS;
+                                    e.lcd_status.event = GB_LCD_EVENT_STAT_IRQ;
+                                    e.lcd_status.line = (u16)m_iStatusModeLYCounter;
+                                    e.lcd_status.value = 2;
+                                    m_pTraceLogger->TraceLog(e);
+                                }
+#endif
                             }
                             m_IRQ48Signal = SetBit(m_IRQ48Signal, 2);
                         }
@@ -277,6 +326,17 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                         if (!IsSetBit(m_IRQ48Signal, 3))
                         {
                             m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                            if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                            {
+                                GB_Trace_Entry e = {};
+                                e.type = TRACE_LCD_STATUS;
+                                e.lcd_status.event = GB_LCD_EVENT_STAT_IRQ;
+                                e.lcd_status.line = (u16)m_iStatusModeLYCounter;
+                                e.lcd_status.value = 0;
+                                m_pTraceLogger->TraceLog(e);
+                            }
+#endif
                         }
                         m_IRQ48Signal = SetBit(m_IRQ48Signal, 0);
                     }

@@ -34,6 +34,7 @@
 #include "MBC3MemoryRule.h"
 #include "MBC5MemoryRule.h"
 #include "MultiMBC1MemoryRule.h"
+#include "TraceLogger.h"
 #include "common.h"
 
 GearboyCore::GearboyCore()
@@ -53,7 +54,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
     InitPointer(m_pRamChangedCallback);
-    InitPointer(m_debug_callback);
+    InitPointer(m_trace_logger);
     m_bCGB = false;
     m_bGBA = false;
     m_bPaused = false;
@@ -80,6 +81,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pVideo);
     SafeDelete(m_pProcessor);
     SafeDelete(m_pMemory);
+    SafeDelete(m_trace_logger);
 }
 
 void GearboyCore::Init(GB_Color_Format pixelFormat)
@@ -94,6 +96,7 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pAudio = new Audio();
     m_pInput = new Input(m_pMemory, m_pProcessor);
     m_pCartridge = new Cartridge();
+    m_trace_logger = new TraceLogger();
 
     m_pMemory->Init();
     m_pProcessor->Init();
@@ -101,6 +104,9 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pAudio->Init();
     m_pInput->Init();
     m_pCartridge->Init();
+
+    m_pProcessor->SetTraceLogger(m_trace_logger);
+    m_pVideo->SetTraceLogger(m_trace_logger);
 
     InitMemoryRules();
     InitDMGPalette();
@@ -126,9 +132,6 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
 
         do
         {
-            if (debug_enable && IsValidPointer(m_debug_callback))
-                m_debug_callback();
-
             unsigned int clockCycles = m_pProcessor->RunFor(1);
 
             m_pProcessor->UpdateTimers(clockCycles);
@@ -297,9 +300,9 @@ Video* GearboyCore::GetVideo()
     return m_pVideo;
 }
 
-void GearboyCore::SetDebugCallback(GB_Debug_Callback callback)
+TraceLogger* GearboyCore::GetTraceLogger()
 {
-    m_debug_callback = callback;
+    return m_trace_logger;
 }
 
 bool GearboyCore::GetRuntimeInfo(GB_RuntimeInfo& runtime_info)
@@ -1229,6 +1232,14 @@ void GearboyCore::InitMemoryRules()
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetIORule(m_pIORegistersMemoryRule);
     m_pMemory->SetCommonRule(m_pCommonMemoryRule);
+
+    m_pIORegistersMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pRomOnlyMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC1MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMultiMBC1MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC2MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC3MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC5MemoryRule->SetTraceLogger(m_trace_logger);
 }
 
 bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)

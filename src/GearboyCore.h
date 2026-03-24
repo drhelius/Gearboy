@@ -37,6 +37,7 @@ class MBC3MemoryRule;
 class MBC5MemoryRule;
 class MultiMBC1MemoryRule;
 class MemoryRule;
+class TraceLogger;
 
 class GearboyCore
 {
@@ -50,8 +51,6 @@ public:
     };
 
     typedef GB_Debug_Run GS_Debug_Run;
-    typedef void (*GB_Debug_Callback)(void);
-    typedef GB_Debug_Callback GS_Debug_Callback;
 
 public:
     GearboyCore();
@@ -98,7 +97,7 @@ public:
     Processor* GetProcessor();
     Audio* GetAudio();
     Video* GetVideo();
-    void SetDebugCallback(GB_Debug_Callback callback);
+    TraceLogger* GetTraceLogger();
 
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;
@@ -137,7 +136,7 @@ private:
     GB_Color_Format m_pixelFormat;
     bool m_bColorCorrectionEnabled;
     u8* m_pSaveStateFrameBuffer;
-    GB_Debug_Callback m_debug_callback;
+    TraceLogger* m_trace_logger;
 };
 
 #endif	/* CORE_H */

@@ -190,6 +190,12 @@ struct config_Debug
     bool trace_registers = true;
     bool trace_flags = true;
     bool trace_bytes = true;
+    bool trace_cpu_irq = true;
+    bool trace_lcd_write = true;
+    bool trace_lcd_status = true;
+    bool trace_apu_write = true;
+    bool trace_io_write = true;
+    bool trace_bank_switch = true;
     bool dis_show_mem = true;
     bool dis_show_symbols = true;
     bool dis_show_segment = true;

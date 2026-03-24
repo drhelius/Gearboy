@@ -111,6 +111,7 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
             }
             m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
             m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+            TraceBankSwitch(address, value);
             break;
         }
         case 0x4000:
@@ -118,6 +119,7 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
             m_iCurrentRAMBank = value & 0x0F;
             m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
             m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
+            TraceBankSwitch(address, value);
             break;
         }
         case 0x6000:

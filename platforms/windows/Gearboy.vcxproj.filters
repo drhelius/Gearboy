@@ -151,6 +151,9 @@
     <ClCompile Include="..\..\src\VgmRecorder.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\TraceLogger.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\dependencies\miniz\miniz.c">
       <Filter>dependencies\miniz</Filter>
     </ClCompile>
@@ -382,6 +385,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\VgmRecorder.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\TraceLogger.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\dependencies\glad\glad.h">

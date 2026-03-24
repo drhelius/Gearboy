@@ -27,7 +27,7 @@
 const char k_color_marker_start = '{';
 const char k_color_marker_end = '}';
 
-static void RemoveColorFromString(char* str)
+static inline void RemoveColorFromString(char* str)
 {
     char* result = str;
     char* index = str;

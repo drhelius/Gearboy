@@ -110,6 +110,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
                     m_iCurrentROMBank = 1;
                 m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
                 m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+                TraceBankSwitch(address, value);
             }
             else
             {

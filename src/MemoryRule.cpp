@@ -30,11 +30,16 @@ MemoryRule::MemoryRule(Processor* pProcessor, Memory* pMemory,
     m_pAudio = pAudio;
     m_bCGB = false;
     InitPointer(m_pRamChangedCallback);
+    InitPointer(m_pTraceLogger);
 }
 
 MemoryRule::~MemoryRule()
 {
+}
 
+void MemoryRule::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
 }
 
 void MemoryRule::SaveRam(std::ostream&)

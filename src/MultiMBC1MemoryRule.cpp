@@ -97,12 +97,14 @@ void MultiMBC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             m_iROMBankLo = value & 0x1F;
             SetROMBanks();
+            TraceBankSwitch(address, value);
             break;
         }
         case 0x4000:
         {
             m_iROMBankHi = value & 0x03;
             SetROMBanks();
+            TraceBankSwitch(address, value);
             break;
         }
         case 0x6000:

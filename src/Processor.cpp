@@ -21,6 +21,7 @@
 #include <cassert>
 #include <ctype.h>
 #include "Processor.h"
+#include "TraceLogger.h"
 #include "opcode_timing.h"
 #include "opcode_names.h"
 #include "common.h"
@@ -29,6 +30,7 @@ Processor::Processor(Memory* pMemory)
 {
     m_pMemory = pMemory;
     m_pMemory->SetProcessor(this);
+    InitPointer(m_pTraceLogger);
     InitOPCodeFunctors();
     m_bIME = false;
     m_bHalt = false;
@@ -67,6 +69,11 @@ Processor::Processor(Memory* pMemory)
 
 Processor::~Processor()
 {
+}
+
+void Processor::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
 }
 
 void Processor::Init()
@@ -182,6 +189,10 @@ u8 Processor::RunFor(u8 ticks)
         {
             Interrupts interrupt = InterruptPending();
 
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+            u16 prev_pc = PC.GetValue();
+#endif
+
             if (m_bIME && (interrupt != None_Interrupt) && (m_iAccurateOPCodeState == 0))
             {
                 ServeInterrupt(interrupt);
@@ -276,6 +287,21 @@ u8 Processor::RunFor(u8 ticks)
 
             #ifndef GEARBOY_DISABLE_DISASSEMBLER
             DisassembleNextOPCode();
+
+            if ((m_iAccurateOPCodeState == 0) && !interrupt_served && m_pTraceLogger->IsEnabled(TRACE_CPU))
+            {
+                GB_Trace_Entry e = {};
+                e.type = TRACE_CPU;
+                e.cpu.pc = prev_pc;
+                GS_Disassembler_Record* record = m_pMemory->GetDisassemblerRecord(prev_pc);
+                e.cpu.bank = IsValidPointer(record) ? record->bank : 0;
+                e.cpu.af = AF.GetValue();
+                e.cpu.bc = BC.GetValue();
+                e.cpu.de = DE.GetValue();
+                e.cpu.hl = HL.GetValue();
+                e.cpu.sp = SP.GetValue();
+                m_pTraceLogger->TraceLog(e);
+            }
             #endif
         }
 
@@ -385,6 +411,16 @@ void Processor::ServeInterrupt(Interrupts interrupt)
         }
 
         PushCallStack(old_pc, PC.GetValue(), old_pc, 0);
+
+        if (m_pTraceLogger->IsEnabled(TRACE_CPU_IRQ))
+        {
+            GB_Trace_Entry e = {};
+            e.type = TRACE_CPU_IRQ;
+            e.irq.pc = old_pc;
+            e.irq.vector = PC.GetValue();
+            e.irq.type = irq_type;
+            m_pTraceLogger->TraceLog(e);
+        }
     }
 #endif
 }

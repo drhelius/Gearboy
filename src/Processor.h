@@ -27,6 +27,7 @@
 #include "SixteenBitRegister.h"
 
 class Memory;
+class TraceLogger;
 
 class Processor
 {
@@ -130,6 +131,7 @@ public:
     std::stack<GB_CallStackEntry>* GetDisassemblerCallStack();
     void CheckMemoryBreakpoints(int type, u16 address, bool read);
     bool Halted();
+    void SetTraceLogger(TraceLogger* pTraceLogger);
     void UpdateTimers(u8 ticks);
     void UpdateSerial(u8 ticks);
 
@@ -138,6 +140,7 @@ private:
     OPCptr m_OPCodes[256];
     OPCptr m_OPCodesCB[256];
     Memory* m_pMemory;
+    TraceLogger* m_pTraceLogger;
     SixteenBitRegister AF;
     SixteenBitRegister BC;
     SixteenBitRegister DE;

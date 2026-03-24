@@ -572,11 +572,6 @@ void emu_debug_continue(void)
     emu_debug_command = Debug_Command_Continue;
 }
 
-void emu_debug_set_callback(GearboyCore::GB_Debug_Callback callback)
-{
-    gearboy->SetDebugCallback(callback);
-}
-
 void emu_load_bootrom_dmg(const char* file_path)
 {
     gearboy->GetMemory()->LoadBootromDMG(file_path);

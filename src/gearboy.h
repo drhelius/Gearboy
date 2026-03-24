@@ -27,10 +27,11 @@
 #include "Memory.h"
 #include "Processor.h"
 #include "Cartridge.h"
-#include "Audio.h" 
-#include "Video.h" 
-#include "SixteenBitRegister.h" 
-#include "MemoryRule.h"  
+#include "Audio.h"
+#include "Video.h"
+#include "SixteenBitRegister.h"
+#include "MemoryRule.h"
+#include "TraceLogger.h"
 
 #endif	/* GEARBOY_H */
 
