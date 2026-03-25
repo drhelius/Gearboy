@@ -167,7 +167,8 @@ inline char* strncpy_fit(char* dest, const char* src, size_t dest_size)
     if (dest_size == 0)
         return dest;
 
-    snprintf(dest, dest_size, "%s", src);
+    strncpy(dest, src, dest_size - 1);
+    dest[dest_size - 1] = '\0';
     return dest;
 }
 
