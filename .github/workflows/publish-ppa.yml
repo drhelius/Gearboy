@@ -15,7 +15,7 @@ jobs:
     if: github.repository_owner == 'drhelius'
     strategy:
       matrix:
-        distro: [noble, jammy]
+        distro: [resolute, noble, jammy]
     steps:
       - name: Get release version
         run: |
