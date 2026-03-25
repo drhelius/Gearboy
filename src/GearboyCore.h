@@ -98,6 +98,7 @@ public:
     Audio* GetAudio();
     Video* GetVideo();
     TraceLogger* GetTraceLogger();
+    u64 GetMasterClockCycles();
 
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;
@@ -137,6 +138,7 @@ private:
     bool m_bColorCorrectionEnabled;
     u8* m_pSaveStateFrameBuffer;
     TraceLogger* m_trace_logger;
+    u64 m_master_clock_cycles;
 };
 
 #endif	/* CORE_H */

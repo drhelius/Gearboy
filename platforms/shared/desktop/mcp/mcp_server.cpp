@@ -202,10 +202,10 @@ void McpServer::HandleInitialize(const json& request)
             {"resources", json::object()}
         }},
         {"serverInfo", {
-            {"name", "gearsystem-mcp-server"},
-            {"title", "Gearsystem MCP Server"},
-            {"description", "Debug and control Gearsystem Sega Master System / Game Gear / SG-1000 emulator. Provides tools for: execution control (pause, continue, step, reset), breakpoints (exec/read/write), memory inspection and modification, Z80 CPU register access, VDP status, PSG status, YM2413 FM synthesis status, disassembly, save states, controller input, sprites, and screenshots."},
-            {"version", GS_VERSION}
+            {"name", "gearboy-mcp-server"},
+            {"title", "Gearboy MCP Server"},
+            {"description", "Debug and control Gearboy Nintendo Game Boy / Game Boy Color emulator. Provides tools for: execution control (pause, continue, step, reset), breakpoints (exec/read/write), memory inspection and modification, SM83 CPU register access, LCD status, APU audio status, disassembly, save states, controller input, sprites, and screenshots."},
+            {"version", GEARBOY_VERSION}
         }}
     };
 
@@ -229,7 +229,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_pause"},
         {"title", "Debug Pause"},
-        {"description", "Pause Gearsystem emulator execution (break at current instruction)"},
+        {"description", "Pause Gearboy emulator execution (break at current instruction)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -240,7 +240,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_continue"},
         {"title", "Debug Continue"},
-        {"description", "Resume Gearsystem emulator execution"},
+        {"description", "Resume Gearboy emulator execution"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -251,7 +251,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_step_into"},
         {"title", "Debug Step Into"},
-        {"description", "Step into next Z80 instruction (enters subroutines)"},
+        {"description", "Step into next SM83 instruction (enters subroutines)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -262,7 +262,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_step_over"},
         {"title", "Debug Step Over"},
-        {"description", "Step over next Z80 instruction (skips CALL subroutines)"},
+        {"description", "Step over next SM83 instruction (skips CALL subroutines)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -295,7 +295,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_reset"},
         {"title", "Debug Reset"},
-        {"description", "Reset the Sega Master System / Game Gear / SG-1000 emulated system"},
+        {"description", "Reset the Game Boy / Game Boy Color emulated system"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -318,18 +318,18 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "set_breakpoint"},
         {"title", "Set Breakpoint"},
-        {"description", "Set a breakpoint at specified logical address in SMS/GG memory (ROM/RAM, VRAM, CRAM, or VDP registers)"},
+        {"description", "Set a breakpoint at specified address in Game Boy memory (ROM/RAM, VRAM, or IO registers)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"address", {
                     {"type", "string"},
-                    {"description", "Logical address in hex (e.g., '8000', '0x8000', '$8000'). Valid ranges: rom_ram 0000-FFFF, vram 0000-3FFF, cram 00-3F, vdp_reg 00-0A"}
+                    {"description", "Address in hex (e.g., '8000', '0x8000', '$8000'). Valid ranges: rom_ram 0000-FFFF (logical), vram 0000-1FFF (0-based offset), io 0000-007F (0-based offset)"}
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram (default, 0000-FFFF), vram (0000-3FFF), cram (00-3F, 64 bytes), vdp_reg (00-0A, 11 registers)"},
-                    {"enum", json::array({"rom_ram", "vram", "vdp_reg", "cram"})}
+                    {"description", "Memory area: rom_ram (default, 0000-FFFF logical), vram (0000-1FFF, 0-based offset into VRAM), io (0000-007F, 0-based offset into IO space)"},
+                    {"enum", json::array({"rom_ram", "vram", "io"})}
                 }},
                 {"read", {
                     {"type", "boolean"},
@@ -357,16 +357,16 @@ void McpServer::HandleToolsList(const json& request)
             {"properties", {
                 {"start_address", {
                     {"type", "string"},
-                    {"description", "Start logical address in hex (e.g., '8000'). Valid ranges: rom_ram 0000-FFFF, vram 0000-3FFF, cram 00-3F, vdp_reg 00-0A"}
+                    {"description", "Start address in hex (e.g., '8000'). Valid ranges: rom_ram 0000-FFFF (logical), vram 0000-1FFF (0-based offset), io 0000-007F (0-based offset)"}
                 }},
                 {"end_address", {
                     {"type", "string"},
-                    {"description", "End logical address in hex (e.g., '8FFF'). Valid ranges: rom_ram 0000-FFFF, vram 0000-3FFF, cram 00-3F, vdp_reg 00-0A"}
+                    {"description", "End address in hex (e.g., '8FFF'). Valid ranges: rom_ram 0000-FFFF (logical), vram 0000-1FFF (0-based offset), io 0000-007F (0-based offset)"}
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram (0000-FFFF), vram (0000-3FFF), cram (00-3F, 64 bytes), vdp_reg (00-0A, 11 registers)"},
-                    {"enum", json::array({"rom_ram", "vram", "vdp_reg", "cram"})}
+                    {"description", "Memory area: rom_ram (0000-FFFF logical), vram (0000-1FFF, 0-based offset), io (0000-007F, 0-based offset)"},
+                    {"enum", json::array({"rom_ram", "vram", "io"})}
                 }},
                 {"read", {
                     {"type", "boolean"},
@@ -402,8 +402,8 @@ void McpServer::HandleToolsList(const json& request)
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram (default), vram, cram, vdp_reg"},
-                    {"enum", json::array({"rom_ram", "vram", "vdp_reg", "cram"})}
+                    {"description", "Memory area: rom_ram (default), vram, io"},
+                    {"enum", json::array({"rom_ram", "vram", "io"})}
                 }}
             }},
             {"required", json::array({"address"})}
@@ -424,7 +424,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "toggle_irq_breakpoints"},
         {"title", "Toggle IRQ Breakpoints"},
-        {"description", "Enable or disable breaking on IRQs (RESET, NMI, INT). When enabled, the emulator pauses whenever an interrupt is triggered."},
+        {"description", "Enable or disable breaking on IRQs (VBlank, LCD STAT, Timer, Serial, Joypad). When enabled, the emulator pauses whenever an interrupt is triggered."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
@@ -441,7 +441,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "list_memory_areas"},
         {"title", "List Memory Areas"},
-        {"description", "List memory editor tabs (physical memory spaces like WRAM, VRAM, ROM banks). Each area has 0-based offsets (though CPU may accesses them at different logical addresses)."},
+        {"description", "List memory editor tabs (physical memory spaces like ROM0, ROM1, VRAM, WRAM, OAM, IO, HIRAM). Each area has 0-based offsets (though CPU may access them at different logical addresses)."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -499,15 +499,15 @@ void McpServer::HandleToolsList(const json& request)
 
     // Register tools
     tools.push_back({
-        {"name", "write_z80_register"},
-        {"title", "Write Z80 Register"},
-        {"description", "Write to a Z80 CPU register"},
+        {"name", "write_cpu_register"},
+        {"title", "Write CPU Register"},
+        {"description", "Write to an SM83 CPU register"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"name", {
                     {"type", "string"},
-                    {"description", "Register name (AF, BC, DE, HL, AF', BC', DE', HL', IX, IY, SP, PC, WZ, A, F, B, C, D, E, H, L, I, R)"}
+                    {"description", "Register name (AF, BC, DE, HL, SP, PC, A, F, B, C, D, E, H, L)"}
                 }},
                 {"value", {
                     {"type", "string"},
@@ -522,7 +522,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "get_disassembly"},
         {"title", "Get Disassembly"},
-        {"description", "Get disassembled Z80 assembly code for a logical address range. "
+        {"description", "Get disassembled SM83 assembly code for a logical address range. "
                         "Returns: logical address, bank, segment, mnemonic, and raw bytes. "
                         "NOTE: Disassembled records only exist for code that has been executed during emulation. "
                         "Recommended max range is 0x2000. Use multiple calls for larger areas."},
@@ -559,7 +559,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "get_media_info"},
         {"title", "Get Media Info"},
-        {"description", "Get information about the loaded SMS/GG ROM (file path, type, size, mapper, zone, etc.)"},
+        {"description", "Get information about the loaded Game Boy ROM (file path, name, MBC type, ROM/RAM size, CGB/SGB flags, battery, etc.)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -569,9 +569,9 @@ void McpServer::HandleToolsList(const json& request)
 
     // Chip status tools
     tools.push_back({
-        {"name", "get_z80_status"},
-        {"title", "Get Z80 Status"},
-        {"description", "Get Z80 CPU status (all registers, flags, interrupts, halt, interrupt mode)"},
+        {"name", "get_cpu_status"},
+        {"title", "Get CPU Status"},
+        {"description", "Get SM83 CPU status (all registers AF/BC/DE/HL/SP/PC, flags Z/N/H/C, IME, halt, CGB double speed, physical PC, bank)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -580,9 +580,9 @@ void McpServer::HandleToolsList(const json& request)
     });
 
     tools.push_back({
-        {"name", "get_vdp_registers"},
-        {"title", "Get VDP Registers"},
-        {"description", "Get all 11 VDP registers (R0-R10) with hex values and descriptions"},
+        {"name", "get_lcd_registers"},
+        {"title", "Get LCD Registers"},
+        {"description", "Get all LCD registers (LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX) with hex values. Also CGB registers (KEY1, VBK, HDMA, BCPS, BCPD, OCPS, OCPD, SVBK)."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -591,9 +591,9 @@ void McpServer::HandleToolsList(const json& request)
     });
 
     tools.push_back({
-        {"name", "get_vdp_status"},
-        {"title", "Get VDP Status"},
-        {"description", "Get VDP status (flags, counters, mode, SG-1000 mode, extended mode 224)"},
+        {"name", "get_lcd_status"},
+        {"title", "Get LCD Status"},
+        {"description", "Get LCD status (mode 0-3, screen enabled, LY, LYC match, CGB mode, interrupts)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -602,20 +602,9 @@ void McpServer::HandleToolsList(const json& request)
     });
 
     tools.push_back({
-        {"name", "get_psg_status"},
-        {"title", "Get PSG Status"},
-        {"description", "Get SN76489 PSG status for all 4 channels (3 tone + 1 noise): volume, period, frequency, GG stereo"},
-        {"inputSchema", {
-            {"type", "object"},
-            {"properties", json::object()},
-            {"additionalProperties", false}
-        }}
-    });
-
-    tools.push_back({
-        {"name", "get_ym2413_status"},
-        {"title", "Get YM2413 Status"},
-        {"description", "Get YM2413 FM synth status: 9 channels, instruments, key-on, f-number, block, envelope, rhythm mode, user instrument"},
+        {"name", "get_apu_status"},
+        {"title", "Get APU Status"},
+        {"description", "Get Game Boy APU status for all 4 channels (Square 1 with sweep, Square 2, Wave, Noise): volume, frequency, envelope, duty, wave RAM, panning, master volume"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -626,7 +615,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "get_screenshot"},
         {"title", "Get Screenshot"},
-        {"description", "Capture current Sega Master System / Game Gear / SG-1000 screen frame as base64-encoded PNG image"},
+        {"description", "Capture current Game Boy / Game Boy Color screen frame as base64-encoded PNG image"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -638,7 +627,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "load_media"},
         {"title", "Load Media"},
-        {"description", "Load a ROM file (.sms, .gg, .sg, .zip). Automatically loads .sym symbol file if present. Resets emulator on successful load"},
+        {"description", "Load a ROM file (.gb, .dmg, .gbc, .cgb, .sgb, .zip). Automatically loads .sym symbol file if present. Resets emulator on successful load"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
@@ -756,20 +745,20 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "controller_button"},
         {"title", "Controller Button"},
-        {"description", "Control a button on a controller (player 1-2). Use action 'press' to hold the button down, 'release' to let it go, or 'press_and_release' to simulate a quick button tap. Buttons: up, down, left, right, 1, 2, start"},
+        {"description", "Control a button on the Game Boy. Use action 'press' to hold the button down, 'release' to let it go, or 'press_and_release' to simulate a quick button tap. Buttons: up, down, left, right, a, b, start, select"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"player", {
                     {"type", "integer"},
-                    {"description", "Player number (1-2)"},
+                    {"description", "Player number (always 1 for Game Boy)"},
                     {"minimum", 1},
-                    {"maximum", 2}
+                    {"maximum", 1}
                 }},
                 {"button", {
                     {"type", "string"},
-                    {"description", "Button name: up, down, left, right, 1, 2, start"},
-                    {"enum", json::array({"up", "down", "left", "right", "1", "2", "start"})}
+                    {"description", "Button name: up, down, left, right, a, b, start, select"},
+                    {"enum", json::array({"up", "down", "left", "right", "a", "b", "start", "select"})}
                 }},
                 {"action", {
                     {"type", "string"},
@@ -784,7 +773,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "list_sprites"},
         {"title", "List Sprites"},
-        {"description", "List information for all hardware sprites (position, size, pattern index)"},
+        {"description", "List information for all 40 OAM sprites (position, tile, attributes, CGB palette/bank)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -801,7 +790,7 @@ void McpServer::HandleToolsList(const json& request)
             {"properties", {
                 {"sprite_index", {
                     {"type", "integer"},
-                    {"description", "Sprite index (0-63)"}
+                    {"description", "Sprite index (0-39)"}
                 }}
             }},
             {"required", json::array({"sprite_index"})}
@@ -1257,11 +1246,10 @@ void McpServer::HandleToolsCall(const json& request)
 
 static int GetBreakpointTypeFromString(const std::string& memory_area)
 {
-    if (memory_area == "rom_ram") return Processor::GS_BREAKPOINT_TYPE_ROMRAM;
-    if (memory_area == "vram") return Processor::GS_BREAKPOINT_TYPE_VRAM;
-    if (memory_area == "vdp_reg") return Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER;
-    if (memory_area == "cram") return Processor::GS_BREAKPOINT_TYPE_CRAM;
-    return Processor::GS_BREAKPOINT_TYPE_ROMRAM; // default
+    if (memory_area == "rom_ram") return Processor::GB_BREAKPOINT_TYPE_ROMRAM;
+    if (memory_area == "vram") return Processor::GB_BREAKPOINT_TYPE_VRAM;
+    if (memory_area == "io") return Processor::GB_BREAKPOINT_TYPE_IO;
+    return Processor::GB_BREAKPOINT_TYPE_ROMRAM; // default
 }
 
 json McpServer::ExecuteCommand(const std::string& toolName, const json& arguments)
@@ -1336,12 +1324,10 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
             return {{"error", "At least one of read, write, or execute must be true"}};
 
         u16 max_address = 0xFFFF;
-        if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_VRAM)
-            max_address = 0x3FFF;
-        else if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER)
-            max_address = 0x000A;
-        else if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_CRAM)
-            max_address = 0x003F;
+        if (breakpoint_type == Processor::GB_BREAKPOINT_TYPE_VRAM)
+            max_address = 0x1FFF;
+        else if (breakpoint_type == Processor::GB_BREAKPOINT_TYPE_IO)
+            max_address = 0x007F;
 
         if (address > max_address)
         {
@@ -1380,12 +1366,10 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
             return {{"error", "At least one of read, write, or execute must be true"}};
 
         u16 max_address = 0xFFFF;
-        if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_VRAM)
-            max_address = 0x3FFF;
-        else if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER)
-            max_address = 0x000A;
-        else if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_CRAM)
-            max_address = 0x003F;
+        if (breakpoint_type == Processor::GB_BREAKPOINT_TYPE_VRAM)
+            max_address = 0x1FFF;
+        else if (breakpoint_type == Processor::GB_BREAKPOINT_TYPE_IO)
+            max_address = 0x007F;
 
         if (start_address > max_address || end_address > max_address)
         {
@@ -1516,7 +1500,7 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         return {{"success", true}, {"area", area}, {"offset", offsetStr}, {"bytes_written", data.size()}};
     }
     // Registers
-    else if (normalizedTool == "write_z80_register")
+    else if (normalizedTool == "write_cpu_register")
     {
         std::string name = arguments["name"];
         std::string valueStr = arguments["value"];
@@ -1648,25 +1632,21 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         return m_debugAdapter.GetMediaInfo();
     }
     // Chip status
-    else if (normalizedTool == "get_z80_status")
+    else if (normalizedTool == "get_cpu_status")
     {
-        return m_debugAdapter.GetZ80Status();
+        return m_debugAdapter.GetCPUStatus();
     }
-    else if (normalizedTool == "get_vdp_registers")
+    else if (normalizedTool == "get_lcd_registers")
     {
-        return m_debugAdapter.GetVDPRegisters();
+        return m_debugAdapter.GetLCDRegisters();
     }
-    else if (normalizedTool == "get_vdp_status")
+    else if (normalizedTool == "get_lcd_status")
     {
-        return m_debugAdapter.GetVDPStatus();
+        return m_debugAdapter.GetLCDStatus();
     }
-    else if (normalizedTool == "get_psg_status")
+    else if (normalizedTool == "get_apu_status")
     {
-        return m_debugAdapter.GetPSGStatus();
-    }
-    else if (normalizedTool == "get_ym2413_status")
-    {
-        return m_debugAdapter.GetYM2413Status();
+        return m_debugAdapter.GetAPUStatus();
     }
     else if (normalizedTool == "get_screenshot")
     {
@@ -1976,7 +1956,7 @@ void McpServer::LoadResourcesFromCategory(const std::string& category, const std
             continue;
 
         ResourceInfo resource;
-        resource.uri = "gearsystem://" + category + "/" + item["uri"].get<std::string>();
+        resource.uri = "gearboy://" + category + "/" + item["uri"].get<std::string>();
         resource.title = item["title"].get<std::string>();
         resource.description = item.contains("description") ? item["description"].get<std::string>() : "";
         resource.mimeType = item.contains("mimeType") ? item["mimeType"].get<std::string>() : "text/plain";
@@ -2086,4 +2066,3 @@ void McpServer::HandleResourcesRead(const json& request)
 
     SendResponse(response);
 }
-

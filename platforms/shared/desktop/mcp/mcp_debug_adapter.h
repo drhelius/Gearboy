@@ -23,7 +23,7 @@
 #include <vector>
 #include <string>
 #include "json.hpp"
-#include "gearsystem.h"
+#include "gearboy.h"
 #include "../gui_debug_memory.h"
 
 using json = nlohmann::json;
@@ -38,13 +38,10 @@ struct MemoryAreaInfo
 
 struct RegistersSnapshot
 {
-    u16 AF, BC, DE, HL;
-    u16 AF2, BC2, DE2, HL2;
-    u16 IX, IY, SP, PC, WZ;
-    u8 I, R;
-    bool IFF1, IFF2;
+    u16 AF, BC, DE, HL, SP, PC;
+    bool IME;
     bool Halt;
-    int InterruptMode;
+    bool DoubleSpeed;
 };
 
 struct BreakpointInfo
@@ -80,7 +77,7 @@ struct DisasmLine
 class DebugAdapter
 {
 public:
-    DebugAdapter(GearsystemCore* core)
+    DebugAdapter(GearboyCore* core)
     {
         m_core = core;
     }
@@ -115,11 +112,10 @@ public:
     std::vector<DisasmLine> GetDisassembly(u16 start_address, u16 end_address, int bank = -1, bool resolve_symbols = false);
 
     // Chip status info
-    json GetZ80Status();
-    json GetVDPRegisters();
-    json GetVDPStatus();
-    json GetPSGStatus();
-    json GetYM2413Status();
+    json GetCPUStatus();
+    json GetLCDRegisters();
+    json GetLCDStatus();
+    json GetAPUStatus();
     json GetScreenshot();
     json ListSprites();
     json GetSpriteImage(int sprite_index);
@@ -163,10 +159,10 @@ public:
     json GetTraceLog(int start, int count);
 
     // Core access
-    GearsystemCore* GetCore() { return m_core; }
+    GearboyCore* GetCore() { return m_core; }
 
 private:
-    GearsystemCore* m_core;
+    GearboyCore* m_core;
 
     const char* GetBreakpointTypeName(int type);
     MemoryAreaInfo GetMemoryAreaInfo(int area);

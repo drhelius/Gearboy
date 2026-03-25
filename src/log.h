@@ -28,7 +28,7 @@
 #include "libretro.h"
 extern retro_log_printf_t log_cb;
 #else
-//extern bool g_mcp_stdio_mode;
+extern bool g_mcp_stdio_mode;
 #endif
 
 #if defined(DEBUG_GEARBOY)
@@ -65,8 +65,8 @@ inline void Log_func(const char* const msg, ...)
         return;
     }
 #else
-    //if (g_mcp_stdio_mode)
-    //    return;
+    if (g_mcp_stdio_mode)
+        return;
 
     printf("%s\n", buffer);
     fflush(stdout);

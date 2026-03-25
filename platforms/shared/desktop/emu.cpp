@@ -25,6 +25,7 @@
 #include "gearboy.h"
 #include "sound_queue.h"
 #include "config.h"
+#include "mcp/mcp_manager.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #if defined(_WIN32)
@@ -43,6 +44,7 @@ static GearboyCore* gearboy;
 static u16* frame_buffer_565;
 static s16* audio_buffer;
 static bool audio_enabled;
+static McpManager* mcp_manager;
 static u16* debug_background_buffer_565;
 static u16* debug_tile_buffers_565[2];
 static u16* debug_oam_buffers_565[40];
@@ -98,6 +100,10 @@ bool emu_init(void)
     emu_debug_command = Debug_Command_None;
     emu_debug_pc_changed = false;
     gearboy->SetFrameBuffer(reinterpret_cast<u8*>(emu_frame_buffer));
+
+    mcp_manager = new McpManager();
+    mcp_manager->Init(gearboy);
+
     for (int i = 0; i < 5; i++)
     {
         memset(&emu_savestates[i], 0, sizeof(GB_SaveState_Header));
@@ -119,6 +125,7 @@ void emu_destroy(void)
     loading_state.store(Loading_State_None);
 
     save_ram();
+    SafeDelete(mcp_manager);
     for (int i = 0; i < 5; i++)
         SafeDeleteArray(emu_savestates_screenshots[i].data);
 
@@ -209,6 +216,8 @@ bool emu_finish_rom_loading(void)
 
 void emu_update(void)
 {
+    emu_mcp_pump_commands();
+
     if (loading_state.load() != Loading_State_None)
         return;
 
@@ -676,6 +685,81 @@ void emu_stop_vgm_recording(void)
 }
 
 bool emu_is_vgm_recording(void) { return gearboy->GetAudio()->IsVgmRecording(); }
+
+int emu_get_screenshot_png(unsigned char** out_buffer)
+{
+    if (!gearboy->GetCartridge()->IsLoadedROM())
+        return 0;
+
+    int stride = GAMEBOY_WIDTH * 3;
+    int len = 0;
+
+    *out_buffer = stbi_write_png_to_mem((const unsigned char*)emu_frame_buffer, stride,
+                                         GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
+                                         3, &len);
+
+    return len;
+}
+
+int emu_get_sprite_png(int sprite_index, unsigned char** out_buffer)
+{
+    if (!gearboy->GetCartridge()->IsLoadedROM())
+        return 0;
+
+    if (sprite_index < 0 || sprite_index > 39)
+        return 0;
+
+    update_debug();
+
+    Memory* memory = gearboy->GetMemory();
+    u8 lcdc = memory->Retrieve(0xFF40);
+    bool sprites_16 = IsSetBit(lcdc, 2);
+    int height = sprites_16 ? 16 : 8;
+
+    GB_Color* buffer = emu_debug_oam_buffers[sprite_index];
+
+    if (!buffer)
+        return 0;
+
+    int len = 0;
+    *out_buffer = stbi_write_png_to_mem((const unsigned char*)buffer, 8 * 3, 8, height, 3, &len);
+
+    return len;
+}
+
+void emu_mcp_set_transport(int mode, int tcp_port)
+{
+    if (mcp_manager)
+        mcp_manager->SetTransportMode((McpTransportMode)mode, tcp_port);
+}
+
+void emu_mcp_start(void)
+{
+    if (mcp_manager)
+        mcp_manager->Start();
+}
+
+void emu_mcp_stop(void)
+{
+    if (mcp_manager)
+        mcp_manager->Stop();
+}
+
+bool emu_mcp_is_running(void)
+{
+    return mcp_manager && mcp_manager->IsRunning();
+}
+
+int emu_mcp_get_transport_mode(void)
+{
+    return mcp_manager ? mcp_manager->GetTransportMode() : -1;
+}
+
+void emu_mcp_pump_commands(void)
+{
+    if (mcp_manager && mcp_manager->IsRunning())
+        mcp_manager->PumpCommands(gearboy);
+}
 
 static void reset_buffers(void)
 {

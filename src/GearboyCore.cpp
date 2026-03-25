@@ -63,6 +63,7 @@ GearboyCore::GearboyCore()
     m_pixelFormat = GB_PIXEL_RGB565;
     m_bColorCorrectionEnabled = false;
     m_pSaveStateFrameBuffer = NULL;
+    m_master_clock_cycles = 0;
 }
 
 GearboyCore::~GearboyCore()
@@ -141,6 +142,7 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
             totalClocks += clockCycles;
+            m_master_clock_cycles += clockCycles;
 
             if (debug_enable)
             {
@@ -201,6 +203,7 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
             totalClocks += clockCycles;
+            m_master_clock_cycles += clockCycles;
 
             if (totalClocks > GAMEBOY_CLOCKS_SAFE_LIMIT)
                 vblank = true;
@@ -303,6 +306,11 @@ Video* GearboyCore::GetVideo()
 TraceLogger* GearboyCore::GetTraceLogger()
 {
     return m_trace_logger;
+}
+
+u64 GearboyCore::GetMasterClockCycles()
+{
+    return m_master_clock_cycles;
 }
 
 bool GearboyCore::GetRuntimeInfo(GB_RuntimeInfo& runtime_info)
@@ -1314,6 +1322,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pInput->Reset();
     m_pCartridge->UpdateCurrentRTC();
     m_iRTCUpdateCount = 0;
+    m_master_clock_cycles = 0;
 
     m_pCommonMemoryRule->Reset(m_bCGB);
     m_pRomOnlyMemoryRule->Reset(m_bCGB);

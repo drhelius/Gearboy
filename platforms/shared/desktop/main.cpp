@@ -23,6 +23,8 @@
 #include "config.h"
 #include "console_utils.h"
 
+extern bool g_mcp_stdio_mode;
+
 int main(int argc, char* argv[])
 {
     attach_parent_console(argc, argv);
@@ -32,7 +34,11 @@ int main(int argc, char* argv[])
     bool show_usage = false;
     bool force_fullscreen = false;
     bool force_windowed = false;
+    int mcp_mode = -1; // -1 = disabled, 0 = stdio, 1 = tcp
+    int mcp_tcp_port = 7777;
     int ret = 0;
+    bool mcp_stdio_set = false;
+    bool mcp_http_set = false;
 
     for (int i = 1; i < argc; i++)
     {
@@ -58,6 +64,29 @@ int main(int argc, char* argv[])
             else if ((strcmp(argv[i], "-w") == 0) || (strcmp(argv[i], "--windowed") == 0))
             {
                 force_windowed = true;
+            }
+            else if (strcmp(argv[i], "--mcp-stdio") == 0)
+            {
+                g_mcp_stdio_mode = true;
+                mcp_stdio_set = true;
+                mcp_mode = 0;
+            }
+            else if (strcmp(argv[i], "--mcp-http") == 0)
+            {
+                mcp_http_set = true;
+                mcp_mode = 1;
+            }
+            else if (strcmp(argv[i], "--mcp-http-port") == 0)
+            {
+                if (i + 1 < argc)
+                {
+                    mcp_tcp_port = atoi(argv[++i]);
+                    if (mcp_tcp_port <= 0 || mcp_tcp_port > 65535)
+                    {
+                        printf("Invalid port number: %d\n", mcp_tcp_port);
+                        mcp_tcp_port = 7777;
+                    }
+                }
             }
             else
             {
@@ -89,12 +118,21 @@ int main(int argc, char* argv[])
         }
     }
 
+    if (mcp_stdio_set && mcp_http_set)
+    {
+        printf("Error: Cannot use both --mcp-stdio and --mcp-http at the same time\n");
+        return -1;
+    }
+
     if (show_usage)
     {
         printf("Usage: %s [options] [rom_file] [symbol_file]\n", argv[0]);
         printf("\nOptions:\n");
         printf("  -f, --fullscreen      Start in fullscreen mode\n");
         printf("  -w, --windowed        Start in windowed mode with menu visible\n");
+        printf("      --mcp-stdio       Auto-start MCP server with stdio transport\n");
+        printf("      --mcp-http        Auto-start MCP server with HTTP transport\n");
+        printf("      --mcp-http-port N HTTP port for MCP server (default: 7777)\n");
         printf("  -v, --version         Display version information\n");
         printf("  -h, --help            Display this help message\n");
         return ret;
@@ -112,7 +150,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    ret = application_init(rom_file, symbol_file, force_fullscreen, force_windowed, -1, 0);
+    ret = application_init(rom_file, symbol_file, force_fullscreen, force_windowed, mcp_mode, mcp_tcp_port);
 
     if (ret == 0)
         application_mainloop();

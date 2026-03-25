@@ -73,7 +73,7 @@ void DebugAdapter::StepFrame()
 
 void DebugAdapter::Reset()
 {
-    emu_reset(gui_get_force_configuration());
+    emu_reset(false, Cartridge::CartridgeNoMBC, false);
 }
 
 json DebugAdapter::GetDebugStatus()
@@ -118,7 +118,7 @@ void DebugAdapter::SetBreakpoint(u16 address, int type, bool read, bool write, b
     char buffer[16];
     snprintf(buffer, sizeof(buffer), "%04X", address);
 
-    if (type == Processor::GS_BREAKPOINT_TYPE_ROMRAM && execute && !read && !write)
+    if (type == Processor::GB_BREAKPOINT_TYPE_ROMRAM && execute && !read && !write)
     {
         cpu->AddBreakpoint(address);
     }
@@ -141,11 +141,11 @@ void DebugAdapter::SetBreakpointRange(u16 start_address, u16 end_address, int ty
 void DebugAdapter::ClearBreakpointByAddress(u16 address, int type, u16 end_address)
 {
     Processor* cpu = m_core->GetProcessor();
-    std::vector<Processor::GS_Breakpoint>* breakpoints = cpu->GetBreakpoints();
+    std::vector<Processor::GB_Breakpoint>* breakpoints = cpu->GetBreakpoints();
 
     for (int i = (int)breakpoints->size() - 1; i >= 0; i--)
     {
-        Processor::GS_Breakpoint& bp = (*breakpoints)[i];
+        Processor::GB_Breakpoint& bp = (*breakpoints)[i];
 
         if (bp.type != type)
             continue;
@@ -167,9 +167,9 @@ std::vector<BreakpointInfo> DebugAdapter::ListBreakpoints()
 {
     std::vector<BreakpointInfo> result;
     Processor* cpu = m_core->GetProcessor();
-    std::vector<Processor::GS_Breakpoint>* breakpoints = cpu->GetBreakpoints();
+    std::vector<Processor::GB_Breakpoint>* breakpoints = cpu->GetBreakpoints();
 
-    for (const Processor::GS_Breakpoint& brk : *breakpoints)
+    for (const Processor::GB_Breakpoint& brk : *breakpoints)
     {
         BreakpointInfo info;
         info.enabled = brk.enabled;
@@ -201,21 +201,11 @@ RegistersSnapshot DebugAdapter::GetRegisters()
     snapshot.BC = state->BC->GetValue();
     snapshot.DE = state->DE->GetValue();
     snapshot.HL = state->HL->GetValue();
-    snapshot.AF2 = state->AF2->GetValue();
-    snapshot.BC2 = state->BC2->GetValue();
-    snapshot.DE2 = state->DE2->GetValue();
-    snapshot.HL2 = state->HL2->GetValue();
-    snapshot.IX = state->IX->GetValue();
-    snapshot.IY = state->IY->GetValue();
     snapshot.SP = state->SP->GetValue();
     snapshot.PC = state->PC->GetValue();
-    snapshot.WZ = state->WZ->GetValue();
-    snapshot.I = *state->I;
-    snapshot.R = *state->R;
-    snapshot.IFF1 = *state->IFF1;
-    snapshot.IFF2 = *state->IFF2;
+    snapshot.IME = *state->IME;
     snapshot.Halt = *state->Halt;
-    snapshot.InterruptMode = *state->InterruptMode;
+    snapshot.DoubleSpeed = cpu->CGBSpeed();
 
     Debug("[MCP] GetRegisters: done (PC=%04X)", snapshot.PC);
     return snapshot;
@@ -234,24 +224,10 @@ void DebugAdapter::SetRegister(const std::string& name, u32 value)
         state->DE->SetValue((u16)value);
     else if (name == "HL")
         state->HL->SetValue((u16)value);
-    else if (name == "AF'" || name == "AF2")
-        state->AF2->SetValue((u16)value);
-    else if (name == "BC'" || name == "BC2")
-        state->BC2->SetValue((u16)value);
-    else if (name == "DE'" || name == "DE2")
-        state->DE2->SetValue((u16)value);
-    else if (name == "HL'" || name == "HL2")
-        state->HL2->SetValue((u16)value);
-    else if (name == "IX")
-        state->IX->SetValue((u16)value);
-    else if (name == "IY")
-        state->IY->SetValue((u16)value);
     else if (name == "SP")
         state->SP->SetValue((u16)value);
     else if (name == "PC")
         state->PC->SetValue((u16)value);
-    else if (name == "WZ")
-        state->WZ->SetValue((u16)value);
     else if (name == "A")
         state->AF->SetHigh((u8)value);
     else if (name == "F")
@@ -268,10 +244,6 @@ void DebugAdapter::SetRegister(const std::string& name, u32 value)
         state->HL->SetHigh((u8)value);
     else if (name == "L")
         state->HL->SetLow((u8)value);
-    else if (name == "I")
-        *state->I = (u8)value;
-    else if (name == "R")
-        *state->R = (u8)value;
 }
 
 std::vector<MemoryAreaInfo> DebugAdapter::ListMemoryAreas()
@@ -332,7 +304,7 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
 
     // Scan backwards to find any instruction that might span into our range
     u16 scan_start = start_address;
-    const int MAX_INSTRUCTION_SIZE = 7;
+    const int MAX_INSTRUCTION_SIZE = 3; // SM83 max instruction size is 3 bytes
 
     for (int lookback = 1; lookback < MAX_INSTRUCTION_SIZE && scan_start > 0; lookback++)
     {
@@ -340,13 +312,13 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
 
         if (use_explicit_bank)
         {
-            u16 start_offset = start_address & 0x1FFF;
+            u16 start_offset = start_address & 0x3FFF;
             if (lookback > start_offset)
                 break;
-            check_addr = (start_address & 0xE000) | (start_offset - lookback);
+            check_addr = (start_address & 0xC000) | (start_offset - lookback);
         }
 
-        GS_Disassembler_Record* record = NULL;
+        GB_Disassembler_Record* record = NULL;
 
         if (use_explicit_bank)
         {
@@ -372,7 +344,7 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
 
     while (addr <= (u32)end_address)
     {
-        GS_Disassembler_Record* record = NULL;
+        GB_Disassembler_Record* record = NULL;
 
         if (use_explicit_bank)
             record = memory->GetDisassemblerRecord((u16)addr, (u8)bank);
@@ -409,13 +381,13 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
 
             if (use_explicit_bank)
             {
-                u16 offset_in_bank = (u16)addr & 0x1FFF;
+                u16 offset_in_bank = (u16)addr & 0x3FFF;
                 offset_in_bank += (u16)record->size;
-                if (offset_in_bank >= 0x2000)
+                if (offset_in_bank >= 0x4000)
                 {
                     break;
                 }
-                addr = (start_address & 0xE000) | offset_in_bank;
+                addr = (start_address & 0xC000) | offset_in_bank;
             }
             else
             {
@@ -438,14 +410,12 @@ const char* DebugAdapter::GetBreakpointTypeName(int type)
 {
     switch (type)
     {
-        case Processor::GS_BREAKPOINT_TYPE_ROMRAM:
+        case Processor::GB_BREAKPOINT_TYPE_ROMRAM:
             return "ROM/RAM";
-        case Processor::GS_BREAKPOINT_TYPE_VRAM:
+        case Processor::GB_BREAKPOINT_TYPE_VRAM:
             return "VRAM";
-        case Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER:
-            return "VDP REG";
-        case Processor::GS_BREAKPOINT_TYPE_CRAM:
-            return "CRAM";
+        case Processor::GB_BREAKPOINT_TYPE_IO:
+            return "IO";
         default:
             return "UNKNOWN";
     }
@@ -459,92 +429,58 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
     info.size = 0;
 
     Memory* memory = m_core->GetMemory();
-    Cartridge* cart = m_core->GetCartridge();
-    Video* video = m_core->GetVideo();
-    MemoryRule* rule = memory->GetCurrentRule();
 
     switch (area)
     {
-        case MEMORY_EDITOR_FIXED_1K:
-            info.name = "FIXED 1KB";
-            info.data = memory->GetMemoryMap();
-            info.size = 0x400;
-            break;
-        case MEMORY_EDITOR_ROM0_SEGA:
-            info.name = "ROM0";
-            if (IsValidPointer(rule->GetPage(0)))
-            {
-                info.data = rule->GetPage(0) + 0x400;
-                info.size = 0x4000 - 0x400;
-            }
-            break;
         case MEMORY_EDITOR_ROM0:
             info.name = "ROM0";
-            info.data = rule->GetPage(0);
-            info.size = rule->Has8kBanks() ? 0x2000 : 0x4000;
+            info.data = memory->GetROM0();
+            info.size = 0x4000;
             break;
         case MEMORY_EDITOR_ROM1:
             info.name = "ROM1";
-            info.data = rule->GetPage(1);
-            info.size = rule->Has8kBanks() ? 0x2000 : 0x4000;
-            break;
-        case MEMORY_EDITOR_ROM2_CODEMASTERS:
-            info.name = "ROM2";
-            info.data = rule->GetPage(2);
-            info.size = 0x2000;
-            break;
-        case MEMORY_EDITOR_EXT_RAM:
-            info.name = "EXT RAM";
-            info.data = rule->GetRamBanks();
-            info.size = IsValidPointer(rule->GetRamBanks()) ? 0x2000 : 0;
-            break;
-        case MEMORY_EDITOR_ROM2:
-            info.name = "ROM2";
-            info.data = rule->GetPage(2);
-            info.size = rule->Has8kBanks() ? 0x2000 : 0x4000;
-            break;
-        case MEMORY_EDITOR_RAM:
-            info.name = "RAM";
-            info.data = memory->GetMemoryMap() + 0xC000;
+            info.data = memory->GetROM1();
             info.size = 0x4000;
             break;
         case MEMORY_EDITOR_VRAM:
             info.name = "VRAM";
-            info.data = video->GetVRAM();
-            info.size = 0x4000;
-            break;
-        case MEMORY_EDITOR_CRAM:
-            info.name = "CRAM";
-            info.data = video->GetCRAM();
-            info.size = 0x40;
-            break;
-        case MEMORY_EDITOR_ROM0_8K:
-        case MEMORY_EDITOR_ROM1_8K:
-        case MEMORY_EDITOR_ROM2_8K:
-        case MEMORY_EDITOR_ROM3_8K:
-        case MEMORY_EDITOR_ROM4_8K:
-        case MEMORY_EDITOR_ROM5_8K:
-        {
-            int page = area - MEMORY_EDITOR_ROM0_8K;
-            char label[16];
-            snprintf(label, 16, "ROM%d", page);
-            info.name = label;
-            info.data = rule->GetPage(page);
+            info.data = memory->GetVRAM();
             info.size = 0x2000;
             break;
-        }
-        case MEMORY_EDITOR_ROM:
-            info.name = "FULL ROM";
-            info.data = cart->GetROM();
-            info.size = cart->GetROMSize();
+        case MEMORY_EDITOR_RAM:
+            info.name = "RAM";
+            info.data = memory->GetRAM();
+            info.size = 0x2000;
             break;
-        case MEMORY_EDITOR_BIOS:
-            if (IsValidPointer(memory->GetBootrom()))
-            {
-                info.name = "BIOS";
-                info.data = memory->GetBootrom();
-                info.size = memory->GetBootromSize();
-            }
+        case MEMORY_EDITOR_WRAM0:
+            info.name = "WRAM0";
+            info.data = memory->GetWRAM0();
+            info.size = 0x1000;
+            break;
+        case MEMORY_EDITOR_WRAM1:
+            info.name = "WRAM1";
+            info.data = memory->GetWRAM1();
+            info.size = 0x1000;
+            break;
+        case MEMORY_EDITOR_WRAM:
+            info.name = "WRAM";
+            info.data = memory->GetWRAM0();
+            info.size = 0x2000;
+            break;
+        case MEMORY_EDITOR_OAM:
+            info.name = "OAM";
+            info.data = memory->GetMemoryMap() + 0xFE00;
+            info.size = 0x00A0;
+            break;
+        case MEMORY_EDITOR_IO:
+            info.name = "IO";
+            info.data = memory->GetMemoryMap() + 0xFF00;
+            info.size = 0x0080;
+            break;
+        case MEMORY_EDITOR_HIRAM:
+            info.name = "HIRAM";
+            info.data = memory->GetMemoryMap() + 0xFF80;
+            info.size = 0x007F;
             break;
         default:
             break;
@@ -558,32 +494,28 @@ json DebugAdapter::GetMediaInfo()
     json info;
     Cartridge* cart = m_core->GetCartridge();
 
-    info["ready"] = cart->IsReady();
+    info["ready"] = cart->IsLoadedROM();
     info["file_path"] = cart->GetFilePath();
     info["file_name"] = cart->GetFileName();
     info["file_directory"] = cart->GetFileDirectory();
-
-    std::ostringstream crc_ss;
-    crc_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(8) << cart->GetCRC();
-    info["crc"] = crc_ss.str();
-
-    info["is_game_gear"] = cart->IsGameGear();
-    info["is_sg1000"] = cart->IsSG1000();
-    info["is_pal"] = cart->IsPAL();
+    info["rom_name"] = cart->GetName();
 
     info["rom_size"] = cart->GetROMSize();
+    info["ram_size"] = cart->GetRAMSize();
     info["rom_bank_count"] = cart->GetROMBankCount();
-    info["rom_bank_count_8k"] = cart->GetROMBankCount8k();
+    info["ram_bank_count"] = cart->GetRAMBankCount();
+    info["has_battery"] = cart->HasBattery();
+    info["is_cgb"] = cart->IsCGB();
+    info["is_sgb"] = cart->IsSGB();
+    info["is_rtc"] = cart->IsRTCPresent();
+    info["is_rumble"] = cart->IsRumblePresent();
+    info["version"] = cart->GetVersion();
+    info["valid_rom"] = cart->IsValidROM();
 
     Cartridge::CartridgeTypes type = cart->GetType();
     const char* type_names[] = {
-        "ROM Only", "Sega", "Codemasters", "SG-1000",
-        "Korean", "Korean MSX SMS 8000", "Korean SMS 32KB 2000",
-        "Korean MSX 32KB 2000", "Korean 2000 XOR 1F", "Korean MSX 8KB 0300",
-        "Korean 0000 XOR FF", "Korean FFFF HiCom", "Korean FFFE",
-        "Korean BFFC", "Korean FFF3 FFFC", "Korean MD FFF5",
-        "Korean MD FFF0", "MSX", "Janggun", "Multi 4PAK All Action",
-        "Jumbo Dahjee", "EEPROM 93C46", "Iratahack", "Not Supported"
+        "ROM Only", "MBC1", "MBC2", "MBC3",
+        "MBC5", "MBC1 Multi", "Not Supported"
     };
     int type_idx = (int)type;
     if (type_idx >= 0 && type_idx < (int)(sizeof(type_names) / sizeof(type_names[0])))
@@ -591,30 +523,15 @@ json DebugAdapter::GetMediaInfo()
     else
         info["cartridge_type"] = "Unknown";
 
-    Cartridge::CartridgeZones zone = cart->GetZone();
-    const char* zone_names[] = { "Japan SMS", "Export SMS", "Japan GG", "Export GG", "International GG", "Unknown" };
-    int zone_idx = (int)zone;
-    if (zone_idx >= 0 && zone_idx < 6)
-        info["cartridge_zone"] = zone_names[zone_idx];
+    if (m_core->IsCGB())
+        info["system"] = m_core->IsGBA() ? "Game Boy Color (GBA mode)" : "Game Boy Color";
     else
-        info["cartridge_zone"] = "Unknown";
-
-    if (cart->IsGameGear())
-    {
-        if (cart->GetGameGearASIC() == 1)
-            info["cartridge_system"] = cart->IsGameGearInSMSMode() ? "Game Gear (1 ASIC) SMS Mode" : "Game Gear (1 ASIC)";
-        else
-            info["cartridge_system"] = cart->IsGameGearInSMSMode() ? "Game Gear (2 ASIC) SMS Mode" : "Game Gear (2 ASIC)";
-    }
-    else if (cart->IsSG1000())
-        info["cartridge_system"] = "SG-1000";
-    else
-        info["cartridge_system"] = "Sega Master System";
+        info["system"] = "Game Boy";
 
     return info;
 }
 
-json DebugAdapter::GetZ80Status()
+json DebugAdapter::GetCPUStatus()
 {
     json status;
     Processor* cpu = m_core->GetProcessor();
@@ -624,7 +541,7 @@ json DebugAdapter::GetZ80Status()
     std::ostringstream ss;
     ss << std::hex << std::uppercase << std::setfill('0');
 
-    // Main register pairs
+    // Register pairs
     ss << std::setw(4) << state->AF->GetValue();
     status["AF"] = ss.str(); ss.str("");
 
@@ -637,34 +554,11 @@ json DebugAdapter::GetZ80Status()
     ss << std::setw(4) << state->HL->GetValue();
     status["HL"] = ss.str(); ss.str("");
 
-    // Shadow register pairs
-    ss << std::setw(4) << state->AF2->GetValue();
-    status["AF'"] = ss.str(); ss.str("");
-
-    ss << std::setw(4) << state->BC2->GetValue();
-    status["BC'"] = ss.str(); ss.str("");
-
-    ss << std::setw(4) << state->DE2->GetValue();
-    status["DE'"] = ss.str(); ss.str("");
-
-    ss << std::setw(4) << state->HL2->GetValue();
-    status["HL'"] = ss.str(); ss.str("");
-
-    // Index, stack, PC
-    ss << std::setw(4) << state->IX->GetValue();
-    status["IX"] = ss.str(); ss.str("");
-
-    ss << std::setw(4) << state->IY->GetValue();
-    status["IY"] = ss.str(); ss.str("");
-
     ss << std::setw(4) << state->SP->GetValue();
     status["SP"] = ss.str(); ss.str("");
 
     ss << std::setw(4) << state->PC->GetValue();
     status["PC"] = ss.str(); ss.str("");
-
-    ss << std::setw(4) << state->WZ->GetValue();
-    status["WZ"] = ss.str(); ss.str("");
 
     // Individual 8-bit registers
     u8 a = state->AF->GetHigh();
@@ -694,21 +588,11 @@ json DebugAdapter::GetZ80Status()
     ss << std::setw(2) << (int)state->HL->GetLow();
     status["L"] = ss.str(); ss.str("");
 
-    ss << std::setw(2) << (int)*state->I;
-    status["I"] = ss.str(); ss.str("");
-
-    ss << std::setw(2) << (int)*state->R;
-    status["R"] = ss.str(); ss.str("");
-
-    // Flags decoded from F register
-    status["flag_S"] = (f & 0x80) != 0;
-    status["flag_Z"] = (f & 0x40) != 0;
-    status["flag_Y"] = (f & 0x20) != 0;
-    status["flag_H"] = (f & 0x10) != 0;
-    status["flag_X"] = (f & 0x08) != 0;
-    status["flag_PV"] = (f & 0x04) != 0;
-    status["flag_N"] = (f & 0x02) != 0;
-    status["flag_C"] = (f & 0x01) != 0;
+    // Flags decoded from F register (bits 7-4)
+    status["flag_Z"] = (f & FLAG_ZERO) != 0;
+    status["flag_N"] = (f & FLAG_SUB) != 0;
+    status["flag_H"] = (f & FLAG_HALF) != 0;
+    status["flag_C"] = (f & FLAG_CARRY) != 0;
 
     // Physical PC and bank
     ss << std::setw(6) << memory->GetPhysicalAddress(state->PC->GetValue());
@@ -718,346 +602,358 @@ json DebugAdapter::GetZ80Status()
     status["bank"] = ss.str(); ss.str("");
 
     // Interrupt state
-    status["IFF1"] = *state->IFF1;
-    status["IFF2"] = *state->IFF2;
-    status["IM"] = *state->InterruptMode;
+    status["IME"] = *state->IME;
     status["Halt"] = *state->Halt;
-    status["INT"] = *state->INT;
-    status["NMI"] = *state->NMI;
+    status["double_speed"] = cpu->CGBSpeed();
+
+    // Interrupt registers
+    u8 ie = memory->Retrieve(0xFFFF);
+    u8 if_reg = memory->Retrieve(0xFF0F);
+    ss << std::setw(2) << (int)ie;
+    status["IE"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)if_reg;
+    status["IF"] = ss.str(); ss.str("");
 
     return status;
 }
 
-json DebugAdapter::GetVDPRegisters()
+json DebugAdapter::GetLCDRegisters()
 {
-    json registers = json::array();
-    Video* video = m_core->GetVideo();
-    u8* regs = video->GetRegisters();
+    json result;
+    Memory* memory = m_core->GetMemory();
 
-    const char* reg_names[] = {
-        "CONTROL 1", "CONTROL 2", "NAME TABLE",
-        "COLOR TABLE", "PATTERN TABLE", "SPRITE ATTR",
-        "SPRITE PAT", "BACKDROP COLOR", "H SCROLL",
-        "V SCROLL", "V INTERRUPT"
+    struct LCDReg {
+        u16 addr;
+        const char* name;
     };
 
-    for (int i = 0; i < 11; i++)
+    LCDReg lcd_regs[] = {
+        {0xFF40, "LCDC"}, {0xFF41, "STAT"}, {0xFF42, "SCY"}, {0xFF43, "SCX"},
+        {0xFF44, "LY"}, {0xFF45, "LYC"}, {0xFF46, "DMA"}, {0xFF47, "BGP"},
+        {0xFF48, "OBP0"}, {0xFF49, "OBP1"}, {0xFF4A, "WY"}, {0xFF4B, "WX"}
+    };
+
+    json registers = json::array();
+    std::ostringstream ss;
+    ss << std::hex << std::uppercase << std::setfill('0');
+
+    for (int i = 0; i < 12; i++)
     {
         json reg;
-        reg["index"] = i;
-
-        std::ostringstream ss;
-        ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)regs[i];
-        reg["value"] = ss.str();
-        reg["description"] = reg_names[i];
-
+        u8 val = memory->Retrieve(lcd_regs[i].addr);
+        ss << std::setw(2) << (int)val;
+        reg["address"] = lcd_regs[i].addr;
+        reg["name"] = lcd_regs[i].name;
+        reg["value"] = ss.str(); ss.str("");
         registers.push_back(reg);
     }
 
-    // Decode some key bit fields
-    json decoded;
-    decoded["screen_enabled"] = (regs[1] & 0x40) != 0;
-    decoded["vblank_irq_enabled"] = (regs[1] & 0x20) != 0;
-    decoded["sprite_size_8x16"] = (regs[1] & 0x02) != 0;
-    decoded["sprite_zoom"] = (regs[1] & 0x01) != 0;
-    decoded["line_irq_enabled"] = (regs[0] & 0x10) != 0;
-    decoded["shift_sprites_left_8"] = (regs[0] & 0x08) != 0;
-    decoded["mask_left_column"] = (regs[0] & 0x20) != 0;
-    decoded["h_scroll_lock_top"] = (regs[0] & 0x40) != 0;
-    decoded["v_scroll_lock_right"] = (regs[0] & 0x80) != 0;
-
-    json result;
     result["registers"] = registers;
+
+    // Decode LCDC bit fields
+    u8 lcdc = memory->Retrieve(0xFF40);
+    json decoded;
+    decoded["lcd_enable"] = (lcdc & 0x80) != 0;
+    decoded["window_tile_map"] = (lcdc & 0x40) ? "9C00-9FFF" : "9800-9BFF";
+    decoded["window_enable"] = (lcdc & 0x20) != 0;
+    decoded["bg_window_tile_data"] = (lcdc & 0x10) ? "8000-8FFF" : "8800-97FF";
+    decoded["bg_tile_map"] = (lcdc & 0x08) ? "9C00-9FFF" : "9800-9BFF";
+    decoded["sprite_size"] = (lcdc & 0x04) ? "8x16" : "8x8";
+    decoded["sprite_enable"] = (lcdc & 0x02) != 0;
+    decoded["bg_window_enable"] = (lcdc & 0x01) != 0;
+
+    // Decode STAT
+    u8 stat = memory->Retrieve(0xFF41);
+    decoded["stat_lyc_interrupt"] = (stat & 0x40) != 0;
+    decoded["stat_oam_interrupt"] = (stat & 0x20) != 0;
+    decoded["stat_vblank_interrupt"] = (stat & 0x10) != 0;
+    decoded["stat_hblank_interrupt"] = (stat & 0x08) != 0;
+    decoded["stat_lyc_match"] = (stat & 0x04) != 0;
+    decoded["stat_mode"] = (int)(stat & 0x03);
+
+    // Decode DMG palettes
+    u8 bgp = memory->Retrieve(0xFF47);
+    json bgp_decoded = json::array();
+    for (int i = 0; i < 4; i++)
+        bgp_decoded.push_back((bgp >> (i * 2)) & 0x03);
+    decoded["bgp_colors"] = bgp_decoded;
+
+    u8 obp0 = memory->Retrieve(0xFF48);
+    json obp0_decoded = json::array();
+    for (int i = 0; i < 4; i++)
+        obp0_decoded.push_back((obp0 >> (i * 2)) & 0x03);
+    decoded["obp0_colors"] = obp0_decoded;
+
+    u8 obp1 = memory->Retrieve(0xFF49);
+    json obp1_decoded = json::array();
+    for (int i = 0; i < 4; i++)
+        obp1_decoded.push_back((obp1 >> (i * 2)) & 0x03);
+    decoded["obp1_colors"] = obp1_decoded;
+
     result["decoded"] = decoded;
+
+    // CGB registers
+    if (m_core->IsCGB())
+    {
+        json cgb = json::object();
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF4D);
+        cgb["KEY1"] = ss.str(); ss.str("");
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF4F);
+        cgb["VBK"] = ss.str(); ss.str("");
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF51);
+        cgb["HDMA1"] = ss.str(); ss.str("");
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF52);
+        cgb["HDMA2"] = ss.str(); ss.str("");
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF53);
+        cgb["HDMA3"] = ss.str(); ss.str("");
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF54);
+        cgb["HDMA4"] = ss.str(); ss.str("");
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF55);
+        cgb["HDMA5"] = ss.str(); ss.str("");
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF68);
+        cgb["BCPS"] = ss.str(); ss.str("");
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF69);
+        cgb["BCPD"] = ss.str(); ss.str("");
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF6A);
+        cgb["OCPS"] = ss.str(); ss.str("");
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF6B);
+        cgb["OCPD"] = ss.str(); ss.str("");
+        ss << std::setw(2) << (int)memory->Retrieve(0xFF70);
+        cgb["SVBK"] = ss.str(); ss.str("");
+        result["cgb_registers"] = cgb;
+    }
 
     return result;
 }
 
-json DebugAdapter::GetVDPStatus()
+json DebugAdapter::GetLCDStatus()
 {
     json status;
+    Memory* memory = m_core->GetMemory();
     Video* video = m_core->GetVideo();
 
-    u8 flags = video->GetStatusFlagsDebug();
+    status["screen_enabled"] = video->IsScreenEnabled();
+    status["mode"] = video->GetCurrentStatusMode();
+    status["ly"] = (int)memory->Retrieve(0xFF44);
+    status["lyc"] = (int)memory->Retrieve(0xFF45);
 
-    status["status_flags"] = flags;
-    status["frame_interrupt"] = (flags & 0x80) != 0;
-    status["sprite_overflow"] = (flags & 0x40) != 0;
-    status["sprite_collision"] = (flags & 0x20) != 0;
-    status["fifth_sprite"] = flags & 0x1F;
+    u8 stat = memory->Retrieve(0xFF41);
+    status["lyc_match"] = (stat & 0x04) != 0;
 
-    status["v_counter"] = video->GetVCounter();
-    status["h_counter"] = video->GetHCounter();
-    status["extended_mode_224"] = video->IsExtendedMode224();
-    status["sg1000_mode"] = video->IsSG1000Mode();
-    status["tms9918_mode"] = video->GetTMS9918Mode();
-
-    Cartridge* cart = m_core->GetCartridge();
-    status["is_game_gear"] = cart->IsGameGear();
-    status["is_pal"] = cart->IsPAL();
+    status["is_cgb"] = m_core->IsCGB();
+    status["is_gba"] = m_core->IsGBA();
+    status["double_speed"] = m_core->GetProcessor()->CGBSpeed();
 
     return status;
 }
 
-json DebugAdapter::GetPSGStatus()
+json DebugAdapter::GetAPUStatus()
 {
     json status;
     Audio* audio = m_core->GetAudio();
-    Sms_Apu* psg = audio->GetPSG();
-    Sms_Apu_State psg_state = psg->GetState();
+    Gb_Apu* apu = audio->GetApu();
 
-    GS_RuntimeInfo runtime;
-    m_core->GetRuntimeInfo(runtime);
-    int master_clock = (runtime.region == Region_PAL) ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+    gb_apu_state_t apu_state;
+    apu->save_state(&apu_state);
 
     std::ostringstream ss;
     ss << std::hex << std::uppercase << std::setfill('0');
 
-    json channels = json::array();
-    for (int c = 0; c < 4; c++)
-    {
-        Sms_Apu_State::Channel* ch = &psg_state.channels[c];
-        json channel;
-
-        channel["index"] = c;
-        channel["type"] = (c < 3) ? "tone" : "noise";
-        channel["volume_reg"] = ch->volume_reg;
-        channel["mute"] = *ch->mute;
-
-        if (ch->volume_reg == 15)
-            channel["volume_info"] = "OFF";
-        else if (ch->volume_reg == 0)
-            channel["volume_info"] = "MAX";
-        else
-        {
-            char buf[32];
-            snprintf(buf, sizeof(buf), "-%.1f dB", ch->volume_reg * 2.0f);
-            channel["volume_info"] = buf;
-        }
-
-        if (c < 3)
-        {
-            int raw_period = ch->period >> 4;
-            channel["period"] = raw_period;
-            channel["phase"] = ch->phase;
-
-            if (raw_period > 0)
-            {
-                float freq_hz = (float)master_clock / (32.0f * raw_period);
-                channel["frequency_hz"] = freq_hz;
-            }
-            else
-            {
-                channel["frequency_hz"] = 0.0f;
-            }
-        }
-        else
-        {
-            static const char* noise_rate_names[4] = { "N/512", "N/1024", "N/2048", "Tone 3" };
-            channel["noise_white"] = psg_state.noise_white;
-            channel["noise_rate"] = psg_state.noise_rate;
-            channel["noise_rate_name"] = noise_rate_names[psg_state.noise_rate];
-            channel["noise_shifter"] = psg_state.noise_shifter;
-
-            if (psg_state.noise_rate < 3)
-            {
-                static const int noise_dividers[3] = { 512, 1024, 2048 };
-                float freq_hz = (float)master_clock / (float)noise_dividers[psg_state.noise_rate];
-                channel["frequency_hz"] = freq_hz;
-            }
-            else
-            {
-                int ch3_raw = psg_state.channels[2].period >> 4;
-                if (ch3_raw > 0)
-                {
-                    float freq_hz = (float)master_clock / (32.0f * ch3_raw);
-                    channel["frequency_hz"] = freq_hz;
-                }
-            }
-        }
-
-        channels.push_back(channel);
-    }
-
-    status["channels"] = channels;
-    status["latch"] = psg_state.latch;
-
-    ss << std::setw(2) << psg_state.ggstereo;
-    status["gg_stereo"] = ss.str(); ss.str("");
-
-    status["noise_feedback"] = psg_state.noise_feedback;
-
-    return status;
-}
-
-json DebugAdapter::GetYM2413Status()
-{
-    json status;
-    YM2413_OPLL* opll = (YM2413_OPLL*)YM2413GetContextPtr();
-
-    if (opll == NULL)
-    {
-        status["error"] = "YM2413 not available";
-        return status;
-    }
-
-    GS_RuntimeInfo runtime;
-    m_core->GetRuntimeInfo(runtime);
-    int master_clock = (runtime.region == Region_PAL) ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
-
-    bool rhythm_mode = (opll->rhythm & 0x20) != 0;
-
-    static const char* instrument_names[16] = {
-        "User", "Violin", "Guitar", "Piano", "Flute", "Clarinet", "Oboe", "Trumpet",
-        "Organ", "Horn", "Synthesizer", "Harpsichord", "Vibraphone", "Synth Bass", "Acoustic Bass", "Electric Guitar"
-    };
-
-    static const char* eg_state_names[6] = { "OFF", "REL", "SUS", "DEC", "ATT", "DMP" };
-    static const uint8_t mul_tab[] = {1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20, 24, 24, 30, 30};
+    // Helper to read val_t (int or byte array depending on config)
+    #if GB_APU_CUSTOM_STATE
+    #define APU_VAL(x) (x)
+    #else
+    #define APU_VAL(x) ((int)(x)[0] | ((int)(x)[1] << 8) | ((int)(x)[2] << 16) | ((int)(x)[3] << 24))
+    #endif
 
     json channels = json::array();
-    for (int c = 0; c < 9; c++)
+
+    // Channel 1: Square with sweep
     {
-        YM2413_OPLL_CH* ch = &opll->P_CH[c];
-        u8 instvol = opll->instvol_r[c];
-        int inst = (instvol >> 4) & 0x0F;
-        int vol = instvol & 0x0F;
+        json ch;
+        ch["index"] = 0;
+        ch["type"] = "square1";
+        ch["enabled"] = APU_VAL(apu_state.enabled[0]) != 0;
 
-        int fnum = ch->block_fnum & 0x1FF;
-        int block = (ch->block_fnum >> 9) & 0x07;
-        bool key_on = (ch->SLOT[1].key != 0);
-        bool sustain = (ch->sus != 0);
+        u8 nr10 = apu_state.regs[0x10 - 0x10];
+        u8 nr11 = apu_state.regs[0x11 - 0x10];
+        u8 nr12 = apu_state.regs[0x12 - 0x10];
+        u8 nr13 = apu_state.regs[0x13 - 0x10];
+        u8 nr14 = apu_state.regs[0x14 - 0x10];
 
-        bool is_rhythm_ch = rhythm_mode && (c >= 6);
+        ch["dac"] = (nr12 & 0xF8) != 0;
+        ch["volume"] = APU_VAL(apu_state.env_volume[0]);
 
-        json channel;
-        channel["index"] = c;
-        channel["instrument"] = inst;
-        channel["instrument_name"] = is_rhythm_ch ? "N/A" : instrument_names[inst];
-        channel["volume"] = vol;
-        channel["key_on"] = key_on;
-        channel["sustain"] = sustain;
-        channel["f_number"] = fnum;
-        channel["block"] = block;
-        channel["is_rhythm"] = is_rhythm_ch;
+        int duty = (nr11 >> 6) & 0x03;
+        const char* duty_names[] = {"12.5%", "25%", "50%", "75%"};
+        ch["duty"] = duty_names[duty];
 
-        if (is_rhythm_ch)
-        {
-            if (c == 6) channel["rhythm_name"] = "Bass Drum";
-            else if (c == 7) channel["rhythm_name"] = "HH / Snare";
-            else channel["rhythm_name"] = "Tom / Cymbal";
-        }
+        int freq = ((nr14 & 0x07) << 8) | nr13;
+        ch["frequency_raw"] = freq;
+        if (freq > 0)
+            ch["frequency_hz"] = 131072.0 / (2048.0 - freq);
+        else
+            ch["frequency_hz"] = 0.0;
 
-        float freq_hz = 0.0f;
-        if (fnum > 0)
-        {
-            freq_hz = ((float)master_clock / 72.0f) * (float)fnum / (float)(1 << (19 - block));
-        }
-        channel["frequency_hz"] = freq_hz;
+        ch["phase"] = APU_VAL(apu_state.phase[0]);
+        ch["length_counter"] = APU_VAL(apu_state.length_ctr[0]);
+        ch["length_enabled"] = (nr14 & 0x40) != 0;
 
-        // Per-slot info
-        json slots = json::array();
-        for (int s = 0; s < 2; s++)
-        {
-            YM2413_OPLL_SLOT* slot = &ch->SLOT[s];
-            json slot_info;
+        // Envelope
+        ch["env_initial_volume"] = (nr12 >> 4) & 0x0F;
+        ch["env_direction"] = (nr12 & 0x08) ? "up" : "down";
+        ch["env_pace"] = nr12 & 0x07;
 
-            slot_info["type"] = (s == 0) ? "modulator" : "carrier";
+        // Sweep
+        ch["sweep_pace"] = (nr10 >> 4) & 0x07;
+        ch["sweep_direction"] = (nr10 & 0x08) ? "decrease" : "increase";
+        ch["sweep_step"] = nr10 & 0x07;
+        ch["sweep_enabled"] = APU_VAL(apu_state.sweep_enabled) != 0;
 
-            int eg_state = slot->state;
-            if (eg_state < 0 || eg_state > 5) eg_state = 0;
-            slot_info["eg_state"] = eg_state_names[eg_state];
-            slot_info["eg_level"] = (int)(slot->volume >> 2);
-            slot_info["TL"] = (int)(slot->TL >> 2);
-            slot_info["ar"] = (int)(slot->ar >> 2);
-            slot_info["dr"] = (int)(slot->dr >> 2);
-            slot_info["rr"] = (int)(slot->rr >> 2);
-
-            int sl_display = 0;
-            for (int i = 0; i < 16; i++)
-            {
-                if (slot->sl == (unsigned int)(i * 0x20))
-                {
-                    sl_display = i;
-                    break;
-                }
-            }
-            slot_info["sl"] = sl_display;
-
-            int mul_idx = 0;
-            for (int i = 0; i < 16; i++)
-            {
-                if (slot->mul == mul_tab[i])
-                {
-                    mul_idx = i;
-                    break;
-                }
-            }
-            slot_info["mul"] = mul_idx;
-            slot_info["KSR"] = slot->KSR ? true : false;
-            slot_info["AM"] = (slot->AMmask != 0);
-            slot_info["VIB"] = slot->vib ? true : false;
-            slot_info["waveform"] = slot->wavetable ? "Half-Sine" : "Sine";
-            slot_info["eg_type"] = slot->eg_type ? "Sustained" : "Percussive";
-            slot_info["fb_shift"] = (s == 0) ? (int)slot->fb_shift : 0;
-
-            slots.push_back(slot_info);
-        }
-        channel["slots"] = slots;
-
-        channels.push_back(channel);
+        channels.push_back(ch);
     }
+
+    // Channel 2: Square
+    {
+        json ch;
+        ch["index"] = 1;
+        ch["type"] = "square2";
+        ch["enabled"] = APU_VAL(apu_state.enabled[1]) != 0;
+
+        u8 nr21 = apu_state.regs[0x16 - 0x10];
+        u8 nr22 = apu_state.regs[0x17 - 0x10];
+        u8 nr23 = apu_state.regs[0x18 - 0x10];
+        u8 nr24 = apu_state.regs[0x19 - 0x10];
+
+        ch["dac"] = (nr22 & 0xF8) != 0;
+        ch["volume"] = APU_VAL(apu_state.env_volume[1]);
+
+        int duty = (nr21 >> 6) & 0x03;
+        const char* duty_names[] = {"12.5%", "25%", "50%", "75%"};
+        ch["duty"] = duty_names[duty];
+
+        int freq = ((nr24 & 0x07) << 8) | nr23;
+        ch["frequency_raw"] = freq;
+        if (freq > 0)
+            ch["frequency_hz"] = 131072.0 / (2048.0 - freq);
+        else
+            ch["frequency_hz"] = 0.0;
+
+        ch["phase"] = APU_VAL(apu_state.phase[1]);
+        ch["length_counter"] = APU_VAL(apu_state.length_ctr[1]);
+        ch["length_enabled"] = (nr24 & 0x40) != 0;
+
+        ch["env_initial_volume"] = (nr22 >> 4) & 0x0F;
+        ch["env_direction"] = (nr22 & 0x08) ? "up" : "down";
+        ch["env_pace"] = nr22 & 0x07;
+
+        channels.push_back(ch);
+    }
+
+    // Channel 3: Wave
+    {
+        json ch;
+        ch["index"] = 2;
+        ch["type"] = "wave";
+        ch["enabled"] = APU_VAL(apu_state.enabled[2]) != 0;
+
+        u8 nr30 = apu_state.regs[0x1A - 0x10];
+        u8 nr32 = apu_state.regs[0x1C - 0x10];
+        u8 nr33 = apu_state.regs[0x1D - 0x10];
+        u8 nr34 = apu_state.regs[0x1E - 0x10];
+
+        ch["dac"] = (nr30 & 0x80) != 0;
+
+        int vol_shift = (nr32 >> 5) & 0x03;
+        const char* vol_names[] = {"Mute", "100%", "50%", "25%"};
+        ch["volume"] = vol_names[vol_shift];
+
+        int freq = ((nr34 & 0x07) << 8) | nr33;
+        ch["frequency_raw"] = freq;
+        if (freq > 0)
+            ch["frequency_hz"] = 65536.0 / (2048.0 - freq);
+        else
+            ch["frequency_hz"] = 0.0;
+
+        ch["phase"] = APU_VAL(apu_state.phase[2]);
+        ch["length_counter"] = APU_VAL(apu_state.length_ctr[2]);
+        ch["length_enabled"] = (nr34 & 0x40) != 0;
+
+        // Wave RAM
+        json wave_ram = json::array();
+        for (int i = 0; i < 16; i++)
+        {
+            ss << std::setw(2) << (int)apu_state.regs[0x30 - 0x10 + i];
+            wave_ram.push_back(ss.str()); ss.str("");
+        }
+        ch["wave_ram"] = wave_ram;
+
+        channels.push_back(ch);
+    }
+
+    // Channel 4: Noise
+    {
+        json ch;
+        ch["index"] = 3;
+        ch["type"] = "noise";
+        ch["enabled"] = APU_VAL(apu_state.enabled[3]) != 0;
+
+        u8 nr42 = apu_state.regs[0x21 - 0x10];
+        u8 nr43 = apu_state.regs[0x22 - 0x10];
+        u8 nr44 = apu_state.regs[0x23 - 0x10];
+
+        ch["dac"] = (nr42 & 0xF8) != 0;
+        ch["volume"] = APU_VAL(apu_state.env_volume[2]);
+
+        int clock_shift = (nr43 >> 4) & 0x0F;
+        bool lfsr_width = (nr43 & 0x08) != 0;
+        int divisor_code = nr43 & 0x07;
+
+        ch["clock_shift"] = clock_shift;
+        ch["lfsr_width"] = lfsr_width ? "7-bit" : "15-bit";
+        ch["divisor_code"] = divisor_code;
+
+        static const int divisors[] = {8, 16, 32, 48, 64, 80, 96, 112};
+        float freq_hz = 262144.0f / (float)divisors[divisor_code] / (float)(1 << clock_shift);
+        ch["frequency_hz"] = freq_hz;
+
+        ch["phase"] = APU_VAL(apu_state.phase[3]);
+        ch["length_counter"] = APU_VAL(apu_state.length_ctr[3]);
+        ch["length_enabled"] = (nr44 & 0x40) != 0;
+
+        ch["env_initial_volume"] = (nr42 >> 4) & 0x0F;
+        ch["env_direction"] = (nr42 & 0x08) ? "up" : "down";
+        ch["env_pace"] = nr42 & 0x07;
+
+        channels.push_back(ch);
+    }
+
+    #undef APU_VAL
+
     status["channels"] = channels;
 
-    // Global info
-    status["rhythm_mode"] = rhythm_mode;
+    // Global audio registers
+    u8 nr50 = apu_state.regs[0x24 - 0x10];
+    u8 nr51 = apu_state.regs[0x25 - 0x10];
+    u8 nr52 = apu_state.regs[0x26 - 0x10];
 
-    std::ostringstream ss;
-    ss << std::hex << std::uppercase << std::setfill('0');
+    status["master_enabled"] = (nr52 & 0x80) != 0;
+    status["master_volume_left"] = (nr50 >> 4) & 0x07;
+    status["master_volume_right"] = nr50 & 0x07;
+    status["vin_left"] = (nr50 & 0x80) != 0;
+    status["vin_right"] = (nr50 & 0x08) != 0;
 
-    ss << std::setw(2) << (int)opll->rhythm;
-    status["rhythm_reg"] = ss.str(); ss.str("");
-
-    if (rhythm_mode)
-    {
-        static const char* rhythm_names[5] = { "Bass Drum", "Snare Drum", "Tom-Tom", "Top Cymbal", "High Hat" };
-        json drums = json::array();
-        for (int d = 0; d < 5; d++)
-        {
-            json drum;
-            drum["name"] = rhythm_names[d];
-            drum["key_on"] = (opll->rhythm & (0x10 >> d)) != 0;
-            drums.push_back(drum);
-        }
-        status["drums"] = drums;
-
-        json drum_volumes;
-        drum_volumes["bass_drum"] = (int)(opll->instvol_r[6] & 0x0F);
-        drum_volumes["high_hat"] = (int)((opll->instvol_r[7] >> 4) & 0x0F);
-        drum_volumes["snare_drum"] = (int)(opll->instvol_r[7] & 0x0F);
-        drum_volumes["tom_tom"] = (int)((opll->instvol_r[8] >> 4) & 0x0F);
-        drum_volumes["top_cymbal"] = (int)(opll->instvol_r[8] & 0x0F);
-        status["drum_volumes"] = drum_volumes;
-    }
-
-    // User instrument
-    json user_inst = json::array();
-    for (int i = 0; i < 8; i++)
-    {
-        ss << std::setw(2) << (int)opll->inst_tab[0][i];
-        user_inst.push_back(ss.str());
-        ss.str("");
-    }
-    status["user_instrument"] = user_inst;
-
-    ss << std::setw(2) << (int)opll->address;
-    status["address_reg"] = ss.str(); ss.str("");
-
-    ss << std::setw(2) << (int)opll->status;
-    status["status_reg"] = ss.str(); ss.str("");
-
-    ss << std::setw(6) << (opll->noise_rng & 0x7FFFFF);
-    status["noise_rng"] = ss.str(); ss.str("");
+    // Panning
+    json panning;
+    panning["ch1_left"] = (nr51 & 0x10) != 0;
+    panning["ch1_right"] = (nr51 & 0x01) != 0;
+    panning["ch2_left"] = (nr51 & 0x20) != 0;
+    panning["ch2_right"] = (nr51 & 0x02) != 0;
+    panning["ch3_left"] = (nr51 & 0x40) != 0;
+    panning["ch3_right"] = (nr51 & 0x04) != 0;
+    panning["ch4_left"] = (nr51 & 0x80) != 0;
+    panning["ch4_right"] = (nr51 & 0x08) != 0;
+    status["panning"] = panning;
 
     return status;
 }
@@ -1090,13 +986,13 @@ json DebugAdapter::GetScreenshot()
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
     }
 
-    GS_RuntimeInfo runtime;
+    GB_RuntimeInfo runtime;
     m_core->GetRuntimeInfo(runtime);
 
     unsigned char* png_buffer = NULL;
@@ -1131,24 +1027,24 @@ json DebugAdapter::LoadMedia(const std::string& file_path)
         return result;
     }
 
-    emu_load_media_async(file_path.c_str(), gui_get_force_configuration());
+    emu_load_rom_async(file_path.c_str(), false, Cartridge::CartridgeNoMBC, false);
 
     int timeout_ms = 180000;
     int elapsed_ms = 0;
-    while (emu_is_media_loading() && elapsed_ms < timeout_ms)
+    while (emu_is_rom_loading() && elapsed_ms < timeout_ms)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         elapsed_ms += 500;
     }
 
-    if (emu_is_media_loading())
+    if (emu_is_rom_loading())
     {
         result["error"] = "Loading timed out";
         Log("[MCP] LoadMedia timed out: %s", file_path.c_str());
         return result;
     }
 
-    if (!emu_finish_media_loading() || !m_core || !m_core->GetCartridge()->IsReady())
+    if (!emu_finish_rom_loading() || !m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "Failed to load media file";
         Log("[MCP] LoadMedia failed: %s", file_path.c_str());
@@ -1158,8 +1054,7 @@ json DebugAdapter::LoadMedia(const std::string& file_path)
     result["success"] = true;
     result["file_path"] = file_path;
     result["rom_name"] = m_core->GetCartridge()->GetFileName();
-    result["is_game_gear"] = m_core->GetCartridge()->IsGameGear();
-    result["is_sg1000"] = m_core->GetCartridge()->IsSG1000();
+    result["is_cgb"] = m_core->GetCartridge()->IsCGB();
 
     return result;
 }
@@ -1199,7 +1094,7 @@ json DebugAdapter::ListSaveStateSlots()
             slot["rom_name"] = emu_savestates[i].rom_name;
             slot["timestamp"] = emu_savestates[i].timestamp;
             slot["version"] = emu_savestates[i].version;
-            slot["valid"] = (emu_savestates[i].version >= GS_SAVESTATE_MIN_VERSION && emu_savestates[i].version <= GS_SAVESTATE_VERSION);
+            slot["valid"] = (emu_savestates[i].version >= GB_SAVESTATE_MIN_VERSION && emu_savestates[i].version <= GB_SAVESTATE_VERSION);
             slot["has_screenshot"] = IsValidPointer(emu_savestates_screenshots[i].data);
 
             if (emu_savestates[i].emu_build[0] != 0)
@@ -1242,7 +1137,7 @@ json DebugAdapter::SaveState()
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         Log("[MCP] SaveState failed: No media loaded");
@@ -1263,7 +1158,7 @@ json DebugAdapter::LoadState()
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         Log("[MCP] LoadState failed: No media loaded");
@@ -1333,25 +1228,33 @@ json DebugAdapter::ControllerButton(int player, const std::string& button, const
         return result;
     }
 
-    if (player < 1 || player > 2)
+    if (player != 1)
     {
-        result["error"] = "Invalid player number (must be 1-2)";
+        result["error"] = "Game Boy only supports 1 player";
         return result;
     }
-    GS_Joypads joypad = static_cast<GS_Joypads>(player - 1);
 
     std::string button_lower = button;
     std::transform(button_lower.begin(), button_lower.end(), button_lower.begin(), ::tolower);
 
-    GS_Keys key = Key_None;
-    if (button_lower == "up") key = Key_Up;
-    else if (button_lower == "down") key = Key_Down;
-    else if (button_lower == "left") key = Key_Left;
-    else if (button_lower == "right") key = Key_Right;
-    else if (button_lower == "1") key = Key_1;
-    else if (button_lower == "2") key = Key_2;
-    else if (button_lower == "start") key = Key_Start;
+    Gameboy_Keys key;
+    bool key_found = true;
+
+    if (button_lower == "up") key = Up_Key;
+    else if (button_lower == "down") key = Down_Key;
+    else if (button_lower == "left") key = Left_Key;
+    else if (button_lower == "right") key = Right_Key;
+    else if (button_lower == "a") key = A_Key;
+    else if (button_lower == "b") key = B_Key;
+    else if (button_lower == "start") key = Start_Key;
+    else if (button_lower == "select") key = Select_Key;
     else
+    {
+        key_found = false;
+        key = A_Key; // suppress uninitialized warning
+    }
+
+    if (!key_found)
     {
         result["error"] = "Invalid button name";
         return result;
@@ -1359,15 +1262,15 @@ json DebugAdapter::ControllerButton(int player, const std::string& button, const
 
     if (action == "press")
     {
-        emu_key_pressed(joypad, key);
+        emu_key_pressed(key);
     }
     else if (action == "release")
     {
-        emu_key_released(joypad, key);
+        emu_key_released(key);
     }
     else if (action == "press_and_release")
     {
-        emu_key_pressed(joypad, key);
+        emu_key_pressed(key);
         result["__delayed_release"] = true;
     }
 
@@ -1383,67 +1286,44 @@ json DebugAdapter::ListSprites()
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
     }
 
-    Video* video = m_core->GetVideo();
-    u8* vram = video->GetVRAM();
-    u8* regs = video->GetRegisters();
-
-    bool isSG1000 = video->IsSG1000Mode();
-    bool sprite_8x16 = (regs[1] & 0x02) != 0;
-    int sprite_height = sprite_8x16 ? 16 : 8;
+    Memory* memory = m_core->GetMemory();
+    u8 lcdc = memory->Retrieve(0xFF40);
+    bool sprites_8x16 = (lcdc & 0x04) != 0;
+    int sprite_height = sprites_8x16 ? 16 : 8;
 
     json sprites = json::array();
 
-    if (isSG1000)
+    for (int s = 0; s < 40; s++)
     {
-        u16 sat_addr = (regs[5] & 0x7F) << 7;
+        u16 oam_addr = 0xFE00 + (s * 4);
+        u8 y = memory->Retrieve(oam_addr);
+        u8 x = memory->Retrieve(oam_addr + 1);
+        u8 tile = memory->Retrieve(oam_addr + 2);
+        u8 attrs = memory->Retrieve(oam_addr + 3);
 
-        for (int s = 0; s < 32; s++)
-        {
-            u8 y = vram[sat_addr + s * 4];
-            if (y == 0xD0) break;
-            u8 x = vram[sat_addr + s * 4 + 1];
-            u8 pattern = vram[sat_addr + s * 4 + 2];
-            u8 color_ec = vram[sat_addr + s * 4 + 3];
+        json sprite_info;
+        sprite_info["index"] = s;
+        sprite_info["x"] = (int)x;
+        sprite_info["y"] = (int)y;
+        sprite_info["screen_x"] = (int)x - 8;
+        sprite_info["screen_y"] = (int)y - 16;
+        sprite_info["tile"] = (int)tile;
+        sprite_info["oam_address"] = oam_addr;
+        sprite_info["priority"] = (attrs & 0x80) != 0;
+        sprite_info["y_flip"] = (attrs & 0x40) != 0;
+        sprite_info["x_flip"] = (attrs & 0x20) != 0;
+        sprite_info["dmg_palette"] = (attrs & 0x10) ? "OBP1" : "OBP0";
+        sprite_info["cgb_vram_bank"] = (attrs & 0x08) >> 3;
+        sprite_info["cgb_palette"] = attrs & 0x07;
+        sprite_info["size"] = std::string("8x") + std::to_string(sprite_height);
 
-            json sprite_info;
-            sprite_info["index"] = s;
-            sprite_info["x"] = (int)x;
-            sprite_info["y"] = (int)y;
-            sprite_info["pattern"] = (int)pattern;
-            sprite_info["color"] = (int)(color_ec & 0x0F);
-            sprite_info["early_clock"] = (color_ec & 0x80) != 0;
-            sprite_info["size"] = std::string("8x") + std::to_string(sprite_height);
-
-            sprites.push_back(sprite_info);
-        }
-    }
-    else
-    {
-        u16 sat_addr = (regs[5] & 0x7E) << 7;
-
-        for (int s = 0; s < 64; s++)
-        {
-            u8 y = vram[sat_addr + s];
-            if (y == 0xD0 && !video->IsExtendedMode224()) break;
-
-            u8 x = vram[sat_addr + 0x80 + s * 2];
-            u8 pattern = vram[sat_addr + 0x80 + s * 2 + 1];
-
-            json sprite_info;
-            sprite_info["index"] = s;
-            sprite_info["x"] = (int)x;
-            sprite_info["y"] = (int)y + 1;
-            sprite_info["pattern"] = (int)pattern;
-            sprite_info["size"] = std::string("8x") + std::to_string(sprite_height);
-
-            sprites.push_back(sprite_info);
-        }
+        sprites.push_back(sprite_info);
     }
 
     result["sprites"] = sprites;
@@ -1455,15 +1335,15 @@ json DebugAdapter::GetSpriteImage(int sprite_index)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
     }
 
-    if (sprite_index < 0 || sprite_index > 63)
+    if (sprite_index < 0 || sprite_index > 39)
     {
-        result["error"] = "Invalid sprite index (must be 0-63)";
+        result["error"] = "Invalid sprite index (must be 0-39)";
         return result;
     }
 
@@ -1476,11 +1356,11 @@ json DebugAdapter::GetSpriteImage(int sprite_index)
         return result;
     }
 
-    Video* video = m_core->GetVideo();
-    u8* regs = video->GetRegisters();
-    bool sprite_8x16 = (regs[1] & 0x02) != 0;
+    Memory* memory = m_core->GetMemory();
+    u8 lcdc = memory->Retrieve(0xFF40);
+    bool sprites_8x16 = (lcdc & 0x04) != 0;
     int width = 8;
-    int height = sprite_8x16 ? 16 : 8;
+    int height = sprites_8x16 ? 16 : 8;
 
     std::string base64_png = base64_encode(png_buffer, png_size);
     free(png_buffer);
@@ -1501,7 +1381,7 @@ json DebugAdapter::RunToAddress(u16 address)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1520,7 +1400,7 @@ json DebugAdapter::AddDisassemblerBookmark(u16 address, const std::string& name)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1539,7 +1419,7 @@ json DebugAdapter::RemoveDisassemblerBookmark(u16 address)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1557,7 +1437,7 @@ json DebugAdapter::AddSymbol(u8 bank, u16 address, const std::string& name)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1579,7 +1459,7 @@ json DebugAdapter::RemoveSymbol(u8 bank, u16 address)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1600,7 +1480,7 @@ json DebugAdapter::SelectMemoryRange(int editor, int start_address, int end_addr
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1626,7 +1506,7 @@ json DebugAdapter::SetMemorySelectionValue(int editor, u8 value)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1651,7 +1531,7 @@ json DebugAdapter::AddMemoryBookmark(int editor, int address, const std::string&
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1677,7 +1557,7 @@ json DebugAdapter::RemoveMemoryBookmark(int editor, int address)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1702,7 +1582,7 @@ json DebugAdapter::AddMemoryWatch(int editor, int address, const std::string& no
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1729,7 +1609,7 @@ json DebugAdapter::RemoveMemoryWatch(int editor, int address)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1754,7 +1634,7 @@ json DebugAdapter::ListDisassemblerBookmarks()
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1792,7 +1672,7 @@ json DebugAdapter::ListSymbols()
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1842,7 +1722,7 @@ json DebugAdapter::ListCallStack()
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1850,7 +1730,7 @@ json DebugAdapter::ListCallStack()
 
     Memory* memory = m_core->GetMemory();
     Processor* processor = m_core->GetProcessor();
-    std::stack<Processor::GS_CallStackEntry> temp_stack = *processor->GetDisassemblerCallStack();
+    std::stack<Processor::GB_CallStackEntry> temp_stack = *processor->GetDisassemblerCallStack();
 
     void* symbols_ptr = NULL;
     gui_debug_get_symbols(&symbols_ptr);
@@ -1860,7 +1740,7 @@ json DebugAdapter::ListCallStack()
 
     while (!temp_stack.empty())
     {
-        Processor::GS_CallStackEntry entry = temp_stack.top();
+        Processor::GB_CallStackEntry entry = temp_stack.top();
         temp_stack.pop();
 
         json entry_obj;
@@ -1874,7 +1754,7 @@ json DebugAdapter::ListCallStack()
         entry_obj["source"] = src_ss.str();
         entry_obj["return"] = back_ss.str();
 
-        GS_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.dest);
+        GB_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.dest);
         if (IsValidPointer(record) && record->name[0] != 0)
         {
             if (fixed_symbols && fixed_symbols[record->bank] && fixed_symbols[record->bank][entry.dest])
@@ -1896,7 +1776,7 @@ json DebugAdapter::ListMemoryBookmarks(int area)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1941,7 +1821,7 @@ json DebugAdapter::ListMemoryWatches(int area)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -1994,7 +1874,7 @@ json DebugAdapter::GetMemorySelection(int area)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -2037,7 +1917,7 @@ json DebugAdapter::MemorySearchCapture(int area)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -2062,7 +1942,7 @@ json DebugAdapter::MemorySearch(int area, const std::string& op, const std::stri
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -2149,7 +2029,7 @@ json DebugAdapter::MemoryFindBytes(int area, const std::string& hex_bytes)
 {
     json result;
 
-    if (!m_core || !m_core->GetCartridge()->IsReady())
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "No media loaded";
         return result;
@@ -2242,7 +2122,7 @@ json DebugAdapter::GetTraceLog(int start, int count)
         {
             case TRACE_CPU:
             {
-                GS_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.cpu.pc, entry.cpu.bank);
+                GB_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.cpu.pc, entry.cpu.bank);
                 char instr[64] = "???";
                 char bytes[25] = "";
                 if (IsValidPointer(record))

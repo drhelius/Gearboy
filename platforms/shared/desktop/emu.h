@@ -105,12 +105,20 @@ EXTERN void emu_load_bootrom_gbc(const char* file_path);
 EXTERN void emu_enable_bootrom_dmg(bool enable);
 EXTERN void emu_enable_bootrom_gbc(bool enable);
 EXTERN void emu_save_screenshot(const char* file_path);
+EXTERN int emu_get_screenshot_png(unsigned char** out_buffer);
+EXTERN int emu_get_sprite_png(int sprite_index, unsigned char** out_buffer);
 EXTERN void emu_save_sprite(const char* file_path, int index);
 EXTERN void emu_save_background(const char* file_path);
 EXTERN void emu_save_tiles(const char* file_path);
 EXTERN void emu_start_vgm_recording(const char* file_path);
 EXTERN void emu_stop_vgm_recording(void);
 EXTERN bool emu_is_vgm_recording(void);
+EXTERN void emu_mcp_set_transport(int mode, int tcp_port);
+EXTERN void emu_mcp_start(void);
+EXTERN void emu_mcp_stop(void);
+EXTERN bool emu_mcp_is_running(void);
+EXTERN int emu_mcp_get_transport_mode(void);
+EXTERN void emu_mcp_pump_commands(void);
 
 #undef EMU_IMPORT
 #undef EXTERN

@@ -57,7 +57,7 @@ public:
         SafeDelete(m_debugAdapter);
     }
 
-    void Init(GearsystemCore* core)
+    void Init(GearboyCore* core)
     {
         m_debugAdapter = new DebugAdapter(core);
     }
@@ -79,6 +79,7 @@ public:
         McpTransportInterface* transport = NULL;
         if (m_transport_mode == MCP_TRANSPORT_TCP)
         {
+            g_mcp_stdio_mode = false;
             Log("[MCP] Starting HTTP transport on port %d", m_tcp_port);
             transport = new HttpTransport(m_tcp_port);
         }
@@ -107,7 +108,6 @@ public:
                 m_server->GetTransport()->close();
 
             SafeDelete(m_server);
-            g_mcp_stdio_mode = false;
         }
     }
 
@@ -121,7 +121,7 @@ public:
         return (int)m_transport_mode;
     }
 
-    void PumpCommands(GearsystemCore* core)
+    void PumpCommands(GearboyCore* core)
     {
         u64 current_cycles = core->GetMasterClockCycles();
 

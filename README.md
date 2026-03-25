@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/github/license/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/blob/master/LICENSE)
 [![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)](https://x.com/drhelius)
 
-Gearboy is a cross-platform Game Boy / Game Boy Color emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch.
+Gearboy is a cross-platform Game Boy / Game Boy Color emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch, with an embedded MCP server for debugging and tooling.
 
 This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md). If you find it useful, please consider [sponsoring](https://github.com/sponsors/drhelius).
 
@@ -96,7 +96,8 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - VGM recorder.
 - Supported platforms (standalone): Windows, Linux, BSD and macOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
-- Full debugger with just-in-time disassembler, CPU breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
+- Full debugger with just-in-time disassembler, CPU breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, automatic labels, memory editor, trace logger, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
+- MCP server for AI-assisted debugging with GitHub Copilot, Claude, ChatGPT and similar, exposing tools for execution control, memory inspection, hardware status, and more.
 - Windows and Linux *Portable Mode*.
 - ROM loading from the command line by adding the ROM path as an argument.
 - ROM loading using drag & drop.
@@ -112,18 +113,32 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 ### Debugging Features
 - **Docking Windows**: In debug mode, you can dock windows together by pressing SHIFT and dragging a window onto another.
 - **Multi-viewport**: In Windows or macOS, you can enable "multi-viewport" in the debug menu. You must restart the emulator for the change to take effect. Once enabled, you can drag debugger windows outside the main window.
-- **Debug Symbols**: The emulator automatically tries to load a symbol file when loading a ROM. For example, for ```path_to_rom_file.gb``` it tries to load ```path_to_rom_file.sym```. You can also load a symbol file using the GUI or the CLI.
+- **Single Instance**: You can enable "Single Instance" in the ```Emulator``` menu. When enabled, opening a ROM while another instance is running will send the ROM to the running instance instead of starting a new one.
+- **Debug Symbols**: The emulator automatically tries to load a symbol file when loading a ROM (.sym). For example, for ```path_to_rom_file.gb``` it tries to load ```path_to_rom_file.sym```. You can also load a symbol file using the GUI or the CLI. It supports wla-dx, RGBDS, and generic file formats.
 
 ### Command Line Usage
 ```
 gearboy [options] [rom_file] [symbol_file]
 
+Arguments:
+  [rom_file]               ROM file: accepts ROMs (.gb, .dmg, .gbc, .cgb, .sgb) or ZIP (.zip)
+  [symbol_file]            Optional symbol file for debugging
+
 Options:
-  -f, --fullscreen    Start in fullscreen mode
-  -w, --windowed      Start in windowed mode with menu visible
-  -v, --version       Display version information
-  -h, --help          Display this help message
+  -f, --fullscreen         Start in fullscreen mode
+  -w, --windowed           Start in windowed mode with menu visible
+      --mcp-stdio          Auto-start MCP server with stdio transport
+      --mcp-http           Auto-start MCP server with HTTP transport
+      --mcp-http-port N    HTTP port for MCP server (default: 7777)
+  -v, --version            Display version information
+  -h, --help               Display this help message
 ```
+
+### MCP Server
+
+Gearboy includes a [Model Context Protocol](https://modelcontextprotocol.io/introduction) (MCP) server that enables AI-assisted debugging through AI agents like GitHub Copilot, Claude, ChatGPT and similar. The server provides tools for execution control, memory inspection, breakpoints, disassembly, hardware status, and more.
+
+For complete setup instructions and tool documentation, see [MCP_README.md](MCP_README.md).
 
 ## Build Instructions
 

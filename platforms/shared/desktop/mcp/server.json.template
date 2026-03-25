@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.drhelius/{{NAME_LOWER}}",
   "title": "{{NAME_UPPER}} MCP Server",
-  "description": "MCP server for {{NAME_UPPER}} Sega Master System / Game Gear / SG-1000 emulator",
+  "description": "MCP server for {{NAME_UPPER}} Nintendo Game Boy / Game Boy Color emulator",
   "version": "{{VERSION}}",
   "repository": {
     "url": "https://github.com/drhelius/{{NAME_LOWER}}",

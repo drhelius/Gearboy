@@ -40,6 +40,8 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/gui_debug_video.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_io.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_psg.cpp \
+    $(DESKTOP_SRC_DIR)/mcp/mcp_debug_adapter.cpp \
+    $(DESKTOP_SRC_DIR)/mcp/mcp_server.cpp \
     $(SRC_DIR)/Audio.cpp \
     $(SRC_DIR)/Cartridge.cpp \
     $(SRC_DIR)/CommonMemoryRule.cpp \
