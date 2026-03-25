@@ -28,6 +28,7 @@
 #include "emu.h"
 #include "ogl_renderer.h"
 #include "gui_filedialogs.h"
+#include "gui_debug_memory.h"
 #include "utils.h"
 
 static ImVec4 color_565_to_float(u16 color)
@@ -171,6 +172,13 @@ void gui_debug_window_vram_nametable(void)
                 selected_bg_tile_x = hovered_tile_x;
                 selected_bg_tile_y = hovered_tile_y;
             }
+
+            u8 lcdc = memory->Retrieve(0xFF40);
+            int ts_addr = emu_debug_background_tile_address >= 0 ? emu_debug_background_tile_address : IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
+            int ms_addr = emu_debug_background_map_address >= 0 ? emu_debug_background_map_address : IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
+            u16 m_addr = ms_addr + (32 * hovered_tile_y) + hovered_tile_x;
+            int m_tile = (ts_addr == 0x8800) ? (static_cast<s8>(memory->Retrieve(m_addr)) + 128) : memory->Retrieve(m_addr);
+            gui_debug_memory_goto(MEMORY_EDITOR_VRAM, ts_addr + (m_tile << 4));
         }
 
         if (!(hovered_tile_x == selected_bg_tile_x && hovered_tile_y == selected_bg_tile_y))
@@ -392,6 +400,9 @@ void gui_debug_window_vram_tiles(void)
                     selected_tile_y = hovered_tile_y;
                     selected_tile_bank = i;
                 }
+
+                int tile_full = (hovered_tile_y << 4) + hovered_tile_x;
+                gui_debug_memory_goto(MEMORY_EDITOR_VRAM, 0x8000 + (tile_full << 4));
             }
 
             if (!(hovered_tile_x == selected_tile_x && hovered_tile_y == selected_tile_y && i == selected_tile_bank))
