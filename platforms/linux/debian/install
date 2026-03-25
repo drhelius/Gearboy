@@ -1,0 +1,2 @@
+platforms/linux/gearboy usr/games/
+debian/gearboy.desktop usr/share/applications/

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Gearboy
+GenericName=Game Boy / Game Boy Color emulator
+Comment=Play Game Boy and Game Boy Color games
+Exec=/usr/games/gearboy %f
+TryExec=/usr/games/gearboy
+Icon=gearboy
+Terminal=false
+Categories=Game;Emulator;
+Keywords=Game Boy;Game Boy Color;GB;GBC;Nintendo;
+StartupNotify=true

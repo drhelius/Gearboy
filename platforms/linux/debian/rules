@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/pkg-info.mk
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_CFLAGS_MAINT_APPEND = -ffile-prefix-map=$(CURDIR)=.
+export DEB_CXXFLAGS_MAINT_APPEND = -ffile-prefix-map=$(CURDIR)=.
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	$(MAKE) -C platforms/linux \
+		GIT_VERSION="$(DEB_VERSION_UPSTREAM)" \
+		USE_CLANG=0 \
+		DEBUG=0
+
+override_dh_auto_clean:
+	$(MAKE) -C platforms/linux clean || true
+
+override_dh_install:
+	dh_install
+	install -Dm644 platforms/shared/desktop/mcp/icon.png \
+		debian/gearboy/usr/share/icons/hicolor/128x128/apps/gearboy.png

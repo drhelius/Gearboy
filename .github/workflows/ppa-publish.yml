@@ -1,0 +1,44 @@
+name: Trigger PPA Build
+
+on:
+  workflow_dispatch:
+  release:
+    types: [released]
+
+env:
+  NAME_LOWER: gearboy
+
+jobs:
+  trigger:
+    name: Trigger PPA Build
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'drhelius'
+    strategy:
+      matrix:
+        distro: [noble, jammy]
+    steps:
+      - name: Get release version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION=$(gh release view --repo "${{ github.repository }}" --json tagName -q '.tagName')
+            echo "Manual trigger - using latest release: $VERSION"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+            echo "Release trigger - version: $VERSION"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Trigger PPA workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PPA_TRIGGER_TOKEN }}
+          repository: drhelius/ppa-geardome
+          event-type: build-package
+          client-payload: |
+            {
+              "emulator": "${{ env.NAME_LOWER }}",
+              "version": "${{ env.VERSION }}",
+              "distro": "${{ matrix.distro }}"
+            }

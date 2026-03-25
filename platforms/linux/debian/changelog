@@ -1,0 +1,11 @@
+gearboy (3.4.0-1~ppa1~noble1) noble; urgency=medium
+
+  * Initial PPA build for Noble.
+  * Add Debian packaging for Gearboy 3.4.0.
+  * Build against libsdl3-dev from the ubuntu-goodies PPA.
+  * Install the binary under /usr/games.
+  * Add a desktop entry and application icon.
+  * Add a minimal manual page.
+  * Clean up packaging metadata for lintian.
+
+ -- Nacho Sanchez <863613+drhelius@users.noreply.github.com>  Tue, 25 Mar 2026 00:00:00 +0000
