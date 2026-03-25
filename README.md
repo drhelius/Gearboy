@@ -168,6 +168,15 @@ Gearboy includes a [Model Context Protocol](https://modelcontextprotocol.io/intr
 
 For complete setup instructions and tool documentation, see [MCP_README.md](MCP_README.md).
 
+### Agent Skills
+
+Gearboy provides [Agent Skills](https://agentskills.io/) that teach AI assistants how to effectively use the emulator for specific tasks:
+
+- **[gearboy-debugging](skills/gearboy-debugging/SKILL.md)** — Game debugging, code tracing, breakpoint management, hardware inspection, and reverse engineering.
+- **[gearboy-romhacking](skills/gearboy-romhacking/SKILL.md)** — Cheat creation, memory searching, ROM data modification, text translation, and game patching.
+
+Install with `npx skills add drhelius/gearboy`. See the [skills README](skills/README.md) for details.
+
 ## Build Instructions
 
 ### Windows

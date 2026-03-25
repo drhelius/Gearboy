@@ -33,7 +33,7 @@ ipch/
 *.ilk
 *.log
 *.zip
-*[Dd]ebug*/
+[Dd]ebug/
 *.sbr
 *.app
 Thumbs.db
