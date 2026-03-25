@@ -7,6 +7,9 @@
     <ClCompile Include="..\shared\desktop\application.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\desktop\application_headless.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\desktop\config.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
@@ -190,6 +193,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\shared\desktop\application.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\application_headless.h">
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\backers.h">

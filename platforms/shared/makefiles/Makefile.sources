@@ -18,6 +18,7 @@ SOURCES_CXX := \
     $(DEPS_DIR)/imgui/implot_demo.cpp \
     $(DESKTOP_SRC_DIR)/main.cpp \
     $(DESKTOP_SRC_DIR)/application.cpp \
+    $(DESKTOP_SRC_DIR)/application_headless.cpp \
     $(DESKTOP_SRC_DIR)/config.cpp \
     $(DESKTOP_SRC_DIR)/gui.cpp \
     $(DESKTOP_SRC_DIR)/gui_filedialogs.cpp \

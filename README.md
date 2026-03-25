@@ -158,6 +158,7 @@ Options:
       --mcp-stdio          Auto-start MCP server with stdio transport
       --mcp-http           Auto-start MCP server with HTTP transport
       --mcp-http-port N    HTTP port for MCP server (default: 7777)
+      --headless           Run without GUI (requires --mcp-stdio or --mcp-http)
   -v, --version            Display version information
   -h, --help               Display this help message
 ```

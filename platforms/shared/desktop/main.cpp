@@ -20,6 +20,7 @@
 #include <SDL3/SDL_main.h>
 #include "gearboy.h"
 #include "application.h"
+#include "application_headless.h"
 #include "config.h"
 #include "console_utils.h"
 
@@ -39,6 +40,7 @@ int main(int argc, char* argv[])
     int ret = 0;
     bool mcp_stdio_set = false;
     bool mcp_http_set = false;
+    bool headless = false;
 
     for (int i = 1; i < argc; i++)
     {
@@ -75,6 +77,10 @@ int main(int argc, char* argv[])
             {
                 mcp_http_set = true;
                 mcp_mode = 1;
+            }
+            else if (strcmp(argv[i], "--headless") == 0)
+            {
+                headless = true;
             }
             else if (strcmp(argv[i], "--mcp-http-port") == 0)
             {
@@ -133,6 +139,7 @@ int main(int argc, char* argv[])
         printf("      --mcp-stdio       Auto-start MCP server with stdio transport\n");
         printf("      --mcp-http        Auto-start MCP server with HTTP transport\n");
         printf("      --mcp-http-port N HTTP port for MCP server (default: 7777)\n");
+        printf("      --headless        Run without GUI (requires --mcp-stdio or --mcp-http)\n");
         printf("  -v, --version         Display version information\n");
         printf("  -h, --help            Display this help message\n");
         return ret;
@@ -143,6 +150,21 @@ int main(int argc, char* argv[])
 
     config_init();
     config_read();
+
+    if (headless)
+    {
+        ret = application_headless_init(rom_file, symbol_file, mcp_mode, mcp_tcp_port);
+
+        if (ret == 0)
+            application_headless_mainloop();
+
+        application_headless_destroy();
+
+        config_write();
+        config_destroy();
+
+        return ret;
+    }
 
     if (!application_check_single_instance(rom_file, symbol_file))
     {

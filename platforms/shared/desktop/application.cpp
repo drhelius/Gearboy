@@ -239,6 +239,9 @@ void application_trigger_fit_to_content(int width, int height)
 
 void application_update_title_with_rom(const char* rom)
 {
+    if (!application_sdl_window)
+        return;
+
     char final_title[256];
     snprintf(final_title, 256, "%s - %s", WINDOW_TITLE, rom);
     SDL_SetWindowTitle(application_sdl_window, final_title);

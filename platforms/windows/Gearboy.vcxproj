@@ -50,6 +50,7 @@
     </ClCompile>
     <ClCompile Include="..\shared\desktop\sound_queue.cpp" />
     <ClCompile Include="..\shared\desktop\application.cpp" />
+    <ClCompile Include="..\shared\desktop\application_headless.cpp" />
     <ClCompile Include="..\shared\desktop\config.cpp" />
     <ClCompile Include="..\shared\desktop\emu.cpp" />
     <ClCompile Include="..\shared\desktop\gui.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="..\shared\desktop\sound_queue.h" />
     <ClInclude Include="..\shared\desktop\single_instance.h" />
     <ClInclude Include="..\shared\desktop\application.h" />
+    <ClInclude Include="..\shared\desktop\application_headless.h" />
     <ClInclude Include="..\shared\desktop\backers.h" />
     <ClInclude Include="..\shared\desktop\config.h" />
     <ClInclude Include="..\shared\desktop\console_utils.h" />

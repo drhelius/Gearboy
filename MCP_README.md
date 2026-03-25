@@ -30,6 +30,10 @@ The default mode uses standard input/output for communication. The emulator is l
 
 The HTTP transport mode runs the emulator with an embedded web server on `localhost:7777/mcp`. The emulator stays running independently while the AI client connects via HTTP.
 
+### Headless Mode
+
+Add `--headless` to run without a GUI window. This is useful for servers, CLI agents, or any machine without a display. All MCP tools work identically in headless mode. Requires `--mcp-stdio` or `--mcp-http`.
+
 ## Quick Start
 
 ### STDIO Mode with VS Code
