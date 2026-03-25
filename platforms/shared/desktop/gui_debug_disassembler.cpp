@@ -391,14 +391,7 @@ static void draw_controls(void)
     ImGui::TextColored(emu_is_debug_idle() ? red : green, emu_is_debug_idle() ? "   PAUSED" : "   RUNNING");
 }
 
-static const char* k_breakpoint_types[] = { "ROM/RAM ", "VRAM    ", "VDP Reg ", "CRAM    " };
-
-static const char* k_vdp_register_names[16] = {
-    "Mode 1", "Mode 2", "Name Table", "Color Table",
-    "Pattern", "Sprite Attr", "Sprite Pat", "Backdrop",
-    "H Scroll", "V Scroll", "Line Count", "???",
-    "???", "???", "???", "???"
-};
+static const char* k_breakpoint_types[] = { "ROM/RAM ", "VRAM    ", "IO      " };
 
 static void draw_breakpoints_content(void)
 {
@@ -417,7 +410,7 @@ static void draw_breakpoints_content(void)
     ImGui::Separator();
 
     ImGui::PushItemWidth(120);
-    ImGui::Combo("Type##type", &new_breakpoint_type, "ROM/RAM\0VRAM\0VDP Reg\0CRAM\0");
+    ImGui::Combo("Type##type", &new_breakpoint_type, "ROM/RAM\0VRAM\0IO\0");
 
     ImGui::PushItemWidth(85);
     if (ImGui::InputTextWithHint("##add_breakpoint", "XXXX-XXXX", new_breakpoint_buffer, IM_ARRAYSIZE(new_breakpoint_buffer), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue))
@@ -527,11 +520,6 @@ static void draw_breakpoints_content(void)
             ImGui::PushStyleColor(ImGuiCol_Text, brk->enabled ? white : gray);
             TextColoredEx(" %s", record->name);
             ImGui::PopStyleColor();
-        }
-        else if (!brk->range && (brk->type == Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER) && (brk->address1 < 16))
-        {
-            ImGui::SameLine(0, 0);
-            ImGui::TextColored(brk->enabled ? violet : gray, " %s", k_vdp_register_names[brk->address1]);
         }
     }
 
@@ -968,7 +956,7 @@ static void add_symbol(const char* line)
     std::string symbol;
     bool parsed = false;
 
-    // sjasmplus/Pasmo format: <symbol>[:]  EQU  <value>
+    // EQU format: <symbol>[:]  EQU  <value>
     // e.g. "label: EQU 0x00004000" or "label EQU 1234h"
     if (!parsed && tokens.size() >= 3)
     {
@@ -1005,7 +993,7 @@ static void add_symbol(const char* line)
         }
     }
 
-    // SDCC/NoICE (.noi) format: DEF <symbol> <address>
+    // GBDK/SDCC/NoICE (.noi) format: DEF <symbol> <address>
     // e.g. "DEF _main 0100" or "def bar 234h"
     if (!parsed && tokens.size() >= 3)
     {
@@ -1026,8 +1014,8 @@ static void add_symbol(const char* line)
         }
     }
 
-    // WLA-DX format: <bank:address> <symbol>
-    // e.g. "00:C000 Start" or "02:8123 UpdateLogic"
+    // RGBDS/WLA-DX/no$gmb format: <bank:address> <symbol>
+    // e.g. "00:0150 Start" or "01:4000 BankedFunc"
     if (!parsed && tokens.size() >= 2 && tokens[0].find(':') != std::string::npos)
     {
         std::string addr_part = tokens[0];
@@ -1039,13 +1027,18 @@ static void add_symbol(const char* line)
         parsed = true;
     }
 
-    // Generic/VASM format: <address> <symbol>
-    // e.g. "C000 Start"
+    // Generic format: <address> <symbol>
+    // e.g. "0150 Start"
+    // Also matches RGBDS exported constants: <hex_value> <symbol>
+    // Skip values > 4 hex digits (constants, not addresses)
     if (!parsed && tokens.size() >= 2)
     {
-        addr_str = tokens[0];
-        symbol = tokens[1];
-        parsed = true;
+        if (tokens[0].length() <= 4)
+        {
+            addr_str = tokens[0];
+            symbol = tokens[1];
+            parsed = true;
+        }
     }
 
     if (!parsed)
