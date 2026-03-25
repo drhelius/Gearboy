@@ -164,9 +164,9 @@ static bool read_mailbox(void)
             line[len - 1] = '\0';
 
         if (line_num == 0)
-            strncpy(s_pending_rom_path, line, sizeof(s_pending_rom_path) - 1);
+            snprintf(s_pending_rom_path, sizeof(s_pending_rom_path), "%s", line);
         else if (line_num == 1)
-            strncpy(s_pending_symbol_path, line, sizeof(s_pending_symbol_path) - 1);
+            snprintf(s_pending_symbol_path, sizeof(s_pending_symbol_path), "%s", line);
 
         line_num++;
     }
