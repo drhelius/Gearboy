@@ -50,7 +50,15 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
       <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-macos-intel.zip">Gearboy-3.7.5-macos-intel.zip</a></td>
     </tr>
     <tr>
-      <td rowspan="3"><strong>Linux</strong></td>
+      <td rowspan="4"><strong>Linux</strong></td>
+      <td>PPA</td>
+      <td>
+        <code>curl -fsSL https://drhelius.github.io/ppa-geardome/geardome-ppa.gpg | sudo tee /usr/share/keyrings/geardome-archive-keyring.gpg > /dev/null</code><br>
+        <code>echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/geardome-archive-keyring.gpg] https://drhelius.github.io/ppa-geardome noble main" | sudo tee /etc/apt/sources.list.d/geardome.list</code><br>
+        <code>sudo apt update && sudo apt install gearboy</code>
+      </td>
+    </tr>
+    <tr>
       <td>Ubuntu 24.04 x64</td>
       <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-ubuntu24.04-x64.zip">Gearboy-3.7.5-ubuntu24.04-x64.zip</a></td>
     </tr>
