@@ -187,12 +187,12 @@ static const stDebugLabel k_debug_symbols[k_debug_symbol_count] =
     { 0x0028, "RST_28" },
     { 0x0030, "RST_30" },
     { 0x0038, "RST_38" },
-    { 0x0040, "VBlank_Handler" },
-    { 0x0048, "LCD_STAT_Handler" },
-    { 0x0050, "Timer_Handler" },
-    { 0x0058, "Serial_Handler" },
-    { 0x0060, "Joypad_Handler" },
-    { 0x0100, "Entry_Point" },
+    { 0x0040, "VBLANK_HANDLER" },
+    { 0x0048, "STAT_HANDLER" },
+    { 0x0050, "TIMER_HANDLER" },
+    { 0x0058, "SERIAL_HANDLER" },
+    { 0x0060, "JOYPAD_HANDLER" },
+    { 0x0100, "ENTRY_POINT" },
 };
 
 #endif /* GUI_DEBUG_CONSTANTS_H */
