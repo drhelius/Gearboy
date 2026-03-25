@@ -79,6 +79,12 @@
     <ClCompile Include="..\shared\desktop\single_instance.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\desktop\mcp\mcp_debug_adapter.cpp">
+      <Filter>desktop\mcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\mcp\mcp_server.cpp">
+      <Filter>desktop\mcp</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\Audio.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -450,6 +456,18 @@
     <ClInclude Include="..\shared\dependencies\stb\stb_image_write.h">
       <Filter>dependencies\stb</Filter>
     </ClInclude>
+    <ClInclude Include="..\shared\desktop\mcp\mcp_debug_adapter.h">
+      <Filter>desktop\mcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\mcp\mcp_server.h">
+      <Filter>desktop\mcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\mcp\mcp_manager.h">
+      <Filter>desktop\mcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\mcp\mcp_transport.h">
+      <Filter>desktop\mcp</Filter>
+    </ClInclude>
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -479,6 +497,9 @@
     </Filter>
     <Filter Include="dependencies\imgui\fonts">
       <UniqueIdentifier>{0ff4493d-dd39-4604-9082-9f79eae3d893}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="desktop\mcp">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567890}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

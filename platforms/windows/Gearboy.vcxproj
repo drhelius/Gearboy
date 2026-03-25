@@ -73,6 +73,8 @@
     <ClCompile Include="..\shared\desktop\events.cpp" />
     <ClCompile Include="..\shared\desktop\gamepad.cpp" />
     <ClCompile Include="..\shared\desktop\single_instance.cpp" />
+    <ClCompile Include="..\shared\desktop\mcp\mcp_debug_adapter.cpp" />
+    <ClCompile Include="..\shared\desktop\mcp\mcp_server.cpp" />
     <ClCompile Include="..\shared\dependencies\imgui\imgui.cpp">
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
     </ClCompile>
@@ -191,6 +193,10 @@
     <ClInclude Include="..\shared\desktop\events.h" />
     <ClInclude Include="..\shared\desktop\gamepad.h" />
     <ClInclude Include="..\shared\desktop\utils.h" />
+    <ClInclude Include="..\shared\desktop\mcp\mcp_debug_adapter.h" />
+    <ClInclude Include="..\shared\desktop\mcp\mcp_server.h" />
+    <ClInclude Include="..\shared\desktop\mcp\mcp_manager.h" />
+    <ClInclude Include="..\shared\desktop\mcp\mcp_transport.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

@@ -27,7 +27,9 @@
 #include <time.h>
 #include <math.h>
 #if defined(_WIN32)
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <direct.h>
 #include <windows.h>
 #endif
