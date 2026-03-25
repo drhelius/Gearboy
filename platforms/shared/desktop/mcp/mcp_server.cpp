@@ -1187,7 +1187,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "get_trace_log"},
         {"title", "Get Trace Log"},
-        {"description", "Read trace logger entries (CPU + hardware events). Must be started from the Trace Logger window first."},
+        {"description", "Read trace logger entries (CPU + hardware events). Use set_trace_log to start/stop the trace logger."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
@@ -1203,6 +1203,47 @@ void McpServer::HandleToolsList(const json& request)
                     {"maximum", 1000}
                 }}
             }},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "set_trace_log"},
+        {"title", "Set Trace Logger"},
+        {"description", "Start or stop the trace logger. Records CPU instructions and hardware events into a ring buffer readable with get_trace_log. CPU tracing is always on. Filter event types with optional booleans."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"enabled", {
+                    {"type", "boolean"},
+                    {"description", "true to start logging, false to stop. Existing entries are preserved when stopped."}
+                }},
+                {"cpu_irq", {
+                    {"type", "boolean"},
+                    {"description", "Trace IRQ events (default true)"}
+                }},
+                {"lcd_write", {
+                    {"type", "boolean"},
+                    {"description", "Trace LCD register writes (default true)"}
+                }},
+                {"lcd_status", {
+                    {"type", "boolean"},
+                    {"description", "Trace LCD status events (default true)"}
+                }},
+                {"apu_write", {
+                    {"type", "boolean"},
+                    {"description", "Trace APU register writes (default true)"}
+                }},
+                {"io_write", {
+                    {"type", "boolean"},
+                    {"description", "Trace IO register writes (default true)"}
+                }},
+                {"bank_switch", {
+                    {"type", "boolean"},
+                    {"description", "Trace bank switch events (default true)"}
+                }}
+            }},
+            {"required", json::array({"enabled"})},
             {"additionalProperties", false}
         }}
     });
@@ -1870,6 +1911,21 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         int start = arguments.value("start", -1);
         int count = arguments.value("count", 100);
         return m_debugAdapter.GetTraceLog(start, count);
+    }
+    else if (normalizedTool == "set_trace_log")
+    {
+        bool enabled = arguments["enabled"];
+        u32 flags = TRACE_FLAG_CPU;
+        if (enabled)
+        {
+            if (arguments.value("cpu_irq", true)) flags |= TRACE_FLAG_CPU_IRQ;
+            if (arguments.value("lcd_write", true)) flags |= TRACE_FLAG_LCD_WRITE;
+            if (arguments.value("lcd_status", true)) flags |= TRACE_FLAG_LCD_STATUS;
+            if (arguments.value("apu_write", true)) flags |= TRACE_FLAG_APU_WRITE;
+            if (arguments.value("io_write", true)) flags |= TRACE_FLAG_IO_WRITE;
+            if (arguments.value("bank_switch", true)) flags |= TRACE_FLAG_BANK_SWITCH;
+        }
+        return m_debugAdapter.SetTraceLog(enabled, flags);
     }
     else
     {
