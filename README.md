@@ -67,6 +67,11 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
       <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-desktop-ubuntu24.04-arm64.zip">Gearboy-3.7.5-desktop-ubuntu24.04-arm64.zip</a></td>
     </tr>
     <tr>
+      <td><strong>MCPB</strong></td>
+      <td>All platforms</td>
+      <td><a href="MCP_README.md">MCP Readme</a></td>
+    </tr>
+    <tr>
       <td><strong>RetroArch</strong></td>
       <td>All platforms</td>
       <td><a href="https://docs.libretro.com/library/gearboy/">Libretro core documentation</a></td>
@@ -75,11 +80,6 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
       <td><strong>Dev Builds</strong></td>
       <td>All platforms</td>
       <td><a href="https://github.com/drhelius/Gearboy/actions/workflows/gearboy.yml">GitHub Actions</a></td>
-    </tr>
-    <tr>
-      <td><strong>MCPB</strong></td>
-      <td>All platforms</td>
-      <td><a href="MCP_README.md">MCP Readme</a></td>
     </tr>
   </tbody>
 </table>
