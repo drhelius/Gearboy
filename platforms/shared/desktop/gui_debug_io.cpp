@@ -31,7 +31,7 @@
 void gui_debug_window_io(void)
 {
     ImGui::SetNextWindowPos(ImVec2(121, 164), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(420, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(424, 428), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("IO Map", &config_debug.show_io);
 

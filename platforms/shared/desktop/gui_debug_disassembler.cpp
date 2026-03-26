@@ -270,7 +270,7 @@ void gui_debug_window_disassembler(void)
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(166, 26), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(458, 553), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(460, 600), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Disassembler", &config_debug.show_disassembler, ImGuiWindowFlags_MenuBar);
 

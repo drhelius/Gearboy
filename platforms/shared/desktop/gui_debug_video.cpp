@@ -44,7 +44,7 @@ static ImVec4 color_565_to_float(u16 color)
 void gui_debug_window_vram_nametable(void)
 {
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(544, 534), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(546, 506), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Name Table", &config_debug.show_video_nametable);
 
@@ -297,7 +297,7 @@ void gui_debug_window_vram_nametable(void)
 void gui_debug_window_vram_tiles(void)
 {
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(544, 480), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(546, 356), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Pattern Table", &config_debug.show_video_tiles);
 
@@ -461,7 +461,7 @@ void gui_debug_window_vram_tiles(void)
 void gui_debug_window_vram_sprites(void)
 {
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(544, 480), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(540, 406), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Sprites (OAM)", &config_debug.show_video_sprites);
 
@@ -649,7 +649,7 @@ void gui_debug_window_vram_sprites(void)
 void gui_debug_window_vram_dmg_palettes(void)
 {
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(544, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(438, 124), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("DMG Palettes", &config_debug.show_video_palettes);
 
@@ -724,7 +724,7 @@ void gui_debug_window_vram_dmg_palettes(void)
 void gui_debug_window_vram_gbc_palettes(void)
 {
     ImGui::SetNextWindowPos(ImVec2(80, 80), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(544, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(400, 380), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("GBC Palettes", &config_debug.show_video_gbc_palettes);
 

@@ -61,7 +61,7 @@ void gui_debug_window_psg(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(180, 45), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(310, 370), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(324, 374), ImGuiCond_FirstUseEver);
     ImGui::Begin("PSG", &config_debug.show_psg);
 
     GearboyCore* core = emu_get_core();
