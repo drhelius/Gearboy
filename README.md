@@ -58,12 +58,12 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
       <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-desktop-macos-intel.zip">Gearboy-3.7.5-desktop-macos-intel.zip</a></td>
     </tr>
     <tr>
-      <td>MCPB arm64</td>
-      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-mcpb-macos-arm64.mcpb">Gearboy-3.7.5-mcpb-macos-arm64.mcpb</a></td>
-    </tr>
-    <tr>
       <td>MCPB x64</td>
       <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-mcpb-macos-x64.mcpb">Gearboy-3.7.5-mcpb-macos-x64.mcpb</a></td>
+    </tr>
+    <tr>
+      <td>MCPB ARM64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.7.5/Gearboy-3.7.5-mcpb-macos-arm64.mcpb">Gearboy-3.7.5-mcpb-macos-arm64.mcpb</a></td>
     </tr>
     <tr>
       <td rowspan="6"><strong>Linux</strong></td>
@@ -206,7 +206,7 @@ make dist
 If you are using Ubuntu 25.04 or later, you can install SDL3 directly. Use the following commands to build:
 
 ``` shell
-sudo apt install build-essential libsdl3-dev libgtk-3-dev
+sudo apt install build-essential libsdl3-dev
 cd platforms/linux
 make
 ```
@@ -214,7 +214,7 @@ make
 For older Ubuntu versions (22.04, 24.04), you need to build SDL3 from source first. Use the following commands to build both SDL3 and Gearboy:
 
 ``` shell
-sudo apt install build-essential cmake libgtk-3-dev
+sudo apt install build-essential cmake
 git clone --depth 1 --branch release-3.4.x https://github.com/libsdl-org/SDL.git /tmp/SDL3
 cmake -S /tmp/SDL3 -B /tmp/SDL3/build -DCMAKE_INSTALL_PREFIX=/usr -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
 cmake --build /tmp/SDL3/build -j$(nproc)
@@ -226,7 +226,7 @@ make
 - Fedora:
 
 ``` shell
-sudo dnf install @development-tools gcc-c++ SDL3-devel gtk3-devel
+sudo dnf install @development-tools gcc-c++ SDL3-devel
 cd platforms/linux
 make
 ```
@@ -234,7 +234,7 @@ make
 - Arch Linux:
 
 ``` shell
-sudo pacman -S base-devel sdl3 gtk3
+sudo pacman -S base-devel sdl3
 cd platforms/linux
 make
 ```
@@ -244,7 +244,7 @@ make
 - FreeBSD:
 
 ``` shell
-su root -c "pkg install -y git gmake pkgconf SDL3 lang/gcc gtk3"
+su root -c "pkg install -y git gmake pkgconf SDL3 lang/gcc"
 cd platforms/bsd
 gmake
 ```
@@ -252,7 +252,7 @@ gmake
 - NetBSD:
 
 ``` shell
-su root -c "pkgin install gmake pkgconf SDL3 lang/gcc gtk3"
+su root -c "pkgin install gmake pkgconf SDL3 lang/gcc"
 cd platforms/bsd
 gmake
 ```
