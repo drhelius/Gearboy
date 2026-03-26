@@ -76,6 +76,11 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
       <td>All platforms</td>
       <td><a href="https://github.com/drhelius/Gearboy/actions/workflows/gearboy.yml">GitHub Actions</a></td>
     </tr>
+    <tr>
+      <td><strong>MCPB</strong></td>
+      <td>All platforms</td>
+      <td><a href="MCP_README.md">MCP Readme</a></td>
+    </tr>
   </tbody>
 </table>
 
