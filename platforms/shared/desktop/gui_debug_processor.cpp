@@ -23,14 +23,97 @@
 #include "imgui.h"
 #include "gearboy.h"
 #include "gui_debug_constants.h"
+#include "gui_debug_widgets.h"
 #include "gui.h"
 #include "config.h"
 #include "emu.h"
 #include "utils.h"
 
+enum SM83RegId
+{
+    SM83RegId_A = 0,
+    SM83RegId_F,
+    SM83RegId_B,
+    SM83RegId_C,
+    SM83RegId_D,
+    SM83RegId_E,
+    SM83RegId_H,
+    SM83RegId_L,
+    SM83RegId_SP,
+    SM83RegId_PC,
+    SM83RegId_IME
+};
+
+static void SM83WriteCallback8(u16 reg_id, u8 value, void* user_data)
+{
+    GearboyCore* core = (GearboyCore*)user_data;
+    Processor::ProcessorState* proc_state = core->GetProcessor()->GetState();
+
+    switch (reg_id)
+    {
+        case SM83RegId_A:
+            proc_state->AF->SetHigh(value);
+            break;
+        case SM83RegId_F:
+            proc_state->AF->SetLow(value & 0xF0);
+            break;
+        case SM83RegId_B:
+            proc_state->BC->SetHigh(value);
+            break;
+        case SM83RegId_C:
+            proc_state->BC->SetLow(value);
+            break;
+        case SM83RegId_D:
+            proc_state->DE->SetHigh(value);
+            break;
+        case SM83RegId_E:
+            proc_state->DE->SetLow(value);
+            break;
+        case SM83RegId_H:
+            proc_state->HL->SetHigh(value);
+            break;
+        case SM83RegId_L:
+            proc_state->HL->SetLow(value);
+            break;
+    }
+}
+
+static void SM83WriteCallback1(u16 reg_id, u8 bit_index, bool value, void* user_data)
+{
+    GearboyCore* core = (GearboyCore*)user_data;
+    Processor::ProcessorState* proc_state = core->GetProcessor()->GetState();
+
+    if (reg_id == SM83RegId_F)
+    {
+        u8 f = proc_state->AF->GetLow();
+        if (value)
+            f |= (1 << bit_index);
+        else
+            f &= ~(1 << bit_index);
+        proc_state->AF->SetLow(f & 0xF0);
+    }
+    else if (reg_id == SM83RegId_IME)
+    {
+        *proc_state->IME = value;
+    }
+}
+
+static void SM83WriteCallback16(u16 reg_id, u16 value, void* user_data)
+{
+    GearboyCore* core = (GearboyCore*)user_data;
+    Processor::ProcessorState* proc_state = core->GetProcessor()->GetState();
+
+    switch (reg_id)
+    {
+        case SM83RegId_SP: proc_state->SP->SetValue(value); break;
+        case SM83RegId_PC: proc_state->PC->SetValue(value); break;
+    }
+}
+
 void gui_debug_window_processor(void)
 {
-    ImGui::SetNextWindowPos(ImVec2(14, 210), ImGuiCond_FirstUseEver);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
+    ImGui::SetNextWindowPos(ImVec2(3, 26), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Processor", &config_debug.show_processor, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
 
@@ -41,104 +124,195 @@ void gui_debug_window_processor(void)
     Processor::ProcessorState* proc_state = processor->GetState();
     Memory* memory = core->GetMemory();
 
-    ImGui::Separator();
+    if (ImGui::BeginTable("sm83", 1, ImGuiTableFlags_BordersInnerH))
+    {
+        ImGui::TableNextColumn();
+        u8 f = proc_state->AF->GetLow();
+        ImGui::Text("     ");
+        ImGui::SameLine(0, 0); ImGui::TextColored(orange, "Z");
+        ImGui::SameLine(); ImGui::TextColored(orange, "N");
+        ImGui::SameLine(); ImGui::TextColored(orange, "H");
+        ImGui::SameLine(); ImGui::TextColored(orange, "C");
+        ImGui::Text("     ");
+        ImGui::SameLine(0, 0);
+        EditableRegister1(SM83RegId_F, 7, (f >> 7) & 1, SM83WriteCallback1, core);
+        ImGui::SameLine(); EditableRegister1(SM83RegId_F, 6, (f >> 6) & 1, SM83WriteCallback1, core);
+        ImGui::SameLine(); EditableRegister1(SM83RegId_F, 5, (f >> 5) & 1, SM83WriteCallback1, core);
+        ImGui::SameLine(); EditableRegister1(SM83RegId_F, 4, (f >> 4) & 1, SM83WriteCallback1, core);
 
-    u8 flags = proc_state->AF->GetLow();
+        ImGui::TableNextColumn();
+        ImGui::TextColored(yellow, "    PC"); ImGui::SameLine();
+        ImGui::Text(" "); ImGui::SameLine(0, 0);
+        EditableRegister16(NULL, NULL, SM83RegId_PC, proc_state->PC->GetValue(), SM83WriteCallback16, core, EditableRegisterFlags_None);
+        ImGui::TextColored(gray, BYTE_TO_BINARY_PATTERN_SPACED " " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->PC->GetHigh()), BYTE_TO_BINARY(proc_state->PC->GetLow()));
 
-    ImGui::TextColored(orange, "   Z"); ImGui::SameLine();
-    ImGui::Text("= %d", (bool)(flags & FLAG_ZERO)); ImGui::SameLine();
+        ImGui::TableNextColumn();
+        ImGui::TextColored(yellow, "    SP"); ImGui::SameLine();
+        ImGui::Text(" "); ImGui::SameLine(0, 0);
+        EditableRegister16(NULL, NULL, SM83RegId_SP, proc_state->SP->GetValue(), SM83WriteCallback16, core, EditableRegisterFlags_None);
+        ImGui::TextColored(gray, BYTE_TO_BINARY_PATTERN_SPACED " " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->SP->GetHigh()), BYTE_TO_BINARY(proc_state->SP->GetLow()));
 
-    ImGui::TextColored(orange, "  N"); ImGui::SameLine();
-    ImGui::Text("= %d", (bool)(flags & FLAG_SUB));
+        ImGui::TableNextColumn();
 
-    ImGui::TextColored(orange, "   H"); ImGui::SameLine();
-    ImGui::Text("= %d", (bool)(flags & FLAG_HALF)); ImGui::SameLine();
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(2.0f, 2.0f));
 
-    ImGui::TextColored(orange, "  C"); ImGui::SameLine();
-    ImGui::Text("= %d", (bool)(flags & FLAG_CARRY));
+        if (ImGui::BeginTable("regs", 2, ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_NoPadOuterX))
+        {
+            ImGui::TableNextColumn();
+            ImGui::BeginGroup();
+            ImGui::TextColored(cyan, " A"); ImGui::SameLine();
+            ImGui::Text("  "); ImGui::SameLine(0, 0);
+            EditableRegister8(NULL, NULL, SM83RegId_A, proc_state->AF->GetHigh(), SM83WriteCallback8, core, EditableRegisterFlags_None);
+            ImGui::TextColored(gray, BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF->GetHigh()));
+            ImGui::EndGroup();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextColored(cyan, "Hex: $%02X", proc_state->AF->GetHigh());
+                ImGui::TextColored(cyan, "Dec: %u (%d)", proc_state->AF->GetHigh(), (s8)proc_state->AF->GetHigh());
+                ImGui::TextColored(cyan, "Bin: " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF->GetHigh()));
+                ImGui::TextColored(cyan, "Ascii: %c", (proc_state->AF->GetHigh() >= 32 && proc_state->AF->GetHigh() < 127) ? proc_state->AF->GetHigh() : '.');
+                ImGui::EndTooltip();
+            }
 
-    ImGui::Columns(2, "registers");
-    ImGui::Separator();
-    ImGui::TextColored(cyan, " A"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->AF->GetHigh());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF->GetHigh()));
+            ImGui::TableNextColumn();
+            ImGui::BeginGroup();
+            ImGui::TextColored(cyan, " F"); ImGui::SameLine();
+            ImGui::Text("  "); ImGui::SameLine(0, 0);
+            EditableRegister8(NULL, NULL, SM83RegId_F, proc_state->AF->GetLow(), SM83WriteCallback8, core, EditableRegisterFlags_None);
+            ImGui::TextColored(gray, BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF->GetLow()));
+            ImGui::EndGroup();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextColored(cyan, "Hex: $%02X", proc_state->AF->GetLow());
+                ImGui::TextColored(cyan, "Dec: %u (%d)", proc_state->AF->GetLow(), (s8)proc_state->AF->GetLow());
+                ImGui::TextColored(cyan, "Bin: " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF->GetLow()));
+                ImGui::EndTooltip();
+            }
 
-    ImGui::NextColumn();
-    ImGui::TextColored(cyan, " F"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->AF->GetLow());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF->GetLow()));
+            ImGui::TableNextColumn();
+            ImGui::BeginGroup();
+            ImGui::TextColored(cyan, " B"); ImGui::SameLine();
+            ImGui::Text("  "); ImGui::SameLine(0, 0);
+            EditableRegister8(NULL, NULL, SM83RegId_B, proc_state->BC->GetHigh(), SM83WriteCallback8, core, EditableRegisterFlags_None);
+            ImGui::TextColored(gray, BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC->GetHigh()));
+            ImGui::EndGroup();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextColored(cyan, "Hex: $%02X", proc_state->BC->GetHigh());
+                ImGui::TextColored(cyan, "Dec: %u (%d)", proc_state->BC->GetHigh(), (s8)proc_state->BC->GetHigh());
+                ImGui::TextColored(cyan, "Bin: " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC->GetHigh()));
+                ImGui::TextColored(cyan, "Ascii: %c", (proc_state->BC->GetHigh() >= 32 && proc_state->BC->GetHigh() < 127) ? proc_state->BC->GetHigh() : '.');
+                ImGui::EndTooltip();
+            }
 
-    ImGui::NextColumn();
-    ImGui::Separator();
-    ImGui::TextColored(cyan, " B"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->BC->GetHigh());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC->GetHigh()));
+            ImGui::TableNextColumn();
+            ImGui::BeginGroup();
+            ImGui::TextColored(cyan, " C"); ImGui::SameLine();
+            ImGui::Text("  "); ImGui::SameLine(0, 0);
+            EditableRegister8(NULL, NULL, SM83RegId_C, proc_state->BC->GetLow(), SM83WriteCallback8, core, EditableRegisterFlags_None);
+            ImGui::TextColored(gray, BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC->GetLow()));
+            ImGui::EndGroup();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextColored(cyan, "Hex: $%02X", proc_state->BC->GetLow());
+                ImGui::TextColored(cyan, "Dec: %u (%d)", proc_state->BC->GetLow(), (s8)proc_state->BC->GetLow());
+                ImGui::TextColored(cyan, "Bin: " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC->GetLow()));
+                ImGui::TextColored(cyan, "Ascii: %c", (proc_state->BC->GetLow() >= 32 && proc_state->BC->GetLow() < 127) ? proc_state->BC->GetLow() : '.');
+                ImGui::EndTooltip();
+            }
 
-    ImGui::NextColumn();
-    ImGui::TextColored(cyan, " C"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->BC->GetLow());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC->GetLow()));
+            ImGui::TableNextColumn();
+            ImGui::BeginGroup();
+            ImGui::TextColored(cyan, " D"); ImGui::SameLine();
+            ImGui::Text("  "); ImGui::SameLine(0, 0);
+            EditableRegister8(NULL, NULL, SM83RegId_D, proc_state->DE->GetHigh(), SM83WriteCallback8, core, EditableRegisterFlags_None);
+            ImGui::TextColored(gray, BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE->GetHigh()));
+            ImGui::EndGroup();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextColored(cyan, "Hex: $%02X", proc_state->DE->GetHigh());
+                ImGui::TextColored(cyan, "Dec: %u (%d)", proc_state->DE->GetHigh(), (s8)proc_state->DE->GetHigh());
+                ImGui::TextColored(cyan, "Bin: " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE->GetHigh()));
+                ImGui::TextColored(cyan, "Ascii: %c", (proc_state->DE->GetHigh() >= 32 && proc_state->DE->GetHigh() < 127) ? proc_state->DE->GetHigh() : '.');
+                ImGui::EndTooltip();
+            }
 
-    ImGui::NextColumn();
-    ImGui::Separator();
-    ImGui::TextColored(cyan, " D"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->DE->GetHigh());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE->GetHigh()));
+            ImGui::TableNextColumn();
+            ImGui::BeginGroup();
+            ImGui::TextColored(cyan, " E"); ImGui::SameLine();
+            ImGui::Text("  "); ImGui::SameLine(0, 0);
+            EditableRegister8(NULL, NULL, SM83RegId_E, proc_state->DE->GetLow(), SM83WriteCallback8, core, EditableRegisterFlags_None);
+            ImGui::TextColored(gray, BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE->GetLow()));
+            ImGui::EndGroup();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextColored(cyan, "Hex: $%02X", proc_state->DE->GetLow());
+                ImGui::TextColored(cyan, "Dec: %u (%d)", proc_state->DE->GetLow(), (s8)proc_state->DE->GetLow());
+                ImGui::TextColored(cyan, "Bin: " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE->GetLow()));
+                ImGui::TextColored(cyan, "Ascii: %c", (proc_state->DE->GetLow() >= 32 && proc_state->DE->GetLow() < 127) ? proc_state->DE->GetLow() : '.');
+                ImGui::EndTooltip();
+            }
 
-    ImGui::NextColumn();
-    ImGui::TextColored(cyan, " E"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->DE->GetLow());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE->GetLow()));
+            ImGui::TableNextColumn();
+            ImGui::BeginGroup();
+            ImGui::TextColored(cyan, " H"); ImGui::SameLine();
+            ImGui::Text("  "); ImGui::SameLine(0, 0);
+            EditableRegister8(NULL, NULL, SM83RegId_H, proc_state->HL->GetHigh(), SM83WriteCallback8, core, EditableRegisterFlags_None);
+            ImGui::TextColored(gray, BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL->GetHigh()));
+            ImGui::EndGroup();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextColored(cyan, "Hex: $%02X", proc_state->HL->GetHigh());
+                ImGui::TextColored(cyan, "Dec: %u (%d)", proc_state->HL->GetHigh(), (s8)proc_state->HL->GetHigh());
+                ImGui::TextColored(cyan, "Bin: " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL->GetHigh()));
+                ImGui::TextColored(cyan, "Ascii: %c", (proc_state->HL->GetHigh() >= 32 && proc_state->HL->GetHigh() < 127) ? proc_state->HL->GetHigh() : '.');
+                ImGui::EndTooltip();
+            }
 
-    ImGui::NextColumn();
-    ImGui::Separator();
-    ImGui::TextColored(cyan, " H"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->HL->GetHigh());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL->GetHigh()));
+            ImGui::TableNextColumn();
+            ImGui::BeginGroup();
+            ImGui::TextColored(cyan, " L"); ImGui::SameLine();
+            ImGui::Text("  "); ImGui::SameLine(0, 0);
+            EditableRegister8(NULL, NULL, SM83RegId_L, proc_state->HL->GetLow(), SM83WriteCallback8, core, EditableRegisterFlags_None);
+            ImGui::TextColored(gray, BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL->GetLow()));
+            ImGui::EndGroup();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextColored(cyan, "Hex: $%02X", proc_state->HL->GetLow());
+                ImGui::TextColored(cyan, "Dec: %u (%d)", proc_state->HL->GetLow(), (s8)proc_state->HL->GetLow());
+                ImGui::TextColored(cyan, "Bin: " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL->GetLow()));
+                ImGui::TextColored(cyan, "Ascii: %c", (proc_state->HL->GetLow() >= 32 && proc_state->HL->GetLow() < 127) ? proc_state->HL->GetLow() : '.');
+                ImGui::EndTooltip();
+            }
 
-    ImGui::NextColumn();
-    ImGui::TextColored(cyan, " L"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->HL->GetLow());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL->GetLow()));
+            ImGui::TableNextColumn();
+            ImGui::TextColored(*proc_state->IME ? green : gray, "   IME");
+            ImGui::TableNextColumn();
+            ImGui::TextColored(*proc_state->Halt ? green : gray, "  HALT");
 
-    ImGui::NextColumn();
-    ImGui::Columns(1);
-    ImGui::Separator();
-    ImGui::TextColored(yellow, "    SP"); ImGui::SameLine();
-    ImGui::Text("= $%04X", proc_state->SP->GetValue());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED " " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->SP->GetHigh()), BYTE_TO_BINARY(proc_state->SP->GetLow()));
+            ImGui::EndTable();
+        }
 
-    ImGui::Separator();
-    ImGui::TextColored(yellow, "    PC"); ImGui::SameLine();
-    ImGui::Text("= $%04X", proc_state->PC->GetValue());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED " " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->PC->GetHigh()), BYTE_TO_BINARY(proc_state->PC->GetLow()));
+        ImGui::PopStyleVar();
 
-    ImGui::Columns(2);
-    ImGui::Separator();
+        ImGui::TableNextColumn();
+        ImGui::TextColored(processor->CGBSpeed() ? green : gray, "   DOUBLE SPEED");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(memory->IsBootromRegistryEnabled() ? green : gray, "     BOOTROM");
 
-    ImGui::TextColored(magenta, " IME"); ImGui::SameLine();
-    ImGui::Text("= %d", *proc_state->IME);
-
-    ImGui::NextColumn();
-
-    ImGui::TextColored(magenta, "HALT"); ImGui::SameLine();
-    ImGui::Text("= %d", *proc_state->Halt);
-
-    ImGui::NextColumn();
-
-    ImGui::Columns(1);
-
-    ImGui::Separator();
-
-    ImGui::TextColored(violet, " DOUBLE SPEED "); ImGui::SameLine();
-    processor->CGBSpeed() ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
-
-    ImGui::Separator();
-
-    ImGui::TextColored(violet, "   BOOTROM "); ImGui::SameLine();
-    memory->IsBootromRegistryEnabled() ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+        ImGui::EndTable();
+    }
 
     ImGui::PopFont();
 
     ImGui::End();
+    ImGui::PopStyleVar();
 }
