@@ -183,6 +183,9 @@ Install with `npx skills add drhelius/gearboy`. See the [skills README](skills/R
 ### Windows
 
 - Install Microsoft Visual Studio Community 2022 or later.
+- Download the latest SDL3 VC development libraries from [SDL3 Releases](https://github.com/libsdl-org/SDL/releases) (the file named `SDL3-devel-x.y.z-VC.zip`).
+- Extract the archive and rename the resulting folder (e.g. `SDL3-x.y.z`) to `SDL3`.
+- Place the `SDL3` folder inside `platforms/windows/dependencies/` so that the include path is `platforms/windows/dependencies/SDL3/include/SDL3/`.
 - Open the Gearboy Visual Studio solution `platforms/windows/Gearboy.sln` and build.
 
 ### macOS
