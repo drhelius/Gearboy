@@ -111,6 +111,7 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
 
     InitMemoryRules();
     InitDMGPalette();
+    BuildColorCorrectionLUT();
 }
 
 bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer, GB_Debug_Run* debug)
@@ -1111,11 +1112,8 @@ void GearboyCore::EnableColorCorrection(bool enabled)
     m_bColorCorrectionEnabled = enabled;
 }
 
-void GearboyCore::ApplyColorCorrection(u16* pFrameBuffer, int size)
+void GearboyCore::BuildColorCorrectionLUT()
 {
-    if (!IsValidPointer(pFrameBuffer))
-        return;
-
     const float kGamma = 0.6f;
     const float kR1 = 16.0f;
     const float kR2 = 0.0f;
@@ -1139,10 +1137,11 @@ void GearboyCore::ApplyColorCorrection(u16* pFrameBuffer, int size)
     int g_mask = format_565 ? 0x3F : 0x1F;
     int g_max = format_565 ? 63 : 31;
     const float kGScale = 255.0f / (float)g_max;
+    int total = format_565 ? 65536 : 32768;
 
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < total; i++)
     {
-        u16 color = pFrameBuffer[i];
+        u16 color = (u16)i;
         float r8, g8, b8;
 
         if (order_RGB)
@@ -1174,19 +1173,27 @@ void GearboyCore::ApplyColorCorrection(u16* pFrameBuffer, int size)
         u16 g_final = (u16)((CLAMP(g_out, 0.0f, 255.0f) / 255.0f) * (float)g_max + 0.5f);
         u16 b_final = (u16)((CLAMP(b_out, 0.0f, 255.0f) / 255.0f) * 31.0f + 0.5f);
 
+        u16 result;
         if (order_RGB)
-        {
-            pFrameBuffer[i] = (r_final << r_shift) | (g_final << g_shift) | b_final;
-        }
+            result = (r_final << r_shift) | (g_final << g_shift) | b_final;
         else
-        {
-            pFrameBuffer[i] = (b_final << r_shift) | (g_final << g_shift) | r_final;
-        }
+            result = (b_final << r_shift) | (g_final << g_shift) | r_final;
 
         if (!format_565)
-        {
-            pFrameBuffer[i] |= 0x8000;
-        }
+            result |= 0x8000;
+
+        m_ColorCorrectionLUT[i] = result;
+    }
+}
+
+void GearboyCore::ApplyColorCorrection(u16* pFrameBuffer, int size)
+{
+    if (!IsValidPointer(pFrameBuffer))
+        return;
+
+    for (int i = 0; i < size; i++)
+    {
+        pFrameBuffer[i] = m_ColorCorrectionLUT[pFrameBuffer[i]];
     }
 }
 

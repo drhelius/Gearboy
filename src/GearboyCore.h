@@ -103,6 +103,7 @@ public:
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;
     void ApplyColorCorrection(u16* pFrameBuffer, int size);
+    void BuildColorCorrectionLUT();
     void InitDMGPalette();
     void InitMemoryRules();
     bool AddMemoryRules(Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
@@ -136,6 +137,7 @@ private:
     RamChangedCallback m_pRamChangedCallback;
     GB_Color_Format m_pixelFormat;
     bool m_bColorCorrectionEnabled;
+    u16 m_ColorCorrectionLUT[65536];
     u8* m_pSaveStateFrameBuffer;
     TraceLogger* m_trace_logger;
     u64 m_master_clock_cycles;
