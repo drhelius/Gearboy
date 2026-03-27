@@ -124,14 +124,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         }
         case 0x2000:
         {
-            if (m_iMode == 0)
-            {
-                m_iCurrentROMBank = (value & 0x1F) | (m_HigherRomBankBits << 5);
-            }
-            else
-            {
-                m_iCurrentROMBank = value & 0x1F;
-            }
+            m_iCurrentROMBank = (value & 0x1F) | (m_HigherRomBankBits << 5);
 
             if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
                     || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
@@ -144,23 +137,21 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         }
         case 0x4000:
         {
+            m_HigherRomBankBits = value & 0x03;
+            m_iCurrentROMBank = (m_iCurrentROMBank & 0x1F) | (m_HigherRomBankBits << 5);
+
+            if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
+                    || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
+                m_iCurrentROMBank++;
+
+            m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+            m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+
             if (m_iMode == 1)
             {
-                m_iCurrentRAMBank = value & 0x03;
+                m_iCurrentRAMBank = m_HigherRomBankBits;
                 m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
                 m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
-            }
-            else
-            {
-                m_HigherRomBankBits = value & 0x03;
-                m_iCurrentROMBank = (m_iCurrentROMBank & 0x1F) | (m_HigherRomBankBits << 5);
-
-                if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
-                        || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
-                    m_iCurrentROMBank++;
-
-                m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
-                m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
             }
             TraceBankSwitch(address, value);
             break;
