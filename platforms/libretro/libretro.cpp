@@ -478,7 +478,7 @@ bool retro_load_game(const struct retro_game_info *info)
     // HRAM
     descs[1].ptr   = core->GetMemory()->GetMemoryMap() + 0xFF80;
     descs[1].start = 0xFF80;
-    descs[1].len   = 0x0080;
+    descs[1].len   = 0x007F;
     // RAM bank 0
     descs[2].ptr   = core->IsCGB() ? core->GetMemory()->GetCGBRAM() : (core->GetMemory()->GetMemoryMap() + 0xC000);
     descs[2].start = 0xC000;
