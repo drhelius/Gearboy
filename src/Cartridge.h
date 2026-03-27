@@ -73,6 +73,7 @@ public:
     time_t GetCurrentRTC();
     bool IsRTCPresent() const;
     bool IsRumblePresent() const;
+    bool IsMBC30() const;
     void SetGameGenieCheat(const char* szCheat);
     void ClearGameGenieCheats();
 
@@ -101,6 +102,7 @@ private:
     char m_szFileDirectory[512];
     bool m_bRTCPresent;
     bool m_bRumblePresent;
+    bool m_bMBC30;
     int m_iRAMBankCount;
     int m_iROMBankCount;
     std::list<GameGenieCode> m_GameGenieList;

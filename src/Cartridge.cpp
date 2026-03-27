@@ -19,6 +19,7 @@
 
 #include <string>
 #include <algorithm>
+#include <cstring>
 #include <ctype.h>
 #include "Cartridge.h"
 #include "miniz.h"
@@ -44,6 +45,7 @@ Cartridge::Cartridge()
     m_szFileDirectory[0] = 0;
     m_bRTCPresent = false;
     m_bRumblePresent = false;
+    m_bMBC30 = false;
     m_iRAMBankCount = 0;
     m_iROMBankCount = 0;
 }
@@ -78,6 +80,7 @@ void Cartridge::Reset()
     m_szFileDirectory[0] = 0;
     m_bRTCPresent = false;
     m_bRumblePresent = false;
+    m_bMBC30 = false;
     m_iRAMBankCount = 0;
     m_iROMBankCount = 0;
     m_GameGenieList.clear();
@@ -502,6 +505,11 @@ bool Cartridge::IsRumblePresent() const
     return m_bRumblePresent;
 }
 
+bool Cartridge::IsMBC30() const
+{
+    return m_bMBC30;
+}
+
 void Cartridge::SetGameGenieCheat(const char* szCheat)
 {
     std::string code(szCheat);
@@ -615,12 +623,23 @@ bool Cartridge::GatherMetadata()
 
     m_iROMBankCount = std::max(Pow2Ceil(m_iTotalSize / 0x4000), 2u);
 
-    bool presumeMultiMBC1 = ((type == 1) && (m_iRAMSize == 0) && (m_iROMBankCount == 64));
 
-    if ((m_Type == Cartridge::CartridgeMBC1) && presumeMultiMBC1)
+    if (m_Type == Cartridge::CartridgeMBC1)
     {
-        m_Type = Cartridge::CartridgeMBC1Multi;
-        Debug("Presumed Multi 64");
+        if (m_iTotalSize >= 0x44000 && memcmp(m_pTheROM + 0x104, m_pTheROM + 0x40104, 0x30) == 0)
+        {
+            m_Type = Cartridge::CartridgeMBC1Multi;
+            Debug("MBC1M detected via Nintendo logo comparison");
+        }
+    }
+
+    if (m_Type == Cartridge::CartridgeMBC3)
+    {
+        int totalRamSize = m_iRAMBankCount * 0x2000;
+        if (m_iTotalSize > 0x200000 || totalRamSize > 0x8000)
+        {
+            m_bMBC30 = true;
+        }
     }
 
     Log("Cartridge Size %d", m_iTotalSize);
@@ -662,6 +681,11 @@ bool Cartridge::GatherMetadata()
     if (m_bBattery)
     {
         Log("Battery powered RAM found");
+    }
+
+    if (m_bMBC30)
+    {
+        Log("MBC30 variant detected");
     }
 
     if (m_pTheROM[0x143] == 0xC0)

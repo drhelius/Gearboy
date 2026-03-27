@@ -509,6 +509,7 @@ json DebugAdapter::GetMediaInfo()
     info["is_sgb"] = cart->IsSGB();
     info["is_rtc"] = cart->IsRTCPresent();
     info["is_rumble"] = cart->IsRumblePresent();
+    info["is_mbc30"] = cart->IsMBC30();
     info["version"] = cart->GetVersion();
     info["valid_rom"] = cart->IsValidROM();
 

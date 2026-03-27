@@ -29,7 +29,8 @@ MBC3MemoryRule::MBC3MemoryRule(Processor* pProcessor,
         Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
 pMemory, pVideo, pInput, pCartridge, pAudio)
 {
-    m_pRAMBanks = new u8[0x8000];
+    m_iRAMBanksSize = m_pCartridge->IsMBC30() ? 0x10000 : 0x8000;
+    m_pRAMBanks = new u8[m_iRAMBanksSize];
     Reset(false);
 }
 
@@ -45,7 +46,7 @@ void MBC3MemoryRule::Reset(bool bCGB)
     m_iCurrentROMBank = 1;
     m_bRamEnabled = false;
     m_bRTCEnabled = false;
-    for (int i = 0; i < 0x8000; i++)
+    for (int i = 0; i < m_iRAMBanksSize; i++)
         m_pRAMBanks[i] = 0xFF;
     m_RTC.Seconds = 0;
     m_RTC.Minutes = 0;
@@ -82,6 +83,8 @@ u8 MBC3MemoryRule::PerformRead(u16 address)
             {
                 if (m_bRamEnabled)
                 {
+                    if (!m_pCartridge->IsMBC30() && m_pCartridge->IsRTCPresent() && m_iCurrentRAMBank > 3)
+                        return 0xFF;
                     return m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress];
                 }
                 else
@@ -95,19 +98,19 @@ u8 MBC3MemoryRule::PerformRead(u16 address)
                 switch (m_RTCRegister)
                 {
                     case 0x08:
-                        return m_RTC.LatchedSeconds;
+                        return m_RTC.LatchedSeconds & 0x3F;
                         break;
                     case 0x09:
-                        return m_RTC.LatchedMinutes;
+                        return m_RTC.LatchedMinutes & 0x3F;
                         break;
                     case 0x0A:
-                        return m_RTC.LatchedHours;
+                        return m_RTC.LatchedHours & 0x1F;
                         break;
                     case 0x0B:
                         return m_RTC.LatchedDays;
                         break;
                     case 0x0C:
-                        return m_RTC.LatchedControl;
+                        return m_RTC.LatchedControl & 0xC1;
                         break;
                     default:
                         return 0xFF;
@@ -132,22 +135,22 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
     {
         case 0x0000:
         {
-            if (m_pCartridge->GetRAMSize() > 0)
-            {
-                bool previous = m_bRamEnabled;
-                m_bRamEnabled = ((value & 0x0F) == 0x0A);
+            bool previous = m_bRamEnabled;
+            m_bRamEnabled = ((value & 0x0F) == 0x0A);
 
-                if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-                {
-                    (*m_pRamChangedCallback)();
-                }
+            if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
+            {
+                (*m_pRamChangedCallback)();
             }
             m_bRTCEnabled = ((value & 0x0F) == 0x0A);
             break;
         }
         case 0x2000:
         {
-            m_iCurrentROMBank = value & 0x7F;
+            if (m_pCartridge->IsMBC30())
+                m_iCurrentROMBank = value;
+            else
+                m_iCurrentROMBank = value & 0x7F;
             if (m_iCurrentROMBank == 0)
                 m_iCurrentROMBank = 1;
             m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
@@ -170,7 +173,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                     Debug("--> ** Attempting to select RTC register when RTC is disabled or not present %X %X", address, value);
                 }
             }
-            else if (value <= 0x03)
+            else if (value <= 0x07)
             {
                 m_iCurrentRAMBank = value;
                 m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
@@ -179,7 +182,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else
             {
-                Debug("--> ** Attempting to select unkwon register %X %X", address, value);
+                Debug("--> ** Attempting to select unknown register %X %X", address, value);
             }
             break;
         }
@@ -208,6 +211,8 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             {
                 if (m_bRamEnabled)
                 {
+                    if (!m_pCartridge->IsMBC30() && m_pCartridge->IsRTCPresent() && m_iCurrentRAMBank > 3)
+                        break;
                     m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress] = value;
                 }
                 else
@@ -305,7 +310,7 @@ void MBC3MemoryRule::SaveRam(std::ostream & file)
 {
     Debug("MBC3MemoryRule save RAM...");
 
-    for (int i = 0; i < 0x8000; i++)
+    for (int i = 0; i < m_iRAMBanksSize; i++)
     {
         u8 ram_byte = m_pRAMBanks[i];
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
@@ -330,16 +335,16 @@ bool MBC3MemoryRule::LoadRam(std::istream & file, s32 fileSize)
 
     if (fileSize > 0)
     {
-        if (fileSize < 0x8000)
+        if (fileSize < m_iRAMBanksSize)
         {
-            Log("MBC3MemoryRule incorrect RAM size. Expected: %d Found: %d", 0x8000, fileSize);
+            Log("MBC3MemoryRule incorrect RAM size. Expected: %d Found: %d", m_iRAMBanksSize, fileSize);
             return false;
         }
 
         if (loadRTC)
         {
-            s32 minExpectedSize = 0x8000 + 44;
-            s32 maxExpectedSize = 0x8000 + 48;
+            s32 minExpectedSize = m_iRAMBanksSize + 44;
+            s32 maxExpectedSize = m_iRAMBanksSize + 48;
 
             if ((fileSize != minExpectedSize) && (fileSize != maxExpectedSize))
             {
@@ -354,7 +359,7 @@ bool MBC3MemoryRule::LoadRam(std::istream & file, s32 fileSize)
         }
     }
 
-    for (int i = 0; i < 0x8000; i++)
+    for (int i = 0; i < m_iRAMBanksSize; i++)
     {
         u8 ram_byte = 0;
         file.read(reinterpret_cast<char*> (&ram_byte), 1);
@@ -374,7 +379,7 @@ bool MBC3MemoryRule::LoadRam(std::istream & file, s32 fileSize)
 
 size_t MBC3MemoryRule::GetRamSize()
 {
-    return 0x8000;
+    return m_iRAMBanksSize;
 }
 
 size_t MBC3MemoryRule::GetRTCSize()
@@ -431,7 +436,7 @@ void MBC3MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
     stream.write(reinterpret_cast<const char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
     stream.write(reinterpret_cast<const char*> (&m_bRTCEnabled), sizeof(m_bRTCEnabled));
-    stream.write(reinterpret_cast<const char*> (m_pRAMBanks), 0x8000);
+    stream.write(reinterpret_cast<const char*> (m_pRAMBanks), m_iRAMBanksSize);
     stream.write(reinterpret_cast<const char*> (&m_iRTCLatch), sizeof(m_iRTCLatch));
     stream.write(reinterpret_cast<const char*> (&m_RTCRegister), sizeof(m_RTCRegister));
     stream.write(reinterpret_cast<const char*> (&m_RTCLastTimeCache), sizeof(m_RTCLastTimeCache));
@@ -448,7 +453,7 @@ void MBC3MemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
     stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
     stream.read(reinterpret_cast<char*> (&m_bRTCEnabled), sizeof(m_bRTCEnabled));
-    stream.read(reinterpret_cast<char*> (m_pRAMBanks), 0x8000);
+    stream.read(reinterpret_cast<char*> (m_pRAMBanks), m_iRAMBanksSize);
     stream.read(reinterpret_cast<char*> (&m_iRTCLatch), sizeof(m_iRTCLatch));
     stream.read(reinterpret_cast<char*> (&m_RTCRegister), sizeof(m_RTCRegister));
     stream.read(reinterpret_cast<char*> (&m_RTCLastTimeCache), sizeof(m_RTCLastTimeCache));
