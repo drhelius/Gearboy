@@ -70,6 +70,7 @@ private:
     int m_iStatusMode;
     int m_iStatusModeCounter;
     int m_iStatusModeCounterAux;
+    int m_iPendingVBlankInterruptCycles;
     int m_iStatusModeLYCounter;
     int m_iScreenEnableDelayCycles;
     int m_iStatusVBlankLine;

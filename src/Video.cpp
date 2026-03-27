@@ -35,6 +35,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iStatusMode = 0;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
+    m_iPendingVBlankInterruptCycles = 0;
     m_iStatusModeLYCounter = 0;
     m_iScreenEnableDelayCycles = 0;
     m_iStatusVBlankLine = 0;
@@ -84,6 +85,7 @@ void Video::Reset(bool bCGB)
     m_iStatusMode = 1;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
+    m_iPendingVBlankInterruptCycles = 0;
     m_iStatusModeLYCounter = 144;
     m_iScreenEnableDelayCycles = 0;
     m_iStatusVBlankLine = 0;
@@ -104,6 +106,27 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
 
     bool vblank = false;
     m_iStatusModeCounter += clockCycles;
+
+    if (m_iPendingVBlankInterruptCycles > 0)
+    {
+        m_iPendingVBlankInterruptCycles -= clockCycles;
+
+        if (m_iPendingVBlankInterruptCycles <= 0)
+        {
+            m_iPendingVBlankInterruptCycles = 0;
+            m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | Processor::VBlank_Interrupt);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+            if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+            {
+                GB_Trace_Entry e = {};
+                e.type = TRACE_LCD_STATUS;
+                e.lcd_status.event = GB_LCD_EVENT_VBLANK;
+                e.lcd_status.line = (u16)m_iStatusModeLYCounter;
+                m_pTraceLogger->TraceLog(e);
+            }
+#endif
+        }
+    }
 
     if (m_bScreenEnabled)
     {
@@ -144,17 +167,24 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                         m_iStatusVBlankLine = 0;
                         m_iStatusModeCounterAux = m_iStatusModeCounter;
 
-                        m_pProcessor->RequestInterrupt(Processor::VBlank_Interrupt);
-#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-                        if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                        if (m_pProcessor->CGBSpeed())
                         {
-                            GB_Trace_Entry e = {};
-                            e.type = TRACE_LCD_STATUS;
-                            e.lcd_status.event = GB_LCD_EVENT_VBLANK;
-                            e.lcd_status.line = (u16)m_iStatusModeLYCounter;
-                            m_pTraceLogger->TraceLog(e);
+                            m_iPendingVBlankInterruptCycles = 12;
                         }
+                        else
+                        {
+                            m_pProcessor->RequestInterrupt(Processor::VBlank_Interrupt);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                            if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                            {
+                                GB_Trace_Entry e = {};
+                                e.type = TRACE_LCD_STATUS;
+                                e.lcd_status.event = GB_LCD_EVENT_VBLANK;
+                                e.lcd_status.line = (u16)m_iStatusModeLYCounter;
+                                m_pTraceLogger->TraceLog(e);
+                            }
 #endif
+                        }
 
                         m_IRQ48Signal &= 0x09;
                         u8 stat = m_pMemory->Retrieve(0xFF41);
@@ -360,6 +390,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                 m_iStatusMode = 0;
                 m_iStatusModeCounter = 0;
                 m_iStatusModeCounterAux = 0;
+                m_iPendingVBlankInterruptCycles = 0;
                 m_iStatusModeLYCounter = 0;
                 m_iWindowLine = 0;
                 m_iStatusVBlankLine = 0;
@@ -405,6 +436,7 @@ void Video::DisableScreen()
     m_iStatusMode = 0;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
+    m_iPendingVBlankInterruptCycles = 0;
     m_iStatusModeLYCounter = 0;
     m_IRQ48Signal = 0;
 }
@@ -953,6 +985,7 @@ void Video::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iWindowLine), sizeof(m_iWindowLine));
     stream.read(reinterpret_cast<char*> (&m_iHideFrames), sizeof(m_iHideFrames));
     stream.read(reinterpret_cast<char*> (&m_IRQ48Signal), sizeof(m_IRQ48Signal));
+    m_iPendingVBlankInterruptCycles = 0;
 }
 
 PaletteMatrix Video::GetCGBBackgroundPalettes()
