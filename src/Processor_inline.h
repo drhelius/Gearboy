@@ -60,7 +60,26 @@ inline void Processor::RequestInterrupt(Interrupts interrupt)
 inline void Processor::ResetTIMACycles()
 {
     m_iTIMACycles = 0;
-    m_pMemory->Load(0xFF05, m_pMemory->Retrieve(0xFF06));
+}
+
+inline u16 Processor::GetDIVCounter() const
+{
+    return ((u16)m_pMemory->Retrieve(0xFF04) << 8) | (m_iDIVCycles & 0xFF);
+}
+
+inline void Processor::IncrementTIMA()
+{
+    u8 tima = m_pMemory->Retrieve(0xFF05);
+
+    if (tima == 0xFF)
+    {
+        m_pMemory->Load(0xFF05, m_pMemory->Retrieve(0xFF06));
+        RequestInterrupt(Timer_Interrupt);
+    }
+    else
+    {
+        m_pMemory->Load(0xFF05, tima + 1);
+    }
 }
 
 inline void Processor::ResetDIVCycles()

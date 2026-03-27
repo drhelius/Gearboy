@@ -117,6 +117,8 @@ typedef void (*RamChangedCallback) (void);
 #define GB_SAVESTATE_MIN_VERSION 100
 #define GB_SAVESTATE_LEGACY_VERSION 0
 
+static const u16 kTACTriggerBits[] = {512, 8, 32, 128};
+
 struct GB_SaveState_Header
 {
     u32 magic;

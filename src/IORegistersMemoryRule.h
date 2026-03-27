@@ -233,6 +233,18 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         case 0xFF04:
         {
             // DIV
+            u8 tac = m_pMemory->Retrieve(0xFF07);
+
+            if (tac & 0x04)
+            {
+                u16 bit = kTACTriggerBits[tac & 0x03];
+
+                if (m_pProcessor->GetDIVCounter() & bit)
+                {
+                    m_pProcessor->IncrementTIMA();
+                }
+            }
+
             m_pProcessor->ResetDIVCycles();
             break;
         }
@@ -241,6 +253,23 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             // TAC
             value &= 0x07;
             u8 current_tac = m_pMemory->Retrieve(0xFF07);
+
+            if (current_tac & 0x04)
+            {
+                u16 old_bit = kTACTriggerBits[current_tac & 0x03];
+                bool old_bit_set = (m_pProcessor->GetDIVCounter() & old_bit) != 0;
+
+                if (old_bit_set)
+                {
+                    bool will_stay_high = (value & 0x04) &&
+                        ((m_pProcessor->GetDIVCounter() & kTACTriggerBits[value & 0x03]) != 0);
+                    if (!will_stay_high)
+                    {
+                        m_pProcessor->IncrementTIMA();
+                    }
+                }
+            }
+
             if ((current_tac & 0x03) != (value & 0x03))
             {
                 m_pProcessor->ResetTIMACycles();

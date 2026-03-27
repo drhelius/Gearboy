@@ -102,6 +102,8 @@ public:
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
     void ResetDIVCycles();
+    u16 GetDIVCounter() const;
+    void IncrementTIMA();
     bool DuringOpCode() const;
     bool CGBSpeed() const;
     void AddCycles(unsigned int cycles);
