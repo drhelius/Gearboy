@@ -42,6 +42,7 @@ public:
     const u8* GetFrameBuffer() const;
     void UpdatePaletteToSpecification(bool background, u8 value);
     void SetColorPalette(bool background, u8 value);
+    bool CGBPaletteAccessBlocked() const;
     int GetCurrentStatusMode() const;
     void ResetWindowLine();
     void CompareLYToLYC();

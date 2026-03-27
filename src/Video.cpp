@@ -518,6 +518,11 @@ void Video::SetColorPalette(bool background, u8 value)
 
 }
 
+bool Video::CGBPaletteAccessBlocked() const
+{
+    return m_bCGB && m_bScreenEnabled && (m_iStatusMode == 3);
+}
+
 int Video::GetCurrentStatusMode() const
 {
     return m_iStatusMode;

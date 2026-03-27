@@ -198,7 +198,7 @@ inline u8 IORegistersMemoryRule::PerformRead(u16 address)
         case 0xFF6B:
         {
             // BCPD, OCPD
-            return (m_bCGB ? m_pMemory->Retrieve(address) : 0xFF);
+            return (m_bCGB ? (m_pVideo->CGBPaletteAccessBlocked() ? 0xFF : m_pMemory->Retrieve(address)) : 0xFF);
         }
         case 0xFF70:
         {
@@ -575,9 +575,29 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         case 0xFF69:
         {
             // BCPD
-            m_pMemory->Load(address, value);
             if (m_bCGB)
-                m_pVideo->SetColorPalette(true, value);
+            {
+                if (m_pVideo->CGBPaletteAccessBlocked())
+                {
+                    u8 bcps = m_pMemory->Retrieve(0xFF68);
+                    if (IsSetBit(bcps, 7))
+                    {
+                        u8 address = (bcps + 1) & 0x3F;
+                        bcps = (bcps & 0x80) | address;
+                        m_pMemory->Load(0xFF68, bcps);
+                        m_pVideo->UpdatePaletteToSpecification(true, bcps);
+                    }
+                }
+                else
+                {
+                    m_pMemory->Load(address, value);
+                    m_pVideo->SetColorPalette(true, value);
+                }
+            }
+            else
+            {
+                m_pMemory->Load(address, value);
+            }
             break;
         }
         case 0xFF6A:
@@ -591,9 +611,29 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         case 0xFF6B:
         {
             // OCPD
-            m_pMemory->Load(address, value);
             if (m_bCGB)
-                m_pVideo->SetColorPalette(false, value);
+            {
+                if (m_pVideo->CGBPaletteAccessBlocked())
+                {
+                    u8 ocps = m_pMemory->Retrieve(0xFF6A);
+                    if (IsSetBit(ocps, 7))
+                    {
+                        u8 address = (ocps + 1) & 0x3F;
+                        ocps = (ocps & 0x80) | address;
+                        m_pMemory->Load(0xFF6A, ocps);
+                        m_pVideo->UpdatePaletteToSpecification(false, ocps);
+                    }
+                }
+                else
+                {
+                    m_pMemory->Load(address, value);
+                    m_pVideo->SetColorPalette(false, value);
+                }
+            }
+            else
+            {
+                m_pMemory->Load(address, value);
+            }
             break;
         }
         case 0xFF6C:
