@@ -56,20 +56,13 @@ u8 MBC2MemoryRule::PerformRead(u16 address)
         }
         case 0xA000:
         {
-            if (address < 0xA200)
-            {
-                if (m_bRamEnabled)
-                    return m_pMemory->Retrieve(address) | 0xF0;
-                else
-                {
-                    Debug("--> ** Attempting to read from disabled ram %X", address);
-                    return 0xFF;
-                }
-            }
+            u16 ramAddr = 0xA000 + ((address - 0xA000) & 0x1FF);
+            if (m_bRamEnabled)
+                return m_pMemory->Retrieve(ramAddr) | 0xF0;
             else
             {
-                Debug("--> ** Attempting to read from ivalid RAM %X", address);
-                return 0x00;
+                Debug("--> ** Attempting to read from disabled ram %X", address);
+                return 0xFF;
             }
         }
         default:
@@ -84,27 +77,11 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
     switch (address & 0xE000)
     {
         case 0x0000:
-        {
-            if (!(address & 0x0100))
-            {
-                bool previous = m_bRamEnabled;
-                m_bRamEnabled = ((value & 0x0F) == 0x0A);
-
-                if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-                {
-                    (*m_pRamChangedCallback)();
-                }
-            }
-            else
-            {
-                Debug("--> ** Attempting to write on invalid register %X %X", address, value);
-            }
-            break;
-        }
         case 0x2000:
         {
             if (address & 0x0100)
             {
+                // ROM bank select (bit 8 set)
                 m_iCurrentROMBank = value & 0x0F;
                 if (m_iCurrentROMBank == 0)
                     m_iCurrentROMBank = 1;
@@ -114,7 +91,14 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else
             {
-                Debug("--> ** Attempting to write on invalid register %X %X", address, value);
+                // RAM enable (bit 8 clear)
+                bool previous = m_bRamEnabled;
+                m_bRamEnabled = ((value & 0x0F) == 0x0A);
+
+                if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
+                {
+                    (*m_pRamChangedCallback)();
+                }
             }
             break;
         }
@@ -126,20 +110,14 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
         }
         case 0xA000:
         {
-            if (address < 0xA200)
+            u16 ramAddr = 0xA000 + ((address - 0xA000) & 0x1FF);
+            if (m_bRamEnabled)
             {
-                if (m_bRamEnabled)
-                {
-                    m_pMemory->Load(address, value & 0x0F);
-                }
-                else
-                {
-                    Debug("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
-                }
+                m_pMemory->Load(ramAddr, value & 0x0F);
             }
             else
             {
-                Debug("--> ** Attempting to write on invalid RAM %X %X", address, value);
+                Debug("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
             }
             break;
         }
