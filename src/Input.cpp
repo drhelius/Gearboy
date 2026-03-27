@@ -58,6 +58,13 @@ void Input::Update()
 
     switch (current & 0x30)
     {
+        case 0x00:
+        {
+            u8 topJoypad = (m_JoypadState >> 4) & 0x0F;
+            u8 bottomJoypad = m_JoypadState & 0x0F;
+            current |= topJoypad & bottomJoypad;
+            break;
+        }
         case 0x10:
         {
             u8 topJoypad = (m_JoypadState >> 4) & 0x0F;
