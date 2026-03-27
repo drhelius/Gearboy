@@ -184,6 +184,7 @@ u8 Processor::RunFor(u8 ticks)
         }
 
         bool interrupt_served = false;
+        bool halt_bug_active = false;
 
         if (!m_bHalt)
         {
@@ -205,7 +206,7 @@ u8 Processor::RunFor(u8 ticks)
 
                 if (m_bSkipPCBug)
                 {
-                    m_bSkipPCBug = false;
+                    halt_bug_active = true;
                     PC.Decrement();
                 }
 
@@ -225,7 +226,7 @@ u8 Processor::RunFor(u8 ticks)
 
                     if (m_bSkipPCBug)
                     {
-                        m_bSkipPCBug = false;
+                        halt_bug_active = true;
                         PC.Decrement();
                     }
                 }
@@ -241,13 +242,20 @@ u8 Processor::RunFor(u8 ticks)
                     int left_cycles = (accurateOPcodes[opcode] < 3 ? 2 : 3);
                     m_iCurrentClockCycles += (machineCycles[opcode] - left_cycles) * AdjustedCycles(4);
                     m_iAccurateOPCodeState = 1;
-                    PC.Decrement();
-                    if (isCB)
+
+                    if (!halt_bug_active)
+                    {
                         PC.Decrement();
+                        if (isCB)
+                            PC.Decrement();
+                    }
                 }
                 else
                 {
                     (this->*opcodeTable[opcode])();
+
+                    if (halt_bug_active)
+                        m_bSkipPCBug = false;
 
                     if (m_bBranchTaken)
                     {
