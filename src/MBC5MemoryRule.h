@@ -45,10 +45,15 @@ public:
     virtual void LoadState(std::istream& stream);
 
 private:
+    void UpdateBanks();
+
+private:
     int m_iCurrentRAMBank;
     int m_iCurrentROMBank;
-    int m_iCurrentROMBankHi;
+    u8 m_RomBankLow;
+    u8 m_RomBankHigh;
     bool m_bRamEnabled;
+    int m_iRumbleStrength;
     u8* m_pRAMBanks;
     int m_CurrentROMAddress;
     int m_CurrentRAMAddress;
