@@ -3,7 +3,8 @@ LOCAL_PATH := $(call my-dir)
 ROOT_DIR   := $(LOCAL_PATH)/../../..
 CORE_DIR   := $(ROOT_DIR)/platforms/libretro
 SOURCE_DIR := $(ROOT_DIR)/src
-INCLUDES   := -I$(CORE_DIR)
+DEPS_DIR   := $(ROOT_DIR)/platforms/shared/dependencies
+INCLUDES   := -I$(CORE_DIR) -I$(DEPS_DIR)/miniz
 
 include $(CORE_DIR)/Makefile.common
 
