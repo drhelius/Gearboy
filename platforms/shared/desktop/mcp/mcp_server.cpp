@@ -318,30 +318,30 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "set_breakpoint"},
         {"title", "Set Breakpoint"},
-        {"description", "Set a breakpoint at specified address in Game Boy memory (ROM/RAM, VRAM, or IO registers)"},
+        {"description", "Set a breakpoint at an address. Defaults: rom_ram=execute, vram/io=read+write."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"address", {
                     {"type", "string"},
-                    {"description", "Address in hex (e.g., '8000', '0x8000', '$8000'). Valid ranges: rom_ram 0000-FFFF (logical), vram 0000-1FFF (0-based offset), io 0000-007F (0-based offset)"}
+                    {"description", "Hex address. Ranges: rom_ram 0000-FFFF, vram 0000-1FFF, io 0000-007F"}
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram (default, 0000-FFFF logical), vram (0000-1FFF, 0-based offset into VRAM), io (0000-007F, 0-based offset into IO space)"},
+                    {"description", "rom_ram (default), vram (0-based offset), or io (0-based offset, e.g. 0x00=joypad)"},
                     {"enum", json::array({"rom_ram", "vram", "io"})}
                 }},
                 {"read", {
                     {"type", "boolean"},
-                    {"description", "Break on memory read (default: false). IMPORTANT: Read breakpoints stop with PC at the instruction after the memory access."}
+                    {"description", "Break on read. Default: true for vram/io, false for rom_ram. Stops at instruction AFTER the access."}
                 }},
                 {"write", {
                     {"type", "boolean"},
-                    {"description", "Break on memory write (default: false). IMPORTANT: Write breakpoints stop with PC at the instruction after the memory access."}
+                    {"description", "Break on write. Default: true for vram/io, false for rom_ram. Stops at instruction AFTER the access."}
                 }},
                 {"execute", {
                     {"type", "boolean"},
-                    {"description", "Break on execution (default: true). Only valid for rom_ram memory area."}
+                    {"description", "Break on execution. Default: true for rom_ram, ignored for vram/io."}
                 }}
             }},
             {"required", json::array({"address"})}
@@ -351,34 +351,34 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "set_breakpoint_range"},
         {"title", "Set Breakpoint Range"},
-        {"description", "Set a breakpoint for a logical address range"},
+        {"description", "Set a breakpoint on an address range. Defaults: rom_ram=execute, vram/io=read+write."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"start_address", {
                     {"type", "string"},
-                    {"description", "Start address in hex (e.g., '8000'). Valid ranges: rom_ram 0000-FFFF (logical), vram 0000-1FFF (0-based offset), io 0000-007F (0-based offset)"}
+                    {"description", "Start hex address. Ranges: rom_ram 0000-FFFF, vram 0000-1FFF, io 0000-007F"}
                 }},
                 {"end_address", {
                     {"type", "string"},
-                    {"description", "End address in hex (e.g., '8FFF'). Valid ranges: rom_ram 0000-FFFF (logical), vram 0000-1FFF (0-based offset), io 0000-007F (0-based offset)"}
+                    {"description", "End hex address (inclusive). Must be >= start_address."}
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram (0000-FFFF logical), vram (0000-1FFF, 0-based offset), io (0000-007F, 0-based offset)"},
+                    {"description", "rom_ram (default), vram (0-based offset), or io (0-based offset)"},
                     {"enum", json::array({"rom_ram", "vram", "io"})}
                 }},
                 {"read", {
                     {"type", "boolean"},
-                    {"description", "Break on memory read (default: false). IMPORTANT: Read breakpoints stop with PC at the instruction after the memory access."}
+                    {"description", "Break on read. Default: true for vram/io, false for rom_ram."}
                 }},
                 {"write", {
                     {"type", "boolean"},
-                    {"description", "Break on memory write (default: false). IMPORTANT: Write breakpoints stop with PC at the instruction after the memory access."}
+                    {"description", "Break on write. Default: true for vram/io, false for rom_ram."}
                 }},
                 {"execute", {
                     {"type", "boolean"},
-                    {"description", "Break on execution (default: true). Only valid for rom_ram memory area."}
+                    {"description", "Break on execution. Default: true for rom_ram, ignored for vram/io."}
                 }}
             }},
             {"required", json::array({"start_address", "end_address"})}
@@ -388,21 +388,21 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "remove_breakpoint"},
         {"title", "Remove Breakpoint"},
-        {"description", "Clear a breakpoint. Must match how it was set: single address needs 'address' only, range needs both 'address' and 'end_address' with exact values."},
+        {"description", "Remove a breakpoint. For ranges, provide both address and end_address with exact values used when creating."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"address", {
                     {"type", "string"},
-                    {"description", "Logical address in hex (e.g., '8000'). For ranges: the start address"}
+                    {"description", "Hex address (or start address for ranges)"}
                 }},
                 {"end_address", {
                     {"type", "string"},
-                    {"description", "Logical end address in hex (e.g., '8FFF'). Required only for range breakpoints. Must match the end address used when creating the range"}
+                    {"description", "End hex address (only for range breakpoints)"}
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram (default), vram, io"},
+                    {"description", "rom_ram (default), vram, or io"},
                     {"enum", json::array({"rom_ram", "vram", "io"})}
                 }}
             }},
@@ -1354,11 +1354,12 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         std::string memory_area = arguments.value("memory_area", "rom_ram");
         int breakpoint_type = GetBreakpointTypeFromString(memory_area);
 
-        bool read = arguments.value("read", false);
-        bool write = arguments.value("write", false);
-        bool execute = arguments.value("execute", true);
+        bool is_data_area = (breakpoint_type != 0);
+        bool read = arguments.value("read", is_data_area);
+        bool write = arguments.value("write", is_data_area);
+        bool execute = arguments.value("execute", !is_data_area);
 
-        if (breakpoint_type != 0)
+        if (is_data_area)
             execute = false;
 
         if (!read && !write && !execute)
@@ -1396,11 +1397,12 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         std::string memory_area = arguments.value("memory_area", "rom_ram");
         int breakpoint_type = GetBreakpointTypeFromString(memory_area);
 
-        bool read = arguments.value("read", false);
-        bool write = arguments.value("write", false);
-        bool execute = arguments.value("execute", true);
+        bool is_data_area = (breakpoint_type != 0);
+        bool read = arguments.value("read", is_data_area);
+        bool write = arguments.value("write", is_data_area);
+        bool execute = arguments.value("execute", !is_data_area);
 
-        if (breakpoint_type != 0)
+        if (is_data_area)
             execute = false;
 
         if (!read && !write && !execute)
