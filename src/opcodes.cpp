@@ -1903,9 +1903,9 @@ void Processor::OPCode0xF8()
     s8 n = m_pMemory->Read(PC.GetValue());
     u16 result = SP.GetValue() + n;
     ClearAllFlags();
-    if (((SP.GetValue() ^ n ^ result) & 0x100) == 0x100)
+    if ((SP.GetValue() & 0xFF) + (n & 0xFF) > 0xFF)
         ToggleFlag(FLAG_CARRY);
-    if (((SP.GetValue() ^ n ^ result) & 0x10) == 0x10)
+    if ((SP.GetValue() & 0xF) + (n & 0xF) > 0xF)
         ToggleFlag(FLAG_HALF);
     HL.SetValue(result);
     PC.Increment();

@@ -348,11 +348,11 @@ inline void Processor::OPCodes_ADD_SP(s8 number)
 {
     int result = SP.GetValue() + number;
     ClearAllFlags();
-    if (((SP.GetValue() ^ number ^ (result & 0xFFFF)) & 0x100) == 0x100)
+    if ((SP.GetValue() & 0xFF) + (number & 0xFF) > 0xFF)
     {
         ToggleFlag(FLAG_CARRY);
     }
-    if (((SP.GetValue() ^ number ^ (result & 0xFFFF)) & 0x10) == 0x10)
+    if ((SP.GetValue() & 0xF) + (number & 0xF) > 0xF)
     {
         ToggleFlag(FLAG_HALF);
     }
