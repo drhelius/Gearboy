@@ -31,6 +31,8 @@ public:
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset(bool bCGB);
+    virtual void SaveRam(std::ostream &file);
+    virtual bool LoadRam(std::istream &file, s32 fileSize);
     virtual size_t GetRamSize();
     virtual u8* GetRamBanks();
     virtual u8* GetCurrentRamBank();
@@ -52,6 +54,8 @@ private:
     int m_iMBC1Bank_1;
     int m_iMBC1MBank_0;
     int m_iMBC1MBank_1;
+    bool m_bRamEnabled;
+    u8* m_pRAMBanks;
 };
 
 #endif	/* MULTIMBC1MEMORYRULE_H */
