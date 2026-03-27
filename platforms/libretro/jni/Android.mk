@@ -4,7 +4,7 @@ ROOT_DIR   := $(LOCAL_PATH)/../../..
 CORE_DIR   := $(ROOT_DIR)/platforms/libretro
 SOURCE_DIR := $(ROOT_DIR)/src
 DEPS_DIR   := $(ROOT_DIR)/platforms/shared/dependencies
-INCLUDES   := -I$(CORE_DIR) -I$(DEPS_DIR)/miniz
+INCLUDES   := -I$(CORE_DIR) -I$(SOURCE_DIR) -I$(DEPS_DIR)/miniz
 
 include $(CORE_DIR)/Makefile.common
 
@@ -23,3 +23,4 @@ LOCAL_CXXFLAGS  := $(COREFLAGS)
 LOCAL_LDFLAGS   := -Wl,-version-script=$(CORE_DIR)/link.T
 LOCAL_LDLIBS 	:= -llog
 include $(BUILD_SHARED_LIBRARY)
+
