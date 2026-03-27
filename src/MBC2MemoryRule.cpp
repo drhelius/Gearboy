@@ -59,7 +59,7 @@ u8 MBC2MemoryRule::PerformRead(u16 address)
             if (address < 0xA200)
             {
                 if (m_bRamEnabled)
-                    return m_pMemory->Retrieve(address);
+                    return m_pMemory->Retrieve(address) | 0xF0;
                 else
                 {
                     Debug("--> ** Attempting to read from disabled ram %X", address);
