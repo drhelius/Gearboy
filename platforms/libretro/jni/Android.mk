@@ -23,4 +23,3 @@ LOCAL_CXXFLAGS  := $(COREFLAGS)
 LOCAL_LDFLAGS   := -Wl,-version-script=$(CORE_DIR)/link.T
 LOCAL_LDLIBS 	:= -llog
 include $(BUILD_SHARED_LIBRARY)
-
