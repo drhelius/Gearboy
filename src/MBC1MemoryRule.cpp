@@ -158,14 +158,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         }
         case 0x6000:
         {
-            if ((m_pCartridge->GetRAMSize() != 3) && (value & 0x01))
-            {
-                Debug("--> ** Attempting to change MBC1 to mode 1 with incorrect RAM banks %X %X", address, value);
-            }
-            else
-            {
-                m_iMode = value & 0x01;
-            }
+            m_iMode = value & 0x01;
             break;
         }
         case 0xA000:
