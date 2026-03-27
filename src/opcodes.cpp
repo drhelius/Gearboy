@@ -131,6 +131,7 @@ void Processor::OPCode0x10()
 {
     // STOP
     PC.Increment();
+    ResetDIVCycles();
 
     if (m_bCGB)
     {
