@@ -379,6 +379,18 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             u8 lcdc = m_pMemory->Retrieve(0xFF40);
             u8 signal = m_pVideo->GetIRQ48Signal();
             int mode = m_pVideo->GetCurrentStatusMode();
+
+            if (!m_bCGB && IsSetBit(lcdc, 7) && signal == 0)
+            {
+                u8 ly = m_pMemory->Retrieve(0xFF44);
+                u8 lyc = m_pMemory->Retrieve(0xFF45);
+                if (mode != 3 || ly == lyc)
+                {
+                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                    signal = 0x0F;
+                }
+            }
+
             signal &= ((new_stat >> 3) & 0x0F);
             m_pVideo->SetIRQ48Signal(signal);
 
