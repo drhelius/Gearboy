@@ -51,6 +51,7 @@ public:
     u8 ReadCGBLCDRAM(u16 address, bool forceBank1);
     void WriteCGBLCDRAM(u16 address, u8 value);
     void SwitchCGBLCDRAM(u8 value);
+    bool IsVRAMAccessBlocked() const;
     u8 Retrieve(u16 address);
     void Load(u16 address, u8 value);
     u8 DebugRetrieve(u16 address);
