@@ -393,47 +393,11 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
 
             if (IsSetBit(lcdc, 7))
             {
-                if (m_bCGB)
-                {
-                    m_pVideo->CompareLYToLYC();
-                    m_pVideo->RefreshStatInterruptSignal(true);
-                }
-                else
-                {
-                    signal &= ((new_stat >> 3) & 0x0F);
-                    m_pVideo->SetIRQ48Signal(signal);
-
-                    if (IsSetBit(new_stat, 3) && (mode == 0))
-                    {
-                        if (signal == 0)
-                        {
-                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                        }
-                        signal = SetBit(signal, 0);
-                    }
-                    if (IsSetBit(new_stat, 4) && (mode == 1))
-                    {
-                        if (signal == 0)
-                        {
-                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                        }
-                        signal = SetBit(signal, 1);
-                    }
-                    if (IsSetBit(new_stat, 5) && (mode == 2))
-                    {
-                        if (signal == 0)
-                        {
-                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                        }
-                        //signal = SetBit(signal, 2);
-                    }
-                    m_pVideo->CompareLYToLYC();
-                }
+                m_pVideo->CompareLYToLYC();
             }
-            else if (!m_bCGB)
+            else
             {
-                signal &= ((new_stat >> 3) & 0x0F);
-                m_pVideo->SetIRQ48Signal(signal);
+                m_pVideo->SetIRQ48Signal(0);
             }
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
             if (m_pTraceLogger->IsEnabled(TRACE_LCD_WRITE))
