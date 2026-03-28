@@ -1930,8 +1930,11 @@ void Processor::OPCode0xFA()
 void Processor::OPCode0xFB()
 {
     // EI
-    int ei_cycles = kOPCodeMachineCycles[0xFB] * AdjustedCycles(4);
-    m_iIMECycles = ei_cycles + 1;
+    if (!m_bIME && m_iIMECycles == 0)
+    {
+        int ei_cycles = kOPCodeMachineCycles[0xFB] * AdjustedCycles(4);
+        m_iIMECycles = ei_cycles + 1;
+    }
 }
 
 void Processor::OPCode0xFC()
