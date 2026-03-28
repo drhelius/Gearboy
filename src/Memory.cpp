@@ -96,6 +96,11 @@ void Memory::SetVideo(Video* pVideo)
     m_pVideo = pVideo;
 }
 
+bool Memory::IsVRAMAccessBlocked() const
+{
+    return IsValidPointer(m_pVideo) && m_pVideo->VRAMAccessBlocked();
+}
+
 void Memory::Init()
 {
     m_pMap = new u8[65536];

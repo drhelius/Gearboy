@@ -391,36 +391,49 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                 }
             }
 
-            signal &= ((new_stat >> 3) & 0x0F);
-            m_pVideo->SetIRQ48Signal(signal);
-
             if (IsSetBit(lcdc, 7))
             {
-                if (IsSetBit(new_stat, 3) && (mode == 0))
+                if (m_bCGB)
                 {
-                    if (signal == 0)
-                    {
-                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                    }
-                    signal = SetBit(signal, 0);
+                    m_pVideo->CompareLYToLYC();
+                    m_pVideo->RefreshStatInterruptSignal(true);
                 }
-                if (IsSetBit(new_stat, 4) && (mode == 1))
+                else
                 {
-                    if (signal == 0)
+                    signal &= ((new_stat >> 3) & 0x0F);
+                    m_pVideo->SetIRQ48Signal(signal);
+
+                    if (IsSetBit(new_stat, 3) && (mode == 0))
                     {
-                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                        if (signal == 0)
+                        {
+                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                        }
+                        signal = SetBit(signal, 0);
                     }
-                    signal = SetBit(signal, 1);
-                }
-                if (IsSetBit(new_stat, 5) && (mode == 2))
-                {
-                    if (signal == 0)
+                    if (IsSetBit(new_stat, 4) && (mode == 1))
                     {
-                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                        if (signal == 0)
+                        {
+                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                        }
+                        signal = SetBit(signal, 1);
                     }
-                    //signal = SetBit(signal, 2);
+                    if (IsSetBit(new_stat, 5) && (mode == 2))
+                    {
+                        if (signal == 0)
+                        {
+                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                        }
+                        //signal = SetBit(signal, 2);
+                    }
+                    m_pVideo->CompareLYToLYC();
                 }
-                m_pVideo->CompareLYToLYC();
+            }
+            else if (!m_bCGB)
+            {
+                signal &= ((new_stat >> 3) & 0x0F);
+                m_pVideo->SetIRQ48Signal(signal);
             }
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
             if (m_pTraceLogger->IsEnabled(TRACE_LCD_WRITE))

@@ -144,23 +144,6 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                     m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
                     CompareLYToLYC();
 
-                    if (m_bCGB && m_pMemory->IsHDMAEnabled() && (!m_pProcessor->Halted() || m_pProcessor->InterruptIsAboutToRaise()))
-                    {
-                        unsigned int cycles = m_pMemory->PerformHDMA();
-                        m_iStatusModeCounter += cycles;
-                        clockCycles += cycles;
-#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-                        if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
-                        {
-                            GB_Trace_Entry e = {};
-                            e.type = TRACE_LCD_STATUS;
-                            e.lcd_status.event = GB_LCD_EVENT_HDMA;
-                            e.lcd_status.line = (u16)m_iStatusModeLYCounter;
-                            m_pTraceLogger->TraceLog(e);
-                        }
-#endif
-                    }
-
                     if (m_iStatusModeLYCounter == 144)
                     {
                         m_iStatusMode = 1;
@@ -186,28 +169,31 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
 #endif
                         }
 
-                        m_IRQ48Signal &= 0x09;
-                        u8 stat = m_pMemory->Retrieve(0xFF41);
-                        if (IsSetBit(stat, 4))
+                        if (!m_bCGB)
                         {
-                            if (!IsSetBit(m_IRQ48Signal, 0) && !IsSetBit(m_IRQ48Signal, 3))
+                            m_IRQ48Signal &= 0x09;
+                            u8 stat = m_pMemory->Retrieve(0xFF41);
+                            if (IsSetBit(stat, 4))
                             {
-                                m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-                                if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                                if (!IsSetBit(m_IRQ48Signal, 0) && !IsSetBit(m_IRQ48Signal, 3))
                                 {
-                                    GB_Trace_Entry e = {};
-                                    e.type = TRACE_LCD_STATUS;
-                                    e.lcd_status.event = GB_LCD_EVENT_STAT_IRQ;
-                                    e.lcd_status.line = (u16)m_iStatusModeLYCounter;
-                                    e.lcd_status.value = 1;
-                                    m_pTraceLogger->TraceLog(e);
-                                }
+                                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                                    if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                                    {
+                                        GB_Trace_Entry e = {};
+                                        e.type = TRACE_LCD_STATUS;
+                                        e.lcd_status.event = GB_LCD_EVENT_STAT_IRQ;
+                                        e.lcd_status.line = (u16)m_iStatusModeLYCounter;
+                                        e.lcd_status.value = 1;
+                                        m_pTraceLogger->TraceLog(e);
+                                    }
 #endif
+                                }
+                                m_IRQ48Signal = SetBit(m_IRQ48Signal, 1);
                             }
-                            m_IRQ48Signal = SetBit(m_IRQ48Signal, 1);
+                            m_IRQ48Signal &= 0x0E;
                         }
-                        m_IRQ48Signal &= 0x0E;
 
                         if (m_iHideFrames > 0)
                             m_iHideFrames--;
@@ -218,31 +204,38 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                     }
                     else
                     {
-                        m_IRQ48Signal &= 0x09;
-                        u8 stat = m_pMemory->Retrieve(0xFF41);
-                        if (IsSetBit(stat, 5))
+                        if (!m_bCGB)
                         {
-                            if (m_IRQ48Signal == 0)
+                            m_IRQ48Signal &= 0x09;
+                            u8 stat = m_pMemory->Retrieve(0xFF41);
+                            if (IsSetBit(stat, 5))
                             {
-                                m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-                                if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                                if (m_IRQ48Signal == 0)
                                 {
-                                    GB_Trace_Entry e = {};
-                                    e.type = TRACE_LCD_STATUS;
-                                    e.lcd_status.event = GB_LCD_EVENT_STAT_IRQ;
-                                    e.lcd_status.line = (u16)m_iStatusModeLYCounter;
-                                    e.lcd_status.value = 2;
-                                    m_pTraceLogger->TraceLog(e);
-                                }
+                                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                                    if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                                    {
+                                        GB_Trace_Entry e = {};
+                                        e.type = TRACE_LCD_STATUS;
+                                        e.lcd_status.event = GB_LCD_EVENT_STAT_IRQ;
+                                        e.lcd_status.line = (u16)m_iStatusModeLYCounter;
+                                        e.lcd_status.value = 2;
+                                        m_pTraceLogger->TraceLog(e);
+                                    }
 #endif
+                                }
+                                m_IRQ48Signal = SetBit(m_IRQ48Signal, 2);
                             }
-                            m_IRQ48Signal = SetBit(m_IRQ48Signal, 2);
+                            m_IRQ48Signal &= 0x0E;
                         }
-                        m_IRQ48Signal &= 0x0E;
                     }
 
                     UpdateStatRegister();
+                    if (m_bCGB)
+                    {
+                        RefreshStatInterruptSignal(true);
+                    }
                 }
                 break;
             }
@@ -276,20 +269,27 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                     m_iStatusModeCounter -= 4560;
                     m_iStatusMode = 2;
                     UpdateStatRegister();
-                    m_IRQ48Signal &= 0x07;
-
-
-                    m_IRQ48Signal &= 0x0A;
-                    u8 stat = m_pMemory->Retrieve(0xFF41);
-                    if (IsSetBit(stat, 5))
+                    if (m_bCGB)
                     {
-                        if (m_IRQ48Signal == 0)
-                        {
-                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                        }
-                        m_IRQ48Signal = SetBit(m_IRQ48Signal, 2);
+                        RefreshStatInterruptSignal(true);
                     }
-                    m_IRQ48Signal &= 0x0D;
+                    else
+                    {
+                        m_IRQ48Signal &= 0x07;
+
+
+                        m_IRQ48Signal &= 0x0A;
+                        u8 stat = m_pMemory->Retrieve(0xFF41);
+                        if (IsSetBit(stat, 5))
+                        {
+                            if (m_IRQ48Signal == 0)
+                            {
+                                m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                            }
+                            m_IRQ48Signal = SetBit(m_IRQ48Signal, 2);
+                        }
+                        m_IRQ48Signal &= 0x0D;
+                    }
                 }
                 break;
             }
@@ -301,8 +301,15 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                     m_iStatusModeCounter -= 80;
                     m_iStatusMode = 3;
                     m_bScanLineTransfered = false;
-                    m_IRQ48Signal &= 0x08;
+                    if (!m_bCGB)
+                    {
+                        m_IRQ48Signal &= 0x08;
+                    }
                     UpdateStatRegister();
+                    if (m_bCGB)
+                    {
+                        RefreshStatInterruptSignal(true);
+                    }
                 }
                 break;
             }
@@ -347,28 +354,53 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                     m_iStatusModeCounter -= 172;
                     m_iStatusMode = 0;
                     m_iTileCycleCounter = 0;
+
+                    if (m_bCGB && m_pMemory->IsHDMAEnabled() && (!m_pProcessor->Halted() || m_pProcessor->InterruptIsAboutToRaise()))
+                    {
+                        unsigned int cycles = m_pMemory->PerformHDMA();
+                        m_iStatusModeCounter += cycles;
+                        clockCycles += cycles;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                        if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                        {
+                            GB_Trace_Entry e = {};
+                            e.type = TRACE_LCD_STATUS;
+                            e.lcd_status.event = GB_LCD_EVENT_HDMA;
+                            e.lcd_status.line = (u16)m_iStatusModeLYCounter;
+                            m_pTraceLogger->TraceLog(e);
+                        }
+    #endif
+                    }
+
                     UpdateStatRegister();
 
-                    m_IRQ48Signal &= 0x08;
-                    u8 stat = m_pMemory->Retrieve(0xFF41);
-                    if (IsSetBit(stat, 3))
+                    if (m_bCGB)
                     {
-                        if (!IsSetBit(m_IRQ48Signal, 3))
+                        RefreshStatInterruptSignal(true);
+                    }
+                    else
+                    {
+                        m_IRQ48Signal &= 0x08;
+                        u8 stat = m_pMemory->Retrieve(0xFF41);
+                        if (IsSetBit(stat, 3))
                         {
-                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-                            if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                            if (!IsSetBit(m_IRQ48Signal, 3))
                             {
-                                GB_Trace_Entry e = {};
-                                e.type = TRACE_LCD_STATUS;
-                                e.lcd_status.event = GB_LCD_EVENT_STAT_IRQ;
-                                e.lcd_status.line = (u16)m_iStatusModeLYCounter;
-                                e.lcd_status.value = 0;
-                                m_pTraceLogger->TraceLog(e);
-                            }
+                                m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                                if (m_pTraceLogger->IsEnabled(TRACE_LCD_STATUS))
+                                {
+                                    GB_Trace_Entry e = {};
+                                    e.type = TRACE_LCD_STATUS;
+                                    e.lcd_status.event = GB_LCD_EVENT_STAT_IRQ;
+                                    e.lcd_status.line = (u16)m_iStatusModeLYCounter;
+                                    e.lcd_status.value = 0;
+                                    m_pTraceLogger->TraceLog(e);
+                                }
 #endif
+                            }
+                            m_IRQ48Signal = SetBit(m_IRQ48Signal, 0);
                         }
-                        m_IRQ48Signal = SetBit(m_IRQ48Signal, 0);
                     }
                 }
                 break;
@@ -407,6 +439,10 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                 }
 
                 CompareLYToLYC();
+                if (m_bCGB)
+                {
+                    RefreshStatInterruptSignal(true);
+                }
             }
         }
         else if (m_iStatusModeCounter >= 70224)
@@ -523,9 +559,42 @@ bool Video::CGBPaletteAccessBlocked() const
     return m_bCGB && m_bScreenEnabled && (m_iStatusMode == 3);
 }
 
+bool Video::VRAMAccessBlocked() const
+{
+    return m_bScreenEnabled && (m_iStatusMode == 3);
+}
+
 int Video::GetCurrentStatusMode() const
 {
     return m_iStatusMode;
+}
+
+void Video::RefreshStatInterruptSignal(bool requestInterrupt)
+{
+    if (!m_bCGB)
+        return;
+
+    u8 signal = 0;
+
+    if (m_bScreenEnabled)
+    {
+        u8 stat = m_pMemory->Retrieve(0xFF41);
+        if (IsSetBit(stat, 3) && (m_iStatusMode == 0))
+            signal = SetBit(signal, 0);
+        if (IsSetBit(stat, 4) && (m_iStatusMode == 1))
+            signal = SetBit(signal, 1);
+        if (IsSetBit(stat, 5) && (m_iStatusMode == 2))
+            signal = SetBit(signal, 2);
+        if (IsSetBit(stat, 6) && (m_pMemory->Retrieve(0xFF45) == m_iStatusModeLYCounter))
+            signal = SetBit(signal, 3);
+    }
+
+    if (requestInterrupt && (m_IRQ48Signal == 0) && (signal != 0))
+    {
+        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+    }
+
+    m_IRQ48Signal = signal;
 }
 
 void Video::ResetWindowLine()
@@ -915,7 +984,7 @@ void Video::CompareLYToLYC()
         if (lyc == m_iStatusModeLYCounter)
         {
             stat = SetBit(stat, 2);
-            if (IsSetBit(stat, 6))
+            if (!m_bCGB && IsSetBit(stat, 6))
             {
                 if (m_IRQ48Signal == 0)
                 {
@@ -927,10 +996,18 @@ void Video::CompareLYToLYC()
         else
         {
             stat = UnsetBit(stat, 2);
-            m_IRQ48Signal = UnsetBit(m_IRQ48Signal, 3);
+            if (!m_bCGB)
+            {
+                m_IRQ48Signal = UnsetBit(m_IRQ48Signal, 3);
+            }
         }
 
         m_pMemory->Load(0xFF41, stat);
+
+        if (m_bCGB)
+        {
+            RefreshStatInterruptSignal(true);
+        }
     }
 }
 

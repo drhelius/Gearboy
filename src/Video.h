@@ -42,8 +42,10 @@ public:
     const u8* GetFrameBuffer() const;
     void UpdatePaletteToSpecification(bool background, u8 value);
     void SetColorPalette(bool background, u8 value);
+    bool VRAMAccessBlocked() const;
     bool CGBPaletteAccessBlocked() const;
     int GetCurrentStatusMode() const;
+    void RefreshStatInterruptSignal(bool requestInterrupt);
     void ResetWindowLine();
     void CompareLYToLYC();
     u8 GetIRQ48Signal() const;

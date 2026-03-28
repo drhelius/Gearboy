@@ -49,6 +49,9 @@ inline u8 CommonMemoryRule::PerformRead(u16 address)
         {
             case 0x8000:
             {
+                if (m_pMemory->IsVRAMAccessBlocked())
+                    return 0xFF;
+
                 return m_pMemory->ReadCGBLCDRAM(address, false);
             }
             case 0xC000:
@@ -77,6 +80,9 @@ inline void CommonMemoryRule::PerformWrite(u16 address, u8 value)
     {
         case 0x8000:
         {
+            if (m_pMemory->IsVRAMAccessBlocked())
+                break;
+
             if (m_bCGB)
                 m_pMemory->WriteCGBLCDRAM(address, value);
             else
