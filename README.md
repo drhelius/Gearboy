@@ -90,7 +90,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 
 ## Features
 
-- Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3, MBC5, MBC7, HuC-1, HuC-3, MMM01, Pocket Camera, TAMA5 and MBC1M (multicart).
+- Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3, MBC5, MBC7, HuC-1, HuC-3, MMM01, Pocket Camera, TAMA5 and MBC1M.
 - Game Boy Color support.
 - LCD screen ghosting effect as seen in the original Game Boy.
 - LCD dot matrix effect.
