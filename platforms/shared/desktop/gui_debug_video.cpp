@@ -44,7 +44,7 @@ static ImVec4 color_565_to_float(u16 color)
 void gui_debug_window_vram_nametable(void)
 {
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(546, 506), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(542, 538), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Name Table", &config_debug.show_video_nametable);
 
@@ -326,7 +326,7 @@ void gui_debug_window_vram_nametable(void)
 void gui_debug_window_vram_tiles(void)
 {
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(546, 356), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(546, 360), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Pattern Table", &config_debug.show_video_tiles);
 
