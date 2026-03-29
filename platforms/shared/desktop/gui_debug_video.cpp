@@ -68,6 +68,11 @@ void gui_debug_window_vram_nametable(void)
     float size = 256.0f * scale;
     float spacing = 8.0f * scale;
 
+    static int layer_radio = 0;
+    ImGui::RadioButton("Background", &layer_radio, 0); ImGui::SameLine();
+    ImGui::RadioButton("Window", &layer_radio, 1);
+    emu_debug_background_is_window = (layer_radio == 1);
+
     ImGui::Checkbox("Show Grid##grid_bg", &show_grid); ImGui::SameLine();
     ImGui::Checkbox("Show Screen Rect", &show_screen);
 
@@ -113,40 +118,60 @@ void gui_debug_window_vram_nametable(void)
 
     if (show_screen)
     {
-        u8 scroll_x = memory->Retrieve(0xFF43);
-        u8 scroll_y = memory->Retrieve(0xFF42);
+        if (emu_debug_background_is_window)
+        {
+            u8 wx = memory->Retrieve(0xFF4B);
+            u8 wy = memory->Retrieve(0xFF4A);
+            int visible_w = GAMEBOY_WIDTH - (wx - 7);
+            int visible_h = GAMEBOY_HEIGHT - wy;
+            if (visible_w > 0 && visible_h > 0)
+            {
+                if (visible_w > 256) visible_w = 256;
+                if (visible_h > 256) visible_h = 256;
+                float rect_x_min = p.x;
+                float rect_y_min = p.y;
+                float rect_x_max = p.x + (visible_w * scale);
+                float rect_y_max = p.y + (visible_h * scale);
+                draw_list->AddRect(ImVec2(rect_x_min, rect_y_min), ImVec2(rect_x_max, rect_y_max), ImColor(green), 0.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+            }
+        }
+        else
+        {
+            u8 scroll_x = memory->Retrieve(0xFF43);
+            u8 scroll_y = memory->Retrieve(0xFF42);
 
-        float grid_x_max = p.x + size;
-        float grid_y_max = p.y + size;
+            float grid_x_max = p.x + size;
+            float grid_y_max = p.y + size;
 
-        float rect_x_min = p.x + (scroll_x * scale);
-        float rect_y_min = p.y + (scroll_y * scale);
-        float rect_x_max = p.x + ((scroll_x + GAMEBOY_WIDTH) * scale);
-        float rect_y_max = p.y + ((scroll_y + GAMEBOY_HEIGHT) * scale);
+            float rect_x_min = p.x + (scroll_x * scale);
+            float rect_y_min = p.y + (scroll_y * scale);
+            float rect_x_max = p.x + ((scroll_x + GAMEBOY_WIDTH) * scale);
+            float rect_y_max = p.y + ((scroll_y + GAMEBOY_HEIGHT) * scale);
 
-        float x_overflow = 0.0f;
-        float y_overflow = 0.0f;
+            float x_overflow = 0.0f;
+            float y_overflow = 0.0f;
 
-        if (rect_x_max > grid_x_max)
-            x_overflow = rect_x_max - grid_x_max;
-        if (rect_y_max > grid_y_max)
-            y_overflow = rect_y_max - grid_y_max;
+            if (rect_x_max > grid_x_max)
+                x_overflow = rect_x_max - grid_x_max;
+            if (rect_y_max > grid_y_max)
+                y_overflow = rect_y_max - grid_y_max;
 
-        draw_list->AddLine(ImVec2(rect_x_min, rect_y_min), ImVec2(fminf(rect_x_max, grid_x_max), rect_y_min), ImColor(green), 2.0f);
-        if (x_overflow > 0.0f)
-            draw_list->AddLine(ImVec2(p.x, rect_y_min), ImVec2(p.x + x_overflow, rect_y_min), ImColor(green), 2.0f);
+            draw_list->AddLine(ImVec2(rect_x_min, rect_y_min), ImVec2(fminf(rect_x_max, grid_x_max), rect_y_min), ImColor(green), 2.0f);
+            if (x_overflow > 0.0f)
+                draw_list->AddLine(ImVec2(p.x, rect_y_min), ImVec2(p.x + x_overflow, rect_y_min), ImColor(green), 2.0f);
 
-        draw_list->AddLine(ImVec2(rect_x_min, rect_y_min), ImVec2(rect_x_min, fminf(rect_y_max, grid_y_max)), ImColor(green), 2.0f);
-        if (y_overflow > 0.0f)
-            draw_list->AddLine(ImVec2(rect_x_min, p.y), ImVec2(rect_x_min, p.y + y_overflow), ImColor(green), 2.0f);
+            draw_list->AddLine(ImVec2(rect_x_min, rect_y_min), ImVec2(rect_x_min, fminf(rect_y_max, grid_y_max)), ImColor(green), 2.0f);
+            if (y_overflow > 0.0f)
+                draw_list->AddLine(ImVec2(rect_x_min, p.y), ImVec2(rect_x_min, p.y + y_overflow), ImColor(green), 2.0f);
 
-        draw_list->AddLine(ImVec2(rect_x_min, (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImVec2(fminf(rect_x_max, grid_x_max), (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImColor(green), 2.0f);
-        if (x_overflow > 0.0f)
-            draw_list->AddLine(ImVec2(p.x, (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImVec2(p.x + x_overflow, (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImColor(green), 2.0f);
+            draw_list->AddLine(ImVec2(rect_x_min, (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImVec2(fminf(rect_x_max, grid_x_max), (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImColor(green), 2.0f);
+            if (x_overflow > 0.0f)
+                draw_list->AddLine(ImVec2(p.x, (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImVec2(p.x + x_overflow, (y_overflow > 0.0f) ? p.y + y_overflow : rect_y_max), ImColor(green), 2.0f);
 
-        draw_list->AddLine(ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, rect_y_min), ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, fminf(rect_y_max, grid_y_max)), ImColor(green), 2.0f);
-        if (y_overflow > 0.0f)
-            draw_list->AddLine(ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, p.y), ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, p.y + y_overflow), ImColor(green), 2.0f);
+            draw_list->AddLine(ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, rect_y_min), ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, fminf(rect_y_max, grid_y_max)), ImColor(green), 2.0f);
+            if (y_overflow > 0.0f)
+                draw_list->AddLine(ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, p.y), ImVec2((x_overflow > 0.0f) ? p.x + x_overflow : rect_x_max, p.y + y_overflow), ImColor(green), 2.0f);
+        }
     }
 
     float mouse_x = io.MousePos.x - p.x;
@@ -175,7 +200,7 @@ void gui_debug_window_vram_nametable(void)
 
             u8 lcdc = memory->Retrieve(0xFF40);
             int ts_addr = emu_debug_background_tile_address >= 0 ? emu_debug_background_tile_address : IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
-            int ms_addr = emu_debug_background_map_address >= 0 ? emu_debug_background_map_address : IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
+            int ms_addr = emu_debug_background_map_address >= 0 ? emu_debug_background_map_address : (emu_debug_background_is_window ? (IsSetBit(lcdc, 6) ? 0x9C00 : 0x9800) : (IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800));
             u16 m_addr = ms_addr + (32 * hovered_tile_y) + hovered_tile_x;
             int m_tile = (ts_addr == 0x8800) ? (static_cast<s8>(memory->Retrieve(m_addr)) + 128) : memory->Retrieve(m_addr);
             gui_debug_memory_goto(MEMORY_EDITOR_VRAM, ts_addr + (m_tile << 4));
@@ -212,7 +237,7 @@ void gui_debug_window_vram_nametable(void)
         u8 lcdc = memory->Retrieve(0xFF40);
 
         int tile_start_addr = emu_debug_background_tile_address >= 0 ? emu_debug_background_tile_address : IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
-        int map_start_addr = emu_debug_background_map_address >= 0 ? emu_debug_background_map_address : IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
+        int map_start_addr = emu_debug_background_map_address >= 0 ? emu_debug_background_map_address : (emu_debug_background_is_window ? (IsSetBit(lcdc, 6) ? 0x9C00 : 0x9800) : (IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800));
 
         u16 map_addr = map_start_addr + (32 * tile_y) + tile_x;
 
@@ -258,6 +283,10 @@ void gui_debug_window_vram_nametable(void)
 
             ImGui::TextColored(cyan, " Y-Flip:"); ImGui::SameLine();
             cgb_tile_yflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+
+            bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7);
+            ImGui::TextColored(cyan, " BG Priority:"); ImGui::SameLine();
+            cgb_tile_priority ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
         }
     }
 
@@ -343,13 +372,13 @@ void gui_debug_window_vram_tiles(void)
 
     p[0] = ImGui::GetCursorScreenPos();
 
-    ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles, ImVec2(width, height));
+    ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles[0], ImVec2(width, height));
 
     ImGui::SameLine();
 
     p[1] = ImGui::GetCursorScreenPos();
 
-    ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles, ImVec2(width, height));
+    ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles[1], ImVec2(width, height));
 
     for (int i = 0; i < 2; i++)
     {
@@ -426,7 +455,7 @@ void gui_debug_window_vram_tiles(void)
 
         ImGui::NextColumn();
 
-        ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 16.0f) * display_tile_x, (1.0f / 24.0f) * display_tile_y), ImVec2((1.0f / 16.0f) * (display_tile_x + 1), (1.0f / 24.0f) * (display_tile_y + 1)));
+        ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles[display_tile_bank], ImVec2(128.0f, 128.0f), ImVec2((1.0f / 16.0f) * display_tile_x, (1.0f / 24.0f) * display_tile_y), ImVec2((1.0f / 16.0f) * (display_tile_x + 1), (1.0f / 24.0f) * (display_tile_y + 1)));
 
         ImGui::PushFont(gui_default_font);
 

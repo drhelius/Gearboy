@@ -103,7 +103,7 @@ void ogl_renderer_destroy(void)
 
     glDeleteTextures(1, &ogl_renderer_emu_debug_vram_background);
     glDeleteTextures(40, ogl_renderer_emu_debug_vram_sprites);
-    glDeleteTextures(1, &ogl_renderer_emu_debug_vram_tiles);
+    glDeleteTextures(2, ogl_renderer_emu_debug_vram_tiles);
     glDeleteTextures(1, &ogl_renderer_emu_savestates);
 
     if (quad_shader_program)
@@ -224,11 +224,14 @@ static void init_ogl_debug(void)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
 
-    glGenTextures(1, &ogl_renderer_emu_debug_vram_tiles);
-    glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_tiles);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 16 * 8, 24 * 8, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)emu_debug_tile_buffers[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    for (int b = 0; b < 2; b++)
+    {
+        glGenTextures(1, &ogl_renderer_emu_debug_vram_tiles[b]);
+        glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_tiles[b]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 16 * 8, 24 * 8, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)emu_debug_tile_buffers[b]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
 }
 
 static void init_ogl_savestates(void)
@@ -349,9 +352,12 @@ static void update_debug_textures(void)
 
     if (config_debug.show_video_tiles)
     {
-        glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_tiles);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 16 * 8, 24 * 8,
-                GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_tile_buffers[0]);
+        for (int b = 0; b < 2; b++)
+        {
+            glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_tiles[b]);
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 16 * 8, 24 * 8,
+                    GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_tile_buffers[b]);
+        }
     }
 }
 

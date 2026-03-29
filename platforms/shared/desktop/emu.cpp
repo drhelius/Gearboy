@@ -99,6 +99,7 @@ bool emu_init(void)
     emu_debug_background_map_address = -1;
     emu_debug_tile_dmg_palette = 0;
     emu_debug_tile_color_palette = 0;
+    emu_debug_background_is_window = false;
     emu_debug_command = Debug_Command_None;
     emu_debug_pc_changed = false;
     gearboy->SetFrameBuffer(reinterpret_cast<u8*>(emu_frame_buffer));
@@ -904,17 +905,25 @@ static void init_debug(void)
 
 static void update_debug(void)
 {
-    update_debug_background_buffer();
-    update_debug_tile_buffers();
-    update_debug_oam_buffers();
+    if (config_debug.show_video_nametable)
+    {
+        update_debug_background_buffer();
+        generate_24bit_buffer(emu_debug_background_buffer, debug_background_buffer_565, 256 * 256);
+    }
 
-    generate_24bit_buffer(emu_debug_background_buffer, debug_background_buffer_565, 256 * 256);
+    if (config_debug.show_video_tiles)
+    {
+        update_debug_tile_buffers();
+        for (int b = 0; b < 2; b++)
+            generate_24bit_buffer(emu_debug_tile_buffers[b], debug_tile_buffers_565[b], 16 * 24 * 64);
+    }
 
-    for (int b = 0; b < 2; b++)
-        generate_24bit_buffer(emu_debug_tile_buffers[b], debug_tile_buffers_565[b], 16 * 24 * 64);
-
-    for (int s = 0; s < 40; s++)
-        generate_24bit_buffer(emu_debug_oam_buffers[s], debug_oam_buffers_565[s], 8 * 16);
+    if (config_debug.show_video_sprites)
+    {
+        update_debug_oam_buffers();
+        for (int s = 0; s < 40; s++)
+            generate_24bit_buffer(emu_debug_oam_buffers[s], debug_oam_buffers_565[s], 8 * 16);
+    }
 }
 
 static void update_debug_background_buffer(void)
@@ -923,70 +932,75 @@ static void update_debug_background_buffer(void)
     Memory* memory = gearboy->GetMemory();
     u16* dmg_palette = gearboy->GetDMGInternalPalette();
     u8 lcdc = memory->Retrieve(0xFF40);
+    bool is_cgb = gearboy->IsCGB();
+    int tile_start_addr = emu_debug_background_tile_address >= 0 ? emu_debug_background_tile_address : IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
+    int map_start_addr = emu_debug_background_map_address >= 0 ? emu_debug_background_map_address : (emu_debug_background_is_window ? (IsSetBit(lcdc, 6) ? 0x9C00 : 0x9800) : (IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800));
+    u8 palette = memory->Retrieve(0xFF47);
+    PaletteMatrix bg_palettes = is_cgb ? video->GetCGBBackgroundPalettes() : NULL;
+    bool signed_tile = (tile_start_addr == 0x8800);
 
-    for (int line = 0; line < 256; line++)
+    for (int tile_y = 0; tile_y < 32; tile_y++)
     {
-        int line_width = (line * 256);
-        for (int pixel = 0; pixel < 256; pixel++)
+        int map_row_addr = map_start_addr + (tile_y << 5);
+
+        for (int tile_x = 0; tile_x < 32; tile_x++)
         {
-            int offset_x = pixel & 0x7;
-            int screen_tile = pixel >> 3;
-            int tile_start_addr = emu_debug_background_tile_address >= 0 ? emu_debug_background_tile_address : IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
-            int map_start_addr = emu_debug_background_map_address >= 0 ? emu_debug_background_map_address : IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
-            int line_32 = (line >> 3) << 5;
-            int tile_pixel_y = line & 0x7;
-            int tile_pixel_y_2 = tile_pixel_y << 1;
-            int tile_pixel_y_flip_2 = (7 - tile_pixel_y) << 1;
-            u8 palette = memory->Retrieve(0xFF47);
-            int screen_pixel_x = (screen_tile << 3) + offset_x;
-            u8 map_pixel_x = screen_pixel_x;
-            int map_tile_x = map_pixel_x >> 3;
-            int map_tile_offset_x = map_pixel_x & 0x7;
-            u16 map_tile_addr = map_start_addr + line_32 + map_tile_x;
+            u16 map_tile_addr = map_row_addr + tile_x;
             int map_tile = 0;
-            if (tile_start_addr == 0x8800)
+            if (signed_tile)
             {
                 map_tile = static_cast<s8>(memory->Retrieve(map_tile_addr));
                 map_tile += 128;
             }
             else
                 map_tile = memory->Retrieve(map_tile_addr);
-            u8 cgb_tile_attr = gearboy->IsCGB() ? memory->ReadCGBLCDRAM(map_tile_addr, true) : 0;
-            u8 cgb_tile_pal = gearboy->IsCGB() ? (cgb_tile_attr & 0x07) : 0;
-            bool cgb_tile_bank = gearboy->IsCGB() ? IsSetBit(cgb_tile_attr, 3) : false;
-            bool cgb_tile_xflip = gearboy->IsCGB() ? IsSetBit(cgb_tile_attr, 5) : false;
-            bool cgb_tile_yflip = gearboy->IsCGB() ? IsSetBit(cgb_tile_attr, 6) : false;
+
+            u8 cgb_tile_attr = is_cgb ? memory->ReadCGBLCDRAM(map_tile_addr, true) : 0;
+            u8 cgb_tile_pal = cgb_tile_attr & 0x07;
+            bool cgb_tile_bank = IsSetBit(cgb_tile_attr, 3);
+            bool cgb_tile_xflip = IsSetBit(cgb_tile_attr, 5);
+            bool cgb_tile_yflip = IsSetBit(cgb_tile_attr, 6);
             int map_tile_16 = map_tile << 4;
-            u8 byte1 = 0;
-            u8 byte2 = 0;
-            int final_pixely_2 = cgb_tile_yflip ? tile_pixel_y_flip_2 : tile_pixel_y_2;
-            int tile_address = tile_start_addr + map_tile_16 + final_pixely_2;
-            if (cgb_tile_bank)
+
+            for (int py = 0; py < 8; py++)
             {
-                byte1 = memory->ReadCGBLCDRAM(tile_address, true);
-                byte2 = memory->ReadCGBLCDRAM(tile_address + 1, true);
-            }
-            else
-            {
-                byte1 = memory->Retrieve(tile_address);
-                byte2 = memory->Retrieve(tile_address + 1);
-            }
-            int pixel_x_in_tile = map_tile_offset_x;
-            if (cgb_tile_xflip)
-                pixel_x_in_tile = 7 - pixel_x_in_tile;
-            int pixel_x_in_tile_bit = 0x1 << (7 - pixel_x_in_tile);
-            int pixel_data = (byte1 & pixel_x_in_tile_bit) ? 1 : 0;
-            pixel_data |= (byte2 & pixel_x_in_tile_bit) ? 2 : 0;
-            int index = line_width + screen_pixel_x;
-            if (gearboy->IsCGB())
-            {
-                PaletteMatrix bg_palettes = video->GetCGBBackgroundPalettes();
-                debug_background_buffer_565[index] = (*bg_palettes)[cgb_tile_pal][pixel_data][1];
-            }
-            else
-            {
-                u8 color = (palette >> (pixel_data << 1)) & 0x03;
-                debug_background_buffer_565[index] = dmg_palette[color];
+                int final_py = cgb_tile_yflip ? (7 - py) : py;
+                int tile_address = tile_start_addr + map_tile_16 + (final_py << 1);
+                u8 byte1 = 0;
+                u8 byte2 = 0;
+                if (cgb_tile_bank)
+                {
+                    byte1 = memory->ReadCGBLCDRAM(tile_address, true);
+                    byte2 = memory->ReadCGBLCDRAM(tile_address + 1, true);
+                }
+                else
+                {
+                    byte1 = memory->Retrieve(tile_address);
+                    byte2 = memory->Retrieve(tile_address + 1);
+                }
+
+                int line = (tile_y << 3) + py;
+                int line_width = line * 256;
+                int base_x = tile_x << 3;
+
+                for (int px = 0; px < 8; px++)
+                {
+                    int final_px = cgb_tile_xflip ? (7 - px) : px;
+                    int bit = 0x1 << (7 - final_px);
+                    int pixel_data = (byte1 & bit) ? 1 : 0;
+                    pixel_data |= (byte2 & bit) ? 2 : 0;
+
+                    int index = line_width + base_x + px;
+                    if (is_cgb)
+                    {
+                        debug_background_buffer_565[index] = (*bg_palettes)[cgb_tile_pal][pixel_data][1];
+                    }
+                    else
+                    {
+                        u8 color = (palette >> (pixel_data << 1)) & 0x03;
+                        debug_background_buffer_565[index] = dmg_palette[color];
+                    }
+                }
             }
         }
     }
@@ -997,47 +1011,56 @@ static void update_debug_tile_buffers(void)
     Memory* memory = gearboy->GetMemory();
     Video* video = gearboy->GetVideo();
     u16* dmg_palette = gearboy->GetDMGInternalPalette();
-    PaletteMatrix bg_palettes = video->GetCGBBackgroundPalettes();
-    PaletteMatrix sprite_palettes = video->GetCGBSpritePalettes();
+    bool is_cgb = gearboy->IsCGB();
+    PaletteMatrix bg_palettes = is_cgb ? video->GetCGBBackgroundPalettes() : NULL;
+    PaletteMatrix sprite_palettes = is_cgb ? video->GetCGBSpritePalettes() : NULL;
+    u8 palette = is_cgb ? 0 : memory->Retrieve(0xFF47 + emu_debug_tile_dmg_palette);
 
     for (int b = 0; b < 2; b++)
     {
-        for (int pixel = 0; pixel < (16 * 24 * 64); pixel++)
+        for (int tile = 0; tile < 384; tile++)
         {
-            int tilex = (pixel >> 3) & 0xF;
-            int tile_offset_x = pixel & 0x7;
-            int tiley = (pixel >> 10);
-            int tile_offset_y = (pixel >> 7) & 0x7;
-            int tile = (tiley << 4) + tilex;
-            int tile_address = 0x8000 + (tile << 4) + (tile_offset_y << 1);
-            u8 byte1 = 0;
-            u8 byte2 = 0;
-            if (b == 0)
+            int tilex = tile & 0xF;
+            int tiley = tile >> 4;
+            int tile_address = 0x8000 + (tile << 4);
+
+            for (int row = 0; row < 8; row++)
             {
-                byte1 = memory->Retrieve(tile_address);
-                byte2 = memory->Retrieve(tile_address + 1);
-            }
-            else
-            {
-                byte1 = memory->ReadCGBLCDRAM(tile_address, true);
-                byte2 = memory->ReadCGBLCDRAM(tile_address + 1, true);
-            }
-            int tile_bit = 0x1 << (7 - tile_offset_x);
-            int pixel_data = (byte1 & tile_bit) ? 1 : 0;
-            pixel_data |= (byte2 & tile_bit) ? 2 : 0;
-            if (gearboy->IsCGB())
-            {
-                if (emu_debug_tile_color_palette > 7)
-                    pixel_data = (*sprite_palettes)[emu_debug_tile_color_palette - 8][pixel_data][1];
+                int row_address = tile_address + (row << 1);
+                u8 byte1 = 0;
+                u8 byte2 = 0;
+                if (b == 0)
+                {
+                    byte1 = memory->Retrieve(row_address);
+                    byte2 = memory->Retrieve(row_address + 1);
+                }
                 else
-                    pixel_data = (*bg_palettes)[emu_debug_tile_color_palette][pixel_data][1];
-                debug_tile_buffers_565[b][pixel] = pixel_data;
-            }
-            else
-            {
-                u8 palette = memory->Retrieve(0xFF47 + emu_debug_tile_dmg_palette);
-                pixel_data = (palette >> (pixel_data << 1)) & 0x03;
-                debug_tile_buffers_565[b][pixel] = dmg_palette[pixel_data];
+                {
+                    byte1 = memory->ReadCGBLCDRAM(row_address, true);
+                    byte2 = memory->ReadCGBLCDRAM(row_address + 1, true);
+                }
+
+                int pixel_base = ((tiley * 8 + row) << 7) + (tilex * 8);
+
+                for (int px = 0; px < 8; px++)
+                {
+                    int tile_bit = 0x1 << (7 - px);
+                    int pixel_data = (byte1 & tile_bit) ? 1 : 0;
+                    pixel_data |= (byte2 & tile_bit) ? 2 : 0;
+
+                    if (is_cgb)
+                    {
+                        if (emu_debug_tile_color_palette > 7)
+                            debug_tile_buffers_565[b][pixel_base + px] = (*sprite_palettes)[emu_debug_tile_color_palette - 8][pixel_data][1];
+                        else
+                            debug_tile_buffers_565[b][pixel_base + px] = (*bg_palettes)[emu_debug_tile_color_palette][pixel_data][1];
+                    }
+                    else
+                    {
+                        int color = (palette >> (pixel_data << 1)) & 0x03;
+                        debug_tile_buffers_565[b][pixel_base + px] = dmg_palette[color];
+                    }
+                }
             }
         }
     }
@@ -1049,7 +1072,8 @@ static void update_debug_oam_buffers(void)
     Video* video = gearboy->GetVideo();
     u16 address = 0xFE00;
     u16* dmg_palette = gearboy->GetDMGInternalPalette();
-    PaletteMatrix sprite_palettes = video->GetCGBSpritePalettes();
+    bool is_cgb = gearboy->IsCGB();
+    PaletteMatrix sprite_palettes = is_cgb ? video->GetCGBSpritePalettes() : NULL;
     u8 lcdc = memory->Retrieve(0xFF40);
     bool sprites_16 = IsSetBit(lcdc, 2);
 
@@ -1062,17 +1086,25 @@ static void update_debug_oam_buffers(void)
         bool yflip = IsSetBit(flags, 6);
         bool cgb_bank = IsSetBit(flags, 3);
         int cgb_pal = flags & 0x07;
-        for (int pixel = 0; pixel < (8 * 16); pixel++)
+        int sprite_tile = sprites_16 ? (tile & 0xFE) : tile;
+        u16 tile_addr = 0x8000 + (sprite_tile * 16);
+        u8 final_palette = is_cgb ? 0 : memory->Retrieve(0xFF48 + palette);
+        int max_y = sprites_16 ? 15 : 7;
+
+        for (int pixel_y = 0; pixel_y < 16; pixel_y++)
         {
-            u16 tile_addr = 0x8000 + (tile * 16);
-            int pixel_x = pixel & 0x7;
-            int pixel_y = pixel / 8;
-            u16 line_addr = tile_addr + (2 * (yflip ? (sprites_16 ? 15 : 7) - pixel_y : pixel_y));
-            if (xflip)
-                pixel_x = 7 - pixel_x;
+            int flipped_y = yflip ? max_y - pixel_y : pixel_y;
+            int offset = 0;
+            int row_y = flipped_y;
+            if (sprites_16 && flipped_y >= 8)
+            {
+                row_y = flipped_y - 8;
+                offset = 16;
+            }
+            u16 line_addr = tile_addr + (row_y << 1) + offset;
             u8 byte1 = 0;
             u8 byte2 = 0;
-            if (gearboy->IsCGB() && cgb_bank)
+            if (is_cgb && cgb_bank)
             {
                 byte1 = memory->ReadCGBLCDRAM(line_addr, true);
                 byte2 = memory->ReadCGBLCDRAM(line_addr + 1, true);
@@ -1082,19 +1114,24 @@ static void update_debug_oam_buffers(void)
                 byte1 = memory->Retrieve(line_addr);
                 byte2 = memory->Retrieve(line_addr + 1);
             }
-            int tile_bit = 0x1 << (7 - pixel_x);
-            int pixel_data = (byte1 & tile_bit) ? 1 : 0;
-            pixel_data |= (byte2 & tile_bit) ? 2 : 0;
-            if (gearboy->IsCGB())
+
+            int row_base = pixel_y * 8;
+
+            for (int px = 0; px < 8; px++)
             {
-                pixel_data = (*sprite_palettes)[cgb_pal][pixel_data][1];
-                debug_oam_buffers_565[s][pixel] = pixel_data;
-            }
-            else
-            {
-                u8 final_palette = memory->Retrieve(0xFF48 + palette);
-                pixel_data = (final_palette >> (pixel_data << 1)) & 0x03;
-                debug_oam_buffers_565[s][pixel] = dmg_palette[pixel_data];
+                int pixel_x = xflip ? (7 - px) : px;
+                int tile_bit = 0x1 << (7 - pixel_x);
+                int pixel_data = (byte1 & tile_bit) ? 1 : 0;
+                pixel_data |= (byte2 & tile_bit) ? 2 : 0;
+                if (is_cgb)
+                {
+                    debug_oam_buffers_565[s][row_base + px] = (*sprite_palettes)[cgb_pal][pixel_data][1];
+                }
+                else
+                {
+                    int color = (final_palette >> (pixel_data << 1)) & 0x03;
+                    debug_oam_buffers_565[s][row_base + px] = dmg_palette[color];
+                }
             }
         }
         address += 4;
