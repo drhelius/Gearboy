@@ -126,8 +126,10 @@ void MBC7MemoryRule::WriteRegister(u16 address, u8 value)
             if (value == 0xAA && m_bLatchReady)
             {
                 m_bLatchReady = false;
-                m_XLatch = 0x81D0 + (u16)(0x70 * m_AccelerometerX);
-                m_YLatch = 0x81D0 + (u16)(0x70 * m_AccelerometerY);
+                s32 x = (s32)(0x70 * m_AccelerometerX);
+                s32 y = (s32)(0x70 * m_AccelerometerY);
+                m_XLatch = (u16)(0x81D0 + x);
+                m_YLatch = (u16)(0x81D0 + y);
             }
             break;
         }
