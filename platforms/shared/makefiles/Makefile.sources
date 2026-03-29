@@ -56,6 +56,12 @@ SOURCES_CXX := \
     $(SRC_DIR)/Memory.cpp \
     $(SRC_DIR)/MemoryRule.cpp \
     $(SRC_DIR)/MultiMBC1MemoryRule.cpp \
+    $(SRC_DIR)/HuC1MemoryRule.cpp \
+    $(SRC_DIR)/HuC3MemoryRule.cpp \
+    $(SRC_DIR)/MMM01MemoryRule.cpp \
+    $(SRC_DIR)/CameraMemoryRule.cpp \
+    $(SRC_DIR)/MBC7MemoryRule.cpp \
+    $(SRC_DIR)/TAMA5MemoryRule.cpp \
     $(SRC_DIR)/opcodes.cpp \
     $(SRC_DIR)/opcodes_cb.cpp \
     $(SRC_DIR)/Processor.cpp \

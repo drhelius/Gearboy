@@ -36,6 +36,12 @@ class MBC2MemoryRule;
 class MBC3MemoryRule;
 class MBC5MemoryRule;
 class MultiMBC1MemoryRule;
+class HuC1MemoryRule;
+class HuC3MemoryRule;
+class MMM01MemoryRule;
+class CameraMemoryRule;
+class MBC7MemoryRule;
+class TAMA5MemoryRule;
 class MemoryRule;
 class TraceLogger;
 
@@ -99,6 +105,7 @@ public:
     Video* GetVideo();
     TraceLogger* GetTraceLogger();
     u64 GetMasterClockCycles();
+    void SetAccelerometer(double x, double y);
 
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;
@@ -128,6 +135,12 @@ private:
     MBC3MemoryRule* m_pMBC3MemoryRule;
     MBC5MemoryRule* m_pMBC5MemoryRule;
     MultiMBC1MemoryRule* m_pMultiMBC1MemoryRule;
+    HuC1MemoryRule* m_pHuC1MemoryRule;
+    HuC3MemoryRule* m_pHuC3MemoryRule;
+    MMM01MemoryRule* m_pMMM01MemoryRule;
+    CameraMemoryRule* m_pCameraMemoryRule;
+    MBC7MemoryRule* m_pMBC7MemoryRule;
+    TAMA5MemoryRule* m_pTAMA5MemoryRule;
     bool m_bCGB;
     bool m_bGBA;
     bool m_bPaused;

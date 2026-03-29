@@ -275,7 +275,7 @@ static bool sdl_init(void)
 {
     Debug("Initializing SDL...");
 
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_SENSOR))
     {
         SDL_ERROR("SDL_Init");
         return false;
@@ -381,6 +381,8 @@ static void handle_mouse_cursor(void)
     }
     else
         ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+
+    SDL_SetWindowRelativeMouseMode(application_sdl_window, config_emulator.capture_mouse);
 }
 
 static void handle_menu(void)

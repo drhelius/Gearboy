@@ -36,6 +36,12 @@ public:
         CartridgeMBC3,
         CartridgeMBC5,
         CartridgeMBC1Multi,
+        CartridgeHuC1,
+        CartridgeHuC3,
+        CartridgeMMM01,
+        CartridgeCamera,
+        CartridgeMBC7,
+        CartridgeTAMA5,
         CartridgeNotSupported
     };
 

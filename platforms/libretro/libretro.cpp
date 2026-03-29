@@ -59,6 +59,17 @@ static bool bootrom_gbc = false;
 static bool color_correction = true;
 static bool libretro_supports_bitmasks;
 static bool categories_supported = false;
+static float libretro_tilt_x = 0.0f;
+static float libretro_tilt_y = 0.0f;
+static int mouse_sensitivity_x = 5;
+static int mouse_sensitivity_y = 5;
+static bool mouse_invert_x = false;
+static bool mouse_invert_y = false;
+static int sensor_sensitivity_x = 5;
+static int sensor_sensitivity_y = 5;
+static int tilt_source = 0;
+static struct retro_sensor_interface sensor_interface = {NULL, NULL};
+static bool sensor_accel_enabled = false;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -277,6 +288,65 @@ static void update_input(void)
         core->KeyPressed(Select_Key);
     else
         core->KeyReleased(Select_Key);
+
+    // MBC7 tilt input
+    if (tilt_source == 1)
+    {
+        // Sensor-based tilt
+        if (sensor_interface.get_sensor_input)
+        {
+            float ax = sensor_interface.get_sensor_input(0, RETRO_SENSOR_ACCELEROMETER_X);
+            float ay = sensor_interface.get_sensor_input(0, RETRO_SENSOR_ACCELEROMETER_Y);
+            if (ax != 0.0f || ay != 0.0f)
+            {
+                int sx = sensor_sensitivity_x;
+                int sy = sensor_sensitivity_y;
+                if (sx < 1) sx = 1;
+                if (sy < 1) sy = 1;
+                libretro_tilt_x = ax * (float)sx / 5.0f;
+                libretro_tilt_y = -ay * (float)sy / 5.0f;
+                if (libretro_tilt_x < -4.0f) libretro_tilt_x = -4.0f;
+                if (libretro_tilt_x > 4.0f) libretro_tilt_x = 4.0f;
+                if (libretro_tilt_y < -4.0f) libretro_tilt_y = -4.0f;
+                if (libretro_tilt_y > 4.0f) libretro_tilt_y = 4.0f;
+            }
+        }
+    }
+    else
+    {
+        // Mouse-based tilt (default)
+        int mouse_x = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+        int mouse_y = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+        if (mouse_x != 0 || mouse_y != 0)
+        {
+            int sx = mouse_sensitivity_x;
+            int sy = mouse_sensitivity_y;
+            if (sx < 1) sx = 1;
+            if (sy < 1) sy = 1;
+            float dx = -(float)mouse_x * ((float)sx / 200.0f);
+            float dy = -(float)mouse_y * ((float)sy / 200.0f);
+            if (mouse_invert_x) dx = -dx;
+            if (mouse_invert_y) dy = -dy;
+            libretro_tilt_x += dx;
+            libretro_tilt_y += dy;
+            if (libretro_tilt_x < -4.0f) libretro_tilt_x = -4.0f;
+            if (libretro_tilt_x > 4.0f) libretro_tilt_x = 4.0f;
+            if (libretro_tilt_y < -4.0f) libretro_tilt_y = -4.0f;
+            if (libretro_tilt_y > 4.0f) libretro_tilt_y = 4.0f;
+        }
+    }
+
+    if (tilt_source == 0)
+    {
+        libretro_tilt_x *= 0.70f;
+        libretro_tilt_y *= 0.70f;
+        if (libretro_tilt_x > -0.01f && libretro_tilt_x < 0.01f)
+            libretro_tilt_x = 0.0f;
+        if (libretro_tilt_y > -0.01f && libretro_tilt_y < 0.01f)
+            libretro_tilt_y = 0.0f;
+    }
+
+    core->SetAccelerometer((double)libretro_tilt_x, (double)libretro_tilt_y);
 }
 
 static void check_variables(void)
@@ -324,8 +394,92 @@ static void check_variables(void)
             mapper = Cartridge::CartridgeMBC5;
         else if (strcmp(var.value, "MBC 1 Multicart") == 0)
             mapper = Cartridge::CartridgeMBC1Multi;
+        else if (strcmp(var.value, "HuC 1") == 0)
+            mapper = Cartridge::CartridgeHuC1;
+        else if (strcmp(var.value, "HuC 3") == 0)
+            mapper = Cartridge::CartridgeHuC3;
+        else if (strcmp(var.value, "MMM01") == 0)
+            mapper = Cartridge::CartridgeMMM01;
+        else if (strcmp(var.value, "Camera") == 0)
+            mapper = Cartridge::CartridgeCamera;
+        else if (strcmp(var.value, "MBC 7") == 0)
+            mapper = Cartridge::CartridgeMBC7;
+        else if (strcmp(var.value, "TAMA5") == 0)
+            mapper = Cartridge::CartridgeTAMA5;
         else
             mapper = Cartridge::CartridgeNotSupported;
+    }
+
+    var.key = "gearboy_mouse_sensitivity_x";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        mouse_sensitivity_x = atoi(var.value);
+    }
+
+    var.key = "gearboy_mouse_sensitivity_y";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        mouse_sensitivity_y = atoi(var.value);
+    }
+
+    var.key = "gearboy_mouse_invert_x";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        mouse_invert_x = (strcmp(var.value, "Enabled") == 0);
+    }
+
+    var.key = "gearboy_mouse_invert_y";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        mouse_invert_y = (strcmp(var.value, "Enabled") == 0);
+    }
+
+    var.key = "gearboy_sensor_sensitivity_x";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        sensor_sensitivity_x = atoi(var.value);
+    }
+
+    var.key = "gearboy_sensor_sensitivity_y";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        sensor_sensitivity_y = atoi(var.value);
+    }
+
+    var.key = "gearboy_tilt_source";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        int new_source = 0;
+        if (strcmp(var.value, "Sensor") == 0)
+            new_source = 1;
+
+        if (new_source != tilt_source)
+        {
+            tilt_source = new_source;
+            if (tilt_source == 1 && sensor_interface.set_sensor_state && !sensor_accel_enabled)
+            {
+                sensor_accel_enabled = sensor_interface.set_sensor_state(0, RETRO_SENSOR_ACCELEROMETER_ENABLE, 60);
+            }
+            else if (tilt_source == 0 && sensor_interface.set_sensor_state && sensor_accel_enabled)
+            {
+                sensor_interface.set_sensor_state(0, RETRO_SENSOR_ACCELEROMETER_DISABLE, 0);
+                sensor_accel_enabled = false;
+            }
+        }
     }
 
     var.key = "gearboy_palette";
@@ -456,6 +610,7 @@ bool retro_load_game(const struct retro_game_info *info)
     };
 
     environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
+    environ_cb(RETRO_ENVIRONMENT_GET_SENSOR_INTERFACE, &sensor_interface);
 
     enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
     

@@ -38,6 +38,12 @@
     <ClCompile Include="..\..\src\Memory.cpp" />
     <ClCompile Include="..\..\src\MemoryRule.cpp" />
     <ClCompile Include="..\..\src\MultiMBC1MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\HuC1MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\HuC3MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\MMM01MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\CameraMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\MBC7MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\TAMA5MemoryRule.cpp" />
     <ClCompile Include="..\..\src\opcodes.cpp" />
     <ClCompile Include="..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\src\Processor.cpp" />
@@ -134,6 +140,12 @@
     <ClInclude Include="..\..\src\MemoryRule.h" />
     <ClInclude Include="..\..\src\Memory_inline.h" />
     <ClInclude Include="..\..\src\MultiMBC1MemoryRule.h" />
+    <ClInclude Include="..\..\src\HuC1MemoryRule.h" />
+    <ClInclude Include="..\..\src\HuC3MemoryRule.h" />
+    <ClInclude Include="..\..\src\MMM01MemoryRule.h" />
+    <ClInclude Include="..\..\src\CameraMemoryRule.h" />
+    <ClInclude Include="..\..\src\MBC7MemoryRule.h" />
+    <ClInclude Include="..\..\src\TAMA5MemoryRule.h" />
     <ClInclude Include="..\..\src\opcode_names.h" />
     <ClInclude Include="..\..\src\opcode_timing.h" />
     <ClInclude Include="..\..\src\Processor.h" />

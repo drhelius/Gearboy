@@ -505,7 +505,7 @@ static void menu_emulator(void)
         if (ImGui::BeginMenu("Memory Bank Controller"))
         {
             ImGui::PushItemWidth(140.0f);
-            ImGui::Combo("##mbc", &config_emulator.mbc, "Auto\0ROM Only\0MBC 1\0MBC 2\0MBC 3\0MBC 5\0MBC 1 Multicart\0\0");
+            ImGui::Combo("##mbc", &config_emulator.mbc, "Auto\0ROM Only\0MBC 1\0MBC 2\0MBC 3\0MBC 5\0MBC 1 Multicart\0HuC 1\0HuC 3\0MMM01\0Camera\0MBC 7\0TAMA5\0\0");
             ImGui::PopItemWidth();
             ImGui::EndMenu();
         }
@@ -594,6 +594,7 @@ static void menu_emulator(void)
             hotkey_configuration_item("Screenshot:", &config_hotkeys[config_HotkeyIndex_Screenshot]);
             hotkey_configuration_item("Fullscreen:", &config_hotkeys[config_HotkeyIndex_Fullscreen]);
             hotkey_configuration_item("Show Main Menu:", &config_hotkeys[config_HotkeyIndex_ShowMainMenu]);
+            hotkey_configuration_item("Capture Mouse:", &config_hotkeys[config_HotkeyIndex_CaptureMouse]);
 
             gui_popup_modal_hotkey();
 
@@ -872,6 +873,46 @@ static void menu_input(void)
                 ImGui::EndMenu();
             }
 
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::BeginMenu("Tilt Control (MBC7)"))
+        {
+            ImGui::PushItemWidth(150.0f);
+            ImGui::Combo("##tilt_source", &config_emulator.tilt_source, "Disabled\0Mouse\0Gamepad Sensor\0\0");
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("Use a Joy-Con, DualSense, or other controller with motion sensors.\nAlternatively, use the mouse to simulate tilt.\nDisable when not using it.");
+            }
+
+            if (config_emulator.tilt_source == 1)
+            {
+                ImGui::PushItemWidth(150.0f);
+                ImGui::SliderInt("##mouse_sens_x", &config_emulator.mouse_sensitivity_x, 1, 15, "Mouse X = %d");
+                ImGui::SliderInt("##mouse_sens_y", &config_emulator.mouse_sensitivity_y, 1, 15, "Mouse Y = %d");
+                ImGui::PopItemWidth();
+                ImGui::Checkbox("Invert Mouse X", &config_emulator.mouse_invert_x);
+                ImGui::Checkbox("Invert Mouse Y", &config_emulator.mouse_invert_y);
+            }
+
+            if (config_emulator.tilt_source == 2)
+            {
+                ImGui::PushItemWidth(150.0f);
+                ImGui::SliderInt("##sensor_sens_x", &config_emulator.sensor_sensitivity_x, 1, 15, "Sensor X = %d");
+                ImGui::SliderInt("##sensor_sens_y", &config_emulator.sensor_sensitivity_y, 1, 15, "Sensor Y = %d");
+                ImGui::PopItemWidth();
+            }
+
+            if (config_emulator.tilt_source == 1)
+            {
+                ImGui::MenuItem("Capture Mouse", config_hotkeys[config_HotkeyIndex_CaptureMouse].str, &config_emulator.capture_mouse);
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::SetTooltip("When enabled, the mouse will be captured inside\nthe emulator window to control tilt freely.\nPress %s to release the mouse.", config_hotkeys[config_HotkeyIndex_CaptureMouse].str);
+                }
+            }
             ImGui::EndMenu();
         }
 

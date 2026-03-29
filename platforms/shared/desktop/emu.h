@@ -108,6 +108,7 @@ EXTERN void emu_save_screenshot(const char* file_path);
 EXTERN int emu_get_screenshot_png(unsigned char** out_buffer);
 EXTERN int emu_get_sprite_png(int sprite_index, unsigned char** out_buffer);
 EXTERN void emu_save_sprite(const char* file_path, int index);
+EXTERN void emu_set_accelerometer(float x, float y);
 EXTERN void emu_save_background(const char* file_path);
 EXTERN void emu_save_tiles(const char* file_path);
 EXTERN void emu_start_vgm_recording(const char* file_path);

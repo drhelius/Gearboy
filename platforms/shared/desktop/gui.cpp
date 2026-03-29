@@ -69,6 +69,12 @@ Cartridge::CartridgeTypes gui_get_mbc(int index)
         case 4: return Cartridge::CartridgeMBC3;
         case 5: return Cartridge::CartridgeMBC5;
         case 6: return Cartridge::CartridgeMBC1Multi;
+        case 7: return Cartridge::CartridgeHuC1;
+        case 8: return Cartridge::CartridgeHuC3;
+        case 9: return Cartridge::CartridgeMMM01;
+        case 10: return Cartridge::CartridgeCamera;
+        case 11: return Cartridge::CartridgeMBC7;
+        case 12: return Cartridge::CartridgeTAMA5;
         default: return Cartridge::CartridgeNotSupported;
     }
 }

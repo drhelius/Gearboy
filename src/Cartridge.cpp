@@ -312,119 +312,77 @@ void Cartridge::CheckCartridgeType(int type)
 
     switch (type)
     {
-        case 0x00:
-            // NO MBC
-        case 0x08:
-            // ROM
-            // SRAM
-        case 0x09:
-            // ROM
-            // SRAM
-            // BATT
+        // --- No MBC ---
+        case 0x00: // ROM only
+        case 0x08: // ROM + SRAM
+        case 0x09: // ROM + SRAM + BATT
             m_Type = CartridgeNoMBC;
             break;
-        case 0x01:
-            // MBC1
-        case 0x02:
-            // MBC1
-            // SRAM
-        case 0x03:
-            // MBC1
-            // SRAM
-            // BATT
-        case 0xEA:
-            // Hack to accept 0xEA as a MBC1 (Sonic 3D Blast 5)
-        case 0xFF:
-            // Hack to accept HuC1 as a MBC1
+        // --- MBC1 ---
+        case 0x01: // MBC1
+        case 0x02: // MBC1 + SRAM
+        case 0x03: // MBC1 + SRAM + BATT
+        case 0xEA: // Hack: 0xEA as MBC1 (Sonic 3D Blast 5)
             m_Type = CartridgeMBC1;
             break;
-        case 0x05:
-            // MBC2
-            // SRAM
-        case 0x06:
-            // MBC2
-            // SRAM
-            // BATT
+        // --- MBC2 ---
+        case 0x05: // MBC2 + SRAM
+        case 0x06: // MBC2 + SRAM + BATT
             m_Type = CartridgeMBC2;
             break;
-        case 0x0F:
-            // MBC3
-            // TIMER
-            // BATT
-        case 0x10:
-            // MBC3
-            // TIMER
-            // BATT
-            // SRAM
-        case 0x11:
-            // MBC3
-        case 0x12:
-            // MBC3
-            // SRAM
-        case 0x13:
-            // MBC3
-            // BATT
-            // SRAM
-        case 0xFC:
-            // Game Boy Camera
+        // --- MBC3 ---
+        case 0x0F: // MBC3 + TIMER + BATT
+        case 0x10: // MBC3 + TIMER + SRAM + BATT
+        case 0x11: // MBC3
+        case 0x12: // MBC3 + SRAM
+        case 0x13: // MBC3 + SRAM + BATT
             m_Type = CartridgeMBC3;
             break;
-        case 0x19:
-            // MBC5
-        case 0x1A:
-            // MBC5
-            // SRAM
-        case 0x1B:
-            // MBC5
-            // BATT
-            // SRAM
-        case 0x1C:
-            // RUMBLE
-        case 0x1D:
-            // RUMBLE
-            // SRAM
-        case 0x1E:
-            // RUMBLE
-            // BATT
-            // SRAM
+        // --- MBC5 ---
+        case 0x19: // MBC5
+        case 0x1A: // MBC5 + SRAM
+        case 0x1B: // MBC5 + SRAM + BATT
+        case 0x1C: // MBC5 + RUMBLE
+        case 0x1D: // MBC5 + RUMBLE + SRAM
+        case 0x1E: // MBC5 + RUMBLE + SRAM + BATT
             m_Type = CartridgeMBC5;
             break;
-        case 0x0B:
-            // MMMO1
-        case 0x0C:
-            // MMM01
-            // SRAM
-        case 0x0D:
-            // MMM01
-            // SRAM
-            // BATT
-        case 0x15:
-            // MBC4
-        case 0x16:
-            // MBC4
-            // SRAM
-        case 0x17:
-            // MBC4
-            // SRAM
-            // BATT
-        case 0x22:
-            // MBC7
-            // BATT
-            // SRAM
-        case 0x55:
-            // GG
-        case 0x56:
-            // GS3
-        case 0xFD:
-            // TAMA 5
-        case 0xFE:
-            // HuC3
-            m_Type = CartridgeNotSupported;
-            Log("--> ** This cartridge is not supported. Type: %d", type);
+        // --- MBC7 ---
+        case 0x22: // MBC7 + ACCEL + EEPROM + BATT
+            m_Type = CartridgeMBC7;
             break;
+        // --- MMM01 ---
+        case 0x0B: // MMM01
+        case 0x0C: // MMM01 + SRAM
+        case 0x0D: // MMM01 + SRAM + BATT
+            m_Type = CartridgeMMM01;
+            break;
+        // --- HuC1 ---
+        case 0xFF: // HuC1 + RAM + BATT
+            m_Type = CartridgeHuC1;
+            break;
+        // --- HuC3 ---
+        case 0xFE: // HuC3 + RTC + RAM + BATT
+            m_Type = CartridgeHuC3;
+            break;
+        // --- Pocket Camera ---
+        case 0xFC: // Game Boy Camera + RAM + BATT
+            m_Type = CartridgeCamera;
+            break;
+        // --- TAMA5 ---
+        case 0xFD: // Bandai TAMA5 + RTC + BATT
+            m_Type = CartridgeTAMA5;
+            break;
+        // --- Not supported (fallback to MBC5) ---
+        case 0x15: // MBC4
+        case 0x16: // MBC4 + SRAM
+        case 0x17: // MBC4 + SRAM + BATT
+        case 0x55: // Game Genie
+        case 0x56: // Game Shark v3
+        // --- Unknown (fallback to MBC5) ---
         default:
-            m_Type = CartridgeNotSupported;
-            Log("--> ** Unknown cartridge type: %d", type);
+            Log("--> ** Unsupported or unknown cartridge type %02X, falling back to MBC5", type);
+            m_Type = CartridgeMBC5;
     }
 
     switch (type)
@@ -440,7 +398,9 @@ void Cartridge::CheckCartridgeType(int type)
         case 0x1B:
         case 0x1E:
         case 0x22:
+        case 0xFC:
         case 0xFD:
+        case 0xFE:
         case 0xFF:
             m_bBattery = true;
             break;
@@ -452,6 +412,8 @@ void Cartridge::CheckCartridgeType(int type)
     {
         case 0x0F:
         case 0x10:
+        case 0xFD:
+        case 0xFE:
             m_bRTCPresent = true;
             break;
         default:
@@ -640,6 +602,16 @@ bool Cartridge::GatherMetadata()
         {
             m_bMBC30 = true;
         }
+    }
+
+    if (m_Type == Cartridge::CartridgeMMM01 && m_iTotalSize > 0x8000)
+    {
+        u8* temp = new u8[0x8000];
+        memcpy(temp, m_pTheROM, 0x8000);
+        memmove(m_pTheROM, m_pTheROM + 0x8000, m_iTotalSize - 0x8000);
+        memcpy(m_pTheROM + m_iTotalSize - 0x8000, temp, 0x8000);
+        SafeDeleteArray(temp);
+        Log("MMM01 ROM rearranged (menu moved to end)");
     }
 
     Log("Cartridge Size %d", m_iTotalSize);

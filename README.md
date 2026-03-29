@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/github/license/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/blob/master/LICENSE)
 [![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)](https://x.com/drhelius)
 
-Gearboy is a cross-platform Game Boy / Game Boy Color emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch, with an embedded MCP server for debugging and tooling.
+Gearboy is an accurate cross-platform Game Boy / Game Boy Color emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch, with an embedded MCP server for debugging and tooling.
 
 This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md). If you find it useful, please consider [sponsoring](https://github.com/sponsors/drhelius).
 
@@ -90,8 +90,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 
 ## Features
 
-- Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3 + RTC, MBC5, HuC-1 and MBC1M (multicart).
-- Accurate LCD controller emulation with correct timings and priorities including mid-scanline effects.
+- Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3, MBC5, MBC7, HuC-1, HuC-3, MMM01, Pocket Camera, TAMA5 and MBC1M (multicart).
 - Game Boy Color support.
 - LCD screen ghosting effect as seen in the original Game Boy.
 - LCD dot matrix effect.

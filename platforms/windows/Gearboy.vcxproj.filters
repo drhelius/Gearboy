@@ -142,6 +142,24 @@
     <ClCompile Include="..\..\src\MultiMBC1MemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\HuC1MemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\HuC3MemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\MMM01MemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CameraMemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\MBC7MemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\TAMA5MemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\opcodes.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -373,6 +391,24 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\MultiMBC1MemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\HuC1MemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\HuC3MemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MMM01MemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\CameraMemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MBC7MemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\TAMA5MemoryRule.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\opcode_names.h">

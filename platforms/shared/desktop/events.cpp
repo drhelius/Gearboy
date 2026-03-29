@@ -54,6 +54,12 @@ void events_shortcuts(const SDL_Event* event)
         return;
     }
 
+    if (events_check_hotkey(event, config_hotkeys[config_HotkeyIndex_CaptureMouse], false))
+    {
+        config_emulator.capture_mouse = !config_emulator.capture_mouse;
+        return;
+    }
+
     // Check slot selection hotkeys
     for (int i = 0; i < 5; i++)
     {
@@ -116,6 +122,26 @@ void events_handle_emu_event(const SDL_Event* event)
     {
         case SDL_EVENT_MOUSE_MOTION:
         {
+            if ((config_emulator.tilt_source == 1) && (event->motion.xrel != 0.0f || event->motion.yrel != 0.0f))
+            {
+                int sen_x = config_emulator.mouse_sensitivity_x;
+                int sen_y = config_emulator.mouse_sensitivity_y;
+                if (sen_x < 1)
+                    sen_x = 1;
+                if (sen_y < 1)
+                    sen_y = 1;
+
+                float relx = -event->motion.xrel * ((float)sen_x / 200.0f);
+                float rely = -event->motion.yrel * ((float)sen_y / 200.0f);
+
+                if (config_emulator.mouse_invert_x)
+                    relx = -relx;
+                if (config_emulator.mouse_invert_y)
+                    rely = -rely;
+
+                emu_set_accelerometer(relx, rely);
+            }
+
             break;
         }
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
@@ -150,6 +176,33 @@ void events_emu(void)
         input_last_state[controller] = now;
 
         gamepad_check_shortcuts(controller);
+
+        // Gamepad sensor tilt (Joy-Con, DualSense, etc.)
+        if (config_emulator.tilt_source == 2)
+        {
+            SDL_Gamepad* sdl_controller = gamepad_controller[controller];
+            if (IsValidPointer(sdl_controller) && SDL_GamepadHasSensor(sdl_controller, SDL_SENSOR_ACCEL))
+            {
+                if (!SDL_GamepadSensorEnabled(sdl_controller, SDL_SENSOR_ACCEL))
+                    SDL_SetGamepadSensorEnabled(sdl_controller, SDL_SENSOR_ACCEL, true);
+
+                float accel[3] = {};
+                if (SDL_GetGamepadSensorData(sdl_controller, SDL_SENSOR_ACCEL, accel, 3))
+                {
+                    float gx = accel[0] / SDL_STANDARD_GRAVITY;
+                    float gy = accel[1] / SDL_STANDARD_GRAVITY;
+                    int sen_x = config_emulator.sensor_sensitivity_x;
+                    int sen_y = config_emulator.sensor_sensitivity_y;
+                    if (sen_x < 1)
+                        sen_x = 1;
+                    if (sen_y < 1)
+                        sen_y = 1;
+                    gx *= (float)sen_x / 5.0f;
+                    gy *= (float)sen_y / 5.0f;
+                    emu_set_accelerometer(gx, -gy);
+                }
+            }
+        }
     }
 }
 

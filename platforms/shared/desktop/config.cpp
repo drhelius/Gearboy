@@ -84,6 +84,7 @@ static void set_defaults(void)
     config_hotkeys[config_HotkeyIndex_Screenshot] = make_hotkey(SDL_SCANCODE_X, SDL_KMOD_CTRL);
     config_hotkeys[config_HotkeyIndex_Fullscreen] = make_hotkey(SDL_SCANCODE_F12, SDL_KMOD_NONE);
     config_hotkeys[config_HotkeyIndex_ShowMainMenu] = make_hotkey(SDL_SCANCODE_M, SDL_KMOD_CTRL);
+    config_hotkeys[config_HotkeyIndex_CaptureMouse] = make_hotkey(SDL_SCANCODE_F1, (SDL_Keymod)0);
     config_hotkeys[config_HotkeyIndex_DebugStepInto] = make_hotkey(SDL_SCANCODE_F11, SDL_KMOD_NONE);
     config_hotkeys[config_HotkeyIndex_DebugStepOver] = make_hotkey(SDL_SCANCODE_F10, SDL_KMOD_NONE);
     config_hotkeys[config_HotkeyIndex_DebugStepOut] = make_hotkey(SDL_SCANCODE_F11, SDL_KMOD_SHIFT);
@@ -234,6 +235,14 @@ void config_read(void)
     config_emulator.window_height = read_int("Emulator", "WindowHeight", 700);
     config_emulator.status_messages = read_bool("Emulator", "StatusMessages", false);
     config_emulator.mcp_tcp_port = read_int("Emulator", "MCPTCPPort", 7777);
+    config_emulator.tilt_source = read_int("Emulator", "TiltSource", 0);
+    config_emulator.mouse_sensitivity_x = read_int("Emulator", "MouseSensitivityX", 5);
+    config_emulator.mouse_sensitivity_y = read_int("Emulator", "MouseSensitivityY", 5);
+    config_emulator.mouse_invert_x = read_bool("Emulator", "MouseInvertX", false);
+    config_emulator.mouse_invert_y = read_bool("Emulator", "MouseInvertY", false);
+    config_emulator.sensor_sensitivity_x = read_int("Emulator", "SensorSensitivityX", 5);
+    config_emulator.sensor_sensitivity_y = read_int("Emulator", "SensorSensitivityY", 5);
+    config_emulator.capture_mouse = read_bool("Emulator", "CaptureMouse", false);
     if (config_emulator.savefiles_path.empty())
     {
         config_emulator.savefiles_path = config_root_path;
@@ -330,6 +339,7 @@ void config_read(void)
     config_hotkeys[config_HotkeyIndex_Screenshot] = read_hotkey("Hotkeys", "Screenshot", make_hotkey(SDL_SCANCODE_X, SDL_KMOD_CTRL));
     config_hotkeys[config_HotkeyIndex_Fullscreen] = read_hotkey("Hotkeys", "Fullscreen", make_hotkey(SDL_SCANCODE_F12, SDL_KMOD_NONE));
     config_hotkeys[config_HotkeyIndex_ShowMainMenu] = read_hotkey("Hotkeys", "ShowMainMenu", make_hotkey(SDL_SCANCODE_M, SDL_KMOD_CTRL));
+    config_hotkeys[config_HotkeyIndex_CaptureMouse] = read_hotkey("Hotkeys", "CaptureMouse", make_hotkey(SDL_SCANCODE_F1, SDL_KMOD_NONE));
     config_hotkeys[config_HotkeyIndex_DebugStepInto] = read_hotkey("Hotkeys", "DebugStepInto", make_hotkey(SDL_SCANCODE_F11, SDL_KMOD_NONE));
     config_hotkeys[config_HotkeyIndex_DebugStepOver] = read_hotkey("Hotkeys", "DebugStepOver", make_hotkey(SDL_SCANCODE_F10, SDL_KMOD_NONE));
     config_hotkeys[config_HotkeyIndex_DebugStepOut] = read_hotkey("Hotkeys", "DebugStepOut", make_hotkey(SDL_SCANCODE_F11, SDL_KMOD_SHIFT));
@@ -426,6 +436,14 @@ void config_write(void)
     write_int("Emulator", "WindowHeight", config_emulator.window_height);
     write_bool("Emulator", "StatusMessages", config_emulator.status_messages);
     write_int("Emulator", "MCPTCPPort", config_emulator.mcp_tcp_port);
+    write_int("Emulator", "TiltSource", config_emulator.tilt_source);
+    write_int("Emulator", "MouseSensitivityX", config_emulator.mouse_sensitivity_x);
+    write_int("Emulator", "MouseSensitivityY", config_emulator.mouse_sensitivity_y);
+    write_bool("Emulator", "MouseInvertX", config_emulator.mouse_invert_x);
+    write_bool("Emulator", "MouseInvertY", config_emulator.mouse_invert_y);
+    write_int("Emulator", "SensorSensitivityX", config_emulator.sensor_sensitivity_x);
+    write_int("Emulator", "SensorSensitivityY", config_emulator.sensor_sensitivity_y);
+    write_bool("Emulator", "CaptureMouse", config_emulator.capture_mouse);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {
@@ -511,6 +529,7 @@ void config_write(void)
     write_hotkey("Hotkeys", "Screenshot", config_hotkeys[config_HotkeyIndex_Screenshot]);
     write_hotkey("Hotkeys", "Fullscreen", config_hotkeys[config_HotkeyIndex_Fullscreen]);
     write_hotkey("Hotkeys", "ShowMainMenu", config_hotkeys[config_HotkeyIndex_ShowMainMenu]);
+    write_hotkey("Hotkeys", "CaptureMouse", config_hotkeys[config_HotkeyIndex_CaptureMouse]);
     write_hotkey("Hotkeys", "DebugStepInto", config_hotkeys[config_HotkeyIndex_DebugStepInto]);
     write_hotkey("Hotkeys", "DebugStepOver", config_hotkeys[config_HotkeyIndex_DebugStepOver]);
     write_hotkey("Hotkeys", "DebugStepOut", config_hotkeys[config_HotkeyIndex_DebugStepOut]);

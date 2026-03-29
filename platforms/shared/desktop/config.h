@@ -68,6 +68,14 @@ struct config_Emulator
     int window_height = 700;
     bool status_messages = false;
     int mcp_tcp_port = 7777;
+    int tilt_source = 0;
+    int mouse_sensitivity_x = 5;
+    int mouse_sensitivity_y = 5;
+    bool mouse_invert_x = false;
+    bool mouse_invert_y = false;
+    int sensor_sensitivity_x = 5;
+    int sensor_sensitivity_y = 5;
+    bool capture_mouse = false;
 };
 
 struct config_Video
@@ -147,6 +155,7 @@ enum config_HotkeyIndex
     config_HotkeyIndex_DebugRunToCursor,
     config_HotkeyIndex_DebugBreakpoint,
     config_HotkeyIndex_DebugGoBack,
+    config_HotkeyIndex_CaptureMouse,
     config_HotkeyIndex_SelectSlot1,
     config_HotkeyIndex_SelectSlot2,
     config_HotkeyIndex_SelectSlot3,

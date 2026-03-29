@@ -88,6 +88,12 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "MBC 3",           NULL },
             { "MBC 5",           NULL },
             { "MBC 1 Multicart", NULL },
+            { "HuC 1",           NULL },
+            { "HuC 3",           NULL },
+            { "MMM01",           NULL },
+            { "Camera",          NULL },
+            { "MBC 7",           NULL },
+            { "TAMA5",           NULL },
             { NULL, NULL },
         },
         "Auto"
@@ -113,6 +119,104 @@ struct retro_core_option_v2_definition option_defs_us[] = {
         "Enable or disable the Game Boy Color bootrom. When enabled, the bootrom will execute on startup just like on real hardware, showing the Game Boy Color boot animation. The 'cgb_boot.bin' file must be present in RetroArch's system directory.",
         NULL,
         "system",
+        {
+            { "Disabled", NULL },
+            { "Enabled",  NULL },
+            { NULL, NULL },
+        },
+        "Disabled"
+    },
+    {
+        "gearboy_tilt_source",
+        "Tilt Source (MBC7)",
+        NULL,
+        "Select the input source for tilt control in MBC7 games (e.g. Kirby Tilt 'n' Tumble). 'Mouse' uses relative mouse movement. 'Sensor' uses the device's real accelerometer (requires supported hardware like Joy-Con or DualSense through RetroArch sensor support).",
+        NULL,
+        "input",
+        {
+            { "Mouse",  NULL },
+            { "Sensor", NULL },
+            { NULL, NULL },
+        },
+        "Sensor"
+    },
+    {
+        "gearboy_sensor_sensitivity_x",
+        "Sensor Sensitivity X (MBC7)",
+        NULL,
+        "Set the horizontal sensor sensitivity for tilt control in MBC7 games.",
+        NULL,
+        "input",
+        {
+            { "1", NULL }, { "2", NULL }, { "3", NULL }, { "4", NULL }, { "5", NULL },
+            { "6", NULL }, { "7", NULL }, { "8", NULL }, { "9", NULL }, { "10", NULL },
+            { NULL, NULL },
+        },
+        "5"
+    },
+    {
+        "gearboy_sensor_sensitivity_y",
+        "Sensor Sensitivity Y (MBC7)",
+        NULL,
+        "Set the vertical sensor sensitivity for tilt control in MBC7 games.",
+        NULL,
+        "input",
+        {
+            { "1", NULL }, { "2", NULL }, { "3", NULL }, { "4", NULL }, { "5", NULL },
+            { "6", NULL }, { "7", NULL }, { "8", NULL }, { "9", NULL }, { "10", NULL },
+            { NULL, NULL },
+        },
+        "5"
+    },
+    {
+        "gearboy_mouse_sensitivity_x",
+        "Mouse Sensitivity X (MBC7)",
+        NULL,
+        "Set the horizontal mouse sensitivity for tilt control in MBC7 games.",
+        NULL,
+        "input",
+        {
+            { "1", NULL }, { "2", NULL }, { "3", NULL }, { "4", NULL }, { "5", NULL },
+            { "6", NULL }, { "7", NULL }, { "8", NULL }, { "9", NULL }, { "10", NULL },
+            { NULL, NULL },
+        },
+        "5"
+    },
+    {
+        "gearboy_mouse_sensitivity_y",
+        "Mouse Sensitivity Y (MBC7)",
+        NULL,
+        "Set the vertical mouse sensitivity for tilt control in MBC7 games.",
+        NULL,
+        "input",
+        {
+            { "1", NULL }, { "2", NULL }, { "3", NULL }, { "4", NULL }, { "5", NULL },
+            { "6", NULL }, { "7", NULL }, { "8", NULL }, { "9", NULL }, { "10", NULL },
+            { NULL, NULL },
+        },
+        "5"
+    },
+    {
+        "gearboy_mouse_invert_x",
+        "Mouse Invert X (MBC7)",
+        NULL,
+        "Invert horizontal mouse axis for tilt control.",
+        NULL,
+        "input",
+        {
+            { "Disabled", NULL },
+            { "Enabled",  NULL },
+            { NULL, NULL },
+        },
+        "Disabled"
+    },
+    {
+        "gearboy_mouse_invert_y",
+        "Mouse Invert Y (MBC7)",
+        NULL,
+        "Invert vertical mouse axis for tilt control.",
+        NULL,
+        "input",
         {
             { "Disabled", NULL },
             { "Enabled",  NULL },

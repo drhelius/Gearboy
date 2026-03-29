@@ -45,6 +45,8 @@ static u16* frame_buffer_565;
 static s16* audio_buffer;
 static bool audio_enabled;
 static McpManager* mcp_manager;
+static float tilt_x = 0.0f;
+static float tilt_y = 0.0f;
 static u16* debug_background_buffer_565;
 static u16* debug_tile_buffers_565[2];
 static u16* debug_oam_buffers_565[40];
@@ -276,6 +278,17 @@ void emu_update(void)
         int silence_count = GB_AUDIO_QUEUE_SIZE;
         memset(audio_buffer, 0, silence_count * sizeof(s16));
         sound_queue_write(audio_buffer, silence_count, false);
+    }
+
+    // Mouse tilt decay: gradually return to center each frame
+    if (config_emulator.tilt_source == 1)
+    {
+        const float decay = 0.70f;
+        tilt_x *= decay;
+        tilt_y *= decay;
+        if (tilt_x > -0.01f && tilt_x < 0.01f) tilt_x = 0.0f;
+        if (tilt_y > -0.01f && tilt_y < 0.01f) tilt_y = 0.0f;
+        gearboy->SetAccelerometer((double)tilt_x, (double)tilt_y);
     }
 }
 
@@ -628,6 +641,25 @@ void emu_save_sprite(const char* file_path, int index)
     Log("Sprite saved to %s", file_path);
 }
 
+void emu_set_accelerometer(float x, float y)
+{
+    if (config_emulator.tilt_source == 2)
+    {
+        // Gamepad sensor: absolute values in g-units
+        tilt_x = CLAMP(x, -4.0f, 4.0f);
+        tilt_y = CLAMP(y, -4.0f, 4.0f);
+    }
+    else
+    {
+        // Mouse: relative motion accumulated
+        tilt_x += x;
+        tilt_y += y;
+        tilt_x = CLAMP(tilt_x, -4.0f, 4.0f);
+        tilt_y = CLAMP(tilt_y, -4.0f, 4.0f);
+    }
+    gearboy->SetAccelerometer((double)tilt_x, (double)tilt_y);
+}
+
 void emu_save_background(const char* file_path)
 {
     if (!gearboy->GetCartridge()->IsLoadedROM())
@@ -818,6 +850,18 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "MBC 3";
         case Cartridge::CartridgeMBC5:
             return "MBC 5";
+        case Cartridge::CartridgeHuC1:
+            return "HuC 1";
+        case Cartridge::CartridgeHuC3:
+            return "HuC 3";
+        case Cartridge::CartridgeMMM01:
+            return "MMM01";
+        case Cartridge::CartridgeCamera:
+            return "Camera";
+        case Cartridge::CartridgeMBC7:
+            return "MBC 7";
+        case Cartridge::CartridgeTAMA5:
+            return "TAMA5";
         case Cartridge::CartridgeNotSupported:
             return "Not Supported";
         default:

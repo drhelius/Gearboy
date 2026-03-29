@@ -31,7 +31,14 @@ void gui_debug_memory_reset(void)
     mem_edit[MEMORY_EDITOR_ROM0].Reset("ROM0", memory->GetROM0(), 0x4000);
     mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000);
     mem_edit[MEMORY_EDITOR_VRAM].Reset("VRAM", memory->GetVRAM(), 0x2000, 0x8000);
-    mem_edit[MEMORY_EDITOR_RAM].Reset("RAM", memory->GetRAM(), 0x2000, 0xA000);
+
+    MemoryRule* rule = memory->GetCurrentRule();
+    size_t ram_size = (rule != NULL) ? rule->GetRamSize() : 0;
+    if (ram_size > 0x2000)
+        ram_size = 0x2000;
+    u8* ram_ptr = (ram_size > 0 && rule != NULL) ? rule->GetCurrentRamBank() : memory->GetMemoryMap() + 0xA000;
+    mem_edit[MEMORY_EDITOR_RAM].Reset("RAM", ram_ptr, (int)ram_size, 0xA000);
+
     mem_edit[MEMORY_EDITOR_WRAM0].Reset("WRAM0", memory->GetWRAM0(), 0x1000, 0xC000);
     mem_edit[MEMORY_EDITOR_WRAM1].Reset("WRAM1", memory->GetWRAM1(), 0x1000, 0xD000);
     mem_edit[MEMORY_EDITOR_WRAM].Reset("WRAM", memory->GetWRAM0(), 0x2000, 0xC000);

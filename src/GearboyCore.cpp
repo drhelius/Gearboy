@@ -34,6 +34,12 @@
 #include "MBC3MemoryRule.h"
 #include "MBC5MemoryRule.h"
 #include "MultiMBC1MemoryRule.h"
+#include "HuC1MemoryRule.h"
+#include "HuC3MemoryRule.h"
+#include "MMM01MemoryRule.h"
+#include "CameraMemoryRule.h"
+#include "MBC7MemoryRule.h"
+#include "TAMA5MemoryRule.h"
 #include "TraceLogger.h"
 #include "common.h"
 
@@ -53,6 +59,12 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC2MemoryRule);
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
+    InitPointer(m_pHuC1MemoryRule);
+    InitPointer(m_pHuC3MemoryRule);
+    InitPointer(m_pMMM01MemoryRule);
+    InitPointer(m_pCameraMemoryRule);
+    InitPointer(m_pMBC7MemoryRule);
+    InitPointer(m_pTAMA5MemoryRule);
     InitPointer(m_pRamChangedCallback);
     InitPointer(m_trace_logger);
     m_bCGB = false;
@@ -73,6 +85,12 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pMBC2MemoryRule);
     SafeDelete(m_pMultiMBC1MemoryRule);
     SafeDelete(m_pMBC1MemoryRule);
+    SafeDelete(m_pHuC1MemoryRule);
+    SafeDelete(m_pHuC3MemoryRule);
+    SafeDelete(m_pMMM01MemoryRule);
+    SafeDelete(m_pCameraMemoryRule);
+    SafeDelete(m_pMBC7MemoryRule);
+    SafeDelete(m_pTAMA5MemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
     SafeDelete(m_pCommonMemoryRule);
@@ -312,6 +330,11 @@ TraceLogger* GearboyCore::GetTraceLogger()
 u64 GearboyCore::GetMasterClockCycles()
 {
     return m_master_clock_cycles;
+}
+
+void GearboyCore::SetAccelerometer(double x, double y)
+{
+    m_pMBC7MemoryRule->SetAccelerometer(x, y);
 }
 
 bool GearboyCore::GetRuntimeInfo(GB_RuntimeInfo& runtime_info)
@@ -1223,25 +1246,32 @@ void GearboyCore::InitDMGPalette()
 void GearboyCore::InitMemoryRules()
 {
     m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor, m_pMemory, m_pVideo, m_pInput, m_pAudio);
-
     m_pCommonMemoryRule = new CommonMemoryRule(m_pMemory);
-
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pMBC1MemoryRule = new MBC1MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pMultiMBC1MemoryRule = new MultiMBC1MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pMBC2MemoryRule = new MBC2MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pMBC3MemoryRule = new MBC3MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pMBC5MemoryRule = new MBC5MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pHuC1MemoryRule = new HuC1MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pHuC3MemoryRule = new HuC3MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pMMM01MemoryRule = new MMM01MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pCameraMemoryRule = new CameraMemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+
+    m_pMBC7MemoryRule = new MBC7MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+
+    m_pTAMA5MemoryRule = new TAMA5MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
@@ -1255,6 +1285,12 @@ void GearboyCore::InitMemoryRules()
     m_pMBC2MemoryRule->SetTraceLogger(m_trace_logger);
     m_pMBC3MemoryRule->SetTraceLogger(m_trace_logger);
     m_pMBC5MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pHuC1MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pHuC3MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMMM01MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pCameraMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC7MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pTAMA5MemoryRule->SetTraceLogger(m_trace_logger);
 }
 
 bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
@@ -1288,6 +1324,24 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
             break;
         case Cartridge::CartridgeMBC5:
             m_pMemory->SetCurrentRule(m_pMBC5MemoryRule);
+            break;
+        case Cartridge::CartridgeHuC1:
+            m_pMemory->SetCurrentRule(m_pHuC1MemoryRule);
+            break;
+        case Cartridge::CartridgeHuC3:
+            m_pMemory->SetCurrentRule(m_pHuC3MemoryRule);
+            break;
+        case Cartridge::CartridgeMMM01:
+            m_pMemory->SetCurrentRule(m_pMMM01MemoryRule);
+            break;
+        case Cartridge::CartridgeCamera:
+            m_pMemory->SetCurrentRule(m_pCameraMemoryRule);
+            break;
+        case Cartridge::CartridgeMBC7:
+            m_pMemory->SetCurrentRule(m_pMBC7MemoryRule);
+            break;
+        case Cartridge::CartridgeTAMA5:
+            m_pMemory->SetCurrentRule(m_pTAMA5MemoryRule);
             break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
