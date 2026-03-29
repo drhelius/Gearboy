@@ -130,15 +130,16 @@ struct retro_core_option_v2_definition option_defs_us[] = {
         "gearboy_tilt_source",
         "Tilt Source (MBC7)",
         NULL,
-        "Select the input source for tilt control in MBC7 games (e.g. Kirby Tilt 'n' Tumble). 'Mouse' uses relative mouse movement. 'Sensor' uses the device's real accelerometer (requires supported hardware like Joy-Con or DualSense through RetroArch sensor support).",
+        "Select the input source for tilt control in MBC7 games (e.g. Kirby Tilt 'n' Tumble). 'Mouse' uses relative mouse movement. 'Sensor' uses the device's real accelerometer. 'Analog Stick' uses the left analog stick for tilt (D-Pad used for directions).",
         NULL,
         "input",
         {
-            { "Mouse",  NULL },
-            { "Sensor", NULL },
+            { "Mouse",        NULL },
+            { "Sensor",       NULL },
+            { "Analog Stick", NULL },
             { NULL, NULL },
         },
-        "Sensor"
+        "Mouse"
     },
     {
         "gearboy_sensor_sensitivity_x",
@@ -167,6 +168,34 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { NULL, NULL },
         },
         "5"
+    },
+    {
+        "gearboy_sensor_invert_x",
+        "Sensor Invert X (MBC7)",
+        NULL,
+        "Invert horizontal sensor axis for tilt control.",
+        NULL,
+        "input",
+        {
+            { "Disabled", NULL },
+            { "Enabled",  NULL },
+            { NULL, NULL },
+        },
+        "Disabled"
+    },
+    {
+        "gearboy_sensor_invert_y",
+        "Sensor Invert Y (MBC7)",
+        NULL,
+        "Invert vertical sensor axis for tilt control.",
+        NULL,
+        "input",
+        {
+            { "Disabled", NULL },
+            { "Enabled",  NULL },
+            { NULL, NULL },
+        },
+        "Disabled"
     },
     {
         "gearboy_mouse_sensitivity_x",
@@ -215,6 +244,62 @@ struct retro_core_option_v2_definition option_defs_us[] = {
         "Mouse Invert Y (MBC7)",
         NULL,
         "Invert vertical mouse axis for tilt control.",
+        NULL,
+        "input",
+        {
+            { "Disabled", NULL },
+            { "Enabled",  NULL },
+            { NULL, NULL },
+        },
+        "Disabled"
+    },
+    {
+        "gearboy_analog_sensitivity_x",
+        "Analog Sensitivity X (MBC7)",
+        NULL,
+        "Set the horizontal analog stick sensitivity for tilt control in MBC7 games.",
+        NULL,
+        "input",
+        {
+            { "1", NULL }, { "2", NULL }, { "3", NULL }, { "4", NULL }, { "5", NULL },
+            { "6", NULL }, { "7", NULL }, { "8", NULL }, { "9", NULL }, { "10", NULL },
+            { NULL, NULL },
+        },
+        "5"
+    },
+    {
+        "gearboy_analog_sensitivity_y",
+        "Analog Sensitivity Y (MBC7)",
+        NULL,
+        "Set the vertical analog stick sensitivity for tilt control in MBC7 games.",
+        NULL,
+        "input",
+        {
+            { "1", NULL }, { "2", NULL }, { "3", NULL }, { "4", NULL }, { "5", NULL },
+            { "6", NULL }, { "7", NULL }, { "8", NULL }, { "9", NULL }, { "10", NULL },
+            { NULL, NULL },
+        },
+        "5"
+    },
+    {
+        "gearboy_analog_invert_x",
+        "Analog Invert X (MBC7)",
+        NULL,
+        "Invert horizontal analog stick axis for tilt control.",
+        NULL,
+        "input",
+        {
+            { "Disabled", NULL },
+            { "Enabled",  NULL },
+            { NULL, NULL },
+        },
+        "Disabled"
+    },
+    {
+        "gearboy_analog_invert_y",
+        "Analog Invert Y (MBC7)",
+        NULL,
+        "Invert vertical analog stick axis for tilt control.",
         NULL,
         "input",
         {

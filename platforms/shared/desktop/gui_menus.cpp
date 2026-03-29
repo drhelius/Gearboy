@@ -881,10 +881,10 @@ static void menu_input(void)
         if (ImGui::BeginMenu("Tilt Control (MBC7)"))
         {
             ImGui::PushItemWidth(150.0f);
-            ImGui::Combo("##tilt_source", &config_emulator.tilt_source, "Disabled\0Mouse\0Gamepad Sensor\0\0");
+            ImGui::Combo("##tilt_source", &config_emulator.tilt_source, "Disabled\0Mouse\0Gamepad Sensor\0Analog Stick\0\0");
             if (ImGui::IsItemHovered())
             {
-                ImGui::SetTooltip("Use a Joy-Con, DualSense, or other controller with motion sensors.\nAlternatively, use the mouse to simulate tilt.\nDisable when not using it.");
+                ImGui::SetTooltip("Disabled: No tilt input.\nMouse: Use relative mouse movement to simulate tilt.\nGamepad Sensor: Use a Joy-Con, DualSense, or other controller with motion sensors.\nAnalog Stick: Use the left analog stick for tilt (D-Pad forced to digital).");
             }
 
             if (config_emulator.tilt_source == 1)
@@ -903,6 +903,18 @@ static void menu_input(void)
                 ImGui::SliderInt("##sensor_sens_x", &config_emulator.sensor_sensitivity_x, 1, 15, "Sensor X = %d");
                 ImGui::SliderInt("##sensor_sens_y", &config_emulator.sensor_sensitivity_y, 1, 15, "Sensor Y = %d");
                 ImGui::PopItemWidth();
+                ImGui::Checkbox("Invert Sensor X", &config_emulator.sensor_invert_x);
+                ImGui::Checkbox("Invert Sensor Y", &config_emulator.sensor_invert_y);
+            }
+
+            if (config_emulator.tilt_source == 3)
+            {
+                ImGui::PushItemWidth(150.0f);
+                ImGui::SliderInt("##analog_sens_x", &config_emulator.analog_sensitivity_x, 1, 15, "Analog X = %d");
+                ImGui::SliderInt("##analog_sens_y", &config_emulator.analog_sensitivity_y, 1, 15, "Analog Y = %d");
+                ImGui::PopItemWidth();
+                ImGui::Checkbox("Invert Analog X", &config_emulator.analog_invert_x);
+                ImGui::Checkbox("Invert Analog Y", &config_emulator.analog_invert_y);
             }
 
             if (config_emulator.tilt_source == 1)

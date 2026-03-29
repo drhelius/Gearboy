@@ -124,12 +124,8 @@ void events_handle_emu_event(const SDL_Event* event)
         {
             if ((config_emulator.tilt_source == 1) && (event->motion.xrel != 0.0f || event->motion.yrel != 0.0f))
             {
-                int sen_x = config_emulator.mouse_sensitivity_x;
-                int sen_y = config_emulator.mouse_sensitivity_y;
-                if (sen_x < 1)
-                    sen_x = 1;
-                if (sen_y < 1)
-                    sen_y = 1;
+                int sen_x = MAX(config_emulator.mouse_sensitivity_x, 1);
+                int sen_y = MAX(config_emulator.mouse_sensitivity_y, 1);
 
                 float relx = -event->motion.xrel * ((float)sen_x / 200.0f);
                 float rely = -event->motion.yrel * ((float)sen_y / 200.0f);
@@ -139,7 +135,7 @@ void events_handle_emu_event(const SDL_Event* event)
                 if (config_emulator.mouse_invert_y)
                     rely = -rely;
 
-                emu_set_accelerometer(relx, rely);
+                emu_set_accelerometer(relx, rely, false);
             }
 
             break;
@@ -177,7 +173,6 @@ void events_emu(void)
 
         gamepad_check_shortcuts(controller);
 
-        // Gamepad sensor tilt (Joy-Con, DualSense, etc.)
         if (config_emulator.tilt_source == 2)
         {
             SDL_Gamepad* sdl_controller = gamepad_controller[controller];
@@ -190,17 +185,48 @@ void events_emu(void)
                 if (SDL_GetGamepadSensorData(sdl_controller, SDL_SENSOR_ACCEL, accel, 3))
                 {
                     float gx = accel[0] / SDL_STANDARD_GRAVITY;
-                    float gy = accel[1] / SDL_STANDARD_GRAVITY;
-                    int sen_x = config_emulator.sensor_sensitivity_x;
-                    int sen_y = config_emulator.sensor_sensitivity_y;
-                    if (sen_x < 1)
-                        sen_x = 1;
-                    if (sen_y < 1)
-                        sen_y = 1;
+                    float gz = accel[2] / SDL_STANDARD_GRAVITY;
+
+                    if (gx > -0.05f && gx < 0.05f)
+                        gx = 0.0f;
+                    if (gz > -0.05f && gz < 0.05f)
+                        gz = 0.0f;
+
+                    int sen_x = MAX(config_emulator.sensor_sensitivity_x, 1);
+                    int sen_y = MAX(config_emulator.sensor_sensitivity_y, 1);
+
                     gx *= (float)sen_x / 5.0f;
-                    gy *= (float)sen_y / 5.0f;
-                    emu_set_accelerometer(gx, -gy);
+                    gz *= (float)sen_y / 5.0f;
+
+                    if (config_emulator.sensor_invert_x)
+                        gx = -gx;
+                    if (config_emulator.sensor_invert_y)
+                        gz = -gz;
+
+                    emu_set_accelerometer(gx, gz, true);
                 }
+            }
+        }
+
+        // Analog stick tilt
+        if (config_emulator.tilt_source == 3)
+        {
+            SDL_Gamepad* sdl_controller = gamepad_controller[controller];
+            if (IsValidPointer(sdl_controller))
+            {
+                Sint16 rawx = SDL_GetGamepadAxis(sdl_controller, (SDL_GamepadAxis)config_input.gamepad_x_axis);
+                Sint16 rawy = SDL_GetGamepadAxis(sdl_controller, (SDL_GamepadAxis)config_input.gamepad_y_axis);
+                float ax = (float)rawx / 32768.0f;
+                float ay = (float)rawy / 32768.0f;
+                int sen_x = MAX(config_emulator.analog_sensitivity_x, 1);
+                int sen_y = MAX(config_emulator.analog_sensitivity_y, 1);
+                ax *= -(float)sen_x / 8.0f;
+                ay *= -(float)sen_y / 8.0f;
+                if (config_emulator.analog_invert_x)
+                    ax = -ax;
+                if (config_emulator.analog_invert_y)
+                    ay = -ay;
+                emu_set_accelerometer(ax, ay, true);
             }
         }
     }
@@ -258,8 +284,8 @@ static Uint16 input_build_state(int controller)
         if (gamepad_get_button(sdl_controller, config_input.gamepad_select))
             ret |= Select_Key;
 
-        // Use D-Pad
-        if (config_input.gamepad_directional == 0)
+        // Use D-Pad (forced when analog tilt is active)
+        if (config_input.gamepad_directional == 0 || config_emulator.tilt_source == 3)
         {
             if (SDL_GetGamepadButton(sdl_controller, SDL_GAMEPAD_BUTTON_DPAD_LEFT))
                 ret |= Left_Key;

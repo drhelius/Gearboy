@@ -75,6 +75,12 @@ struct config_Emulator
     bool mouse_invert_y = false;
     int sensor_sensitivity_x = 5;
     int sensor_sensitivity_y = 5;
+    bool sensor_invert_x = false;
+    bool sensor_invert_y = false;
+    int analog_sensitivity_x = 5;
+    int analog_sensitivity_y = 5;
+    bool analog_invert_x = false;
+    bool analog_invert_y = false;
     bool capture_mouse = false;
 };
 

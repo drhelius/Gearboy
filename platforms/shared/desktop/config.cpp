@@ -242,6 +242,12 @@ void config_read(void)
     config_emulator.mouse_invert_y = read_bool("Emulator", "MouseInvertY", false);
     config_emulator.sensor_sensitivity_x = read_int("Emulator", "SensorSensitivityX", 5);
     config_emulator.sensor_sensitivity_y = read_int("Emulator", "SensorSensitivityY", 5);
+    config_emulator.sensor_invert_x = read_bool("Emulator", "SensorInvertX", false);
+    config_emulator.sensor_invert_y = read_bool("Emulator", "SensorInvertY", false);
+    config_emulator.analog_sensitivity_x = read_int("Emulator", "AnalogSensitivityX", 5);
+    config_emulator.analog_sensitivity_y = read_int("Emulator", "AnalogSensitivityY", 5);
+    config_emulator.analog_invert_x = read_bool("Emulator", "AnalogInvertX", false);
+    config_emulator.analog_invert_y = read_bool("Emulator", "AnalogInvertY", false);
     config_emulator.capture_mouse = read_bool("Emulator", "CaptureMouse", false);
     if (config_emulator.savefiles_path.empty())
     {
@@ -443,6 +449,12 @@ void config_write(void)
     write_bool("Emulator", "MouseInvertY", config_emulator.mouse_invert_y);
     write_int("Emulator", "SensorSensitivityX", config_emulator.sensor_sensitivity_x);
     write_int("Emulator", "SensorSensitivityY", config_emulator.sensor_sensitivity_y);
+    write_bool("Emulator", "SensorInvertX", config_emulator.sensor_invert_x);
+    write_bool("Emulator", "SensorInvertY", config_emulator.sensor_invert_y);
+    write_int("Emulator", "AnalogSensitivityX", config_emulator.analog_sensitivity_x);
+    write_int("Emulator", "AnalogSensitivityY", config_emulator.analog_sensitivity_y);
+    write_bool("Emulator", "AnalogInvertX", config_emulator.analog_invert_x);
+    write_bool("Emulator", "AnalogInvertY", config_emulator.analog_invert_y);
     write_bool("Emulator", "CaptureMouse", config_emulator.capture_mouse);
 
     for (int i = 0; i < config_max_recent_roms; i++)

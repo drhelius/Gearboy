@@ -287,8 +287,10 @@ void emu_update(void)
         const float decay = 0.70f;
         tilt_x *= decay;
         tilt_y *= decay;
-        if (tilt_x > -0.01f && tilt_x < 0.01f) tilt_x = 0.0f;
-        if (tilt_y > -0.01f && tilt_y < 0.01f) tilt_y = 0.0f;
+        if (tilt_x > -0.01f && tilt_x < 0.01f)
+            tilt_x = 0.0f;
+        if (tilt_y > -0.01f && tilt_y < 0.01f)
+            tilt_y = 0.0f;
         gearboy->SetAccelerometer((double)tilt_x, (double)tilt_y);
     }
 }
@@ -642,17 +644,15 @@ void emu_save_sprite(const char* file_path, int index)
     Log("Sprite saved to %s", file_path);
 }
 
-void emu_set_accelerometer(float x, float y)
+void emu_set_accelerometer(float x, float y, bool absolute)
 {
-    if (config_emulator.tilt_source == 2)
+    if (absolute)
     {
-        // Gamepad sensor: absolute values in g-units
         tilt_x = CLAMP(x, -4.0f, 4.0f);
         tilt_y = CLAMP(y, -4.0f, 4.0f);
     }
     else
     {
-        // Mouse: relative motion accumulated
         tilt_x += x;
         tilt_y += y;
         tilt_x = CLAMP(tilt_x, -4.0f, 4.0f);

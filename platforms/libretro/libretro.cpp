@@ -67,6 +67,12 @@ static bool mouse_invert_x = false;
 static bool mouse_invert_y = false;
 static int sensor_sensitivity_x = 5;
 static int sensor_sensitivity_y = 5;
+static bool sensor_invert_x = false;
+static bool sensor_invert_y = false;
+static int analog_sensitivity_x = 5;
+static int analog_sensitivity_y = 5;
+static bool analog_invert_x = false;
+static bool analog_invert_y = false;
 static int tilt_source = 0;
 static struct retro_sensor_interface sensor_interface = {NULL, NULL};
 static bool sensor_accel_enabled = false;
@@ -296,21 +302,37 @@ static void update_input(void)
         if (sensor_interface.get_sensor_input)
         {
             float ax = sensor_interface.get_sensor_input(0, RETRO_SENSOR_ACCELEROMETER_X);
-            float ay = sensor_interface.get_sensor_input(0, RETRO_SENSOR_ACCELEROMETER_Y);
-            if (ax != 0.0f || ay != 0.0f)
+            float az = sensor_interface.get_sensor_input(0, RETRO_SENSOR_ACCELEROMETER_Z);
+            if (ax != 0.0f || az != 0.0f)
             {
-                int sx = sensor_sensitivity_x;
-                int sy = sensor_sensitivity_y;
-                if (sx < 1) sx = 1;
-                if (sy < 1) sy = 1;
+                int sx = MAX(sensor_sensitivity_x, 1);
+                int sy = MAX(sensor_sensitivity_y, 1);
                 libretro_tilt_x = ax * (float)sx / 5.0f;
-                libretro_tilt_y = -ay * (float)sy / 5.0f;
-                if (libretro_tilt_x < -4.0f) libretro_tilt_x = -4.0f;
-                if (libretro_tilt_x > 4.0f) libretro_tilt_x = 4.0f;
-                if (libretro_tilt_y < -4.0f) libretro_tilt_y = -4.0f;
-                if (libretro_tilt_y > 4.0f) libretro_tilt_y = 4.0f;
+                libretro_tilt_y = az * (float)sy / 5.0f;
+                if (sensor_invert_x)
+                    libretro_tilt_x = -libretro_tilt_x;
+                if (sensor_invert_y)
+                    libretro_tilt_y = -libretro_tilt_y;
+                libretro_tilt_x = CLAMP(libretro_tilt_x, -4.0f, 4.0f);
+                libretro_tilt_y = CLAMP(libretro_tilt_y, -4.0f, 4.0f);
             }
         }
+    }
+    else if (tilt_source == 2)
+    {
+        // Analog stick tilt
+        int16_t ax = input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
+        int16_t ay = input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
+        int sx = MAX(analog_sensitivity_x, 1);
+        int sy = MAX(analog_sensitivity_y, 1);
+        libretro_tilt_x = -((float)ax / 32768.0f) * (float)sx / 10.0f;
+        libretro_tilt_y = -((float)ay / 32768.0f) * (float)sy / 10.0f;
+        if (analog_invert_x)
+            libretro_tilt_x = -libretro_tilt_x;
+        if (analog_invert_y)
+            libretro_tilt_y = -libretro_tilt_y;
+        libretro_tilt_x = CLAMP(libretro_tilt_x, -4.0f, 4.0f);
+        libretro_tilt_y = CLAMP(libretro_tilt_y, -4.0f, 4.0f);
     }
     else
     {
@@ -319,20 +341,16 @@ static void update_input(void)
         int mouse_y = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
         if (mouse_x != 0 || mouse_y != 0)
         {
-            int sx = mouse_sensitivity_x;
-            int sy = mouse_sensitivity_y;
-            if (sx < 1) sx = 1;
-            if (sy < 1) sy = 1;
+            int sx = MAX(mouse_sensitivity_x, 1);
+            int sy = MAX(mouse_sensitivity_y, 1);
             float dx = -(float)mouse_x * ((float)sx / 200.0f);
             float dy = -(float)mouse_y * ((float)sy / 200.0f);
             if (mouse_invert_x) dx = -dx;
             if (mouse_invert_y) dy = -dy;
             libretro_tilt_x += dx;
             libretro_tilt_y += dy;
-            if (libretro_tilt_x < -4.0f) libretro_tilt_x = -4.0f;
-            if (libretro_tilt_x > 4.0f) libretro_tilt_x = 4.0f;
-            if (libretro_tilt_y < -4.0f) libretro_tilt_y = -4.0f;
-            if (libretro_tilt_y > 4.0f) libretro_tilt_y = 4.0f;
+            libretro_tilt_x = CLAMP(libretro_tilt_x, -4.0f, 4.0f);
+            libretro_tilt_y = CLAMP(libretro_tilt_y, -4.0f, 4.0f);
         }
     }
 
@@ -458,6 +476,22 @@ static void check_variables(void)
         sensor_sensitivity_y = atoi(var.value);
     }
 
+    var.key = "gearboy_sensor_invert_x";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        sensor_invert_x = (strcmp(var.value, "Enabled") == 0);
+    }
+
+    var.key = "gearboy_sensor_invert_y";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        sensor_invert_y = (strcmp(var.value, "Enabled") == 0);
+    }
+
     var.key = "gearboy_tilt_source";
     var.value = NULL;
 
@@ -466,6 +500,8 @@ static void check_variables(void)
         int new_source = 0;
         if (strcmp(var.value, "Sensor") == 0)
             new_source = 1;
+        else if (strcmp(var.value, "Analog Stick") == 0)
+            new_source = 2;
 
         if (new_source != tilt_source)
         {
@@ -474,12 +510,44 @@ static void check_variables(void)
             {
                 sensor_accel_enabled = sensor_interface.set_sensor_state(0, RETRO_SENSOR_ACCELEROMETER_ENABLE, 60);
             }
-            else if (tilt_source == 0 && sensor_interface.set_sensor_state && sensor_accel_enabled)
+            else if (tilt_source != 1 && sensor_interface.set_sensor_state && sensor_accel_enabled)
             {
                 sensor_interface.set_sensor_state(0, RETRO_SENSOR_ACCELEROMETER_DISABLE, 0);
                 sensor_accel_enabled = false;
             }
         }
+    }
+
+    var.key = "gearboy_analog_sensitivity_x";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        analog_sensitivity_x = atoi(var.value);
+    }
+
+    var.key = "gearboy_analog_sensitivity_y";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        analog_sensitivity_y = atoi(var.value);
+    }
+
+    var.key = "gearboy_analog_invert_x";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        analog_invert_x = (strcmp(var.value, "Enabled") == 0);
+    }
+
+    var.key = "gearboy_analog_invert_y";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        analog_invert_y = (strcmp(var.value, "Enabled") == 0);
     }
 
     var.key = "gearboy_palette";
