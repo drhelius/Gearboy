@@ -483,8 +483,13 @@ void Video::ResetWindowLine()
 {
     u8 wy = m_pMemory->Retrieve(0xFF4A);
 
-    if ((m_iWindowLine == 0) && (m_iStatusModeLYCounter < 144) && (m_iStatusModeLYCounter > wy))
-        m_iWindowLine = 144;
+    if ((m_iWindowLine == 0) && (m_iStatusModeLYCounter < 144))
+    {
+        if (m_iStatusModeLYCounter > wy)
+            m_iWindowLine = 144;
+        else if ((m_iStatusModeLYCounter == wy) && (m_iStatusMode == 3) && !m_bScanLineTransfered)
+            m_iWindowLine = -1;
+    }
 }
 
 void Video::ScanLine(int line)
@@ -627,6 +632,12 @@ void Video::RenderWindow(int line)
 {
     if (m_iWindowLine > 143)
         return;
+
+    if (m_iWindowLine < 0)
+    {
+        m_iWindowLine = 0;
+        return;
+    }
 
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
     if (!IsSetBit(lcdc, 5))
