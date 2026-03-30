@@ -202,7 +202,7 @@ static void init_ogl_emu(void)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glBindTexture(GL_TEXTURE_2D, system_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, SYSTEM_TEXTURE_WIDTH, SYSTEM_TEXTURE_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
@@ -228,7 +228,7 @@ static void init_ogl_debug(void)
     {
         glGenTextures(1, &ogl_renderer_emu_debug_vram_tiles[b]);
         glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_tiles[b]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 16 * 8, 24 * 8, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)emu_debug_tile_buffers[b]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 128, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
@@ -250,8 +250,8 @@ static void render_gui(void)
 
 static void render_emu_normal(void)
 {
-    float tex_h = (float)current_screen_width / (float)GAMEBOY_WIDTH;
-    float tex_v = (float)current_screen_height / (float)GAMEBOY_HEIGHT;
+    float tex_h = (float)current_screen_width / (float)SYSTEM_TEXTURE_WIDTH;
+    float tex_v = (float)current_screen_height / (float)SYSTEM_TEXTURE_HEIGHT;
 
     glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
 
@@ -266,8 +266,8 @@ static void render_emu_normal(void)
 
 static void render_emu_mix(void)
 {
-    float tex_h = (float)current_screen_width / (float)GAMEBOY_WIDTH;
-    float tex_v = (float)current_screen_height / (float)GAMEBOY_HEIGHT;
+    float tex_h = (float)current_screen_width / (float)SYSTEM_TEXTURE_WIDTH;
+    float tex_v = (float)current_screen_height / (float)SYSTEM_TEXTURE_HEIGHT;
 
     glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
 

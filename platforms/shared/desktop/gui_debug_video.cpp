@@ -372,13 +372,13 @@ void gui_debug_window_vram_tiles(void)
 
     p[0] = ImGui::GetCursorScreenPos();
 
-    ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles[0], ImVec2(width, height));
+    ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles[0], ImVec2(width, height), ImVec2(0, 0), ImVec2(1.0f, 0.75f));
 
     ImGui::SameLine();
 
     p[1] = ImGui::GetCursorScreenPos();
 
-    ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles[1], ImVec2(width, height));
+    ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles[1], ImVec2(width, height), ImVec2(0, 0), ImVec2(1.0f, 0.75f));
 
     for (int i = 0; i < 2; i++)
     {
@@ -455,7 +455,7 @@ void gui_debug_window_vram_tiles(void)
 
         ImGui::NextColumn();
 
-        ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles[display_tile_bank], ImVec2(128.0f, 128.0f), ImVec2((1.0f / 16.0f) * display_tile_x, (1.0f / 24.0f) * display_tile_y), ImVec2((1.0f / 16.0f) * (display_tile_x + 1), (1.0f / 24.0f) * (display_tile_y + 1)));
+        ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles[display_tile_bank], ImVec2(128.0f, 128.0f), ImVec2((1.0f / 16.0f) * display_tile_x, (1.0f / 32.0f) * display_tile_y), ImVec2((1.0f / 16.0f) * (display_tile_x + 1), (1.0f / 32.0f) * (display_tile_y + 1)));
 
         ImGui::PushFont(gui_default_font);
 
