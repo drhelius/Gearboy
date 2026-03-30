@@ -170,7 +170,28 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                         }
 
                         if (m_iHideFrames > 0)
+                        {
                             m_iHideFrames--;
+
+                            if (IsValidPointer(m_pColorFrameBuffer))
+                            {
+                                if (m_bCGB)
+                                {
+                                    for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
+                                        m_pColorFrameBuffer[i] = 0xFFFF;
+                                }
+                                else
+                                {
+                                    for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
+                                    {
+                                        m_pFrameBuffer[i] = 0;
+                                        m_pColorFrameBuffer[i] = 0;
+                                    }
+                                }
+                            }
+
+                            vblank = true;
+                        }
                         else
                             vblank = true;
 
@@ -233,7 +254,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
             case 3:
             {
 #ifndef PERFORMANCE
-                if (m_iPixelCounter < 160)
+                if (m_iPixelCounter < 160 && m_iHideFrames == 0)
                 {
                     m_iTileCycleCounter += clockCycles;
                     u8 lcdc = m_pMemory->Retrieve(0xFF40);
@@ -333,6 +354,24 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
         else if (m_iStatusModeCounter >= 70224)
         {
             m_iStatusModeCounter -= 70224;
+
+            if (IsValidPointer(m_pColorFrameBuffer))
+            {
+                if (m_bCGB)
+                {
+                    for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
+                        m_pColorFrameBuffer[i] = 0xFFFF;
+                }
+                else
+                {
+                    for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
+                    {
+                        m_pFrameBuffer[i] = 0;
+                        m_pColorFrameBuffer[i] = 0;
+                    }
+                }
+            }
+
             vblank = true;
         }
     }
@@ -360,6 +399,23 @@ void Video::DisableScreen()
     m_iPendingVBlankInterruptCycles = 0;
     m_iStatusModeLYCounter = 0;
     m_IRQ48Signal = 0;
+
+    if (IsValidPointer(m_pColorFrameBuffer))
+    {
+        if (m_bCGB)
+        {
+            for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
+                m_pColorFrameBuffer[i] = 0xFFFF;
+        }
+        else
+        {
+            for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
+            {
+                m_pFrameBuffer[i] = 0;
+                m_pColorFrameBuffer[i] = 0;
+            }
+        }
+    }
 }
 
 bool Video::IsScreenEnabled() const
@@ -446,6 +502,8 @@ bool Video::CGBPaletteAccessBlocked() const
 
 bool Video::VRAMAccessBlocked() const
 {
+    if (m_bCGB)
+        return false;
     return m_bScreenEnabled && (m_iStatusMode == 3);
 }
 
@@ -494,6 +552,9 @@ void Video::ResetWindowLine()
 
 void Video::ScanLine(int line)
 {
+    if (m_iHideFrames > 0)
+        return;
+
     if (IsValidPointer(m_pColorFrameBuffer))
     {
         u8 lcdc = m_pMemory->Retrieve(0xFF40);
@@ -512,7 +573,7 @@ void Video::ScanLine(int line)
             if (m_bCGB)
             {
                 for (int x = 0; x < GAMEBOY_WIDTH; x++)
-                    m_pColorFrameBuffer[line_width + x] = 0x8000;
+                    m_pColorFrameBuffer[line_width + x] = 0xFFFF;
             }
             else
             {

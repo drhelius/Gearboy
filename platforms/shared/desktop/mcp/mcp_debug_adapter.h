@@ -28,6 +28,13 @@
 
 using json = nlohmann::json;
 
+enum MCP_Memory_Areas
+{
+    MCP_MEMORY_AREA_VRAM0 = MEMORY_EDITOR_MAX,
+    MCP_MEMORY_AREA_VRAM1,
+    MCP_MEMORY_AREA_MAX
+};
+
 struct MemoryAreaInfo
 {
     int id;

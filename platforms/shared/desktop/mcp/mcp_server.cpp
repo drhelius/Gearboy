@@ -441,7 +441,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "list_memory_areas"},
         {"title", "List Memory Areas"},
-        {"description", "List memory editor tabs (physical memory spaces like ROM0, ROM1, VRAM, WRAM, OAM, IO, HIRAM). Each area has 0-based offsets (though CPU may access them at different logical addresses)."},
+        {"description", "List memory areas (physical memory spaces like ROM0, ROM1, VRAM, WRAM, OAM, IO, HIRAM, and CGB-specific VRAM0/VRAM1) with 0-based offsets. VRAM (2) follows VBK; use VRAM0 (10) / VRAM1 (11) for explicit CGB bank access."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -476,7 +476,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "write_memory"},
         {"title", "Write Memory"},
-        {"description", "Write memory to a specific memory area"},
+        {"description", "Write raw bytes to a memory area. Bypasses IO register handlers (no side effects). Best for data regions only."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {

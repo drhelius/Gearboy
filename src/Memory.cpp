@@ -386,8 +386,7 @@ unsigned int Memory::PerformHDMA()
     if (m_HDMA[4] == 0xFF)
         m_bHDMAEnabled = false;
 
-    // return clock cycles used
-    return (m_pProcessor->CGBSpeed() ? 17 : 9) * 4;
+    return (m_pProcessor->CGBSpeed() ? 17 : 9) * (m_pProcessor->CGBSpeed() ? 2 : 4);
 }
 
 void Memory::PerformGDMA(u8 value)
@@ -419,7 +418,7 @@ void Memory::PerformGDMA(u8 value)
     else
         clock_cycles = 1 + 8 * ((value & 0x7f) + 1);
 
-    m_pProcessor->AddCycles(clock_cycles * 4);
+    m_pProcessor->AddCycles(clock_cycles * (m_pProcessor->CGBSpeed() ? 2 : 4));
 }
 
 bool Memory::IsHDMAEnabled() const
@@ -535,6 +534,16 @@ u8* Memory::GetVRAM()
         return (m_iCurrentLCDRAMBank == 1) ? m_pLCDRAMBank1 : m_pMap + 0x8000;
     else
         return m_pMap + 0x8000;
+}
+
+u8* Memory::GetVRAMBank0()
+{
+    return m_pMap + 0x8000;
+}
+
+u8* Memory::GetVRAMBank1()
+{
+    return m_pLCDRAMBank1;
 }
 
 u8* Memory::GetRAM()

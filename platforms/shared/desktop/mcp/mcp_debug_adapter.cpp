@@ -250,7 +250,7 @@ std::vector<MemoryAreaInfo> DebugAdapter::ListMemoryAreas()
 {
     std::vector<MemoryAreaInfo> result;
 
-    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    for (int i = 0; i < MCP_MEMORY_AREA_MAX; i++)
     {
         MemoryAreaInfo info = GetMemoryAreaInfo(i);
         if (info.data != NULL && info.size > 0)
@@ -481,6 +481,16 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
             info.name = "HIRAM";
             info.data = memory->GetMemoryMap() + 0xFF80;
             info.size = 0x007F;
+            break;
+        case MCP_MEMORY_AREA_VRAM0:
+            info.name = "VRAM0";
+            info.data = memory->GetVRAMBank0();
+            info.size = 0x2000;
+            break;
+        case MCP_MEMORY_AREA_VRAM1:
+            info.name = "VRAM1";
+            info.data = memory->GetVRAMBank1();
+            info.size = 0x2000;
             break;
         default:
             break;

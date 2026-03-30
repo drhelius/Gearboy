@@ -77,6 +77,8 @@ public:
     u8* GetROM0();
     u8* GetROM1();
     u8* GetVRAM();
+    u8* GetVRAMBank0();
+    u8* GetVRAMBank1();
     u8* GetRAM();
     u8* GetWRAM0();
     u8* GetWRAM1();
