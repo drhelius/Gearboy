@@ -51,7 +51,7 @@ public:
     u8 GetIRQ48Signal() const;
     void SetIRQ48Signal(u8 signal);
     void SaveState(std::ostream& stream);
-    void LoadState(std::istream& stream);
+    void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
     PaletteMatrix GetCGBBackgroundPalettes();
     PaletteMatrix GetCGBSpritePalettes();
     void SetTraceLogger(TraceLogger* pTraceLogger);

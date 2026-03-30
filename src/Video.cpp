@@ -909,9 +909,10 @@ void Video::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iWindowLine), sizeof(m_iWindowLine));
     stream.write(reinterpret_cast<const char*> (&m_iHideFrames), sizeof(m_iHideFrames));
     stream.write(reinterpret_cast<const char*> (&m_IRQ48Signal), sizeof(m_IRQ48Signal));
+    stream.write(reinterpret_cast<const char*> (&m_iPendingVBlankInterruptCycles), sizeof(m_iPendingVBlankInterruptCycles));
 }
 
-void Video::LoadState(std::istream& stream)
+void Video::LoadState(std::istream& stream, u32 version)
 {
     using namespace std;
 
@@ -933,7 +934,15 @@ void Video::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iWindowLine), sizeof(m_iWindowLine));
     stream.read(reinterpret_cast<char*> (&m_iHideFrames), sizeof(m_iHideFrames));
     stream.read(reinterpret_cast<char*> (&m_IRQ48Signal), sizeof(m_IRQ48Signal));
-    m_iPendingVBlankInterruptCycles = 0;
+
+    if (version >= 101)
+    {
+        stream.read(reinterpret_cast<char*> (&m_iPendingVBlankInterruptCycles), sizeof(m_iPendingVBlankInterruptCycles));
+    }
+    else
+    {
+        m_iPendingVBlankInterruptCycles = 0;
+    }
 }
 
 PaletteMatrix Video::GetCGBBackgroundPalettes()
