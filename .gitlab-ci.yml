@@ -105,6 +105,10 @@ include:
   - project: 'libretro-infrastructure/ci-templates'
     file: '/emscripten-static.yml'
 
+  # webOS 32-bit (LGTV)
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/webos-make.yml'
+
 # Stages for building
 stages:
   - build-prepare
@@ -285,4 +289,10 @@ libretro-build-miyoo-arm32:
 libretro-build-emscripten:
   extends:
     - .libretro-emscripten-static-retroarch-master
+    - .core-defs
+
+# webOS 32-bit
+libretro-build-webos-armv7a:
+  extends:
+    - .libretro-webos-armv7a-make-default
     - .core-defs
