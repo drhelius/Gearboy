@@ -24,6 +24,35 @@ static char set_value_buffer[8] = "";
 static void draw_tabs(void);
 static void memory_editor_menu(void);
 
+void gui_debug_memory_init(void)
+{
+    gui_debug_memory_reset();
+
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        MemEditor::Options options;
+        options.bytes_per_row = config_debug.mem_editor_bytes_per_row[i];
+        options.preview_data_type = config_debug.mem_editor_preview_data_type[i];
+        options.preview_endianess = config_debug.mem_editor_preview_endianess[i];
+        options.uppercase_hex = config_debug.mem_editor_uppercase_hex[i];
+        options.gray_out_zeros = config_debug.mem_editor_gray_out_zeros[i];
+        mem_edit[i].SetOptions(options);
+    }
+}
+
+void gui_debug_memory_destroy(void)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        MemEditor::Options options = mem_edit[i].GetOptions();
+        config_debug.mem_editor_bytes_per_row[i] = options.bytes_per_row;
+        config_debug.mem_editor_preview_data_type[i] = options.preview_data_type;
+        config_debug.mem_editor_preview_endianess[i] = options.preview_endianess;
+        config_debug.mem_editor_uppercase_hex[i] = options.uppercase_hex;
+        config_debug.mem_editor_gray_out_zeros[i] = options.gray_out_zeros;
+    }
+}
+
 void gui_debug_memory_reset(void)
 {
     GearboyCore* core = emu_get_core();

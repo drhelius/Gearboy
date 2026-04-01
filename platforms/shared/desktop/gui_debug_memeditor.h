@@ -50,6 +50,15 @@ public:
         int prev_value;
     };
 
+    struct Options
+    {
+        int bytes_per_row = 16;
+        int preview_data_type = 0;
+        int preview_endianess = 0;
+        bool uppercase_hex = true;
+        bool gray_out_zeros = true;
+    };
+
 public:
     MemEditor();
     ~MemEditor();
@@ -84,6 +93,8 @@ public:
     void DrawFindBytesWindow();
     void SaveSettings(std::ostream& stream);
     void LoadSettings(std::istream& stream);
+    Options GetOptions() const;
+    void SetOptions(const Options& options);
     void StepFrame();
     int GetWordBytes();
     char* GetTitle();
@@ -128,21 +139,17 @@ private:
     float m_separator_column_width;
     int m_selection_start;
     int m_selection_end;
-    int m_bytes_per_row;
+    Options m_options;
     int m_row_scroll_top;
     int m_row_scroll_bottom;
     int m_editing_address;
     bool m_set_keyboard_here;
-    bool m_uppercase_hex;
-    bool m_gray_out_zeros;
-    int m_preview_data_type;
-    int m_preview_endianess;
     int m_jump_to_address;
     int m_scroll_to_address;
     uint8_t* m_mem_data;
     int m_mem_size;
     int m_mem_base_addr;
-    char m_hex_addr_format[8];
+    char m_hex_addr_format[16];
     int m_hex_addr_digits;
     int m_mem_word;
     char m_goto_address[7];

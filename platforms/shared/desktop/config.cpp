@@ -214,6 +214,16 @@ void config_read(void)
     config_debug.single_instance = read_bool("Debug", "SingleInstance", false);
     config_debug.auto_debug_settings = read_bool("Debug", "AutoDebugSettings", false);
 
+    for (int i = 0; i < config_memory_editor_count; i++)
+    {
+        std::string section = "MemEditor_" + std::to_string(i);
+        config_debug.mem_editor_bytes_per_row[i] = read_int(section.c_str(), "BytesPerRow", 16);
+        config_debug.mem_editor_preview_data_type[i] = read_int(section.c_str(), "PreviewDataType", 0);
+        config_debug.mem_editor_preview_endianess[i] = read_int(section.c_str(), "PreviewEndianess", 0);
+        config_debug.mem_editor_uppercase_hex[i] = read_bool(section.c_str(), "UppercaseHex", true);
+        config_debug.mem_editor_gray_out_zeros[i] = read_bool(section.c_str(), "GrayOutZeros", true);
+    }
+
     config_emulator.maximized = read_bool("Emulator", "Maximized", false);
     config_emulator.fullscreen = read_bool("Emulator", "FullScreen", false);
     config_emulator.fullscreen_mode = read_int("Emulator", "FullScreenMode", 1);
@@ -427,6 +437,16 @@ void config_write(void)
     write_bool("Debug", "MultiViewport", config_debug.multi_viewport);
     write_bool("Debug", "SingleInstance", config_debug.single_instance);
     write_bool("Debug", "AutoDebugSettings", config_debug.auto_debug_settings);
+
+    for (int i = 0; i < config_memory_editor_count; i++)
+    {
+        std::string section = "MemEditor_" + std::to_string(i);
+        write_int(section.c_str(), "BytesPerRow", config_debug.mem_editor_bytes_per_row[i]);
+        write_int(section.c_str(), "PreviewDataType", config_debug.mem_editor_preview_data_type[i]);
+        write_int(section.c_str(), "PreviewEndianess", config_debug.mem_editor_preview_endianess[i]);
+        write_bool(section.c_str(), "UppercaseHex", config_debug.mem_editor_uppercase_hex[i]);
+        write_bool(section.c_str(), "GrayOutZeros", config_debug.mem_editor_gray_out_zeros[i]);
+    }
 
     write_bool("Emulator", "Maximized", config_emulator.maximized);
     write_bool("Emulator", "FullScreen", config_emulator.fullscreen);
