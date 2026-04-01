@@ -276,6 +276,18 @@ Use `list_memory_areas` to get the full list:
 | IO | $FF00-$FF7F | Hardware I/O registers |
 | HIRAM | $FF80-$FFFE | High RAM (fast, used for DMA routine, variables) |
 
+When SGB mode is active, additional areas are available:
+
+| Area | Description |
+|---|---|
+| SGB_TILES | Border tile patterns (8192 bytes) |
+| SGB_MAP | Border tilemap 32×32 (2048 bytes) |
+| SGB_BPAL | Border palettes 4×16 colors (128 bytes) |
+| SGB_SPAL | System palettes 512×4 colors (4096 bytes) |
+| SGB_ATF | Attribute files 45×90 bytes (4050 bytes) |
+| SGB_AMAP | Attribute map 20×18 (360 bytes) |
+| SGB_EPAL | Effective palettes 4×4 colors (32 bytes) |
+
 WRAM and HIRAM are the most common locations for game variables (lives, health, score, position).
 
 ---

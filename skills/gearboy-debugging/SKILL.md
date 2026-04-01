@@ -1,14 +1,14 @@
 ---
 name: gearboy-debugging
 description: >-
-  Debug and trace Game Boy / Game Boy Color games using the Gearboy emulator MCP
+  Debug and trace Game Boy / Game Boy Color / Super Game Boy games using the Gearboy emulator MCP
   server. Provides workflows for SM83 CPU debugging, breakpoint management,
   hardware inspection, disassembly analysis, and execution tracing. Use when the
   user wants to debug a Game Boy game, trace code execution, inspect CPU
   registers or hardware state, set breakpoints, analyze interrupts, step through
-  SM83 instructions, reverse engineer game code, examine LCD or APU registers,
+  SM83 instructions, reverse engineer game code, examine LCD, APU, or SGB registers,
   view the call stack, or diagnose rendering, audio, or timing issues. Also use
-  when the user mentions Game Boy development, GB/GBC homebrew testing, or SM83
+  when the user mentions Game Boy development, GB/GBC/SGB homebrew testing, or SM83
   debugging with Gearboy.
 compatibility: >-
   Requires the Gearboy MCP server. Before installing or configuring, call
@@ -23,7 +23,7 @@ metadata:
 
 ## Overview
 
-Debug Game Boy and Game Boy Color games using the Gearboy emulator as an MCP server. Control execution (pause, step, breakpoints), inspect the SM83 CPU and hardware (LCD, APU, sprites), read/write memory, disassemble code, trace instructions, and capture screenshots — all through MCP tool calls.
+Debug Game Boy, Game Boy Color, and Super Game Boy games using the Gearboy emulator as an MCP server. Control execution (pause, step, breakpoints), inspect the SM83 CPU and hardware (LCD, APU, SGB, sprites), read/write memory, disassemble code, trace instructions, and capture screenshots — all through MCP tool calls.
 
 ## MCP Server Prerequisite
 
@@ -138,6 +138,11 @@ Tracing is essential for understanding timing-sensitive code, interrupt handlers
 
 - `get_apu_status` — all 4 audio channels: Square 1 (with sweep), Square 2, Wave, Noise: volume, frequency, envelope, duty cycle, wave RAM, panning, master volume
 
+### SGB (Super Game Boy)
+
+- `get_sgb_status` — SGB active flag, mask mode, multiplayer state (player count/current), last command code/data, transfer countdown/destination, border animation state, effective palettes (4×4 colors as hex), and attribute map (20×18 palette assignments)
+- SGB memory areas available via `read_memory`: SGB_TILES (border tile patterns), SGB_MAP (border tilemap), SGB_BPAL (border palettes), SGB_SPAL (system palettes), SGB_ATF (attribute files), SGB_AMAP (attribute map), SGB_EPAL (effective palettes)
+
 ### Sprites (OAM)
 
 - `list_sprites` — all 40 OAM sprites: position, tile index, attributes (priority, X/Y flip, palette, CGB bank)
@@ -167,6 +172,18 @@ Use `list_memory_areas` to get the full list:
 | OAM | Object Attribute Memory — sprite table ($FE00-$FE9F) |
 | IO | I/O registers ($FF00-$FF7F) |
 | HIRAM | High RAM ($FF80-$FFFE) |
+
+When SGB mode is active, additional areas are available:
+
+| Area | Description |
+|---|---|
+| SGB_TILES | Border tile patterns — 256 tiles × 32 bytes (8192 bytes) |
+| SGB_MAP | Border tilemap — 32×32 entries × 2 bytes (2048 bytes) |
+| SGB_BPAL | Border palettes — 4 sub-palettes × 16 colors × 2 bytes (128 bytes) |
+| SGB_SPAL | System palettes — 512 palettes × 4 colors × 2 bytes (4096 bytes, from PAL_TRN) |
+| SGB_ATF | Attribute files — 45 files × 90 bytes (4050 bytes, from ATTR_TRN) |
+| SGB_AMAP | Attribute map — 20×18 palette assignments (360 bytes) |
+| SGB_EPAL | Effective palettes — 4 palettes × 4 colors × 2 bytes (32 bytes) |
 
 WRAM and HIRAM are the most common locations for game variables (lives, health, score, position).
 
@@ -225,6 +242,18 @@ For Game Boy Color games:
 2. `get_lcd_registers` — inspect CGB-specific registers (KEY1, VBK, HDMA, BCPS/BCPD, OCPS/OCPD, SVBK)
 3. `read_memory` on VRAM with bank selection to inspect both VRAM banks
 4. `list_sprites` — check CGB-specific attributes (VRAM bank, CGB palette)
+
+### Debugging SGB Features
+
+For Super Game Boy games:
+
+1. `get_sgb_status` — check if SGB is active, inspect mask mode, command state, transfer status
+2. `get_media_info` — verify `is_sgb` flag in ROM header
+3. `read_memory` on SGB_TILES / SGB_MAP / SGB_BPAL to inspect border tile data, tilemap, and palettes
+4. `read_memory` on SGB_SPAL to inspect system palettes loaded via PAL_TRN
+5. `read_memory` on SGB_ATF to inspect attribute files loaded via ATTR_TRN
+6. `get_sgb_status` → check `effective_palettes` and `attribute_map` for game colorization
+7. `get_screenshot` to see the rendered SGB output (256×224 with border)
 
 ---
 
