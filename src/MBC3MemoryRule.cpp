@@ -84,7 +84,7 @@ u8 MBC3MemoryRule::PerformRead(u16 address)
             {
                 if (m_bRamEnabled)
                 {
-                    if (!m_pCartridge->IsMBC30() && m_pCartridge->IsRTCPresent() && m_iCurrentRAMBank > 3)
+                    if (!m_pCartridge->IsMBC30() && m_pCartridge->IsRTCPresent() && (m_iCurrentRAMBank & 0x07) > 3)
                         return 0xFF;
                     return m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress];
                 }
@@ -96,21 +96,21 @@ u8 MBC3MemoryRule::PerformRead(u16 address)
             }
             else if (m_pCartridge->IsRTCPresent() && m_bRTCEnabled)
             {
-                switch (m_RTCRegister)
+                switch (m_RTCRegister & 0x07)
                 {
-                    case 0x08:
+                    case 0x00:
                         return m_RTC.LatchedSeconds & 0x3F;
                         break;
-                    case 0x09:
+                    case 0x01:
                         return m_RTC.LatchedMinutes & 0x3F;
                         break;
-                    case 0x0A:
+                    case 0x02:
                         return m_RTC.LatchedHours & 0x1F;
                         break;
-                    case 0x0B:
+                    case 0x03:
                         return m_RTC.LatchedDays;
                         break;
-                    case 0x0C:
+                    case 0x04:
                         return m_RTC.LatchedControl & 0xC1;
                         break;
                     default:
@@ -161,29 +161,17 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
         }
         case 0x4000:
         {
-            if ((value >= 0x08) && (value <= 0x0C))
+            if (m_pCartridge->IsRTCPresent() && (value & 0x08))
             {
-                // RTC
-                if (m_pCartridge->IsRTCPresent() && m_bRTCEnabled)
-                {
-                    m_RTCRegister = value;
-                    m_iCurrentRAMBank = -1;
-                }
-                else
-                {
-                    Debug("--> ** Attempting to select RTC register when RTC is disabled or not present %X %X", address, value);
-                }
-            }
-            else if (value <= 0x07)
-            {
-                m_iCurrentRAMBank = value;
-                m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
-                m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
-                TraceBankSwitch(address, value);
+                // RTC register select (bit 3 set)
+                m_RTCRegister = value;
+                m_iCurrentRAMBank = -1;
             }
             else
             {
-                Debug("--> ** Attempting to select unknown register %X %X", address, value);
+                m_iCurrentRAMBank = value;
+                m_CurrentRAMAddress = (m_iCurrentRAMBank & (m_pCartridge->GetRAMBankCount() - 1)) * 0x2000;
+                TraceBankSwitch(address, value);
             }
             break;
         }
@@ -192,16 +180,11 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             if (m_pCartridge->IsRTCPresent())
             {
                 // RTC Latch
-                if ((m_iRTCLatch == 0x00) && (value == 0x01))
-                {
-                    m_RTC.LatchedSeconds = m_RTC.Seconds;
-                    m_RTC.LatchedMinutes = m_RTC.Minutes;
-                    m_RTC.LatchedHours = m_RTC.Hours;
-                    m_RTC.LatchedDays = m_RTC.Days & 0xFF;
-                    m_RTC.LatchedControl = (m_RTC.Control & 0xC0) | ((m_RTC.Days >> 8) & 0x01);
-                }
-
-                m_iRTCLatch = value;
+                m_RTC.LatchedSeconds = m_RTC.Seconds;
+                m_RTC.LatchedMinutes = m_RTC.Minutes;
+                m_RTC.LatchedHours = m_RTC.Hours;
+                m_RTC.LatchedDays = m_RTC.Days & 0xFF;
+                m_RTC.LatchedControl = (m_RTC.Control & 0xC0) | ((m_RTC.Days >> 8) & 0x01);
             }
             break;
         }
@@ -211,7 +194,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             {
                 if (m_bRamEnabled)
                 {
-                    if (!m_pCartridge->IsMBC30() && m_pCartridge->IsRTCPresent() && m_iCurrentRAMBank > 3)
+                    if (!m_pCartridge->IsMBC30() && m_pCartridge->IsRTCPresent() && (m_iCurrentRAMBank & 0x07) > 3)
                         break;
                     m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress] = value;
                 }
@@ -222,22 +205,22 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else if (m_pCartridge->IsRTCPresent() && m_bRTCEnabled)
             {
-                switch (m_RTCRegister)
+                switch (m_RTCRegister & 0x07)
                 {
-                    case 0x08:
+                    case 0x00:
                         m_RTC.Seconds = value;
                         m_iRTCCycles = 0;
                         break;
-                    case 0x09:
+                    case 0x01:
                         m_RTC.Minutes = value;
                         break;
-                    case 0x0A:
+                    case 0x02:
                         m_RTC.Hours = value;
                         break;
-                    case 0x0B:
+                    case 0x03:
                         m_RTC.Days = (m_RTC.Days & 0x100) | value;
                         break;
-                    case 0x0C:
+                    case 0x04:
                         m_RTC.Days = (m_RTC.Days & 0xFF) | ((value & 0x01) << 8);
                         m_RTC.Control = value & 0xC1;
                         break;
