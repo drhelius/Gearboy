@@ -85,8 +85,11 @@ void Video::Reset(bool bCGB)
     for (int p = 0; p < 8; p++)
         for (int c = 0; c < 4; c++)
         {
-            m_CGBBackgroundPalettes[p][c][0] = m_CGBSpritePalettes[p][c][0] = 0x0000;
-            m_CGBBackgroundPalettes[p][c][1] = m_CGBSpritePalettes[p][c][1] = 0x0000;
+            // CGB boot ROM fades all BG palettes to white
+            m_CGBBackgroundPalettes[p][c][0] = bCGB ? 0x7FFF : 0x0000;
+            m_CGBBackgroundPalettes[p][c][1] = bCGB ? 0xFFFF : 0x0000;
+            m_CGBSpritePalettes[p][c][0] = 0x0000;
+            m_CGBSpritePalettes[p][c][1] = 0x0000;
         }
 
     m_iStatusMode = 1;
