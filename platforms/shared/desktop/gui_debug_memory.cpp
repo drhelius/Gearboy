@@ -140,15 +140,72 @@ static void draw_tabs(void)
     }
 }
 
-void gui_debug_memory_search_window(void) { }
-void gui_debug_memory_find_bytes_window(void) { }
-void gui_debug_memory_watches_window(void) { }
-void gui_debug_memory_step_frame(void) { }
-void gui_debug_memory_copy(void) { mem_edit[current_mem_edit].Copy(); }
-void gui_debug_memory_paste(void) { mem_edit[current_mem_edit].Paste(); }
-void gui_debug_memory_select_all(void) { mem_edit[current_mem_edit].SelectAll(); }
-void gui_debug_memory_goto(int editor, int address) { mem_edit_select = editor; mem_edit[editor].JumpToAddress(address); }
-void gui_debug_memory_save_dump(const char* file_path, bool binary) { UNUSED(file_path); UNUSED(binary); }
+void gui_debug_memory_search_window(void)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        ImGui::PushFont(gui_default_font);
+        mem_edit[i].DrawSearchWindow();
+        ImGui::PopFont();
+    }
+}
+
+void gui_debug_memory_find_bytes_window(void)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        ImGui::PushFont(gui_default_font);
+        mem_edit[i].DrawFindBytesWindow();
+        ImGui::PopFont();
+    }
+}
+
+void gui_debug_memory_watches_window(void)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        ImGui::PushFont(gui_default_font);
+        mem_edit[i].DrawWatchWindow();
+        ImGui::PopFont();
+    }
+}
+
+void gui_debug_memory_step_frame(void)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        mem_edit[i].StepFrame();
+    }
+}
+
+void gui_debug_memory_copy(void)
+{
+    mem_edit[current_mem_edit].Copy();
+}
+
+void gui_debug_memory_paste(void)
+{
+    mem_edit[current_mem_edit].Paste();
+}
+
+void gui_debug_memory_select_all(void)
+{
+    mem_edit[current_mem_edit].SelectAll();
+}
+
+void gui_debug_memory_goto(int editor, int address)
+{
+    mem_edit_select = editor;
+    mem_edit[editor].JumpToAddress(address);
+}
+
+void gui_debug_memory_save_dump(const char* file_path, bool binary)
+{
+    if (binary)
+        mem_edit[current_mem_edit].SaveToBinaryFile(file_path);
+    else
+        mem_edit[current_mem_edit].SaveToTextFile(file_path);
+}
 
 void gui_debug_memory_select_range(int editor, int start_address, int end_address)
 {
@@ -224,7 +281,13 @@ void gui_debug_memory_add_watch(int editor, int address, const char* notes, int 
     mem_edit[editor].AddWatchDirect(address, notes, size_index);
 }
 
-void gui_debug_memory_open_watch_popup(int editor, int address, const char* notes) { UNUSED(editor); UNUSED(address); UNUSED(notes); }
+void gui_debug_memory_open_watch_popup(int editor, int address, const char* notes)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+        return;
+
+    mem_edit[editor].PrepareAddWatch(address, notes);
+}
 
 void gui_debug_memory_remove_watch(int editor, int address)
 {
@@ -243,8 +306,21 @@ void gui_debug_memory_remove_watch(int editor, int address)
     }
 }
 
-void gui_debug_memory_save_settings(std::ostream& stream) { UNUSED(stream); }
-void gui_debug_memory_load_settings(std::istream& stream) { UNUSED(stream); }
+void gui_debug_memory_save_settings(std::ostream& stream)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        mem_edit[i].SaveSettings(stream);
+    }
+}
+
+void gui_debug_memory_load_settings(std::istream& stream)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        mem_edit[i].LoadSettings(stream);
+    }
+}
 
 static void memory_editor_menu(void)
 {
