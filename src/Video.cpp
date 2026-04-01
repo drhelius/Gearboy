@@ -521,9 +521,9 @@ bool Video::CGBPaletteAccessBlocked() const
 
 bool Video::VRAMAccessBlocked() const
 {
-    if (m_bCGB)
+    //if (m_bCGB)
         return false;
-    return m_bScreenEnabled && (m_iStatusMode == 3) && !m_bScanLineTransfered;
+    //return m_bScreenEnabled && (m_iStatusMode == 3) && !m_bScanLineTransfered;
 }
 
 int Video::GetCurrentStatusMode() const
