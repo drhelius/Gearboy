@@ -124,7 +124,7 @@ void Memory::Init()
     Reset(false);
 }
 
-void Memory::Reset(bool bCGB)
+void Memory::Reset(bool bCGB, bool bSGB)
 {
     m_bCGB = bCGB;
     InitPointer(m_pCommonMemoryRule);
@@ -186,10 +186,8 @@ void Memory::Reset(bool bCGB)
         }
         else if (i >= 0xFF00)
         {
-            if (m_bCGB)
-                m_pMap[i] = kInitialValuesForColorFFXX[i - 0xFF00];
-            else
-                m_pMap[i] = kInitialValuesForFFXX[i - 0xFF00];
+            int sys = m_bCGB ? 2 : (bSGB ? 1 : 0);
+            m_pMap[i] = kInitialValuesForFFXX[sys][i - 0xFF00];
         }
         else
         {

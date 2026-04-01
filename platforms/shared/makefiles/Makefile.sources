@@ -41,6 +41,7 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/gui_debug_video.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_io.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_psg.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_sgb.cpp \
     $(DESKTOP_SRC_DIR)/mcp/mcp_debug_adapter.cpp \
     $(DESKTOP_SRC_DIR)/mcp/mcp_server.cpp \
     $(SRC_DIR)/Audio.cpp \
@@ -68,6 +69,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/RomOnlyMemoryRule.cpp \
     $(SRC_DIR)/Video.cpp \
     $(SRC_DIR)/VgmRecorder.cpp \
+    $(SRC_DIR)/SGB.cpp \
     $(SRC_DIR)/TraceLogger.cpp \
     $(SRC_DIR)/audio/Blip_Buffer.cpp \
     $(SRC_DIR)/audio/Effects_Buffer.cpp \

@@ -30,6 +30,7 @@
 #include "gui_debug_io.h"
 #include "gui_debug_psg.h"
 #include "gui_debug_trace_logger.h"
+#include "gui_debug_sgb.h"
 #include "emu.h"
 #include "config.h"
 
@@ -89,6 +90,19 @@ void gui_debug_windows(void)
             gui_debug_window_vram_gbc_palettes();
         if (config_debug.show_trace_logger)
             gui_debug_window_trace_logger();
+        if (emu_get_core()->IsSGB())
+        {
+            if (config_debug.show_sgb_state)
+                gui_debug_window_sgb_state();
+            if (config_debug.show_sgb_video)
+                gui_debug_window_sgb_video();
+            if (config_debug.show_sgb_palettes)
+                gui_debug_window_sgb_palettes();
+            if (config_debug.show_sgb_system_palettes)
+                gui_debug_window_sgb_system_palettes();
+            if (config_debug.show_sgb_border_palettes)
+                gui_debug_window_sgb_border_palettes();
+        }
 
         gui_debug_memory_watches_window();
         gui_debug_memory_search_window();

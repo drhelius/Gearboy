@@ -13,26 +13,25 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
-#ifndef GEARBOY_H
-#define	GEARBOY_H
+#ifndef GUI_DEBUG_SGB_H
+#define GUI_DEBUG_SGB_H
 
-#include "common.h"
-#include "definitions.h"
-#include "log.h"
-#include "GearboyCore.h"
-#include "Memory.h"
-#include "Processor.h"
-#include "Cartridge.h"
-#include "Audio.h"
-#include "Video.h"
-#include "SGB.h"
-#include "SixteenBitRegister.h"
-#include "MemoryRule.h"
-#include "TraceLogger.h"
+#ifdef GUI_DEBUG_SGB_IMPORT
+    #define EXTERN
+#else
+    #define EXTERN extern
+#endif
 
-#endif	/* GEARBOY_H */
+EXTERN void gui_debug_window_sgb_state(void);
+EXTERN void gui_debug_window_sgb_video(void);
+EXTERN void gui_debug_window_sgb_palettes(void);
+EXTERN void gui_debug_window_sgb_system_palettes(void);
+EXTERN void gui_debug_window_sgb_border_palettes(void);
 
+#undef GUI_DEBUG_SGB_IMPORT
+#undef EXTERN
+#endif /* GUI_DEBUG_SGB_H */

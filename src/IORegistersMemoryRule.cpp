@@ -27,6 +27,7 @@ IORegistersMemoryRule::IORegistersMemoryRule(Processor* pProcessor,
     m_pVideo = pVideo;
     m_pInput = pInput;
     m_pAudio = pAudio;
+    InitPointer(m_pSGB);
     InitPointer(m_pTraceLogger);
     m_bCGB = false;
 }
@@ -43,5 +44,10 @@ void IORegistersMemoryRule::SetTraceLogger(TraceLogger* pTraceLogger)
 void IORegistersMemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
+}
+
+void IORegistersMemoryRule::SetSGB(SGB* pSGB)
+{
+    m_pSGB = pSGB;
 }
 

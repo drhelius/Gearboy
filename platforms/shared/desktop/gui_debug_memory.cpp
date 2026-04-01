@@ -14,6 +14,7 @@
 #include "config.h"
 #include "emu.h"
 #include "gui_filedialogs.h"
+#include "SGB.h"
 
 static MemEditor mem_edit[MEMORY_EDITOR_MAX];
 static int current_mem_edit = 0;
@@ -45,6 +46,16 @@ void gui_debug_memory_reset(void)
     mem_edit[MEMORY_EDITOR_OAM].Reset("OAM", memory->GetMemoryMap() + 0xFE00, 0x00A0, 0xFE00);
     mem_edit[MEMORY_EDITOR_IO].Reset("IO", memory->GetMemoryMap() + 0xFF00, 0x0080, 0xFF00);
     mem_edit[MEMORY_EDITOR_HIRAM].Reset("HIRAM", memory->GetMemoryMap() + 0xFF80, 0x007F, 0xFF80);
+
+    SGB* sgb = core->GetSGB();
+    const SGB::Border* border = sgb->GetBorder();
+    mem_edit[MEMORY_EDITOR_SGB_BORDER_TILES].Reset("SGB Tiles", (u8*)border->tiles, SGB_BORDER_TILE_DATA_SIZE);
+    mem_edit[MEMORY_EDITOR_SGB_BORDER_MAP].Reset("SGB Map", (u8*)border->map, 32 * 32 * 2);
+    mem_edit[MEMORY_EDITOR_SGB_BORDER_PAL].Reset("SGB BPal", (u8*)border->palette, 16 * 4 * 2);
+    mem_edit[MEMORY_EDITOR_SGB_SYS_PAL].Reset("SGB SPal", (u8*)sgb->GetSystemPalettes(), SGB_SYSTEM_PALETTE_COUNT * 4 * 2);
+    mem_edit[MEMORY_EDITOR_SGB_ATTR_FILES].Reset("SGB ATF", (u8*)sgb->GetAttributeFiles(), SGB_ATF_COUNT * SGB_ATF_SIZE);
+    mem_edit[MEMORY_EDITOR_SGB_ATTR_MAP].Reset("SGB AMap", (u8*)sgb->GetAttributeMap(), SGB_ATTR_MAP_WIDTH * SGB_ATTR_MAP_HEIGHT);
+    mem_edit[MEMORY_EDITOR_SGB_EFF_PAL].Reset("SGB EPal", (u8*)sgb->GetEffectivePalettes(), 4 * 4 * 2);
 }
 
 void gui_debug_window_memory(void)
@@ -112,6 +123,9 @@ static void draw_tabs(void)
             if (i == MEMORY_EDITOR_WRAM0 || i == MEMORY_EDITOR_WRAM1)
                 continue;
         }
+
+        if (i >= MEMORY_EDITOR_SGB_BORDER_TILES && !emu_get_core()->IsSGB())
+            continue;
 
         if (ImGui::BeginTabItem(mem_edit[i].GetTitle(), NULL, mem_edit_select == i ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
         {

@@ -315,6 +315,15 @@ static void main_window(void)
     int screen_width = GAMEBOY_WIDTH;
     int screen_height = GAMEBOY_HEIGHT;
 
+    GearboyCore* core = emu_get_core();
+    if (IsValidPointer(core))
+    {
+        GB_RuntimeInfo rt_info;
+        core->GetRuntimeInfo(rt_info);
+        screen_width = rt_info.screen_width;
+        screen_height = rt_info.screen_height;
+    }
+
     int w = (int)ImGui::GetIO().DisplaySize.x;
     int h = (int)ImGui::GetIO().DisplaySize.y - (application_show_menu ? gui_main_menu_height : 0);
 
@@ -572,7 +581,7 @@ static void finish_loading_rom(void)
     {
         emu_pause();
 
-        for (int i = 0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+        for (int i = 0; i < (SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT); i++)
         {
             emu_frame_buffer[i].red = 0;
             emu_frame_buffer[i].green = 0;

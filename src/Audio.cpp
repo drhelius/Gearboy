@@ -74,7 +74,8 @@ void Audio::Reset(bool bCGB)
 
     for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
     {
-        u8 value = m_bCGB ? kInitialValuesForColorFFXX[reg - 0xFF00] : kInitialValuesForFFXX[reg - 0xFF00];
+        int sys = m_bCGB ? 2 : 0;
+        u8 value = kInitialValuesForFFXX[sys][reg - 0xFF00];
         m_pApu->write_register(0, reg, value);
     }
 

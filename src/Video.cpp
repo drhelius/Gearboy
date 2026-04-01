@@ -44,6 +44,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iTileCycleCounter = 0;
     m_bScreenEnabled = true;
     m_bCGB = false;
+    m_bSGBTransferMode = false;
     m_bScanLineTransfered = false;
     m_iHideFrames = 0;
     m_IRQ48Signal = 0;
@@ -68,6 +69,11 @@ void Video::Init()
 void Video::SetTraceLogger(TraceLogger* pTraceLogger)
 {
     m_pTraceLogger = pTraceLogger;
+}
+
+void Video::SetSGBTransferMode(bool enabled)
+{
+    m_bSGBTransferMode = enabled;
 }
 
 void Video::Reset(bool bCGB)
@@ -182,11 +188,9 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                                 }
                                 else
                                 {
-                                    for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
-                                    {
-                                        m_pFrameBuffer[i] = 0;
-                                        m_pColorFrameBuffer[i] = 0;
-                                    }
+                                    if (!m_bSGBTransferMode)
+                                        memset(m_pFrameBuffer, 0, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
+                                    memset(m_pColorFrameBuffer, 0, GAMEBOY_WIDTH * GAMEBOY_HEIGHT * sizeof(u16));
                                 }
                             }
 
@@ -254,7 +258,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
             case 3:
             {
 #ifndef PERFORMANCE
-                if (m_iPixelCounter < 160 && m_iHideFrames == 0)
+                if (m_iPixelCounter < 160 && (m_iHideFrames == 0 || m_bSGBTransferMode))
                 {
                     m_iTileCycleCounter += clockCycles;
                     u8 lcdc = m_pMemory->Retrieve(0xFF40);
@@ -364,11 +368,9 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                 }
                 else
                 {
-                    for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
-                    {
-                        m_pFrameBuffer[i] = 0;
-                        m_pColorFrameBuffer[i] = 0;
-                    }
+                    if (!m_bSGBTransferMode)
+                        memset(m_pFrameBuffer, 0, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
+                    memset(m_pColorFrameBuffer, 0, GAMEBOY_WIDTH * GAMEBOY_HEIGHT * sizeof(u16));
                 }
             }
 
@@ -409,11 +411,9 @@ void Video::DisableScreen()
         }
         else
         {
-            for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
-            {
-                m_pFrameBuffer[i] = 0;
-                m_pColorFrameBuffer[i] = 0;
-            }
+            if (!m_bSGBTransferMode)
+                memset(m_pFrameBuffer, 0, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
+            memset(m_pColorFrameBuffer, 0, GAMEBOY_WIDTH * GAMEBOY_HEIGHT * sizeof(u16));
         }
     }
 }
@@ -552,7 +552,7 @@ void Video::ResetWindowLine()
 
 void Video::ScanLine(int line)
 {
-    if (m_iHideFrames > 0)
+    if (m_iHideFrames > 0 && !m_bSGBTransferMode)
         return;
 
     if (IsValidPointer(m_pColorFrameBuffer))

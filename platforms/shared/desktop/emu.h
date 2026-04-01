@@ -112,6 +112,8 @@ EXTERN void emu_save_sprite(const char* file_path, int index);
 EXTERN void emu_set_accelerometer(float x, float y, bool absolute);
 EXTERN void emu_save_background(const char* file_path);
 EXTERN void emu_save_tiles(const char* file_path);
+EXTERN void emu_save_sgb_border(const char* file_path);
+EXTERN void emu_save_sgb_tiles(const char* file_path, int palette);
 EXTERN void emu_start_vgm_recording(const char* file_path);
 EXTERN void emu_stop_vgm_recording(void);
 EXTERN bool emu_is_vgm_recording(void);

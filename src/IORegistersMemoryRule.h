@@ -28,6 +28,7 @@ class Input;
 class Audio;
 class Memory;
 class TraceLogger;
+class SGB;
 
 class IORegistersMemoryRule
 {
@@ -38,6 +39,7 @@ public:
     void PerformWrite(u16 address, u8 value);
     void Reset(bool bCGB);
     void SetTraceLogger(TraceLogger* pTraceLogger);
+    void SetSGB(SGB* pSGB);
 
 private:
     Processor* m_pProcessor;
@@ -45,6 +47,7 @@ private:
     Video* m_pVideo;
     Input* m_pInput;
     Audio* m_pAudio;
+    SGB* m_pSGB;
     TraceLogger* m_pTraceLogger;
     bool m_bCGB;
 };
@@ -55,6 +58,7 @@ private:
 #include "Audio.h"
 #include "Memory.h"
 #include "TraceLogger.h"
+#include "SGB.h"
 
 inline u8 IORegistersMemoryRule::PerformRead(u16 address)
 {
@@ -63,6 +67,16 @@ inline u8 IORegistersMemoryRule::PerformRead(u16 address)
         case 0xFF00:
         {
             // P1
+            if (IsValidPointer(m_pSGB) && m_pSGB->GetPlayerCount() > 1)
+            {
+                u8 p1 = m_pInput->Read();
+                if ((p1 & 0x30) == 0x30)
+                {
+                    int player = m_pSGB->GetCurrentPlayer();
+                    return (p1 & 0xF0) | (0x0F - player);
+                }
+                return p1;
+            }
             return m_pInput->Read();
         }
         case 0xFF03:
@@ -227,6 +241,15 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         case 0xFF00:
         {
             // P1
+            if (IsValidPointer(m_pSGB))
+            {
+                u8 oldP1 = m_pInput->Read();
+                if ((oldP1 & 0x30) != (value & 0x30))
+                {
+                    m_pSGB->WriteJOYP(value);
+                    m_pInput->SetCurrentPlayer(m_pSGB->GetCurrentPlayer());
+                }
+            }
             m_pInput->Write(value);
             break;
         }

@@ -48,6 +48,8 @@ struct config_Emulator
     bool pause_when_inactive = true;
     bool force_dmg = false;
     bool force_gba = false;
+    bool sgb = true;
+    bool sgb_border = true;
     bool ffwd = false;
     int ffwd_speed = 1;
     bool show_info = false;
@@ -201,6 +203,11 @@ struct config_Debug
     bool show_io = false;
     bool show_psg = false;
     bool show_trace_logger = false;
+    bool show_sgb_state = false;
+    bool show_sgb_video = false;
+    bool show_sgb_palettes = false;
+    bool show_sgb_system_palettes = false;
+    bool show_sgb_border_palettes = false;
     bool trace_counter = true;
     bool trace_bank = true;
     bool trace_registers = true;

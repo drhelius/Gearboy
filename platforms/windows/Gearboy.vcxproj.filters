@@ -46,6 +46,9 @@
     <ClCompile Include="..\shared\desktop\gui_debug_psg.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_sgb.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\desktop\gui_debug_trace_logger.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
@@ -178,6 +181,9 @@
     <ClCompile Include="..\..\src\VgmRecorder.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\SGB.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\TraceLogger.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -265,6 +271,9 @@
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug_psg.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_sgb.h">
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug_text.h">
@@ -433,6 +442,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\VgmRecorder.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SGB.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\TraceLogger.h">

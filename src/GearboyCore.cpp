@@ -41,6 +41,7 @@
 #include "MBC7MemoryRule.h"
 #include "TAMA5MemoryRule.h"
 #include "TraceLogger.h"
+#include "SGB.h"
 #include "common.h"
 
 GearboyCore::GearboyCore()
@@ -51,6 +52,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pAudio);
     InitPointer(m_pInput);
     InitPointer(m_pCartridge);
+    InitPointer(m_pSGB);
     InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
@@ -69,8 +71,12 @@ GearboyCore::GearboyCore()
     InitPointer(m_trace_logger);
     m_bCGB = false;
     m_bGBA = false;
+    m_bSGB = false;
     m_bPaused = false;
     m_bForceDMG = false;
+    m_bSGBEnabled = true;
+    m_bSGBBorder = true;
+    InitPointer(m_pSGBFrameBuffer);
     m_iRTCUpdateCount = 0;
     m_pixelFormat = GB_PIXEL_RGB565;
     m_bColorCorrectionEnabled = false;
@@ -95,6 +101,8 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pIORegistersMemoryRule);
     SafeDelete(m_pCommonMemoryRule);
     SafeDelete(m_pCartridge);
+    SafeDelete(m_pSGB);
+    SafeDeleteArray(m_pSGBFrameBuffer);
     SafeDelete(m_pInput);
     SafeDelete(m_pAudio);
     SafeDelete(m_pVideo);
@@ -115,6 +123,8 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pAudio = new Audio();
     m_pInput = new Input(m_pMemory, m_pProcessor);
     m_pCartridge = new Cartridge();
+    m_pSGB = new SGB(m_pMemory, m_pVideo);
+    m_pSGBFrameBuffer = new u16[SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT];
     m_trace_logger = new TraceLogger();
 
     m_pMemory->Init();
@@ -123,6 +133,7 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pAudio->Init();
     m_pInput->Init();
     m_pCartridge->Init();
+    m_pSGB->Init();
 
     m_pProcessor->SetTraceLogger(m_trace_logger);
     m_pVideo->SetTraceLogger(m_trace_logger);
@@ -194,7 +205,10 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
 
         if (!m_bCGB && !bDMGbuffer)
         {
-            RenderDMGFrame(pFrameBuffer);
+            if (m_bSGB)
+                RenderSGBFrame(pFrameBuffer);
+            else
+                RenderDMGFrame(pFrameBuffer);
         }
         else if (m_bCGB && m_bColorCorrectionEnabled)
         {
@@ -240,7 +254,10 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
 
         if (!m_bCGB && !bDMGbuffer)
         {
-            RenderDMGFrame(pFrameBuffer);
+            if (m_bSGB)
+                RenderSGBFrame(pFrameBuffer);
+            else
+                RenderDMGFrame(pFrameBuffer);
         }
         else if (m_bCGB && m_bColorCorrectionEnabled)
         {
@@ -339,8 +356,24 @@ void GearboyCore::SetAccelerometer(double x, double y)
 
 bool GearboyCore::GetRuntimeInfo(GB_RuntimeInfo& runtime_info)
 {
-    runtime_info.screen_width = GAMEBOY_WIDTH;
-    runtime_info.screen_height = GAMEBOY_HEIGHT;
+    if (m_bSGB)
+    {
+        if (m_bSGBBorder)
+        {
+            runtime_info.screen_width = SGB_SCREEN_WIDTH;
+            runtime_info.screen_height = SGB_SCREEN_HEIGHT;
+        }
+        else
+        {
+            runtime_info.screen_width = GAMEBOY_WIDTH;
+            runtime_info.screen_height = GAMEBOY_HEIGHT;
+        }
+    }
+    else
+    {
+        runtime_info.screen_width = GAMEBOY_WIDTH;
+        runtime_info.screen_height = GAMEBOY_HEIGHT;
+    }
     return m_pCartridge->IsLoadedROM();
 }
 
@@ -692,12 +725,18 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size, bool screenshot)
 
         using namespace std;
 
+        u8 sgb_marker = m_bSGB ? 1 : 0;
+        stream.write(reinterpret_cast<const char*>(&sgb_marker), sizeof(sgb_marker));
+
         m_pMemory->SaveState(stream);
         m_pProcessor->SaveState(stream);
         m_pVideo->SaveState(stream);
         m_pInput->SaveState(stream);
         m_pAudio->SaveState(stream);
         m_pMemory->GetCurrentRule()->SaveState(stream);
+
+        if (m_bSGB)
+            m_pSGB->SaveState(stream);
 
 #if defined(__LIBRETRO__)
         GB_SaveState_Header_Libretro header;
@@ -894,12 +933,29 @@ bool GearboyCore::LoadState(std::istream& stream)
 
     Debug("Loading state...");
 
+    if (header.version >= 102)
+    {
+        u8 sgb_marker = 0;
+        stream.read(reinterpret_cast<char*>(&sgb_marker), sizeof(sgb_marker));
+
+        bool state_has_sgb = (sgb_marker != 0);
+        if (state_has_sgb != m_bSGB)
+        {
+            Log("Save state SGB mode mismatch (state=%s, current=%s)",
+                state_has_sgb ? "SGB" : "DMG", m_bSGB ? "SGB" : "DMG");
+            return false;
+        }
+    }
+
     m_pMemory->LoadState(stream);
     m_pProcessor->LoadState(stream);
     m_pVideo->LoadState(stream, header.version);
-    m_pInput->LoadState(stream);
+    m_pInput->LoadState(stream, header.version);
     m_pAudio->LoadState(stream);
     m_pMemory->GetCurrentRule()->LoadState(stream);
+
+    if (header.version >= 102 && m_bSGB)
+        m_pSGB->LoadState(stream);
 
     return true;
 }
@@ -942,14 +998,14 @@ bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
     m_pMemory->LoadState(stream);
     m_pProcessor->LoadState(stream);
     m_pVideo->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
-    m_pInput->LoadState(stream);
+    m_pInput->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pAudio->LoadState(stream);
     m_pMemory->GetCurrentRule()->LoadState(stream);
 
     return true;
 }
 
-bool GearboyCore::GetSaveStateHeader(int index, const char* path, GB_SaveState_Header* header)
+bool GearboyCore::GetSaveStateHeader(int index, const char* path, GB_SaveState_Header* header, bool* out_sgb)
 {
     using namespace std;
 
@@ -969,6 +1025,18 @@ bool GearboyCore::GetSaveStateHeader(int index, const char* path, GB_SaveState_H
     stream.seekg(0, ios::end);
     size_t savestate_size = static_cast<size_t>(stream.tellg());
     stream.seekg(0, ios::beg);
+
+    if (out_sgb)
+    {
+        *out_sgb = false;
+        if (savestate_size > 0)
+        {
+            u8 sgb_marker = 0;
+            stream.read(reinterpret_cast<char*>(&sgb_marker), sizeof(sgb_marker));
+            *out_sgb = (sgb_marker != 0);
+            stream.seekg(0, ios::beg);
+        }
+    }
 
     if (savestate_size < sizeof(GB_SaveState_Header))
     {
@@ -1128,6 +1196,26 @@ bool GearboyCore::IsCGB()
 bool GearboyCore::IsGBA()
 {
     return m_bGBA;
+}
+
+bool GearboyCore::IsSGB()
+{
+    return m_bSGB;
+}
+
+SGB* GearboyCore::GetSGB()
+{
+    return m_pSGB;
+}
+
+void GearboyCore::SetSGBEnabled(bool enabled)
+{
+    m_bSGBEnabled = enabled;
+}
+
+void GearboyCore::SetSGBBorder(bool enabled)
+{
+    m_bSGBBorder = enabled;
 }
 
 void GearboyCore::EnableColorCorrection(bool enabled)
@@ -1376,8 +1464,10 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
         Log("Reset: Defaulting to Game Boy DMG");
     }
 
-    m_pMemory->Reset(m_bCGB);
-    m_pProcessor->Reset(m_bCGB, m_bGBA);
+    m_bSGB = !m_bCGB && m_pCartridge->IsSGB() && !m_bForceDMG && m_bSGBEnabled;
+    m_pMemory->Reset(m_bCGB, m_bSGB);
+    m_pProcessor->Reset(m_bCGB, m_bGBA, m_bSGB);
+    m_pVideo->SetSGBTransferMode(m_bSGB);
     m_pVideo->Reset(m_bCGB);
     m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();
@@ -1394,6 +1484,12 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pMBC5MemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
+    m_pSGB->Reset();
+    m_pIORegistersMemoryRule->SetSGB(m_bSGB ? m_pSGB : NULL);
+
+    if (m_bSGB)
+        Log("Reset: Super Game Boy mode enabled");
+
     m_bPaused = false;
 }
 
@@ -1407,6 +1503,34 @@ void GearboyCore::RenderDMGFrame(u16* pFrameBuffer) const
         for (int i = 0; i < pixels; i++)
         {
             pFrameBuffer[i] = m_DMGPalette[pGameboyFrameBuffer[i]];
+        }
+    }
+}
+
+void GearboyCore::RenderSGBFrame(u16* pFrameBuffer)
+{
+    if (IsValidPointer(pFrameBuffer))
+    {
+        m_pSGB->CopyScreenBuffer(m_pVideo->GetFrameBuffer());
+
+        if (m_bSGBBorder)
+        {
+            m_pSGB->Render(pFrameBuffer, m_pixelFormat, false);
+        }
+        else
+        {
+            // memset(m_pSGBFrameBuffer, 0, SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT * sizeof(u16));
+            m_pSGB->Render(m_pSGBFrameBuffer, m_pixelFormat, false);
+
+            int offsetX = (SGB_SCREEN_WIDTH - GAMEBOY_WIDTH) / 2;
+            int offsetY = (SGB_SCREEN_HEIGHT - GAMEBOY_HEIGHT) / 2;
+
+            for (int y = 0; y < GAMEBOY_HEIGHT; y++)
+            {
+                memcpy(&pFrameBuffer[y * GAMEBOY_WIDTH],
+                       &m_pSGBFrameBuffer[(offsetY + y) * SGB_SCREEN_WIDTH + offsetX],
+                       GAMEBOY_WIDTH * sizeof(u16));
+            }
         }
     }
 }

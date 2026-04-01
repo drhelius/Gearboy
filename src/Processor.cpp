@@ -81,7 +81,7 @@ void Processor::Init()
     Reset(false, false);
 }
 
-void Processor::Reset(bool bCGB, bool bGBA)
+void Processor::Reset(bool bCGB, bool bGBA, bool bSGB)
 {
     m_bCGB = bCGB;
     m_bIME = false;
@@ -113,28 +113,19 @@ void Processor::Reset(bool bCGB, bool bGBA)
         PC.SetValue(0x100);
         SP.SetValue(0xFFFE);
 
-        if (m_bCGB)
-        {
-            if (bGBA)
-            {
-                AF.SetValue(0x1100);
-                BC.SetValue(0x0100);
-            }
-            else
-            {
-                AF.SetValue(0x1180);
-                BC.SetValue(0x0000);
-            }
-            DE.SetValue(0xFF56);
-            HL.SetValue(0x000D);
-        }
-        else
-        {
-            AF.SetValue(0x01B0);
-            BC.SetValue(0x0013);
-            DE.SetValue(0x00D8);
-            HL.SetValue(0x014D);
-        }
+        //                        AF      BC      DE      HL
+        static const u16 kInitRegs[4][4] = {
+            { 0x01B0, 0x0013, 0x00D8, 0x014D },  // DMG
+            { 0x0100, 0x0014, 0x0000, 0xC060 },  // SGB
+            { 0x1180, 0x0000, 0xFF56, 0x000D },  // CGB
+            { 0x1100, 0x0100, 0xFF56, 0x000D },  // CGB+GBA
+        };
+
+        int sys = m_bCGB ? (bGBA ? 3 : 2) : (bSGB ? 1 : 0);
+        AF.SetValue(kInitRegs[sys][0]);
+        BC.SetValue(kInitRegs[sys][1]);
+        DE.SetValue(kInitRegs[sys][2]);
+        HL.SetValue(kInitRegs[sys][3]);
     }
 
     m_iInterruptDelayCycles = 0;

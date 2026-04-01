@@ -50,6 +50,7 @@
     <ClCompile Include="..\..\src\RomOnlyMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Video.cpp" />
     <ClCompile Include="..\..\src\VgmRecorder.cpp" />
+    <ClCompile Include="..\..\src\SGB.cpp" />
     <ClCompile Include="..\..\src\TraceLogger.cpp" />
     <ClCompile Include="..\shared\dependencies\miniz\miniz.c">
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
@@ -69,6 +70,7 @@
     <ClCompile Include="..\shared\desktop\gui_debug_video.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_io.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_psg.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_sgb.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_trace_logger.cpp" />
     <ClCompile Include="..\shared\desktop\gui_filedialogs.cpp" />
     <ClCompile Include="..\shared\desktop\gui_menus.cpp" />
@@ -154,6 +156,7 @@
     <ClInclude Include="..\..\src\SixteenBitRegister.h" />
     <ClInclude Include="..\..\src\Video.h" />
     <ClInclude Include="..\..\src\VgmRecorder.h" />
+    <ClInclude Include="..\..\src\SGB.h" />
     <ClInclude Include="..\..\src\TraceLogger.h" />
     <ClInclude Include="..\shared\dependencies\glad\glad.h" />
     <ClInclude Include="..\shared\dependencies\miniz\miniz.h" />
@@ -193,6 +196,7 @@
     <ClInclude Include="..\shared\desktop\gui_debug_video.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_io.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_psg.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_sgb.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_text.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_trace_logger.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_widgets.h" />

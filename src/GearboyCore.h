@@ -44,6 +44,7 @@ class MBC7MemoryRule;
 class TAMA5MemoryRule;
 class MemoryRule;
 class TraceLogger;
+class SGB;
 
 class GearboyCore
 {
@@ -90,7 +91,7 @@ public:
     void LoadState(const char* szPath, int index);
     bool LoadState(const char* path, int index, bool unused);
     bool LoadState(const u8* buffer, size_t size);
-    bool GetSaveStateHeader(int index, const char* path, GB_SaveState_Header* header);
+    bool GetSaveStateHeader(int index, const char* path, GB_SaveState_Header* header, bool* out_sgb = NULL);
     bool GetSaveStateScreenshot(int index, const char* path, GB_SaveState_Screenshot* screenshot);
     void SetFrameBuffer(u8* frame_buffer);
     void SetCheat(const char* szCheat);
@@ -98,17 +99,22 @@ public:
     void SetRamModificationCallback(RamChangedCallback callback);
     bool IsCGB();
     bool IsGBA();
+    bool IsSGB();
+    void SetSGBEnabled(bool enabled);
+    void SetSGBBorder(bool enabled);
     Memory* GetMemory();
     Cartridge* GetCartridge();
     Processor* GetProcessor();
     Audio* GetAudio();
     Video* GetVideo();
+    SGB* GetSGB();
     TraceLogger* GetTraceLogger();
     u64 GetMasterClockCycles();
     void SetAccelerometer(double x, double y);
 
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;
+    void RenderSGBFrame(u16* pFrameBuffer);
     void ApplyColorCorrection(u16* pFrameBuffer, int size);
     void BuildColorCorrectionLUT();
     void InitDMGPalette();
@@ -127,6 +133,7 @@ private:
     Audio* m_pAudio;
     Input* m_pInput;
     Cartridge* m_pCartridge;
+    SGB* m_pSGB;
     CommonMemoryRule* m_pCommonMemoryRule;
     IORegistersMemoryRule* m_pIORegistersMemoryRule;
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
@@ -143,9 +150,13 @@ private:
     TAMA5MemoryRule* m_pTAMA5MemoryRule;
     bool m_bCGB;
     bool m_bGBA;
+    bool m_bSGB;
     bool m_bPaused;
     u16 m_DMGPalette[4];
     bool m_bForceDMG;
+    bool m_bSGBEnabled;
+    bool m_bSGBBorder;
+    u16* m_pSGBFrameBuffer;
     int m_iRTCUpdateCount;
     RamChangedCallback m_pRamChangedCallback;
     GB_Color_Format m_pixelFormat;
@@ -156,4 +167,4 @@ private:
     u64 m_master_clock_cycles;
 };
 
-#endif	/* CORE_H */
+#endif /* CORE_H */

@@ -81,8 +81,8 @@ static void update_debug_oam_buffers(void);
 
 bool emu_init(void)
 {
-    frame_buffer_565 = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
-    emu_frame_buffer = new GB_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+    frame_buffer_565 = new u16[SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT];
+    emu_frame_buffer = new GB_Color[SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT];
     init_debug();
     gearboy = new GearboyCore();
     gearboy->Init();
@@ -157,6 +157,7 @@ void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
 {
     emu_audio_reset();
     save_ram();
+    gearboy->SetSGBEnabled(config_emulator.sgb);
     gearboy->LoadROM(file_path, force_dmg, mbc, force_gba);
     load_ram();
     emu_debug_continue();
@@ -164,6 +165,7 @@ void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
 
 static void load_rom_thread_func(void)
 {
+    gearboy->SetSGBEnabled(config_emulator.sgb);
     loading_result = gearboy->LoadROM(loading_file_path, loading_force_dmg, loading_mbc, loading_force_gba);
     loading_state.store(Loading_State_Finished);
 }
@@ -227,6 +229,8 @@ void emu_update(void)
     if (emu_is_empty())
         return;
 
+    gearboy->SetSGBBorder(config_emulator.sgb_border);
+
     int sampleCount = 0;
 
     if (config_debug.debug)
@@ -268,7 +272,9 @@ void emu_update(void)
     else
         gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, NULL);
 
-    generate_24bit_buffer(emu_frame_buffer, frame_buffer_565, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
+    GB_RuntimeInfo rt_info;
+    gearboy->GetRuntimeInfo(rt_info);
+    generate_24bit_buffer(emu_frame_buffer, frame_buffer_565, rt_info.screen_width * rt_info.screen_height);
 
     if ((sampleCount > 0) && !gearboy->IsPaused())
     {
@@ -336,6 +342,7 @@ void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba)
     emu_debug_command = Debug_Command_None;
     emu_audio_reset();
     save_ram();
+    gearboy->SetSGBEnabled(config_emulator.sgb);
     gearboy->ResetROM(force_dmg, mbc, force_gba);
     load_ram();
 }
@@ -413,6 +420,7 @@ void emu_load_ram(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
     if (!emu_is_empty())
     {
         save_ram();
+        gearboy->SetSGBEnabled(config_emulator.sgb);
         gearboy->ResetROM(force_dmg, mbc, force_gba);
         gearboy->LoadRam(file_path, true);
     }
@@ -621,8 +629,10 @@ void emu_save_screenshot(const char* file_path)
 {
     if (!gearboy->GetCartridge()->IsLoadedROM())
         return;
+    GB_RuntimeInfo rt_info;
+    gearboy->GetRuntimeInfo(rt_info);
     Log("Saving screenshot to %s", file_path);
-    stbi_write_png(file_path, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 3, emu_frame_buffer, GAMEBOY_WIDTH * 3);
+    stbi_write_png(file_path, rt_info.screen_width, rt_info.screen_height, 3, emu_frame_buffer, rt_info.screen_width * 3);
 }
 
 void emu_save_sprite(const char* file_path, int index)
@@ -702,6 +712,131 @@ void emu_save_tiles(const char* file_path)
     Log("Tiles saved to %s", file_path);
 }
 
+void emu_save_sgb_border(const char* file_path)
+{
+    if (!gearboy->GetCartridge()->IsLoadedROM() || !gearboy->IsSGB())
+        return;
+
+    SGB* sgb = gearboy->GetSGB();
+    const SGB::Border* border = sgb->GetBorder();
+    const u16* eff = sgb->GetEffectivePalettes();
+
+    int w = 256, h = 224;
+    u8* pixels = new u8[w * h * 3];
+    memset(pixels, 0, w * h * 3);
+
+    u16 gc0 = eff[0];
+    u8 gc0_r = ((gc0) & 0x1F) * 255 / 31;
+    u8 gc0_g = ((gc0 >> 5) & 0x1F) * 255 / 31;
+    u8 gc0_b = ((gc0 >> 10) & 0x1F) * 255 / 31;
+
+    for (int ty = 0; ty < 28; ty++)
+    {
+        for (int tx = 0; tx < 32; tx++)
+        {
+            u16 entry = border->map[tx + ty * 32];
+            if (entry & 0x300) continue;
+
+            u8 flipX = (entry & 0x4000) ? 0 : 7;
+            u8 flipY = (entry & 0x8000) ? 7 : 0;
+            u8 pal = (entry >> 10) & 3;
+            int tileIdx = entry & 0xFF;
+
+            for (int y = 0; y < 8; y++)
+            {
+                int base = tileIdx * 32 + (y ^ flipY) * 2;
+                for (int x = 0; x < 8; x++)
+                {
+                    u8 bit = 1 << (x ^ flipX);
+                    u8 color = ((border->tiles[base + 0 ] & bit) ? 1 : 0) |
+                               ((border->tiles[base + 1 ] & bit) ? 2 : 0) |
+                               ((border->tiles[base + 16] & bit) ? 4 : 0) |
+                               ((border->tiles[base + 17] & bit) ? 8 : 0);
+
+                    int px = tx * 8 + x;
+                    int py = ty * 8 + y;
+                    int idx = (py * w + px) * 3;
+
+                    if (color == 0)
+                    {
+                        pixels[idx] = gc0_r; pixels[idx+1] = gc0_g; pixels[idx+2] = gc0_b;
+                    }
+                    else
+                    {
+                        u16 raw = border->palette[color + pal * 16];
+                        pixels[idx + 0] = ((raw) & 0x1F) * 255 / 31;
+                        pixels[idx + 1] = ((raw >> 5) & 0x1F) * 255 / 31;
+                        pixels[idx + 2] = ((raw >> 10) & 0x1F) * 255 / 31;
+                    }
+                }
+            }
+        }
+    }
+
+    stbi_write_png(file_path, w, h, 3, pixels, w * 3);
+    SafeDeleteArray(pixels);
+    Log("SGB border saved to %s", file_path);
+}
+
+void emu_save_sgb_tiles(const char* file_path, int palette)
+{
+    if (!gearboy->GetCartridge()->IsLoadedROM() || !gearboy->IsSGB())
+        return;
+
+    SGB* sgb = gearboy->GetSGB();
+    const SGB::Border* border = sgb->GetBorder();
+    const u16* eff = sgb->GetEffectivePalettes();
+
+    u16 gc0 = eff[0];
+    u8 gc0_r = ((gc0) & 0x1F) * 255 / 31;
+    u8 gc0_g = ((gc0 >> 5) & 0x1F) * 255 / 31;
+    u8 gc0_b = ((gc0 >> 10) & 0x1F) * 255 / 31;
+
+    int w = 16 * 8, h = 16 * 8;
+    u8* pixels = new u8[w * h * 3];
+    memset(pixels, 0, w * h * 3);
+
+    for (int ty = 0; ty < 16; ty++)
+    {
+        for (int tx = 0; tx < 16; tx++)
+        {
+            int tileIdx = ty * 16 + tx;
+            for (int y = 0; y < 8; y++)
+            {
+                int base = tileIdx * 32 + y * 2;
+                for (int x = 0; x < 8; x++)
+                {
+                    u8 bit = 1 << (7 - x);
+                    u8 color = ((border->tiles[base + 0 ] & bit) ? 1 : 0) |
+                               ((border->tiles[base + 1 ] & bit) ? 2 : 0) |
+                               ((border->tiles[base + 16] & bit) ? 4 : 0) |
+                               ((border->tiles[base + 17] & bit) ? 8 : 0);
+
+                    int px = tx * 8 + x;
+                    int py = ty * 8 + y;
+                    int idx = (py * w + px) * 3;
+
+                    if (color == 0)
+                    {
+                        pixels[idx] = gc0_r; pixels[idx+1] = gc0_g; pixels[idx+2] = gc0_b;
+                    }
+                    else
+                    {
+                        u16 raw = border->palette[color + palette * 16];
+                        pixels[idx + 0] = ((raw) & 0x1F) * 255 / 31;
+                        pixels[idx + 1] = ((raw >> 5) & 0x1F) * 255 / 31;
+                        pixels[idx + 2] = ((raw >> 10) & 0x1F) * 255 / 31;
+                    }
+                }
+            }
+        }
+    }
+
+    stbi_write_png(file_path, w, h, 3, pixels, w * 3);
+    SafeDeleteArray(pixels);
+    Log("SGB tiles saved to %s", file_path);
+}
+
 void emu_start_vgm_recording(const char* file_path)
 {
     if (!gearboy->GetCartridge()->IsLoadedROM())
@@ -714,21 +849,30 @@ void emu_start_vgm_recording(const char* file_path)
 
 void emu_stop_vgm_recording(void)
 {
-    if (gearboy->GetAudio()->IsVgmRecording()) { gearboy->GetAudio()->StopVgmRecording(); Log("VGM recording stopped"); }
+    if (gearboy->GetAudio()->IsVgmRecording())
+    {
+        gearboy->GetAudio()->StopVgmRecording();
+        Log("VGM recording stopped");
+    }
 }
 
-bool emu_is_vgm_recording(void) { return gearboy->GetAudio()->IsVgmRecording(); }
+bool emu_is_vgm_recording(void)
+{
+    return gearboy->GetAudio()->IsVgmRecording();
+}
 
 int emu_get_screenshot_png(unsigned char** out_buffer)
 {
     if (!gearboy->GetCartridge()->IsLoadedROM())
         return 0;
 
-    int stride = GAMEBOY_WIDTH * 3;
+    GB_RuntimeInfo rt_info;
+    gearboy->GetRuntimeInfo(rt_info);
+    int stride = rt_info.screen_width * 3;
     int len = 0;
 
     *out_buffer = stbi_write_png_to_mem((const unsigned char*)emu_frame_buffer, stride,
-                                         GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
+                                         rt_info.screen_width, rt_info.screen_height,
                                          3, &len);
 
     return len;

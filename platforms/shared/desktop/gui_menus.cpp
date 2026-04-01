@@ -23,13 +23,12 @@
 #include "gui_filedialogs.h"
 #include "gui_popups.h"
 #include "gui_actions.h"
-// #include "gui_debug_disassembler.h"
-// #include "gui_debug_memory.h"
 #include "config.h"
 #include "application.h"
 #include "display.h"
 #include "gamepad.h"
 #include "emu.h"
+#include "gui_debug_sgb.h"
 #include "ogl_renderer.h"
 #include "utils.h"
 #include "gearboy.h"
@@ -501,6 +500,9 @@ static void menu_emulator(void)
             if (config_emulator.force_gba)
                 config_emulator.force_dmg = false;
         }
+
+        ImGui::MenuItem("Super Game Boy", "", &config_emulator.sgb);
+        ImGui::MenuItem("SGB Border", "", &config_emulator.sgb_border);
 
         if (ImGui::BeginMenu("Memory Bank Controller"))
         {
@@ -1118,6 +1120,16 @@ static void menu_debug(void)
 
         ImGui::MenuItem("Show PSG", "", &config_debug.show_psg);
         ImGui::MenuItem("Show IO Map", "", &config_debug.show_io, config_debug.debug);
+
+        if (ImGui::BeginMenu("Super Game Boy", config_debug.debug && emu_get_core()->IsSGB()))
+        {
+            ImGui::MenuItem("Show SGB State", "", &config_debug.show_sgb_state);
+            ImGui::MenuItem("Show SGB Video", "", &config_debug.show_sgb_video);
+            ImGui::MenuItem("Show SGB Effective Palettes", "", &config_debug.show_sgb_palettes);
+            ImGui::MenuItem("Show SGB System Palettes", "", &config_debug.show_sgb_system_palettes);
+            ImGui::MenuItem("Show SGB Border Palettes", "", &config_debug.show_sgb_border_palettes);
+            ImGui::EndMenu();
+        }
 
 #if defined(__APPLE__) || defined(_WIN32)
         ImGui::Separator();

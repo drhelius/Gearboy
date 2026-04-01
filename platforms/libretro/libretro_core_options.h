@@ -99,6 +99,34 @@ struct retro_core_option_v2_definition option_defs_us[] = {
         "Auto"
     },
     {
+        "gearboy_sgb",
+        "Super Game Boy (restart)",
+        NULL,
+        "When enabled, compatible ROMs will run in Super Game Boy mode. When disabled, SGB-compatible ROMs will run as standard Game Boy (DMG) games.",
+        NULL,
+        "system",
+        {
+            { "Enabled",  NULL },
+            { "Disabled", NULL },
+            { NULL, NULL },
+        },
+        "Enabled"
+    },
+    {
+        "gearboy_sgb_border",
+        "Super Game Boy Border",
+        NULL,
+        "When enabled, the Super Game Boy border is displayed around the game screen (256x224). When disabled, only the game screen is shown (160x144).",
+        NULL,
+        "system",
+        {
+            { "Enabled",  NULL },
+            { "Disabled", NULL },
+            { NULL, NULL },
+        },
+        "Enabled"
+    },
+    {
         "gearboy_bootrom_dmg",
         "DMG Bootrom (restart)",
         NULL,

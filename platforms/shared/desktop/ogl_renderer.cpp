@@ -130,6 +130,15 @@ void ogl_renderer_render(void)
     current_screen_width = GAMEBOY_WIDTH;
     current_screen_height = GAMEBOY_HEIGHT;
 
+    GearboyCore* core = emu_get_core();
+    if (IsValidPointer(core))
+    {
+        GB_RuntimeInfo rt_info;
+        core->GetRuntimeInfo(rt_info);
+        current_screen_width = rt_info.screen_width;
+        current_screen_height = rt_info.screen_height;
+    }
+
     if (config_debug.debug)
     {
         update_debug_textures();

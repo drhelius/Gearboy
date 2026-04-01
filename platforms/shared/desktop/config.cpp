@@ -183,6 +183,11 @@ void config_read(void)
     config_debug.show_io = read_bool("Debug", "IO", false);
     config_debug.show_psg = read_bool("Debug", "PSG", false);
     config_debug.show_trace_logger = read_bool("Debug", "TraceLogger", false);
+    config_debug.show_sgb_state = read_bool("Debug", "SGBState", false);
+    config_debug.show_sgb_video = read_bool("Debug", "SGBVideo", false);
+    config_debug.show_sgb_palettes = read_bool("Debug", "SGBPalettes", false);
+    config_debug.show_sgb_system_palettes = read_bool("Debug", "SGBSystemPalettes", false);
+    config_debug.show_sgb_border_palettes = read_bool("Debug", "SGBBorderPalettes", false);
     config_debug.trace_counter = read_bool("Debug", "TraceCounter", true);
     config_debug.trace_bank = read_bool("Debug", "TraceBank", true);
     config_debug.trace_registers = read_bool("Debug", "TraceRegisters", true);
@@ -219,6 +224,8 @@ void config_read(void)
     config_emulator.pause_when_inactive = read_bool("Emulator", "PauseWhenInactive", true);
     config_emulator.force_dmg = read_bool("Emulator", "ForceDMG", false);
     config_emulator.force_gba = read_bool("Emulator", "ForceGBA", false);
+    config_emulator.sgb = read_bool("Emulator", "SGB", true);
+    config_emulator.sgb_border = read_bool("Emulator", "SGBBorder", true);
     config_emulator.mbc = read_int("Emulator", "MBC", 0);
     config_emulator.dmg_bootrom = read_bool("Emulator", "DMGBootrom", false);
     config_emulator.dmg_bootrom_path = read_string("Emulator", "DMGBootromPath");
@@ -390,6 +397,11 @@ void config_write(void)
     write_bool("Debug", "IO", config_debug.show_io);
     write_bool("Debug", "PSG", config_debug.show_psg);
     write_bool("Debug", "TraceLogger", config_debug.show_trace_logger);
+    write_bool("Debug", "SGBState", config_debug.show_sgb_state);
+    write_bool("Debug", "SGBVideo", config_debug.show_sgb_video);
+    write_bool("Debug", "SGBPalettes", config_debug.show_sgb_palettes);
+    write_bool("Debug", "SGBSystemPalettes", config_debug.show_sgb_system_palettes);
+    write_bool("Debug", "SGBBorderPalettes", config_debug.show_sgb_border_palettes);
     write_bool("Debug", "TraceCounter", config_debug.trace_counter);
     write_bool("Debug", "TraceBank", config_debug.trace_bank);
     write_bool("Debug", "TraceRegisters", config_debug.trace_registers);
@@ -426,6 +438,8 @@ void config_write(void)
     write_bool("Emulator", "PauseWhenInactive", config_emulator.pause_when_inactive);
     write_bool("Emulator", "ForceDMG", config_emulator.force_dmg);
     write_bool("Emulator", "ForceGBA", config_emulator.force_gba);
+    write_bool("Emulator", "SGB", config_emulator.sgb);
+    write_bool("Emulator", "SGBBorder", config_emulator.sgb_border);
     write_int("Emulator", "MBC", config_emulator.mbc);
     write_bool("Emulator", "DMGBootrom", config_emulator.dmg_bootrom);
     write_string("Emulator", "DMGBootromPath", config_emulator.dmg_bootrom_path);

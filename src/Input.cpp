@@ -25,9 +25,10 @@ Input::Input(Memory* pMemory, Processor* pProcessor)
 {
     m_pMemory = pMemory;
     m_pProcessor = pProcessor;
-    m_JoypadState = 0xFF;
+    memset(m_JoypadState, 0xFF, sizeof(m_JoypadState));
     m_P1 = 0xFF;
     m_iInputCycles = 0;
+    m_iCurrentPlayer = 0;
 }
 
 void Input::Init()
@@ -37,43 +38,63 @@ void Input::Init()
 
 void Input::Reset()
 {
-    m_JoypadState = 0xFF;
+    memset(m_JoypadState, 0xFF, sizeof(m_JoypadState));
     m_P1 = 0xFF;
     m_iInputCycles = 0;
+    m_iCurrentPlayer = 0;
 }
 
 void Input::KeyPressed(Gameboy_Keys key)
 {
-    m_JoypadState &= ~key;
+    m_JoypadState[0] &= ~key;
 }
 
 void Input::KeyReleased(Gameboy_Keys key)
 {
-    m_JoypadState |= key;
+    m_JoypadState[0] |= key;
+}
+
+void Input::KeyPressed(Gameboy_Keys key, int player)
+{
+    if (player >= 0 && player < 4)
+        m_JoypadState[player] &= ~key;
+}
+
+void Input::KeyReleased(Gameboy_Keys key, int player)
+{
+    if (player >= 0 && player < 4)
+        m_JoypadState[player] |= key;
+}
+
+void Input::SetCurrentPlayer(int player)
+{
+    if (player >= 0 && player < 4)
+        m_iCurrentPlayer = player;
 }
 
 void Input::Update()
 {
+    u8 state = m_JoypadState[m_iCurrentPlayer];
     u8 current = m_P1 & 0xF0;
 
     switch (current & 0x30)
     {
         case 0x00:
         {
-            u8 topJoypad = (m_JoypadState >> 4) & 0x0F;
-            u8 bottomJoypad = m_JoypadState & 0x0F;
+            u8 topJoypad = (state >> 4) & 0x0F;
+            u8 bottomJoypad = state & 0x0F;
             current |= topJoypad & bottomJoypad;
             break;
         }
         case 0x10:
         {
-            u8 topJoypad = (m_JoypadState >> 4) & 0x0F;
+            u8 topJoypad = (state >> 4) & 0x0F;
             current |= topJoypad;
             break;
         }
         case 0x20:
         {
-            u8 bottomJoypad = m_JoypadState & 0x0F;
+            u8 bottomJoypad = state & 0x0F;
             current |= bottomJoypad;
             break;
         }
@@ -92,16 +113,28 @@ void Input::SaveState(std::ostream& stream)
 {
     using namespace std;
 
-    stream.write(reinterpret_cast<const char*> (&m_JoypadState), sizeof(m_JoypadState));
+    stream.write(reinterpret_cast<const char*> (m_JoypadState), sizeof(m_JoypadState));
     stream.write(reinterpret_cast<const char*> (&m_P1), sizeof(m_P1));
     stream.write(reinterpret_cast<const char*> (&m_iInputCycles), sizeof(m_iInputCycles));
 }
 
-void Input::LoadState(std::istream& stream)
+void Input::LoadState(std::istream& stream, u32 version)
 {
     using namespace std;
 
-    stream.read(reinterpret_cast<char*> (&m_JoypadState), sizeof(m_JoypadState));
-    stream.read(reinterpret_cast<char*> (&m_P1), sizeof(m_P1));
-    stream.read(reinterpret_cast<char*> (&m_iInputCycles), sizeof(m_iInputCycles));
+    if (version < 102)
+    {
+        u8 legacy_joypad = 0xFF;
+        stream.read(reinterpret_cast<char*>(&legacy_joypad), sizeof(legacy_joypad));
+        m_JoypadState[0] = legacy_joypad;
+        m_JoypadState[1] = 0xFF;
+        m_JoypadState[2] = 0xFF;
+        m_JoypadState[3] = 0xFF;
+    }
+    else
+    {
+        stream.read(reinterpret_cast<char*>(m_JoypadState), sizeof(m_JoypadState));
+    }
+    stream.read(reinterpret_cast<char*>(&m_P1), sizeof(m_P1));
+    stream.read(reinterpret_cast<char*>(&m_iInputCycles), sizeof(m_iInputCycles));
 }

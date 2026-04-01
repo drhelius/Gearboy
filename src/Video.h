@@ -38,6 +38,7 @@ public:
     bool Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_Format pixelFormat);
     void EnableScreen();
     void DisableScreen();
+    void SetSGBTransferMode(bool enabled);
     bool IsScreenEnabled() const;
     const u8* GetFrameBuffer() const;
     void UpdatePaletteToSpecification(bool background, u8 value);
@@ -81,6 +82,7 @@ private:
     int m_iTileCycleCounter;
     bool m_bScreenEnabled;
     bool m_bCGB;
+    bool m_bSGBTransferMode;
     u16 m_CGBSpritePalettes[8][4][2];
     u16 m_CGBBackgroundPalettes[8][4][2];
     bool m_bScanLineTransfered;

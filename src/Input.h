@@ -34,10 +34,13 @@ public:
     void Tick(unsigned int clockCycles);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
+    void KeyPressed(Gameboy_Keys key, int player);
+    void KeyReleased(Gameboy_Keys key, int player);
+    void SetCurrentPlayer(int player);
     void Write(u8 value);
     u8 Read();
     void SaveState(std::ostream& stream);
-    void LoadState(std::istream& stream);
+    void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
 
 private:
     void Update();
@@ -45,9 +48,10 @@ private:
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
-    u8 m_JoypadState;
+    u8 m_JoypadState[4];
     u8 m_P1;
     int m_iInputCycles;
+    int m_iCurrentPlayer;
 };
 
 inline void Input::Tick(unsigned int clockCycles)

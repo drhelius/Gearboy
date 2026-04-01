@@ -32,8 +32,10 @@
 #include "../../src/gearboy.h"
 #include "libretro_core_options.h"
 
-#define VIDEO_WIDTH 160
-#define VIDEO_HEIGHT 144
+#define VIDEO_WIDTH 256
+#define VIDEO_HEIGHT 224
+#define GB_VIDEO_WIDTH 160
+#define GB_VIDEO_HEIGHT 144
 
 #ifdef _WIN32
 static const char slash = '\\';
@@ -53,6 +55,8 @@ static int audio_sample_count;
 
 static bool force_dmg = false;
 static bool force_gba = false;
+static bool sgb_enabled = true;
+static bool sgb_border = true;
 static bool allow_up_down = false;
 static bool bootrom_dmg = false;
 static bool bootrom_gbc = false;
@@ -159,9 +163,11 @@ static retro_input_state_t input_state_cb;
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-    float aspect                = (float)VIDEO_WIDTH/VIDEO_HEIGHT;
-    info->geometry.base_width   = VIDEO_WIDTH;
-    info->geometry.base_height  = VIDEO_HEIGHT;
+    GB_RuntimeInfo rt_info;
+    core->GetRuntimeInfo(rt_info);
+    float aspect                = (float)rt_info.screen_width/rt_info.screen_height;
+    info->geometry.base_width   = rt_info.screen_width;
+    info->geometry.base_height  = rt_info.screen_height;
     info->geometry.max_width    = VIDEO_WIDTH;
     info->geometry.max_height   = VIDEO_HEIGHT;
     info->geometry.aspect_ratio = aspect;
@@ -428,6 +434,22 @@ static void check_variables(void)
             mapper = Cartridge::CartridgeNotSupported;
     }
 
+    var.key = "gearboy_sgb";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        sgb_enabled = (strcmp(var.value, "Enabled") == 0);
+    }
+
+    var.key = "gearboy_sgb_border";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        sgb_border = (strcmp(var.value, "Enabled") == 0);
+    }
+
     var.key = "gearboy_mouse_sensitivity_x";
     var.value = NULL;
 
@@ -625,13 +647,16 @@ void retro_run(void)
     {
         check_variables();
         core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
+        core->SetSGBBorder(sgb_border);
     }
 
     update_input();
 
     core->RunToVBlank(gearboy_frame_buf, audio_buf, &audio_sample_count, false, NULL);
 
-    video_cb((uint8_t*)gearboy_frame_buf, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_WIDTH * sizeof(u16));
+    GB_RuntimeInfo rt_info;
+    core->GetRuntimeInfo(rt_info);
+    video_cb((uint8_t*)gearboy_frame_buf, rt_info.screen_width, rt_info.screen_height, rt_info.screen_width * sizeof(u16));
 
     if (audio_sample_count > 0)
         audio_batch_cb(audio_buf, audio_sample_count / 2);
@@ -647,6 +672,8 @@ void retro_reset(void)
     core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
     core->EnableColorCorrection(color_correction);
 
+    core->SetSGBEnabled(sgb_enabled);
+    core->SetSGBBorder(sgb_border);
     core->ResetROMPreservingRAM(force_dmg, mapper, force_gba);
 }
 
@@ -659,6 +686,8 @@ bool retro_load_game(const struct retro_game_info *info)
 
     core->SetDMGPalette(current_palette[0], current_palette[1], current_palette[2], current_palette[3]);
 
+    core->SetSGBEnabled(sgb_enabled);
+    core->SetSGBBorder(sgb_border);
     if (!core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, force_dmg, mapper, force_gba))
     {
         log_cb(RETRO_LOG_ERROR, "Invalid or corrupted ROM.\n");
