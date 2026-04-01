@@ -843,7 +843,7 @@ void emu_start_vgm_recording(const char* file_path)
         return;
     if (gearboy->GetAudio()->IsVgmRecording())
         emu_stop_vgm_recording();
-    if (gearboy->GetAudio()->StartVgmRecording(file_path, 4194304, false))
+    if (gearboy->GetAudio()->StartVgmRecording(file_path, GEARBOY_MASTER_CLOCK_RATE, false))
         Log("VGM recording started: %s", file_path);
 }
 

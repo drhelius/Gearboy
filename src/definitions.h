@@ -98,6 +98,8 @@ typedef void (*RamChangedCallback) (void);
 #define FLAG_CARRY 0x10
 #define FLAG_NONE 0
 
+#define GEARBOY_MASTER_CLOCK_RATE 4194304
+
 #define GEARBOY_MAX_GAMEPADS 1
 
 #define GAMEBOY_WIDTH 160

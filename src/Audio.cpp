@@ -55,7 +55,7 @@ void Audio::Init()
     m_pApu = new Gb_Apu();
     m_pBuffer = new Stereo_Buffer();
 
-    m_pBuffer->clock_rate(4194304);
+    m_pBuffer->clock_rate(GEARBOY_MASTER_CLOCK_RATE);
     m_pBuffer->set_sample_rate(m_SampleRate);
 
     //m_pApu->treble_eq(-15.0);

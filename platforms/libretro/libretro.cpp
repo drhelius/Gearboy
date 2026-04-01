@@ -171,7 +171,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
     info->geometry.max_width    = VIDEO_WIDTH;
     info->geometry.max_height   = VIDEO_HEIGHT;
     info->geometry.aspect_ratio = aspect;
-    info->timing.fps            = 4194304.0 / 70224.0;
+    info->timing.fps            = GEARBOY_MASTER_CLOCK_RATE / 70224.0;
     info->timing.sample_rate    = 44100.0f;
 }
 
