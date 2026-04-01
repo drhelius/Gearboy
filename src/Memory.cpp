@@ -195,6 +195,22 @@ void Memory::Reset(bool bCGB, bool bSGB)
         }
     }
 
+    if (!m_bCGB && !IsBootromEnabled())
+    {
+        // Initialize VRAM with Nintendo logo tile data left by DMG boot ROM
+        for (int i = 0; i < 200; i++)
+        {
+            m_pMap[0x8010 + (i * 2)] = kInitialVRAMTileData[i];
+            m_pMap[0x8010 + (i * 2) + 1] = 0x00;
+        }
+
+        // Initialize tilemap
+        for (int i = 0; i < 44; i++)
+        {
+            m_pMap[0x9904 + i] = kInitialVRAMTilemap[i];
+        }
+    }
+
     if (m_bCGB)
     {
         for (int i = 0; i < 5; i++)
