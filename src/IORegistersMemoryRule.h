@@ -206,7 +206,7 @@ inline u8 IORegistersMemoryRule::PerformRead(u16 address)
         case 0xFF6A:
         {
             // BCPS, OCPS
-            return (m_bCGB ? (m_pMemory->Retrieve(address) | 0x40) : 0xC0);
+            return (m_bCGB ? (m_pMemory->Retrieve(address) | 0x40) : 0xFF);
         }
         case 0xFF69:
         case 0xFF6B:
