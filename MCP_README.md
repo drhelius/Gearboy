@@ -48,7 +48,7 @@ This server provides tools for game development, rom hacking, reverse engineerin
 ## Features
 
 - **Full Debugger Access**: CPU registers, memory inspection, breakpoints, and execution control
-- **Multiple Memory Areas**: Access ROM banks, VRAM, WRAM, OAM, IO registers, HIRAM, and more
+- **Multiple Memory Areas**: Access ROM banks, VRAM, WRAM, OAM, IO registers, HIRAM, and SGB-specific areas (border tiles, tilemap, palettes, attribute files)
 - **Disassembly**: View disassembled SM83 code around PC or any address
 - **Hardware Inspection**: SM83 CPU, LCD controller, APU audio channels
 - **Sprite Viewer**: List and inspect all 40 OAM sprites with images
@@ -265,7 +265,7 @@ The server exposes tools organized in the following categories:
 - `get_cpu_status` - Get complete SM83 CPU status (registers, flags Z/N/H/C, IME, halt, CGB double speed)
 
 ### Memory Operations
-- `list_memory_areas` - List all available memory areas (ROM0, ROM1, VRAM, RAM, WRAM0, WRAM1, WRAM, OAM, IO, HIRAM)
+- `list_memory_areas` - List all available memory areas (ROM0, ROM1, VRAM, RAM, WRAM0, WRAM1, WRAM, OAM, IO, HIRAM, and SGB areas when active: SGB_TILES, SGB_MAP, SGB_BPAL, SGB_SPAL, SGB_ATF, SGB_AMAP, SGB_EPAL)
 - `read_memory` - Read from specific memory area
 - `write_memory` - Write to specific memory area
 - `get_memory_selection` - Get current memory selection range
@@ -303,6 +303,7 @@ The server exposes tools organized in the following categories:
 - `get_lcd_registers` - Get all LCD registers (LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX) with decoded bit fields. Also CGB registers (KEY1, VBK, HDMA, BCPS, BCPD, OCPS, OCPD, SVBK)
 - `get_lcd_status` - Get LCD status (mode 0-3, screen enabled, LY, LYC match, CGB info)
 - `get_apu_status` - Get Game Boy APU status for all 4 channels (Square 1 with sweep, Square 2, Wave, Noise): volume, frequency, envelope, duty, wave RAM, panning, master volume
+- `get_sgb_status` - Get Super Game Boy status: SGB active, mask mode, multiplayer state, last command, transfer state, border animation, effective palettes, and attribute map
 
 ### Sprites
 - `list_sprites` - List all 40 OAM sprites with position, tile, attributes (priority, flip, palette, CGB bank)

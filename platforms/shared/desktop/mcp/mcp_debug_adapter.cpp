@@ -482,6 +482,86 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
             info.data = memory->GetMemoryMap() + 0xFF80;
             info.size = 0x007F;
             break;
+        case MEMORY_EDITOR_SGB_BORDER_TILES:
+        {
+            info.name = "SGB_TILES";
+            SGB* sgb = m_core->GetSGB();
+            if (m_core->IsSGB())
+            {
+                const SGB::Border* border = sgb->GetBorder();
+                info.data = (u8*)border->tiles;
+                info.size = SGB_BORDER_TILE_DATA_SIZE;
+            }
+            break;
+        }
+        case MEMORY_EDITOR_SGB_BORDER_MAP:
+        {
+            info.name = "SGB_MAP";
+            SGB* sgb = m_core->GetSGB();
+            if (m_core->IsSGB())
+            {
+                const SGB::Border* border = sgb->GetBorder();
+                info.data = (u8*)border->map;
+                info.size = 32 * 32 * 2;
+            }
+            break;
+        }
+        case MEMORY_EDITOR_SGB_BORDER_PAL:
+        {
+            info.name = "SGB_BPAL";
+            SGB* sgb = m_core->GetSGB();
+            if (m_core->IsSGB())
+            {
+                const SGB::Border* border = sgb->GetBorder();
+                info.data = (u8*)border->palette;
+                info.size = 16 * 4 * 2;
+            }
+            break;
+        }
+        case MEMORY_EDITOR_SGB_SYS_PAL:
+        {
+            info.name = "SGB_SPAL";
+            SGB* sgb = m_core->GetSGB();
+            if (m_core->IsSGB())
+            {
+                info.data = (u8*)sgb->GetSystemPalettes();
+                info.size = SGB_SYSTEM_PALETTE_COUNT * 4 * 2;
+            }
+            break;
+        }
+        case MEMORY_EDITOR_SGB_ATTR_FILES:
+        {
+            info.name = "SGB_ATF";
+            SGB* sgb = m_core->GetSGB();
+            if (m_core->IsSGB())
+            {
+                info.data = (u8*)sgb->GetAttributeFiles();
+                info.size = SGB_ATF_COUNT * SGB_ATF_SIZE;
+            }
+            break;
+        }
+        case MEMORY_EDITOR_SGB_ATTR_MAP:
+        {
+            info.name = "SGB_AMAP";
+            SGB* sgb = m_core->GetSGB();
+            if (m_core->IsSGB())
+            {
+                info.data = (u8*)sgb->GetAttributeMap();
+                info.size = SGB_ATTR_MAP_WIDTH * SGB_ATTR_MAP_HEIGHT;
+            }
+            break;
+        }
+        case MEMORY_EDITOR_SGB_EFF_PAL:
+        {
+            info.name = "SGB_EPAL";
+            SGB* sgb = m_core->GetSGB();
+            if (m_core->IsSGB())
+            {
+                info.data = (u8*)sgb->GetEffectivePalettes();
+                info.size = 4 * 4 * 2;
+            }
+            break;
+        }
         case MCP_MEMORY_AREA_VRAM0:
             info.name = "VRAM0";
             info.data = memory->GetVRAMBank0();
@@ -1025,6 +1105,80 @@ json DebugAdapter::GetScreenshot()
     result["mimeType"] = "image/png";
     result["width"] = runtime.screen_width;
     result["height"] = runtime.screen_height;
+
+    return result;
+}
+
+json DebugAdapter::GetSGBStatus()
+{
+    json result;
+    SGB* sgb = m_core->GetSGB();
+
+    result["sgb_active"] = m_core->IsSGB();
+
+    if (!m_core->IsSGB())
+        return result;
+
+    static const char* mask_names[] = {"disabled", "freeze", "black", "color0"};
+    static const char* transfer_names[] = {"low_tiles", "high_tiles", "border_data", "palettes", "attributes"};
+
+    int mask = sgb->GetMaskMode();
+    result["mask_mode"] = mask;
+    result["mask_mode_name"] = (mask >= 0 && mask <= 3) ? mask_names[mask] : "unknown";
+    result["commands_disabled"] = sgb->AreCommandsDisabled();
+    result["player_count"] = sgb->GetPlayerCount();
+    result["current_player"] = sgb->GetCurrentPlayer();
+
+    const u8* cmd = sgb->GetCommand();
+    u8 cmdCode = cmd[0] >> 3;
+    u8 cmdLen = cmd[0] & 7;
+    result["last_command_code"] = cmdCode;
+    result["last_command_length"] = cmdLen;
+    result["command_write_index"] = sgb->GetCommandWriteIndex();
+    result["ready_for_pulse"] = sgb->IsReadyForPulse();
+    result["ready_for_write"] = sgb->IsReadyForWrite();
+    result["ready_for_stop"] = sgb->IsReadyForStop();
+
+    char cmd_hex[SGB_PACKET_SIZE * 3];
+    for (int i = 0; i < SGB_PACKET_SIZE; i++)
+        snprintf(cmd_hex + i * 3, 4, "%02X ", cmd[i]);
+    cmd_hex[SGB_PACKET_SIZE * 3 - 1] = '\0';
+    result["command_data"] = cmd_hex;
+
+    u8 countdown = sgb->GetVRAMTransferCountdown();
+    result["transfer_countdown"] = countdown;
+    int dest = sgb->GetTransferDest();
+    result["transfer_dest"] = dest;
+    result["transfer_dest_name"] = (dest >= 0 && dest <= 4) ? transfer_names[dest] : "unknown";
+
+    result["border_animation"] = sgb->GetBorderAnimation();
+    result["border_empty"] = sgb->IsBorderEmpty();
+
+    const u16* eff = sgb->GetEffectivePalettes();
+    json palettes = json::array();
+    for (int p = 0; p < 4; p++)
+    {
+        json pal = json::array();
+        for (int c = 0; c < 4; c++)
+        {
+            char hex[8];
+            snprintf(hex, sizeof(hex), "%04X", eff[p * 4 + c]);
+            pal.push_back(hex);
+        }
+        palettes.push_back(pal);
+    }
+    result["effective_palettes"] = palettes;
+
+    const u8* attrMap = sgb->GetAttributeMap();
+    json attr = json::array();
+    for (int y = 0; y < SGB_ATTR_MAP_HEIGHT; y++)
+    {
+        json row = json::array();
+        for (int x = 0; x < SGB_ATTR_MAP_WIDTH; x++)
+            row.push_back(attrMap[x + y * SGB_ATTR_MAP_WIDTH] & 3);
+        attr.push_back(row);
+    }
+    result["attribute_map"] = attr;
 
     return result;
 }

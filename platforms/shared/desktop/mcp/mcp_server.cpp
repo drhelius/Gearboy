@@ -1248,6 +1248,17 @@ void McpServer::HandleToolsList(const json& request)
         }}
     });
 
+    tools.push_back({
+        {"name", "get_sgb_status"},
+        {"title", "Get SGB Status"},
+        {"description", "Get Super Game Boy status: SGB active, mask mode, multiplayer state, last command, transfer state, border animation, effective palettes, and attribute map. Only meaningful when SGB mode is active."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
     json response;
     response["jsonrpc"] = "2.0";
     response["id"] = id;
@@ -1928,6 +1939,10 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
             if (arguments.value("bank_switch", true)) flags |= TRACE_FLAG_BANK_SWITCH;
         }
         return m_debugAdapter.SetTraceLog(enabled, flags);
+    }
+    else if (normalizedTool == "get_sgb_status")
+    {
+        return m_debugAdapter.GetSGBStatus();
     }
     else
     {

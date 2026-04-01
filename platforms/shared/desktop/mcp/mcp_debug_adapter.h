@@ -124,6 +124,7 @@ public:
     json GetLCDStatus();
     json GetAPUStatus();
     json GetScreenshot();
+    json GetSGBStatus();
     json ListSprites();
     json GetSpriteImage(int sprite_index);
 
