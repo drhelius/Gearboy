@@ -53,6 +53,8 @@ enum FileDialogID
     FileDialog_SaveAllSprites,
     FileDialog_SaveBackground,
     FileDialog_SaveTiles,
+    FileDialog_SaveSGBBorder,
+    FileDialog_SaveSGBTiles,
     FileDialog_SaveMemoryDumpBinary,
     FileDialog_SaveMemoryDumpText,
     FileDialog_SaveDisassemblerFull,
@@ -66,6 +68,7 @@ enum FileDialogID
 
 static FileDialogID pending_dialog_id = FileDialog_None;
 static std::string pending_dialog_path;
+static int pending_sgb_tiles_palette = 0;
 static bool dialog_active = false;
 static bool pending_refocus_window = false;
 static int pending_dialog_int_param1 = 0;
@@ -222,6 +225,25 @@ void gui_file_dialog_save_tiles(void)
 
     SDL_DialogFileFilter filters[] = { { "PNG Files", "png" } };
     SDL_ShowSaveFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_SaveTiles, application_sdl_window, filters, 1, NULL);
+}
+
+void gui_file_dialog_save_sgb_border(void)
+{
+    if (!begin_dialog())
+        return;
+
+    SDL_DialogFileFilter filters[] = { { "PNG Files", "png" } };
+    SDL_ShowSaveFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_SaveSGBBorder, application_sdl_window, filters, 1, NULL);
+}
+
+void gui_file_dialog_save_sgb_tiles(int palette)
+{
+    if (!begin_dialog())
+        return;
+
+    pending_sgb_tiles_palette = palette;
+    SDL_DialogFileFilter filters[] = { { "PNG Files", "png" } };
+    SDL_ShowSaveFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_SaveSGBTiles, application_sdl_window, filters, 1, NULL);
 }
 
 void gui_file_dialog_save_memory_dump(bool binary)
@@ -436,6 +458,16 @@ static void process_dialog_result(FileDialogID id, const char* path)
         case FileDialog_SaveTiles:
         {
             gui_action_save_tiles(path);
+            break;
+        }
+        case FileDialog_SaveSGBBorder:
+        {
+            gui_action_save_sgb_border(path);
+            break;
+        }
+        case FileDialog_SaveSGBTiles:
+        {
+            gui_action_save_sgb_tiles(path, pending_sgb_tiles_palette);
             break;
         }
         case FileDialog_SaveMemoryDumpBinary:

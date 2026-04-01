@@ -35,6 +35,8 @@ EXTERN void gui_action_save_sprite(const char* path, int index);
 EXTERN void gui_action_save_all_sprites(const char* folder_path);
 EXTERN void gui_action_save_background(const char* path);
 EXTERN void gui_action_save_tiles(const char* path);
+EXTERN void gui_action_save_sgb_border(const char* path);
+EXTERN void gui_action_save_sgb_tiles(const char* path, int palette);
 
 #undef GUI_ACTIONS_IMPORT
 #undef EXTERN

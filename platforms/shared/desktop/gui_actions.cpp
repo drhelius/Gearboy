@@ -192,3 +192,29 @@ void gui_action_save_tiles(const char* path)
     string message = "Pattern table saved to " + string(path);
     gui_set_status_message(message.c_str(), 3000);
 }
+
+void gui_action_save_sgb_border(const char* path)
+{
+    using namespace std;
+
+    if (!emu_get_core()->GetCartridge()->IsLoadedROM())
+        return;
+
+    emu_save_sgb_border(path);
+
+    string message = "SGB border saved to " + string(path);
+    gui_set_status_message(message.c_str(), 3000);
+}
+
+void gui_action_save_sgb_tiles(const char* path, int palette)
+{
+    using namespace std;
+
+    if (!emu_get_core()->GetCartridge()->IsLoadedROM())
+        return;
+
+    emu_save_sgb_tiles(path, palette);
+
+    string message = "SGB tiles saved to " + string(path);
+    gui_set_status_message(message.c_str(), 3000);
+}

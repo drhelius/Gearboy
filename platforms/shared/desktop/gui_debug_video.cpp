@@ -374,11 +374,27 @@ void gui_debug_window_vram_tiles(void)
 
     ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles[0], ImVec2(width, height), ImVec2(0, 0), ImVec2(1.0f, 0.75f));
 
+    if (ImGui::BeginPopupContextItem("##tiles_ctx_0"))
+    {
+        if (ImGui::Selectable("Save Tiles As..."))
+            gui_file_dialog_save_tiles();
+
+        ImGui::EndPopup();
+    }
+
     ImGui::SameLine();
 
     p[1] = ImGui::GetCursorScreenPos();
 
     ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles[1], ImVec2(width, height), ImVec2(0, 0), ImVec2(1.0f, 0.75f));
+
+    if (ImGui::BeginPopupContextItem("##tiles_ctx_1"))
+    {
+        if (ImGui::Selectable("Save Tiles As..."))
+            gui_file_dialog_save_tiles();
+
+        ImGui::EndPopup();
+    }
 
     for (int i = 0; i < 2; i++)
     {
@@ -475,14 +491,6 @@ void gui_debug_window_vram_tiles(void)
     }
 
     ImGui::Columns(1);
-
-    if (ImGui::BeginPopupContextItem("##tiles_ctx"))
-    {
-        if (ImGui::Selectable("Save Tiles As..."))
-            gui_file_dialog_save_tiles();
-
-        ImGui::EndPopup();
-    }
 
     ImGui::End();
 }
