@@ -40,6 +40,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iScreenEnableDelayCycles = 0;
     m_iStatusVBlankLine = 0;
     m_iWindowLine = 0;
+    m_bWindowYTrigger = false;
     m_iPixelCounter = 0;
     m_iTileCycleCounter = 0;
     m_bScreenEnabled = true;
@@ -96,6 +97,7 @@ void Video::Reset(bool bCGB)
     m_iScreenEnableDelayCycles = 0;
     m_iStatusVBlankLine = 0;
     m_iWindowLine = 0;
+    m_bWindowYTrigger = false;
     m_iPixelCounter = 0;
     m_iTileCycleCounter = 0;
     m_bScreenEnabled = true;
@@ -149,6 +151,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                     m_iStatusModeLYCounter++;
                     m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
                     CompareLYToLYC();
+                    CheckWindowY();
 
                     if (m_iStatusModeLYCounter == 144)
                     {
@@ -200,6 +203,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                             vblank = true;
 
                         m_iWindowLine = 0;
+                        m_bWindowYTrigger = false;
                     }
 
                     UpdateStatRegister();
@@ -236,6 +240,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                 {
                     m_iStatusModeCounter -= 4560;
                     m_iStatusMode = 2;
+                    CheckWindowY();
                     UpdateStatRegister();
                     RefreshStatInterruptSignal(true);
                 }
@@ -338,6 +343,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                 m_iPendingVBlankInterruptCycles = 0;
                 m_iStatusModeLYCounter = 0;
                 m_iWindowLine = 0;
+                m_bWindowYTrigger = false;
                 m_iStatusVBlankLine = 0;
                 m_iPixelCounter = 0;
                 m_iTileCycleCounter = 0;
@@ -537,17 +543,31 @@ void Video::RefreshStatInterruptSignal(bool requestInterrupt)
     m_IRQ48Signal = signal;
 }
 
+void Video::CheckWindowY()
+{
+    if (m_bWindowYTrigger)
+        return;
+
+    u8 lcdc = m_pMemory->Retrieve(0xFF40);
+    if (!IsSetBit(lcdc, 5))
+        return;
+
+    u8 wy = m_pMemory->Retrieve(0xFF4A);
+    if (wy == (u8)m_iStatusModeLYCounter)
+        m_bWindowYTrigger = true;
+}
+
 void Video::ResetWindowLine()
 {
-    u8 wy = m_pMemory->Retrieve(0xFF4A);
-
     if ((m_iWindowLine == 0) && (m_iStatusModeLYCounter < 144))
     {
-        if (m_iStatusModeLYCounter > wy)
-            m_iWindowLine = 144;
-        else if ((m_iStatusModeLYCounter == wy) && (m_iStatusMode == 3) && !m_bScanLineTransfered)
+        u8 wy = m_pMemory->Retrieve(0xFF4A);
+
+        if ((m_iStatusModeLYCounter == wy) && (m_iStatusMode == 3) && !m_bScanLineTransfered)
             m_iWindowLine = -1;
     }
+
+    CheckWindowY();
 }
 
 void Video::ScanLine(int line)
@@ -702,6 +722,9 @@ void Video::RenderWindow(int line)
 
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
     if (!IsSetBit(lcdc, 5))
+        return;
+
+    if (!m_bWindowYTrigger)
         return;
 
     int wx = m_pMemory->Retrieve(0xFF4B) - 7;
@@ -982,6 +1005,7 @@ void Video::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iHideFrames), sizeof(m_iHideFrames));
     stream.write(reinterpret_cast<const char*> (&m_IRQ48Signal), sizeof(m_IRQ48Signal));
     stream.write(reinterpret_cast<const char*> (&m_iPendingVBlankInterruptCycles), sizeof(m_iPendingVBlankInterruptCycles));
+    stream.write(reinterpret_cast<const char*> (&m_bWindowYTrigger), sizeof(m_bWindowYTrigger));
 }
 
 void Video::LoadState(std::istream& stream, u32 version)
@@ -1014,6 +1038,15 @@ void Video::LoadState(std::istream& stream, u32 version)
     else
     {
         m_iPendingVBlankInterruptCycles = 0;
+    }
+
+    if (version >= 102)
+    {
+        stream.read(reinterpret_cast<char*> (&m_bWindowYTrigger), sizeof(m_bWindowYTrigger));
+    }
+    else
+    {
+        m_bWindowYTrigger = false;
     }
 }
 

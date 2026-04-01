@@ -48,6 +48,7 @@ public:
     int GetCurrentStatusMode() const;
     void RefreshStatInterruptSignal(bool requestInterrupt);
     void ResetWindowLine();
+    void CheckWindowY();
     void CompareLYToLYC();
     u8 GetIRQ48Signal() const;
     void SetIRQ48Signal(u8 signal);
@@ -87,6 +88,7 @@ private:
     u16 m_CGBBackgroundPalettes[8][4][2];
     bool m_bScanLineTransfered;
     int m_iWindowLine;
+    bool m_bWindowYTrigger;
     int m_iHideFrames;
     u8 m_IRQ48Signal;
     GB_Color_Format m_pixelFormat;

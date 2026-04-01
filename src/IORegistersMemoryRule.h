@@ -377,6 +377,8 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             m_pMemory->Load(address, new_lcdc);
             if (!IsSetBit(current_lcdc, 5) && IsSetBit(new_lcdc, 5))
                 m_pVideo->ResetWindowLine();
+            else
+                m_pVideo->CheckWindowY();
             if (IsSetBit(new_lcdc, 7))
                 m_pVideo->EnableScreen();
             else
@@ -457,6 +459,23 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                     m_pVideo->CompareLYToLYC();
                 }
             }
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+            if (m_pTraceLogger->IsEnabled(TRACE_LCD_WRITE))
+            {
+                GB_Trace_Entry e = {};
+                e.type = TRACE_LCD_WRITE;
+                e.lcd_write.reg = (u8)(address - 0xFF40);
+                e.lcd_write.value = value;
+                m_pTraceLogger->TraceLog(e);
+            }
+#endif
+            break;
+        }
+        case 0xFF4A:
+        {
+            // WY
+            m_pMemory->Load(address, value);
+            m_pVideo->CheckWindowY();
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
             if (m_pTraceLogger->IsEnabled(TRACE_LCD_WRITE))
             {
