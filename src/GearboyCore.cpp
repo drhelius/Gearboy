@@ -171,6 +171,7 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
+            m_pMBC3MemoryRule->Tick(clockCycles);
             totalClocks += clockCycles;
             m_master_clock_cycles += clockCycles;
 
@@ -235,6 +236,7 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
+            m_pMBC3MemoryRule->Tick(clockCycles);
             totalClocks += clockCycles;
             m_master_clock_cycles += clockCycles;
 

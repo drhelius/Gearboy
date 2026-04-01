@@ -61,6 +61,7 @@ public:
     virtual u8* GetRTCMemory();
     virtual void SaveState(std::ostream& stream);
     virtual void LoadState(std::istream& stream);
+    void Tick(unsigned int clockCycles);
 
 private:
     void UpdateRTC();
@@ -78,6 +79,7 @@ private:
     int m_CurrentROMAddress;
     int m_CurrentRAMAddress;
     RTC_Registers m_RTC;
+    u32 m_iRTCCycles;
 };
 
 #endif	/* MBC3MEMORYRULE_H */

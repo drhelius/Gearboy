@@ -65,6 +65,7 @@ void MBC3MemoryRule::Reset(bool bCGB)
     m_RTCLastTimeCache = m_RTC.LastTime;
     m_CurrentROMAddress = 0x4000;
     m_CurrentRAMAddress = 0;
+    m_iRTCCycles = 0;
 }
 
 u8 MBC3MemoryRule::PerformRead(u16 address)
@@ -193,7 +194,6 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                 // RTC Latch
                 if ((m_iRTCLatch == 0x00) && (value == 0x01))
                 {
-                    UpdateRTC();
                     m_RTC.LatchedSeconds = m_RTC.Seconds;
                     m_RTC.LatchedMinutes = m_RTC.Minutes;
                     m_RTC.LatchedHours = m_RTC.Hours;
@@ -226,6 +226,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                 {
                     case 0x08:
                         m_RTC.Seconds = value;
+                        m_iRTCCycles = 0;
                         break;
                     case 0x09:
                         m_RTC.Minutes = value;
@@ -252,6 +253,39 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
         {
             m_pMemory->Load(address, value);
             break;
+        }
+    }
+}
+
+void MBC3MemoryRule::Tick(unsigned int clockCycles)
+{
+    if (!m_pCartridge->IsRTCPresent())
+        return;
+    if (IsSetBit(m_RTC.Control, 6))
+        return;
+
+    m_iRTCCycles += clockCycles;
+
+    while (m_iRTCCycles >= GEARBOY_MASTER_CLOCK_RATE)
+    {
+        m_iRTCCycles -= GEARBOY_MASTER_CLOCK_RATE;
+
+        if (++m_RTC.Seconds == 60)
+        {
+            m_RTC.Seconds = 0;
+            if (++m_RTC.Minutes == 60)
+            {
+                m_RTC.Minutes = 0;
+                if (++m_RTC.Hours == 24)
+                {
+                    m_RTC.Hours = 0;
+                    if (++m_RTC.Days > 0x1FF)
+                    {
+                        m_RTC.Days = 0;
+                        m_RTC.Control |= 0x80;
+                    }
+                }
+            }
         }
     }
 }
@@ -318,7 +352,9 @@ void MBC3MemoryRule::SaveRam(std::ostream & file)
 
     if (m_pCartridge->IsRTCPresent())
     {
+        m_pCartridge->UpdateCurrentRTC();
         RTC_Registers rtcOut = m_RTC;
+        rtcOut.LastTime = static_cast<s32>(m_pCartridge->GetCurrentRTC());
         rtcOut.Days = m_RTC.Days & 0xFF;
         rtcOut.Control = (m_RTC.Control & 0xC0) | ((m_RTC.Days >> 8) & 0x01);
         file.write(reinterpret_cast<const char*> (&rtcOut), sizeof(rtcOut));
@@ -370,6 +406,9 @@ bool MBC3MemoryRule::LoadRam(std::istream & file, s32 fileSize)
     {
         file.read(reinterpret_cast<char*> (&m_RTC), 44);
         m_RTC.Days = (m_RTC.Days & 0xFF) | ((m_RTC.Control & 0x01) << 8);
+        m_pCartridge->UpdateCurrentRTC();
+        m_RTCLastTimeCache = 0;
+        UpdateRTC();
     }
 
     Debug("MBC3MemoryRule load RAM done");

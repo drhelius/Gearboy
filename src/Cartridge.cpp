@@ -307,9 +307,6 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
 
 void Cartridge::CheckCartridgeType(int type)
 {
-    if ((type != 0xEA) && (GetROMSize() == 0))
-        type = 0;
-
     switch (type)
     {
         // --- No MBC ---
