@@ -211,6 +211,21 @@ void Memory::Reset(bool bCGB, bool bSGB)
         }
     }
 
+    if (IsBootromEnabled())
+    {
+        m_pMap[0xFF40] = 0x00;  // LCDC: LCD off
+        m_pMap[0xFF41] = 0x00;  // STAT
+        m_pMap[0xFF42] = 0x00;  // SCY
+        m_pMap[0xFF43] = 0x00;  // SCX
+        m_pMap[0xFF44] = 0x00;  // LY
+        m_pMap[0xFF45] = 0x00;  // LYC
+        m_pMap[0xFF47] = 0x00;  // BGP
+        m_pMap[0xFF48] = 0x00;  // OBP0
+        m_pMap[0xFF49] = 0x00;  // OBP1
+        m_pMap[0xFF4A] = 0x00;  // WY
+        m_pMap[0xFF4B] = 0x00;  // WX
+    }
+
     if (m_bCGB)
     {
         for (int i = 0; i < 5; i++)

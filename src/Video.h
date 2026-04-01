@@ -35,6 +35,7 @@ public:
     ~Video();
     void Init();
     void Reset(bool bCGB);
+    void ResetToBootromState();
     bool Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_Format pixelFormat);
     void EnableScreen();
     void DisableScreen();

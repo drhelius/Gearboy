@@ -1471,6 +1471,12 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pProcessor->Reset(m_bCGB, m_bGBA, m_bSGB);
     m_pVideo->SetSGBTransferMode(m_bSGB);
     m_pVideo->Reset(m_bCGB);
+
+    if (m_pMemory->IsBootromEnabled())
+    {
+        m_pVideo->ResetToBootromState();
+    }
+
     m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();
     m_pCartridge->UpdateCurrentRTC();

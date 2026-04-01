@@ -110,6 +110,16 @@ void Video::Reset(bool bCGB)
     m_IRQ48Signal = 0;
 }
 
+void Video::ResetToBootromState()
+{
+    m_bScreenEnabled = false;
+    m_iStatusMode = 0;
+    m_iStatusModeCounter = 0;
+    m_iStatusModeCounterAux = 0;
+    m_iStatusModeLYCounter = 0;
+    m_iScreenEnableDelayCycles = 0;
+}
+
 bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_Format pixelFormat)
 {
     m_pColorFrameBuffer = pColorFrameBuffer;
@@ -513,7 +523,7 @@ bool Video::VRAMAccessBlocked() const
 {
     if (m_bCGB)
         return false;
-    return m_bScreenEnabled && (m_iStatusMode == 3);
+    return m_bScreenEnabled && (m_iStatusMode == 3) && !m_bScanLineTransfered;
 }
 
 int Video::GetCurrentStatusMode() const
