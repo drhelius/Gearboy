@@ -83,11 +83,15 @@ u64 TraceLogger::GetTotalLogged() const
 const GB_Trace_Entry& TraceLogger::GetEntry(u32 index) const
 {
     static const GB_Trace_Entry k_empty = {};
-    if (!m_buffer)
+    if (!m_buffer || m_count == 0)
         return k_empty;
     u32 actual;
     if (m_count < TRACE_BUFFER_SIZE)
+    {
+        if (index >= m_count)
+            return k_empty;
         actual = index;
+    }
     else
         actual = (m_position + index) % TRACE_BUFFER_SIZE;
     return m_buffer[actual];
