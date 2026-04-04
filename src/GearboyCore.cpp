@@ -895,20 +895,38 @@ bool GearboyCore::LoadState(std::istream& stream)
     size_t size = static_cast<size_t>(stream.tellg());
     stream.seekg(0, ios::beg);
 
-#if defined(__LIBRETRO__)
     GB_SaveState_Header_Libretro header;
-#else
-    GB_SaveState_Header header;
-#endif
+    bool is_desktop_savestate = false;
 
-    if (size < sizeof(header))
+    // Try desktop header first (larger, contains all info)
+    GB_SaveState_Header desktop_header;
+    if (size >= sizeof(desktop_header))
     {
-        Log("Save state too small for current header (%d bytes), trying legacy format...", static_cast<int>(size));
-        return LoadStateLegacy(stream, size);
+        stream.seekg(size - sizeof(desktop_header), ios::beg);
+        stream.read(reinterpret_cast<char*> (&desktop_header), sizeof(desktop_header));
+
+        if (desktop_header.magic == GB_SAVESTATE_MAGIC)
+        {
+            header.magic = desktop_header.magic;
+            header.version = desktop_header.version;
+            is_desktop_savestate = true;
+            Log("Loading desktop save state");
+        }
     }
 
-    stream.seekg(size - sizeof(header), ios::beg);
-    stream.read(reinterpret_cast<char*>(&header), sizeof(header));
+    // Fallback to libretro header
+    if (header.magic != GB_SAVESTATE_MAGIC)
+    {
+        if (size < sizeof(header))
+        {
+            Log("Save state too small for current header (%d bytes), trying legacy format...", static_cast<int>(size));
+            return LoadStateLegacy(stream, size);
+        }
+
+        stream.seekg(size - sizeof(header), ios::beg);
+        stream.read(reinterpret_cast<char*>(&header), sizeof(header));
+    }
+
     stream.seekg(0, ios::beg);
 
     Debug("Load state header magic: 0x%08x", header.magic);
@@ -921,15 +939,18 @@ bool GearboyCore::LoadState(std::istream& stream)
     }
 
 #if !defined(__LIBRETRO__)
-    Debug("Load state header size: %d", header.size);
-    Debug("Load state header rom name: %s", header.rom_name);
-    Debug("Load state header emu build: %s", header.emu_build);
-    Debug("Load state header screenshot size: %d", header.screenshot_size);
-
-    if (header.size != size)
+    if (is_desktop_savestate)
     {
-        Log("Invalid save state size: %d (expected %d)", header.size, static_cast<int>(size));
-        return false;
+        Debug("Load state header size: %d", desktop_header.size);
+        Debug("Load state header rom name: %s", desktop_header.rom_name);
+        Debug("Load state header emu build: %s", desktop_header.emu_build);
+        Debug("Load state header screenshot size: %d", desktop_header.screenshot_size);
+
+        if (desktop_header.size != size)
+        {
+            Log("Invalid save state size: %d (expected %d)", desktop_header.size, static_cast<int>(size));
+            return false;
+        }
     }
 #endif
 
