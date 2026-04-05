@@ -1085,7 +1085,7 @@ void MemEditor::WatchWindow()
     ImGui::Separator();
 
     const char* size_labels[] = {"8 bit", "16 bit", "24 bit", "32 bit"};
-    const char* format_labels[] = {"Hex", "Binary", "Decimal Unsigned", "Decimal Signed"};
+    const char* format_labels[] = {"Hex", "Binary", "Decimal Unsigned", "Decimal Signed", "ASCII"};
 
     int remove = -1;
 
@@ -1162,7 +1162,7 @@ void MemEditor::WatchWindow()
                     ImGui::Text("Display as:");
                     //ImGui::Separator();
 
-                    for (int f = 0; f < 4; f++)
+                    for (int f = 0; f < 5; f++)
                     {
                         bool selected = (watch.format == f);
                         if (ImGui::Selectable(format_labels[f], selected))
@@ -2092,6 +2092,18 @@ void MemEditor::DrawWatchValue(uint32_t value, int size, int format)
                 default: signed_value = (int32_t)value; break;
             }
             ImGui::TextColored(color, "%d", signed_value);
+            break;
+        }
+        case 4: // ASCII
+        {
+            char ascii[5];
+            for (int i = 0; i < bytes; i++)
+            {
+                uint8_t c = (uint8_t)((value >> (i * 8)) & 0xFF);
+                ascii[i] = (c >= 32 && c < 127) ? (char)c : '.';
+            }
+            ascii[bytes] = '\0';
+            ImGui::TextColored(color, "%s", ascii);
             break;
         }
     }
