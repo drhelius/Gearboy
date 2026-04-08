@@ -341,9 +341,6 @@ static void main_window(void)
         case 3:
             ratio = 16.0f / 10.0f;
             break;
-        case 4:
-            ratio = 6.0f / 5.0f;
-            break;
         default:
             ratio = (float)screen_width / (float)screen_height;
     }
