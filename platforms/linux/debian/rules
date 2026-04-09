@@ -22,6 +22,10 @@ override_dh_install:
 	dh_install
 	install -Dm644 platforms/shared/desktop/mcp/icon.png \
 		debian/gearboy/usr/share/icons/hicolor/128x128/apps/gearboy.png
+	install -dm755 debian/gearboy/usr/lib/gearboy/mcp/resources/hardware
+	install -m644 platforms/shared/desktop/mcp/resources/hardware/toc.json \
+		debian/gearboy/usr/lib/gearboy/mcp/resources/hardware/toc.json
+	ln -s /usr/lib/gearboy/gearboy debian/gearboy/usr/games/gearboy
 
 override_dh_shlibdeps:
 	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
