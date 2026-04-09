@@ -15,7 +15,7 @@ jobs:
     if: github.repository_owner == 'drhelius'
     strategy:
       matrix:
-        fedora_version: ['42', '41', '40']
+        fedora_version: ['43', '42', '41']
     steps:
       - name: Get release version
         run: |
