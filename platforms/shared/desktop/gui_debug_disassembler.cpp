@@ -296,9 +296,9 @@ void gui_debug_save_disassembler(const char* file_path, bool full)
             save_full_disassembler(file);
         else
             save_current_disassembler(file);
-    }
 
-    fclose(file);
+        fclose(file);
+    }
 }
 
 static void draw_controls(void)
