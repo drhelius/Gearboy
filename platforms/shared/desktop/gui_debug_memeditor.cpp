@@ -1706,7 +1706,7 @@ void MemEditor::SaveToBinaryFile(const char* file_path)
 
     if (file)
     {
-        fwrite(m_mem_data, m_mem_word, size, file);
+        fwrite(m_mem_data, 1, size, file);
         fclose(file);
     }
 }
