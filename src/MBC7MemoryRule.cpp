@@ -174,7 +174,7 @@ void MBC7MemoryRule::WriteRegister(u16 address, u8 value)
                             else
                             {
                                 // WRAL
-                                for (unsigned i = 0; i < 0x7F; i++)
+                                for (unsigned i = 0; i < 0x80; i++)
                                 {
                                     ((u16*)m_EEPROM)[i] |= bit;
                                 }
@@ -183,8 +183,9 @@ void MBC7MemoryRule::WriteRegister(u16 address, u8 value)
 
                         if (m_iEEPROMArgumentBitsLeft == 0)
                         {
+                            bool wasWrite = (m_iEEPROMCommand & 0x100) != 0;
                             m_iEEPROMCommand = 0;
-                            m_iEEPROMReadBits = (m_iEEPROMCommand & 0x100) ? 0xFF : 0x3FFF;
+                            m_iEEPROMReadBits = wasWrite ? 0xFF : 0x3FFF;
                         }
                     }
                 }
