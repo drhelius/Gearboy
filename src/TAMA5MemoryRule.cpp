@@ -201,7 +201,7 @@ void TAMA5MemoryRule::UpdateRTC()
     {
         int h10 = t[TAMA6_RTC_HOUR_10];
         hour += (h10 & 1) * 10;
-        hour += (h10 & 2) * 12;
+        hour += ((h10 & 2) >> 1) * 12;
     }
 
     diff = hour + (elapsed % 24);
