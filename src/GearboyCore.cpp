@@ -896,7 +896,9 @@ bool GearboyCore::LoadState(std::istream& stream)
     stream.seekg(0, ios::beg);
 
     GB_SaveState_Header_Libretro header;
+#if !defined(__LIBRETRO__)
     bool is_desktop_savestate = false;
+#endif
 
     // Try desktop header first (larger, contains all info)
     GB_SaveState_Header desktop_header;
@@ -909,7 +911,9 @@ bool GearboyCore::LoadState(std::istream& stream)
         {
             header.magic = desktop_header.magic;
             header.version = desktop_header.version;
+#if !defined(__LIBRETRO__)
             is_desktop_savestate = true;
+#endif
             Log("Loading desktop save state");
         }
     }
