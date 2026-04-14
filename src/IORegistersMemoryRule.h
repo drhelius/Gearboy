@@ -439,11 +439,6 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         case 0xFF44:
         {
             // LY
-            u8 current_ly = m_pMemory->Retrieve(0xFF44);
-            if (IsSetBit(current_ly, 7) && !IsSetBit(value, 7))
-            {
-                m_pVideo->DisableScreen();
-            }
             break;
         }
         case 0xFF45:
