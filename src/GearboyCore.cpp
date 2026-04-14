@@ -43,6 +43,7 @@
 #include "TraceLogger.h"
 #include "SGB.h"
 #include "common.h"
+#include "memory_stream.h"
 
 GearboyCore::GearboyCore()
 {
@@ -681,36 +682,45 @@ bool GearboyCore::SaveState(const char* path, int index, bool screenshot)
 
 bool GearboyCore::SaveState(u8* buffer, size_t& size, bool screenshot)
 {
+    using namespace std;
+
+    Debug("Saving state to buffer [%d bytes]...", size);
+
     if (m_pMemory->IsBootromRegistryEnabled())
     {
         Debug("Save states disabled when running bootrom");
         return false;
     }
 
-    bool ret = false;
-
-    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    if (!m_pCartridge->IsLoadedROM() || !IsValidPointer(m_pMemory->GetCurrentRule()))
     {
-        using namespace std;
+        Error("Cartridge is not ready when trying to save state");
+        return false;
+    }
 
+    if (!IsValidPointer(buffer))
+    {
         stringstream stream;
-
-        if (SaveState(stream, size, screenshot))
-            ret = true;
-
-        if (IsValidPointer(buffer))
+        if (!SaveState(stream, size, screenshot))
         {
-            Log("Saving state to buffer [%d bytes]...", size);
-            memcpy(buffer, stream.str().c_str(), size);
-            ret = true;
+            Error("Failed to save state to stream to calculate size");
+            return false;
         }
+        return true;
     }
     else
     {
-        Log("Invalid rom or memory rule.");
-    }
+        memory_stream direct_stream(reinterpret_cast<char*>(buffer), size);
 
-    return ret;
+        if (!SaveState(direct_stream, size, screenshot))
+        {
+            Error("Failed to save state to buffer");
+            return false;
+        }
+
+        size = direct_stream.size();
+        return true;
+    }
 }
 
 bool GearboyCore::SaveState(std::ostream& stream, size_t& size, bool screenshot)
@@ -853,26 +863,30 @@ bool GearboyCore::LoadState(const char* path, int index, bool)
 
 bool GearboyCore::LoadState(const u8* buffer, size_t size)
 {
+    using namespace std;
+
+    Debug("Loading state from buffer [%d bytes]...", size);
+
     if (m_pMemory->IsBootromRegistryEnabled())
     {
         Debug("Save states disabled when running bootrom");
         return false;
     }
 
-    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
+    if (!m_pCartridge->IsLoadedROM() || !IsValidPointer(m_pMemory->GetCurrentRule()))
     {
-        Debug("Loading state from buffer [%d bytes]...", size);
-
-        using namespace std;
-
-        stringstream stream;
-        stream.write(reinterpret_cast<const char*>(buffer), size);
-
-        return LoadState(stream);
+        Error("Cartridge is not ready when trying to load state");
+        return false;
     }
 
-    Log("Invalid rom or memory rule.");
-    return false;
+    if (!IsValidPointer(buffer) || (size == 0))
+    {
+        Error("Invalid load state buffer");
+        return false;
+    }
+
+    memory_input_stream direct_stream(reinterpret_cast<const char*>(buffer), size);
+    return LoadState(direct_stream);
 }
 
 bool GearboyCore::LoadState(std::istream& stream)
