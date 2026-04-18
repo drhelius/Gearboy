@@ -73,7 +73,7 @@ void DebugAdapter::StepFrame()
 
 void DebugAdapter::Reset()
 {
-    emu_reset(false, Cartridge::CartridgeNoMBC, false);
+    emu_reset(false, Cartridge::CartridgeNotSupported, false);
 }
 
 json DebugAdapter::GetDebugStatus()
@@ -1194,7 +1194,7 @@ json DebugAdapter::LoadMedia(const std::string& file_path)
         return result;
     }
 
-    emu_load_rom_async(file_path.c_str(), false, Cartridge::CartridgeNoMBC, false);
+    emu_load_rom_async(file_path.c_str(), false, Cartridge::CartridgeNotSupported, false);
 
     int timeout_ms = 180000;
     int elapsed_ms = 0;
