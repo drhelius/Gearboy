@@ -21,6 +21,7 @@
 #include "gearboy.h"
 #include "config.h"
 #include "gui.h"
+#include "gui_actions.h"
 #include "utils.h"
 
 #define GAMEPAD_IMPORT
@@ -362,6 +363,17 @@ void gamepad_check_shortcuts(int controller)
             continue;
 
         bool button_pressed = gamepad_get_button(sdl_controller, button_mapping);
+
+        if (i == config_HotkeyIndex_Rewind)
+        {
+            if (button_pressed && !gamepad_shortcut_prev[controller][i])
+                gui_action_rewind_pressed();
+            else if (!button_pressed && gamepad_shortcut_prev[controller][i])
+                gui_action_rewind_released();
+
+            gamepad_shortcut_prev[controller][i] = button_pressed;
+            continue;
+        }
 
         if (button_pressed && !gamepad_shortcut_prev[controller][i])
         {

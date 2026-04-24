@@ -21,6 +21,7 @@
 #include "gearboy.h"
 #include "config.h"
 #include "gui.h"
+#include "gui_actions.h"
 #include "emu.h"
 #include "application.h"
 #include "gamepad.h"
@@ -32,13 +33,27 @@ static bool input_updated = false;
 static Uint16 input_last_state[1] = { };
 
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
+static bool events_match_hotkey_scancode(const SDL_Event* event, const config_Hotkey& hotkey);
 static Uint16 input_build_state(int controller);
 static void input_apply_state(int controller, Uint16 before, Uint16 now);
 
 void events_shortcuts(const SDL_Event* event)
 {
+    if (event->type == SDL_EVENT_KEY_UP)
+    {
+        if (events_match_hotkey_scancode(event, config_hotkeys[config_HotkeyIndex_Rewind]))
+            gui_action_rewind_released();
+        return;
+    }
+
     if (event->type != SDL_EVENT_KEY_DOWN)
         return;
+
+    if (events_check_hotkey(event, config_hotkeys[config_HotkeyIndex_Rewind], false))
+    {
+        gui_action_rewind_pressed();
+        return;
+    }
 
     // Check special case hotkeys first
     if (events_check_hotkey(event, config_hotkeys[config_HotkeyIndex_Quit], false))
@@ -232,6 +247,21 @@ void events_emu(void)
     }
 }
 
+void events_sync_input(void)
+{
+    SDL_PumpEvents();
+
+    static const Uint16 all_keys = Left_Key | Right_Key | Up_Key | Down_Key | A_Key | B_Key | Start_Key | Select_Key;
+
+    for (int controller = 0; controller < 1; controller++)
+    {
+        Uint16 now = input_build_state(controller);
+        input_apply_state(controller, all_keys, 0);
+        input_apply_state(controller, 0, now);
+        input_last_state[controller] = now;
+    }
+}
+
 void events_reset_input(void)
 {
     input_updated = false;
@@ -369,4 +399,9 @@ static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hot
     if (expected & (SDL_KMOD_LGUI | SDL_KMOD_RGUI | SDL_KMOD_GUI)) expected_normalized = (SDL_Keymod)(expected_normalized | SDL_KMOD_GUI);
 
     return mods_normalized == expected_normalized;
+}
+
+static bool events_match_hotkey_scancode(const SDL_Event* event, const config_Hotkey& hotkey)
+{
+    return event->key.scancode == hotkey.key;
 }

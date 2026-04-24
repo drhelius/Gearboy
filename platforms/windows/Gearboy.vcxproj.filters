@@ -16,6 +16,9 @@
     <ClCompile Include="..\shared\desktop\emu.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\desktop\rewind.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\desktop\gui.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
@@ -23,6 +26,9 @@
       <Filter>desktop</Filter>
     </ClCompile>
     <ClCompile Include="..\shared\desktop\gui_debug.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_rewind.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
     <ClCompile Include="..\shared\desktop\gui_debug_disassembler.cpp">
@@ -240,6 +246,9 @@
     <ClInclude Include="..\shared\desktop\emu.h">
       <Filter>desktop</Filter>
     </ClInclude>
+    <ClInclude Include="..\shared\desktop\rewind.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
     <ClInclude Include="..\shared\desktop\gui.h">
       <Filter>desktop</Filter>
     </ClInclude>
@@ -247,6 +256,9 @@
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_rewind.h">
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug_constants.h">

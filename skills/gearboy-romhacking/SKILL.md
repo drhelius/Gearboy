@@ -150,6 +150,10 @@ Use different slots for different game states (e.g., slot 1 = start, slot 2 = bo
 
 `list_save_state_slots` shows all slots with ROM name, timestamp, and validity.
 
+### Rewind as an Alternative
+
+The emulator also records continuous snapshots into a rewind ring buffer. Use `get_rewind_status` to check availability, then `rewind_seek` to jump to any recorded point without manual save/load. This is especially useful for quickly reverting after a failed memory write — pause, seek back a few snapshots, and retry.
+
 ---
 
 ## Finding and Modifying Game Data

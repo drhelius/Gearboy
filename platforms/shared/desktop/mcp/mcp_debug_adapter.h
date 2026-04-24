@@ -137,6 +137,8 @@ public:
     json LoadState();
     json SetFastForwardSpeed(int speed);
     json ToggleFastForward(bool enabled);
+    json GetRewindStatus();
+    json RewindSeek(int snapshot);
 
     // Controller input
     json ControllerButton(int player, const std::string& button, const std::string& action);

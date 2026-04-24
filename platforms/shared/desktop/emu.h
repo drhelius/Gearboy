@@ -66,6 +66,8 @@ EXTERN void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::Cartr
 EXTERN void emu_load_rom_async(const char* file_path, bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba);
 EXTERN bool emu_is_rom_loading(void);
 EXTERN bool emu_finish_rom_loading(void);
+EXTERN void emu_render_current_frame(void);
+EXTERN void emu_reset_rewind_timing(void);
 EXTERN void emu_key_pressed(Gameboy_Keys key);
 EXTERN void emu_key_released(Gameboy_Keys key);
 EXTERN void emu_pause(void);

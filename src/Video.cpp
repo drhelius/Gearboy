@@ -447,6 +447,11 @@ const u8* Video::GetFrameBuffer() const
     return m_pFrameBuffer;
 }
 
+const u16* Video::GetColorFrameBuffer() const
+{
+    return m_pColorFrameBuffer;
+}
+
 void Video::UpdatePaletteToSpecification(bool background, u8 value)
 {
     bool hl = IsSetBit(value, 0);

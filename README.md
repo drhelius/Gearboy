@@ -96,7 +96,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - LCD screen ghosting effect as seen in the original Game Boy.
 - LCD dot matrix effect.
 - Battery powered RAM save support.
-- Save states.
+- Save states with preview and rewind support.
 - Compressed rom support (ZIP).
 - Bootrom (BIOS) support.
 - *Game Genie* and *GameShark* cheat support.
@@ -104,7 +104,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - Supported platforms (standalone): Windows, Linux, BSD and macOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, webOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
 - Full debugger with just-in-time disassembler, CPU breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, automatic labels, memory editor, trace logger, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
-- MCP server for AI-assisted debugging with GitHub Copilot, Claude, ChatGPT and similar, exposing tools for execution control, memory inspection, hardware status, and more.
+- MCP server for AI-assisted debugging with GitHub Copilot, Claude, ChatGPT and similar, exposing tools for execution control, memory inspection, hardware status, rewind and more.
 - Windows and Linux *Portable Mode*.
 - ROM loading from the command line by adding the ROM path as an argument.
 - ROM loading using drag & drop.

@@ -201,6 +201,17 @@ static void menu_gearboy(void)
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Rewind"))
+        {
+            ImGui::MenuItem("Enabled", config_hotkeys[config_HotkeyIndex_Rewind].str, &config_rewind.enabled);
+
+            ImGui::PushItemWidth(140.0f);
+            ImGui::SliderFloat("Speed", &config_rewind.speed, 1.0f, 8.0f, "%.0fx");
+            ImGui::PopItemWidth();
+
+            ImGui::EndMenu();
+        }
+
         ImGui::Separator();
 
         bool has_ram = !emu_is_empty() && emu_get_core()->GetCartridge()->HasBattery();
@@ -586,6 +597,7 @@ static void menu_emulator(void)
             hotkey_configuration_item("Reset:", &config_hotkeys[config_HotkeyIndex_Reset]);
             hotkey_configuration_item("Pause:", &config_hotkeys[config_HotkeyIndex_Pause]);
             hotkey_configuration_item("Fast Forward:", &config_hotkeys[config_HotkeyIndex_FFWD]);
+            hotkey_configuration_item("Rewind:", &config_hotkeys[config_HotkeyIndex_Rewind]);
             hotkey_configuration_item("Save State:", &config_hotkeys[config_HotkeyIndex_SaveState]);
             hotkey_configuration_item("Load State:", &config_hotkeys[config_HotkeyIndex_LoadState]);
             hotkey_configuration_item("Save State Slot 1:", &config_hotkeys[config_HotkeyIndex_SelectSlot1]);
@@ -855,6 +867,7 @@ static void menu_input(void)
 
             if (ImGui::BeginMenu("Shortcut Configuration"))
             {
+                gamepad_configuration_item("Rewind:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Rewind], 0);
                 gamepad_configuration_item("Save State:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_SaveState], 0);
                 gamepad_configuration_item("Load State:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_LoadState], 0);
                 gamepad_configuration_item("Save State Slot 1:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_SelectSlot1], 0);
@@ -1130,6 +1143,10 @@ static void menu_debug(void)
             ImGui::MenuItem("Show SGB Border Palettes", "", &config_debug.show_sgb_border_palettes);
             ImGui::EndMenu();
         }
+
+        ImGui::Separator();
+
+        ImGui::MenuItem("Show Rewind", "", &config_debug.show_rewind, config_debug.debug);
 
 #if defined(__APPLE__) || defined(_WIN32)
         ImGui::Separator();

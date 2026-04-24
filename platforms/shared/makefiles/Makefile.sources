@@ -30,9 +30,11 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/events.cpp \
     $(DESKTOP_SRC_DIR)/gamepad.cpp \
     $(DESKTOP_SRC_DIR)/emu.cpp \
+    $(DESKTOP_SRC_DIR)/rewind.cpp \
     $(DESKTOP_SRC_DIR)/sound_queue.cpp \
     $(DESKTOP_SRC_DIR)/single_instance.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_rewind.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_disassembler.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_memory.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_memeditor.cpp \

@@ -17,24 +17,17 @@
  *
  */
 
-#ifndef EVENTS_H
-#define EVENTS_H
+#ifndef GUI_DEBUG_REWIND_H
+#define GUI_DEBUG_REWIND_H
 
-#include <SDL3/SDL.h>
-
-#ifdef EVENTS_IMPORT
+#ifdef GUI_DEBUG_REWIND_IMPORT
     #define EXTERN
 #else
     #define EXTERN extern
 #endif
 
-EXTERN void events_shortcuts(const SDL_Event* event);
-EXTERN void events_handle_emu_event(const SDL_Event* event);
-EXTERN void events_emu(void);
-EXTERN void events_sync_input(void);
-EXTERN void events_reset_input(void);
-EXTERN bool events_input_updated(void);
+EXTERN void gui_debug_window_rewind(void);
 
-#undef EVENTS_IMPORT
+#undef GUI_DEBUG_REWIND_IMPORT
 #undef EXTERN
-#endif /* EVENTS_H */
+#endif /* GUI_DEBUG_REWIND_H */

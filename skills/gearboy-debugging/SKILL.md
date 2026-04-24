@@ -127,6 +127,22 @@ Tracing is essential for understanding timing-sensitive code, interrupt handlers
 
 ---
 
+## Rewind (Time Travel Debugging)
+
+- `get_rewind_status` reports whether rewind is enabled, how many snapshots are available, total capacity, and how many seconds are currently buffered.
+- `rewind_seek` jumps to a specific buffered snapshot. The emulator must be paused first.
+- Use rewind when you need to compare two nearby execution points without managing manual save states.
+
+Typical flow:
+
+1. `debug_pause`
+2. `get_rewind_status`
+3. `rewind_seek` to an earlier snapshot
+4. `get_cpu_status` and `get_disassembly` to inspect the restored point
+5. `debug_continue` or keep stepping from there
+
+---
+
 ## Hardware Inspection
 
 ### LCD Controller

@@ -42,6 +42,7 @@ public:
     void SetSGBTransferMode(bool enabled);
     bool IsScreenEnabled() const;
     const u8* GetFrameBuffer() const;
+    const u16* GetColorFrameBuffer() const;
     void UpdatePaletteToSpecification(bool background, u8 value);
     void SetColorPalette(bool background, u8 value);
     bool VRAMAccessBlocked() const;

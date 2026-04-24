@@ -17,24 +17,34 @@
  *
  */
 
-#ifndef EVENTS_H
-#define EVENTS_H
+#ifndef REWIND_H
+#define REWIND_H
 
-#include <SDL3/SDL.h>
+#include "gearboy.h"
 
-#ifdef EVENTS_IMPORT
+#ifdef REWIND_IMPORT
     #define EXTERN
 #else
     #define EXTERN extern
 #endif
 
-EXTERN void events_shortcuts(const SDL_Event* event);
-EXTERN void events_handle_emu_event(const SDL_Event* event);
-EXTERN void events_emu(void);
-EXTERN void events_sync_input(void);
-EXTERN void events_reset_input(void);
-EXTERN bool events_input_updated(void);
+#define REWIND_MAX_STATE_SIZE       (256 * 1024)
+#define REWIND_MAX_SNAPSHOTS        600
 
-#undef EVENTS_IMPORT
+EXTERN bool rewind_init(void);
+EXTERN void rewind_destroy(void);
+EXTERN void rewind_reset(void);
+EXTERN void rewind_push(void);
+EXTERN bool rewind_pop(void);
+EXTERN bool rewind_seek(int age);
+EXTERN void rewind_commit_seek(void);
+EXTERN void rewind_set_active(bool a);
+EXTERN bool rewind_is_active(void);
+EXTERN int rewind_get_snapshot_count(void);
+EXTERN int rewind_get_capacity(void);
+EXTERN int rewind_get_frames_per_snapshot(void);
+EXTERN size_t rewind_get_memory_usage(void);
+
+#undef REWIND_IMPORT
 #undef EXTERN
-#endif /* EVENTS_H */
+#endif /* REWIND_H */

@@ -93,6 +93,7 @@ public:
     bool LoadState(const u8* buffer, size_t size);
     bool GetSaveStateHeader(int index, const char* path, GB_SaveState_Header* header, bool* out_sgb = NULL);
     bool GetSaveStateScreenshot(int index, const char* path, GB_SaveState_Screenshot* screenshot);
+    void RenderFrameBuffer(u16* frame_buffer);
     void SetFrameBuffer(u8* frame_buffer);
     void SetCheat(const char* szCheat);
     void ClearCheats();

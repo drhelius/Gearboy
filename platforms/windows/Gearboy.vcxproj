@@ -60,9 +60,11 @@
     <ClCompile Include="..\shared\desktop\application_headless.cpp" />
     <ClCompile Include="..\shared\desktop\config.cpp" />
     <ClCompile Include="..\shared\desktop\emu.cpp" />
+    <ClCompile Include="..\shared\desktop\rewind.cpp" />
     <ClCompile Include="..\shared\desktop\gui.cpp" />
     <ClCompile Include="..\shared\desktop\gui_actions.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_rewind.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_disassembler.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_memeditor.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_memory.cpp" />
@@ -185,10 +187,12 @@
     <ClInclude Include="..\shared\desktop\config.h" />
     <ClInclude Include="..\shared\desktop\console_utils.h" />
     <ClInclude Include="..\shared\desktop\emu.h" />
+    <ClInclude Include="..\shared\desktop\rewind.h" />
     <ClInclude Include="..\shared\desktop\gui.h" />
     <ClInclude Include="..\shared\desktop\gui_actions.h" />
     <ClInclude Include="..\shared\desktop\gui_debug.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_constants.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_rewind.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_disassembler.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_memeditor.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_memory.h" />

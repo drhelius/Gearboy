@@ -26,6 +26,7 @@
 #include "gui_debug_disassembler.h"
 #include "gui_debug_memory.h"
 #include "gui_debug_processor.h"
+#include "gui_debug_rewind.h"
 #include "gui_debug_video.h"
 #include "gui_debug_io.h"
 #include "gui_debug_psg.h"
@@ -91,6 +92,8 @@ void gui_debug_windows(void)
             gui_debug_window_vram_gbc_palettes();
         if (config_debug.show_trace_logger)
             gui_debug_window_trace_logger();
+        if (config_debug.show_rewind)
+            gui_debug_window_rewind();
         if (emu_get_core()->IsSGB())
         {
             if (config_debug.show_sgb_state)

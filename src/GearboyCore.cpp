@@ -205,17 +205,8 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pCartridge->UpdateCurrentRTC();
         }
 
-        if (!m_bCGB && !bDMGbuffer)
-        {
-            if (m_bSGB)
-                RenderSGBFrame(pFrameBuffer);
-            else
-                RenderDMGFrame(pFrameBuffer);
-        }
-        else if (m_bCGB && m_bColorCorrectionEnabled)
-        {
-            ApplyColorCorrection(pFrameBuffer, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
-        }
+        if (!bDMGbuffer || m_bCGB)
+            RenderFrameBuffer(pFrameBuffer);
 
         breakpoint_result = m_pProcessor->BreakpointHit() || m_pProcessor->RunToBreakpointHit();
 #else
@@ -255,17 +246,8 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pCartridge->UpdateCurrentRTC();
         }
 
-        if (!m_bCGB && !bDMGbuffer)
-        {
-            if (m_bSGB)
-                RenderSGBFrame(pFrameBuffer);
-            else
-                RenderDMGFrame(pFrameBuffer);
-        }
-        else if (m_bCGB && m_bColorCorrectionEnabled)
-        {
-            ApplyColorCorrection(pFrameBuffer, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
-        }
+        if (!bDMGbuffer || m_bCGB)
+            RenderFrameBuffer(pFrameBuffer);
 #endif
     }
 
@@ -378,6 +360,33 @@ bool GearboyCore::GetRuntimeInfo(GB_RuntimeInfo& runtime_info)
         runtime_info.screen_height = GAMEBOY_HEIGHT;
     }
     return m_pCartridge->IsLoadedROM();
+}
+
+void GearboyCore::RenderFrameBuffer(u16* pFrameBuffer)
+{
+    if (!IsValidPointer(pFrameBuffer) || !m_pCartridge->IsLoadedROM())
+        return;
+
+    if (m_bSGB)
+    {
+        RenderSGBFrame(pFrameBuffer);
+        return;
+    }
+
+    if (m_bCGB)
+    {
+        const u16* color_frame_buffer = m_pVideo->GetColorFrameBuffer();
+
+        if (IsValidPointer(color_frame_buffer) && (color_frame_buffer != pFrameBuffer))
+            memcpy(pFrameBuffer, color_frame_buffer, GAMEBOY_WIDTH * GAMEBOY_HEIGHT * sizeof(u16));
+
+        if (m_bColorCorrectionEnabled)
+            ApplyColorCorrection(pFrameBuffer, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
+
+        return;
+    }
+
+    RenderDMGFrame(pFrameBuffer);
 }
 
 void GearboyCore::KeyPressed(Gameboy_Keys key)
@@ -928,7 +937,7 @@ bool GearboyCore::LoadState(std::istream& stream)
 #if !defined(__LIBRETRO__)
             is_desktop_savestate = true;
 #endif
-            Log("Loading desktop save state");
+            Debug("Loading desktop save state");
         }
     }
 

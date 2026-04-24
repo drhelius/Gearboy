@@ -23,6 +23,8 @@
 #include "gui_debug_trace_logger.h"
 #include "config.h"
 #include "emu.h"
+#include "rewind.h"
+#include "events.h"
 #include "gearboy.h"
 #include "application.h"
 #include "display.h"
@@ -85,6 +87,33 @@ void gui_action_ffwd(void)
         display_set_vsync(config_video.sync);
         emu_audio_reset();
     }
+}
+
+void gui_action_rewind_pressed(void)
+{
+    if (emu_is_empty() || !config_rewind.enabled)
+        return;
+    if (rewind_get_snapshot_count() < 1)
+        return;
+    if (rewind_is_active())
+        return;
+
+    emu_reset_rewind_timing();
+    rewind_set_active(true);
+    display_set_vsync(config_video.sync);
+    gui_set_status_message("Rewinding...", 500);
+}
+
+void gui_action_rewind_released(void)
+{
+    if (!rewind_is_active())
+        return;
+
+    rewind_set_active(false);
+    events_sync_input();
+    emu_reset_rewind_timing();
+    display_set_vsync(config_emulator.ffwd ? false : config_video.sync);
+    emu_audio_reset();
 }
 
 void gui_action_save_screenshot(const char* path)

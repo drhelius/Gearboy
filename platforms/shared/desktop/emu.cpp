@@ -25,6 +25,8 @@
 #include "gearboy.h"
 #include "sound_queue.h"
 #include "config.h"
+#include "rewind.h"
+#include "events.h"
 #include "mcp/mcp_manager.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -50,6 +52,8 @@ static float tilt_y = 0.0f;
 static u16* debug_background_buffer_565;
 static u16* debug_tile_buffers_565[2];
 static u16* debug_oam_buffers_565[40];
+static Uint64 rewind_last_counter = 0;
+static double rewind_pop_accumulator = 0.0;
 
 enum Loading_State
 {
@@ -78,6 +82,8 @@ static void debug_step_instruction(void);
 static void update_debug_background_buffer(void);
 static void update_debug_tile_buffers(void);
 static void update_debug_oam_buffers(void);
+static void reset_rewind_timing(void);
+static int get_rewind_pop_budget(void);
 
 bool emu_init(void)
 {
@@ -107,6 +113,8 @@ bool emu_init(void)
     mcp_manager = new McpManager();
     mcp_manager->Init(gearboy);
 
+    rewind_init();
+
     for (int i = 0; i < 5; i++)
     {
         memset(&emu_savestates[i], 0, sizeof(GB_SaveState_Header));
@@ -128,6 +136,7 @@ void emu_destroy(void)
     loading_state.store(Loading_State_None);
 
     save_ram();
+    rewind_destroy();
     SafeDelete(mcp_manager);
     for (int i = 0; i < 5; i++)
         SafeDeleteArray(emu_savestates_screenshots[i].data);
@@ -160,6 +169,7 @@ void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
     gearboy->SetSGBEnabled(config_emulator.sgb);
     gearboy->LoadROM(file_path, force_dmg, mbc, force_gba);
     load_ram();
+    rewind_reset();
     emu_debug_continue();
 }
 
@@ -215,8 +225,29 @@ bool emu_finish_rom_loading(void)
 
     emu_audio_reset();
     load_ram();
+    rewind_reset();
 
     return true;
+}
+
+void emu_render_current_frame(void)
+{
+    if (emu_is_empty())
+        return;
+
+    gearboy->RenderFrameBuffer(frame_buffer_565);
+
+    GB_RuntimeInfo rt_info;
+    gearboy->GetRuntimeInfo(rt_info);
+    generate_24bit_buffer(emu_frame_buffer, frame_buffer_565, rt_info.screen_width * rt_info.screen_height);
+
+    if (config_debug.debug)
+        update_debug();
+}
+
+void emu_reset_rewind_timing(void)
+{
+    reset_rewind_timing();
 }
 
 void emu_update(void)
@@ -232,6 +263,25 @@ void emu_update(void)
     gearboy->SetSGBBorder(config_emulator.sgb_border);
 
     int sampleCount = 0;
+    bool frame_executed = false;
+
+    if (rewind_is_active())
+    {
+        int to_pop = get_rewind_pop_budget();
+
+        for (int i = 0; i < to_pop; i++)
+        {
+            if (!rewind_pop())
+                break;
+        }
+
+        int silence_count = GB_AUDIO_QUEUE_SIZE;
+        memset(audio_buffer, 0, silence_count * sizeof(s16));
+        sound_queue_write(audio_buffer, silence_count, false);
+        return;
+    }
+
+    reset_rewind_timing();
 
     if (config_debug.debug)
     {
@@ -242,8 +292,14 @@ void emu_update(void)
         debug_run.stop_on_run_to_breakpoint = true;
         debug_run.stop_on_irq = emu_debug_irq_breakpoints;
 
-        if (emu_debug_command != Debug_Command_None)
+        bool executed = (emu_debug_command != Debug_Command_None);
+
+        if (executed)
+        {
+            rewind_commit_seek();
             breakpoint_hit = gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, &debug_run);
+            frame_executed = true;
+        }
 
         if (breakpoint_hit || emu_debug_command == Debug_Command_StepFrame || emu_debug_command == Debug_Command_Step)
         {
@@ -270,11 +326,25 @@ void emu_update(void)
         update_debug();
     }
     else
-        gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, NULL);
+    {
+        rewind_commit_seek();
 
-    GB_RuntimeInfo rt_info;
-    gearboy->GetRuntimeInfo(rt_info);
-    generate_24bit_buffer(emu_frame_buffer, frame_buffer_565, rt_info.screen_width * rt_info.screen_height);
+        if (!gearboy->IsPaused())
+        {
+            gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, NULL);
+            frame_executed = true;
+        }
+    }
+
+    if (frame_executed)
+        rewind_push();
+
+    if (frame_executed)
+    {
+        GB_RuntimeInfo rt_info;
+        gearboy->GetRuntimeInfo(rt_info);
+        generate_24bit_buffer(emu_frame_buffer, frame_buffer_565, rt_info.screen_width * rt_info.screen_height);
+    }
 
     if ((sampleCount > 0) && !gearboy->IsPaused())
     {
@@ -286,7 +356,6 @@ void emu_update(void)
         memset(audio_buffer, 0, silence_count * sizeof(s16));
         sound_queue_write(audio_buffer, silence_count, false);
     }
-
     // Mouse tilt decay: gradually return to center each frame
     if (config_emulator.tilt_source == 1)
     {
@@ -299,6 +368,44 @@ void emu_update(void)
             tilt_y = 0.0f;
         gearboy->SetAccelerometer((double)tilt_x, (double)tilt_y);
     }
+}
+
+static void reset_rewind_timing(void)
+{
+    rewind_last_counter = 0;
+    rewind_pop_accumulator = 0.0;
+}
+
+static int get_rewind_pop_budget(void)
+{
+    Uint64 now = SDL_GetPerformanceCounter();
+
+    if (rewind_last_counter == 0)
+    {
+        rewind_last_counter = now;
+        return 0;
+    }
+
+    double elapsed = (double)(now - rewind_last_counter) / (double)SDL_GetPerformanceFrequency();
+    rewind_last_counter = now;
+
+    if (elapsed < 0.0)
+        elapsed = 0.0;
+    else if (elapsed > 0.25)
+        elapsed = 0.25;
+
+    int frames_per_snapshot = rewind_get_frames_per_snapshot();
+    if (frames_per_snapshot < 1)
+        frames_per_snapshot = 1;
+
+    double snapshots_per_second = (60.0 * (double)config_rewind.speed) / (double)frames_per_snapshot;
+    rewind_pop_accumulator += elapsed * snapshots_per_second;
+
+    int to_pop = (int)rewind_pop_accumulator;
+    if (to_pop > 0)
+        rewind_pop_accumulator -= (double)to_pop;
+
+    return to_pop;
 }
 
 void emu_key_pressed(Gameboy_Keys key)
@@ -345,6 +452,7 @@ void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba)
     gearboy->SetSGBEnabled(config_emulator.sgb);
     gearboy->ResetROM(force_dmg, mbc, force_gba);
     load_ram();
+    rewind_reset();
 }
 
 void emu_audio_volume(float volume)
@@ -423,6 +531,7 @@ void emu_load_ram(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
         gearboy->SetSGBEnabled(config_emulator.sgb);
         gearboy->ResetROM(force_dmg, mbc, force_gba);
         gearboy->LoadRam(file_path, true);
+        rewind_reset();
     }
 }
 
@@ -455,7 +564,11 @@ void emu_load_state_slot(int index)
     if (!emu_is_empty())
     {
         const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
-        gearboy->LoadState(dir, index, false);
+        if (gearboy->LoadState(dir, index, false))
+        {
+            events_sync_input();
+            rewind_reset();
+        }
     }
 }
 
@@ -469,7 +582,13 @@ void emu_save_state_file(const char* file_path)
 void emu_load_state_file(const char* file_path)
 {
     if (!emu_is_empty())
-        gearboy->LoadState(file_path, -1, false);
+    {
+        if (gearboy->LoadState(file_path, -1, false))
+        {
+            events_sync_input();
+            rewind_reset();
+        }
+    }
 }
 
 void update_savestates_data(void)
