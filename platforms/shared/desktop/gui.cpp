@@ -124,8 +124,8 @@ bool gui_init(void)
 
     emu_audio_volume(config_audio.enable ? 1.0f : 0.0f);
 
-    strcpy(gui_dmg_bootrom_path, config_emulator.dmg_bootrom_path.c_str());
-    strcpy(gui_gbc_bootrom_path, config_emulator.gbc_bootrom_path.c_str());
+    strncpy_fit(gui_dmg_bootrom_path, config_emulator.dmg_bootrom_path.c_str(), sizeof(gui_dmg_bootrom_path));
+    strncpy_fit(gui_gbc_bootrom_path, config_emulator.gbc_bootrom_path.c_str(), sizeof(gui_gbc_bootrom_path));
 
     if (strlen(gui_dmg_bootrom_path) > 0)
         emu_load_bootrom_dmg(gui_dmg_bootrom_path);
@@ -136,9 +136,9 @@ bool gui_init(void)
     emu_enable_bootrom_gbc(config_emulator.gbc_bootrom);
     emu_color_correction(config_video.color_correction);
 
-    strcpy(gui_savefiles_path, config_emulator.savefiles_path.c_str());
-    strcpy(gui_savestates_path, config_emulator.savestates_path.c_str());
-    strcpy(gui_screenshots_path, config_emulator.screenshots_path.c_str());
+    strncpy_fit(gui_savefiles_path, config_emulator.savefiles_path.c_str(), sizeof(gui_savefiles_path));
+    strncpy_fit(gui_savestates_path, config_emulator.savestates_path.c_str(), sizeof(gui_savestates_path));
+    strncpy_fit(gui_screenshots_path, config_emulator.screenshots_path.c_str(), sizeof(gui_screenshots_path));
 
     gui_debug_init();
     gui_init_menus();
@@ -297,7 +297,7 @@ void gui_set_status_message(const char* message, Uint64 milliseconds)
 {
     if (config_emulator.status_messages)
     {
-        strcpy(status_message, message);
+        strncpy_fit(status_message, message, sizeof(status_message));
         status_message_active = true;
         status_message_start_time = SDL_GetTicks();
         status_message_duration = milliseconds;
@@ -306,7 +306,7 @@ void gui_set_status_message(const char* message, Uint64 milliseconds)
 
 void gui_set_error_message(const char* message)
 {
-    strcpy(error_message, message);
+    strncpy_fit(error_message, message, sizeof(error_message));
     error_window_active = true;
 }
 
