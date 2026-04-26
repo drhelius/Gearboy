@@ -106,6 +106,13 @@ int main(int argc, char* argv[])
     int non_option_count = 0;
     for (int i = 1; i < argc; i++)
     {
+        if (strcmp(argv[i], "--mcp-http-port") == 0)
+        {
+            if (i + 1 < argc)
+                i++;
+            continue;
+        }
+
         if (argv[i][0] != '-')
         {
             if (non_option_count == 0)
