@@ -84,7 +84,6 @@ public:
     void ClearGameGenieCheats();
 
 private:
-    unsigned int Pow2Ceil(unsigned int n);
     bool GatherMetadata();
     bool LoadFromZipFile(const u8* buffer, int size);
     void CheckCartridgeType(int type);

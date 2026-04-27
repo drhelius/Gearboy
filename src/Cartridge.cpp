@@ -522,18 +522,6 @@ void Cartridge::ClearGameGenieCheats()
     m_GameGenieList.clear();
 }
 
-unsigned int Cartridge::Pow2Ceil(unsigned int n)
-{
-    --n;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    ++n;
-    return n;
-}
-
 bool Cartridge::GatherMetadata()
 {
     char name[12] = {0};
@@ -580,7 +568,7 @@ bool Cartridge::GatherMetadata()
             break;
     }
 
-    m_iROMBankCount = std::max(Pow2Ceil(m_iTotalSize / 0x4000), 2u);
+    m_iROMBankCount = std::max(pow_2_ceil(m_iTotalSize / 0x4000), (u32)2);
 
 
     if (m_Type == Cartridge::CartridgeMBC1)

@@ -77,13 +77,14 @@ inline int as_hex(const char c)
     return 0;
 }
 
-inline unsigned int pow_2_ceil(u16 n)
+inline u32 pow_2_ceil(u32 n)
 {
     --n;
     n |= n >> 1;
     n |= n >> 2;
     n |= n >> 4;
     n |= n >> 8;
+    n |= n >> 16;
     ++n;
     return n;
 }
