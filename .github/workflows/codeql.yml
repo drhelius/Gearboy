@@ -3,14 +3,14 @@ name: "CodeQL"
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
     paths-ignore:
       - '**.md'
       - '.github/**'
       - '.vscode/**'
       - '.devcontainer/**'
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 jobs:
   analyze:
