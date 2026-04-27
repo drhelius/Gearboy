@@ -1798,7 +1798,7 @@ void gui_debug_window_call_stack(void)
             }
 
             ImGui::TableNextColumn();
-            char selectable_id[16];
+            char selectable_id[32];
             snprintf(selectable_id, sizeof(selectable_id), "##cs%d", row_index);
             if (ImGui::Selectable(selectable_id, false, ImGuiSelectableFlags_SpanAllColumns))
             {
@@ -1987,7 +1987,7 @@ void gui_debug_window_symbols(void)
                 ImGui::TableNextRow();
 
                 ImGui::TableNextColumn();
-                char selectable_id[16];
+                char selectable_id[32];
                 snprintf(selectable_id, sizeof(selectable_id), "##sym%d", (int)idx);
                 if (ImGui::Selectable(selectable_id, false, ImGuiSelectableFlags_SpanAllColumns))
                 {

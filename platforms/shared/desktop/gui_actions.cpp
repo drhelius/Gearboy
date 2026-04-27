@@ -126,8 +126,9 @@ void gui_action_save_screenshot(const char* path)
     time_t now = time(0);
     tm* ltm = localtime(&now);
 
-    char date_time_buffer[32];
-    snprintf(date_time_buffer, sizeof(date_time_buffer), "%04d-%02d-%02d %02d%02d%02d", 1900 + ltm->tm_year, 1 + ltm->tm_mon, ltm->tm_mday, ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
+    char date_time_buffer[32] = {};
+    if (ltm != NULL)
+        strftime(date_time_buffer, sizeof(date_time_buffer), "%Y-%m-%d %H%M%S", ltm);
     string date_time = date_time_buffer;
 
     string file_path;
