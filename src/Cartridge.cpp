@@ -18,7 +18,6 @@
  */
 
 #include <string>
-#include <algorithm>
 #include <cstring>
 #include <ctype.h>
 #include "Cartridge.h"
@@ -568,7 +567,8 @@ bool Cartridge::GatherMetadata()
             break;
     }
 
-    m_iROMBankCount = std::max(pow_2_ceil(m_iTotalSize / 0x4000), (u32)2);
+    u32 romBankCount = pow_2_ceil(m_iTotalSize / 0x4000);
+    m_iROMBankCount = MAX(romBankCount, 2U);
 
 
     if (m_Type == Cartridge::CartridgeMBC1)
