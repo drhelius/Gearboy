@@ -295,17 +295,23 @@ void gui_debug_window_psg(void)
                     ImGui::TextColored(violet, "WAVE RAM");
 
                     char wave_text[64];
-                    int pos = 0;
-                    for (int i = 0; i < 16; i++)
+                    for (int row = 0; row < 2; row++)
                     {
-                        pos += snprintf(wave_text + pos, 64 - pos, "%02X ", regs[0x20 + i]);
-                        if (i == 7)
+                        int pos = 0;
+                        wave_text[0] = '\0';
+
+                        for (int i = 0; i < 8; i++)
                         {
-                            ImGui::TextColored(orange, "  %s", wave_text);
-                            pos = 0;
+                            int remaining = (int)sizeof(wave_text) - pos;
+                            int written = snprintf(wave_text + pos, remaining, "%02X ", regs[0x20 + row * 8 + i]);
+                            if ((written < 0) || (written >= remaining))
+                                break;
+
+                            pos += written;
                         }
+
+                        ImGui::TextColored(orange, "  %s", wave_text);
                     }
-                    ImGui::TextColored(orange, "  %s", wave_text);
                 }
                 else
                 {
