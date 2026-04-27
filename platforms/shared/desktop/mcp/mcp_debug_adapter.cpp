@@ -380,6 +380,8 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
 
             result.push_back(line);
 
+            u32 next_addr;
+
             if (use_explicit_bank)
             {
                 u16 offset_in_bank = (u16)addr & 0x3FFF;
@@ -388,15 +390,17 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
                 {
                     break;
                 }
-                addr = (start_address & 0xC000) | offset_in_bank;
+                next_addr = ((u16)addr & 0xC000) | offset_in_bank;
             }
             else
             {
-                addr = addr + (u32)record->size;
+                next_addr = addr + (u32)record->size;
             }
 
-            if (record->size == 0)
-                addr++;
+            if ((record->size == 0) || (next_addr <= addr))
+                next_addr = addr + 1;
+
+            addr = next_addr;
         }
         else
         {
