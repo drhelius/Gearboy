@@ -5,6 +5,9 @@ on:
   release:
     types: [released]
 
+permissions:
+  contents: read
+
 env:
   NAME_LOWER: gearboy
 
