@@ -20,6 +20,7 @@
 #include <string>
 #include <cstring>
 #include <ctype.h>
+#include <algorithm>
 #include "Cartridge.h"
 #include "miniz.h"
 #include "common.h"
