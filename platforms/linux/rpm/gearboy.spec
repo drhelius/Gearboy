@@ -25,6 +25,8 @@ written in C++.
 %autosetup -n Gearboy-%{version}
 
 %build
+export CXXFLAGS="$CXXFLAGS -fno-var-tracking-assignments"
+
 %make_build -C platforms/linux \
     GIT_VERSION="%{version}" \
     USE_CLANG=0 \
@@ -32,7 +34,8 @@ written in C++.
 
 %install
 install -Dm755 platforms/linux/%{name} %{buildroot}%{_prefix}/lib/%{name}/%{name}
-ln -s %{_prefix}/lib/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
+install -dm755 %{buildroot}%{_bindir}
+ln -s ../lib/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
 
 install -Dm644 platforms/shared/gamecontrollerdb.txt %{buildroot}%{_prefix}/lib/%{name}/gamecontrollerdb.txt
 
