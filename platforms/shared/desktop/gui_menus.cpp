@@ -57,6 +57,7 @@ static void menu_input(void);
 static void menu_audio(void);
 static void menu_debug(void);
 static void menu_about(void);
+static void draw_mcp_status(void);
 static void file_dialogs(void);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key, int player);
 static void gamepad_configuration_item(const char* text, int* button, int player);
@@ -136,6 +137,7 @@ void gui_main_menu(void)
         menu_audio();
         menu_debug();
         menu_about();
+        draw_mcp_status();
 
         gui_main_menu_height = (int)ImGui::GetWindowSize().y;
 
@@ -1191,6 +1193,42 @@ static void menu_about(void)
         }
         ImGui::EndMenu();
     }
+}
+
+static void draw_mcp_status(void)
+{
+    if (!emu_mcp_is_running())
+        return;
+
+    char status[64];
+    ImVec4 color(0.10f, 0.90f, 0.10f, 1.0f);
+
+    int transport_mode = emu_mcp_get_transport_mode();
+    if (transport_mode == 0)
+    {
+        snprintf(status, sizeof(status), "MCP: STDIO");
+        color = ImVec4(0.90f, 0.70f, 0.10f, 1.0f);
+    }
+    else if (transport_mode == 1)
+    {
+        snprintf(status, sizeof(status), "MCP: HTTP (%d)", config_emulator.mcp_tcp_port);
+    }
+    else
+    {
+        return;
+    }
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    float text_width = ImGui::CalcTextSize(status).x;
+    float status_x = ImGui::GetWindowWidth() - text_width - style.ItemSpacing.x - 10.0f;
+    float cursor_x = ImGui::GetCursorPosX();
+
+    if (status_x <= cursor_x + style.ItemSpacing.x)
+        return;
+
+    ImGui::SameLine(status_x);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextColored(color, "%s", status);
 }
 
 static void file_dialogs(void)
