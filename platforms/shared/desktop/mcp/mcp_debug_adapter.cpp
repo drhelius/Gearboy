@@ -589,6 +589,8 @@ json DebugAdapter::GetMediaInfo()
     json info;
     Cartridge* cart = m_core->GetCartridge();
 
+    info["emulator"] = GEARBOY_TITLE;
+    info["emulator_version"] = GEARBOY_VERSION;
     info["ready"] = cart->IsLoadedROM();
     info["file_path"] = cart->GetFilePath();
     info["file_name"] = cart->GetFileName();
