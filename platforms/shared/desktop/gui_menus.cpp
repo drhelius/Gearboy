@@ -608,6 +608,7 @@ static void menu_emulator(void)
             hotkey_configuration_item("Save State Slot 4:", &config_hotkeys[config_HotkeyIndex_SelectSlot4]);
             hotkey_configuration_item("Save State Slot 5:", &config_hotkeys[config_HotkeyIndex_SelectSlot5]);
             hotkey_configuration_item("Screenshot:", &config_hotkeys[config_HotkeyIndex_Screenshot]);
+            hotkey_configuration_item("Mute Audio:", &config_hotkeys[config_HotkeyIndex_Mute]);
             hotkey_configuration_item("Fullscreen:", &config_hotkeys[config_HotkeyIndex_Fullscreen]);
             hotkey_configuration_item("Show Main Menu:", &config_hotkeys[config_HotkeyIndex_ShowMainMenu]);
             hotkey_configuration_item("Capture Mouse:", &config_hotkeys[config_HotkeyIndex_CaptureMouse]);
@@ -884,6 +885,7 @@ static void menu_input(void)
                 gamepad_configuration_item("Pause:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Pause], 0);
                 gamepad_configuration_item("Fast Forward:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_FFWD], 0);
                 gamepad_configuration_item("Screenshot:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Screenshot], 0);
+                gamepad_configuration_item("Mute Audio:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Mute], 0);
 
                 gui_popup_modal_gamepad(0);
 
@@ -955,7 +957,7 @@ static void menu_audio(void)
     {
         gui_in_use = true;
 
-        if (ImGui::MenuItem("Enable Audio", "", &config_audio.enable))
+        if (ImGui::MenuItem("Enable Audio", config_hotkeys[config_HotkeyIndex_Mute].str, &config_audio.enable))
         {
             emu_audio_mute(!config_audio.enable);
         }

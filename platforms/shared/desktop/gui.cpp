@@ -204,6 +204,10 @@ void gui_shortcut(gui_ShortCutEvent event)
         config_emulator.ffwd = !config_emulator.ffwd;
         gui_action_ffwd();
         break;
+    case gui_ShortcutMute:
+        config_audio.enable = !config_audio.enable;
+        emu_audio_mute(!config_audio.enable);
+        break;
     case gui_ShortcutSaveState:
     {
         std::string message("Saving state to slot ");
