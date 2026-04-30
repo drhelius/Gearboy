@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/github/license/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/blob/master/LICENSE)
 [![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)](https://x.com/drhelius)
 
-Gearboy is an accurate cross-platform Game Boy / Game Boy Color / Super Game Boy emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch, with an embedded MCP server for debugging and tooling.
+Gearboy is an accurate, cross-platform Game Boy / Game Boy Color / Super Game Boy emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch, with an embedded MCP server for debugging and tooling.
 
 This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md). If you find it useful, please consider [sponsoring](https://github.com/sponsors/drhelius).
 
@@ -101,7 +101,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - LCD dot matrix effect.
 - Battery powered RAM save support.
 - Save states with preview and rewind support.
-- Compressed rom support (ZIP).
+- Compressed ROM support (ZIP).
 - Bootrom (BIOS) support.
 - *Game Genie* and *GameShark* cheat support.
 - VGM recorder.
@@ -124,8 +124,8 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 ### Debugging Features
 - **Docking Windows**: In debug mode, you can dock windows together by pressing SHIFT and dragging a window onto another.
 - **Multi-viewport**: In Windows or macOS, you can enable "multi-viewport" in the debug menu. You must restart the emulator for the change to take effect. Once enabled, you can drag debugger windows outside the main window.
-- **Single Instance**: You can enable "Single Instance" in the ```Emulator``` menu. When enabled, opening a ROM while another instance is running will send the ROM to the running instance instead of starting a new one.
-- **Debug Symbols**: The emulator automatically tries to load a symbol file when loading a ROM (.sym, .noi). For example, for ```path_to_rom_file.gb``` it tries to load ```path_to_rom_file.sym```. You can also load a symbol file using the GUI or the CLI. It supports RGBDS, GBDK-2020, WLA-DX, no$gmb, SDCC/NoICE (.noi), EQU and generic file formats.
+- **Single Instance**: You can enable "Single Instance" in the `Emulator` menu. When enabled, opening a ROM while another instance is running will send the ROM to the running instance instead of starting a new one.
+- **Debug Symbols**: The emulator automatically tries to load a symbol file when loading a ROM (.sym, .noi). For example, for `path_to_rom_file.gb` it tries to load `path_to_rom_file.sym`. You can also load a symbol file using the GUI or the CLI. It supports RGBDS, GBDK-2020, WLA-DX, no$gmb, SDCC/NoICE (.noi), EQU and generic file formats.
 
 ### Command Line Usage
 ```
@@ -194,10 +194,10 @@ cd platforms/linux
 make
 ```
 
-For older Ubuntu versions (22.04, 24.04), you need to build SDL3 from source first. Use the following commands to build both SDL3 and Gearlynx:
+For older Ubuntu versions (22.04, 24.04), you need to build SDL3 from source first. Use the following commands to build both SDL3 and Gearboy:
 
 ``` shell
-sudo apt install build-essential cmake \
+sudo apt install build-essential cmake git curl jq pkg-config \
   libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev \
   libxi-dev libxss-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
   libdrm-dev libgbm-dev libgl1-mesa-dev libegl1-mesa-dev libdbus-1-dev libudev-dev libxtst-dev
