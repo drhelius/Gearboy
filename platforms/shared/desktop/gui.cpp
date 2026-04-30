@@ -122,7 +122,8 @@ bool gui_init(void)
 
     set_style();
 
-    emu_audio_volume(config_audio.enable ? 1.0f : 0.0f);
+    emu_audio_mute(!config_audio.enable);
+    emu_audio_set_master_volume(config_audio.master_volume);
 
     strncpy_fit(gui_dmg_bootrom_path, config_emulator.dmg_bootrom_path.c_str(), sizeof(gui_dmg_bootrom_path));
     strncpy_fit(gui_gbc_bootrom_path, config_emulator.gbc_bootrom_path.c_str(), sizeof(gui_gbc_bootrom_path));

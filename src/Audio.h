@@ -33,7 +33,9 @@ public:
     void Init();
     void Reset(bool bCGB);
     void SetSampleRate(int rate);
+    void Mute(bool mute);
     void SetVolume(float volume);
+    void SetMasterVolume(float volume);
     u8 ReadAudioRegister(u16 address);
     void WriteAudioRegister(u16 address, u8 value);
     void Tick(unsigned int clockCycles);
@@ -55,11 +57,14 @@ private:
     int m_ElapsedCycles;
     int m_SampleRate;
     blip_sample_t* m_pSampleBuffer;
+    bool m_bMute;
+    float m_MasterVolume;
     bool m_bCGB;
     VgmRecorder m_VgmRecorder;
     bool m_bVgmRecordingEnabled;
     blip_sample_t* m_pDebugChannelBuffer[4];
     long m_iDebugChannelSamples[4];
+    void ApplyVolume();
 };
 
 inline void Audio::Tick(unsigned int clockCycles)

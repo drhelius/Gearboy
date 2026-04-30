@@ -116,6 +116,7 @@ struct config_Audio
 {
     bool enable = true;
     bool sync = true;
+    float master_volume = 1.0f;
     int buffer_count = 3;
 };
 

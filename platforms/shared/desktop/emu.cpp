@@ -461,6 +461,17 @@ void emu_audio_volume(float volume)
     gearboy->SetSoundVolume(volume);
 }
 
+void emu_audio_mute(bool mute)
+{
+    audio_enabled = !mute;
+    gearboy->SetSoundMute(mute);
+}
+
+void emu_audio_set_master_volume(float volume)
+{
+    gearboy->SetSoundVolume(volume);
+}
+
 void emu_audio_reset(void)
 {
     sound_queue_stop();

@@ -326,6 +326,8 @@ void config_read(void)
 
     config_audio.enable = read_bool("Audio", "Enable", true);
     config_audio.sync = read_bool("Audio", "Sync", true);
+    config_audio.master_volume = read_float("Audio", "MasterVolume", 1.0f);
+    config_audio.master_volume = CLAMP(config_audio.master_volume, 0.0f, 2.0f);
     config_audio.buffer_count = read_int("Audio", "BufferCount", 3);
 
     config_rewind.enabled = read_bool("Rewind", "Enabled", true);
@@ -546,6 +548,7 @@ void config_write(void)
 
     write_bool("Audio", "Enable", config_audio.enable);
     write_bool("Audio", "Sync", config_audio.sync);
+    write_float("Audio", "MasterVolume", config_audio.master_volume);
     write_int("Audio", "BufferCount", config_audio.buffer_count);
 
     write_bool("Rewind", "Enabled", config_rewind.enabled);

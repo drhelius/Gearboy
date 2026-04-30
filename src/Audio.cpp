@@ -28,6 +28,8 @@ Audio::Audio()
     InitPointer(m_pApu);
     InitPointer(m_pBuffer);
     InitPointer(m_pSampleBuffer);
+    m_bMute = false;
+    m_MasterVolume = 1.0f;
     m_bVgmRecordingEnabled = false;
     for (int i = 0; i < 4; i++)
     {
@@ -93,7 +95,24 @@ void Audio::SetSampleRate(int rate)
 
 void Audio::SetVolume(float volume)
 {
-    m_pApu->volume(volume);
+    SetMasterVolume(volume);
+}
+
+void Audio::Mute(bool mute)
+{
+    m_bMute = mute;
+    ApplyVolume();
+}
+
+void Audio::SetMasterVolume(float volume)
+{
+    m_MasterVolume = CLAMP(volume, 0.0f, 2.0f);
+    ApplyVolume();
+}
+
+void Audio::ApplyVolume()
+{
+    m_pApu->volume(m_bMute ? 0.0f : m_MasterVolume);
 }
 
 void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)

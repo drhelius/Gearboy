@@ -454,6 +454,11 @@ void GearboyCore::SetSoundSampleRate(int rate)
     m_pAudio->SetSampleRate(rate);
 }
 
+void GearboyCore::SetSoundMute(bool mute)
+{
+    m_pAudio->Mute(mute);
+}
+
 void GearboyCore::SetSoundVolume(float volume)
 {
     m_pAudio->SetVolume(volume);
