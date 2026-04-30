@@ -967,7 +967,7 @@ static void menu_audio(void)
         if (ImGui::BeginMenu("Master Volume", config_audio.enable))
         {
             ImGui::PushItemWidth(200.0f);
-            if (ImGui::SliderFloat("##master_volume", &config_audio.master_volume, 0.0f, 2.0f, "Scale = %.2fx", ImGuiSliderFlags_AlwaysClamp))
+            if (ImGui::SliderFloat("##master_volume", &config_audio.master_volume, 0.0f, 2.0f, "Volume = %.2f", ImGuiSliderFlags_AlwaysClamp))
             {
                 emu_audio_set_master_volume(config_audio.master_volume);
             }
