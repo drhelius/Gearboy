@@ -888,14 +888,14 @@ u16 SGB::ConvertRGB15(u16 color, GB_Color_Format pixelFormat)
             return (r5 << 11) | (g6 << 5) | b5;
         }
         case GB_PIXEL_RGB555:
-            return (r5 << 10) | (g5 << 5) | b5;
+            return 0x8000 | (r5 << 10) | (g5 << 5) | b5;
         case GB_PIXEL_BGR565:
         {
             u8 g6 = (g5 << 1) | (g5 >> 4);
             return (b5 << 11) | (g6 << 5) | r5;
         }
         case GB_PIXEL_BGR555:
-            return (b5 << 10) | (g5 << 5) | r5;
+            return 0x8000 | (b5 << 10) | (g5 << 5) | r5;
         default:
             return 0;
     }
