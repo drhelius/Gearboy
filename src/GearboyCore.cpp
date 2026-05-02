@@ -1303,11 +1303,11 @@ void GearboyCore::BuildColorCorrectionLUT()
     int g_mask = format_565 ? 0x3F : 0x1F;
     int g_max = format_565 ? 63 : 31;
     const float kGScale = 255.0f / (float)g_max;
-    int total = format_565 ? 65536 : 32768;
+    u16 color_mask = format_565 ? 0xFFFF : 0x7FFF;
 
-    for (int i = 0; i < total; i++)
+    for (int i = 0; i < 65536; i++)
     {
-        u16 color = (u16)i;
+        u16 color = (u16)(i & color_mask);
         float r8, g8, b8;
 
         if (order_RGB)
