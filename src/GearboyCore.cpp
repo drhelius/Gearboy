@@ -1543,6 +1543,12 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pMBC2MemoryRule->Reset(m_bCGB);
     m_pMBC3MemoryRule->Reset(m_bCGB);
     m_pMBC5MemoryRule->Reset(m_bCGB);
+    m_pHuC1MemoryRule->Reset(m_bCGB);
+    m_pHuC3MemoryRule->Reset(m_bCGB);
+    m_pMMM01MemoryRule->Reset(m_bCGB);
+    m_pCameraMemoryRule->Reset(m_bCGB);
+    m_pMBC7MemoryRule->Reset(m_bCGB);
+    m_pTAMA5MemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
     m_pSGB->Reset();
