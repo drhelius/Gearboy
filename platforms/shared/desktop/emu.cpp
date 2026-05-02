@@ -327,10 +327,9 @@ void emu_update(void)
     }
     else
     {
-        rewind_commit_seek();
-
         if (!gearboy->IsPaused())
         {
+            rewind_commit_seek();
             gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, NULL);
             frame_executed = true;
         }

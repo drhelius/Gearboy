@@ -27,6 +27,7 @@
 #endif
 
 EXTERN void gui_debug_window_rewind(void);
+EXTERN bool gui_debug_rewind_seek(int age);
 
 #undef GUI_DEBUG_REWIND_IMPORT
 #undef EXTERN

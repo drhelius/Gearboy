@@ -26,6 +26,7 @@
 #include "../gui_debug_disassembler.h"
 #include "../gui_debug_memory.h"
 #include "../gui_debug_memeditor.h"
+#include "../gui_debug_rewind.h"
 #include "../config.h"
 #include "../rewind.h"
 #include <cstring>
@@ -1428,7 +1429,7 @@ json DebugAdapter::RewindSeek(int snapshot)
 
     int age = count - snapshot;
 
-    if (!rewind_seek(age))
+    if (!gui_debug_rewind_seek(age))
         return {{"error", "Failed to load snapshot"}};
 
     Processor* cpu = m_core->GetProcessor();
