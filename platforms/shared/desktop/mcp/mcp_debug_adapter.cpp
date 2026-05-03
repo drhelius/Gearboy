@@ -2325,6 +2325,20 @@ json DebugAdapter::MemorySearch(int area, const std::string& op, const std::stri
         return result;
     }
 
+    if (compare_type_index == 2)
+    {
+        MemoryAreaInfo info = GetMemoryAreaInfo(area);
+        u32 display_base = GetMemoryAreaDisplayBase(area);
+        u32 compare_offset = 0;
+        if (!NormalizeMemoryAreaAddress(info, display_base, (u32)compare_value, &compare_offset))
+        {
+            result["error"] = "Compare address outside memory area";
+            return result;
+        }
+
+        compare_value = (int)compare_offset;
+    }
+
     int data_type_index = 0;
     if (data_type == "hex") data_type_index = 0;
     else if (data_type == "signed") data_type_index = 1;

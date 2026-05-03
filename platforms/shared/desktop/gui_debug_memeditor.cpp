@@ -1005,6 +1005,12 @@ int MemEditor::PerformSearch(int op, int compare_type, int compare_value, int da
     m_search_compare_specific_address = compare_value;
     m_search_data_type = data_type;
 
+    if (m_search_compare_type == 2 && !CanSearchAddressFit(m_search_compare_specific_address))
+    {
+        m_search_results.clear();
+        return 0;
+    }
+
     CalculateSearchResults();
 
     return (int)m_search_results.size();
@@ -1411,6 +1417,18 @@ void MemEditor::CalculateSearchResults()
 
     m_search_results.clear();
 
+    int compare_address_value = 0;
+    if (m_search_compare_type == 2)
+    {
+        if (!CanSearchAddressFit(m_search_compare_specific_address))
+            return;
+
+        if (m_mem_word == 1)
+            compare_address_value = m_mem_data[m_search_compare_specific_address];
+        else if (m_mem_word == 2)
+            compare_address_value = ((uint16_t*)m_mem_data)[m_search_compare_specific_address];
+    }
+
     for (int i = 0; i < m_mem_size; i++)
     {
         int compare_value = 0;
@@ -1458,10 +1476,7 @@ void MemEditor::CalculateSearchResults()
                 break;
             // Specific address
             case 2:
-                if (m_mem_word == 1)
-                    compare_value = m_mem_data[m_search_compare_specific_address];
-                else if (m_mem_word == 2)
-                    compare_value = mem_data_16[m_search_compare_specific_address];
+                compare_value = compare_address_value;
                 break;
         }
 
@@ -2083,6 +2098,11 @@ bool MemEditor::CanWatchRangeFit(int address, int size)
         return false;
 
     return true;
+}
+
+bool MemEditor::CanSearchAddressFit(int address)
+{
+    return IsValidPointer(m_mem_data) && IsValidPointer(m_search_data) && m_mem_size > 0 && address >= 0 && address < m_mem_size;
 }
 
 uint32_t MemEditor::ReadWatchValue(const Watch& watch)

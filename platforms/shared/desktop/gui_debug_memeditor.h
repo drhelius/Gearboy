@@ -130,6 +130,7 @@ private:
     bool ParseHexByteString(const char* str, uint8_t* out, int* out_len, int max_len);
     bool NormalizeSelectionAddress(int address, int* offset);
     bool CanWatchRangeFit(int address, int size);
+    bool CanSearchAddressFit(int address);
     uint32_t ReadWatchValue(const Watch& watch);
     int WatchSizeBytes(int size);
     void DrawWatchValue(uint32_t value, int size, int format);
