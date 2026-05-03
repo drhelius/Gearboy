@@ -1042,10 +1042,41 @@ void MemEditor::GetSelection(int* start, int* end)
     *end = m_selection_end;
 }
 
-void MemEditor::SetSelection(int start, int end)
+bool MemEditor::SetSelection(int start, int end)
 {
-    m_selection_start = start;
-    m_selection_end = end;
+    int start_offset = 0;
+    int end_offset = 0;
+
+    if (!NormalizeSelectionAddress(start, &start_offset) || !NormalizeSelectionAddress(end, &end_offset))
+        return false;
+
+    if (start_offset > end_offset)
+        std::swap(start_offset, end_offset);
+
+    m_selection_start = start_offset;
+    m_selection_end = end_offset;
+
+    return true;
+}
+
+bool MemEditor::NormalizeSelectionAddress(int address, int* offset)
+{
+    if (!IsValidPointer(offset) || !IsValidPointer(m_mem_data) || m_mem_size <= 0 || address < 0)
+        return false;
+
+    if (address >= m_mem_base_addr && address < (m_mem_base_addr + m_mem_size))
+    {
+        *offset = address - m_mem_base_addr;
+        return true;
+    }
+
+    if (address < m_mem_size)
+    {
+        *offset = address;
+        return true;
+    }
+
+    return false;
 }
 
 void MemEditor::ScrollToAddress(int address)
@@ -1648,10 +1679,25 @@ void MemEditor::ClearSelection()
 
 void MemEditor::SetValueToSelection(int value)
 {
-    int selection_size = (m_selection_end - m_selection_start + 1) * m_mem_word;
-    int start = m_selection_start * m_mem_word;
-    int end = start + selection_size;
+    if (!IsValidPointer(m_mem_data) || m_mem_size <= 0 || m_mem_word <= 0)
+        return;
+
+    int selection_start = m_selection_start;
+    int selection_end = m_selection_end;
+
+    if (selection_start > selection_end)
+        std::swap(selection_start, selection_end);
+
+    if (selection_start < 0 || selection_end < 0 || selection_start >= m_mem_size || selection_end >= m_mem_size)
+        return;
+
+    int start = selection_start * m_mem_word;
+    int end = (selection_end + 1) * m_mem_word;
+    int total = m_mem_size * m_mem_word;
     int mask = m_mem_word == 1 ? 0xFF : 0xFFFF;
+
+    if (start < 0 || end > total || start >= end)
+        return;
 
     for (int i = start; i < end; i++)
     {

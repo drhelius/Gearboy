@@ -236,14 +236,18 @@ void gui_debug_memory_save_dump(const char* file_path, bool binary)
         mem_edit[current_mem_edit].SaveToTextFile(file_path);
 }
 
-void gui_debug_memory_select_range(int editor, int start_address, int end_address)
+bool gui_debug_memory_select_range(int editor, int start_address, int end_address)
 {
     if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
-        return;
+        return false;
+
+    if (!mem_edit[editor].SetSelection(start_address, end_address))
+        return false;
 
     mem_edit_select = editor;
-    mem_edit[editor].SetSelection(start_address, end_address);
     mem_edit[editor].ScrollToAddress(start_address);
+
+    return true;
 }
 
 void gui_debug_memory_set_selection_value(int editor, u8 value)

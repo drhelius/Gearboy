@@ -43,6 +43,55 @@ struct DisassemblerBookmark
     char name[32];
 };
 
+static u32 GetMemoryAreaDisplayBase(int area)
+{
+    switch (area)
+    {
+        case MEMORY_EDITOR_ROM1:
+            return 0x4000;
+        case MEMORY_EDITOR_VRAM:
+            return 0x8000;
+        case MEMORY_EDITOR_RAM:
+            return 0xA000;
+        case MEMORY_EDITOR_WRAM0:
+        case MEMORY_EDITOR_WRAM:
+            return 0xC000;
+        case MEMORY_EDITOR_WRAM1:
+            return 0xD000;
+        case MEMORY_EDITOR_OAM:
+            return 0xFE00;
+        case MEMORY_EDITOR_IO:
+            return 0xFF00;
+        case MEMORY_EDITOR_HIRAM:
+            return 0xFF80;
+        default:
+            return 0x0000;
+    }
+}
+
+static bool NormalizeMemoryAreaAddress(const MemoryAreaInfo& info, u32 display_base, u32 address, u32* offset)
+{
+    if (!IsValidPointer(offset) || !IsValidPointer(info.data) || info.size == 0)
+        return false;
+
+    u64 display_start = display_base;
+    u64 display_end = display_start + info.size;
+
+    if ((u64)address >= display_start && (u64)address < display_end)
+    {
+        *offset = address - display_base;
+        return true;
+    }
+
+    if (address < info.size)
+    {
+        *offset = address;
+        return true;
+    }
+
+    return false;
+}
+
 void DebugAdapter::Pause()
 {
     emu_debug_break();
@@ -1725,12 +1774,55 @@ json DebugAdapter::SelectMemoryRange(int editor, int start_address, int end_addr
         return result;
     }
 
-    gui_debug_memory_select_range(editor, start_address, end_address);
+    MemoryAreaInfo info = GetMemoryAreaInfo(editor);
+    if (!IsValidPointer(info.data) || info.size == 0)
+    {
+        result["error"] = "Memory area unavailable";
+        return result;
+    }
+
+    u32 display_base = GetMemoryAreaDisplayBase(editor);
+    u32 start_offset = 0;
+    u32 end_offset = 0;
+    if (!NormalizeMemoryAreaAddress(info, display_base, (u32)start_address, &start_offset) ||
+        !NormalizeMemoryAreaAddress(info, display_base, (u32)end_address, &end_offset))
+    {
+        result["error"] = "Selection range outside memory area";
+        return result;
+    }
+
+    if (start_offset > end_offset)
+        std::swap(start_offset, end_offset);
+
+    u32 display_start = display_base + start_offset;
+    u32 display_end = display_base + end_offset;
+
+    if (!gui_debug_memory_select_range(editor, (int)display_start, (int)display_end))
+    {
+        result["error"] = "Unable to apply memory selection";
+        return result;
+    }
+
+    int actual_start = -1;
+    int actual_end = -1;
+    gui_debug_memory_get_selection(editor, &actual_start, &actual_end);
+    if (actual_start < 0 || actual_end < actual_start || (u32)actual_end >= info.size)
+    {
+        result["error"] = "Unable to read applied memory selection";
+        return result;
+    }
+
+    u32 actual_display_start = display_base + (u32)actual_start;
+    u32 actual_display_end = display_base + (u32)actual_end;
+
+    std::ostringstream start_ss, end_ss;
+    start_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << actual_display_start;
+    end_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << actual_display_end;
 
     result["success"] = true;
-    result["editor"] = editor;
-    result["start_address"] = start_address;
-    result["end_address"] = end_address;
+    result["area"] = editor;
+    result["start_address"] = start_ss.str();
+    result["end_address"] = end_ss.str();
 
     return result;
 }

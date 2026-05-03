@@ -64,7 +64,7 @@ EXTERN void gui_debug_memory_paste(void);
 EXTERN void gui_debug_memory_select_all(void);
 EXTERN void gui_debug_memory_goto(int editor, int address);
 EXTERN void gui_debug_memory_save_dump(const char* file_path, bool binary);
-EXTERN void gui_debug_memory_select_range(int editor, int start_address, int end_address);
+EXTERN bool gui_debug_memory_select_range(int editor, int start_address, int end_address);
 EXTERN void gui_debug_memory_set_selection_value(int editor, u8 value);
 EXTERN void gui_debug_memory_add_bookmark(int editor, int address, const char* name);
 EXTERN void gui_debug_memory_remove_bookmark(int editor, int address);

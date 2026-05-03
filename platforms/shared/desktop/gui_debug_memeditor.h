@@ -99,7 +99,7 @@ public:
     int GetWordBytes();
     char* GetTitle();
     void GetSelection(int* start, int* end);
-    void SetSelection(int start, int end);
+    bool SetSelection(int start, int end);
     void ScrollToAddress(int address);
     void SearchCapture();
     int PerformSearch(int op, int compare_type, int compare_value, int data_type);
@@ -128,6 +128,7 @@ private:
     void DrawSearchValue(int value, ImVec4 color);
     void FindBytesNext(int start_offset);
     bool ParseHexByteString(const char* str, uint8_t* out, int* out_len, int max_len);
+    bool NormalizeSelectionAddress(int address, int* offset);
     uint32_t ReadWatchValue(const Watch& watch);
     int WatchSizeBytes(int size);
     void DrawWatchValue(uint32_t value, int size, int format);
