@@ -345,6 +345,7 @@ void config_read(void)
     config_input.key_start = (SDL_Scancode)read_int("Input", "KeyStart", SDL_SCANCODE_RETURN);
     config_input.key_select = (SDL_Scancode)read_int("Input", "KeySelect", SDL_SCANCODE_SPACE);
 
+    config_input.allow_up_down = read_bool("Input", "AllowUpDown", false);
     config_input.gamepad = read_bool("Input", "Gamepad", true);
     config_input.gamepad_directional = read_int("Input", "GamepadDirectional", 0);
     config_input.gamepad_invert_x_axis = read_bool("Input", "GamepadInvertX", false);
@@ -567,6 +568,7 @@ void config_write(void)
     write_int("Input", "KeyStart", config_input.key_start);
     write_int("Input", "KeySelect", config_input.key_select);
 
+    write_bool("Input", "AllowUpDown", config_input.allow_up_down);
     write_bool("Input", "Gamepad", config_input.gamepad);
     write_int("Input", "GamepadDirectional", config_input.gamepad_directional);
     write_bool("Input", "GamepadInvertX", config_input.gamepad_invert_x_axis);
