@@ -957,7 +957,7 @@ void MemEditor::WatchPopup()
             {
                 int watch_address = (int)watch_address_value;
 
-                if (watch_address >= m_mem_base_addr && watch_address < (m_mem_base_addr + m_mem_size))
+                if (CanWatchRangeFit(watch_address, size))
                 {
                     Watch watch;
                     watch.address = watch_address;
@@ -2043,9 +2043,14 @@ void MemEditor::PrepareAddWatch(int address, const char* notes)
     m_add_watch = true;
 }
 
-void MemEditor::AddWatchDirect(int address, const char* notes, int size)
+bool MemEditor::AddWatchDirect(int address, const char* notes, int size)
 {
     Watch watch;
+    int size_index = (size >= 0 && size <= 3) ? size : 0;
+
+    if (!CanWatchRangeFit(address, size_index))
+        return false;
+
     watch.address = address;
 
     if (notes && strlen(notes) > 0)
@@ -2053,14 +2058,38 @@ void MemEditor::AddWatchDirect(int address, const char* notes, int size)
     else
         snprintf(watch.notes, 128, "Watch_%04X", address);
 
-    watch.size = (size >= 0 && size <= 3) ? size : 0;
+    watch.size = size_index;
     watch.format = 0;
     m_watches.push_back(watch);
     m_watch_window = true;
+
+    return true;
+}
+
+bool MemEditor::CanWatchRangeFit(int address, int size)
+{
+    if (!IsValidPointer(m_mem_data) || m_mem_size <= 0 || m_mem_word <= 0)
+        return false;
+
+    int bytes = WatchSizeBytes(size);
+    int total_bytes = m_mem_size * m_mem_word;
+
+    if (address < m_mem_base_addr)
+        return false;
+
+    int byte_offset = (address - m_mem_base_addr) * m_mem_word;
+
+    if (bytes <= 0 || byte_offset < 0 || byte_offset > total_bytes - bytes)
+        return false;
+
+    return true;
 }
 
 uint32_t MemEditor::ReadWatchValue(const Watch& watch)
 {
+    if (!CanWatchRangeFit(watch.address, watch.size))
+        return 0;
+
     int bytes = WatchSizeBytes(watch.size);
     int byte_offset = (watch.address - m_mem_base_addr) * m_mem_word;
     int total_bytes = m_mem_size * m_mem_word;

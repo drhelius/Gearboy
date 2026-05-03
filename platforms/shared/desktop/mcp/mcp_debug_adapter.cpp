@@ -92,6 +92,17 @@ static bool NormalizeMemoryAreaAddress(const MemoryAreaInfo& info, u32 display_b
     return false;
 }
 
+static bool MemoryAreaContainsDisplayAddress(const MemoryAreaInfo& info, u32 display_base, u32 address)
+{
+    if (!IsValidPointer(info.data) || info.size == 0)
+        return false;
+
+    u64 display_start = display_base;
+    u64 display_end = display_start + info.size;
+
+    return (u64)address >= display_start && (u64)address < display_end;
+}
+
 void DebugAdapter::Pause()
 {
     emu_debug_break();
@@ -1919,7 +1930,19 @@ json DebugAdapter::AddMemoryWatch(int editor, int address, const std::string& no
         return result;
     }
 
-    gui_debug_memory_add_watch(editor, address, notes.c_str(), size);
+    MemoryAreaInfo info = GetMemoryAreaInfo(editor);
+    u32 display_base = GetMemoryAreaDisplayBase(editor);
+    if (!MemoryAreaContainsDisplayAddress(info, display_base, (u32)address))
+    {
+        result["error"] = "Watch address outside memory area";
+        return result;
+    }
+
+    if (!gui_debug_memory_add_watch(editor, address, notes.c_str(), size))
+    {
+        result["error"] = "Unable to add memory watch";
+        return result;
+    }
 
     result["success"] = true;
     result["editor"] = editor;

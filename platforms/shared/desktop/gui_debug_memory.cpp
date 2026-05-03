@@ -296,10 +296,10 @@ void gui_debug_memory_remove_bookmark(int editor, int address)
     }
 }
 
-void gui_debug_memory_add_watch(int editor, int address, const char* notes, int size)
+bool gui_debug_memory_add_watch(int editor, int address, const char* notes, int size)
 {
     if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
-        return;
+        return false;
 
     int size_index = 0;
     switch (size)
@@ -311,7 +311,7 @@ void gui_debug_memory_add_watch(int editor, int address, const char* notes, int 
         default: size_index = 0; break;
     }
 
-    mem_edit[editor].AddWatchDirect(address, notes, size_index);
+    return mem_edit[editor].AddWatchDirect(address, notes, size_index);
 }
 
 void gui_debug_memory_open_watch_popup(int editor, int address, const char* notes)

@@ -84,7 +84,7 @@ public:
     void OpenFindBytes();
     void AddWatch();
     void PrepareAddWatch(int address, const char* notes);
-    void AddWatchDirect(int address, const char* notes, int size);
+    bool AddWatchDirect(int address, const char* notes, int size);
     void RemoveWatches();
     std::vector<Watch>* GetWatches();
     void SetGuiFont(ImFont* gui_font);
@@ -129,6 +129,7 @@ private:
     void FindBytesNext(int start_offset);
     bool ParseHexByteString(const char* str, uint8_t* out, int* out_len, int max_len);
     bool NormalizeSelectionAddress(int address, int* offset);
+    bool CanWatchRangeFit(int address, int size);
     uint32_t ReadWatchValue(const Watch& watch);
     int WatchSizeBytes(int size);
     void DrawWatchValue(uint32_t value, int size, int format);
