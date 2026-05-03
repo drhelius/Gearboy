@@ -1069,7 +1069,7 @@ void emu_mcp_pump_commands(void)
 
 static void reset_buffers(void)
 {
-    for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
+    for (int i = 0; i < SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT; i++)
     {
         emu_frame_buffer[i].red = 0;
         emu_frame_buffer[i].green = 0;
@@ -1170,8 +1170,8 @@ static void init_debug(void)
         memset(emu_debug_oam_buffers[s], 0, 8 * 16 * sizeof(GB_Color));
     }
 
-    memset(frame_buffer_565, 0, GAMEBOY_WIDTH * GAMEBOY_HEIGHT * sizeof(u16));
-    memset(emu_frame_buffer, 0, GAMEBOY_WIDTH * GAMEBOY_HEIGHT * sizeof(GB_Color));
+    memset(frame_buffer_565, 0, SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT * sizeof(u16));
+    memset(emu_frame_buffer, 0, SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT * sizeof(GB_Color));
     memset(debug_background_buffer_565, 0, 256 * 256 * sizeof(u16));
     memset(emu_debug_background_buffer, 0, 256 * 256 * sizeof(GB_Color));
 }
