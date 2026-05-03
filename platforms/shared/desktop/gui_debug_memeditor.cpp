@@ -1182,40 +1182,119 @@ void MemEditor::WatchWindow()
 
                 ImGui::TableNextColumn();
 
-                char sel_id[16];
-                snprintf(sel_id, sizeof(sel_id), "##wv%d", row);
-                ImGui::Selectable(sel_id, false, ImGuiSelectableFlags_SpanAllColumns);
+                uint32_t value = ReadWatchValue(watch);
 
-                if (ImGui::BeginPopupContextItem())
+                static ImGuiID watch_editing_id = 0;
+                static int watch_frames_editing = 0;
+                static char watch_edit_buffer[12] = {0};
+
+                ImGuiID watch_widget_id = ImGui::GetID("##wve");
+
+                if (watch_editing_id == watch_widget_id)
                 {
-                    PushGuiFont();
+                    int bytes = WatchSizeBytes(watch.size);
+                    int hex_digits = bytes * 2;
 
-                    if (ImGui::Selectable("Remove Watch"))
+                    float text_height = ImGui::GetTextLineHeight();
+                    float frame_height = ImGui::GetFrameHeight();
+                    float padding_reduction = (frame_height - text_height) * 0.5f;
+                    ImVec2 original_padding = ImGui::GetStyle().FramePadding;
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(original_padding.x, original_padding.y - padding_reduction));
+
+                    char digit_str[12];
+                    memset(digit_str, 'F', hex_digits);
+                    digit_str[hex_digits] = '\0';
+                    ImGui::PushItemWidth(ImGui::CalcTextSize(digit_str).x + 6);
+
+                    ImGuiInputTextFlags input_flags = ImGuiInputTextFlags_CharsHexadecimal |
+                                                      ImGuiInputTextFlags_CharsUppercase |
+                                                      ImGuiInputTextFlags_EnterReturnsTrue |
+                                                      ImGuiInputTextFlags_AutoSelectAll;
+
+                    if (watch_frames_editing == 0)
                     {
-                        remove = row;
+                        ImGui::SetKeyboardFocusHere();
                     }
 
-                    ImGui::Separator();
-                    ImGui::Text("Display as:");
-                    //ImGui::Separator();
+                    bool enter_pressed = ImGui::InputText("##wve", watch_edit_buffer, sizeof(watch_edit_buffer), input_flags);
+                    bool lost_focus = (watch_frames_editing > 1) && !ImGui::IsItemActive();
+                    watch_frames_editing++;
 
-                    for (int f = 0; f < 5; f++)
+                    if (enter_pressed)
                     {
-                        bool selected = (watch.format == f);
-                        if (ImGui::Selectable(format_labels[f], selected))
+                        u32 new_value = 0;
+                        if (parse_hex_string(watch_edit_buffer, strlen(watch_edit_buffer), &new_value))
                         {
-                            watch.format = f;
+                            WriteWatchValue(watch, new_value);
+                        }
+                        watch_editing_id = 0;
+                    }
+
+                    if (ImGui::IsKeyPressed(ImGuiKey_Escape) || lost_focus)
+                    {
+                        watch_editing_id = 0;
+                    }
+
+                    ImGui::PopItemWidth();
+                    ImGui::PopStyleVar();
+                }
+                else
+                {
+                    char sel_id[16];
+                    snprintf(sel_id, sizeof(sel_id), "##wv%d", row);
+                    ImGui::Selectable(sel_id, false, ImGuiSelectableFlags_SpanAllColumns);
+
+                    if (ImGui::BeginPopupContextItem())
+                    {
+                        PushGuiFont();
+
+                        if (ImGui::Selectable("Remove Watch"))
+                        {
+                            remove = row;
+                        }
+
+                        ImGui::Separator();
+                        ImGui::Text("Display as:");
+
+                        for (int f = 0; f < 5; f++)
+                        {
+                            bool selected = (watch.format == f);
+                            if (ImGui::Selectable(format_labels[f], selected))
+                            {
+                                watch.format = f;
+                            }
+                        }
+
+                        PopGuiFont();
+
+                        ImGui::EndPopup();
+                    }
+
+                    if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+                    {
+                        watch_editing_id = watch_widget_id;
+                        watch_frames_editing = 0;
+                        int bytes = WatchSizeBytes(watch.size);
+                        switch (bytes)
+                        {
+                            case 1:
+                                snprintf(watch_edit_buffer, sizeof(watch_edit_buffer), "%02X", value);
+                                break;
+                            case 2:
+                                snprintf(watch_edit_buffer, sizeof(watch_edit_buffer), "%04X", value);
+                                break;
+                            case 3:
+                                snprintf(watch_edit_buffer, sizeof(watch_edit_buffer), "%06X", value);
+                                break;
+                            case 4:
+                                snprintf(watch_edit_buffer, sizeof(watch_edit_buffer), "%08X", value);
+                                break;
                         }
                     }
 
-                    PopGuiFont();
-
-                    ImGui::EndPopup();
+                    ImGui::SameLine(0, 0);
+                    DrawWatchValue(value, watch.size, watch.format);
                 }
-
-                ImGui::SameLine(0, 0);
-                uint32_t value = ReadWatchValue(watch);
-                DrawWatchValue(value, watch.size, watch.format);
 
                 ImGui::TableNextColumn();
 
@@ -2115,12 +2194,30 @@ uint32_t MemEditor::ReadWatchValue(const Watch& watch)
     int total_bytes = m_mem_size * m_mem_word;
     uint32_t value = 0;
 
+    if (byte_offset < 0 || byte_offset >= total_bytes)
+        return 0;
+
     for (int i = 0; i < bytes && (byte_offset + i) < total_bytes; i++)
     {
         value |= (uint32_t)m_mem_data[byte_offset + i] << (i * 8);
     }
 
     return value;
+}
+
+void MemEditor::WriteWatchValue(const Watch& watch, uint32_t value)
+{
+    if (!CanWatchRangeFit(watch.address, watch.size))
+        return;
+
+    int bytes = WatchSizeBytes(watch.size);
+    int byte_offset = (watch.address - m_mem_base_addr) * m_mem_word;
+    int total_bytes = m_mem_size * m_mem_word;
+
+    for (int i = 0; i < bytes && (byte_offset + i) < total_bytes; i++)
+    {
+        m_mem_data[byte_offset + i] = (uint8_t)((value >> (i * 8)) & 0xFF);
+    }
 }
 
 int MemEditor::WatchSizeBytes(int size)

@@ -132,6 +132,7 @@ private:
     bool CanWatchRangeFit(int address, int size);
     bool CanSearchAddressFit(int address);
     uint32_t ReadWatchValue(const Watch& watch);
+    void WriteWatchValue(const Watch& watch, uint32_t value);
     int WatchSizeBytes(int size);
     void DrawWatchValue(uint32_t value, int size, int format);
     void PushGuiFont();
