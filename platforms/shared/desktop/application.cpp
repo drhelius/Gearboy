@@ -66,6 +66,7 @@ static void* macos_fullscreen_observer = NULL;
 static void* macos_nswindow = NULL;
 extern "C" void* macos_install_fullscreen_observer(void* nswindow, void(*enter_cb)(), void(*exit_cb)());
 extern "C" void macos_set_native_fullscreen(void* nswindow, bool enter);
+extern "C" void macos_refocus_window(void* nswindow);
 #endif
 
 int application_init(const char* rom_file, const char* symbol_file, bool force_fullscreen, bool force_windowed, int mcp_mode, int mcp_tcp_port)
@@ -236,6 +237,17 @@ void application_trigger_fit_to_content(int width, int height)
     SDL_SetWindowSize(application_sdl_window, width, height);
 }
 
+void application_refocus_window(void)
+{
+    if (!application_sdl_window)
+        return;
+
+    SDL_RaiseWindow(application_sdl_window);
+
+#if defined(__APPLE__)
+    macos_refocus_window(macos_nswindow);
+#endif
+}
 
 void application_update_title_with_rom(const char* rom)
 {
@@ -467,7 +479,7 @@ static void sdl_events_app(const SDL_Event* event)
         {
             const char* dropped_filedir = event->drop.data;
             gui_load_rom(dropped_filedir);
-            SDL_RaiseWindow(application_sdl_window);
+            application_refocus_window();
             break;
         }
         case SDL_EVENT_WINDOW_FOCUS_GAINED:

@@ -88,3 +88,24 @@ extern "C" void macos_set_native_fullscreen(void* nswindow, bool enter)
         [win toggleFullScreen:nil];
     }
 }
+
+extern "C" void macos_refocus_window(void* nswindow)
+{
+    NSWindow* win = (__bridge NSWindow*)nswindow;
+    if (!win)
+        return;
+
+    if (@available(macOS 14.0, *))
+    {
+        [NSApp activate];
+    }
+    else
+    {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [NSApp activateIgnoringOtherApps:YES];
+#pragma clang diagnostic pop
+    }
+
+    [win makeKeyAndOrderFront:nil];
+}
