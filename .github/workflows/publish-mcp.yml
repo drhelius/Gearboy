@@ -12,7 +12,7 @@ env:
 jobs:
   publish_mcp:
     name: Publish to MCP Registry
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     if: github.repository_owner == 'drhelius'
     permissions:
       contents: read
@@ -43,29 +43,51 @@ jobs:
       run: |
         cd mcpb-packages
         TAG="${{ steps.release_info.outputs.tag }}"
-        echo "SHA256_MACOS_ARM64=$(shasum -a 256 ${{ env.NAME_UPPER }}-${TAG}-mcpb-macos-arm64.mcpb | cut -d' ' -f1)" >> $GITHUB_ENV
-        echo "SHA256_MACOS_X64=$(shasum -a 256 ${{ env.NAME_UPPER }}-${TAG}-mcpb-macos-x64.mcpb | cut -d' ' -f1)" >> $GITHUB_ENV
-        echo "SHA256_WINDOWS_ARM64=$(shasum -a 256 ${{ env.NAME_UPPER }}-${TAG}-mcpb-windows-arm64.mcpb | cut -d' ' -f1)" >> $GITHUB_ENV
-        echo "SHA256_WINDOWS_X64=$(shasum -a 256 ${{ env.NAME_UPPER }}-${TAG}-mcpb-windows-x64.mcpb | cut -d' ' -f1)" >> $GITHUB_ENV
-        echo "SHA256_LINUX_X64=$(shasum -a 256 ${{ env.NAME_UPPER }}-${TAG}-mcpb-linux-x64.mcpb | cut -d' ' -f1)" >> $GITHUB_ENV
-        echo "SHA256_LINUX_ARM64=$(shasum -a 256 ${{ env.NAME_UPPER }}-${TAG}-mcpb-linux-arm64.mcpb | cut -d' ' -f1)" >> $GITHUB_ENV
+        echo "SHA256_MACOS_ARM64=$(sha256sum "${NAME_UPPER}-${TAG}-mcpb-macos-arm64.mcpb" | cut -d' ' -f1)" >> $GITHUB_ENV
+        echo "SHA256_MACOS_X64=$(sha256sum "${NAME_UPPER}-${TAG}-mcpb-macos-x64.mcpb" | cut -d' ' -f1)" >> $GITHUB_ENV
+        echo "SHA256_WINDOWS_ARM64=$(sha256sum "${NAME_UPPER}-${TAG}-mcpb-windows-arm64.mcpb" | cut -d' ' -f1)" >> $GITHUB_ENV
+        echo "SHA256_WINDOWS_X64=$(sha256sum "${NAME_UPPER}-${TAG}-mcpb-windows-x64.mcpb" | cut -d' ' -f1)" >> $GITHUB_ENV
+        echo "SHA256_LINUX_X64=$(sha256sum "${NAME_UPPER}-${TAG}-mcpb-linux-x64.mcpb" | cut -d' ' -f1)" >> $GITHUB_ENV
+        echo "SHA256_LINUX_ARM64=$(sha256sum "${NAME_UPPER}-${TAG}-mcpb-linux-arm64.mcpb" | cut -d' ' -f1)" >> $GITHUB_ENV
     - name: Generate MCP server.json
       run: |
+        TAG="${{ steps.release_info.outputs.tag }}"
         cp platforms/shared/desktop/mcp/server.json.template server.json
-        sed -i '' "s/{{NAME_LOWER}}/${{ env.NAME_LOWER }}/g" server.json
-        sed -i '' "s/{{NAME_UPPER}}/${{ env.NAME_UPPER }}/g" server.json
-        sed -i '' "s/{{VERSION}}/${{ steps.release_info.outputs.tag }}/g" server.json
-        sed -i '' "s/{{SHA256_MACOS_ARM64}}/${{ env.SHA256_MACOS_ARM64 }}/g" server.json
-        sed -i '' "s/{{SHA256_MACOS_X64}}/${{ env.SHA256_MACOS_X64 }}/g" server.json
-        sed -i '' "s/{{SHA256_WINDOWS_ARM64}}/${{ env.SHA256_WINDOWS_ARM64 }}/g" server.json
-        sed -i '' "s/{{SHA256_WINDOWS_X64}}/${{ env.SHA256_WINDOWS_X64 }}/g" server.json
-        sed -i '' "s/{{SHA256_LINUX_X64}}/${{ env.SHA256_LINUX_X64 }}/g" server.json
-        sed -i '' "s/{{SHA256_LINUX_ARM64}}/${{ env.SHA256_LINUX_ARM64 }}/g" server.json
+        sed -i "s/{{NAME_LOWER}}/${NAME_LOWER}/g" server.json
+        sed -i "s/{{NAME_UPPER}}/${NAME_UPPER}/g" server.json
+        sed -i "s/{{VERSION}}/${TAG}/g" server.json
+        sed -i "s/{{SHA256_MACOS_ARM64}}/${SHA256_MACOS_ARM64}/g" server.json
+        sed -i "s/{{SHA256_MACOS_X64}}/${SHA256_MACOS_X64}/g" server.json
+        sed -i "s/{{SHA256_WINDOWS_ARM64}}/${SHA256_WINDOWS_ARM64}/g" server.json
+        sed -i "s/{{SHA256_WINDOWS_X64}}/${SHA256_WINDOWS_X64}/g" server.json
+        sed -i "s/{{SHA256_LINUX_X64}}/${SHA256_LINUX_X64}/g" server.json
+        sed -i "s/{{SHA256_LINUX_ARM64}}/${SHA256_LINUX_ARM64}/g" server.json
         
         echo "Generated server.json:"
         cat server.json
     - name: Install mcp-publisher
-      run: brew install mcp-publisher
+      run: |
+        case "$(uname -m)" in
+          arm64|aarch64)
+            ARCH="arm64"
+            ;;
+          x86_64)
+            ARCH="amd64"
+            ;;
+          *)
+            echo "Unsupported architecture: $(uname -m)"
+            exit 1
+            ;;
+        esac
+
+        curl --fail --location --retry 3 \
+          "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_${ARCH}.tar.gz" \
+          --output mcp-publisher.tar.gz
+        mkdir -p mcp-publisher-bin
+        tar -xzf mcp-publisher.tar.gz -C mcp-publisher-bin
+        BINARY="$(find mcp-publisher-bin -type f -name mcp-publisher | head -n 1)"
+        test -n "$BINARY"
+        sudo install -m 0755 "$BINARY" /usr/local/bin/mcp-publisher
     - name: Login to MCP Registry
       run: mcp-publisher login github-oidc
     - name: Publish to MCP Registry
