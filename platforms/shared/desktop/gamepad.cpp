@@ -377,19 +377,12 @@ void gamepad_check_shortcuts(int controller)
 
         if (button_pressed && !gamepad_shortcut_prev[controller][i])
         {
-            if (i >= config_HotkeyIndex_SelectSlot1 && i <= config_HotkeyIndex_SelectSlot5)
+            for (int j = 0; j < GUI_HOTKEY_MAP_COUNT; j++)
             {
-                config_emulator.save_slot = i - config_HotkeyIndex_SelectSlot1;
-            }
-            else
-            {
-                for (int j = 0; j < GUI_HOTKEY_MAP_COUNT; j++)
+                if (gui_hotkey_map[j].config_index == i)
                 {
-                    if (gui_hotkey_map[j].config_index == i)
-                    {
-                        gui_shortcut((gui_ShortCutEvent)gui_hotkey_map[j].shortcut);
-                        break;
-                    }
+                    gui_shortcut(gui_hotkey_map[j].shortcut);
+                    break;
                 }
             }
         }

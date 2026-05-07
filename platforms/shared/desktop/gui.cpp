@@ -224,8 +224,30 @@ void gui_shortcut(gui_ShortCutEvent event)
         emu_load_state_slot(config_emulator.save_slot + 1);
         break;
     }
+    case gui_ShortcutSelectSlot1:
+        config_emulator.save_slot = 0;
+        break;
+    case gui_ShortcutSelectSlot2:
+        config_emulator.save_slot = 1;
+        break;
+    case gui_ShortcutSelectSlot3:
+        config_emulator.save_slot = 2;
+        break;
+    case gui_ShortcutSelectSlot4:
+        config_emulator.save_slot = 3;
+        break;
+    case gui_ShortcutSelectSlot5:
+        config_emulator.save_slot = 4;
+        break;
     case gui_ShortcutScreenshot:
         gui_action_save_screenshot(NULL);
+        break;
+    case gui_ShortcutFullscreen:
+        config_emulator.fullscreen = !config_emulator.fullscreen;
+        application_trigger_fullscreen(config_emulator.fullscreen);
+        break;
+    case gui_ShortcutCaptureMouse:
+        config_emulator.capture_mouse = !config_emulator.capture_mouse;
         break;
     case gui_ShortcutDebugStepOver:
         if (config_debug.debug)

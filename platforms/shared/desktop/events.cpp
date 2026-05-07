@@ -63,35 +63,12 @@ void events_shortcuts(const SDL_Event* event)
         return;
     }
 
-    if (events_check_hotkey(event, config_hotkeys[config_HotkeyIndex_Fullscreen], false))
-    {
-        config_emulator.fullscreen = !config_emulator.fullscreen;
-        application_trigger_fullscreen(config_emulator.fullscreen);
-        return;
-    }
-
-    if (events_check_hotkey(event, config_hotkeys[config_HotkeyIndex_CaptureMouse], false))
-    {
-        config_emulator.capture_mouse = !config_emulator.capture_mouse;
-        return;
-    }
-
-    // Check slot selection hotkeys
-    for (int i = 0; i < 5; i++)
-    {
-        if (events_check_hotkey(event, config_hotkeys[config_HotkeyIndex_SelectSlot1 + i], false))
-        {
-            config_emulator.save_slot = i;
-            return;
-        }
-    }
-
     // Check all hotkeys mapped to gui shortcuts
     for (int i = 0; i < GUI_HOTKEY_MAP_COUNT; i++)
     {
-        if (gui_hotkey_map[i].shortcut >= 0 && events_check_hotkey(event, config_hotkeys[gui_hotkey_map[i].config_index], gui_hotkey_map[i].allow_repeat))
+        if (events_check_hotkey(event, config_hotkeys[gui_hotkey_map[i].config_index], gui_hotkey_map[i].allow_repeat))
         {
-            gui_shortcut((gui_ShortCutEvent)gui_hotkey_map[i].shortcut);
+            gui_shortcut(gui_hotkey_map[i].shortcut);
             return;
         }
     }

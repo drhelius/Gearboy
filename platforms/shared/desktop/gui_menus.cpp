@@ -886,6 +886,9 @@ static void menu_input(void)
                 gamepad_configuration_item("Fast Forward:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_FFWD], 0);
                 gamepad_configuration_item("Screenshot:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Screenshot], 0);
                 gamepad_configuration_item("Mute Audio:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Mute], 0);
+                gamepad_configuration_item("Fullscreen:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Fullscreen], 0);
+                gamepad_configuration_item("Capture Mouse:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_CaptureMouse], 0);
+                gamepad_configuration_item("Show Main Menu:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_ShowMainMenu], 0);
 
                 gui_popup_modal_gamepad(0);
 
