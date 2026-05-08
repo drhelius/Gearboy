@@ -46,6 +46,7 @@ public:
         CartridgeM161,
         CartridgeSachenMMC1,
         CartridgeSachenMMC2,
+        CartridgePKJD,
         CartridgeNotSupported
     };
 
@@ -92,6 +93,7 @@ private:
     bool LoadFromZipFile(const u8* buffer, int size);
     void CheckCartridgeType(int type);
     bool IsM161Cartridge() const;
+    bool IsPKJDCartridge() const;
     bool IsSachenMMC1Cartridge() const;
     bool IsSachenMMC2Cartridge() const;
     bool IsWisdomTreeCartridge(int type) const;

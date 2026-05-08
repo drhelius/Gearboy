@@ -593,6 +593,13 @@ bool Cartridge::GatherMetadata()
         m_bRTCPresent = false;
         m_bRumblePresent = false;
     }
+    else if (IsPKJDCartridge())
+    {
+        CheckCartridgeType(type);
+        m_Type = CartridgePKJD;
+        m_bRTCPresent = false;
+        m_bRumblePresent = false;
+    }
     else if (IsWisdomTreeCartridge(type))
     {
         m_Type = CartridgeWisdomTree;
@@ -709,6 +716,9 @@ bool Cartridge::GatherMetadata()
         case Cartridge::CartridgeSachenMMC2:
             Log("Sachen MMC2 found");
             break;
+        case Cartridge::CartridgePKJD:
+            Log("PKJD found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -770,6 +780,16 @@ bool Cartridge::IsM161Cartridge() const
     u32 header_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM + 0x100, 0x50));
 
     return (full_crc == 0x0C38A775) || (header_crc == 0xA61F3EE1);
+}
+
+bool Cartridge::IsPKJDCartridge() const
+{
+    if (m_iTotalSize < 0x150)
+        return false;
+
+    u32 header_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM + 0x100, 0x50));
+
+    return header_crc == 0x30F8F86C; // Pokemon Jade Version (Telefang Speed bootleg)
 }
 
 bool Cartridge::IsSachenMMC1Cartridge() const

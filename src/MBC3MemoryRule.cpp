@@ -68,6 +68,9 @@ void MBC3MemoryRule::Reset(bool bCGB)
     m_CurrentROMAddress = 0x4000;
     m_CurrentRAMAddress = 0;
     m_iRTCCycles = 0;
+    m_bPKJDRAMSelected = true;
+    for (int i = 0; i < 7; i++)
+        m_PKJDRegisters[i] = 0;
 }
 
 void MBC3MemoryRule::ResizeRAMBanks()
@@ -79,6 +82,89 @@ void MBC3MemoryRule::ResizeRAMBanks()
         SafeDeleteArray(m_pRAMBanks);
         m_iRAMBanksSize = ramBanksSize;
         m_pRAMBanks = new u8[m_iRAMBanksSize];
+    }
+}
+
+bool MBC3MemoryRule::IsPKJD() const
+{
+    return m_pCartridge->GetType() == Cartridge::CartridgePKJD;
+}
+
+int MBC3MemoryRule::GetSafeRAMBankMask() const
+{
+    int ramBankCount = m_pCartridge->GetRAMBankCount();
+
+    if (ramBankCount <= 0)
+        ramBankCount = 4;
+
+    return ramBankCount - 1;
+}
+
+u8 MBC3MemoryRule::ReadPKJD(u16 address)
+{
+    if (!m_bRamEnabled)
+    {
+        Debug("--> ** Attempting to read from disabled ram %X", address);
+        return 0xFF;
+    }
+
+    if (m_bPKJDRAMSelected)
+        return m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress];
+
+    if (m_RTCRegister < 7)
+        return m_PKJDRegisters[m_RTCRegister];
+
+    return 0;
+}
+
+void MBC3MemoryRule::WritePKJD(u16 address, u8 value)
+{
+    if (!m_bRamEnabled)
+    {
+        Debug("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+        return;
+    }
+
+    if (m_bPKJDRAMSelected)
+    {
+        m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress] = value;
+        return;
+    }
+
+    switch (m_RTCRegister)
+    {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+            m_PKJDRegisters[m_RTCRegister] = value;
+            break;
+        case 7:
+            switch (value)
+            {
+                case 0x11:
+                    m_PKJDRegisters[5]--;
+                    break;
+                case 0x12:
+                    m_PKJDRegisters[6]--;
+                    break;
+                case 0x41:
+                    m_PKJDRegisters[5] += m_PKJDRegisters[6];
+                    break;
+                case 0x42:
+                    m_PKJDRegisters[6] += m_PKJDRegisters[5];
+                    break;
+                case 0x51:
+                    m_PKJDRegisters[5]++;
+                    break;
+                case 0x52:
+                    m_PKJDRegisters[6]--;
+                    break;
+            }
+            break;
     }
 }
 
@@ -94,6 +180,9 @@ u8 MBC3MemoryRule::PerformRead(u16 address)
         }
         case 0xA000:
         {
+            if (IsPKJD())
+                return ReadPKJD(address);
+
             if (m_iCurrentRAMBank >= 0)
             {
                 if (m_bRamEnabled)
@@ -175,6 +264,37 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
         }
         case 0x4000:
         {
+            if (IsPKJD())
+            {
+                u8 bank = value & 0x0F;
+
+                if (bank < 8)
+                {
+                    m_iCurrentRAMBank = value;
+                    m_CurrentRAMAddress = (m_iCurrentRAMBank & GetSafeRAMBankMask()) * 0x2000;
+                    TraceBankSwitch(address, value);
+
+                    if (value < 8)
+                    {
+                        m_bPKJDRAMSelected = true;
+                        m_RTCRegister = 0;
+                    }
+                }
+                else if (bank <= 0x0C)
+                {
+                    m_bPKJDRAMSelected = false;
+                    m_RTCRegister = bank - 8;
+                    m_iCurrentRAMBank = -1;
+                }
+                else if (value <= 0x0F)
+                {
+                    m_bPKJDRAMSelected = false;
+                    m_RTCRegister = value - 8;
+                    m_iCurrentRAMBank = -1;
+                }
+                break;
+            }
+
             if (m_pCartridge->IsRTCPresent() && (value & 0x08))
             {
                 // RTC register select (bit 3 set)
@@ -204,6 +324,12 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
         }
         case 0xA000:
         {
+            if (IsPKJD())
+            {
+                WritePKJD(address, value);
+                break;
+            }
+
             if (m_iCurrentRAMBank >= 0)
             {
                 if (m_bRamEnabled)
@@ -479,6 +605,12 @@ void MBC3MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
     stream.write(reinterpret_cast<const char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
     stream.write(reinterpret_cast<const char*> (&m_RTC), sizeof(m_RTC));
+
+    if (IsPKJD())
+    {
+        stream.write(reinterpret_cast<const char*> (&m_bPKJDRAMSelected), sizeof(m_bPKJDRAMSelected));
+        stream.write(reinterpret_cast<const char*> (m_PKJDRegisters), sizeof(m_PKJDRegisters));
+    }
 }
 
 void MBC3MemoryRule::LoadState(std::istream& stream)
@@ -497,4 +629,10 @@ void MBC3MemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
     stream.read(reinterpret_cast<char*> (&m_RTC), sizeof(m_RTC));
     m_RTC.Days = (m_RTC.Days & 0xFF) | ((m_RTC.Control & 0x01) << 8);
+
+    if (IsPKJD())
+    {
+        stream.read(reinterpret_cast<char*> (&m_bPKJDRAMSelected), sizeof(m_bPKJDRAMSelected));
+        stream.read(reinterpret_cast<char*> (m_PKJDRegisters), sizeof(m_PKJDRegisters));
+    }
 }

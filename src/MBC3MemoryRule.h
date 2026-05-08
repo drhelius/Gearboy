@@ -66,6 +66,10 @@ public:
 private:
     void ResizeRAMBanks();
     void UpdateRTC();
+    bool IsPKJD() const;
+    int GetSafeRAMBankMask() const;
+    u8 ReadPKJD(u16 address);
+    void WritePKJD(u16 address, u8 value);
 
 private:
     int m_iCurrentRAMBank;
@@ -81,6 +85,8 @@ private:
     int m_CurrentRAMAddress;
     RTC_Registers m_RTC;
     u32 m_iRTCCycles;
+    bool m_bPKJDRAMSelected;
+    u8 m_PKJDRegisters[7];
 };
 
 #endif	/* MBC3MEMORYRULE_H */
