@@ -77,6 +77,7 @@ Cartridge::CartridgeTypes gui_get_mbc(int index)
         case 12: return Cartridge::CartridgeTAMA5;
         case 13: return Cartridge::CartridgeWisdomTree;
         case 14: return Cartridge::CartridgeM161;
+        case 15: return Cartridge::CartridgeSachenMMC1;
         default: return Cartridge::CartridgeNotSupported;
     }
 }

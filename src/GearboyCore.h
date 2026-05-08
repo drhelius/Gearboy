@@ -44,6 +44,7 @@ class MBC7MemoryRule;
 class TAMA5MemoryRule;
 class WisdomTreeMemoryRule;
 class M161MemoryRule;
+class SachenMMC1MemoryRule;
 class MemoryRule;
 class TraceLogger;
 class SGB;
@@ -154,6 +155,7 @@ private:
     TAMA5MemoryRule* m_pTAMA5MemoryRule;
     WisdomTreeMemoryRule* m_pWisdomTreeMemoryRule;
     M161MemoryRule* m_pM161MemoryRule;
+    SachenMMC1MemoryRule* m_pSachenMMC1MemoryRule;
     bool m_bCGB;
     bool m_bGBA;
     bool m_bSGB;

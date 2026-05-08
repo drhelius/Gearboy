@@ -42,6 +42,7 @@
 #include "TAMA5MemoryRule.h"
 #include "WisdomTreeMemoryRule.h"
 #include "M161MemoryRule.h"
+#include "SachenMMC1MemoryRule.h"
 #include "TraceLogger.h"
 #include "SGB.h"
 #include "common.h"
@@ -72,6 +73,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pTAMA5MemoryRule);
     InitPointer(m_pWisdomTreeMemoryRule);
     InitPointer(m_pM161MemoryRule);
+    InitPointer(m_pSachenMMC1MemoryRule);
     InitPointer(m_pRamChangedCallback);
     InitPointer(m_trace_logger);
     m_bCGB = false;
@@ -104,6 +106,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pTAMA5MemoryRule);
     SafeDelete(m_pWisdomTreeMemoryRule);
     SafeDelete(m_pM161MemoryRule);
+    SafeDelete(m_pSachenMMC1MemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
     SafeDelete(m_pCommonMemoryRule);
@@ -1422,7 +1425,9 @@ void GearboyCore::InitMemoryRules()
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pWisdomTreeMemoryRule = new WisdomTreeMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-        m_pM161MemoryRule = new M161MemoryRule(m_pProcessor, m_pMemory,
+    m_pM161MemoryRule = new M161MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pSachenMMC1MemoryRule = new SachenMMC1MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
@@ -1444,6 +1449,7 @@ void GearboyCore::InitMemoryRules()
     m_pTAMA5MemoryRule->SetTraceLogger(m_trace_logger);
     m_pWisdomTreeMemoryRule->SetTraceLogger(m_trace_logger);
     m_pM161MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pSachenMMC1MemoryRule->SetTraceLogger(m_trace_logger);
 }
 
 bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
@@ -1501,6 +1507,9 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
             break;
         case Cartridge::CartridgeM161:
             m_pMemory->SetCurrentRule(m_pM161MemoryRule);
+            break;
+        case Cartridge::CartridgeSachenMMC1:
+            m_pMemory->SetCurrentRule(m_pSachenMMC1MemoryRule);
             break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
@@ -1567,6 +1576,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pTAMA5MemoryRule->Reset(m_bCGB);
     m_pWisdomTreeMemoryRule->Reset(m_bCGB);
     m_pM161MemoryRule->Reset(m_bCGB);
+    m_pSachenMMC1MemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
     m_pSGB->Reset();

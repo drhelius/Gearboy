@@ -577,6 +577,14 @@ bool Cartridge::GatherMetadata()
         m_bRTCPresent = false;
         m_bRumblePresent = false;
     }
+    else if (IsSachenMMC1Cartridge())
+    {
+        m_Type = CartridgeSachenMMC1;
+        m_bSGB = false;
+        m_bBattery = false;
+        m_bRTCPresent = false;
+        m_bRumblePresent = false;
+    }
     else if (IsWisdomTreeCartridge(type))
     {
         m_Type = CartridgeWisdomTree;
@@ -589,7 +597,8 @@ bool Cartridge::GatherMetadata()
         CheckCartridgeType(type);
     }
 
-    if ((m_Type == CartridgeWisdomTree) || (m_Type == CartridgeM161))
+    if ((m_Type == CartridgeWisdomTree) || (m_Type == CartridgeM161) ||
+            (m_Type == CartridgeSachenMMC1))
     {
         m_iRAMBankCount = 0;
     }
@@ -686,6 +695,9 @@ bool Cartridge::GatherMetadata()
         case Cartridge::CartridgeM161:
             Log("M161 found");
             break;
+        case Cartridge::CartridgeSachenMMC1:
+            Log("Sachen MMC1 found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -747,4 +759,13 @@ bool Cartridge::IsM161Cartridge() const
     u32 header_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM + 0x100, 0x50));
 
     return (full_crc == 0x0C38A775) || (header_crc == 0xA61F3EE1);
+}
+
+bool Cartridge::IsSachenMMC1Cartridge() const
+{
+    if (m_iTotalSize < 0x150)
+        return false;
+
+    return (m_pTheROM[0x104] == 0xCE) && (m_pTheROM[0x114] == 0x66) &&
+            (m_pTheROM[0x144] == 0xED);
 }

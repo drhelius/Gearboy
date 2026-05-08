@@ -44,6 +44,7 @@ public:
         CartridgeTAMA5,
         CartridgeWisdomTree,
         CartridgeM161,
+        CartridgeSachenMMC1,
         CartridgeNotSupported
     };
 
@@ -90,6 +91,7 @@ private:
     bool LoadFromZipFile(const u8* buffer, int size);
     void CheckCartridgeType(int type);
     bool IsM161Cartridge() const;
+    bool IsSachenMMC1Cartridge() const;
     bool IsWisdomTreeCartridge(int type) const;
 
 private:
