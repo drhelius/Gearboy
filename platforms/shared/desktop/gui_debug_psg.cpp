@@ -136,7 +136,7 @@ void gui_debug_window_psg(void)
                     if (ch_buf && data_size > 0)
                     {
                         for (int i = 0; i < data_size; i++)
-                            wave_buffer[i] = (float)ch_buf[i] / 32768.0f * 6.0f;
+                            wave_buffer[i] = (float)ch_buf[i] / 32768.0f * 4.0f;
                     }
                     else
                     {
