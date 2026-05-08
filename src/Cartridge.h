@@ -42,6 +42,7 @@ public:
         CartridgeCamera,
         CartridgeMBC7,
         CartridgeTAMA5,
+        CartridgeWisdomTree,
         CartridgeNotSupported
     };
 
@@ -87,6 +88,7 @@ private:
     bool GatherMetadata();
     bool LoadFromZipFile(const u8* buffer, int size);
     void CheckCartridgeType(int type);
+    bool IsWisdomTreeCartridge(int type) const;
 
 private:
     u8* m_pTheROM;

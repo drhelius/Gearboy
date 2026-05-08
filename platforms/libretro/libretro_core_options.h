@@ -94,6 +94,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "Camera",          NULL },
             { "MBC 7",           NULL },
             { "TAMA5",           NULL },
+            { "Wisdom Tree",     NULL },
             { NULL, NULL },
         },
         "Auto"

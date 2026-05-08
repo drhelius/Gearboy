@@ -20,9 +20,16 @@ static MemEditor mem_edit[MEMORY_EDITOR_MAX];
 static int current_mem_edit = 0;
 static int mem_edit_select = -1;
 static char set_value_buffer[8] = "";
+static int current_rom0_bank = -1;
+static int current_rom1_bank = -1;
+static int current_ram_bank = -1;
+static int current_wram_bank = -1;
+static int current_vram_bank = -1;
 
 static void draw_tabs(void);
 static void memory_editor_menu(void);
+static void reset_ram_editor(GearboyCore* core, Memory* memory, MemoryRule* rule);
+static void refresh_memory_banks(void);
 
 void gui_debug_memory_init(void)
 {
@@ -63,11 +70,7 @@ void gui_debug_memory_reset(void)
     mem_edit[MEMORY_EDITOR_VRAM].Reset("VRAM", memory->GetVRAM(), 0x2000, 0x8000);
 
     MemoryRule* rule = memory->GetCurrentRule();
-    size_t ram_size = (rule != NULL) ? rule->GetRamSize() : 0;
-    if (ram_size > 0x2000)
-        ram_size = 0x2000;
-    u8* ram_ptr = (ram_size > 0 && rule != NULL) ? rule->GetCurrentRamBank() : memory->GetMemoryMap() + 0xA000;
-    mem_edit[MEMORY_EDITOR_RAM].Reset("RAM", ram_ptr, (int)ram_size, 0xA000);
+    reset_ram_editor(core, memory, rule);
 
     mem_edit[MEMORY_EDITOR_WRAM0].Reset("WRAM0", memory->GetWRAM0(), 0x1000, 0xC000);
     mem_edit[MEMORY_EDITOR_WRAM1].Reset("WRAM1", memory->GetWRAM1(), 0x1000, 0xD000);
@@ -85,6 +88,12 @@ void gui_debug_memory_reset(void)
     mem_edit[MEMORY_EDITOR_SGB_ATTR_FILES].Reset("SGB ATF", (u8*)sgb->GetAttributeFiles(), SGB_ATF_COUNT * SGB_ATF_SIZE);
     mem_edit[MEMORY_EDITOR_SGB_ATTR_MAP].Reset("SGB AMap", (u8*)sgb->GetAttributeMap(), SGB_ATTR_MAP_WIDTH * SGB_ATTR_MAP_HEIGHT);
     mem_edit[MEMORY_EDITOR_SGB_EFF_PAL].Reset("SGB EPal", (u8*)sgb->GetEffectivePalettes(), 4 * 4 * 2);
+
+    current_rom0_bank = (rule != NULL) ? rule->GetCurrentRomBank0Index() : -1;
+    current_rom1_bank = (rule != NULL) ? rule->GetCurrentRomBank1Index() : -1;
+    current_ram_bank = (rule != NULL && core->GetCartridge()->GetRAMBankCount() > 0) ? rule->GetCurrentRamBankIndex() : 0;
+    current_wram_bank = memory->GetCurrentCGBRAMBank();
+    current_vram_bank = memory->GetCurrentLCDRAMBank();
 }
 
 void gui_debug_window_memory(void)
@@ -108,15 +117,20 @@ void gui_debug_window_memory(void)
     Memory* memory = core->GetMemory();
     MemoryRule* rule = memory->GetCurrentRule();
 
+    refresh_memory_banks();
+
     ImGui::PushFont(gui_default_font);
     ImGui::TextColored(green, "  BANKS: "); ImGui::SameLine();
 
     if (rule != NULL)
     {
+        ImGui::TextColored(cyan, "ROM0"); ImGui::SameLine();
+        ImGui::Text("$%02X", rule->GetCurrentRomBank0Index()); ImGui::SameLine();
         ImGui::TextColored(cyan, "ROM1"); ImGui::SameLine();
         ImGui::Text("$%02X", rule->GetCurrentRomBank1Index()); ImGui::SameLine();
         ImGui::TextColored(cyan, "  RAM"); ImGui::SameLine();
-        ImGui::Text("$%02X", rule->GetCurrentRamBankIndex());
+        int ram_bank = (core->GetCartridge()->GetRAMBankCount() > 0) ? rule->GetCurrentRamBankIndex() : 0;
+        ImGui::Text("$%02X", ram_bank);
         if (core->IsCGB())
         {
             ImGui::SameLine();
@@ -166,6 +180,65 @@ static void draw_tabs(void)
             ImGui::PopFont();
             ImGui::EndTabItem();
         }
+    }
+}
+
+static void reset_ram_editor(GearboyCore* core, Memory* memory, MemoryRule* rule)
+{
+    size_t ram_size = 0;
+
+    if ((rule != NULL) && (core->GetCartridge()->GetRAMBankCount() > 0))
+        ram_size = rule->GetRamSize();
+
+    if (ram_size > 0x2000)
+        ram_size = 0x2000;
+
+    u8* ram_ptr = (ram_size > 0 && rule != NULL) ? rule->GetCurrentRamBank() : memory->GetMemoryMap() + 0xA000;
+    mem_edit[MEMORY_EDITOR_RAM].Reset("RAM", ram_ptr, (int)ram_size, 0xA000);
+}
+
+static void refresh_memory_banks(void)
+{
+    GearboyCore* core = emu_get_core();
+    Memory* memory = core->GetMemory();
+    MemoryRule* rule = memory->GetCurrentRule();
+
+    if (rule == NULL)
+        return;
+
+    int rom0_bank = rule->GetCurrentRomBank0Index();
+    if (rom0_bank != current_rom0_bank)
+    {
+        mem_edit[MEMORY_EDITOR_ROM0].Reset("ROM0", memory->GetROM0(), 0x4000);
+        current_rom0_bank = rom0_bank;
+    }
+
+    int rom1_bank = rule->GetCurrentRomBank1Index();
+    if (rom1_bank != current_rom1_bank)
+    {
+        mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000);
+        current_rom1_bank = rom1_bank;
+    }
+
+    int ram_bank = (core->GetCartridge()->GetRAMBankCount() > 0) ? rule->GetCurrentRamBankIndex() : 0;
+    if (ram_bank != current_ram_bank)
+    {
+        reset_ram_editor(core, memory, rule);
+        current_ram_bank = ram_bank;
+    }
+
+    int wram_bank = memory->GetCurrentCGBRAMBank();
+    if (wram_bank != current_wram_bank)
+    {
+        mem_edit[MEMORY_EDITOR_WRAM1].Reset("WRAM1", memory->GetWRAM1(), 0x1000, 0xD000);
+        current_wram_bank = wram_bank;
+    }
+
+    int vram_bank = memory->GetCurrentLCDRAMBank();
+    if (vram_bank != current_vram_bank)
+    {
+        mem_edit[MEMORY_EDITOR_VRAM].Reset("VRAM", memory->GetVRAM(), 0x2000, 0x8000);
+        current_vram_bank = vram_bank;
     }
 }
 

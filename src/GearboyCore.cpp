@@ -40,6 +40,7 @@
 #include "CameraMemoryRule.h"
 #include "MBC7MemoryRule.h"
 #include "TAMA5MemoryRule.h"
+#include "WisdomTreeMemoryRule.h"
 #include "TraceLogger.h"
 #include "SGB.h"
 #include "common.h"
@@ -68,6 +69,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pCameraMemoryRule);
     InitPointer(m_pMBC7MemoryRule);
     InitPointer(m_pTAMA5MemoryRule);
+    InitPointer(m_pWisdomTreeMemoryRule);
     InitPointer(m_pRamChangedCallback);
     InitPointer(m_trace_logger);
     m_bCGB = false;
@@ -98,6 +100,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pCameraMemoryRule);
     SafeDelete(m_pMBC7MemoryRule);
     SafeDelete(m_pTAMA5MemoryRule);
+    SafeDelete(m_pWisdomTreeMemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
     SafeDelete(m_pCommonMemoryRule);
@@ -1410,11 +1413,11 @@ void GearboyCore::InitMemoryRules()
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pCameraMemoryRule = new CameraMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pMBC7MemoryRule = new MBC7MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pTAMA5MemoryRule = new TAMA5MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pWisdomTreeMemoryRule = new WisdomTreeMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
@@ -1434,6 +1437,7 @@ void GearboyCore::InitMemoryRules()
     m_pCameraMemoryRule->SetTraceLogger(m_trace_logger);
     m_pMBC7MemoryRule->SetTraceLogger(m_trace_logger);
     m_pTAMA5MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pWisdomTreeMemoryRule->SetTraceLogger(m_trace_logger);
 }
 
 bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
@@ -1485,6 +1489,9 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
             break;
         case Cartridge::CartridgeTAMA5:
             m_pMemory->SetCurrentRule(m_pTAMA5MemoryRule);
+            break;
+        case Cartridge::CartridgeWisdomTree:
+            m_pMemory->SetCurrentRule(m_pWisdomTreeMemoryRule);
             break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
@@ -1549,6 +1556,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pCameraMemoryRule->Reset(m_bCGB);
     m_pMBC7MemoryRule->Reset(m_bCGB);
     m_pTAMA5MemoryRule->Reset(m_bCGB);
+    m_pWisdomTreeMemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
     m_pSGB->Reset();

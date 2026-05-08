@@ -429,6 +429,29 @@ void Cartridge::CheckCartridgeType(int type)
     }
 }
 
+bool Cartridge::IsWisdomTreeCartridge(int type) const
+{
+    if ((type == 0xC0) && (m_pTheROM[0x14A] == 0xD1))
+        return true;
+
+    if ((type != 0x00) || (m_iROMSize != 0x00) || (m_iTotalSize <= 0x8000))
+        return false;
+
+    static const u8 wisdom_tree_space[11] = { 'W', 'I', 'S', 'D', 'O', 'M', ' ', 'T', 'R', 'E', 'E' };
+    static const u8 wisdom_tree_zero[11] = { 'W', 'I', 'S', 'D', 'O', 'M', 0x00, 'T', 'R', 'E', 'E' };
+
+    for (int i = 0; i <= (m_iTotalSize - 11); i++)
+    {
+        if ((memcmp(m_pTheROM + i, wisdom_tree_space, 11) == 0) ||
+                (memcmp(m_pTheROM + i, wisdom_tree_zero, 11) == 0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 int Cartridge::GetVersion() const
 {
     return m_iVersion;
@@ -546,29 +569,46 @@ bool Cartridge::GatherMetadata()
     m_iRAMSize = m_pTheROM[0x149];
     m_iVersion = m_pTheROM[0x14C];
 
-    CheckCartridgeType(type);
-
-    switch (m_iRAMSize)
+    if (IsWisdomTreeCartridge(type))
     {
-        case 0x00:
-            m_iRAMBankCount = (m_Type == Cartridge::CartridgeMBC2) ? 1 : 0;
-            break;
-        case 0x01:
-        case 0x02:
-            m_iRAMBankCount = 1;
-            break;
-        case 0x04:
-            m_iRAMBankCount = 16;
-            break;
-        case 0x05:
-            if ((m_Type == Cartridge::CartridgeMBC3) || (m_Type == Cartridge::CartridgeMBC5))
-                m_iRAMBankCount = 8;
-            else
+        m_Type = CartridgeWisdomTree;
+        m_bBattery = false;
+        m_bRTCPresent = false;
+        m_bRumblePresent = false;
+    }
+    else
+    {
+        CheckCartridgeType(type);
+    }
+
+    if (m_Type == CartridgeWisdomTree)
+    {
+        m_iRAMBankCount = 0;
+    }
+    else
+    {
+        switch (m_iRAMSize)
+        {
+            case 0x00:
+                m_iRAMBankCount = (m_Type == Cartridge::CartridgeMBC2) ? 1 : 0;
+                break;
+            case 0x01:
+            case 0x02:
+                m_iRAMBankCount = 1;
+                break;
+            case 0x04:
+                m_iRAMBankCount = 16;
+                break;
+            case 0x05:
+                if ((m_Type == Cartridge::CartridgeMBC3) || (m_Type == Cartridge::CartridgeMBC5))
+                    m_iRAMBankCount = 8;
+                else
+                    m_iRAMBankCount = 4;
+                break;
+            default:
                 m_iRAMBankCount = 4;
-            break;
-        default:
-            m_iRAMBankCount = 4;
-            break;
+                break;
+        }
     }
 
     u32 romBankCount = pow_2_ceil(m_iTotalSize / 0x4000);
@@ -631,6 +671,9 @@ bool Cartridge::GatherMetadata()
             break;
         case Cartridge::CartridgeMBC5:
             Log("MBC5 found");
+            break;
+        case Cartridge::CartridgeWisdomTree:
+            Log("Wisdom Tree found");
             break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");

@@ -44,6 +44,7 @@
     <ClCompile Include="..\..\src\CameraMemoryRule.cpp" />
     <ClCompile Include="..\..\src\MBC7MemoryRule.cpp" />
     <ClCompile Include="..\..\src\TAMA5MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\WisdomTreeMemoryRule.cpp" />
     <ClCompile Include="..\..\src\opcodes.cpp" />
     <ClCompile Include="..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\src\Processor.cpp" />
@@ -150,6 +151,7 @@
     <ClInclude Include="..\..\src\CameraMemoryRule.h" />
     <ClInclude Include="..\..\src\MBC7MemoryRule.h" />
     <ClInclude Include="..\..\src\TAMA5MemoryRule.h" />
+    <ClInclude Include="..\..\src\WisdomTreeMemoryRule.h" />
     <ClInclude Include="..\..\src\opcode_names.h" />
     <ClInclude Include="..\..\src\opcode_timing.h" />
     <ClInclude Include="..\..\src\Processor.h" />

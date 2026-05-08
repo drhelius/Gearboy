@@ -676,6 +676,7 @@ json DebugAdapter::GetMediaInfo()
         "ROM Only", "MBC1", "MBC2", "MBC3",
         "MBC5", "MBC1 Multi", "HuC1", "HuC3",
         "MMM01", "Camera", "MBC7", "TAMA5",
+        "Wisdom Tree",
         "Not Supported"
     };
     int type_idx = (int)type;

@@ -75,6 +75,7 @@ Cartridge::CartridgeTypes gui_get_mbc(int index)
         case 10: return Cartridge::CartridgeCamera;
         case 11: return Cartridge::CartridgeMBC7;
         case 12: return Cartridge::CartridgeTAMA5;
+        case 13: return Cartridge::CartridgeWisdomTree;
         default: return Cartridge::CartridgeNotSupported;
     }
 }

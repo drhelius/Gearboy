@@ -430,6 +430,8 @@ static void check_variables(void)
             mapper = Cartridge::CartridgeMBC7;
         else if (strcmp(var.value, "TAMA5") == 0)
             mapper = Cartridge::CartridgeTAMA5;
+        else if (strcmp(var.value, "Wisdom Tree") == 0)
+            mapper = Cartridge::CartridgeWisdomTree;
         else
             mapper = Cartridge::CartridgeNotSupported;
     }
