@@ -1138,6 +1138,8 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "TAMA5";
         case Cartridge::CartridgeWisdomTree:
             return "Wisdom Tree";
+        case Cartridge::CartridgeM161:
+            return "M161";
         case Cartridge::CartridgeNotSupported:
             return "Not Supported";
         default:

@@ -43,6 +43,7 @@ public:
         CartridgeMBC7,
         CartridgeTAMA5,
         CartridgeWisdomTree,
+        CartridgeM161,
         CartridgeNotSupported
     };
 
@@ -88,6 +89,7 @@ private:
     bool GatherMetadata();
     bool LoadFromZipFile(const u8* buffer, int size);
     void CheckCartridgeType(int type);
+    bool IsM161Cartridge() const;
     bool IsWisdomTreeCartridge(int type) const;
 
 private:

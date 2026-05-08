@@ -14,7 +14,7 @@ Gearboy is an accurate cross-platform Game Boy / Game Boy Color emulator written
 Please, consider sponsoring (https://github.com/sponsors/drhelius) and following me on Twitter (http://twitter.com/drhelius) for updates.
 -----------------------------------------------------
 Features:
-    - Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3, MBC5, MBC7, HuC-1, HuC-3, MMM01, Pocket Camera, TAMA5, MBC1M (multicart) and Wisdom Tree.
+    - Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3, MBC5, MBC7, HuC-1, HuC-3, MMM01, Pocket Camera, TAMA5, MBC1M (multicart), Wisdom Tree and M161.
     - Accurate LCD controller emulation with correct timings and priorities including mid-scanline effects.
     - Game Boy Color support.
     - LCD screen ghosting effect as seen in the original Game Boy.

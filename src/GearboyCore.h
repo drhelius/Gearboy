@@ -43,6 +43,7 @@ class CameraMemoryRule;
 class MBC7MemoryRule;
 class TAMA5MemoryRule;
 class WisdomTreeMemoryRule;
+class M161MemoryRule;
 class MemoryRule;
 class TraceLogger;
 class SGB;
@@ -152,6 +153,7 @@ private:
     MBC7MemoryRule* m_pMBC7MemoryRule;
     TAMA5MemoryRule* m_pTAMA5MemoryRule;
     WisdomTreeMemoryRule* m_pWisdomTreeMemoryRule;
+    M161MemoryRule* m_pM161MemoryRule;
     bool m_bCGB;
     bool m_bGBA;
     bool m_bSGB;

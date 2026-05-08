@@ -95,6 +95,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "MBC 7",           NULL },
             { "TAMA5",           NULL },
             { "Wisdom Tree",     NULL },
+            { "M161",            NULL },
             { NULL, NULL },
         },
         "Auto"

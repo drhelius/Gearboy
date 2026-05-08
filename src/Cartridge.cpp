@@ -569,7 +569,15 @@ bool Cartridge::GatherMetadata()
     m_iRAMSize = m_pTheROM[0x149];
     m_iVersion = m_pTheROM[0x14C];
 
-    if (IsWisdomTreeCartridge(type))
+    if (IsM161Cartridge())
+    {
+        m_Type = CartridgeM161;
+        m_bSGB = false;
+        m_bBattery = false;
+        m_bRTCPresent = false;
+        m_bRumblePresent = false;
+    }
+    else if (IsWisdomTreeCartridge(type))
     {
         m_Type = CartridgeWisdomTree;
         m_bBattery = false;
@@ -581,7 +589,7 @@ bool Cartridge::GatherMetadata()
         CheckCartridgeType(type);
     }
 
-    if (m_Type == CartridgeWisdomTree)
+    if ((m_Type == CartridgeWisdomTree) || (m_Type == CartridgeM161))
     {
         m_iRAMBankCount = 0;
     }
@@ -675,6 +683,9 @@ bool Cartridge::GatherMetadata()
         case Cartridge::CartridgeWisdomTree:
             Log("Wisdom Tree found");
             break;
+        case Cartridge::CartridgeM161:
+            Log("M161 found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -725,4 +736,15 @@ bool Cartridge::GatherMetadata()
     }
 
     return (m_Type != CartridgeNotSupported);
+}
+
+bool Cartridge::IsM161Cartridge() const
+{
+    if (m_iTotalSize < 0x150)
+        return false;
+
+    u32 full_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM, m_iTotalSize));
+    u32 header_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM + 0x100, 0x50));
+
+    return (full_crc == 0x0C38A775) || (header_crc == 0xA61F3EE1);
 }
