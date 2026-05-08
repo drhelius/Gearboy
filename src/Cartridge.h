@@ -45,6 +45,7 @@ public:
         CartridgeWisdomTree,
         CartridgeM161,
         CartridgeSachenMMC1,
+        CartridgeSachenMMC2,
         CartridgeNotSupported
     };
 
@@ -92,6 +93,7 @@ private:
     void CheckCartridgeType(int type);
     bool IsM161Cartridge() const;
     bool IsSachenMMC1Cartridge() const;
+    bool IsSachenMMC2Cartridge() const;
     bool IsWisdomTreeCartridge(int type) const;
 
 private:

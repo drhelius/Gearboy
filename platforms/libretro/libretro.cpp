@@ -436,6 +436,8 @@ static void check_variables(void)
             mapper = Cartridge::CartridgeM161;
         else if (strcmp(var.value, "Sachen MMC1") == 0)
             mapper = Cartridge::CartridgeSachenMMC1;
+        else if (strcmp(var.value, "Sachen MMC2") == 0)
+            mapper = Cartridge::CartridgeSachenMMC2;
         else
             mapper = Cartridge::CartridgeNotSupported;
     }

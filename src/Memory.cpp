@@ -52,6 +52,7 @@ Memory::Memory()
     m_bBootromRegistryDisabled = false;
     m_bBootromDMGLoaded = false;
     m_bBootromGBCLoaded = false;
+    m_bCurrentRuleNeedsHighMemoryAccessNotifications = false;
 }
 
 Memory::~Memory()
@@ -250,6 +251,8 @@ void Memory::Reset(bool bCGB, bool bSGB)
 void Memory::SetCurrentRule(MemoryRule* pRule)
 {
     m_pCurrentMemoryRule = pRule;
+    m_bCurrentRuleNeedsHighMemoryAccessNotifications = IsValidPointer(pRule) &&
+            pRule->NeedsHighMemoryAccessNotifications();
 }
 
 void Memory::SetCommonRule(CommonMemoryRule* pRule)

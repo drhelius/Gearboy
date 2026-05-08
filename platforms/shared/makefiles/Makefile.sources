@@ -68,6 +68,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/WisdomTreeMemoryRule.cpp \
     $(SRC_DIR)/M161MemoryRule.cpp \
     $(SRC_DIR)/SachenMMC1MemoryRule.cpp \
+    $(SRC_DIR)/SachenMMC2MemoryRule.cpp \
     $(SRC_DIR)/opcodes.cpp \
     $(SRC_DIR)/opcodes_cb.cpp \
     $(SRC_DIR)/Processor.cpp \

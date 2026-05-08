@@ -47,6 +47,9 @@ inline u8 Memory::Read(u16 address)
         case 0xC000:
         case 0xE000:
         {
+            if (m_bCurrentRuleNeedsHighMemoryAccessNotifications)
+                m_pCurrentMemoryRule->NotifyHighMemoryRead(address);
+
             if (address < 0xFF00)
                 return m_pCommonMemoryRule->PerformRead(address);
             else
@@ -88,6 +91,9 @@ inline void Memory::Write(u16 address, u8 value)
         case 0xC000:
         case 0xE000:
         {
+            if (m_bCurrentRuleNeedsHighMemoryAccessNotifications)
+                m_pCurrentMemoryRule->NotifyHighMemoryWrite(address, value);
+
             if (address < 0xFF00)
                 m_pCommonMemoryRule->PerformWrite(address, value);
             else

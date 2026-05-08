@@ -42,6 +42,22 @@ void MemoryRule::SetTraceLogger(TraceLogger* pTraceLogger)
     m_pTraceLogger = pTraceLogger;
 }
 
+bool MemoryRule::NeedsHighMemoryAccessNotifications()
+{
+    return false;
+}
+
+void MemoryRule::NotifyHighMemoryRead(u16 address)
+{
+    UNUSED(address);
+}
+
+void MemoryRule::NotifyHighMemoryWrite(u16 address, u8 value)
+{
+    UNUSED(address);
+    UNUSED(value);
+}
+
 void MemoryRule::SaveRam(std::ostream&)
 {
     Debug("MemoryRule::SaveRam not implemented");

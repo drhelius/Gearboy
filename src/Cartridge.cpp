@@ -585,6 +585,14 @@ bool Cartridge::GatherMetadata()
         m_bRTCPresent = false;
         m_bRumblePresent = false;
     }
+    else if (IsSachenMMC2Cartridge())
+    {
+        m_Type = CartridgeSachenMMC2;
+        m_bSGB = false;
+        m_bBattery = false;
+        m_bRTCPresent = false;
+        m_bRumblePresent = false;
+    }
     else if (IsWisdomTreeCartridge(type))
     {
         m_Type = CartridgeWisdomTree;
@@ -598,7 +606,7 @@ bool Cartridge::GatherMetadata()
     }
 
     if ((m_Type == CartridgeWisdomTree) || (m_Type == CartridgeM161) ||
-            (m_Type == CartridgeSachenMMC1))
+            (m_Type == CartridgeSachenMMC1) || (m_Type == CartridgeSachenMMC2))
     {
         m_iRAMBankCount = 0;
     }
@@ -698,6 +706,9 @@ bool Cartridge::GatherMetadata()
         case Cartridge::CartridgeSachenMMC1:
             Log("Sachen MMC1 found");
             break;
+        case Cartridge::CartridgeSachenMMC2:
+            Log("Sachen MMC2 found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -768,4 +779,37 @@ bool Cartridge::IsSachenMMC1Cartridge() const
 
     return (m_pTheROM[0x104] == 0xCE) && (m_pTheROM[0x114] == 0x66) &&
             (m_pTheROM[0x144] == 0xED);
+}
+
+bool Cartridge::IsSachenMMC2Cartridge() const
+{
+    if (m_iTotalSize < 0x150)
+        return false;
+
+    if (m_iTotalSize >= 0x1C5)
+    {
+        if ((m_pTheROM[0x184] == 0xCE) && (m_pTheROM[0x194] == 0x66) &&
+                (m_pTheROM[0x1C4] == 0xED))
+            return true;
+    }
+
+    if ((m_pTheROM[0x147] != 0x97) && (m_pTheROM[0x147] != 0x99))
+        return false;
+
+    u32 header_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM + 0x100, 0x50));
+
+    switch (header_crc)
+    {
+        case 0x0AF7C09A: // ATV Racing & Karate Joe
+        case 0x1F4954E4: // Full Time Soccer / Full Time Soccer & Hang Time Basketball
+        case 0x2C26C119: // Karate Joe
+        case 0x3AFBB401: // Painter
+        case 0x40A83DEC: // ATV Racing
+        case 0x6C1CFF79: // Hang Time Basketball
+        case 0xDA964D17: // Race Time / Pocket Smash Out & Race Time
+        case 0xFFC6A7BD: // Pocket Smash Out
+            return true;
+        default:
+            return false;
+    }
 }

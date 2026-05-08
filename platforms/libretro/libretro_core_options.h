@@ -97,6 +97,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "Wisdom Tree",     NULL },
             { "M161",            NULL },
             { "Sachen MMC1",     NULL },
+            { "Sachen MMC2",     NULL },
             { NULL, NULL },
         },
         "Auto"

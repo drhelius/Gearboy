@@ -178,6 +178,9 @@
     <ClCompile Include="..\..\src\SachenMMC1MemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\SachenMMC2MemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\opcodes.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -448,6 +451,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\SachenMMC1MemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SachenMMC2MemoryRule.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\opcode_names.h">

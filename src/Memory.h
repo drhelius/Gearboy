@@ -123,6 +123,7 @@ private:
     u8* m_pBootromDMG;
     u8* m_pBootromGBC;
     bool m_bBootromRegistryDisabled;
+    bool m_bCurrentRuleNeedsHighMemoryAccessNotifications;
 };
 
 #include "Memory_inline.h"

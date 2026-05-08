@@ -47,6 +47,7 @@
     <ClCompile Include="..\..\src\WisdomTreeMemoryRule.cpp" />
     <ClCompile Include="..\..\src\M161MemoryRule.cpp" />
     <ClCompile Include="..\..\src\SachenMMC1MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\SachenMMC2MemoryRule.cpp" />
     <ClCompile Include="..\..\src\opcodes.cpp" />
     <ClCompile Include="..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\src\Processor.cpp" />
@@ -156,6 +157,7 @@
     <ClInclude Include="..\..\src\WisdomTreeMemoryRule.h" />
     <ClInclude Include="..\..\src\M161MemoryRule.h" />
     <ClInclude Include="..\..\src\SachenMMC1MemoryRule.h" />
+    <ClInclude Include="..\..\src\SachenMMC2MemoryRule.h" />
     <ClInclude Include="..\..\src\opcode_names.h" />
     <ClInclude Include="..\..\src\opcode_timing.h" />
     <ClInclude Include="..\..\src\Processor.h" />
