@@ -349,7 +349,10 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
             {
                 m_iScreenEnableDelayCycles = 0;
                 m_bScreenEnabled = true;
-                m_iHideFrames = 3;
+                if (m_iHideFrames < 0)
+                    m_iHideFrames = 0;
+                else
+                    m_iHideFrames = 3;
                 m_iStatusMode = 0;
                 m_iStatusModeCounter = 0;
                 m_iStatusModeCounterAux = 0;
@@ -377,6 +380,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
         else if (m_iStatusModeCounter >= 70224)
         {
             m_iStatusModeCounter -= 70224;
+            m_iHideFrames = 0;
 
             if (IsValidPointer(m_pColorFrameBuffer))
             {
@@ -409,6 +413,8 @@ void Video::EnableScreen()
 
 void Video::DisableScreen()
 {
+    bool disabled_in_vblank = m_bCGB && m_bScreenEnabled && (m_iStatusMode == 1);
+
     m_bScreenEnabled = false;
     m_pMemory->Load(0xFF44, 0x00);
     u8 stat = m_pMemory->Retrieve(0xFF41);
@@ -420,8 +426,9 @@ void Video::DisableScreen()
     m_iPendingVBlankInterruptCycles = 0;
     m_iStatusModeLYCounter = 0;
     m_IRQ48Signal = 0;
+    m_iHideFrames = disabled_in_vblank ? -1 : 0;
 
-    if (IsValidPointer(m_pColorFrameBuffer))
+    if (!disabled_in_vblank && IsValidPointer(m_pColorFrameBuffer))
     {
         if (m_bCGB)
         {
