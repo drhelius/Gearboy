@@ -314,7 +314,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                     m_iStatusMode = 0;
                     m_iTileCycleCounter = 0;
 
-                    if (m_bCGB && m_pMemory->IsHDMAEnabled() && (!m_pProcessor->Halted() || m_pProcessor->InterruptIsAboutToRaise()))
+                    if (m_bCGB && m_pMemory->IsHDMAEnabled())
                     {
                         unsigned int cycles = m_pMemory->PerformHDMA();
                         m_iStatusModeCounter += cycles;
