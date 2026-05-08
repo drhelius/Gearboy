@@ -244,9 +244,20 @@ bool Gb_Env::write_register( int frame_phase, int reg, int old, int data )
 
 bool Gb_Square::write_register( int frame_phase, int reg, int old_data, int data )
 {
+	bool was_enabled = enabled;
 	bool result = Gb_Env::write_register( frame_phase, reg, old_data, data );
 	if ( result )
+	{
+		if ( was_enabled && mode == Gb_Apu::mode_cgb && !(data & 0x04) )
+		{
+			static byte const duty_offsets [4] = { 1, 1, 3, 7 };
+			static byte const duties       [4] = { 1, 2, 4, 6 };
+			int duty_code = regs [1] >> 6;
+			if ( ((phase + duty_offsets [duty_code]) & 7) >= duties [duty_code] )
+				phase = (-duty_offsets [duty_code]) & 7;
+		}
 		delay = (delay & (4 * clk_mul - 1)) + period();
+	}
 	return result;
 }
 
