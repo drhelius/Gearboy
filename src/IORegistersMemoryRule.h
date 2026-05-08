@@ -222,12 +222,12 @@ inline u8 IORegistersMemoryRule::PerformRead(u16 address)
         case 0xFF76:
         {
             // UNDOCUMENTED
-            return (m_bCGB ? 0x00 : 0xFF);
+            return (m_bCGB ? m_pAudio->ReadPCM12() : 0xFF);
         }
         case 0xFF77:
         {
             // UNDOCUMENTED
-            return (m_bCGB ? 0x0 : 0xFF);
+            return (m_bCGB ? m_pAudio->ReadPCM34() : 0xFF);
         }
     }
 

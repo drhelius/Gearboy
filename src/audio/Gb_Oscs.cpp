@@ -261,6 +261,26 @@ bool Gb_Square::write_register( int frame_phase, int reg, int old_data, int data
 	return result;
 }
 
+int Gb_Square::current_sample() const
+{
+	if ( !enabled || !dac_enabled() )
+		return 0;
+
+	static byte const duty_offsets [4] = { 1, 1, 3, 7 };
+	static byte const duties       [4] = { 1, 2, 4, 6 };
+	int const duty_code = regs [1] >> 6;
+	int duty_offset = duty_offsets [duty_code];
+	int duty = duties [duty_code];
+	if ( mode == Gb_Apu::mode_agb )
+	{
+		duty_offset -= duty;
+		duty = 8 - duty;
+	}
+
+	int ph = (int)((phase + duty_offset) & 7);
+	return (ph < duty) ? volume : 0;
+}
+
 inline void Gb_Noise::write_register( int frame_phase, int reg, int old_data, int data )
 {
 	if ( Gb_Env::write_register( frame_phase, reg, old_data, data ) )
@@ -268,6 +288,14 @@ inline void Gb_Noise::write_register( int frame_phase, int reg, int old_data, in
 		phase = 0x7FFF;
 		delay += 8 * clk_mul;
 	}
+}
+
+int Gb_Noise::current_sample() const
+{
+	if ( !enabled || !dac_enabled() )
+		return 0;
+
+	return (phase & 1) ? 0 : volume;
 }
 
 inline void Gb_Sweep_Square::write_register( int frame_phase, int reg, int old_data, int data )
@@ -325,6 +353,33 @@ inline void Gb_Wave::write_register( int frame_phase, int reg, int old_data, int
 			delay    = period() + 6 * clk_mul;
 		}
 	}
+}
+
+int Gb_Wave::current_sample() const
+{
+	static byte const volumes [8] = { 0, 4, 2, 1, 3, 3, 3, 3 };
+
+	if ( !enabled || !dac_enabled() )
+		return 0;
+
+	int const volume_idx = regs [2] >> 5 & (agb_mask | 3);
+	int const volume_mul = volumes [volume_idx];
+	if ( !volume_mul )
+		return 0;
+
+	byte const* wave = this->wave_ram;
+	int const size20_mask = 0x20;
+	int const flags = regs [0] & agb_mask;
+	int swap_banks = 0;
+	if ( flags & bank40_mask )
+	{
+		swap_banks = flags & size20_mask;
+		wave += bank_size / 2 - (swap_banks >> 1);
+	}
+
+	int ph = this->phase ^ swap_banks;
+	int nybble = wave [ph >> 1] << (ph << 2 & 4) & 0xF0;
+	return (nybble * volume_mul) >> 6;
 }
 
 void Gb_Apu::write_osc( int index, int reg, int old_data, int data )

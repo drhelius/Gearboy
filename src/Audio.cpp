@@ -74,12 +74,15 @@ void Audio::Reset(bool bCGB)
     m_pApu->reset(mode);
     m_pBuffer->clear();
 
+    int sys = m_bCGB ? 2 : 0;
     for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
     {
-        int sys = m_bCGB ? 2 : 0;
         u8 value = kInitialValuesForFFXX[sys][reg - 0xFF00];
         m_pApu->write_register(0, reg, value);
     }
+
+    m_pApu->write_register(0, 0xFF24, kInitialValuesForFFXX[sys][0x24]);
+    m_pApu->write_register(0, 0xFF25, kInitialValuesForFFXX[sys][0x25]);
 
     m_ElapsedCycles = 0;
 }

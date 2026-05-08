@@ -80,6 +80,7 @@ class Gb_Square : public Gb_Env {
 public:
 	bool write_register( int frame_phase, int reg, int old_data, int data );
 	void run( blip_time_t, blip_time_t );
+	int current_sample() const;
 
 	void reset()
 	{
@@ -124,6 +125,7 @@ public:
 
 	void run( blip_time_t, blip_time_t );
 	void write_register( int frame_phase, int reg, int old_data, int data );
+	int current_sample() const;
 
 	void reset()
 	{
@@ -145,6 +147,7 @@ public:
 
 	void write_register( int frame_phase, int reg, int old_data, int data );
 	void run( blip_time_t, blip_time_t );
+	int current_sample() const;
 
 	// Reads/writes wave RAM
 	int read( unsigned addr ) const;

@@ -37,6 +37,8 @@ public:
     void SetVolume(float volume);
     void SetMasterVolume(float volume);
     u8 ReadAudioRegister(u16 address);
+    u8 ReadPCM12();
+    u8 ReadPCM34();
     void WriteAudioRegister(u16 address, u8 value);
     void Tick(unsigned int clockCycles);
     void EndFrame(s16* pSampleBuffer, int* pSampleCount);
@@ -75,6 +77,16 @@ inline void Audio::Tick(unsigned int clockCycles)
 inline u8 Audio::ReadAudioRegister(u16 address)
 {
     return m_pApu->read_register(m_ElapsedCycles, address);
+}
+
+inline u8 Audio::ReadPCM12()
+{
+    return (u8)m_pApu->read_pcm12(m_ElapsedCycles);
+}
+
+inline u8 Audio::ReadPCM34()
+{
+    return (u8)m_pApu->read_pcm34(m_ElapsedCycles);
 }
 
 inline void Audio::WriteAudioRegister(u16 address, u8 value)

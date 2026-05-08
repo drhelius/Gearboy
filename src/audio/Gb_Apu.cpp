@@ -402,6 +402,18 @@ int Gb_Apu::read_register( blip_time_t time, unsigned addr )
 	return data;
 }
 
+int Gb_Apu::read_pcm12( blip_time_t time )
+{
+	run_until( time );
+	return square1.current_sample() | (square2.current_sample() << 4);
+}
+
+int Gb_Apu::read_pcm34( blip_time_t time )
+{
+	run_until( time );
+	return wave.current_sample() | (noise.current_sample() << 4);
+}
+
 void Gb_Apu::init_debug_buffers( long sample_rate, long clock_rate )
 {
 	debug_enabled = true;

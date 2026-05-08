@@ -45,6 +45,8 @@ public:
 
 	// Emulates CPU read from addr at specified time.
 	int read_register( blip_time_t time, unsigned addr );
+	int read_pcm12( blip_time_t time );
+	int read_pcm34( blip_time_t time );
 
 	// Emulates sound hardware up to specified time, ends current time frame, then
 	// starts a new frame at time 0.
