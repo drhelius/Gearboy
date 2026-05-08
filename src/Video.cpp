@@ -160,6 +160,8 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                 {
                     m_iStatusModeCounter -= 204;
                     m_iStatusMode = 2;
+                    if (m_bCGB)
+                        m_IRQ48Signal = UnsetBit(m_IRQ48Signal, 0);
 
                     m_iStatusModeLYCounter++;
                     m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
