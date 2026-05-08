@@ -64,6 +64,7 @@ public:
     void Tick(unsigned int clockCycles);
 
 private:
+    void ResizeRAMBanks();
     void UpdateRTC();
 
 private:

@@ -29,8 +29,8 @@ MBC3MemoryRule::MBC3MemoryRule(Processor* pProcessor,
         Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
 pMemory, pVideo, pInput, pCartridge, pAudio)
 {
-    m_iRAMBanksSize = m_pCartridge->IsMBC30() ? 0x10000 : 0x8000;
-    m_pRAMBanks = new u8[m_iRAMBanksSize];
+    m_iRAMBanksSize = 0;
+    m_pRAMBanks = NULL;
     Reset(false);
 }
 
@@ -41,6 +41,8 @@ MBC3MemoryRule::~MBC3MemoryRule()
 
 void MBC3MemoryRule::Reset(bool bCGB)
 {
+    ResizeRAMBanks();
+
     m_bCGB = bCGB;
     m_iCurrentRAMBank = 0;
     m_iCurrentROMBank = 1;
@@ -66,6 +68,18 @@ void MBC3MemoryRule::Reset(bool bCGB)
     m_CurrentROMAddress = 0x4000;
     m_CurrentRAMAddress = 0;
     m_iRTCCycles = 0;
+}
+
+void MBC3MemoryRule::ResizeRAMBanks()
+{
+    int ramBanksSize = m_pCartridge->IsMBC30() ? 0x10000 : 0x8000;
+
+    if (m_iRAMBanksSize != ramBanksSize)
+    {
+        SafeDeleteArray(m_pRAMBanks);
+        m_iRAMBanksSize = ramBanksSize;
+        m_pRAMBanks = new u8[m_iRAMBanksSize];
+    }
 }
 
 u8 MBC3MemoryRule::PerformRead(u16 address)
