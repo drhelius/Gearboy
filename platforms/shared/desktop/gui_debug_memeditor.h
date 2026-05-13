@@ -76,6 +76,7 @@ public:
     void SetValueToSelection(int value);
     void SaveToTextFile(const char* file_path);
     void SaveToBinaryFile(const char* file_path);
+    void LoadFromBinaryFile(const char* file_path);
     void AddBookmark();
     void RemoveBookmarks();
     std::vector<Bookmark>* GetBookmarks();

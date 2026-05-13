@@ -43,6 +43,7 @@ EXTERN void gui_file_dialog_save_tiles(void);
 EXTERN void gui_file_dialog_save_sgb_border(void);
 EXTERN void gui_file_dialog_save_sgb_tiles(int palette);
 EXTERN void gui_file_dialog_save_memory_dump(bool binary);
+EXTERN void gui_file_dialog_load_memory_dump(void);
 EXTERN void gui_file_dialog_save_disassembler(bool full);
 EXTERN void gui_file_dialog_save_log(void);
 EXTERN void gui_file_dialog_save_debug_settings(void);
