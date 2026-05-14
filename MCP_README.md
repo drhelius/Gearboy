@@ -315,6 +315,7 @@ The server exposes tools organized in the following categories:
 
 ### Media & State Management
 - `get_media_info` - Get loaded ROM info (file path, name, MBC type, ROM/RAM size, CGB/SGB flags, battery)
+- `list_recent_media` - List the 10 most recent ROM files opened by Gearboy
 - `load_media` - Load ROM file (.gb, .dmg, .gbc, .cgb, .sgb, .zip). Automatically loads .sym symbol file if present
 - `load_symbols` - Load debug symbols from file (.sym format with 'BANK:ADDRESS LABEL' entries)
 - `list_save_state_slots` - List all 5 save state slots with information (rom name, timestamp, validity)

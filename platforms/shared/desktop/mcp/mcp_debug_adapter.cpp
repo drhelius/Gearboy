@@ -37,6 +37,16 @@
 #include <thread>
 #include <chrono>
 
+static std::string get_file_name_from_path(const std::string& path)
+{
+    size_t position = path.find_last_of("/\\");
+
+    if (position == std::string::npos)
+        return path;
+
+    return path.substr(position + 1);
+}
+
 struct DisassemblerBookmark
 {
     u16 address;
@@ -693,6 +703,31 @@ json DebugAdapter::GetMediaInfo()
     return info;
 }
 
+json DebugAdapter::ListRecentMedia()
+{
+    json result;
+    json recent_media = json::array();
+
+    for (int index = 0; index < config_max_recent_roms; index++)
+    {
+        const std::string& path = config_emulator.recent_roms[index];
+
+        if (path.empty())
+            continue;
+
+        json entry;
+        entry["index"] = index;
+        entry["file_path"] = path;
+        entry["file_name"] = get_file_name_from_path(path);
+        recent_media.push_back(entry);
+    }
+
+    result["count"] = recent_media.size();
+    result["recent_media"] = recent_media;
+
+    return result;
+}
+
 json DebugAdapter::GetCPUStatus()
 {
     json status;
@@ -1291,6 +1326,8 @@ json DebugAdapter::LoadMedia(const std::string& file_path)
     result["file_path"] = file_path;
     result["rom_name"] = m_core->GetCartridge()->GetFileName();
     result["is_cgb"] = m_core->GetCartridge()->IsCGB();
+
+    config_push_recent_media(file_path);
 
     return result;
 }

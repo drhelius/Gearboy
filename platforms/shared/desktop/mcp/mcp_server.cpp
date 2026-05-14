@@ -567,6 +567,17 @@ void McpServer::HandleToolsList(const json& request)
         }}
     });
 
+    tools.push_back({
+        {"name", "list_recent_media"},
+        {"title", "List Recent Media"},
+        {"description", "List the 10 most recent ROMs opened by Gearboy. Use file_path from an entry with load_media to reopen it"},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
     // Chip status tools
     tools.push_back({
         {"name", "get_cpu_status"},
@@ -1712,6 +1723,10 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     else if (normalizedTool == "get_media_info")
     {
         return m_debugAdapter.GetMediaInfo();
+    }
+    else if (normalizedTool == "list_recent_media")
+    {
+        return m_debugAdapter.ListRecentMedia();
     }
     // Chip status
     else if (normalizedTool == "get_cpu_status")

@@ -274,6 +274,7 @@ EXTERN void config_destroy(void);
 EXTERN void config_read(void);
 EXTERN void config_write(void);
 EXTERN void config_load_defaults(void);
+EXTERN void config_push_recent_media(const std::string& path);
 EXTERN void config_update_hotkey_string(config_Hotkey* hotkey);
 
 #undef CONFIG_IMPORT

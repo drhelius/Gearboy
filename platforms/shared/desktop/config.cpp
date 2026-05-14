@@ -146,6 +146,29 @@ void config_load_defaults(void)
     config_write();
 }
 
+void config_push_recent_media(const std::string& path)
+{
+    if (path.empty())
+        return;
+
+    int slot = 0;
+    for (slot = 0; slot < config_max_recent_roms; slot++)
+    {
+        if (config_emulator.recent_roms[slot].compare(path) == 0)
+            break;
+    }
+
+    if (slot >= config_max_recent_roms)
+        slot = config_max_recent_roms - 1;
+
+    for (int index = slot; index > 0; index--)
+    {
+        config_emulator.recent_roms[index] = config_emulator.recent_roms[index - 1];
+    }
+
+    config_emulator.recent_roms[0] = path;
+}
+
 void config_read(void)
 {
     if (!config_ini_file->read(config_ini_data))

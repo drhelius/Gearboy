@@ -50,7 +50,6 @@ static char loading_rom_path[4096] = "";
 
 
 static void main_window(void);
-static void push_recent_rom(std::string path);
 static void show_status_message(void);
 static void show_error_window(void);
 static void show_loading_popup(void);
@@ -315,7 +314,7 @@ void gui_load_rom(const char* path)
         return;
 
     gui_debug_auto_save_settings();
-    push_recent_rom(path);
+    config_push_recent_media(path);
     emu_resume();
 
     strncpy(loading_rom_path, path, sizeof(loading_rom_path) - 1);
@@ -481,27 +480,6 @@ static void main_window(void)
     ImGui::PopStyleVar();
     ImGui::PopStyleVar();
     ImGui::PopStyleVar();
-}
-
-static void push_recent_rom(std::string path)
-{
-    int slot = 0;
-    for (slot = 0; slot < config_max_recent_roms; slot++)
-    {
-        if (config_emulator.recent_roms[slot].compare(path) == 0)
-        {
-            break;
-        }
-    }
-
-    slot = MIN(slot, config_max_recent_roms - 1);
-
-    for (int i = slot; i > 0; i--)
-    {
-        config_emulator.recent_roms[i] = config_emulator.recent_roms[i - 1];
-    }
-
-    config_emulator.recent_roms[0] = path;
 }
 
 static void show_status_message(void)
