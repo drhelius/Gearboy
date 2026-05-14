@@ -1846,7 +1846,12 @@ void MemEditor::SaveToBinaryFile(const char* file_path)
 
     if (file)
     {
-        fwrite(m_mem_data, 1, size, file);
+        size_t bytes = (size_t)size;
+        if (fwrite(m_mem_data, 1, bytes, file) != bytes)
+        {
+            fclose(file);
+            return;
+        }
         fclose(file);
     }
 }
@@ -1861,7 +1866,12 @@ void MemEditor::LoadFromBinaryFile(const char* file_path)
     FILE* file = fopen_utf8(file_path, "rb");
     if (file)
     {
-        fread(m_mem_data, 1, size, file);
+        size_t bytes = (size_t)size;
+        if (fread(m_mem_data, 1, bytes, file) != bytes)
+        {
+            fclose(file);
+            return;
+        }
         fclose(file);
     }
 }
