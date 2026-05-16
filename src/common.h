@@ -191,6 +191,24 @@ inline char* strncat_fit(char* dest, const char* src, size_t dest_size)
     return strncat(dest, src, dest_size - len - 1);
 }
 
+inline void append_path_component(std::string& path, const char* component)
+{
+    if (path.length() > 0)
+    {
+        char last = path[path.length() - 1];
+        if (last != '/' && last != '\\')
+        {
+#if defined(_WIN32)
+            path += "\\";
+#else
+            path += "/";
+#endif
+        }
+    }
+
+    path += component;
+}
+
 #if defined(_WIN32)
 inline std::wstring utf8_to_wstring(const char* utf8_str)
 {

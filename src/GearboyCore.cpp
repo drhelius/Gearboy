@@ -535,8 +535,7 @@ void GearboyCore::SaveRam(const char* szPath, bool fullPath)
 
             if (!fullPath)
             {
-                path += "/";
-                path += m_pCartridge->GetFileName();
+                append_path_component(path, m_pCartridge->GetFileName());
             }
         }
         else
@@ -582,8 +581,7 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 
             if (!fullPath)
             {
-                sav_path += "/";
-                sav_path += m_pCartridge->GetFileName();
+                append_path_component(sav_path, m_pCartridge->GetFileName());
             }
         }
         else
@@ -663,8 +661,7 @@ std::string GearboyCore::GetSaveStatePath(const char* path, int index)
     if (IsValidPointer(path))
     {
         full_path = path;
-        full_path += "/";
-        full_path += m_pCartridge->GetFileName();
+        append_path_component(full_path, m_pCartridge->GetFileName());
     }
     else
         full_path = m_pCartridge->GetFilePath();
