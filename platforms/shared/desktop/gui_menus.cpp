@@ -28,6 +28,7 @@
 #include "display.h"
 #include "gamepad.h"
 #include "emu.h"
+#include "rewind.h"
 #include "gui_debug_sgb.h"
 #include "ogl_renderer.h"
 #include "utils.h"
@@ -205,7 +206,8 @@ static void menu_gearboy(void)
 
         if (ImGui::BeginMenu("Rewind"))
         {
-            ImGui::MenuItem("Enabled", config_hotkeys[config_HotkeyIndex_Rewind].str, &config_rewind.enabled);
+            if (ImGui::MenuItem("Enabled", config_hotkeys[config_HotkeyIndex_Rewind].str, &config_rewind.enabled))
+                rewind_reset();
 
             ImGui::PushItemWidth(140.0f);
             ImGui::SliderFloat("Speed", &config_rewind.speed, 1.0f, 8.0f, "%.0fx");

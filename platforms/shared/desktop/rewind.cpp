@@ -42,6 +42,7 @@ static int slot_at(int age);
 static int get_target_capacity(void);
 static size_t get_target_slot_size(void);
 static bool ensure_storage(void);
+static void release_storage(void);
 static void truncate_to_seek_position(void);
 static void restore_screenshot(const u8* slot, size_t size);
 
@@ -53,10 +54,7 @@ bool rewind_init(void)
 
 void rewind_destroy(void)
 {
-    SafeDeleteArray(buffer);
-    allocated_size = 0;
-    slot_size = 0;
-    capacity = 0;
+    release_storage();
     count = 0;
     head = 0;
     frame_accum = 0;
@@ -67,7 +65,6 @@ void rewind_destroy(void)
 
 void rewind_reset(void)
 {
-    capacity = get_target_capacity();
     head = 0;
     count = 0;
     frame_accum = 0;
@@ -77,8 +74,14 @@ void rewind_reset(void)
     for (int i = 0; i < REWIND_MAX_SNAPSHOTS; i++)
         sizes[i] = 0;
 
-    if (!emu_is_empty())
-        ensure_storage();
+    if (!config_rewind.enabled || emu_is_empty())
+    {
+        release_storage();
+        return;
+    }
+
+    capacity = get_target_capacity();
+    ensure_storage();
 }
 
 void rewind_push(void)
@@ -237,6 +240,12 @@ static size_t get_target_slot_size(void)
 
 static bool ensure_storage(void)
 {
+    if (!config_rewind.enabled)
+    {
+        release_storage();
+        return false;
+    }
+
     int target_capacity = get_target_capacity();
     size_t target_slot_size = get_target_slot_size();
     if (target_slot_size == 0)
@@ -277,6 +286,14 @@ static bool ensure_storage(void)
         (double)target_size / (1024.0 * 1024.0), target_capacity, target_slot_size);
 
     return true;
+}
+
+static void release_storage(void)
+{
+    SafeDeleteArray(buffer);
+    allocated_size = 0;
+    slot_size = 0;
+    capacity = 0;
 }
 
 static void truncate_to_seek_position(void)
