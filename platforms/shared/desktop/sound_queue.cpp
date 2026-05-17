@@ -24,6 +24,9 @@
 #include "sound_queue.h"
 #include "utils.h"
 
+#define SOUND_QUEUE_DEBUG(...) { }
+//#define SOUND_QUEUE_DEBUG(x, ...) Debug(x, ## __VA_ARGS__)
+
 static SDL_AudioStream* sound_queue_stream;
 static bool sound_queue_sound_open;
 static int sound_queue_max_queued_bytes;
@@ -173,7 +176,7 @@ void sound_queue_write(s16* samples, int count, bool sync)
 
     if (queued == 0)
     {
-        Debug("Sound Queue: Underrun detected, queue was empty");
+        SOUND_QUEUE_DEBUG("Sound Queue: Underrun detected, queue was empty");
     }
 
     if (sync)
@@ -181,7 +184,7 @@ void sound_queue_write(s16* samples, int count, bool sync)
         int room = sound_queue_max_queued_bytes - queued;
         if (room < bytes)
         {
-            Debug("Sound Queue: Sync wait, need %d bytes but only %d free (queued %d, max %d)", bytes, room, queued, sound_queue_max_queued_bytes);
+            SOUND_QUEUE_DEBUG("Sound Queue: Sync wait, need %d bytes but only %d free (queued %d, max %d)", bytes, room, queued, sound_queue_max_queued_bytes);
             int needed = bytes - room;
             int wait_ms = (needed * 1000) / sound_queue_bytes_per_second;
             if (wait_ms >= 1)
@@ -192,7 +195,7 @@ void sound_queue_write(s16* samples, int count, bool sync)
     {
         if (queued >= sound_queue_max_queued_bytes)
         {
-            Debug("Sound Queue: Async overrun, dropping frame (queued %d >= max %d)", queued, sound_queue_max_queued_bytes);
+            SOUND_QUEUE_DEBUG("Sound Queue: Async overrun, dropping frame (queued %d >= max %d)", queued, sound_queue_max_queued_bytes);
             return;
         }
     }
