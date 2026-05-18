@@ -20,8 +20,10 @@ bundle:
 	chmod 755 $(APP_NAME).app/Contents/Frameworks/libSDL3.0.dylib
 	install_name_tool -change $(SDL3_DYLIB) @executable_path/../Frameworks/libSDL3.0.dylib $(APP_NAME).app/Contents/MacOS/$(TARGET)
 	mkdir -p $(APP_NAME).app/Contents/Resources/mcp
+	mkdir -p $(APP_NAME).app/Contents/Resources/shaders
 	cp ../shared/gamecontrollerdb.txt $(APP_NAME).app/Contents/Resources/
 	cp -r ../shared/desktop/mcp/resources $(APP_NAME).app/Contents/Resources/mcp/
+	cp -r ../shared/desktop/shaders/* $(APP_NAME).app/Contents/Resources/shaders/
 
 dist: clean all bundle
 	@echo Success!!

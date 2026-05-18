@@ -26,6 +26,9 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/gui_popups.cpp \
     $(DESKTOP_SRC_DIR)/gui_actions.cpp \
     $(DESKTOP_SRC_DIR)/ogl_renderer.cpp \
+    $(DESKTOP_SRC_DIR)/ogl_shader_program.cpp \
+    $(DESKTOP_SRC_DIR)/ogl_shader_chain.cpp \
+    $(DESKTOP_SRC_DIR)/shader_preset.cpp \
     $(DESKTOP_SRC_DIR)/display.cpp \
     $(DESKTOP_SRC_DIR)/events.cpp \
     $(DESKTOP_SRC_DIR)/gamepad.cpp \

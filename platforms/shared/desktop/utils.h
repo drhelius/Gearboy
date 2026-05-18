@@ -20,6 +20,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <stdio.h>
 #include <string.h>
 #if defined(_WIN32)
 #include <windows.h>
@@ -134,6 +135,147 @@ static inline int ends_with(const char* s, const char* suffix)
     }
 
     return (memcmp(s + (sl - su), suffix, su) == 0);
+}
+
+static inline bool ends_with_no_case(const char* text, const char* suffix)
+{
+    if (!text || !suffix)
+        return false;
+
+    size_t text_length = strlen(text);
+    size_t suffix_length = strlen(suffix);
+    if (text_length < suffix_length)
+        return false;
+
+    const char* start = text + text_length - suffix_length;
+    for (size_t i = 0; i < suffix_length; i++)
+    {
+        char a = start[i];
+        char b = suffix[i];
+        if (a >= 'A' && a <= 'Z')
+            a = (char)(a - 'A' + 'a');
+        if (b >= 'A' && b <= 'Z')
+            b = (char)(b - 'A' + 'a');
+        if (a != b)
+            return false;
+    }
+
+    return true;
+}
+
+static inline bool is_absolute_path(const char* path)
+{
+    if (!path || path[0] == '\0')
+        return false;
+
+#if defined(_WIN32)
+    if ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z'))
+        return path[1] == ':';
+    return path[0] == '\\' || path[0] == '/';
+#else
+    return path[0] == '/';
+#endif
+}
+
+static inline void get_directory(const char* path, char* directory, size_t directory_size)
+{
+    if (!directory || directory_size == 0)
+        return;
+
+    directory[0] = '\0';
+
+    if (!path)
+        return;
+
+    const char* slash = strrchr(path, '/');
+#if defined(_WIN32)
+    const char* backslash = strrchr(path, '\\');
+    if (!slash || (backslash && backslash > slash))
+        slash = backslash;
+#endif
+
+    if (!slash)
+    {
+        strncpy_fit(directory, ".", directory_size);
+        return;
+    }
+
+    size_t length = (size_t)(slash - path);
+    if (length >= directory_size)
+        length = directory_size - 1;
+
+    memcpy(directory, path, length);
+    directory[length] = '\0';
+}
+
+static inline const char* get_filename(const char* path)
+{
+    const char* start = path ? path : "";
+    const char* slash = strrchr(start, '/');
+#if defined(_WIN32)
+    const char* backslash = strrchr(start, '\\');
+    if (!slash || (backslash && backslash > slash))
+        slash = backslash;
+#endif
+    if (slash)
+        start = slash + 1;
+
+    return start;
+}
+
+static inline void get_filename_without_extension(const char* path, char* name, size_t name_size)
+{
+    if (!name || name_size == 0)
+        return;
+
+    name[0] = '\0';
+
+    const char* start = get_filename(path);
+
+    const char* dot = strrchr(start, '.');
+    size_t length = dot ? (size_t)(dot - start) : strlen(start);
+    if (length >= name_size)
+        length = name_size - 1;
+
+    memcpy(name, start, length);
+    name[length] = '\0';
+}
+
+static inline bool join_path(const char* directory, const char* path, char* out_path, size_t out_path_size)
+{
+    if (!directory || !path || !out_path || out_path_size == 0)
+        return false;
+
+    if (is_absolute_path(path))
+    {
+        strncpy_fit(out_path, path, out_path_size);
+        return true;
+    }
+
+    size_t directory_length = strlen(directory);
+    const char* separator = (directory_length > 0 && directory[directory_length - 1] != '/' && directory[directory_length - 1] != '\\') ? "/" : "";
+    int written = snprintf(out_path, out_path_size, "%s%s%s", directory, separator, path);
+    if (written < 0 || (size_t)written >= out_path_size)
+    {
+        out_path[0] = '\0';
+        return false;
+    }
+
+    return true;
+}
+
+static inline bool path_exists(const char* path)
+{
+    if (!path || path[0] == '\0')
+        return false;
+
+#if defined(_WIN32)
+    DWORD attributes = GetFileAttributesA(path);
+    return attributes != INVALID_FILE_ATTRIBUTES;
+#else
+    struct stat info;
+    return stat(path, &info) == 0;
+#endif
 }
 
 static inline void get_executable_path(char* path, size_t size)

@@ -25,6 +25,13 @@ override_dh_install:
 	install -dm755 debian/gearboy/usr/lib/gearboy/mcp/resources/hardware
 	install -m644 platforms/shared/desktop/mcp/resources/hardware/toc.json \
 		debian/gearboy/usr/lib/gearboy/mcp/resources/hardware/toc.json
+	install -dm755 debian/gearboy/usr/lib/gearboy/shaders
+	install -m644 platforms/shared/desktop/shaders/*.gshader \
+		debian/gearboy/usr/lib/gearboy/shaders/
+	install -m644 platforms/shared/desktop/shaders/*.glsl \
+		debian/gearboy/usr/lib/gearboy/shaders/
+	install -m644 platforms/shared/desktop/shaders/README.md \
+		debian/gearboy/usr/lib/gearboy/shaders/
 	install -dm755 debian/gearboy/usr/games
 	ln -s ../lib/gearboy/gearboy debian/gearboy/usr/games/gearboy
 
