@@ -824,7 +824,6 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size, bool screenshot)
 
         stream.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
-        Log("Save state size: %d", static_cast<int>(size));
         return true;
     }
 
