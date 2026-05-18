@@ -146,6 +146,8 @@ int application_init(const char* rom_file, const char* symbol_file, bool force_f
         emu_mcp_start();
     }
 
+    application_refocus_window();
+
     return 0;
 }
 
