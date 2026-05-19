@@ -63,6 +63,7 @@ static void render_internal_shader_chain(void);
 static void render_external_shader_chain(void);
 static void render_internal_shader_chain_feedback(void);
 static void render_emu_normal(void);
+static void bind_texture_unit(int unit, uint32_t texture, uint32_t fallback_texture);
 static void render_quad(uint32_t program, uint32_t texture, int viewport_width, int viewport_height, float tex_h, float tex_v, float red, float green, float blue, float alpha);
 static void render_quad_preset(int pass_index, uint32_t program, uint32_t texture, int input_width, int input_height, int viewport_width, int viewport_height);
 static void apply_shader_source_palette(void);
@@ -558,28 +559,19 @@ static void render_quad(uint32_t program, uint32_t texture, int viewport_width, 
 
 static void render_quad_preset(int pass_index, uint32_t program, uint32_t texture, int input_width, int input_height, int viewport_width, int viewport_height)
 {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    uint32_t source_texture = ogl_shader_chain_get_source_texture();
+    uint32_t fallback_texture = source_texture ? source_texture : texture;
 
-    if (ogl_shader_chain_get_preset_pass_uses_original_sampler(pass_index))
-    {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, ogl_shader_chain_get_source_texture());
-    }
-
-    if (ogl_shader_chain_get_preset_pass_uses_feedback_sampler(pass_index))
-    {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, ogl_shader_chain_get_feedback_texture());
-    }
+    bind_texture_unit(0, texture, fallback_texture);
+    bind_texture_unit(1, source_texture, fallback_texture);
+    bind_texture_unit(2, ogl_shader_chain_get_feedback_texture(), fallback_texture);
 
     for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
     {
         if (!ogl_shader_chain_get_preset_pass_uses_history_sampler(pass_index, i))
             continue;
 
-        glActiveTexture(GL_TEXTURE3 + i);
-        glBindTexture(GL_TEXTURE_2D, ogl_shader_chain_get_pass_history_texture(pass_index, i));
+        bind_texture_unit(3 + i, ogl_shader_chain_get_pass_history_texture(pass_index, i), fallback_texture);
     }
 
     for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
@@ -587,8 +579,7 @@ static void render_quad_preset(int pass_index, uint32_t program, uint32_t textur
         if (!ogl_shader_chain_get_preset_pass_uses_pass_output_sampler(pass_index, i))
             continue;
 
-        glActiveTexture(GL_TEXTURE3 + SHADER_PRESET_MAX_HISTORY_TEXTURES + i);
-        glBindTexture(GL_TEXTURE_2D, (i < pass_index) ? ogl_shader_chain_get_intermediate_texture(i) : 0);
+        bind_texture_unit(3 + SHADER_PRESET_MAX_HISTORY_TEXTURES + i, (i < pass_index) ? ogl_shader_chain_get_intermediate_texture(i) : 0, fallback_texture);
     }
 
     glUseProgram(program);
@@ -616,6 +607,12 @@ static void render_quad_preset(int pass_index, uint32_t program, uint32_t textur
     glUseProgram(0);
 
     glActiveTexture(GL_TEXTURE0);
+}
+
+static void bind_texture_unit(int unit, uint32_t texture, uint32_t fallback_texture)
+{
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, texture ? texture : fallback_texture);
 }
 
 static void apply_shader_source_palette(void)

@@ -382,6 +382,9 @@ bool ogl_shader_chain_load_preset(const char* path)
     clear_all_pass_history_textures();
 
     Log("Loaded shader preset: %s", active_preset.preset_path);
+    for (int i = 0; i < active_preset.pass_count; i++)
+        Debug("Shader preset pass %d: %s", i, active_preset.passes[i].shader_path);
+
     return true;
 }
 
