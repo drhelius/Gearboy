@@ -68,7 +68,7 @@ Max=1.0
 Step=0.01
 ```
 
-A parameter with `Min=0.0`, `Max=1.0`, and `Step=1.0` is displayed as a checkbox.
+A parameter with `Min=0.0`, `Max=1.0`, and `Step=1.0` is displayed as a checkbox. Other parameters with `Step=1.0` or higher are displayed as integer sliders.
 
 A preset can expose up to 32 parameters.
 

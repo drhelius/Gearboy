@@ -61,6 +61,8 @@ static void menu_video(void);
 static void menu_shader(void);
 static void draw_shader_parameters(void);
 static bool shader_parameter_is_toggle(const ShaderPresetParameter* parameter);
+static bool shader_parameter_is_integer(const ShaderPresetParameter* parameter);
+static int shader_parameter_round_to_int(float value);
 static void menu_input(void);
 static void menu_audio(void);
 static void menu_debug(void);
@@ -934,6 +936,19 @@ static void draw_shader_parameters(void)
             continue;
         }
 
+        if (shader_parameter_is_integer(parameter))
+        {
+            int int_value = shader_parameter_round_to_int(value);
+            int min_value = shader_parameter_round_to_int(parameter->minimum);
+            int max_value = shader_parameter_round_to_int(parameter->maximum);
+            if (ImGui::SliderInt(label, &int_value, min_value, max_value))
+            {
+                ogl_shader_chain_set_parameter(i, (float)int_value);
+                ogl_renderer_save_shader_parameter_config();
+            }
+            continue;
+        }
+
         if (ImGui::SliderFloat(label, &value, parameter->minimum, parameter->maximum, "%.3f"))
         {
             ogl_shader_chain_set_parameter(i, value);
@@ -947,6 +962,16 @@ static void draw_shader_parameters(void)
 static bool shader_parameter_is_toggle(const ShaderPresetParameter* parameter)
 {
     return parameter && parameter->minimum == 0.0f && parameter->maximum == 1.0f && parameter->step >= 1.0f;
+}
+
+static bool shader_parameter_is_integer(const ShaderPresetParameter* parameter)
+{
+    return parameter && parameter->step >= 1.0f;
+}
+
+static int shader_parameter_round_to_int(float value)
+{
+    return value >= 0.0f ? (int)(value + 0.5f) : (int)(value - 0.5f);
 }
 
 static void menu_input(void)
