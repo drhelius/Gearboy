@@ -3,10 +3,9 @@ Name=LCD Grid v2 + Ghosting
 Passes=2
 
 [Pass0]
-Path=ghosting.glsl
+Path=ghosting_history.glsl
 ScaleType=Source
 Filter=Nearest
-Feedback=true
 History=true
 
 [Pass1]
