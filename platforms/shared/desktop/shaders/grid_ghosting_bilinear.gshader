@@ -15,8 +15,8 @@ ScaleType=Viewport
 Filter=Linear
 
 [Parameters]
-Trails=0.7
-FrameBlend=0.7
+Trails=0.8
+FrameBlend=0.8
 GridIntensity=0.10
 
 [Parameter.Trails]

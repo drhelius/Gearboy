@@ -14,8 +14,8 @@ ScaleType=Viewport
 Filter=Nearest
 
 [Parameters]
-Trails=0.7
-FrameBlend=0.7
+Trails=0.8
+FrameBlend=0.8
 RSUBPIX_R=0.75
 RSUBPIX_G=0.0
 RSUBPIX_B=0.0

@@ -15,8 +15,8 @@ ScaleType=Viewport
 Filter=Nearest
 
 [Parameters]
-Trails=0.7
-FrameBlend=0.7
+Trails=0.8
+FrameBlend=0.8
 brighten_scanlines=16.0
 brighten_lcd=10.0
 

@@ -10,8 +10,8 @@ Feedback=true
 History=true
 
 [Parameters]
-Trails=0.7
-FrameBlend=0.7
+Trails=0.8
+FrameBlend=0.8
 
 [Parameter.Trails]
 Label=Trails
