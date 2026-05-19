@@ -65,10 +65,12 @@ jobs:
     - name: Prepare artifact directory
       run: |
         mkdir -p artifact/mcp
+        mkdir -p artifact/shaders
         cp platforms/shared/README.txt artifact
         cp platforms/shared/gamecontrollerdb.txt artifact
         cp platforms/linux/${{ env.NAME_LOWER }} artifact
         cp -r platforms/shared/desktop/mcp/resources artifact/mcp/
+        cp -r platforms/shared/desktop/shaders/* artifact/shaders/
     - name: Archive binary
       uses: actions/upload-artifact@v7
       with:
@@ -242,11 +244,13 @@ jobs:
     - name: Prepare artifact directory
       run: |
         mkdir -p artifact/mcp
+        mkdir -p artifact/shaders
         cp platforms/shared/README.txt artifact
         cp platforms/shared/gamecontrollerdb.txt artifact
         cp platforms/windows/dependencies/SDL3/lib/${{ matrix.architecture }}/SDL3.dll artifact
         cp platforms/windows/release/${{ env.NAME_UPPER }}.exe artifact
         cp -r platforms/shared/desktop/mcp/resources artifact/mcp/
+        cp -r platforms/shared/desktop/shaders/* artifact/shaders/
     - name: Archive binary
       uses: actions/upload-artifact@v7
       with:
@@ -278,10 +282,12 @@ jobs:
     - name: Prepare artifact directory
       run: |
         mkdir -p artifact/mcp
+        mkdir -p artifact/shaders
         cp platforms/shared/README.txt artifact
         cp platforms/shared/gamecontrollerdb.txt artifact
         cp platforms/bsd/${{ env.NAME_LOWER }} artifact
         cp -r platforms/shared/desktop/mcp/resources artifact/mcp/
+        cp -r platforms/shared/desktop/shaders/* artifact/shaders/
     - name: Archive binary
       uses: actions/upload-artifact@v7
       with:
@@ -319,6 +325,7 @@ jobs:
     - name: Prepare MCPB structure
       run: |
         mkdir -p mcpb/server
+        mkdir -p mcpb/server/shaders
         mkdir -p mcpb/mcp/resources
 
         cp platforms/shared/desktop/mcp/icon.png mcpb/icon.png
@@ -328,15 +335,18 @@ jobs:
           unzip -q ${{ env.NAME_UPPER }}.app.zip
           cd ..
           cp download/${{ env.NAME_UPPER }}.app/Contents/MacOS/${{ env.NAME_LOWER }} mcpb/server/
+          cp -r download/${{ env.NAME_UPPER }}.app/Contents/Resources/shaders/* mcpb/server/shaders/
           cp platforms/shared/gamecontrollerdb.txt mcpb/
           cp -r platforms/shared/desktop/mcp/resources/* mcpb/mcp/resources/
         elif [ "${{ matrix.variant.platform }}" = "win32" ]; then
           cp download/${{ env.NAME_UPPER }}.exe mcpb/server/
           cp download/SDL3.dll mcpb/server/
+          cp -r download/shaders/* mcpb/server/shaders/
           cp download/gamecontrollerdb.txt mcpb/
           cp -r download/mcp/resources/* mcpb/mcp/resources/
         else
           cp download/${{ env.NAME_LOWER }} mcpb/server/
+          cp -r download/shaders/* mcpb/server/shaders/
           cp download/gamecontrollerdb.txt mcpb/
           cp -r download/mcp/resources/* mcpb/mcp/resources/
         fi
