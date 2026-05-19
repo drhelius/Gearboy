@@ -1,17 +1,23 @@
 [Preset]
-Name=Ghosting
-Passes=1
+Name=Grid + Ghosting + Bilinear
+Passes=2
 
 [Pass0]
 Path=ghosting.glsl
 ScaleType=Viewport
-Filter=Nearest
+Filter=Linear
 Feedback=true
 History=true
+
+[Pass1]
+Path=grid.glsl
+ScaleType=Viewport
+Filter=Linear
 
 [Parameters]
 Trails=0.7
 FrameBlend=0.7
+GridIntensity=0.10
 
 [Parameter.Trails]
 Label=Trails
@@ -24,3 +30,9 @@ Label=Frame Blend
 Min=0.0
 Max=1.0
 Step=0.05
+
+[Parameter.GridIntensity]
+Label=Grid
+Min=0.0
+Max=1.0
+Step=0.01

@@ -8,18 +8,18 @@ GLSL files are normal fragment shaders. Gearboy supplies a fullscreen vertex sha
 
 ```ini
 [Preset]
-Name=Scanlines Bilinear
+Name=Grid Bilinear
 Passes=1
 
 [Pass0]
-Path=scanlines.glsl
+Path=grid.glsl
 ScaleType=Viewport
 Filter=Linear
 
 [Parameters]
-ScanlineIntensity=0.10
+GridIntensity=0.10
 
-[Parameter.ScanlineIntensity]
+[Parameter.GridIntensity]
 Label=Intensity
 Min=0.0
 Max=1.0
@@ -32,6 +32,7 @@ Step=0.01
 
 - `Name`: display name shown in the menu. If omitted, the filename is used.
 - `Passes`: number of passes, from 1 to 8.
+- `SourcePalette`: optional source palette request. `Default` keeps the configured emulator palette, while `BlackWhite` temporarily uses Gearboy's internal black-and-white DMG palette while the preset is active.
 
 `[PassN]`
 

@@ -1,16 +1,16 @@
 [Preset]
-Name=Scanlines Bilinear
+Name=Grid + Bilinear
 Passes=1
 
 [Pass0]
-Path=scanlines.glsl
+Path=grid.glsl
 ScaleType=Viewport
 Filter=Linear
 
 [Parameters]
-ScanlineIntensity=0.10
+GridIntensity=0.10
 
-[Parameter.ScanlineIntensity]
+[Parameter.GridIntensity]
 Label=Intensity
 Min=0.0
 Max=1.0
