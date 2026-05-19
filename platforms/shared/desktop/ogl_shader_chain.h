@@ -66,6 +66,7 @@ EXTERN const char* ogl_shader_chain_get_preset_name(void);
 EXTERN const char* ogl_shader_chain_get_preset_path(void);
 EXTERN const char* ogl_shader_chain_get_last_error(void);
 EXTERN bool ogl_shader_chain_get_preset_filter_linear(void);
+EXTERN ShaderPresetSourcePalette ogl_shader_chain_get_preset_source_palette(void);
 EXTERN int ogl_shader_chain_get_preset_pass_count(void);
 EXTERN bool ogl_shader_chain_get_preset_pass_filter_linear(int index);
 EXTERN bool ogl_shader_chain_get_preset_pass_float_framebuffer(int index);

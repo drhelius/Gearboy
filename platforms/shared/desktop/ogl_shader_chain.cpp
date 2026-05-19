@@ -391,6 +391,11 @@ bool ogl_shader_chain_get_preset_filter_linear(void)
     return ogl_shader_chain_get_preset_pass_filter_linear(0);
 }
 
+ShaderPresetSourcePalette ogl_shader_chain_get_preset_source_palette(void)
+{
+    return preset_loaded ? active_preset.source_palette : ShaderPresetSourcePalette_Default;
+}
+
 int ogl_shader_chain_get_preset_pass_count(void)
 {
     return preset_loaded ? active_preset.pass_count : 0;

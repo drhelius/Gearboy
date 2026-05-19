@@ -84,6 +84,7 @@ EXTERN bool emu_is_audio_enabled(void);
 EXTERN bool emu_is_audio_open(void);
 EXTERN void emu_dmg_palette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
 EXTERN void emu_dmg_predefined_palette(int palette);
+EXTERN void emu_dmg_predefined_palette_override(int palette);
 EXTERN bool emu_is_cgb(void);
 EXTERN void emu_save_ram(const char* file_path);
 EXTERN void emu_load_ram(const char* file_path, bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba);

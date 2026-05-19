@@ -39,6 +39,7 @@
 
 static uint32_t system_texture;
 static uint32_t frame_buffer_object;
+static ShaderPresetSourcePalette applied_shader_source_palette = ShaderPresetSourcePalette_Default;
 static GB_RuntimeInfo current_runtime;
 static OglRendererScreenGeometry screen_geometry;
 
@@ -63,6 +64,8 @@ static void render_emu_normal(void);
 static void update_emu_texture(void);
 static void render_quad(uint32_t program, uint32_t texture, int viewport_width, int viewport_height, float tex_h, float tex_v, float red, float green, float blue, float alpha);
 static void render_quad_preset(int pass_index, uint32_t program, uint32_t texture, int input_width, int input_height, int viewport_width, int viewport_height);
+static void apply_shader_source_palette(void);
+static void apply_configured_dmg_palette(void);
 static void update_system_texture(void);
 static void update_debug_textures(void);
 static void update_savestates_texture(void);
@@ -148,6 +151,7 @@ void ogl_renderer_begin_render(void)
 void ogl_renderer_render(void)
 {
     update_current_runtime();
+    apply_shader_source_palette();
 
     if (config_debug.debug)
     {
@@ -637,6 +641,48 @@ static void render_quad_preset(int pass_index, uint32_t program, uint32_t textur
     glUseProgram(0);
 
     glActiveTexture(GL_TEXTURE0);
+}
+
+static void apply_shader_source_palette(void)
+{
+    ShaderPresetSourcePalette source_palette = ShaderPresetSourcePalette_Default;
+
+    if (should_use_internal_shader_chain() && ogl_shader_chain_has_preset())
+        source_palette = ogl_shader_chain_get_preset_source_palette();
+
+    if (source_palette == applied_shader_source_palette)
+        return;
+
+    if (source_palette == ShaderPresetSourcePalette_BlackWhite)
+        emu_dmg_predefined_palette_override(2);
+    else
+    {
+        emu_dmg_predefined_palette_override(-1);
+        apply_configured_dmg_palette();
+    }
+
+    applied_shader_source_palette = source_palette;
+    emu_render_current_frame();
+}
+
+static void apply_configured_dmg_palette(void)
+{
+    if (config_video.palette < 6)
+    {
+        emu_dmg_predefined_palette(config_video.palette);
+    }
+    else
+    {
+        int custom = config_video.palette - 6;
+        if (custom < 0 || custom >= config_max_custom_palettes)
+            return;
+
+        GB_Color c0 = config_video.color[custom][0];
+        GB_Color c1 = config_video.color[custom][1];
+        GB_Color c2 = config_video.color[custom][2];
+        GB_Color c3 = config_video.color[custom][3];
+        emu_dmg_palette(c0, c1, c2, c3);
+    }
 }
 
 static void update_current_runtime(void)

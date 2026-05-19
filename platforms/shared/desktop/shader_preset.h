@@ -23,6 +23,12 @@ enum ShaderPresetScaleType
     ShaderPresetScale_Absolute
 };
 
+enum ShaderPresetSourcePalette
+{
+    ShaderPresetSourcePalette_Default = 0,
+    ShaderPresetSourcePalette_BlackWhite
+};
+
 struct ShaderPresetParameter
 {
     char name[SHADER_PRESET_MAX_PARAMETER_NAME];
@@ -56,6 +62,7 @@ struct ShaderPreset
     char preset_dir[SHADER_PRESET_MAX_PATH];
     char shader_path[SHADER_PRESET_MAX_PATH];
     bool filter_linear;
+    ShaderPresetSourcePalette source_palette;
     int pass_count;
     ShaderPresetPass passes[SHADER_PRESET_MAX_PASSES];
     int parameter_count;

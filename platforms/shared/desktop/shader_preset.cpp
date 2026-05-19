@@ -33,6 +33,7 @@ static bool parse_bool(const std::string& value, bool default_value);
 static int parse_int(const std::string& value, int default_value);
 static float parse_float(const std::string& value, float default_value);
 static ShaderPresetScaleType parse_scale_type(const std::string& value, ShaderPresetScaleType default_value);
+static ShaderPresetSourcePalette parse_source_palette(const std::string& value, ShaderPresetSourcePalette default_value);
 static void set_error(char* error, size_t error_size, const char* message);
 static void set_error_path(char* error, size_t error_size, const char* prefix, const char* path);
 
@@ -79,6 +80,8 @@ bool shader_preset_load(const char* path, ShaderPreset* preset, char* error, siz
 
     if (!load_passes(ini, preset, error, error_size))
         return false;
+
+    preset->source_palette = parse_source_palette(ini.get("Preset").get("SourcePalette"), ShaderPresetSourcePalette_Default);
 
     load_parameters(ini, preset);
 
@@ -219,6 +222,7 @@ static void clear_preset(ShaderPreset* preset)
 {
     memset(preset, 0, sizeof(*preset));
     preset->filter_linear = false;
+    preset->source_palette = ShaderPresetSourcePalette_Default;
 }
 
 static bool load_ini(const char* path, mINI::INIStructure& ini, char* error, size_t error_size)
@@ -563,6 +567,19 @@ static ShaderPresetScaleType parse_scale_type(const std::string& value, ShaderPr
         return ShaderPresetScale_Previous;
     if (value == "Absolute" || value == "absolute")
         return ShaderPresetScale_Absolute;
+
+    return default_value;
+}
+
+static ShaderPresetSourcePalette parse_source_palette(const std::string& value, ShaderPresetSourcePalette default_value)
+{
+    if (value.empty())
+        return default_value;
+
+    if (value == "Default" || value == "default")
+        return ShaderPresetSourcePalette_Default;
+    if (value == "BlackWhite" || value == "blackwhite" || value == "BlackAndWhite" || value == "blackandwhite" || value == "BW" || value == "bw" || value == "Monochrome" || value == "monochrome")
+        return ShaderPresetSourcePalette_BlackWhite;
 
     return default_value;
 }

@@ -70,11 +70,13 @@ static char loading_file_path[4096];
 static bool loading_force_dmg;
 static Cartridge::CartridgeTypes loading_mbc;
 static bool loading_force_gba;
+static int dmg_palette_override = -1;
 
 static void save_ram(void);
 static void load_ram(void);
 static void reset_buffers(void);
 static void generate_24bit_buffer(GB_Color* dest, u16* src, int size);
+static void apply_dmg_palette_override(void);
 static const char* get_mbc(Cartridge::CartridgeTypes type);
 static void init_debug(void);
 static void update_debug(void);
@@ -235,6 +237,8 @@ void emu_render_current_frame(void)
     if (emu_is_empty())
         return;
 
+    apply_dmg_palette_override();
+
     gearboy->RenderFrameBuffer(frame_buffer_565);
 
     GB_RuntimeInfo rt_info;
@@ -259,6 +263,8 @@ void emu_update(void)
 
     if (emu_is_empty())
         return;
+
+    apply_dmg_palette_override();
 
     gearboy->SetSGBBorder(config_emulator.sgb_border);
 
@@ -520,6 +526,18 @@ void emu_dmg_predefined_palette(int palette)
 
     if (p)
         gearboy->SetDMGPalette(p[0], p[1], p[2], p[3]);
+}
+
+void emu_dmg_predefined_palette_override(int palette)
+{
+    dmg_palette_override = palette;
+    apply_dmg_palette_override();
+}
+
+static void apply_dmg_palette_override(void)
+{
+    if (dmg_palette_override >= 0)
+        emu_dmg_predefined_palette(dmg_palette_override);
 }
 
 bool emu_is_cgb(void)
