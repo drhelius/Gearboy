@@ -621,6 +621,8 @@ void emu_load_state_file(const char* file_path)
 
 void update_savestates_data(void)
 {
+    emu_savestates_generation++;
+
     if (emu_is_empty())
         return;
 

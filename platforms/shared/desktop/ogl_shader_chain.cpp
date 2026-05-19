@@ -26,17 +26,22 @@ static uint32_t intermediate_textures[SHADER_PRESET_MAX_PASSES - 1];
 static uint32_t intermediate_fbos[SHADER_PRESET_MAX_PASSES - 1];
 static int intermediate_widths[SHADER_PRESET_MAX_PASSES - 1];
 static int intermediate_heights[SHADER_PRESET_MAX_PASSES - 1];
+static bool intermediate_filter_linears[SHADER_PRESET_MAX_PASSES - 1];
 static bool intermediate_float_framebuffers[SHADER_PRESET_MAX_PASSES - 1];
 static uint32_t pass_history_textures[SHADER_PRESET_MAX_PASSES][SHADER_PRESET_MAX_HISTORY_TEXTURES];
 static int pass_history_widths[SHADER_PRESET_MAX_PASSES];
 static int pass_history_heights[SHADER_PRESET_MAX_PASSES];
+static bool pass_history_filter_linears[SHADER_PRESET_MAX_PASSES];
 static int pass_history_counts[SHADER_PRESET_MAX_PASSES];
 static int pass_history_write_indices[SHADER_PRESET_MAX_PASSES];
 static bool pass_history_float_framebuffers[SHADER_PRESET_MAX_PASSES];
 static int source_width = 1;
 static int source_height = 1;
+static bool source_filter_linear = false;
 static int pass_width = 1;
 static int pass_height = 1;
+static bool pass_filter_linear = false;
+static bool feedback_filter_linear = false;
 static bool pass_float_framebuffer = false;
 static bool initialized = false;
 static const char* framebuffer_name = "shader-chain framebuffer";
@@ -98,8 +103,11 @@ bool ogl_shader_chain_init(const char* name)
     framebuffer_name = name ? name : "shader-chain framebuffer";
     source_width = 1;
     source_height = 1;
+    source_filter_linear = false;
     pass_width = 1;
     pass_height = 1;
+    pass_filter_linear = false;
+    feedback_filter_linear = false;
     pass_float_framebuffer = false;
 
     glGenTextures(1, &source_texture);
@@ -127,6 +135,7 @@ bool ogl_shader_chain_init(const char* name)
         intermediate_fbos[i] = 0;
         intermediate_widths[i] = 1;
         intermediate_heights[i] = 1;
+        intermediate_filter_linears[i] = false;
         intermediate_float_framebuffers[i] = false;
     }
 
@@ -134,6 +143,7 @@ bool ogl_shader_chain_init(const char* name)
     {
         pass_history_widths[i] = 1;
         pass_history_heights[i] = 1;
+        pass_history_filter_linears[i] = false;
         pass_history_counts[i] = 0;
         pass_history_write_indices[i] = 0;
         pass_history_float_framebuffers[i] = false;
@@ -175,6 +185,7 @@ void ogl_shader_chain_destroy(void)
 
         pass_history_widths[i] = 1;
         pass_history_heights[i] = 1;
+        pass_history_filter_linears[i] = false;
         pass_history_counts[i] = 0;
         pass_history_write_indices[i] = 0;
         pass_history_float_framebuffers[i] = false;
@@ -197,8 +208,12 @@ void ogl_shader_chain_destroy(void)
     source_texture = 0;
     source_width = 1;
     source_height = 1;
+    source_filter_linear = false;
     pass_width = 1;
     pass_height = 1;
+    pass_filter_linear = false;
+    feedback_filter_linear = false;
+    pass_float_framebuffer = false;
     initialized = false;
 }
 
@@ -225,11 +240,16 @@ bool ogl_shader_chain_update_source_texture(const OglShaderChainSourceTexture* t
         resize_texture_2d(source_texture, width, height, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, NULL, texture->filter_linear);
         source_width = width;
         source_height = height;
+        source_filter_linear = texture->filter_linear;
     }
 
     glBindTexture(GL_TEXTURE_2D, source_texture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, texture->pixels);
-    configure_texture_2d(texture->filter_linear);
+    if (source_filter_linear != texture->filter_linear)
+    {
+        configure_texture_2d(texture->filter_linear);
+        source_filter_linear = texture->filter_linear;
+    }
 
     return true;
 }
@@ -249,10 +269,20 @@ bool ogl_shader_chain_resize_pass_texture(const OglShaderChainFramebufferTexture
 
     if (pass_width == width && pass_height == height && pass_float_framebuffer == texture->float_framebuffer)
     {
-        glBindTexture(GL_TEXTURE_2D, pass_texture);
-        configure_texture_2d(texture->filter_linear);
-        glBindTexture(GL_TEXTURE_2D, feedback_texture);
-        configure_texture_2d(texture->filter_linear);
+        if (pass_filter_linear != texture->filter_linear)
+        {
+            glBindTexture(GL_TEXTURE_2D, pass_texture);
+            configure_texture_2d(texture->filter_linear);
+            pass_filter_linear = texture->filter_linear;
+        }
+
+        if (feedback_filter_linear != texture->filter_linear)
+        {
+            glBindTexture(GL_TEXTURE_2D, feedback_texture);
+            configure_texture_2d(texture->filter_linear);
+            feedback_filter_linear = texture->filter_linear;
+        }
+
         return true;
     }
 
@@ -267,6 +297,8 @@ bool ogl_shader_chain_resize_pass_texture(const OglShaderChainFramebufferTexture
     {
         pass_width = width;
         pass_height = height;
+        pass_filter_linear = texture->filter_linear;
+        feedback_filter_linear = texture->filter_linear;
         pass_float_framebuffer = texture->float_framebuffer;
         clear_feedback_texture();
     }
@@ -292,8 +324,13 @@ bool ogl_shader_chain_resize_intermediate_texture(int index, const OglShaderChai
 
     if (intermediate_widths[index] == width && intermediate_heights[index] == height && intermediate_float_framebuffers[index] == texture->float_framebuffer)
     {
-        glBindTexture(GL_TEXTURE_2D, intermediate_textures[index]);
-        configure_texture_2d(texture->filter_linear);
+        if (intermediate_filter_linears[index] != texture->filter_linear)
+        {
+            glBindTexture(GL_TEXTURE_2D, intermediate_textures[index]);
+            configure_texture_2d(texture->filter_linear);
+            intermediate_filter_linears[index] = texture->filter_linear;
+        }
+
         return true;
     }
 
@@ -302,6 +339,7 @@ bool ogl_shader_chain_resize_intermediate_texture(int index, const OglShaderChai
 
     intermediate_widths[index] = width;
     intermediate_heights[index] = height;
+    intermediate_filter_linears[index] = texture->filter_linear;
     intermediate_float_framebuffers[index] = texture->float_framebuffer;
     return true;
 }
@@ -539,27 +577,6 @@ void ogl_shader_chain_apply_preset_uniforms(int index, const OglShaderChainUnifo
     if (!state->program)
         return;
 
-    if (state->uniform_source >= 0)
-        glUniform1i(state->uniform_source, 0);
-
-    if (state->uniform_original >= 0)
-        glUniform1i(state->uniform_original, 1);
-
-    if (state->uniform_feedback >= 0)
-        glUniform1i(state->uniform_feedback, 2);
-
-    for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
-    {
-        if (state->uniform_source_history[i] >= 0)
-            glUniform1i(state->uniform_source_history[i], 3 + i);
-    }
-
-    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
-    {
-        if (state->uniform_pass_output[i] >= 0)
-            glUniform1i(state->uniform_pass_output[i], 3 + SHADER_PRESET_MAX_HISTORY_TEXTURES + i);
-    }
-
     if (state->uniform_source_size >= 0)
         glUniform4f(state->uniform_source_size, (float)uniforms->input_width, (float)uniforms->input_height, safe_inverse(uniforms->input_width), safe_inverse(uniforms->input_height));
 
@@ -676,7 +693,6 @@ bool ogl_shader_chain_store_pass_history(int index, uint32_t texture, int width,
 
     glBindTexture(GL_TEXTURE_2D, target_texture);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, pass_history_widths[index], pass_history_heights[index]);
-    configure_texture_2d(filter_linear);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -901,6 +917,7 @@ static void release_intermediate_textures(int keep_count)
         intermediate_textures[i] = 0;
         intermediate_widths[i] = 1;
         intermediate_heights[i] = 1;
+        intermediate_filter_linears[i] = false;
         intermediate_float_framebuffers[i] = false;
     }
 }
@@ -962,38 +979,49 @@ static bool resize_pass_history_textures(int index, int width, int height, bool 
         height = 1;
 
     bool same_size = pass_history_widths[index] == width && pass_history_heights[index] == height && pass_history_float_framebuffers[index] == float_framebuffer;
+    bool same_filter = pass_history_filter_linears[index] == filter_linear;
     int internal_format = float_framebuffer ? GL_RGBA16F : GL_RGBA8;
     uint32_t type = float_framebuffer ? GL_FLOAT : GL_UNSIGNED_BYTE;
-    bool created = false;
+    bool needs_create = false;
 
     for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
     {
         if (!pass_history_textures[index][i])
-        {
+            needs_create = true;
+    }
+
+    bool resize = !same_size || needs_create;
+
+    for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
+    {
+        if (!pass_history_textures[index][i])
             glGenTextures(1, &pass_history_textures[index][i]);
-            created = true;
-        }
 
         if (!pass_history_textures[index][i])
             return false;
 
-        if (same_size && !created)
+        if (resize)
+        {
+            resize_texture_2d(pass_history_textures[index][i], width, height, internal_format, GL_RGBA, type, NULL, filter_linear);
+        }
+        else if (!same_filter)
         {
             glBindTexture(GL_TEXTURE_2D, pass_history_textures[index][i]);
             configure_texture_2d(filter_linear);
         }
-        else
-        {
-            resize_texture_2d(pass_history_textures[index][i], width, height, internal_format, GL_RGBA, type, NULL, filter_linear);
-        }
     }
 
-    if (!same_size || created)
+    if (resize)
     {
         pass_history_widths[index] = width;
         pass_history_heights[index] = height;
+        pass_history_filter_linears[index] = filter_linear;
         pass_history_float_framebuffers[index] = float_framebuffer;
         clear_pass_history_textures(index);
+    }
+    else if (!same_filter)
+    {
+        pass_history_filter_linears[index] = filter_linear;
     }
 
     return true;

@@ -95,6 +95,7 @@ EXTERN void emu_load_state_file(const char* file_path);
 EXTERN void update_savestates_data(void);
 EXTERN GB_SaveState_Header emu_savestates[5];
 EXTERN GB_SaveState_Screenshot emu_savestates_screenshots[5];
+EXTERN u32 emu_savestates_generation;
 EXTERN void emu_add_cheat(const char* cheat);
 EXTERN void emu_clear_cheats(void);
 EXTERN void emu_get_info(char* info, int buffer_size);

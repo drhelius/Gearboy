@@ -42,6 +42,8 @@ static uint32_t frame_buffer_object;
 static ShaderPresetSourcePalette applied_shader_source_palette = ShaderPresetSourcePalette_Default;
 static GB_RuntimeInfo current_runtime;
 static OglRendererScreenGeometry screen_geometry;
+static int savestates_texture_slot = -1;
+static u32 savestates_texture_generation = 0;
 
 static uint32_t quad_shader_program = 0;
 static uint32_t quad_vao = 0;
@@ -61,7 +63,6 @@ static void render_internal_shader_chain(void);
 static void render_external_shader_chain(void);
 static void render_internal_shader_chain_feedback(void);
 static void render_emu_normal(void);
-static void update_emu_texture(void);
 static void render_quad(uint32_t program, uint32_t texture, int viewport_width, int viewport_height, float tex_h, float tex_v, float red, float green, float blue, float alpha);
 static void render_quad_preset(int pass_index, uint32_t program, uint32_t texture, int input_width, int input_height, int viewport_width, int viewport_height);
 static void apply_shader_source_palette(void);
@@ -166,8 +167,6 @@ void ogl_renderer_render(void)
         render_internal_shader_chain();
     else
         render_emu_normal();
-
-    update_emu_texture();
 
     ImVec4 clear_color = ImVec4(config_video.background_color[0], config_video.background_color[1], config_video.background_color[2], 1.00f);
 
@@ -334,6 +333,8 @@ static void init_ogl_debug(void)
 static void init_ogl_savestates(void)
 {
     create_texture_2d(&ogl_renderer_emu_savestates, SYSTEM_TEXTURE_WIDTH, SYSTEM_TEXTURE_HEIGHT, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, NULL, false);
+    savestates_texture_slot = -1;
+    savestates_texture_generation = 0;
 }
 
 static void render_gui(void)
@@ -353,8 +354,7 @@ static bool should_use_internal_shader_chain(void)
 
 static void render_internal_shader_chain(void)
 {
-    bool has_preset = ogl_shader_chain_has_preset();
-    bool filter_linear = has_preset ? ogl_shader_chain_get_preset_filter_linear() : false;
+    bool filter_linear = ogl_shader_chain_get_preset_filter_linear();
 
     OglShaderChainSourceTexture source_texture;
     source_texture.width = current_runtime.screen_width;
@@ -368,33 +368,7 @@ static void render_internal_shader_chain(void)
         return;
     }
 
-    if (has_preset)
-    {
-        render_external_shader_chain();
-        return;
-    }
-
-    OglShaderChainFramebufferTexture pass_texture;
-    pass_texture.width = screen_geometry.physical_width;
-    pass_texture.height = screen_geometry.physical_height;
-    pass_texture.filter_linear = false;
-    pass_texture.float_framebuffer = false;
-
-    if (!ogl_shader_chain_resize_pass_texture(&pass_texture))
-    {
-        render_emu_normal();
-        return;
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, ogl_shader_chain_get_pass_framebuffer());
-    glDisable(GL_BLEND);
-
-    render_quad(quad_shader_program, ogl_shader_chain_get_source_texture(),
-            ogl_shader_chain_get_pass_width(), ogl_shader_chain_get_pass_height(),
-            1.0f, 1.0f,
-            1.0f, 1.0f, 1.0f, 1.0f);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    render_external_shader_chain();
 }
 
 static void render_external_shader_chain(void)
@@ -510,8 +484,6 @@ static void update_system_texture(void)
     glBindTexture(GL_TEXTURE_2D, system_texture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, current_runtime.screen_width, current_runtime.screen_height,
             GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
-
-    configure_texture_2d(false);
 }
 
 static void update_debug_textures(void)
@@ -547,6 +519,14 @@ static void update_debug_textures(void)
 static void update_savestates_texture(void)
 {
     int i = config_emulator.save_slot;
+    if (i < 0 || i >= 5)
+        return;
+
+    if ((savestates_texture_slot == i) && (savestates_texture_generation == emu_savestates_generation))
+        return;
+
+    savestates_texture_slot = i;
+    savestates_texture_generation = emu_savestates_generation;
 
     if (IsValidPointer(emu_savestates_screenshots[i].data))
     {
@@ -555,13 +535,6 @@ static void update_savestates_texture(void)
         glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_savestates);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_savestates_screenshots[i].data);
     }
-}
-
-static void update_emu_texture(void)
-{
-    glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_texture);
-
-    configure_texture_2d(false);
 }
 
 static void render_quad(uint32_t program, uint32_t texture, int viewport_width, int viewport_height, float tex_h, float tex_v, float red, float green, float blue, float alpha)
