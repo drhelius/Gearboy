@@ -344,6 +344,8 @@ static void render_gui(void)
 static bool should_use_internal_shader_chain(void)
 {
     return ogl_shader_chain_is_initialized() &&
+            config_video.shader_mode == config_ShaderMode_External &&
+            ogl_shader_chain_has_preset() &&
             !config_debug.debug &&
             screen_geometry.physical_width > 0 &&
             screen_geometry.physical_height > 0;
