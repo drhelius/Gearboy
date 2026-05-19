@@ -48,12 +48,18 @@ struct PresetProgramState
     int uniform_original;
     int uniform_feedback;
     int uniform_source_history[SHADER_PRESET_MAX_HISTORY_TEXTURES];
+    int uniform_pass_output[SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES];
+    bool uses_original;
+    bool uses_feedback;
+    bool uses_source_history[SHADER_PRESET_MAX_HISTORY_TEXTURES];
+    bool uses_pass_output[SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES];
     int uniform_source_size;
     int uniform_original_size;
     int uniform_output_size;
     int uniform_final_viewport_size;
     int uniform_feedback_size;
     int uniform_source_history_size;
+    int uniform_pass_output_size[SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES];
     int uniform_source_history_count;
     int uniform_frame_count;
     int uniform_frame_direction;
@@ -70,11 +76,14 @@ static void configure_texture_2d(bool filter_linear);
 static void resize_texture_2d(uint32_t texture, int width, int height, int internal_format, uint32_t format, uint32_t type, const void* pixels, bool filter_linear);
 static bool check_framebuffer_complete(const char* name);
 static bool resize_framebuffer_texture(uint32_t texture, uint32_t fbo, int width, int height, bool filter_linear, bool float_framebuffer, const char* name);
+static bool ensure_intermediate_texture(int index);
+static bool ensure_history_copy_framebuffer(void);
 static bool load_preset_programs(const ShaderPreset* preset, PresetProgramState* programs, char* error, size_t error_size);
 static void bind_preset_uniform_locations(PresetProgramState* state);
 static void clear_preset_state(void);
 static void delete_preset_programs(void);
 static void clear_feedback_texture(void);
+static void release_intermediate_textures(int keep_count);
 static void clear_pass_history_textures(int index);
 static void clear_all_pass_history_textures(void);
 static bool resize_pass_history_textures(int index, int width, int height, bool filter_linear, bool float_framebuffer);
@@ -99,36 +108,28 @@ bool ogl_shader_chain_init(const char* name)
     glGenTextures(1, &pass_texture);
     resize_texture_2d(pass_texture, 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, NULL, false);
 
-    glGenTextures(1, &feedback_texture);
-    resize_texture_2d(feedback_texture, 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, NULL, false);
-
-    glGenFramebuffers(1, &history_copy_fbo);
-
     glGenFramebuffers(1, &pass_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, pass_fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pass_texture, 0);
     bool pass_complete = check_framebuffer_complete(framebuffer_name);
+
+    glGenTextures(1, &feedback_texture);
+    resize_texture_2d(feedback_texture, 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, NULL, false);
 
     glGenFramebuffers(1, &feedback_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, feedback_fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, feedback_texture, 0);
     bool feedback_complete = check_framebuffer_complete(framebuffer_name);
 
-    bool intermediates_complete = true;
     for (int i = 0; i < SHADER_PRESET_MAX_PASSES - 1; i++)
     {
+        intermediate_textures[i] = 0;
+        intermediate_fbos[i] = 0;
         intermediate_widths[i] = 1;
         intermediate_heights[i] = 1;
         intermediate_float_framebuffers[i] = false;
-        glGenTextures(1, &intermediate_textures[i]);
-        resize_texture_2d(intermediate_textures[i], 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, NULL, false);
-        glGenFramebuffers(1, &intermediate_fbos[i]);
-        glBindFramebuffer(GL_FRAMEBUFFER, intermediate_fbos[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, intermediate_textures[i], 0);
-        intermediates_complete = check_framebuffer_complete(framebuffer_name) && intermediates_complete;
     }
 
-    bool history_complete = true;
     for (int i = 0; i < SHADER_PRESET_MAX_PASSES; i++)
     {
         pass_history_widths[i] = 1;
@@ -138,16 +139,10 @@ bool ogl_shader_chain_init(const char* name)
         pass_history_float_framebuffers[i] = false;
 
         for (int j = 0; j < SHADER_PRESET_MAX_HISTORY_TEXTURES; j++)
-        {
-            glGenTextures(1, &pass_history_textures[i][j]);
-            resize_texture_2d(pass_history_textures[i][j], 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, NULL, false);
-            glBindFramebuffer(GL_FRAMEBUFFER, history_copy_fbo);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pass_history_textures[i][j], 0);
-            history_complete = check_framebuffer_complete(framebuffer_name) && history_complete;
-        }
+            pass_history_textures[i][j] = 0;
     }
 
-    initialized = pass_complete && feedback_complete && intermediates_complete && history_complete;
+    initialized = pass_complete && feedback_complete;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -160,21 +155,15 @@ void ogl_shader_chain_destroy(void)
 
     if (pass_fbo)
         glDeleteFramebuffers(1, &pass_fbo);
+
     if (feedback_fbo)
         glDeleteFramebuffers(1, &feedback_fbo);
+
     if (history_copy_fbo)
         glDeleteFramebuffers(1, &history_copy_fbo);
-    for (int i = 0; i < SHADER_PRESET_MAX_PASSES - 1; i++)
-    {
-        if (intermediate_fbos[i])
-            glDeleteFramebuffers(1, &intermediate_fbos[i]);
-        if (intermediate_textures[i])
-            glDeleteTextures(1, &intermediate_textures[i]);
-        intermediate_fbos[i] = 0;
-        intermediate_textures[i] = 0;
-        intermediate_widths[i] = 1;
-        intermediate_heights[i] = 1;
-    }
+
+    release_intermediate_textures(0);
+
     for (int i = 0; i < SHADER_PRESET_MAX_PASSES; i++)
     {
         for (int j = 0; j < SHADER_PRESET_MAX_HISTORY_TEXTURES; j++)
@@ -190,10 +179,13 @@ void ogl_shader_chain_destroy(void)
         pass_history_write_indices[i] = 0;
         pass_history_float_framebuffers[i] = false;
     }
+
     if (feedback_texture)
         glDeleteTextures(1, &feedback_texture);
+
     if (pass_texture)
         glDeleteTextures(1, &pass_texture);
+
     if (source_texture)
         glDeleteTextures(1, &source_texture);
 
@@ -284,10 +276,10 @@ bool ogl_shader_chain_resize_pass_texture(const OglShaderChainFramebufferTexture
 
 bool ogl_shader_chain_resize_intermediate_texture(int index, const OglShaderChainFramebufferTexture* texture)
 {
-    if (index < 0 || index >= SHADER_PRESET_MAX_PASSES - 1)
+    if (index < 0 || index >= SHADER_PRESET_MAX_PASSES - 1 || !texture)
         return false;
 
-    if (!intermediate_textures[index] || !intermediate_fbos[index] || !texture)
+    if (!ensure_intermediate_texture(index))
         return false;
 
     int width = texture->width;
@@ -345,6 +337,9 @@ bool ogl_shader_chain_load_preset(const char* path)
 
     for (int i = 0; i < active_preset.pass_count; i++)
         bind_preset_uniform_locations(&preset_programs[i]);
+
+    release_intermediate_textures(active_preset.pass_count > 1 ? active_preset.pass_count - 1 : 0);
+
     clear_feedback_texture();
     clear_all_pass_history_textures();
 
@@ -425,6 +420,38 @@ bool ogl_shader_chain_get_preset_pass_uses_history(int index)
     return active_preset.passes[index].history;
 }
 
+bool ogl_shader_chain_get_preset_pass_uses_original_sampler(int index)
+{
+    if (!preset_loaded || index < 0 || index >= active_preset.pass_count)
+        return false;
+
+    return preset_programs[index].uses_original;
+}
+
+bool ogl_shader_chain_get_preset_pass_uses_feedback_sampler(int index)
+{
+    if (!preset_loaded || index < 0 || index >= active_preset.pass_count)
+        return false;
+
+    return preset_programs[index].uses_feedback;
+}
+
+bool ogl_shader_chain_get_preset_pass_uses_history_sampler(int pass_index, int history_index)
+{
+    if (!preset_loaded || pass_index < 0 || pass_index >= active_preset.pass_count || history_index < 0 || history_index >= SHADER_PRESET_MAX_HISTORY_TEXTURES)
+        return false;
+
+    return preset_programs[pass_index].uses_source_history[history_index];
+}
+
+bool ogl_shader_chain_get_preset_pass_uses_pass_output_sampler(int pass_index, int output_index)
+{
+    if (!preset_loaded || pass_index < 0 || pass_index >= active_preset.pass_count || output_index < 0 || output_index >= SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES)
+        return false;
+
+    return preset_programs[pass_index].uses_pass_output[output_index];
+}
+
 bool ogl_shader_chain_preset_uses_feedback(void)
 {
     if (!preset_loaded)
@@ -450,7 +477,9 @@ void ogl_shader_chain_get_preset_pass_output_size(int index, const OglShaderChai
         return;
 
     const ShaderPresetPass* pass = &active_preset.passes[index];
+
     int output_width = scale_dimension(pass->scale_type_x, pass->scale_x, pass->absolute_width, pass_size->source_width, pass_size->previous_width, pass_size->viewport_width);
+
     int output_height = scale_dimension(pass->scale_type_y, pass->scale_y, pass->absolute_height, pass_size->source_height, pass_size->previous_height, pass_size->viewport_height);
 
     if (width)
@@ -507,36 +536,61 @@ void ogl_shader_chain_apply_preset_uniforms(int index, const OglShaderChainUnifo
 
     if (state->uniform_source >= 0)
         glUniform1i(state->uniform_source, 0);
+
     if (state->uniform_original >= 0)
         glUniform1i(state->uniform_original, 1);
+
     if (state->uniform_feedback >= 0)
         glUniform1i(state->uniform_feedback, 2);
+
     for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
     {
         if (state->uniform_source_history[i] >= 0)
             glUniform1i(state->uniform_source_history[i], 3 + i);
     }
 
+    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
+    {
+        if (state->uniform_pass_output[i] >= 0)
+            glUniform1i(state->uniform_pass_output[i], 3 + SHADER_PRESET_MAX_HISTORY_TEXTURES + i);
+    }
+
     if (state->uniform_source_size >= 0)
         glUniform4f(state->uniform_source_size, (float)uniforms->input_width, (float)uniforms->input_height, safe_inverse(uniforms->input_width), safe_inverse(uniforms->input_height));
+
     if (state->uniform_original_size >= 0)
         glUniform4f(state->uniform_original_size, (float)uniforms->source_width, (float)uniforms->source_height, safe_inverse(uniforms->source_width), safe_inverse(uniforms->source_height));
+
     if (state->uniform_output_size >= 0)
         glUniform4f(state->uniform_output_size, (float)uniforms->output_width, (float)uniforms->output_height, safe_inverse(uniforms->output_width), safe_inverse(uniforms->output_height));
+
     if (state->uniform_final_viewport_size >= 0)
         glUniform4f(state->uniform_final_viewport_size, (float)uniforms->viewport_width, (float)uniforms->viewport_height, safe_inverse(uniforms->viewport_width), safe_inverse(uniforms->viewport_height));
+
     if (state->uniform_feedback_size >= 0)
         glUniform4f(state->uniform_feedback_size, (float)pass_width, (float)pass_height, safe_inverse(pass_width), safe_inverse(pass_height));
+
     if (state->uniform_source_history_size >= 0)
         glUniform4f(state->uniform_source_history_size, (float)pass_history_widths[index], (float)pass_history_heights[index], safe_inverse(pass_history_widths[index]), safe_inverse(pass_history_heights[index]));
+
+    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
+    {
+        if (state->uniform_pass_output_size[i] >= 0)
+            glUniform4f(state->uniform_pass_output_size[i], (float)intermediate_widths[i], (float)intermediate_heights[i], safe_inverse(intermediate_widths[i]), safe_inverse(intermediate_heights[i]));
+    }
+
     if (state->uniform_source_history_count >= 0)
         glUniform1i(state->uniform_source_history_count, pass_history_counts[index]);
+
     if (state->uniform_frame_count >= 0)
         glUniform1i(state->uniform_frame_count, preset_frame_count);
+
     if (state->uniform_frame_direction >= 0)
         glUniform1i(state->uniform_frame_direction, 1);
+
     if (state->uniform_original_aspect >= 0)
         glUniform1f(state->uniform_original_aspect, uniforms->original_aspect);
+
     if (state->uniform_background_color >= 0)
         glUniform4f(state->uniform_background_color, uniforms->background_color[0], uniforms->background_color[1], uniforms->background_color[2], 1.0f);
 
@@ -594,6 +648,9 @@ uint32_t ogl_shader_chain_get_intermediate_framebuffer(int index)
 bool ogl_shader_chain_store_pass_history(int index, uint32_t texture, int width, int height, bool filter_linear, bool float_framebuffer)
 {
     if (!initialized || !texture || index < 0 || index >= SHADER_PRESET_MAX_PASSES)
+        return false;
+
+    if (!ensure_history_copy_framebuffer())
         return false;
 
     if (!resize_pass_history_textures(index, width, height, filter_linear, float_framebuffer))
@@ -705,18 +762,44 @@ static void bind_preset_uniform_locations(PresetProgramState* state)
     state->uniform_source = glGetUniformLocation(program, "Source");
     state->uniform_original = glGetUniformLocation(program, "Original");
     state->uniform_feedback = glGetUniformLocation(program, "PassFeedback0");
+    state->uses_original = state->uniform_original >= 0;
+    state->uses_feedback = state->uniform_feedback >= 0;
+
     for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
     {
         char uniform_name[32];
         snprintf(uniform_name, sizeof(uniform_name), "SourceHistory%d", i);
         state->uniform_source_history[i] = glGetUniformLocation(program, uniform_name);
+        state->uses_source_history[i] = state->uniform_source_history[i] >= 0;
     }
+
+    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
+    {
+        char uniform_name[32];
+        snprintf(uniform_name, sizeof(uniform_name), "PassOutput%d", i);
+        state->uniform_pass_output[i] = glGetUniformLocation(program, uniform_name);
+        state->uses_pass_output[i] = state->uniform_pass_output[i] >= 0;
+    }
+
     state->uniform_source_size = glGetUniformLocation(program, "SourceSize");
     state->uniform_original_size = glGetUniformLocation(program, "OriginalSize");
     state->uniform_output_size = glGetUniformLocation(program, "OutputSize");
     state->uniform_final_viewport_size = glGetUniformLocation(program, "FinalViewportSize");
     state->uniform_feedback_size = glGetUniformLocation(program, "PassFeedback0Size");
     state->uniform_source_history_size = glGetUniformLocation(program, "SourceHistorySize");
+
+    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
+    {
+        char uniform_name[32];
+        snprintf(uniform_name, sizeof(uniform_name), "PassOutputSize%d", i);
+        state->uniform_pass_output_size[i] = glGetUniformLocation(program, uniform_name);
+        if (state->uniform_pass_output_size[i] < 0)
+        {
+            snprintf(uniform_name, sizeof(uniform_name), "PassOutput%dSize", i);
+            state->uniform_pass_output_size[i] = glGetUniformLocation(program, uniform_name);
+        }
+    }
+
     state->uniform_source_history_count = glGetUniformLocation(program, "SourceHistoryCount");
     state->uniform_frame_count = glGetUniformLocation(program, "FrameCount");
     state->uniform_frame_direction = glGetUniformLocation(program, "FrameDirection");
@@ -730,17 +813,28 @@ static void bind_preset_uniform_locations(PresetProgramState* state)
         state->uniform_parameters[i] = glGetUniformLocation(program, active_preset.parameters[i].name);
 
     glUseProgram(program);
+
     if (state->uniform_source >= 0)
         glUniform1i(state->uniform_source, 0);
+
     if (state->uniform_original >= 0)
         glUniform1i(state->uniform_original, 1);
+
     if (state->uniform_feedback >= 0)
         glUniform1i(state->uniform_feedback, 2);
+
     for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
     {
         if (state->uniform_source_history[i] >= 0)
             glUniform1i(state->uniform_source_history[i], 3 + i);
     }
+
+    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
+    {
+        if (state->uniform_pass_output[i] >= 0)
+            glUniform1i(state->uniform_pass_output[i], 3 + SHADER_PRESET_MAX_HISTORY_TEXTURES + i);
+    }
+
     glUseProgram(0);
 }
 
@@ -750,6 +844,7 @@ static void clear_preset_state(void)
     memset(preset_programs, 0, sizeof(preset_programs));
     preset_loaded = false;
     preset_frame_count = 0;
+    release_intermediate_textures(0);
     clear_all_pass_history_textures();
 }
 
@@ -760,6 +855,48 @@ static void delete_preset_programs(void)
         if (preset_programs[i].program)
             glDeleteProgram(preset_programs[i].program);
         preset_programs[i].program = 0;
+    }
+}
+
+static bool ensure_intermediate_texture(int index)
+{
+    if (index < 0 || index >= SHADER_PRESET_MAX_PASSES - 1)
+        return false;
+
+    if (!intermediate_textures[index])
+        glGenTextures(1, &intermediate_textures[index]);
+
+    if (!intermediate_fbos[index])
+        glGenFramebuffers(1, &intermediate_fbos[index]);
+
+    return intermediate_textures[index] != 0 && intermediate_fbos[index] != 0;
+}
+
+static bool ensure_history_copy_framebuffer(void)
+{
+    if (!history_copy_fbo)
+        glGenFramebuffers(1, &history_copy_fbo);
+
+    return history_copy_fbo != 0;
+}
+
+static void release_intermediate_textures(int keep_count)
+{
+    keep_count = CLAMP(keep_count, 0, SHADER_PRESET_MAX_PASSES - 1);
+
+    for (int i = keep_count; i < SHADER_PRESET_MAX_PASSES - 1; i++)
+    {
+        if (intermediate_fbos[i])
+            glDeleteFramebuffers(1, &intermediate_fbos[i]);
+
+        if (intermediate_textures[i])
+            glDeleteTextures(1, &intermediate_textures[i]);
+
+        intermediate_fbos[i] = 0;
+        intermediate_textures[i] = 0;
+        intermediate_widths[i] = 1;
+        intermediate_heights[i] = 1;
+        intermediate_float_framebuffers[i] = false;
     }
 }
 
@@ -777,24 +914,27 @@ static void clear_feedback_texture(void)
 
 static void clear_pass_history_textures(int index)
 {
-    if (!history_copy_fbo || index < 0 || index >= SHADER_PRESET_MAX_PASSES)
+    if (index < 0 || index >= SHADER_PRESET_MAX_PASSES)
         return;
 
-    glBindFramebuffer(GL_FRAMEBUFFER, history_copy_fbo);
-    glViewport(0, 0, pass_history_widths[index], pass_history_heights[index]);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-    for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
+    if (history_copy_fbo)
     {
-        if (!pass_history_textures[index][i])
-            continue;
+        glBindFramebuffer(GL_FRAMEBUFFER, history_copy_fbo);
+        glViewport(0, 0, pass_history_widths[index], pass_history_heights[index]);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pass_history_textures[index][i], 0);
-        glClear(GL_COLOR_BUFFER_BIT);
+        for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
+        {
+            if (!pass_history_textures[index][i])
+                continue;
+
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pass_history_textures[index][i], 0);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     pass_history_counts[index] = 0;
     pass_history_write_indices[index] = 0;
@@ -819,13 +959,20 @@ static bool resize_pass_history_textures(int index, int width, int height, bool 
     bool same_size = pass_history_widths[index] == width && pass_history_heights[index] == height && pass_history_float_framebuffers[index] == float_framebuffer;
     int internal_format = float_framebuffer ? GL_RGBA16F : GL_RGBA8;
     uint32_t type = float_framebuffer ? GL_FLOAT : GL_UNSIGNED_BYTE;
+    bool created = false;
 
     for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
     {
         if (!pass_history_textures[index][i])
+        {
+            glGenTextures(1, &pass_history_textures[index][i]);
+            created = true;
+        }
+
+        if (!pass_history_textures[index][i])
             return false;
 
-        if (same_size)
+        if (same_size && !created)
         {
             glBindTexture(GL_TEXTURE_2D, pass_history_textures[index][i]);
             configure_texture_2d(filter_linear);
@@ -836,7 +983,7 @@ static bool resize_pass_history_textures(int index, int width, int height, bool 
         }
     }
 
-    if (!same_size)
+    if (!same_size || created)
     {
         pass_history_widths[index] = width;
         pass_history_heights[index] = height;

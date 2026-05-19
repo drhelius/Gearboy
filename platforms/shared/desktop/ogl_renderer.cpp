@@ -224,6 +224,7 @@ void ogl_renderer_get_screen_uv(float* u, float* v)
 
     GB_RuntimeInfo runtime;
     GearboyCore* core = emu_get_core();
+
     if (IsValidPointer(core))
         core->GetRuntimeInfo(runtime);
     else
@@ -241,6 +242,7 @@ void ogl_renderer_get_screen_uv(float* u, float* v)
 bool ogl_renderer_load_shader_preset(const char* path)
 {
     char resolved_path[SHADER_PRESET_MAX_PATH];
+
     if (!shader_preset_resolve_config_path(path, resolved_path, sizeof(resolved_path)))
     {
         Error("Shader preset is not in the bundled shader directory: %s", path ? path : "");
@@ -271,6 +273,7 @@ void ogl_renderer_unload_shader_preset(void)
 void ogl_renderer_save_shader_parameter_config(void)
 {
     char preset_file[SHADER_PRESET_MAX_PATH];
+
     if (!get_active_shader_preset_file(preset_file, sizeof(preset_file)))
         return;
 
@@ -579,16 +582,34 @@ static void render_quad_preset(int pass_index, uint32_t program, uint32_t textur
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, ogl_shader_chain_get_source_texture());
+    if (ogl_shader_chain_get_preset_pass_uses_original_sampler(pass_index))
+    {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, ogl_shader_chain_get_source_texture());
+    }
 
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, ogl_shader_chain_get_feedback_texture());
+    if (ogl_shader_chain_get_preset_pass_uses_feedback_sampler(pass_index))
+    {
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, ogl_shader_chain_get_feedback_texture());
+    }
 
     for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
     {
+        if (!ogl_shader_chain_get_preset_pass_uses_history_sampler(pass_index, i))
+            continue;
+
         glActiveTexture(GL_TEXTURE3 + i);
         glBindTexture(GL_TEXTURE_2D, ogl_shader_chain_get_pass_history_texture(pass_index, i));
+    }
+
+    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
+    {
+        if (!ogl_shader_chain_get_preset_pass_uses_pass_output_sampler(pass_index, i))
+            continue;
+
+        glActiveTexture(GL_TEXTURE3 + SHADER_PRESET_MAX_HISTORY_TEXTURES + i);
+        glBindTexture(GL_TEXTURE_2D, (i < pass_index) ? ogl_shader_chain_get_intermediate_texture(i) : 0);
     }
 
     glUseProgram(program);
@@ -634,6 +655,7 @@ static void load_configured_shader_preset(void)
         return;
 
     char resolved_path[SHADER_PRESET_MAX_PATH];
+
     if (!shader_preset_resolve_config_path(config_video.shader_preset_path.c_str(), resolved_path, sizeof(resolved_path)))
     {
         Error("Configured shader preset is not available in the bundled shader directory: %s", config_video.shader_preset_path.c_str());
@@ -649,6 +671,7 @@ static void load_configured_shader_preset(void)
     }
 
     char config_path[SHADER_PRESET_MAX_PATH];
+
     if (shader_preset_get_config_path(resolved_path, config_path, sizeof(config_path)))
         config_video.shader_preset_path.assign(config_path);
     else
@@ -660,6 +683,7 @@ static void load_configured_shader_preset(void)
 static void apply_shader_parameter_config(void)
 {
     char preset_file[SHADER_PRESET_MAX_PATH];
+
     if (!get_active_shader_preset_file(preset_file, sizeof(preset_file)))
         return;
 
@@ -717,6 +741,7 @@ static void resize_texture_2d(uint32_t texture, int width, int height, int inter
 static bool check_framebuffer_complete(const char* name)
 {
     uint32_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
     if (status == GL_FRAMEBUFFER_COMPLETE)
         return true;
 

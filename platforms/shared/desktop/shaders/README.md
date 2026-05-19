@@ -38,7 +38,7 @@ Step=0.01
 - `Path`: GLSL fragment shader path. Relative paths are resolved from the `.gshader` file directory first, then from the `shaders` resource directory.
 - `Filter`: `Nearest` by default. Use `Linear` or `Bilinear` for bilinear sampling on that pass input/output texture.
 - `Feedback`: `true` when the pass needs the previous frame through `PassFeedback0`.
-- `History`: `true` when the pass needs previous inputs to the same pass through `SourceHistory0` through `SourceHistory3`.
+- `History`: `true` when the pass needs previous inputs to the same pass through `SourceHistory0` through `SourceHistory7`.
 - `ScaleType`: sets both axes. Values are `Viewport`, `Source`, `Previous`, or `Absolute`.
 - `ScaleTypeX`, `ScaleTypeY`: optional per-axis scale type overrides.
 - `Scale`: output scale for both axes. Defaults to `1.0`.
@@ -69,7 +69,7 @@ Step=0.01
 
 A parameter with `Min=0.0`, `Max=1.0`, and `Step=1.0` is displayed as a checkbox.
 
-A preset can expose up to 24 parameters.
+A preset can expose up to 32 parameters.
 
 ## Shader Inputs
 
@@ -78,7 +78,8 @@ Available samplers:
 - `uniform sampler2D Source`: current pass input.
 - `uniform sampler2D Original`: original emulator frame.
 - `uniform sampler2D PassFeedback0`: previous final output, for feedback presets.
-- `uniform sampler2D SourceHistory0` through `SourceHistory3`: previous inputs to the same pass, newest first, for history presets.
+- `uniform sampler2D SourceHistory0` through `SourceHistory7`: previous inputs to the same pass, newest first, for history presets.
+- `uniform sampler2D PassOutput0` through `PassOutput3`: previous pass outputs, where `PassOutput0` is pass 0 output, `PassOutput1` is pass 1 output, and so on.
 
 Available size uniforms are `vec4(width, height, 1.0 / width, 1.0 / height)`:
 
@@ -88,12 +89,13 @@ Available size uniforms are `vec4(width, height, 1.0 / width, 1.0 / height)`:
 - `FinalViewportSize`: final display viewport size.
 - `PassFeedback0Size`: feedback texture size.
 - `SourceHistorySize`: source history texture size.
+- `PassOutputSize0` through `PassOutputSize3`: previous pass output texture sizes.
 
 Other uniforms:
 
 - `FrameCount`: increments once per rendered preset frame.
 - `FrameDirection`: currently `1`.
-- `SourceHistoryCount`: number of valid source history textures, from `0` to `4`.
+- `SourceHistoryCount`: number of valid source history textures, from `0` to `8`.
 - `OriginalAspect`: intended emulator image aspect ratio.
 - `BackgroundColor`: configured normal desktop background color as `vec4(r, g, b, 1)`.
 
