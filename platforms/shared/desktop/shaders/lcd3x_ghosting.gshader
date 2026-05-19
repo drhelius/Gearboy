@@ -18,7 +18,7 @@ Filter=Nearest
 Trails=0.7
 FrameBlend=0.7
 brighten_scanlines=16.0
-brighten_lcd=4.0
+brighten_lcd=10.0
 
 [Parameter.Trails]
 Label=Trails
