@@ -241,7 +241,7 @@ void config_read(void)
     config_debug.dis_replace_labels = read_bool("Debug", "DisReplaceLabels", true);
     config_debug.dis_look_ahead_count = read_int("Debug", "DisLookAheadCount", 20);
     config_debug.font_size = read_int("Debug", "FontSize", 0);
-    config_debug.scale = read_int("Debug", "Scale", 1);
+    config_debug.scale = read_int("Debug", "Scale", 2);
     config_debug.multi_viewport = read_bool("Debug", "MultiViewport", false);
     config_debug.single_instance = read_bool("Debug", "SingleInstance", false);
     config_debug.auto_debug_settings = read_bool("Debug", "AutoDebugSettings", false);
