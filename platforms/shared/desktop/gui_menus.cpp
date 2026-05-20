@@ -67,6 +67,7 @@ static void menu_input(void);
 static void menu_audio(void);
 static void menu_debug(void);
 static void menu_about(void);
+static void draw_background_color_menu(const char* label, int theme);
 static void draw_mcp_status(void);
 static void file_dialogs(void);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key, int player);
@@ -229,7 +230,7 @@ static void menu_gearboy(void)
 
         ImGui::Separator();
 
-        bool has_ram = media_actions_enabled && emu_get_core()->GetCartridge()->HasBattery();
+        bool has_ram = media_actions_enabled && emu_get_core()->GetCartridge()->HasRam();
 
         if (ImGui::MenuItem("Save RAM As...", NULL, false, has_ram))
         {
@@ -790,25 +791,50 @@ static void menu_video(void)
 
         ImGui::Separator();
 
+        if (ImGui::BeginMenu("Theme"))
+        {
+            ImGui::PushItemWidth(100.0f);
+            if (ImGui::Combo("##theme", &config_emulator.theme, "Light\0Dark\0\0"))
+            {
+                gui_set_style();
+            }
+            ImGui::PopItemWidth();
+            ImGui::EndMenu();
+        }
+
         if (ImGui::BeginMenu("Background Color"))
         {
-            ImGui::ColorEdit3("##normal_bg", config_video.background_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float);
-            ImGui::SameLine();
-            ImGui::Text("Normal Background");
-
-            ImGui::Separator();
-
-            if (ImGui::ColorEdit3("##debugger_bg", config_video.background_color_debugger, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float))
-            {
-                ImGuiStyle& style = ImGui::GetStyle();
-                style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(config_video.background_color_debugger[0], config_video.background_color_debugger[1], config_video.background_color_debugger[2], 1.0f);
-            }
-            ImGui::SameLine();
-            ImGui::Text("Debugger Background");
+            draw_background_color_menu("Dark Theme", config_Theme_Dark);
+            draw_background_color_menu("Light Theme", config_Theme_Light);
 
             ImGui::EndMenu();
         }
 
+        ImGui::EndMenu();
+    }
+}
+
+static void draw_background_color_menu(const char* label, int theme)
+{
+    if (ImGui::BeginMenu(label))
+    {
+        ImGui::PushID(theme);
+
+        ImGui::ColorEdit3("##normal_bg", config_video.background_color[theme], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float);
+        ImGui::SameLine();
+        ImGui::Text("Normal Background");
+
+        ImGui::Separator();
+
+        if (ImGui::ColorEdit3("##debugger_bg", config_video.background_color_debugger[theme], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float))
+        {
+            if (config_emulator.theme == theme)
+                gui_set_style();
+        }
+        ImGui::SameLine();
+        ImGui::Text("Debugger Background");
+
+        ImGui::PopID();
         ImGui::EndMenu();
     }
 }

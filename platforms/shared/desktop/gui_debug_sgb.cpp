@@ -359,7 +359,7 @@ void gui_debug_window_sgb_video(void)
             if (selected_tile_x >= 0 && selected_tile_y >= 0)
             {
                 float t = (float)(0.5 + 0.5 * sin(ImGui::GetTime() * 4.0));
-                ImVec4 pulse_color = ImVec4(red.x + (white.x - red.x) * t, red.y + (white.y - red.y) * t, red.z + (white.z - red.z) * t, 1.0f);
+                ImVec4 pulse_color = gui_debug_lerp_color(red, white, t);
                 draw_list->AddRect(
                     ImVec2(p.x + selected_tile_x * tile_size, p.y + selected_tile_y * tile_size),
                     ImVec2(p.x + (selected_tile_x + 1) * tile_size, p.y + (selected_tile_y + 1) * tile_size),
@@ -560,7 +560,7 @@ void gui_debug_window_sgb_video(void)
             if (selected_bt_x >= 0 && selected_bt_y >= 0)
             {
                 float t = (float)(0.5 + 0.5 * sin(ImGui::GetTime() * 4.0));
-                ImVec4 pc = ImVec4(red.x + (white.x - red.x) * t, red.y + (white.y - red.y) * t, red.z + (white.z - red.z) * t, 1.0f);
+                ImVec4 pc = gui_debug_lerp_color(red, white, t);
                 bt_dl->AddRect(ImVec2(bt_p.x + selected_bt_x * bt_spacing, bt_p.y + selected_bt_y * bt_spacing),
                     ImVec2(bt_p.x + (selected_bt_x + 1) * bt_spacing, bt_p.y + (selected_bt_y + 1) * bt_spacing),
                     ImColor(pc), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);

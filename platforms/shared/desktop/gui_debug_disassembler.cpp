@@ -767,7 +767,7 @@ static void draw_disassembly(void)
                 else if (line.record->subroutine && !ImGui::IsItemHovered())
                 {
                     enable_bg_color = true;
-                    bg_color = dark_gray;
+                    bg_color = (config_emulator.theme == config_Theme_Light) ? black : dark_gray;
                 }
 
                 if (enable_bg_color)
@@ -782,7 +782,7 @@ static void draw_disassembly(void)
                 ImVec4 color_segment = line.is_breakpoint ? red : magenta;
                 ImVec4 color_bank = line.is_breakpoint ? red : violet;
                 ImVec4 color_addr = line.is_breakpoint ? red : cyan;
-                ImVec4 color_mem = line.is_breakpoint ? red : mid_gray;
+                ImVec4 color_mem = line.is_breakpoint ? red : (config_emulator.theme == config_Theme_Light ? gray : mid_gray);
 
                 if (config_debug.dis_show_segment)
                 {
@@ -836,7 +836,8 @@ static void draw_disassembly(void)
                 bool is_ret = is_return_instruction(line.record);
                 if (is_ret)
                 {
-                    ImGui::PushStyleColor(ImGuiCol_Separator, dark_green);
+                    ImVec4 separator_color = (config_emulator.theme == config_Theme_Light) ? black : dark_green;
+                    ImGui::PushStyleColor(ImGuiCol_Separator, separator_color);
                     ImGui::Separator();
                     ImGui::PopStyleColor();
                 }
@@ -1242,7 +1243,7 @@ static void replace_symbols(DisassemblerLine* line, const char* jump_color, cons
     if (gui_debug_resolve_symbol(line->record, instr, color, original_color, &resolved_name, &resolved_address))
     {
         snprintf(line->name_enhanced, 64, "%s", instr.c_str());
-        snprintf(line->tooltip, 128, "%s%s%s = %s$%04X", color, resolved_name, c_white, c_cyan, resolved_address);
+        snprintf(line->tooltip, 128, "%s%s%s = %s$%04X", color, resolved_name, c_white.c_str(), c_cyan.c_str(), resolved_address);
         return;
     }
 
@@ -1278,7 +1279,7 @@ static void replace_symbols(DisassemblerLine* line, const char* jump_color, cons
         if (replace_address_in_string(instr, lookup_address, is_zp, replacement.c_str()))
         {
             snprintf(line->name_enhanced, 64, "%s", instr.c_str());
-            snprintf(line->tooltip, 128, "%s%s%s = %s$%04X", auto_color, auto_symbol_text, c_white, c_cyan, lookup_address);
+            snprintf(line->tooltip, 128, "%s%s%s = %s$%04X", auto_color, auto_symbol_text, c_white.c_str(), c_cyan.c_str(), lookup_address);
         }
     }
 }
@@ -1293,7 +1294,7 @@ static void replace_labels(DisassemblerLine* line, const char* color, const char
     {
         snprintf(line->name_enhanced, 64, "%s", instr.c_str());
         if (line->tooltip[0] == 0)
-            snprintf(line->tooltip, 128, "%s%s%s = %s$%04X", color, resolved_name, c_white, c_cyan, resolved_address);
+            snprintf(line->tooltip, 128, "%s%s%s = %s$%04X", color, resolved_name, c_white.c_str(), c_cyan.c_str(), resolved_address);
     }
 }
 

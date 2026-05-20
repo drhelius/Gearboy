@@ -55,33 +55,10 @@ static void show_error_window(void);
 static void show_loading_popup(void);
 static void finish_loading_rom(void);
 static void set_style(void);
+static void set_style_light(ImGuiStyle& style);
+static void set_style_dark(ImGuiStyle& style);
 static ImVec4 lerp(const ImVec4& a, const ImVec4& b, float t);
 
-Cartridge::CartridgeTypes gui_get_mbc(int index)
-{
-    switch (index)
-    {
-        case 0: return Cartridge::CartridgeNotSupported;
-        case 1: return Cartridge::CartridgeNoMBC;
-        case 2: return Cartridge::CartridgeMBC1;
-        case 3: return Cartridge::CartridgeMBC2;
-        case 4: return Cartridge::CartridgeMBC3;
-        case 5: return Cartridge::CartridgeMBC5;
-        case 6: return Cartridge::CartridgeMBC1Multi;
-        case 7: return Cartridge::CartridgeHuC1;
-        case 8: return Cartridge::CartridgeHuC3;
-        case 9: return Cartridge::CartridgeMMM01;
-        case 10: return Cartridge::CartridgeCamera;
-        case 11: return Cartridge::CartridgeMBC7;
-        case 12: return Cartridge::CartridgeTAMA5;
-        case 13: return Cartridge::CartridgeWisdomTree;
-        case 14: return Cartridge::CartridgeM161;
-        case 15: return Cartridge::CartridgeSachenMMC1;
-        case 16: return Cartridge::CartridgeSachenMMC2;
-        case 17: return Cartridge::CartridgePKJD;
-        default: return Cartridge::CartridgeNotSupported;
-    }
-}
 
 bool gui_init(void)
 {
@@ -341,6 +318,37 @@ void gui_set_error_message(const char* message)
     error_window_active = true;
 }
 
+void gui_set_style(void)
+{
+    set_style();
+}
+
+Cartridge::CartridgeTypes gui_get_mbc(int index)
+{
+    switch (index)
+    {
+        case 0: return Cartridge::CartridgeNotSupported;
+        case 1: return Cartridge::CartridgeNoMBC;
+        case 2: return Cartridge::CartridgeMBC1;
+        case 3: return Cartridge::CartridgeMBC2;
+        case 4: return Cartridge::CartridgeMBC3;
+        case 5: return Cartridge::CartridgeMBC5;
+        case 6: return Cartridge::CartridgeMBC1Multi;
+        case 7: return Cartridge::CartridgeHuC1;
+        case 8: return Cartridge::CartridgeHuC3;
+        case 9: return Cartridge::CartridgeMMM01;
+        case 10: return Cartridge::CartridgeCamera;
+        case 11: return Cartridge::CartridgeMBC7;
+        case 12: return Cartridge::CartridgeTAMA5;
+        case 13: return Cartridge::CartridgeWisdomTree;
+        case 14: return Cartridge::CartridgeM161;
+        case 15: return Cartridge::CartridgeSachenMMC1;
+        case 16: return Cartridge::CartridgeSachenMMC2;
+        case 17: return Cartridge::CartridgePKJD;
+        default: return Cartridge::CartridgeNotSupported;
+    }
+}
+
 static void main_window(void)
 {
     int screen_width = GAMEBOY_WIDTH;
@@ -596,7 +604,9 @@ static void show_loading_popup(void)
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
     const ImGuiStyle& style = ImGui::GetStyle();
     ImVec4 loading_highlight = style.Colors[ImGuiCol_HeaderHovered];
+    ImVec4 loading_background = style.Colors[ImGuiCol_PopupBg];
     ImVec4 loading_border = loading_highlight;
+    loading_background.w = 0.95f;
     loading_border.w = 0.80f;
 
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -604,7 +614,7 @@ static void show_loading_popup(void)
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(30.0f, 20.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 12.0f));
-    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.10f, 0.10f, 0.10f, 0.95f));
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, loading_background);
     ImGui::PushStyleColor(ImGuiCol_Border, loading_border);
     ImGui::OpenPopup("##loading");
 
@@ -681,133 +691,6 @@ static void show_error_window(void)
     }
 }
 
-/*
-static Cartridge::CartridgeTypes get_mapper(int index)
-{
-    switch (index)
-    {
-        case 0:
-            return Cartridge::CartridgeNotSupported;
-        case 1:
-            return Cartridge::CartridgeNoMBC;
-        case 2:
-            return Cartridge::CartridgeNotSupported;
-        case 3:
-            return Cartridge::CartridgeNotSupported;
-        case 4:
-            return Cartridge::CartridgeNotSupported;
-        case 5:
-            return Cartridge::CartridgeNotSupported;
-        case 6:
-            return Cartridge::CartridgeNotSupported;
-        case 7:
-            return Cartridge::CartridgeNotSupported;
-        case 8:
-            return Cartridge::CartridgeKorean2000XOR1FMapper;
-        case 9:
-            return Cartridge::CartridgeKoreanMSX32KB2000Mapper;
-        case 10:
-            return Cartridge::CartridgeKoreanMSXSMS8000Mapper;
-        case 11:
-            return Cartridge::CartridgeKoreanSMS32KB2000Mapper;
-        case 12:
-            return Cartridge::CartridgeKoreanMSX8KB0300Mapper;
-        case 13:
-            return Cartridge::CartridgeKorean0000XORFFMapper;
-        case 14:
-            return Cartridge::CartridgeKoreanFFFFHiComMapper;
-        case 15:
-            return Cartridge::CartridgeKoreanFFFEMapper;
-        case 16:
-            return Cartridge::CartridgeKoreanBFFCMapper;
-        case 17:
-            return Cartridge::CartridgeKoreanFFF3FFFCMapper;
-        case 18:
-            return Cartridge::CartridgeKoreanMDFFF5Mapper;
-        case 19:
-            return Cartridge::CartridgeKoreanMDFFF0Mapper;
-        case 20:
-            return Cartridge::CartridgeJumboDahjeeMapper;
-        case 21:
-            return Cartridge::CartridgeEeprom93C46Mapper;
-        case 22:
-            return Cartridge::CartridgeMulti4PAKAllActionMapper;
-        case 23:
-            return Cartridge::CartridgeIratahackMapper;
-        default:
-            return Cartridge::CartridgeNotSupported;
-    }
-}
-*/
-
-/*
-static Cartridge::CartridgeZones get_zone(int index)
-{
-    switch (index)
-    {
-        case 0:
-            return Cartridge::CartridgeUnknownZone;
-        case 1:
-            return Cartridge::CartridgeJapanSMS;
-        case 2:
-            return Cartridge::CartridgeExportSMS;
-        case 3:
-            return Cartridge::CartridgeJapanGG;
-        case 4:
-            return Cartridge::CartridgeExportGG;
-        case 5:
-            return Cartridge::CartridgeInternationalGG;
-        default:
-            return Cartridge::CartridgeUnknownZone;
-    }
-}
-*/
-
-/*
-static Cartridge::CartridgeSystem get_system(int index)
-{
-    switch (index)
-    {
-        case 0:
-            return Cartridge::CartridgeUnknownSystem;
-        case 1:
-            return Cartridge::CartridgeSMS;
-        case 2:
-            return Cartridge::CartridgeGG2ASIC;
-        case 3:
-            return Cartridge::CartridgeGG2ASICSMSMode;
-        case 4:
-            return Cartridge::CartridgeGG1ASIC;
-        case 5:
-            return Cartridge::CartridgeGG1ASICSMSMode;
-        case 6:
-            return Cartridge::CartridgeSG1000;
-        case 7:
-            return Cartridge::CartridgeSG1000II;
-        default:
-            return Cartridge::CartridgeUnknownSystem;
-    }
-}
-*/
-
-/*
-static Cartridge::CartridgeRegions get_region(int index)
-{
-    //"Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0");
-    switch (index)
-    {
-        case 0:
-            return Cartridge::CartridgeUnknownRegion;
-        case 1:
-            return Cartridge::CartridgeNTSC;
-        case 2:
-            return Cartridge::CartridgePAL;
-        default:
-            return Cartridge::CartridgeUnknownRegion;
-    }
-}
-*/
-
 static void set_style(void)
 {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -842,6 +725,84 @@ static void set_style(void)
     style.ColorButtonPosition = ImGuiDir_Right;
     style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
     style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
+
+    if (config_emulator.theme == config_Theme_Light)
+        set_style_light(style);
+    else
+        set_style_dark(style);
+}
+
+static void set_style_light(ImGuiStyle& style)
+{
+    ImGui::StyleColorsLight();
+
+    style.Colors[ImGuiCol_Text] = ImVec4(0.12f, 0.11f, 0.16f, 1.0f);
+    style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.39f, 0.36f, 0.45f, 1.0f);
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(202.0f / 255.0f, 202.0f / 255.0f, 202.0f / 255.0f, 1.0f);
+    style.Colors[ImGuiCol_ChildBg] = ImVec4(0.835f, 0.835f, 0.835f, 1.0f);
+    style.Colors[ImGuiCol_PopupBg] = ImVec4(0.860f, 0.860f, 0.860f, 1.0f);
+    style.Colors[ImGuiCol_Border] = ImVec4(0.570f, 0.570f, 0.570f, 1.0f);
+    style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.520f, 0.431f, 0.816f, 0.0f);
+    style.Colors[ImGuiCol_FrameBg] = ImVec4(0.770f, 0.770f, 0.770f, 1.0f);
+    style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.720f, 0.650f, 0.920f, 1.0f);
+    style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.522f, 0.431f, 0.816f, 1.0f);
+    style.Colors[ImGuiCol_TitleBg] = ImVec4(0.670f, 0.670f, 0.670f, 1.0f);
+    style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.522f, 0.431f, 0.816f, 1.0f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.670f, 0.670f, 0.670f, 1.0f);
+    style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.735f, 0.735f, 0.735f, 1.0f);
+    style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.810f, 0.810f, 0.810f, 1.0f);
+    style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.585f, 0.585f, 0.585f, 1.0f);
+    style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.440f, 0.320f, 0.780f, 1.0f);
+    style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.340f, 0.220f, 0.660f, 1.0f);
+    style.Colors[ImGuiCol_CheckMark] = ImVec4(0.522f, 0.431f, 0.816f, 1.0f);
+    style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.585f, 0.585f, 0.585f, 1.0f);
+    style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.340f, 0.220f, 0.660f, 1.0f);
+    style.Colors[ImGuiCol_Button] = ImVec4(0.710f, 0.710f, 0.710f, 1.0f);
+    style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.650f, 0.560f, 0.900f, 1.0f);
+    style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.522f, 0.431f, 0.816f, 1.0f);
+    style.Colors[ImGuiCol_Header] = ImVec4(0.710f, 0.710f, 0.710f, 1.0f);
+    style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.650f, 0.560f, 0.900f, 1.0f);
+    style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.522f, 0.431f, 0.816f, 1.0f);
+    style.Colors[ImGuiCol_Separator] = ImVec4(0.570f, 0.570f, 0.570f, 1.0f);
+    style.Colors[ImGuiCol_SeparatorHovered] = ImVec4(0.440f, 0.320f, 0.780f, 1.0f);
+    style.Colors[ImGuiCol_SeparatorActive] = ImVec4(0.340f, 0.220f, 0.660f, 1.0f);
+    style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.520f, 0.520f, 0.520f, 0.55f);
+    style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.440f, 0.320f, 0.780f, 0.80f);
+    style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.340f, 0.220f, 0.660f, 0.95f);
+    style.Colors[ImGuiCol_Tab] = ImVec4(0.710f, 0.710f, 0.710f, 1.0f);
+    style.Colors[ImGuiCol_TabHovered] = ImVec4(0.650f, 0.560f, 0.900f, 1.0f);
+    style.Colors[ImGuiCol_TabActive] = ImVec4(0.522f, 0.431f, 0.816f, 1.0f);
+    style.Colors[ImGuiCol_TabUnfocused] = ImVec4(0.660f, 0.660f, 0.660f, 1.0f);
+    style.Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.585f, 0.585f, 0.585f, 1.0f);
+    style.Colors[ImGuiCol_PlotLines] = ImVec4(0.522f, 0.431f, 0.816f, 1.0f);
+    style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.340f, 0.220f, 0.660f, 1.0f);
+    style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.522f, 0.431f, 0.816f, 1.0f);
+    style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.340f, 0.220f, 0.660f, 1.0f);
+    style.Colors[ImGuiCol_TableHeaderBg] = ImVec4(0.710f, 0.710f, 0.710f, 1.0f);
+    style.Colors[ImGuiCol_TableBorderStrong] = ImVec4(0.570f, 0.570f, 0.570f, 1.0f);
+    style.Colors[ImGuiCol_TableBorderLight] = ImVec4(0.650f, 0.650f, 0.650f, 1.0f);
+    style.Colors[ImGuiCol_TableRowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+    style.Colors[ImGuiCol_TableRowBgAlt] = ImVec4(0.0f, 0.0f, 0.0f, 0.060f);
+    style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.522f, 0.431f, 0.816f, 0.35f);
+    style.Colors[ImGuiCol_DragDropTarget] = ImVec4(0.522f, 0.431f, 0.816f, 1.0f);
+    style.Colors[ImGuiCol_NavHighlight] = ImVec4(0.522f, 0.431f, 0.816f, 0.90f);
+    style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(0.180f, 0.150f, 0.230f, 0.70f);
+    style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.180f, 0.150f, 0.230f, 0.20f);
+    style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.180f, 0.150f, 0.230f, 0.35f);
+
+    style.Colors[ImGuiCol_DockingPreview] = ImVec4(0.522f, 0.431f, 0.816f, 0.45f);
+    style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(config_video.background_color_debugger[config_emulator.theme][0], config_video.background_color_debugger[config_emulator.theme][1], config_video.background_color_debugger[config_emulator.theme][2], 1.00f);
+    style.Colors[ImGuiCol_TabHovered] = style.Colors[ImGuiCol_HeaderHovered];
+    style.Colors[ImGuiCol_TabSelected] = lerp(style.Colors[ImGuiCol_HeaderActive], style.Colors[ImGuiCol_TitleBgActive], 0.60f);
+    style.Colors[ImGuiCol_TabSelectedOverline] = ImVec4(0.522f, 0.431f, 0.816f, 1.0f);
+    style.Colors[ImGuiCol_TabDimmed] = lerp(style.Colors[ImGuiCol_Tab], style.Colors[ImGuiCol_TitleBg], 0.80f);
+    style.Colors[ImGuiCol_TabDimmedSelected] = lerp(style.Colors[ImGuiCol_TabSelected], style.Colors[ImGuiCol_TitleBg], 0.40f);
+    style.Colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0.522f, 0.431f, 0.816f, 1.0f);
+}
+
+static void set_style_dark(ImGuiStyle& style)
+{
+    ImGui::StyleColorsDark();
 
     style.Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.5921568870544434f, 0.5921568870544434f, 0.5921568870544434f, 1.0f);
@@ -898,7 +859,7 @@ static void set_style(void)
     style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.1450980454683304f, 0.1450980454683304f, 0.1490196138620377f, 0.7f);
 
     style.Colors[ImGuiCol_DockingPreview] = style.Colors[ImGuiCol_HeaderActive] * ImVec4(1.0f, 1.0f, 1.0f, 0.7f);
-    style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(config_video.background_color_debugger[0], config_video.background_color_debugger[1], config_video.background_color_debugger[2], 1.00f);
+    style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(config_video.background_color_debugger[config_emulator.theme][0], config_video.background_color_debugger[config_emulator.theme][1], config_video.background_color_debugger[config_emulator.theme][2], 1.00f);
     style.Colors[ImGuiCol_TabHovered] = style.Colors[ImGuiCol_HeaderHovered];
     //style.Colors[ImGuiCol_Tab] = lerp(style.Colors[ImGuiCol_Header], style.Colors[ImGuiCol_TitleBgActive], 0.80f);
     style.Colors[ImGuiCol_TabSelected] = lerp(style.Colors[ImGuiCol_HeaderActive], style.Colors[ImGuiCol_TitleBgActive], 0.60f);

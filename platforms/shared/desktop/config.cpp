@@ -260,6 +260,8 @@ void config_read(void)
     config_emulator.fullscreen = read_bool("Emulator", "FullScreen", false);
     config_emulator.fullscreen_mode = read_int("Emulator", "FullScreenMode", 1);
     config_emulator.always_show_menu = read_bool("Emulator", "AlwaysShowMenu", false);
+    config_emulator.theme = read_int("Emulator", "Theme", config_Theme_Dark);
+    config_emulator.theme = CLAMP(config_emulator.theme, config_Theme_Light, config_Theme_Dark);
     config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
@@ -327,12 +329,18 @@ void config_read(void)
     config_video.palette = read_int("Video", "Palette", 0);
     config_video.color_correction = read_bool("Video", "ColorCorrection", true);
     config_video.sync = read_bool("Video", "Sync", true);
-    config_video.background_color[0] = read_float("Video", "BackgroundColorR", 0.1f);
-    config_video.background_color[1] = read_float("Video", "BackgroundColorG", 0.1f);
-    config_video.background_color[2] = read_float("Video", "BackgroundColorB", 0.1f);
-    config_video.background_color_debugger[0] = read_float("Video", "BackgroundColorDebuggerR", 0.2f);
-    config_video.background_color_debugger[1] = read_float("Video", "BackgroundColorDebuggerG", 0.2f);
-    config_video.background_color_debugger[2] = read_float("Video", "BackgroundColorDebuggerB", 0.2f);
+    config_video.background_color[config_Theme_Dark][0] = read_float("Video", "BackgroundColorR", 0.1f);
+    config_video.background_color[config_Theme_Dark][1] = read_float("Video", "BackgroundColorG", 0.1f);
+    config_video.background_color[config_Theme_Dark][2] = read_float("Video", "BackgroundColorB", 0.1f);
+    config_video.background_color_debugger[config_Theme_Dark][0] = read_float("Video", "BackgroundColorDebuggerR", 0.2f);
+    config_video.background_color_debugger[config_Theme_Dark][1] = read_float("Video", "BackgroundColorDebuggerG", 0.2f);
+    config_video.background_color_debugger[config_Theme_Dark][2] = read_float("Video", "BackgroundColorDebuggerB", 0.2f);
+    config_video.background_color[config_Theme_Light][0] = read_float("Video", "BackgroundColorLightR", 128.0f / 255.0f);
+    config_video.background_color[config_Theme_Light][1] = read_float("Video", "BackgroundColorLightG", 128.0f / 255.0f);
+    config_video.background_color[config_Theme_Light][2] = read_float("Video", "BackgroundColorLightB", 128.0f / 255.0f);
+    config_video.background_color_debugger[config_Theme_Light][0] = read_float("Video", "BackgroundColorDebuggerLightR", 160.0f / 255.0f);
+    config_video.background_color_debugger[config_Theme_Light][1] = read_float("Video", "BackgroundColorDebuggerLightG", 160.0f / 255.0f);
+    config_video.background_color_debugger[config_Theme_Light][2] = read_float("Video", "BackgroundColorDebuggerLightB", 160.0f / 255.0f);
 
     for (int i = 0; i < config_max_custom_palettes; i++)
     {
@@ -496,6 +504,7 @@ void config_write(void)
     write_bool("Emulator", "FullScreen", config_emulator.fullscreen);
     write_int("Emulator", "FullScreenMode", config_emulator.fullscreen_mode);
     write_bool("Emulator", "AlwaysShowMenu", config_emulator.always_show_menu);
+    write_int("Emulator", "Theme", config_emulator.theme);
     write_int("Emulator", "FFWD", config_emulator.ffwd_speed);
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);
@@ -551,12 +560,18 @@ void config_write(void)
     write_int("Video", "Palette", config_video.palette);
     write_bool("Video", "ColorCorrection", config_video.color_correction);
     write_bool("Video", "Sync", config_video.sync);
-    write_float("Video", "BackgroundColorR", config_video.background_color[0]);
-    write_float("Video", "BackgroundColorG", config_video.background_color[1]);
-    write_float("Video", "BackgroundColorB", config_video.background_color[2]);
-    write_float("Video", "BackgroundColorDebuggerR", config_video.background_color_debugger[0]);
-    write_float("Video", "BackgroundColorDebuggerG", config_video.background_color_debugger[1]);
-    write_float("Video", "BackgroundColorDebuggerB", config_video.background_color_debugger[2]);
+    write_float("Video", "BackgroundColorR", config_video.background_color[config_Theme_Dark][0]);
+    write_float("Video", "BackgroundColorG", config_video.background_color[config_Theme_Dark][1]);
+    write_float("Video", "BackgroundColorB", config_video.background_color[config_Theme_Dark][2]);
+    write_float("Video", "BackgroundColorDebuggerR", config_video.background_color_debugger[config_Theme_Dark][0]);
+    write_float("Video", "BackgroundColorDebuggerG", config_video.background_color_debugger[config_Theme_Dark][1]);
+    write_float("Video", "BackgroundColorDebuggerB", config_video.background_color_debugger[config_Theme_Dark][2]);
+    write_float("Video", "BackgroundColorLightR", config_video.background_color[config_Theme_Light][0]);
+    write_float("Video", "BackgroundColorLightG", config_video.background_color[config_Theme_Light][1]);
+    write_float("Video", "BackgroundColorLightB", config_video.background_color[config_Theme_Light][2]);
+    write_float("Video", "BackgroundColorDebuggerLightR", config_video.background_color_debugger[config_Theme_Light][0]);
+    write_float("Video", "BackgroundColorDebuggerLightG", config_video.background_color_debugger[config_Theme_Light][1]);
+    write_float("Video", "BackgroundColorDebuggerLightB", config_video.background_color_debugger[config_Theme_Light][2]);
 
     for (int i = 0; i < config_max_custom_palettes; i++)
     {

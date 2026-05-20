@@ -304,6 +304,7 @@ void gui_popup_modal_load_defaults(void)
         if (ImGui::Button("Yes", ImVec2(120, 0)))
         {
             config_load_defaults();
+            gui_set_style();
             ImGui::CloseCurrentPopup();
             gui_dialog_in_use = false;
         }

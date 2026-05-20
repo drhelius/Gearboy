@@ -608,7 +608,7 @@ void MemEditor::DrawCursors()
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(all_text).x 
     - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
 
-    ImVec4 color = ImVec4(0.1f,0.9f,0.9f,1.0f);
+    ImVec4 color = cyan;
 
     ImGui::TextColored(color, "REGION:");
     ImGui::SameLine();
