@@ -767,7 +767,7 @@ static void draw_disassembly(void)
                 else if (line.record->subroutine && !ImGui::IsItemHovered())
                 {
                     enable_bg_color = true;
-                    bg_color = dark_gray;
+                    bg_color = (config_emulator.theme == config_Theme_Light) ? black : dark_gray;
                 }
 
                 if (enable_bg_color)
@@ -782,7 +782,7 @@ static void draw_disassembly(void)
                 ImVec4 color_segment = line.is_breakpoint ? red : magenta;
                 ImVec4 color_bank = line.is_breakpoint ? red : violet;
                 ImVec4 color_addr = line.is_breakpoint ? red : cyan;
-                ImVec4 color_mem = line.is_breakpoint ? red : mid_gray;
+                ImVec4 color_mem = line.is_breakpoint ? red : (config_emulator.theme == config_Theme_Light ? gray : mid_gray);
 
                 if (config_debug.dis_show_segment)
                 {
@@ -836,7 +836,7 @@ static void draw_disassembly(void)
                 bool is_ret = is_return_instruction(line.record);
                 if (is_ret)
                 {
-                    ImVec4 separator_color = (config_emulator.theme == config_Theme_Light) ? ImVec4(0.30f, 0.30f, 0.30f, 1.0f) : dark_green;
+                    ImVec4 separator_color = (config_emulator.theme == config_Theme_Light) ? black : dark_green;
                     ImGui::PushStyleColor(ImGuiCol_Separator, separator_color);
                     ImGui::Separator();
                     ImGui::PopStyleColor();

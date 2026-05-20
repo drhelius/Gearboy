@@ -72,7 +72,7 @@ static const GuiDebugColor white =         { ImVec4(1.00f, 1.00f, 1.00f, 1.0f), 
 static const GuiDebugColor gray =          { ImVec4(0.50f, 0.50f, 0.50f, 1.0f), ImVec4(0.45f, 0.43f, 0.50f, 1.0f) };
 static const GuiDebugColor mid_gray =      { ImVec4(0.40f, 0.40f, 0.40f, 1.0f), ImVec4(0.62f, 0.59f, 0.67f, 1.0f) };
 static const GuiDebugColor dark_gray =     { ImVec4(0.10f, 0.10f, 0.10f, 1.0f), ImVec4(0.64f, 0.61f, 0.69f, 1.0f) };
-static const GuiDebugColor black =         { ImVec4(0.00f, 0.00f, 0.00f, 1.0f), ImVec4(0.00f, 0.00f, 0.00f, 1.0f) };
+static const GuiDebugColor black =         { ImVec4(0.00f, 0.00f, 0.00f, 1.0f), ImVec4(1.00f, 1.00f, 1.00f, 1.0f) };
 static const GuiDebugColor brown =         { ImVec4(0.68f, 0.50f, 0.36f, 1.0f), ImVec4(0.56f, 0.30f, 0.10f, 1.0f) };
 static const GuiDebugColor dark_brown =    { ImVec4(0.38f, 0.20f, 0.06f, 1.0f), ImVec4(0.90f, 0.72f, 0.55f, 1.0f) };
 
