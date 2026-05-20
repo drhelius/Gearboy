@@ -169,7 +169,7 @@ void ogl_renderer_render(void)
     else
         render_emu_normal();
 
-    ImVec4 clear_color = ImVec4(config_video.background_color[0], config_video.background_color[1], config_video.background_color[2], 1.00f);
+    ImVec4 clear_color = ImVec4(config_video.background_color[config_emulator.theme][0], config_video.background_color[config_emulator.theme][1], config_video.background_color[config_emulator.theme][2], 1.00f);
 
     ImGuiIO& io = ImGui::GetIO();
     int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
@@ -593,9 +593,9 @@ static void render_quad_preset(int pass_index, uint32_t program, uint32_t textur
     uniforms.viewport_width = screen_geometry.physical_width;
     uniforms.viewport_height = screen_geometry.physical_height;
     uniforms.original_aspect = get_original_aspect();
-    uniforms.background_color[0] = config_video.background_color[0];
-    uniforms.background_color[1] = config_video.background_color[1];
-    uniforms.background_color[2] = config_video.background_color[2];
+    uniforms.background_color[0] = config_video.background_color[config_emulator.theme][0];
+    uniforms.background_color[1] = config_video.background_color[config_emulator.theme][1];
+    uniforms.background_color[2] = config_video.background_color[config_emulator.theme][2];
 
     ogl_shader_chain_apply_preset_uniforms(pass_index, &uniforms);
 
