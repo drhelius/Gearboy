@@ -594,20 +594,25 @@ static void show_loading_popup(void)
     gui_dialog_in_use = true;
 
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    const ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4 loading_highlight = style.Colors[ImGuiCol_HeaderHovered];
+    ImVec4 loading_border = loading_highlight;
+    loading_border.w = 0.80f;
+
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(30.0f, 20.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 12.0f));
     ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.10f, 0.10f, 0.10f, 0.95f));
-    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.41f, 0.70f, 0.02f, 0.80f));
+    ImGui::PushStyleColor(ImGuiCol_Border, loading_border);
     ImGui::OpenPopup("##loading");
 
     if (ImGui::BeginPopupModal("##loading", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
         ImGui::PushFont(gui_roboto_font);
 
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.41f, 0.70f, 0.02f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, loading_highlight);
         ImGui::TextUnformatted(ICON_MD_HOURGLASS_EMPTY);
         ImGui::PopStyleColor();
 
