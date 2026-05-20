@@ -1122,8 +1122,6 @@ static void menu_input(void)
             ImGui::EndTooltip();
         }
 
-        ImGui::Separator();
-
         ImGui::EndMenu();
     }
 }
