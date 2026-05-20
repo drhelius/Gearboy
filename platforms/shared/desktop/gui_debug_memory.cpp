@@ -91,7 +91,7 @@ void gui_debug_memory_reset(void)
 
     current_rom0_bank = (rule != NULL) ? rule->GetCurrentRomBank0Index() : -1;
     current_rom1_bank = (rule != NULL) ? rule->GetCurrentRomBank1Index() : -1;
-    current_ram_bank = (rule != NULL && core->GetCartridge()->GetRAMBankCount() > 0) ? rule->GetCurrentRamBankIndex() : 0;
+    current_ram_bank = (rule != NULL && core->GetCartridge()->HasRam()) ? rule->GetCurrentRamBankIndex() : 0;
     current_wram_bank = memory->GetCurrentCGBRAMBank();
     current_vram_bank = memory->GetCurrentLCDRAMBank();
 }
@@ -127,10 +127,15 @@ void gui_debug_window_memory(void)
         ImGui::TextColored(cyan, "ROM0"); ImGui::SameLine();
         ImGui::Text("$%02X", rule->GetCurrentRomBank0Index()); ImGui::SameLine();
         ImGui::TextColored(cyan, "ROM1"); ImGui::SameLine();
-        ImGui::Text("$%02X", rule->GetCurrentRomBank1Index()); ImGui::SameLine();
-        ImGui::TextColored(cyan, "  RAM"); ImGui::SameLine();
-        int ram_bank = (core->GetCartridge()->GetRAMBankCount() > 0) ? rule->GetCurrentRamBankIndex() : 0;
-        ImGui::Text("$%02X", ram_bank);
+        ImGui::Text("$%02X", rule->GetCurrentRomBank1Index());
+
+        if (core->GetCartridge()->HasRam())
+        {
+            ImGui::SameLine();
+            ImGui::TextColored(cyan, "  RAM"); ImGui::SameLine();
+            ImGui::Text("$%02X", rule->GetCurrentRamBankIndex());
+        }
+
         if (core->IsCGB())
         {
             ImGui::SameLine();
@@ -154,9 +159,12 @@ void gui_debug_window_memory(void)
 
 static void draw_tabs(void)
 {
+    GearboyCore* core = emu_get_core();
+    bool has_ram = core->GetCartridge()->HasRam();
+
     for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
     {
-        if (emu_get_core()->IsCGB())
+        if (core->IsCGB())
         {
             if (i == MEMORY_EDITOR_WRAM)
                 continue;
@@ -167,7 +175,10 @@ static void draw_tabs(void)
                 continue;
         }
 
-        if (i >= MEMORY_EDITOR_SGB_BORDER_TILES && !emu_get_core()->IsSGB())
+        if (i == MEMORY_EDITOR_RAM && !has_ram)
+            continue;
+
+        if (i >= MEMORY_EDITOR_SGB_BORDER_TILES && !core->IsSGB())
             continue;
 
         if (ImGui::BeginTabItem(mem_edit[i].GetTitle(), NULL, mem_edit_select == i ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
@@ -187,11 +198,12 @@ static void reset_ram_editor(GearboyCore* core, Memory* memory, MemoryRule* rule
 {
     size_t ram_size = 0;
 
-    if ((rule != NULL) && (core->GetCartridge()->GetRAMBankCount() > 0))
+    if (rule != NULL && core->GetCartridge()->HasRam())
+    {
         ram_size = rule->GetRamSize();
-
-    if (ram_size > 0x2000)
-        ram_size = 0x2000;
+        if (ram_size > 0x2000)
+            ram_size = 0x2000;
+    }
 
     u8* ram_ptr = (ram_size > 0 && rule != NULL) ? rule->GetCurrentRamBank() : memory->GetMemoryMap() + 0xA000;
     mem_edit[MEMORY_EDITOR_RAM].Reset("RAM", ram_ptr, (int)ram_size, 0xA000);
@@ -220,7 +232,7 @@ static void refresh_memory_banks(void)
         current_rom1_bank = rom1_bank;
     }
 
-    int ram_bank = (core->GetCartridge()->GetRAMBankCount() > 0) ? rule->GetCurrentRamBankIndex() : 0;
+    int ram_bank = core->GetCartridge()->HasRam() ? rule->GetCurrentRamBankIndex() : 0;
     if (ram_bank != current_ram_bank)
     {
         reset_ram_editor(core, memory, rule);

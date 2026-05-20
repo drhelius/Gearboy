@@ -524,10 +524,22 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
             info.size = 0x2000;
             break;
         case MEMORY_EDITOR_RAM:
+        {
             info.name = "RAM";
-            info.data = memory->GetRAM();
-            info.size = 0x2000;
+            MemoryRule* rule = memory->GetCurrentRule();
+            if (m_core->GetCartridge()->HasRam() && IsValidPointer(rule))
+            {
+                size_t ram_size = rule->GetRamSize();
+                if (ram_size > 0x2000)
+                    ram_size = 0x2000;
+                if (ram_size > 0)
+                {
+                    info.data = memory->GetRAM();
+                    info.size = (u32)ram_size;
+                }
+            }
             break;
+        }
         case MEMORY_EDITOR_WRAM0:
             info.name = "WRAM0";
             info.data = memory->GetWRAM0();

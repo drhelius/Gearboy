@@ -146,6 +146,11 @@ int Cartridge::GetTotalSize() const
     return m_iTotalSize;
 }
 
+bool Cartridge::HasRam() const
+{
+    return m_bLoaded && (m_iRAMBankCount > 0 || m_Type == CartridgeMBC7 || m_Type == CartridgeTAMA5);
+}
+
 bool Cartridge::HasBattery() const
 {
     return m_bBattery;

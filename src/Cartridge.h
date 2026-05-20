@@ -73,6 +73,7 @@ public:
     const char* GetFileName() const;
     const char* GetFileDirectory() const;
     int GetTotalSize() const;
+    bool HasRam() const;
     bool HasBattery() const;
     u8* GetTheROM() const;
     bool LoadFromFile(const char* path);
