@@ -1,6 +1,8 @@
 // Blip_Buffer 0.4.1. http://www.slack.net/~ant/
 
 #include "Multi_Buffer.h"
+#include <istream>
+#include <ostream>
 
 /* Copyright (C) 2003-2007 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -122,6 +124,22 @@ long Tracked_Blip_Buffer::read_samples( blip_sample_t* out, long count )
 	return count;
 }
 
+void Tracked_Blip_Buffer::SaveState( std::ostream& stream )
+{
+	blip_buffer_state_t state;
+	save_state( &state );
+	stream.write( reinterpret_cast<const char*>( &state ), sizeof( state ) );
+	stream.write( reinterpret_cast<const char*>( &last_non_silence ), sizeof( last_non_silence ) );
+}
+
+void Tracked_Blip_Buffer::LoadState( std::istream& stream )
+{
+	blip_buffer_state_t state;
+	stream.read( reinterpret_cast<char*>( &state ), sizeof( state ) );
+	load_state( state );
+	stream.read( reinterpret_cast<char*>( &last_non_silence ), sizeof( last_non_silence ) );
+}
+
 // Stereo_Buffer
 
 int const stereo = 2;
@@ -194,6 +212,22 @@ long Stereo_Buffer::read_samples( blip_sample_t* out, long out_size )
 		}
 	}
 	return out_size;
+}
+
+void Stereo_Buffer::SaveState( std::ostream& stream )
+{
+	for ( int i = 0; i < bufs_size; i++ )
+		bufs [i].SaveState( stream );
+
+	stream.write( reinterpret_cast<const char*>( &mixer.samples_read ), sizeof( mixer.samples_read ) );
+}
+
+void Stereo_Buffer::LoadState( std::istream& stream )
+{
+	for ( int i = 0; i < bufs_size; i++ )
+		bufs [i].LoadState( stream );
+
+	stream.read( reinterpret_cast<char*>( &mixer.samples_read ), sizeof( mixer.samples_read ) );
 }
 
 

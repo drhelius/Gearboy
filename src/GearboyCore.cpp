@@ -1014,7 +1014,7 @@ bool GearboyCore::LoadState(std::istream& stream)
     m_pProcessor->LoadState(stream);
     m_pVideo->LoadState(stream, header.version);
     m_pInput->LoadState(stream, header.version);
-    m_pAudio->LoadState(stream);
+    m_pAudio->LoadState(stream, header.version);
     m_pMemory->GetCurrentRule()->LoadState(stream);
 
     if (header.version >= 102 && m_bSGB)
@@ -1062,7 +1062,7 @@ bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
     m_pProcessor->LoadState(stream);
     m_pVideo->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pInput->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
-    m_pAudio->LoadState(stream);
+    m_pAudio->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pMemory->GetCurrentRule()->LoadState(stream);
 
     return true;

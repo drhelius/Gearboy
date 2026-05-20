@@ -157,9 +157,10 @@ void Audio::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_ElapsedCycles), sizeof(m_ElapsedCycles));
     stream.write(reinterpret_cast<const char*> (m_pSampleBuffer), sizeof(blip_sample_t) * AUDIO_BUFFER_SIZE);
     stream.write(reinterpret_cast<const char*> (&apu_state), sizeof(apu_state));
+    m_pBuffer->SaveState(stream);
 }
 
-void Audio::LoadState(std::istream& stream)
+void Audio::LoadState(std::istream& stream, int version)
 {
     using namespace std;
 
@@ -172,7 +173,11 @@ void Audio::LoadState(std::istream& stream)
     Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
     m_pApu->reset(mode);
     m_pApu->load_state(apu_state);
-    m_pBuffer->clear();
+
+    if (version >= 103)
+        m_pBuffer->LoadState(stream);
+    else
+        m_pBuffer->clear();
 }
 
 bool Audio::StartVgmRecording(const char* file_path, int clock_rate, bool is_double_speed)

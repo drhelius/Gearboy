@@ -43,7 +43,7 @@ public:
     void Tick(unsigned int clockCycles);
     void EndFrame(s16* pSampleBuffer, int* pSampleCount);
     void SaveState(std::ostream& stream);
-    void LoadState(std::istream& stream);
+    void LoadState(std::istream& stream, int version);
     Gb_Apu* GetApu();
     void EnablePSGDebug(bool enable);
     bool IsPSGDebugEnabled();
