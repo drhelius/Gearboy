@@ -218,14 +218,17 @@ void application_trigger_fullscreen(bool fullscreen)
         }
         else
         {
-            // Desktop fullscreen: no display mode
+            // Borderless fullscreen (default): pass NULL for desktop fullscreen
             SDL_SetWindowFullscreenMode(application_sdl_window, NULL);
         }
+
         SDL_SetWindowFullscreen(application_sdl_window, true);
+        SDL_ERROR("SDL_SetWindowFullscreen");
     }
     else
     {
         SDL_SetWindowFullscreen(application_sdl_window, false);
+        SDL_ERROR("SDL_SetWindowFullscreen");
     }
     config_emulator.fullscreen = fullscreen;
 #endif

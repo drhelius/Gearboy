@@ -258,7 +258,7 @@ void config_read(void)
 
     config_emulator.maximized = read_bool("Emulator", "Maximized", false);
     config_emulator.fullscreen = read_bool("Emulator", "FullScreen", false);
-    config_emulator.fullscreen_mode = read_int("Emulator", "FullScreenMode", 1);
+    config_emulator.fullscreen_mode = read_int("Emulator", "FullScreenMode", 0);
     config_emulator.always_show_menu = read_bool("Emulator", "AlwaysShowMenu", false);
     config_emulator.theme = read_int("Emulator", "Theme", config_Theme_Dark);
     config_emulator.theme = CLAMP(config_emulator.theme, config_Theme_Light, config_Theme_Dark);

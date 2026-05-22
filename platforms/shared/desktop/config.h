@@ -54,7 +54,7 @@ struct config_Emulator
 {
     bool maximized = false;
     bool fullscreen = false;
-    int fullscreen_mode = 1;
+    int fullscreen_mode = 0;
     bool always_show_menu = false;
     int theme = config_Theme_Dark;
     bool paused = false;

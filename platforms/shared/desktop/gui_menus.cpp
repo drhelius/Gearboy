@@ -683,7 +683,7 @@ static void menu_video(void)
         if (ImGui::BeginMenu("Fullscreen Mode"))
         {
             ImGui::PushItemWidth(130.0f);
-            ImGui::Combo("##fullscreen_mode", &config_emulator.fullscreen_mode, "Full Screen Desktop\0Full Screen\0\0");
+            ImGui::Combo("##fullscreen_mode", &config_emulator.fullscreen_mode, "Borderless\0Exclusive\0\0");
             ImGui::PopItemWidth();
             ImGui::EndMenu();
         }
