@@ -98,7 +98,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - Game Boy Color support.
 - Super Game Boy support.
 - LCD screen ghosting effect as seen in the original Game Boy.
-- LCD dot matrix effect.
+- LCD dot matrix effects. 
 - Battery powered RAM save support.
 - Save states with preview and rewind support.
 - Compressed ROM support (ZIP).
