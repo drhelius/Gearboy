@@ -58,6 +58,8 @@ static bool force_gba = false;
 static bool sgb_enabled = true;
 static bool sgb_border = true;
 static bool allow_up_down = false;
+static int8_t dpad_vertical_latch = 0;
+static int8_t dpad_horizontal_latch = 0;
 static bool bootrom_dmg = false;
 static bool bootrom_gbc = false;
 static bool color_correction = true;
@@ -252,35 +254,112 @@ static void update_input(void)
             ib |= input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
     }
 
-    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
+    bool raw_up = (ib & (1 << RETRO_DEVICE_ID_JOYPAD_UP)) != 0;
+    bool raw_down = (ib & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)) != 0;
+    bool raw_left = (ib & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)) != 0;
+    bool raw_right = (ib & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)) != 0;
+
+    bool up = raw_up;
+    bool down = raw_down;
+    bool left = raw_left;
+    bool right = raw_right;
+
+    if (!allow_up_down)
     {
-        if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)))
-            core->KeyPressed(Up_Key);
+        if (raw_up && raw_down)
+        {
+            if (dpad_vertical_latch > 0)
+            {
+                up = true;
+                down = false;
+            }
+            else if (dpad_vertical_latch < 0)
+            {
+                up = false;
+                down = true;
+            }
+            else
+            {
+                up = true;
+                down = false;
+                dpad_vertical_latch = 1;
+            }
+        }
+        else if (raw_up)
+        {
+            up = true;
+            down = false;
+            dpad_vertical_latch = 1;
+        }
+        else if (raw_down)
+        {
+            up = false;
+            down = true;
+            dpad_vertical_latch = -1;
+        }
+        else
+        {
+            up = false;
+            down = false;
+            dpad_vertical_latch = 0;
+        }
+
+        if (raw_left && raw_right)
+        {
+            if (dpad_horizontal_latch > 0)
+            {
+                left = true;
+                right = false;
+            }
+            else if (dpad_horizontal_latch < 0)
+            {
+                left = false;
+                right = true;
+            }
+            else
+            {
+                left = true;
+                right = false;
+                dpad_horizontal_latch = 1;
+            }
+        }
+        else if (raw_left)
+        {
+            left = true;
+            right = false;
+            dpad_horizontal_latch = 1;
+        }
+        else if (raw_right)
+        {
+            left = false;
+            right = true;
+            dpad_horizontal_latch = -1;
+        }
+        else
+        {
+            left = false;
+            right = false;
+            dpad_horizontal_latch = 0;
+        }
     }
+
+    if (up)
+        core->KeyPressed(Up_Key);
     else
         core->KeyReleased(Up_Key);
 
-    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
-    {
-        if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_UP)))
-            core->KeyPressed(Down_Key);
-    }
+    if (down)
+        core->KeyPressed(Down_Key);
     else
         core->KeyReleased(Down_Key);
 
-    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
-    {
-        if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)))
-            core->KeyPressed(Left_Key);
-    }
+    if (left)
+        core->KeyPressed(Left_Key);
     else
         core->KeyReleased(Left_Key);
 
-    if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
-    {
-        if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)))
-            core->KeyPressed(Right_Key);
-    }
+    if (right)
+        core->KeyPressed(Right_Key);
     else
         core->KeyReleased(Right_Key);
 
