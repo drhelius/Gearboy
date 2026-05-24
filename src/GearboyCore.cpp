@@ -653,7 +653,19 @@ void GearboyCore::SetFrameBuffer(u8* frame_buffer)
 std::string GearboyCore::GetSaveStatePath(const char* path, int index)
 {
     if (index < 0)
-        return path;
+    {
+        if (IsValidPointer(path))
+            return path;
+
+        using namespace std;
+        string full_path = m_pCartridge->GetFilePath();
+        string::size_type dot_index = full_path.rfind('.');
+
+        if (dot_index != string::npos)
+            full_path.replace(dot_index + 1, full_path.length() - dot_index - 1, "state");
+
+        return full_path;
+    }
 
     using namespace std;
     string full_path;
