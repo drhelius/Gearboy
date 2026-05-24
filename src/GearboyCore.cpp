@@ -753,6 +753,12 @@ bool GearboyCore::SaveState(u8* buffer, size_t& size, bool screenshot)
             return false;
         }
 
+        if (!direct_stream.good())
+        {
+            Error("Failed to save state to buffer: output buffer is too small");
+            return false;
+        }
+
         size = direct_stream.size();
         return true;
     }
