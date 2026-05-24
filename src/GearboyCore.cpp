@@ -292,6 +292,8 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::Cart
 
 bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType, bool forceGBA)
 {
+    m_pCartridge->Reset();
+
     if (m_pCartridge->LoadFromBuffer(buffer, size))
     {
         m_bForceDMG = forceDMG;
