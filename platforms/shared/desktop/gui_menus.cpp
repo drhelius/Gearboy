@@ -177,7 +177,8 @@ static void menu_gearboy(void)
             {
                 if (config_emulator.recent_roms[i].length() > 0)
                 {
-                    if (ImGui::MenuItem(config_emulator.recent_roms[i].c_str()))
+                    const char* shortcut = (i == 0) ? config_hotkeys[config_HotkeyIndex_ReloadROM].str : NULL;
+                    if (ImGui::MenuItem(config_emulator.recent_roms[i].c_str(), shortcut))
                     {
                         char rom_path[4096];
                         strcpy(rom_path, config_emulator.recent_roms[i].c_str());
@@ -611,6 +612,7 @@ static void menu_emulator(void)
             hotkey_configuration_item("Open ROM:", &config_hotkeys[config_HotkeyIndex_OpenROM]);
             hotkey_configuration_item("Quit:", &config_hotkeys[config_HotkeyIndex_Quit]);
             hotkey_configuration_item("Reset:", &config_hotkeys[config_HotkeyIndex_Reset]);
+            hotkey_configuration_item("Reload ROM:", &config_hotkeys[config_HotkeyIndex_ReloadROM]);
             hotkey_configuration_item("Pause:", &config_hotkeys[config_HotkeyIndex_Pause]);
             hotkey_configuration_item("Fast Forward:", &config_hotkeys[config_HotkeyIndex_FFWD]);
             hotkey_configuration_item("Rewind:", &config_hotkeys[config_HotkeyIndex_Rewind]);
@@ -634,7 +636,6 @@ static void menu_emulator(void)
 
         if (ImGui::BeginMenu("Debug Hotkeys"))
         {
-            hotkey_configuration_item("Reload ROM:", &config_hotkeys[config_HotkeyIndex_ReloadROM]);
             hotkey_configuration_item("Step Into:", &config_hotkeys[config_HotkeyIndex_DebugStepInto]);
             hotkey_configuration_item("Step Over:", &config_hotkeys[config_HotkeyIndex_DebugStepOver]);
             hotkey_configuration_item("Step Out:", &config_hotkeys[config_HotkeyIndex_DebugStepOut]);
