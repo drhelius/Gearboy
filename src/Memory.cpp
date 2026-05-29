@@ -434,15 +434,21 @@ void Memory::PerformGDMA(u8 value)
     if (source >= 0xD000 && source < 0xE000)
     {
         for (int i = 0; i < m_iHDMABytes; i++)
-            WriteCGBLCDRAM(destination + i, ReadCGBWRAM(source + i));
+        {
+            u16 dmaDestination = ((destination + i) & 0x1FFF) | 0x8000;
+            WriteCGBLCDRAM(dmaDestination, ReadCGBWRAM(source + i));
+        }
     }
     else
     {
         for (int i = 0; i < m_iHDMABytes; i++)
-            WriteCGBLCDRAM(destination + i, Read(source + i));
+        {
+            u16 dmaDestination = ((destination + i) & 0x1FFF) | 0x8000;
+            WriteCGBLCDRAM(dmaDestination, Read(source + i));
+        }
     }
 
-    m_HDMADestination += m_iHDMABytes;
+    m_HDMADestination = ((m_HDMADestination + m_iHDMABytes) & 0x1FFF) | 0x8000;
     m_HDMASource += m_iHDMABytes;
 
     for (int i = 0; i < 5; i++)
