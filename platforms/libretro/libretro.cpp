@@ -812,6 +812,10 @@ bool retro_load_game(const struct retro_game_info *info)
 
     memset(descs, 0, sizeof(descs));
 
+    MemoryRule* current_rule = core->GetMemory()->GetCurrentRule();
+    size_t cart_ram_size = current_rule->GetRamSize();
+    size_t cart_ram_bank_size = (cart_ram_size < 0x2000) ? cart_ram_size : 0x2000;
+
     // IE
     descs[0].ptr   = core->GetMemory()->GetMemoryMap() + 0xFFFF;
     descs[0].start = 0xFFFF;
@@ -829,19 +833,19 @@ bool retro_load_game(const struct retro_game_info *info)
     descs[3].start = 0xD000;
     descs[3].len   = 0x1000;
     // CART RAM
-    descs[4].ptr   = core->GetMemory()->GetCurrentRule()->GetCurrentRamBank();
+    descs[4].ptr   = (cart_ram_bank_size > 0) ? current_rule->GetCurrentRamBank() : NULL;
     descs[4].start = 0xA000;
-    descs[4].len   = 0x2000;
+    descs[4].len   = cart_ram_bank_size;
     // VRAM
     descs[5].ptr   = core->GetMemory()->GetMemoryMap() + 0x8000; // todo: fix GBC
     descs[5].start = 0x8000;
     descs[5].len   = 0x2000;
     // ROM bank 0
-    descs[6].ptr   = core->GetMemory()->GetCurrentRule()->GetRomBank0();
+    descs[6].ptr   = current_rule->GetRomBank0();
     descs[6].start = 0x0000;
     descs[6].len   = 0x4000;
     // ROM bank x
-    descs[7].ptr   = core->GetMemory()->GetCurrentRule()->GetCurrentRomBank1();
+    descs[7].ptr   = current_rule->GetCurrentRomBank1();
     descs[7].start = 0x4000;
     descs[7].len   = 0x4000;
     // OAM
@@ -907,7 +911,9 @@ void *retro_get_memory_data(unsigned id)
     switch (id)
     {
         case RETRO_MEMORY_SAVE_RAM:
-            return core->GetMemory()->GetCurrentRule()->GetRamBanks();
+            if (core->GetMemory()->GetCurrentRule()->GetRamSize() > 0)
+                return core->GetMemory()->GetCurrentRule()->GetRamBanks();
+            return NULL;
         case RETRO_MEMORY_RTC:
             return core->GetMemory()->GetCurrentRule()->GetRTCMemory();
         case RETRO_MEMORY_SYSTEM_RAM:

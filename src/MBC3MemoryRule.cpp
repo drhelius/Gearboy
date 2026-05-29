@@ -541,7 +541,7 @@ bool MBC3MemoryRule::LoadRam(std::istream & file, s32 fileSize)
 
 size_t MBC3MemoryRule::GetRamSize()
 {
-    return m_iRAMBanksSize;
+    return m_pCartridge->GetRAMBankCount() * 0x2000;
 }
 
 size_t MBC3MemoryRule::GetRTCSize()
