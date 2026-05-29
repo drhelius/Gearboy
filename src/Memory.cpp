@@ -315,36 +315,41 @@ void Memory::MemoryDump(const char* szFilePath)
 
 void Memory::PerformDMA(u8 value)
 {
+    u16 address = value << 8;
+
+    if (address > 0xF100)
+        return;
+
     if (m_bCGB)
     {
-        u16 address = value << 8;
-        if (address < 0xE000)
+        if (address >= 0xE000)
         {
-            if (address >= 0x8000 && address < 0xA000)
-            {
-                for (int i = 0; i < 0xA0; i++)
-                    Load(0xFE00 + i, ReadCGBLCDRAM(address + i, false));
-            }
-            else if (address >= 0xD000 && address < 0xE000)
-            {
-                for (int i = 0; i < 0xA0; i++)
-                    Load(0xFE00 + i, ReadCGBWRAM(address + i));
-            }
-            else
-            {
-                for (int i = 0; i < 0xA0; i++)
-                    Load(0xFE00 + i, Read(address + i));
-            }
+            for (int i = 0; i < 0xA0; i++)
+                Load(0xFE00 + i, 0xFF);
         }
-    }
-    else
-    {
-        u16 address = value << 8;
-        if (address < 0xE000)
+        else if (address >= 0x8000 && address < 0xA000)
+        {
+            for (int i = 0; i < 0xA0; i++)
+                Load(0xFE00 + i, ReadCGBLCDRAM(address + i, false));
+        }
+        else if (address >= 0xD000 && address < 0xE000)
+        {
+            for (int i = 0; i < 0xA0; i++)
+                Load(0xFE00 + i, ReadCGBWRAM(address + i));
+        }
+        else
         {
             for (int i = 0; i < 0xA0; i++)
                 Load(0xFE00 + i, Read(address + i));
         }
+    }
+    else
+    {
+        if (address >= 0xE000)
+            address &= 0xDFFF;
+
+        for (int i = 0; i < 0xA0; i++)
+            Load(0xFE00 + i, Read(address + i));
     }
 }
 
