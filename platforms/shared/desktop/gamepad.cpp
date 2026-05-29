@@ -83,18 +83,18 @@ void gamepad_load_mappings(void)
         std::string line;
         while (std::getline(file, line))
         {
+            line_number++;
+
             size_t comment = line.find_first_of('#');
             if (comment != std::string::npos)
                 line = line.substr(0, comment);
 
-            line = line.erase(0, line.find_first_not_of(" \t\r\n"));
-            line = line.erase(line.find_last_not_of(" \t\r\n") + 1);
-
-            while (line[0] == ' ')
-                line = line.substr(1);
-
-            if (line.empty())
+            size_t first = line.find_first_not_of(" \t\r\n");
+            if (first == std::string::npos)
                 continue;
+
+            size_t last = line.find_last_not_of(" \t\r\n");
+            line = line.substr(first, last - first + 1);
 
             size_t platform_pos = line.find("platform:Mac OS X");
             if (platform_pos != std::string::npos)
@@ -114,8 +114,6 @@ void gamepad_load_mappings(void)
                 Error("Unable to load game controller mapping in line %d from gamecontrollerdb.txt", line_number);
                 SDL_ERROR("SDL_AddGamepadMapping");
             }
-
-            line_number++;
         }
         file.close();
     }
