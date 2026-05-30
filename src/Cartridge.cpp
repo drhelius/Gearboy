@@ -618,7 +618,7 @@ bool Cartridge::GatherMetadata()
     }
 
     if ((m_Type == CartridgeWisdomTree) || (m_Type == CartridgeM161) ||
-            (m_Type == CartridgeSachenMMC1) || (m_Type == CartridgeSachenMMC2))
+            (m_Type == CartridgeSachenMMC1))
     {
         m_iRAMBankCount = 0;
     }

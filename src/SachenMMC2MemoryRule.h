@@ -34,6 +34,12 @@ public:
     virtual void NotifyHighMemoryRead(u16 address);
     virtual void NotifyHighMemoryWrite(u16 address, u8 value);
     virtual void Reset(bool bCGB);
+    virtual void SaveRam(std::ostream &file);
+    virtual bool LoadRam(std::istream &file, s32 fileSize);
+    virtual size_t GetRamSize();
+    virtual u8* GetRamBanks();
+    virtual u8* GetCurrentRamBank();
+    virtual int GetCurrentRamBankIndex();
     virtual u8* GetRomBank0();
     virtual int GetCurrentRomBank0Index();
     virtual u8* GetCurrentRomBank1();
@@ -50,7 +56,10 @@ private:
     };
 
     u16 UnscrambleAddress(u16 address) const;
+    bool DetectAlternateWiring() const;
     int NormalizeROMBank(int bank) const;
+    int GetRAMBytesSize() const;
+    void ResizeRAMBanks();
     void SwitchROMBank0(int bank);
     void SwitchROMBank1(int bank);
     void UpdateLockOnRead(u16 address);
@@ -62,11 +71,16 @@ private:
     u8 m_Mask;
     u8 m_UnmaskedBank;
     u8 m_BaseBank;
+    int m_OuterBankOffset;
+    bool m_bAlternateWiring;
     bool m_bScrambledHeader;
     int m_iCurrentROM0Bank;
     int m_iCurrentROMBank;
     int m_CurrentROM0Address;
     int m_CurrentROMAddress;
+    int m_iRAMBanksSize;
+    int m_iRAMBytesSize;
+    u8* m_pRAMBanks;
 };
 
 #endif  /* SACHENMMC2MEMORYRULE_H */
