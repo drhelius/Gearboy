@@ -93,10 +93,10 @@ private:
     bool GatherMetadata();
     bool LoadFromZipFile(const u8* buffer, int size);
     void CheckCartridgeType(int type);
-    bool IsM161Cartridge() const;
-    bool IsPKJDCartridge() const;
-    bool IsSachenMMC1Cartridge() const;
-    bool IsSachenMMC2Cartridge() const;
+    bool IsM161Cartridge(u32 full_crc, u32 header_crc) const;
+    bool IsPKJDCartridge(u32 header_crc) const;
+    bool IsSachenMMC1Cartridge(u32 full_crc) const;
+    bool IsSachenMMC2Cartridge(u32 header_crc) const;
     bool IsWisdomTreeCartridge(int type) const;
 
 private:

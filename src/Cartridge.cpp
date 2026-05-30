@@ -574,7 +574,15 @@ bool Cartridge::GatherMetadata()
     m_iRAMSize = m_pTheROM[0x149];
     m_iVersion = m_pTheROM[0x14C];
 
-    if (IsM161Cartridge())
+    u32 full_crc = 0;
+    u32 header_crc = 0;
+    if (m_iTotalSize >= 0x150)
+    {
+        full_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM, m_iTotalSize));
+        header_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM + 0x100, 0x50));
+    }
+
+    if (IsM161Cartridge(full_crc, header_crc))
     {
         m_Type = CartridgeM161;
         m_bSGB = false;
@@ -582,7 +590,7 @@ bool Cartridge::GatherMetadata()
         m_bRTCPresent = false;
         m_bRumblePresent = false;
     }
-    else if (IsSachenMMC1Cartridge())
+    else if (IsSachenMMC1Cartridge(full_crc))
     {
         m_Type = CartridgeSachenMMC1;
         m_bSGB = false;
@@ -590,7 +598,7 @@ bool Cartridge::GatherMetadata()
         m_bRTCPresent = false;
         m_bRumblePresent = false;
     }
-    else if (IsSachenMMC2Cartridge())
+    else if (IsSachenMMC2Cartridge(header_crc))
     {
         m_Type = CartridgeSachenMMC2;
         m_bSGB = false;
@@ -598,7 +606,7 @@ bool Cartridge::GatherMetadata()
         m_bRTCPresent = false;
         m_bRumblePresent = false;
     }
-    else if (IsPKJDCartridge())
+    else if (IsPKJDCartridge(header_crc))
     {
         CheckCartridgeType(type);
         m_Type = CartridgePKJD;
@@ -776,33 +784,26 @@ bool Cartridge::GatherMetadata()
     return (m_Type != CartridgeNotSupported);
 }
 
-bool Cartridge::IsM161Cartridge() const
+bool Cartridge::IsM161Cartridge(u32 full_crc, u32 header_crc) const
 {
     if (m_iTotalSize < 0x150)
         return false;
-
-    u32 full_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM, m_iTotalSize));
-    u32 header_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM + 0x100, 0x50));
 
     return (full_crc == 0x0C38A775) || (header_crc == 0xA61F3EE1);
 }
 
-bool Cartridge::IsPKJDCartridge() const
+bool Cartridge::IsPKJDCartridge(u32 header_crc) const
 {
     if (m_iTotalSize < 0x150)
         return false;
-
-    u32 header_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM + 0x100, 0x50));
 
     return header_crc == 0x30F8F86C; // Pokemon Jade Version (Telefang Speed bootleg)
 }
 
-bool Cartridge::IsSachenMMC1Cartridge() const
+bool Cartridge::IsSachenMMC1Cartridge(u32 full_crc) const
 {
     if (m_iTotalSize < 0x150)
         return false;
-
-    u32 full_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM, m_iTotalSize));
 
     switch (full_crc)
     {
@@ -824,7 +825,7 @@ bool Cartridge::IsSachenMMC1Cartridge() const
             (m_pTheROM[0x144] == 0xED);
 }
 
-bool Cartridge::IsSachenMMC2Cartridge() const
+bool Cartridge::IsSachenMMC2Cartridge(u32 header_crc) const
 {
     if (m_iTotalSize < 0x150)
         return false;
@@ -838,8 +839,6 @@ bool Cartridge::IsSachenMMC2Cartridge() const
 
     if ((m_pTheROM[0x147] != 0x97) && (m_pTheROM[0x147] != 0x99))
         return false;
-
-    u32 header_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM + 0x100, 0x50));
 
     switch (header_crc)
     {
