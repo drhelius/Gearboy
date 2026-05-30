@@ -37,14 +37,20 @@
 #include <thread>
 #include <chrono>
 
-static std::string get_file_name_from_path(const std::string& path)
+static std::string make_printable_ascii(const char* text, size_t max_length)
 {
-    size_t position = path.find_last_of("/\\");
+    std::string result;
 
-    if (position == std::string::npos)
-        return path;
+    if (!text)
+        return result;
 
-    return path.substr(position + 1);
+    for (size_t i = 0; i < max_length && text[i] != 0; i++)
+    {
+        unsigned char value = static_cast<unsigned char>(text[i]);
+        result.push_back((value >= 0x20 && value <= 0x7E) ? static_cast<char>(value) : '.');
+    }
+
+    return result;
 }
 
 struct DisassemblerBookmark
@@ -678,7 +684,21 @@ json DebugAdapter::GetMediaInfo()
     info["file_path"] = cart->GetFilePath();
     info["file_name"] = cart->GetFileName();
     info["file_directory"] = cart->GetFileDirectory();
-    info["rom_name"] = cart->GetName();
+    info["rom_name"] = make_printable_ascii(cart->GetName(), 16);
+
+    const u8* rom = cart->GetTheROM();
+    if (rom && cart->GetTotalSize() > 0x0134)
+    {
+        std::ostringstream title_hex;
+        int title_size = MIN(cart->GetTotalSize() - 0x0134, 16);
+        for (int i = 0; i < title_size; i++)
+        {
+            title_hex << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)rom[0x0134 + i];
+            if (i < title_size - 1)
+                title_hex << ' ';
+        }
+        info["rom_name_header_hex"] = title_hex.str();
+    }
 
     info["rom_size"] = cart->GetROMSize();
     info["ram_size"] = cart->GetRAMSize();
@@ -730,7 +750,7 @@ json DebugAdapter::ListRecentMedia()
         json entry;
         entry["index"] = index;
         entry["file_path"] = path;
-        entry["file_name"] = get_file_name_from_path(path);
+        entry["file_name"] = get_filename(path.c_str());
         recent_media.push_back(entry);
     }
 
