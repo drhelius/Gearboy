@@ -44,6 +44,7 @@
 #include "M161MemoryRule.h"
 #include "SachenMMC1MemoryRule.h"
 #include "SachenMMC2MemoryRule.h"
+#include "FlashcartMemoryRule.h"
 #include "TraceLogger.h"
 #include "SGB.h"
 #include "common.h"
@@ -76,6 +77,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pM161MemoryRule);
     InitPointer(m_pSachenMMC1MemoryRule);
     InitPointer(m_pSachenMMC2MemoryRule);
+    InitPointer(m_pFlashcartMemoryRule);
     InitPointer(m_pRamChangedCallback);
     InitPointer(m_trace_logger);
     m_bCGB = false;
@@ -110,6 +112,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pM161MemoryRule);
     SafeDelete(m_pSachenMMC1MemoryRule);
     SafeDelete(m_pSachenMMC2MemoryRule);
+    SafeDelete(m_pFlashcartMemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
     SafeDelete(m_pCommonMemoryRule);
@@ -1450,6 +1453,8 @@ void GearboyCore::InitMemoryRules()
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pSachenMMC2MemoryRule = new SachenMMC2MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pFlashcartMemoryRule = new FlashcartMemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetIORule(m_pIORegistersMemoryRule);
@@ -1472,6 +1477,7 @@ void GearboyCore::InitMemoryRules()
     m_pM161MemoryRule->SetTraceLogger(m_trace_logger);
     m_pSachenMMC1MemoryRule->SetTraceLogger(m_trace_logger);
     m_pSachenMMC2MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pFlashcartMemoryRule->SetTraceLogger(m_trace_logger);
 }
 
 bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
@@ -1536,6 +1542,9 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
             break;
         case Cartridge::CartridgeSachenMMC2:
             m_pMemory->SetCurrentRule(m_pSachenMMC2MemoryRule);
+            break;
+        case Cartridge::CartridgeBungEMS:
+            m_pMemory->SetCurrentRule(m_pFlashcartMemoryRule);
             break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
@@ -1604,6 +1613,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pM161MemoryRule->Reset(m_bCGB);
     m_pSachenMMC1MemoryRule->Reset(m_bCGB);
     m_pSachenMMC2MemoryRule->Reset(m_bCGB);
+    m_pFlashcartMemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
     m_pSGB->Reset();

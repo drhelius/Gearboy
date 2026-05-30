@@ -1166,6 +1166,8 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "Sachen MMC2";
         case Cartridge::CartridgePKJD:
             return "PKJD";
+        case Cartridge::CartridgeBungEMS:
+            return "Bung/EMS";
         case Cartridge::CartridgeNotSupported:
             return "Not Supported";
         default:

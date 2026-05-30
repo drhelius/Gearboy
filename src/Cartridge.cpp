@@ -614,6 +614,14 @@ bool Cartridge::GatherMetadata()
         m_bRTCPresent = false;
         m_bRumblePresent = false;
     }
+    else if (IsBungEMSCartridge(full_crc))
+    {
+        if (type != 0xBE)
+            CheckCartridgeType(type);
+        m_Type = CartridgeBungEMS;
+        m_bRTCPresent = false;
+        m_bRumblePresent = false;
+    }
     else if (IsPKJDCartridge(header_crc))
     {
         CheckCartridgeType(type);
@@ -637,6 +645,10 @@ bool Cartridge::GatherMetadata()
             (m_Type == CartridgeSachenMMC1))
     {
         m_iRAMBankCount = 0;
+    }
+    else if (m_Type == CartridgeBungEMS)
+    {
+        m_iRAMBankCount = 4;
     }
     else
     {
@@ -740,6 +752,9 @@ bool Cartridge::GatherMetadata()
         case Cartridge::CartridgePKJD:
             Log("PKJD found");
             break;
+        case Cartridge::CartridgeBungEMS:
+            Log("Bung/EMS found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -823,6 +838,34 @@ bool Cartridge::IsPKJDCartridge(u32 header_crc) const
         return false;
 
     return header_crc == 0x30F8F86C; // Pokemon Jade Version (Telefang Speed bootleg)
+}
+
+bool Cartridge::IsBungEMSCartridge(u32 full_crc) const
+{
+    if (m_iTotalSize < 0x150)
+        return false;
+
+    switch (full_crc)
+    {
+        case 0x2ED509D9: // Green Beret
+        case 0xF004440C: // Cube Raider
+        case 0xFDC1483A: // Bugs Bunny - Crazy Castle 3
+            return true;
+        default:
+            break;
+    }
+
+    static const u8 ems_menu[8] = { 'E', 'M', 'S', 'M', 'E', 'N', 'U', 0x00 };
+    static const u8 gb16m[6] = { 'G', 'B', '1', '6', 'M', 0x00 };
+
+    if (memcmp(m_pTheROM + 0x134, ems_menu, sizeof(ems_menu)) == 0)
+        return true;
+
+    if (memcmp(m_pTheROM + 0x134, gb16m, sizeof(gb16m)) == 0)
+        return true;
+
+    return (m_pTheROM[0x147] == 0xBE) ||
+            ((m_pTheROM[0x147] == 0x1B) && (m_pTheROM[0x14A] == 0xE1));
 }
 
 bool Cartridge::IsSachenMMC1Cartridge(u32 full_crc) const

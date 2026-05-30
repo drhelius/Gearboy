@@ -99,6 +99,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "Sachen MMC1",     NULL },
             { "Sachen MMC2",     NULL },
             { "PKJD",            NULL },
+            { "Bung/EMS",        NULL },
             { NULL, NULL },
         },
         "Auto"

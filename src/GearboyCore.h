@@ -46,6 +46,7 @@ class WisdomTreeMemoryRule;
 class M161MemoryRule;
 class SachenMMC1MemoryRule;
 class SachenMMC2MemoryRule;
+class FlashcartMemoryRule;
 class MemoryRule;
 class TraceLogger;
 class SGB;
@@ -158,6 +159,7 @@ private:
     M161MemoryRule* m_pM161MemoryRule;
     SachenMMC1MemoryRule* m_pSachenMMC1MemoryRule;
     SachenMMC2MemoryRule* m_pSachenMMC2MemoryRule;
+    FlashcartMemoryRule* m_pFlashcartMemoryRule;
     bool m_bCGB;
     bool m_bGBA;
     bool m_bSGB;
