@@ -94,6 +94,7 @@ private:
     bool LoadFromZipFile(const u8* buffer, int size);
     void CheckCartridgeType(int type);
     bool IsM161Cartridge(u32 full_crc, u32 header_crc) const;
+    bool IsKnownMMM01Cartridge(u32 full_crc) const;
     bool IsPKJDCartridge(u32 header_crc) const;
     bool IsSachenMMC1Cartridge(u32 full_crc) const;
     bool IsSachenMMC2Cartridge(u32 header_crc) const;

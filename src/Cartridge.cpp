@@ -590,6 +590,14 @@ bool Cartridge::GatherMetadata()
         m_bRTCPresent = false;
         m_bRumblePresent = false;
     }
+    else if (IsKnownMMM01Cartridge(full_crc))
+    {
+        m_Type = CartridgeMMM01;
+        m_bSGB = false;
+        m_bBattery = false;
+        m_bRTCPresent = false;
+        m_bRumblePresent = false;
+    }
     else if (IsSachenMMC1Cartridge(full_crc))
     {
         m_Type = CartridgeSachenMMC1;
@@ -678,7 +686,7 @@ bool Cartridge::GatherMetadata()
         }
     }
 
-    if (m_Type == Cartridge::CartridgeMMM01 && m_iTotalSize > 0x8000)
+    if (m_Type == Cartridge::CartridgeMMM01 && m_iTotalSize > 0x8000 && !IsKnownMMM01Cartridge(full_crc))
     {
         u8* temp = new u8[0x8000];
         memcpy(temp, m_pTheROM, 0x8000);
@@ -790,6 +798,23 @@ bool Cartridge::IsM161Cartridge(u32 full_crc, u32 header_crc) const
         return false;
 
     return (full_crc == 0x0C38A775) || (header_crc == 0xA61F3EE1);
+}
+
+bool Cartridge::IsKnownMMM01Cartridge(u32 full_crc) const
+{
+    if (m_iTotalSize < 0x150)
+        return false;
+
+    switch (full_crc)
+    {
+        case 0x5BFC3EF5: // Mani 4 in 1 - Bubble Bobble / Elevator Action / Chase H.Q. / Sagaia
+        case 0xC373AC09: // Mani 4 in 1 - Gambaruger / Raijin-Oh / Zoids / Esparks
+        case 0xCB48B6D0: // Mani 4 in 1 - R-Type II / Saigo no Nindou / Yancha Maru / Shisenshou
+        case 0x950773EE: // Mani 4 in 1 - Adventure Island II / GB Genjin / Bomber Boy / Milon
+            return true;
+        default:
+            return false;
+    }
 }
 
 bool Cartridge::IsPKJDCartridge(u32 header_crc) const
