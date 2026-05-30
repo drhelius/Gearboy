@@ -24,6 +24,30 @@
 #include "Input.h"
 #include "Cartridge.h"
 
+static void RollLogoRegister(u8& c, u8& a, bool& carry)
+{
+    u8 old_c = c;
+    c = static_cast<u8>((c << 1) | (carry ? 1 : 0));
+    carry = (old_c & 0x80) != 0;
+
+    u8 old_a = a;
+    a = static_cast<u8>((a << 1) | (carry ? 1 : 0));
+    carry = (old_a & 0x80) != 0;
+}
+
+static u8 ExpandLogoPass(u8& c, u8 a, bool& carry)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        u8 saved_c = c;
+        RollLogoRegister(c, a, carry);
+        c = saved_c;
+        RollLogoRegister(c, a, carry);
+    }
+
+    return a;
+}
+
 SachenMMC1MemoryRule::SachenMMC1MemoryRule(Processor* pProcessor,
         Memory* pMemory, Video* pVideo, Input* pInput,
         Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
@@ -39,13 +63,16 @@ SachenMMC1MemoryRule::~SachenMMC1MemoryRule()
 void SachenMMC1MemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
-    m_LockMode = LockModeDMG;
+    m_LockMode = m_pMemory->IsBootromEnabled() ? LockModeDMG : LockModeUnlocked;
     m_iTransition = 0;
     m_Mask = 0;
     m_UnmaskedBank = 0;
     m_BaseBank = 0;
     SwitchROMBank0(0);
     SwitchROMBank1(1);
+
+    if (!m_pMemory->IsBootromEnabled())
+        LoadBootromLogoState();
 }
 
 u16 SachenMMC1MemoryRule::UnscrambleAddress(u16 address) const
@@ -56,6 +83,50 @@ u16 SachenMMC1MemoryRule::UnscrambleAddress(u16 address) const
     unscrambled |= (address & 0x0002) << 3;
     unscrambled |= (address & 0x0001) << 6;
     return unscrambled;
+}
+
+u8 SachenMMC1MemoryRule::ReadBootromLogoByte(u16 address) const
+{
+    u8* pROM = m_pCartridge->GetTheROM();
+
+    if (!IsValidPointer(pROM))
+        return 0xFF;
+
+    int physical_address = UnscrambleAddress(address | 0x0080) + m_CurrentROM0Address;
+
+    if (physical_address >= m_pCartridge->GetTotalSize())
+        return 0xFF;
+
+    return pROM[physical_address];
+}
+
+void SachenMMC1MemoryRule::LoadBootromLogoState()
+{
+    if (m_pCartridge->GetTotalSize() < 0x150)
+        return;
+
+    bool carry = false;
+    u16 destination = 0x8010;
+
+    for (u16 address = 0x0104; address <= 0x0133; address++)
+    {
+        u8 a = ReadBootromLogoByte(address);
+        u8 c = a;
+
+        a = ExpandLogoPass(c, a, carry);
+        m_pMemory->Load(destination, a);
+        destination += 2;
+        m_pMemory->Load(destination, a);
+        destination += 2;
+
+        a = ExpandLogoPass(c, a, carry);
+        m_pMemory->Load(destination, a);
+        destination += 2;
+        m_pMemory->Load(destination, a);
+        destination += 2;
+
+        carry = ((address + 1) & 0xFF) < 0x34;
+    }
 }
 
 int SachenMMC1MemoryRule::NormalizeROMBank(int bank) const
@@ -92,7 +163,7 @@ u8 SachenMMC1MemoryRule::PerformRead(u16 address)
         case 0x0000:
         case 0x2000:
         {
-            if ((m_LockMode != LockModeUnlocked) && ((address & 0xFF00) == 0x0100))
+            if (m_LockMode != LockModeUnlocked)
             {
                 m_iTransition++;
                 if (m_iTransition == 0x31)
@@ -110,6 +181,15 @@ u8 SachenMMC1MemoryRule::PerformRead(u16 address)
         case 0x4000:
         case 0x6000:
         {
+            if (m_LockMode != LockModeUnlocked)
+            {
+                m_iTransition++;
+                if (m_iTransition == 0x31)
+                    m_LockMode = LockModeUnlocked;
+                else
+                    address |= 0x0080;
+            }
+
             u8* pROM = m_pCartridge->GetTheROM();
             return pROM[(address - 0x4000) + m_CurrentROMAddress];
         }
@@ -127,14 +207,16 @@ u8 SachenMMC1MemoryRule::PerformRead(u16 address)
 
 void SachenMMC1MemoryRule::PerformWrite(u16 address, u8 value)
 {
-    switch (address & 0xE000)
+    switch ((address & 0xFFD3) & 0xE000)
     {
         case 0x0000:
         {
             if ((m_UnmaskedBank & 0x30) == 0x30)
             {
                 m_BaseBank = value;
+                u8 bank = (m_UnmaskedBank & ~m_Mask) | (m_BaseBank & m_Mask);
                 SwitchROMBank0(m_BaseBank & m_Mask);
+                SwitchROMBank1(bank);
                 TraceBankSwitch(address, value);
             }
             break;

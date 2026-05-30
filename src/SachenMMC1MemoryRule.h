@@ -47,6 +47,8 @@ private:
     };
 
     u16 UnscrambleAddress(u16 address) const;
+    u8 ReadBootromLogoByte(u16 address) const;
+    void LoadBootromLogoState();
     int NormalizeROMBank(int bank) const;
     void SwitchROMBank0(int bank);
     void SwitchROMBank1(int bank);

@@ -802,6 +802,24 @@ bool Cartridge::IsSachenMMC1Cartridge() const
     if (m_iTotalSize < 0x150)
         return false;
 
+    u32 full_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM, m_iTotalSize));
+
+    switch (full_crc)
+    {
+        case 0x82F06E93: // 4 in 1 (Europe) (4B-001, Sachen-Commin)
+        case 0x5E438DB8: // 4 in 1 (Europe) (4B-002, Sachen)
+        case 0xC294AA21: // 4 in 1 (Taiwan) (4B-003, Sachen-Commin)
+        case 0xC69A19F6: // 4 in 1 (Europe) (4B-004, Sachen-Commin)
+        case 0xF4310EB3: // 4 in 1 (Europe) (4B-005, Sachen-Commin)
+        case 0x95398DA5: // 4 in 1 (Europe) (4B-006, Sachen)
+        case 0x62D9350E: // 4 in 1 (Europe) (4B-007, Sachen)
+        case 0x740E9BC8: // 4 in 1 (Europe) (4B-008, Sachen)
+        case 0x114E1F1E: // 4 in 1 (Europe) (4B-009, Sachen)
+            return true;
+        default:
+            break;
+    }
+
     return (m_pTheROM[0x104] == 0xCE) && (m_pTheROM[0x114] == 0x66) &&
             (m_pTheROM[0x144] == 0xED);
 }
