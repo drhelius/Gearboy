@@ -90,6 +90,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 
 **Notes:**
 - **Windows**: May need [Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572) and [OpenGL Compatibility Pack](https://apps.microsoft.com/detail/9nqpsl29bfff)
+- **Homebrew**: If Homebrew asks you to trust the third-party tap, run `brew trust --tap drhelius/geardome`
 - **Linux**: May need `libsdl3`
 
 ## Features
