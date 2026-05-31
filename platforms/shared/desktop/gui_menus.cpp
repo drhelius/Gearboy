@@ -535,7 +535,7 @@ static void menu_emulator(void)
         if (ImGui::BeginMenu("Memory Bank Controller"))
         {
             ImGui::PushItemWidth(140.0f);
-            ImGui::Combo("##mbc", &config_emulator.mbc, "Auto\0ROM Only\0MBC 1\0MBC 2\0MBC 3\0MBC 5\0MBC 1 Multicart\0HuC 1\0HuC 3\0MMM01\0Camera\0MBC 7\0TAMA5\0Wisdom Tree\0M161\0Sachen MMC1\0Sachen MMC2\0PKJD\0Bung/EMS\0\0");
+            ImGui::Combo("##mbc", &config_emulator.mbc, "Auto\0ROM Only\0MBC 1\0MBC 2\0MBC 3\0MBC 5\0MBC 1 Multicart\0HuC 1\0HuC 3\0MMM01\0Camera\0MBC 7\0TAMA5\0Wisdom Tree\0M161\0Sachen MMC1\0Sachen MMC2\0PKJD\0Bung/EMS\0Poke 2-in-1\0\0");
             ImGui::PopItemWidth();
             ImGui::EndMenu();
         }

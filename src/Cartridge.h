@@ -48,6 +48,7 @@ public:
         CartridgeSachenMMC2,
         CartridgePKJD,
         CartridgeBungEMS,
+        CartridgePoke2in1,
         CartridgeNotSupported
     };
 
@@ -98,6 +99,7 @@ private:
     bool IsKnownMMM01Cartridge(u32 full_crc) const;
     bool IsPKJDCartridge(u32 header_crc) const;
     bool IsBungEMSCartridge(u32 full_crc) const;
+    bool IsPoke2in1Cartridge(u32 full_crc) const;
     bool IsSachenMMC1Cartridge(u32 full_crc) const;
     bool IsSachenMMC2Cartridge(u32 header_crc) const;
     bool IsWisdomTreeCartridge(int type) const;

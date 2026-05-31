@@ -1168,6 +1168,8 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "PKJD";
         case Cartridge::CartridgeBungEMS:
             return "Bung/EMS";
+        case Cartridge::CartridgePoke2in1:
+            return "Poke 2-in-1";
         case Cartridge::CartridgeNotSupported:
             return "Not Supported";
         default:

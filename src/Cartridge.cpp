@@ -622,6 +622,14 @@ bool Cartridge::GatherMetadata()
         m_bRTCPresent = false;
         m_bRumblePresent = false;
     }
+    else if (IsPoke2in1Cartridge(full_crc))
+    {
+        CheckCartridgeType(type);
+        m_Type = CartridgePoke2in1;
+        m_bSGB = false;
+        m_bRTCPresent = false;
+        m_bRumblePresent = false;
+    }
     else if (IsPKJDCartridge(header_crc))
     {
         CheckCartridgeType(type);
@@ -755,6 +763,9 @@ bool Cartridge::GatherMetadata()
         case Cartridge::CartridgeBungEMS:
             Log("Bung/EMS found");
             break;
+        case Cartridge::CartridgePoke2in1:
+            Log("Pokemon 2-in-1 found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -866,6 +877,14 @@ bool Cartridge::IsBungEMSCartridge(u32 full_crc) const
 
     return (m_pTheROM[0x147] == 0xBE) ||
             ((m_pTheROM[0x147] == 0x1B) && (m_pTheROM[0x14A] == 0xE1));
+}
+
+bool Cartridge::IsPoke2in1Cartridge(u32 full_crc) const
+{
+    if (m_iTotalSize < 0x150)
+        return false;
+
+    return full_crc == 0xABB17913; // Pokemon Red-Blue 2-in-1 (Unl) [S]
 }
 
 bool Cartridge::IsSachenMMC1Cartridge(u32 full_crc) const

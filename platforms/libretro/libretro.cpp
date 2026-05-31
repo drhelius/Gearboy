@@ -521,6 +521,8 @@ static void check_variables(void)
             mapper = Cartridge::CartridgePKJD;
         else if (strcmp(var.value, "Bung/EMS") == 0)
             mapper = Cartridge::CartridgeBungEMS;
+        else if (strcmp(var.value, "Poke 2-in-1") == 0)
+            mapper = Cartridge::CartridgePoke2in1;
         else
             mapper = Cartridge::CartridgeNotSupported;
     }

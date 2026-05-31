@@ -65,12 +65,17 @@ void MBC3MemoryRule::Reset(bool bCGB)
     m_iRTCLatch = 0;
     m_RTCRegister = 0;
     m_RTCLastTimeCache = m_RTC.LastTime;
+    m_iCurrentROM0Bank = 0;
+    m_CurrentROM0Address = 0;
     m_CurrentROMAddress = 0x4000;
     m_CurrentRAMAddress = 0;
     m_iRTCCycles = 0;
     m_bPKJDRAMSelected = true;
     for (int i = 0; i < 7; i++)
         m_PKJDRegisters[i] = 0;
+    m_iPoke2in1BaseBank = 0;
+    m_bPoke2in1Bank0Change = false;
+    m_bPoke2in1Locked = false;
 }
 
 void MBC3MemoryRule::ResizeRAMBanks()
@@ -85,11 +90,6 @@ void MBC3MemoryRule::ResizeRAMBanks()
     }
 }
 
-bool MBC3MemoryRule::IsPKJD() const
-{
-    return m_pCartridge->GetType() == Cartridge::CartridgePKJD;
-}
-
 int MBC3MemoryRule::GetSafeRAMBankMask() const
 {
     int ramBankCount = m_pCartridge->GetRAMBankCount();
@@ -98,6 +98,41 @@ int MBC3MemoryRule::GetSafeRAMBankMask() const
         ramBankCount = 4;
 
     return ramBankCount - 1;
+}
+
+int MBC3MemoryRule::NormalizeROMBank(int bank) const
+{
+    int bankCount = m_pCartridge->GetROMBankCount();
+
+    if (bankCount <= 0)
+        return 0;
+
+    bank %= bankCount;
+
+    if (bank < 0)
+        bank += bankCount;
+
+    return bank;
+}
+
+void MBC3MemoryRule::SetPoke2in1ROMBank(u8 value)
+{
+    int bank = value & 0x7F;
+
+    if (bank == 0)
+        bank = 1;
+
+    m_iCurrentROMBank = NormalizeROMBank(bank + m_iPoke2in1BaseBank);
+    m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+}
+
+void MBC3MemoryRule::SetPoke2in1BaseBank(int bank)
+{
+    m_iPoke2in1BaseBank = NormalizeROMBank(bank);
+    m_iCurrentROM0Bank = m_iPoke2in1BaseBank;
+    m_iCurrentROMBank = NormalizeROMBank(m_iPoke2in1BaseBank + 1);
+    m_CurrentROM0Address = m_iCurrentROM0Bank * 0x4000;
+    m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
 }
 
 u8 MBC3MemoryRule::ReadPKJD(u16 address)
@@ -168,10 +203,45 @@ void MBC3MemoryRule::WritePKJD(u16 address, u8 value)
     }
 }
 
+u8 MBC3MemoryRule::ReadPoke2in1RAM(u16 address)
+{
+    return m_pRAMBanks[((address - 0xA000) + m_CurrentRAMAddress) & (m_iRAMBanksSize - 1)];
+}
+
+void MBC3MemoryRule::WritePoke2in1RAM(u16 address, u8 value)
+{
+    if (m_bPoke2in1Bank0Change && (address == 0xA100) && !m_bPoke2in1Locked)
+    {
+        if (value == 0x01)
+            SetPoke2in1BaseBank(2);
+        else if (value != 0xC0)
+            SetPoke2in1BaseBank(66);
+        else
+        {
+            m_bPoke2in1Locked = true;
+            SetPoke2in1BaseBank(m_iPoke2in1BaseBank);
+        }
+        return;
+    }
+
+    m_pRAMBanks[((address - 0xA000) + m_CurrentRAMAddress) & (m_iRAMBanksSize - 1)] = value;
+}
+
 u8 MBC3MemoryRule::PerformRead(u16 address)
 {
     switch (address & 0xE000)
     {
+        case 0x0000:
+        case 0x2000:
+        {
+            if (IsPoke2in1())
+            {
+                u8* pROM = m_pCartridge->GetTheROM();
+                return pROM[address + m_CurrentROM0Address];
+            }
+
+            return m_pMemory->Retrieve(address);
+        }
         case 0x4000:
         case 0x6000:
         {
@@ -180,6 +250,9 @@ u8 MBC3MemoryRule::PerformRead(u16 address)
         }
         case 0xA000:
         {
+            if (IsPoke2in1())
+                return ReadPoke2in1RAM(address);
+
             if (IsPKJD())
                 return ReadPKJD(address);
 
@@ -239,6 +312,20 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
     {
         case 0x0000:
         {
+            if (IsPoke2in1())
+            {
+                bool previous = m_bRamEnabled;
+                m_bRamEnabled = ((value & 0x0A) == 0x0A);
+                m_bPoke2in1Bank0Change = ((value & 0xC0) == 0xC0);
+
+                if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
+                {
+                    (*m_pRamChangedCallback)();
+                }
+                m_bRTCEnabled = false;
+                break;
+            }
+
             bool previous = m_bRamEnabled;
             m_bRamEnabled = ((value & 0x0F) == 0x0A);
 
@@ -251,14 +338,19 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
         }
         case 0x2000:
         {
-            if (m_pCartridge->IsMBC30())
+            if (IsPoke2in1())
+                SetPoke2in1ROMBank(value);
+            else if (m_pCartridge->IsMBC30())
                 m_iCurrentROMBank = value;
             else
                 m_iCurrentROMBank = value & 0x7F;
-            if (m_iCurrentROMBank == 0)
-                m_iCurrentROMBank = 1;
-            m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
-            m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+            if (!IsPoke2in1())
+            {
+                if (m_iCurrentROMBank == 0)
+                    m_iCurrentROMBank = 1;
+                m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+                m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+            }
             TraceBankSwitch(address, value);
             break;
         }
@@ -324,6 +416,12 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
         }
         case 0xA000:
         {
+            if (IsPoke2in1())
+            {
+                WritePoke2in1RAM(address, value);
+                break;
+            }
+
             if (IsPKJD())
             {
                 WritePKJD(address, value);
@@ -566,11 +664,20 @@ int MBC3MemoryRule::GetCurrentRamBankIndex()
 
 u8* MBC3MemoryRule::GetRomBank0()
 {
+    if (IsPoke2in1())
+    {
+        u8* pROM = m_pCartridge->GetTheROM();
+        return &pROM[m_CurrentROM0Address];
+    }
+
     return m_pMemory->GetMemoryMap() + 0x0000;
 }
 
 int MBC3MemoryRule::GetCurrentRomBank0Index()
 {
+    if (IsPoke2in1())
+        return m_iCurrentROM0Bank;
+
     return 0;
 }
 
@@ -611,6 +718,15 @@ void MBC3MemoryRule::SaveState(std::ostream& stream)
         stream.write(reinterpret_cast<const char*> (&m_bPKJDRAMSelected), sizeof(m_bPKJDRAMSelected));
         stream.write(reinterpret_cast<const char*> (m_PKJDRegisters), sizeof(m_PKJDRegisters));
     }
+
+    if (IsPoke2in1())
+    {
+        stream.write(reinterpret_cast<const char*> (&m_iCurrentROM0Bank), sizeof(m_iCurrentROM0Bank));
+        stream.write(reinterpret_cast<const char*> (&m_CurrentROM0Address), sizeof(m_CurrentROM0Address));
+        stream.write(reinterpret_cast<const char*> (&m_iPoke2in1BaseBank), sizeof(m_iPoke2in1BaseBank));
+        stream.write(reinterpret_cast<const char*> (&m_bPoke2in1Bank0Change), sizeof(m_bPoke2in1Bank0Change));
+        stream.write(reinterpret_cast<const char*> (&m_bPoke2in1Locked), sizeof(m_bPoke2in1Locked));
+    }
 }
 
 void MBC3MemoryRule::LoadState(std::istream& stream)
@@ -634,5 +750,17 @@ void MBC3MemoryRule::LoadState(std::istream& stream)
     {
         stream.read(reinterpret_cast<char*> (&m_bPKJDRAMSelected), sizeof(m_bPKJDRAMSelected));
         stream.read(reinterpret_cast<char*> (m_PKJDRegisters), sizeof(m_PKJDRegisters));
+    }
+
+    if (IsPoke2in1())
+    {
+        stream.read(reinterpret_cast<char*> (&m_iCurrentROM0Bank), sizeof(m_iCurrentROM0Bank));
+        stream.read(reinterpret_cast<char*> (&m_CurrentROM0Address), sizeof(m_CurrentROM0Address));
+        stream.read(reinterpret_cast<char*> (&m_iPoke2in1BaseBank), sizeof(m_iPoke2in1BaseBank));
+        stream.read(reinterpret_cast<char*> (&m_bPoke2in1Bank0Change), sizeof(m_bPoke2in1Bank0Change));
+        stream.read(reinterpret_cast<char*> (&m_bPoke2in1Locked), sizeof(m_bPoke2in1Locked));
+        m_iCurrentROM0Bank = NormalizeROMBank(m_iCurrentROM0Bank);
+        m_CurrentROM0Address = m_iCurrentROM0Bank * 0x4000;
+        m_iPoke2in1BaseBank = NormalizeROMBank(m_iPoke2in1BaseBank);
     }
 }

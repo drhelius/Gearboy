@@ -21,6 +21,7 @@
 #define	MBC3MEMORYRULE_H
 
 #include "MemoryRule.h"
+#include "Cartridge.h"
 
 struct RTC_Registers
 {
@@ -66,13 +67,20 @@ public:
 private:
     void ResizeRAMBanks();
     void UpdateRTC();
-    bool IsPKJD() const;
+    INLINE bool IsPKJD() const;
+    INLINE bool IsPoke2in1() const;
     int GetSafeRAMBankMask() const;
+    int NormalizeROMBank(int bank) const;
+    void SetPoke2in1ROMBank(u8 value);
+    void SetPoke2in1BaseBank(int bank);
     u8 ReadPKJD(u16 address);
     void WritePKJD(u16 address, u8 value);
+    u8 ReadPoke2in1RAM(u16 address);
+    void WritePoke2in1RAM(u16 address, u8 value);
 
 private:
     int m_iCurrentRAMBank;
+    int m_iCurrentROM0Bank;
     int m_iCurrentROMBank;
     bool m_bRamEnabled;
     bool m_bRTCEnabled;
@@ -81,12 +89,26 @@ private:
     s32 m_iRTCLatch;
     u8 m_RTCRegister;
     s32 m_RTCLastTimeCache;
+    int m_CurrentROM0Address;
     int m_CurrentROMAddress;
     int m_CurrentRAMAddress;
     RTC_Registers m_RTC;
     u32 m_iRTCCycles;
     bool m_bPKJDRAMSelected;
     u8 m_PKJDRegisters[7];
+    int m_iPoke2in1BaseBank;
+    bool m_bPoke2in1Bank0Change;
+    bool m_bPoke2in1Locked;
 };
+
+INLINE bool MBC3MemoryRule::IsPKJD() const
+{
+    return m_pCartridge->GetType() == Cartridge::CartridgePKJD;
+}
+
+INLINE bool MBC3MemoryRule::IsPoke2in1() const
+{
+    return m_pCartridge->GetType() == Cartridge::CartridgePoke2in1;
+}
 
 #endif	/* MBC3MEMORYRULE_H */

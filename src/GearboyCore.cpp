@@ -1508,6 +1508,7 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
             break;
         case Cartridge::CartridgeMBC3:
         case Cartridge::CartridgePKJD:
+        case Cartridge::CartridgePoke2in1:
             m_pMemory->SetCurrentRule(m_pMBC3MemoryRule);
             break;
         case Cartridge::CartridgeMBC5:
