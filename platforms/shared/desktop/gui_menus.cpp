@@ -181,7 +181,7 @@ static void menu_gearboy(void)
                     if (ImGui::MenuItem(config_emulator.recent_roms[i].c_str(), shortcut))
                     {
                         char rom_path[4096];
-                        strcpy(rom_path, config_emulator.recent_roms[i].c_str());
+                        strncpy_fit(rom_path, config_emulator.recent_roms[i].c_str(), sizeof(rom_path));
                         gui_load_rom(rom_path);
                     }
                 }

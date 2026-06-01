@@ -53,7 +53,7 @@ void gui_action_reload_rom(void)
     if (!emu_is_empty())
     {
         char rom_path[4096];
-        strcpy(rom_path, emu_get_core()->GetCartridge()->GetFilePath());
+        strncpy_fit(rom_path, emu_get_core()->GetCartridge()->GetFilePath(), sizeof(rom_path));
         gui_load_rom(rom_path);
     }
 }
