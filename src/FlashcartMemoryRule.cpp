@@ -57,6 +57,8 @@ void FlashcartMemoryRule::Reset(bool bCGB)
     m_CurrentROM0Address = 0;
     m_CurrentROMAddress = 0x4000;
     m_CurrentRAMAddress = 0;
+    if (m_bCGB && !m_pMemory->IsBootromEnabled())
+        m_pMemory->Load(0xFF81, 0x00);
     UpdateBanks();
 }
 
