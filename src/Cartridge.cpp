@@ -213,6 +213,8 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
             return ok;
         }
     }
+
+    mz_zip_reader_end(&zip_archive);
     return false;
 }
 
