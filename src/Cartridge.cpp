@@ -192,7 +192,7 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
         transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
         string extension = fn.substr(fn.find_last_of(".") + 1);
 
-        if ((extension == "gb") || (extension == "dmg") || (extension == "gbc") || (extension == "cgb") || (extension == "sgb"))
+        if ((extension == "gb") || (extension == "dmg") || (extension == "gbc") || (extension == "cgb") || (extension == "sgb") || (extension == "bin") || (extension == "rom"))
         {
             void *p;
             size_t uncomp_size;
