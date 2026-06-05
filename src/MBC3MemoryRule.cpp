@@ -315,7 +315,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             if (IsPoke2in1())
             {
                 bool previous = m_bRamEnabled;
-                m_bRamEnabled = ((value & 0x0A) == 0x0A);
+                m_bRamEnabled = ((value & 0x0F) == 0x0A);
                 m_bPoke2in1Bank0Change = ((value & 0xC0) == 0xC0);
 
                 if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
