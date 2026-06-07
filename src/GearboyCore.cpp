@@ -1227,7 +1227,13 @@ bool GearboyCore::GetSaveStateScreenshot(int index, const char* path, GB_SaveSta
     }
 
     GB_SaveState_Header header;
-    GetSaveStateHeader(index, path, &header);
+
+    if (!GetSaveStateHeader(index, path, &header))
+    {
+        Log("Invalid save state header");
+        stream.close();
+        return false;
+    }
 
     if (header.screenshot_size == 0)
     {
