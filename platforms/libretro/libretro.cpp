@@ -631,6 +631,10 @@ static void check_variables(void)
                 sensor_accel_enabled = false;
             }
         }
+        else if (tilt_source == 1 && sensor_interface.set_sensor_state && !sensor_accel_enabled)
+        {
+            sensor_accel_enabled = sensor_interface.set_sensor_state(0, RETRO_SENSOR_ACCELEROMETER_ENABLE, 60);
+        }
     }
 
     var.key = "gearboy_analog_sensitivity_x";
@@ -774,6 +778,7 @@ void retro_reset(void)
 bool retro_load_game(const struct retro_game_info *info)
 {
     core->GetCartridge()->Reset();
+    environ_cb(RETRO_ENVIRONMENT_GET_SENSOR_INTERFACE, &sensor_interface);
     check_variables();
     load_bootroms();
 
@@ -800,7 +805,6 @@ bool retro_load_game(const struct retro_game_info *info)
     };
 
     environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
-    environ_cb(RETRO_ENVIRONMENT_GET_SENSOR_INTERFACE, &sensor_interface);
 
     enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
     
