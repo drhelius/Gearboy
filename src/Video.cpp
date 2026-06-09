@@ -727,7 +727,12 @@ void Video::RenderBG(int line, int pixel)
     }
     else
     {
-        for (int x = 0; x < 4; x++)
+#ifdef PERFORMANCE
+        int pixels_to_clear = 160;
+#else
+        int pixels_to_clear = 4;
+#endif
+        for (int x = 0; x < pixels_to_clear; x++)
         {
             int position = line_width + pixel + x;
             m_pFrameBuffer[position] = 0;
