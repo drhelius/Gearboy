@@ -286,6 +286,9 @@ void config_read(void)
     config_emulator.window_height = read_int("Emulator", "WindowHeight", 700);
     config_emulator.status_messages = read_bool("Emulator", "StatusMessages", false);
     config_emulator.mcp_tcp_port = read_int("Emulator", "MCPTCPPort", 7777);
+    config_emulator.mcp_http_address = read_string("Emulator", "MCPHTTPAddress");
+    if (config_emulator.mcp_http_address.empty())
+        config_emulator.mcp_http_address = "127.0.0.1";
     config_emulator.tilt_source = read_int("Emulator", "TiltSource", 0);
     config_emulator.mouse_sensitivity_x = read_int("Emulator", "MouseSensitivityX", 5);
     config_emulator.mouse_sensitivity_y = read_int("Emulator", "MouseSensitivityY", 5);
@@ -529,6 +532,7 @@ void config_write(void)
     write_int("Emulator", "WindowHeight", config_emulator.window_height);
     write_bool("Emulator", "StatusMessages", config_emulator.status_messages);
     write_int("Emulator", "MCPTCPPort", config_emulator.mcp_tcp_port);
+    write_string("Emulator", "MCPHTTPAddress", config_emulator.mcp_http_address);
     write_int("Emulator", "TiltSource", config_emulator.tilt_source);
     write_int("Emulator", "MouseSensitivityX", config_emulator.mouse_sensitivity_x);
     write_int("Emulator", "MouseSensitivityY", config_emulator.mouse_sensitivity_y);

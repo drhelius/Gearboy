@@ -49,6 +49,7 @@ public:
         m_server = NULL;
         m_transport_mode = MCP_TRANSPORT_STDIO;
         m_tcp_port = 7777;
+        m_tcp_address = "127.0.0.1";
     }
 
     ~McpManager()
@@ -62,10 +63,11 @@ public:
         m_debugAdapter = new DebugAdapter(core);
     }
 
-    void SetTransportMode(McpTransportMode mode, int tcp_port = 7777)
+    void SetTransportMode(McpTransportMode mode, int tcp_port = 7777, const char* tcp_address = "127.0.0.1")
     {
         m_transport_mode = mode;
         m_tcp_port = tcp_port;
+        m_tcp_address = (tcp_address && tcp_address[0]) ? tcp_address : "127.0.0.1";
     }
 
     void Start()
@@ -80,8 +82,8 @@ public:
         if (m_transport_mode == MCP_TRANSPORT_TCP)
         {
             g_mcp_stdio_mode = false;
-            Log("[MCP] Starting HTTP transport on port %d", m_tcp_port);
-            transport = new HttpTransport(m_tcp_port);
+            Log("[MCP] Starting HTTP transport on %s:%d", m_tcp_address.c_str(), m_tcp_port);
+            transport = new HttpTransport(m_tcp_address, m_tcp_port);
         }
         else
         {
@@ -175,6 +177,7 @@ private:
     ResponseQueue m_responseQueue;
     McpTransportMode m_transport_mode;
     int m_tcp_port;
+    std::string m_tcp_address;
     std::vector<DelayedButtonRelease> m_delayedReleases;
 };
 

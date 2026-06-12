@@ -35,12 +35,12 @@ static void headless_signal_handler(int sig)
     headless_running = false;
 }
 
-int application_headless_init(const char* rom_file, const char* symbol_file, int mcp_mode, int mcp_tcp_port)
+int application_headless_init(const ApplicationParams& params)
 {
     Log("\n%s", GEARBOY_TITLE_ASCII);
     Log("%s %s Headless Mode", GEARBOY_TITLE, GEARBOY_VERSION);
 
-    if (mcp_mode < 0)
+    if (params.mcp_mode < 0)
     {
         Error("Headless mode requires --mcp-stdio or --mcp-http");
         return 1;
@@ -78,21 +78,25 @@ int application_headless_init(const char* rom_file, const char* symbol_file, int
 
     gui_debug_init();
 
-    if (IsValidPointer(rom_file) && (strlen(rom_file) > 0))
+    if (IsValidPointer(params.rom_file) && (strlen(params.rom_file) > 0))
     {
-        Log("Rom file argument: %s", rom_file);
-        gui_load_rom(rom_file);
+        Log("Rom file argument: %s", params.rom_file);
+        gui_load_rom(params.rom_file);
     }
 
-    if (IsValidPointer(symbol_file) && (strlen(symbol_file) > 0))
+    if (IsValidPointer(params.symbol_file) && (strlen(params.symbol_file) > 0))
     {
-        Log("Symbol file argument: %s", symbol_file);
+        Log("Symbol file argument: %s", params.symbol_file);
         gui_debug_reset_symbols();
-        gui_debug_load_symbols_file(symbol_file);
+        gui_debug_load_symbols_file(params.symbol_file);
     }
 
-    Log("Starting MCP server (mode: %s, port: %d)...", mcp_mode == 0 ? "stdio" : "http", mcp_tcp_port);
-    emu_mcp_set_transport(mcp_mode, mcp_tcp_port);
+    const char* mcp_http_address = params.mcp_http_address.empty() ? "127.0.0.1" : params.mcp_http_address.c_str();
+    if (params.mcp_mode == 0)
+        Log("Starting MCP server (mode: stdio)...");
+    else
+        Log("Starting MCP server (mode: http, address: %s, port: %d)...", mcp_http_address, params.mcp_tcp_port);
+    emu_mcp_set_transport(params.mcp_mode, params.mcp_tcp_port, mcp_http_address);
     emu_mcp_start();
 
     signal(SIGINT, headless_signal_handler);

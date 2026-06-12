@@ -31,6 +31,7 @@ EXTERN char gui_savestates_path[4096];
 EXTERN char gui_screenshots_path[4096];
 EXTERN char gui_dmg_bootrom_path[4096];
 EXTERN char gui_gbc_bootrom_path[4096];
+EXTERN char gui_mcp_http_address[64];
 
 EXTERN void gui_init_menus(void);
 EXTERN void gui_main_menu(void);

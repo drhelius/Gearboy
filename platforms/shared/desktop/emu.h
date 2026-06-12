@@ -123,7 +123,7 @@ EXTERN void emu_save_sgb_tiles(const char* file_path, int palette);
 EXTERN void emu_start_vgm_recording(const char* file_path);
 EXTERN void emu_stop_vgm_recording(void);
 EXTERN bool emu_is_vgm_recording(void);
-EXTERN void emu_mcp_set_transport(int mode, int tcp_port);
+EXTERN void emu_mcp_set_transport(int mode, int tcp_port, const char* tcp_address);
 EXTERN void emu_mcp_start(void);
 EXTERN void emu_mcp_stop(void);
 EXTERN bool emu_mcp_is_running(void);
