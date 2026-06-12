@@ -264,6 +264,7 @@ void config_read(void)
     config_emulator.theme = CLAMP(config_emulator.theme, config_Theme_Light, config_Theme_Dark);
     config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
+    config_emulator.save_slot = CLAMP(config_emulator.save_slot, 0, 4);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
     config_emulator.pause_when_inactive = read_bool("Emulator", "PauseWhenInactive", true);
     config_emulator.force_dmg = read_bool("Emulator", "ForceDMG", false);
