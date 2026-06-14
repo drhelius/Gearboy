@@ -45,6 +45,7 @@ void MultiMBC1MemoryRule::Reset(bool bCGB)
     m_iMulticartMode = 0;
     m_iROMBankHi = 0;
     m_iROMBankLo = 1;
+    m_iMBC1Bank_1 = 0;
     m_bRamEnabled = false;
     for (int i = 0; i < 0x2000; i++)
         m_pRAMBanks[i] = 0xFF;
