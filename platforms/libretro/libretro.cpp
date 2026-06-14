@@ -65,7 +65,7 @@ static int8_t dpad_horizontal_latch = 0;
 static bool bootrom_dmg = false;
 static bool bootrom_gbc = false;
 static bool color_correction = true;
-static bool libretro_supports_bitmasks;
+static bool libretro_supports_bitmasks = false;
 static bool categories_supported = false;
 static unsigned input_device = RETRO_DEVICE_GAMEBOY;
 static float libretro_tilt_x = 0.0f;
@@ -105,6 +105,9 @@ static Cartridge::CartridgeTypes mapper = Cartridge::CartridgeNotSupported;
 
 static retro_environment_t environ_cb;
 
+static void reset_controller_device(void);
+static void apply_controller_device(unsigned port, unsigned device, bool log_device);
+
 // red, green, blue
 static GB_Color original_palette[4] = {{0x87, 0x96, 0x03},{0x4D, 0x6B, 0x03},{0x2B, 0x55, 0x03},{0x14, 0x44, 0x03}};
 static GB_Color sharp_palette[4] = {{0xF5, 0xFA, 0xEF},{0x86, 0xC2, 0x70},{0x2F, 0x69, 0x57},{0x0B, 0x19, 0x20}};
@@ -138,12 +141,21 @@ void retro_init(void)
 
     audio_sample_count = 0;
     libretro_supports_bitmasks = environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL);
+
+    apply_controller_device(0, input_device, false);
 }
 
 void retro_deinit(void)
 {
     SafeDeleteArray(gearboy_frame_buf);
     SafeDelete(core);
+
+    audio_sample_count = 0;
+    libretro_supports_bitmasks = false;
+    libretro_tilt_x = 0.0f;
+    libretro_tilt_y = 0.0f;
+
+    reset_controller_device();
 }
 
 unsigned retro_api_version(void)
@@ -155,13 +167,27 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 {
     if (port > 0)
     {
-        log_cb(RETRO_LOG_DEBUG, "retro_set_controller_port_device invalid port number: %u\n", port);
+        if (log_cb)
+            log_cb(RETRO_LOG_DEBUG, "retro_set_controller_port_device invalid port number: %u\n", port);
         return;
     }
 
     input_device = device;
 
-    switch ( device )
+    apply_controller_device(port, device, true);
+}
+
+static void reset_controller_device(void)
+{
+    input_device = RETRO_DEVICE_GAMEBOY;
+}
+
+static void apply_controller_device(unsigned port, unsigned device, bool log_device)
+{
+    if (!log_device || !log_cb)
+        return;
+
+    switch (device)
     {
         case RETRO_DEVICE_NONE:
             log_cb(RETRO_LOG_INFO, "Controller %u: Unplugged\n", port);
