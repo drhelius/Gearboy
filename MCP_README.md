@@ -173,42 +173,53 @@ If you prefer to build from source or configure manually:
 ### HTTP Mode
 
 1. **Start the emulator manually** with HTTP transport:
+
    ```bash
    ./gearboy --mcp-http
-    # Server will start on http://127.0.0.1:7777/mcp
+  ```
 
-   # Or specify a custom port:
+  The default endpoint is `http://127.0.0.1:7777/mcp`.
+
+  To use a custom port:
+
+  ```bash
    ./gearboy --mcp-http --mcp-http-port 3000
-    # Server will start on http://127.0.0.1:3000/mcp
+  ```
 
-    # Or specify a custom bind address:
-    ./gearboy --mcp-http --mcp-http-address 192.168.1.50 --mcp-http-port 3000
-    # Server will start on http://192.168.1.50:3000/mcp
+  To bind to a custom address:
+
+  ```bash
+  ./gearboy --mcp-http --mcp-http-address 192.168.1.50 --mcp-http-port 3000
    ```
 
-    To require bearer-token authentication, set `GEARBOY_MCP_HTTP_TOKEN` before starting HTTP mode:
+  You can also start the server using the "MCP" menu in the GUI.
 
-    ```bash
-    GEARBOY_MCP_HTTP_TOKEN="change-this-token" ./gearboy --mcp-http
-    ```
+2. **Optional: require bearer-token authentication**:
 
-    Windows PowerShell:
+  Set `GEARBOY_MCP_HTTP_TOKEN` before starting HTTP mode.
 
-    ```powershell
-    $env:GEARBOY_MCP_HTTP_TOKEN = "change-this-token"
-    .\gearboy.exe --mcp-http
-    ```
+  macOS and Linux:
 
-    Windows Command Prompt:
+  ```bash
+  GEARBOY_MCP_HTTP_TOKEN="change-this-token" ./gearboy --mcp-http
+  ```
 
-    ```cmd
-    set GEARBOY_MCP_HTTP_TOKEN=change-this-token
-    gearboy.exe --mcp-http
-    ```
+  Windows PowerShell:
 
-   You can optionally start the server using the "MCP" menu in the GUI.
+  ```powershell
+  $env:GEARBOY_MCP_HTTP_TOKEN = "change-this-token"
+  .\gearboy.exe --mcp-http
+  ```
 
-2. **Configure VS Code** `.vscode/mcp.json`:
+  Windows Command Prompt:
+
+  ```cmd
+  set GEARBOY_MCP_HTTP_TOKEN=change-this-token
+  gearboy.exe --mcp-http
+  ```
+
+3. **Configure VS Code** `.vscode/mcp.json`:
+
    ```json
    {
      "servers": {
@@ -223,7 +234,8 @@ If you prefer to build from source or configure manually:
    }
    ```
 
-3. **Or configure Claude Desktop**:
+4. **Or configure Claude Desktop**:
+
    ```json
    {
      "mcpServers": {
@@ -238,12 +250,13 @@ If you prefer to build from source or configure manually:
    }
    ```
 
-4. **Or configure Claude Code**:
+5. **Or configure Claude Code**:
+
    ```bash
-    claude mcp add --transport http gearboy http://127.0.0.1:7777/mcp
+  claude mcp add --transport http gearboy http://127.0.0.1:7777/mcp
    ```
 
-5. **Restart your AI client** and start debugging
+6. **Restart your AI client** and start debugging
 
 > **Note:** The MCP HTTP Server must be running standalone before connecting the AI client.
 > **Security:** If `GEARBOY_MCP_HTTP_TOKEN` is unset, HTTP mode accepts unauthenticated requests from clients that pass the configured `Host` and `Origin` checks. The default bind address is local-only; use a non-loopback address only on trusted networks or with bearer-token authentication enabled.
@@ -267,13 +280,9 @@ Once configured, you can ask your AI assistant:
 ### Advanced Debugging Workflows
 
 - "Find the VBlank interrupt handler, analyze what it does, and add symbols for all the subroutines it calls"
-
 - "Locate the sprite update routine. Study how this game manages its OAM sprite system, explain the algorithm, and add bookmarks to key sections. Also add watches for any sprite-related variables you find"
-
 - "There's a data decompression routine around address 0x4000. Step through it instruction by instruction, reverse engineer the compression algorithm, and explain how it works with examples"
-
 - "Find where the game stores its level data in ROM. Analyze the data structure format, create a memory map showing each section, and add symbols for the data tables"
-
 - "The game is rendering corrupted graphics. Examine the LCD registers, check the VRAM contents, inspect the OAM sprite table, and diagnose what's causing the corruption. Set up watches on relevant memory addresses"
 
 ## Available MCP Tools
