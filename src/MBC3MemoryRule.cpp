@@ -258,7 +258,7 @@ u8 MBC3MemoryRule::PerformRead(u16 address)
 
             if (m_iCurrentRAMBank >= 0)
             {
-                if (m_bRamEnabled)
+                if (m_bRamEnabled && (m_pCartridge->GetRAMBankCount() > 0))
                 {
                     if (!m_pCartridge->IsMBC30() && m_pCartridge->IsRTCPresent() && (m_iCurrentRAMBank & 0x07) > 3)
                         return 0xFF;
@@ -327,13 +327,14 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             }
 
             bool previous = m_bRamEnabled;
-            m_bRamEnabled = ((value & 0x0F) == 0x0A);
+            bool enabled = ((value & 0x0F) == 0x0A);
+            m_bRamEnabled = enabled && (m_pCartridge->GetRAMBankCount() > 0);
 
             if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
             {
                 (*m_pRamChangedCallback)();
             }
-            m_bRTCEnabled = ((value & 0x0F) == 0x0A);
+            m_bRTCEnabled = enabled && m_pCartridge->IsRTCPresent();
             break;
         }
         case 0x2000:
@@ -395,8 +396,9 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else
             {
+                int ramBankCount = m_pCartridge->GetRAMBankCount();
                 m_iCurrentRAMBank = value;
-                m_CurrentRAMAddress = (m_iCurrentRAMBank & (m_pCartridge->GetRAMBankCount() - 1)) * 0x2000;
+                m_CurrentRAMAddress = (ramBankCount > 0) ? ((m_iCurrentRAMBank & (ramBankCount - 1)) * 0x2000) : 0;
                 TraceBankSwitch(address, value);
             }
             break;
@@ -430,7 +432,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
 
             if (m_iCurrentRAMBank >= 0)
             {
-                if (m_bRamEnabled)
+                if (m_bRamEnabled && (m_pCartridge->GetRAMBankCount() > 0))
                 {
                     if (!m_pCartridge->IsMBC30() && m_pCartridge->IsRTCPresent() && (m_iCurrentRAMBank & 0x07) > 3)
                         break;
@@ -565,7 +567,9 @@ void MBC3MemoryRule::SaveRam(std::ostream & file)
 {
     Debug("MBC3MemoryRule save RAM...");
 
-    for (int i = 0; i < m_iRAMBanksSize; i++)
+    s32 ramSize = static_cast<s32>(GetRamSize());
+
+    for (s32 i = 0; i < ramSize; i++)
     {
         u8 ram_byte = m_pRAMBanks[i];
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
@@ -588,39 +592,54 @@ bool MBC3MemoryRule::LoadRam(std::istream & file, s32 fileSize)
 {
     Debug("MBC3MemoryRule load RAM...");
 
+    s32 ramSize = static_cast<s32>(GetRamSize());
     bool loadRTC = m_pCartridge->IsRTCPresent();
+    bool legacyRamPrefix = false;
 
     if (fileSize > 0)
     {
-        if (fileSize < m_iRAMBanksSize)
+        if (fileSize < ramSize)
         {
-            Log("MBC3MemoryRule incorrect RAM size. Expected: %d Found: %d", m_iRAMBanksSize, fileSize);
+            Log("MBC3MemoryRule incorrect RAM size. Expected: %d Found: %d", ramSize, fileSize);
             return false;
         }
 
         if (loadRTC)
         {
-            s32 minExpectedSize = m_iRAMBanksSize + 44;
-            s32 maxExpectedSize = m_iRAMBanksSize + 48;
+            s32 minExpectedSize = ramSize + 44;
+            s32 maxExpectedSize = ramSize + 48;
+            s32 legacyMinExpectedSize = m_iRAMBanksSize + 44;
+            s32 legacyMaxExpectedSize = m_iRAMBanksSize + 48;
+            legacyRamPrefix = (fileSize == legacyMinExpectedSize) || (fileSize == legacyMaxExpectedSize);
 
-            if ((fileSize != minExpectedSize) && (fileSize != maxExpectedSize))
+            if ((fileSize != minExpectedSize) && (fileSize != maxExpectedSize) && !legacyRamPrefix)
             {
                 Log("MBC3MemoryRule incorrect RTC size. MinExpected: %d MaxExpected: %d Found: %d", minExpectedSize, maxExpectedSize, fileSize);
             }
 
-            if (fileSize < minExpectedSize)
+            if ((fileSize < minExpectedSize) && !legacyRamPrefix)
             {
                 Log("MBC3MemoryRule ignoring RTC data");
                 loadRTC = false;
             }
         }
+        else if ((fileSize != ramSize) && (fileSize != m_iRAMBanksSize))
+        {
+            Log("MBC3MemoryRule incorrect size. Expected: %d Found: %d", ramSize, fileSize);
+            return false;
+        }
     }
 
-    for (int i = 0; i < m_iRAMBanksSize; i++)
+    for (s32 i = 0; i < ramSize; i++)
     {
         u8 ram_byte = 0;
         file.read(reinterpret_cast<char*> (&ram_byte), 1);
         m_pRAMBanks[i] = ram_byte;
+    }
+
+    if (legacyRamPrefix)
+    {
+        file.ignore(m_iRAMBanksSize - ramSize);
     }
 
     if (loadRTC)
