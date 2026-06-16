@@ -1748,8 +1748,7 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     // Media and state management
     else if (normalizedTool == "load_media")
     {
-        std::string file_path = arguments["file_path"];
-        return m_debugAdapter.LoadMedia(file_path);
+        return {{"error", "load_media must be handled by the MCP manager"}};
     }
     else if (normalizedTool == "load_symbols")
     {

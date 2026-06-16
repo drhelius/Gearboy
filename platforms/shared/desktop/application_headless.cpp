@@ -121,6 +121,7 @@ void application_headless_mainloop(void)
         Uint64 frame_start = SDL_GetPerformanceCounter();
 
         emu_update();
+        gui_finish_loading_rom();
 
         if (!emu_mcp_is_running())
         {

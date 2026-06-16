@@ -34,8 +34,6 @@
 #include <iomanip>
 #include <vector>
 #include <algorithm>
-#include <thread>
-#include <chrono>
 
 static std::string make_printable_ascii(const char* text, size_t max_length)
 {
@@ -1319,7 +1317,7 @@ json DebugAdapter::GetSGBStatus()
     return result;
 }
 
-json DebugAdapter::LoadMedia(const std::string& file_path)
+json DebugAdapter::StartLoadMedia(const std::string& file_path)
 {
     json result;
 
@@ -1330,24 +1328,35 @@ json DebugAdapter::LoadMedia(const std::string& file_path)
         return result;
     }
 
-    emu_load_rom_async(file_path.c_str(), false, Cartridge::CartridgeNotSupported, false);
-
-    int timeout_ms = 180000;
-    int elapsed_ms = 0;
-    while (emu_is_rom_loading() && elapsed_ms < timeout_ms)
+    if (!gui_load_rom(file_path.c_str()))
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        elapsed_ms += 500;
-    }
-
-    if (emu_is_rom_loading())
-    {
-        result["error"] = "Loading timed out";
-        Log("[MCP] LoadMedia timed out: %s", file_path.c_str());
+        result["error"] = "Another media load is already in progress";
+        Log("[MCP] LoadMedia failed: load already in progress");
         return result;
     }
 
-    if (!emu_finish_rom_loading() || !m_core || !m_core->GetCartridge()->IsLoadedROM())
+    result["file_path"] = file_path;
+
+    return result;
+}
+
+bool DebugAdapter::IsMediaLoading() const
+{
+    return gui_is_rom_loading() && emu_is_rom_loading();
+}
+
+json DebugAdapter::FinishLoadMedia(const std::string& file_path)
+{
+    json result;
+
+    if (gui_is_rom_loading() && !gui_finish_loading_rom())
+    {
+        result["error"] = "Failed to load media file";
+        Log("[MCP] LoadMedia failed: %s", file_path.c_str());
+        return result;
+    }
+
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "Failed to load media file";
         Log("[MCP] LoadMedia failed: %s", file_path.c_str());
@@ -1358,8 +1367,6 @@ json DebugAdapter::LoadMedia(const std::string& file_path)
     result["file_path"] = file_path;
     result["rom_name"] = m_core->GetCartridge()->GetFileName();
     result["is_cgb"] = m_core->GetCartridge()->IsCGB();
-
-    config_push_recent_media(file_path);
 
     return result;
 }

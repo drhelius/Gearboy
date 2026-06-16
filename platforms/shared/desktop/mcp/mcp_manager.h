@@ -51,6 +51,8 @@ public:
         m_transport_mode = MCP_TRANSPORT_STDIO;
         m_tcp_port = 7777;
         m_tcp_address = "127.0.0.1";
+        m_pending_media_load = false;
+        m_pending_media_load_request_id = 0;
     }
 
     ~McpManager()
@@ -78,6 +80,8 @@ public:
 
         m_commandQueue.Clear();
         m_responseQueue.Reset();
+        m_pending_media_load = false;
+        m_pending_media_load_file_path.clear();
 
         McpTransportInterface* transport = NULL;
         if (m_transport_mode == MCP_TRANSPORT_TCP)
@@ -139,10 +143,53 @@ public:
                 i++;
         }
 
+        if (m_pending_media_load)
+        {
+            if (m_debugAdapter->IsMediaLoading())
+                return;
+
+            DebugResponse* resp = new DebugResponse();
+            resp->requestId = m_pending_media_load_request_id;
+            resp->isError = false;
+            resp->result = m_debugAdapter->FinishLoadMedia(m_pending_media_load_file_path);
+
+            update_response_error(resp);
+
+            m_pending_media_load = false;
+            m_pending_media_load_file_path.clear();
+            m_responseQueue.Push(resp);
+        }
+
         DebugCommand* cmd = NULL;
         while ((cmd = m_commandQueue.Pop()) != NULL)
         {
             bool was_idle = emu_is_debug_idle();
+
+            if (is_load_media_command(cmd->toolName))
+            {
+                DebugResponse* resp = new DebugResponse();
+                resp->requestId = cmd->requestId;
+                resp->isError = false;
+
+                std::string file_path = cmd->arguments.value("file_path", "");
+                resp->result = m_debugAdapter->StartLoadMedia(file_path);
+
+                if (resp->result.contains("error"))
+                {
+                    update_response_error(resp);
+                    m_responseQueue.Push(resp);
+                }
+                else
+                {
+                    m_pending_media_load = true;
+                    m_pending_media_load_request_id = resp->requestId;
+                    m_pending_media_load_file_path = file_path;
+                    SafeDelete(resp);
+                }
+
+                SafeDelete(cmd);
+                break;
+            }
 
             DebugResponse* resp = new DebugResponse();
             resp->requestId = cmd->requestId;
@@ -150,12 +197,7 @@ public:
 
             resp->result = m_server->ExecuteCommand(cmd->toolName, cmd->arguments);
 
-            if (resp->result.contains("error"))
-            {
-                resp->isError = true;
-                resp->errorCode = -32603;
-                resp->errorMessage = resp->result["error"];
-            }
+            update_response_error(resp);
 
             if (resp->result.contains("__delayed_release") && resp->result["__delayed_release"] == true)
             {
@@ -177,6 +219,29 @@ public:
     }
 
 private:
+    bool is_load_media_command(const std::string& tool_name) const
+    {
+        std::string normalized_tool = tool_name;
+        size_t pos = 0;
+        while ((pos = normalized_tool.find('.', pos)) != std::string::npos)
+        {
+            normalized_tool[pos] = '_';
+            pos++;
+        }
+
+        return normalized_tool == "load_media";
+    }
+
+    void update_response_error(DebugResponse* resp)
+    {
+        if (!resp->result.contains("error"))
+            return;
+
+        resp->isError = true;
+        resp->errorCode = -32603;
+        resp->errorMessage = resp->result["error"];
+    }
+
     DebugAdapter* m_debugAdapter;
     McpServer* m_server;
     CommandQueue m_commandQueue;
@@ -184,6 +249,9 @@ private:
     McpTransportMode m_transport_mode;
     int m_tcp_port;
     std::string m_tcp_address;
+    bool m_pending_media_load;
+    int64_t m_pending_media_load_request_id;
+    std::string m_pending_media_load_file_path;
     std::vector<DelayedButtonRelease> m_delayedReleases;
 };
 
