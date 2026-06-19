@@ -142,9 +142,9 @@ void DebugAdapter::StepOut()
     emu_debug_step_out();
 }
 
-void DebugAdapter::StepFrame()
+void DebugAdapter::StepFrame(int frames)
 {
-    emu_debug_step_frame();
+    emu_debug_step_frames(frames);
 }
 
 void DebugAdapter::Reset()
