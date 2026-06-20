@@ -400,6 +400,9 @@ bool gamepad_get_button(SDL_Gamepad* controller, int mapping)
     if (mapping >= GAMEPAD_VBTN_AXIS_BASE)
     {
         int axis = mapping - GAMEPAD_VBTN_AXIS_BASE;
+        if (axis < 0 || axis >= SDL_GAMEPAD_AXIS_COUNT)
+            return false;
+
         Sint16 value = SDL_GetGamepadAxis(controller, (SDL_GamepadAxis)axis);
         return value > GAMEPAD_VBTN_AXIS_THRESHOLD;
     }
