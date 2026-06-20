@@ -36,9 +36,9 @@ safe-outputs:
   mentions: false
   allowed-github-references: []
   create-issue:
-    title-prefix: "Build Doctor:"
+    title-prefix: "Build Doctor: "
     labels: [agentic workflows]
-    allowed-labels: [agentic workflows, bug, duplicate, feature request, needs info, not a bug, question, wontfix]
+    allowed-labels: [bug, feature request, needs info, not a bug, question, wontfix]
   add-comment:
 ---
 
@@ -107,8 +107,10 @@ Classify the failure by Gearboy subsystem before reporting:
 
 1. If an open issue already covers the same run or same failure signature, use the configured `add-comment` safe output with the new run link and any new evidence. Do not create a new issue.
 2. If there is no matching issue, use the configured `create-issue` safe output.
-3. Every created issue must have the `agentic workflows` label.
-4. Add at most one secondary label when it clearly applies: `bug`, `needs info`, `not a bug`, `feature request`, `duplicate`, `question`, or `wontfix`.
+3. Every created issue automatically receives the `agentic workflows` label from the configured safe output. Do not include `agentic workflows` in the `create_issue` output.
+4. Add exactly one secondary label when the classification is clear by including a `labels` field in the `create_issue` safe output. Use a JSON array containing one exact string from the allowed secondary labels: `bug`, `feature request`, `needs info`, `not a bug`, `question`, or `wontfix`.
+5. Use `not a bug` for transient runner, network, GitHub API, package registry, external service, or expected upstream behavior failures that do not require a repository fix. Use `bug` for actionable repository or workflow defects and reproducible failures caused by this repository. Use `feature request` only for optional resilience or CI/release improvement work. Use `needs info` when the root cause cannot be determined from available logs. Use `question` only for an actual user question. Use `wontfix` only when the failure is intentionally accepted.
+6. Do not emit bracketed, comma-joined, or combined label strings such as `[agentic workflows, bug]`; do not include more than one secondary label.
 
 ### Phase 7: Memory Update
 

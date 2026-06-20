@@ -103,8 +103,9 @@ For game compatibility reports, separate bugs from unsupported cartridge hardwar
 ### Phase 6: Apply Results
 
 1. Apply the chosen labels with `add-labels`.
-2. Default to labels only. Do not post a comment unless Phase 5 closes a duplicate or Phase 2 requires a narrowly scoped version/platform clarification.
-3. For clarification comments, use a clearly automated but readable format, for example: `Automated triage request: please provide the Gearboy version and platform/frontend so this bug report can be classified correctly.`
+2. When calling `add-labels`, provide each label as a separate exact label string from the allowlist. Do not emit bracketed, comma-joined, or combined label strings such as `[bug, needs info]`.
+3. Default to labels only. Do not post a comment unless Phase 5 closes a duplicate or Phase 2 requires a narrowly scoped version/platform clarification.
+4. For clarification comments, use a clearly automated but readable format, for example: `Automated triage request: please provide the Gearboy version and platform/frontend so this bug report can be classified correctly.`
 
 ## Style
 
