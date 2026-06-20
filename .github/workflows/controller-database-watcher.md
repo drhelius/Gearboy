@@ -1,0 +1,89 @@
+---
+name: Controller Database Watcher
+description: Check upstream SDL controller mappings and open a PR when gamecontrollerdb.txt changes.
+on:
+  schedule: every 2w
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: read
+  copilot-requests: write
+strict: true
+network:
+  allowed:
+    - defaults
+    - github
+tools:
+  github:
+    mode: gh-proxy
+    toolsets: [repos, pull_requests]
+safe-outputs:
+  mentions: false
+  allowed-github-references: []
+  create-pull-request:
+    title-prefix: "Update gamecontrollerdb: "
+    branch-prefix: "update-gamecontrollerdb/"
+    labels: [agentic workflows]
+    draft: false
+    max: 1
+    if-no-changes: ignore
+    fallback-as-issue: false
+    auto-close-issue: false
+    allowed-files:
+      - platforms/shared/gamecontrollerdb.txt
+---
+
+# Controller Database Watcher
+
+## Task
+
+Check whether Gearboy's `platforms/shared/gamecontrollerdb.txt` differs from the latest upstream SDL controller database and open a pull request when an update is available.
+
+Use this upstream source exactly:
+
+```text
+https://raw.githubusercontent.com/mdqinc/SDL_GameControllerDB/master/gamecontrollerdb.txt
+```
+
+## Procedure
+
+### Phase 1: Preconditions
+
+1. Work in the repository root.
+2. Confirm `platforms/shared/gamecontrollerdb.txt` exists exactly at that path.
+3. Check for existing open pull requests that update `platforms/shared/gamecontrollerdb.txt` or whose title starts with `Update gamecontrollerdb:`. If one already exists, call `noop` with a short explanation.
+4. Do not modify any other file.
+
+### Phase 2: Fetch Upstream
+
+1. Download the upstream `gamecontrollerdb.txt` from `mdqinc/SDL_GameControllerDB` `master`.
+2. Validate that the downloaded file is non-empty and looks like SDL controller mappings, with many comma-separated mapping lines.
+3. Stop with `noop` if the download fails or the file does not look valid. Do not create a PR with an empty or suspicious file.
+
+### Phase 3: Compare And Update
+
+1. Compare the downloaded file with `platforms/shared/gamecontrollerdb.txt`.
+2. If there is no difference, call `noop` with a short explanation.
+3. If there is a difference, replace only `platforms/shared/gamecontrollerdb.txt` with the downloaded content.
+4. Validate that the diff touches only `platforms/shared/gamecontrollerdb.txt`.
+
+### Phase 4: Pull Request
+
+Use the configured `create-pull-request` safe output. Do not commit or push manually.
+
+Use a concise PR title after the configured prefix, for example `latest upstream mappings`.
+
+Write the PR body with:
+
+### Summary
+
+- Updated `platforms/shared/gamecontrollerdb.txt` from `mdqinc/SDL_GameControllerDB` `master`.
+
+### Validation
+
+- Confirmed the downloaded file was non-empty and mapping-like.
+- Confirmed only `platforms/shared/gamecontrollerdb.txt` changed.
+
+## Style
+
+Keep the PR body factual, neutral, and explicitly automated. Do not use first person, apologies, thanks, conversational warmth, or human-like sign-offs.
