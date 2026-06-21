@@ -32,7 +32,7 @@
     #define EXTERN extern
 #endif
 
-static const int config_version = 2;
+static const int config_version = 3;
 static const int config_max_recent_roms = 10;
 static const int config_max_custom_palettes = 5;
 static const int config_memory_editor_count = 17;
@@ -48,6 +48,13 @@ enum config_Theme
     config_Theme_Light = 0,
     config_Theme_Dark = 1,
     config_Theme_Count = 2
+};
+
+enum config_VideoSync
+{
+    config_VideoSync_Disabled = 0,
+    config_VideoSync_Fixed = 1,
+    config_VideoSync_VRR = 2
 };
 
 struct config_Emulator
@@ -116,7 +123,7 @@ struct config_Video
         {{0xFF, 0xE4, 0xC2}, {0xDC, 0xA4, 0x56}, {0xA9, 0x60, 0x4C}, {0x42, 0x29, 0x36}},
         {{0xCE, 0xCE, 0xCE}, {0x6F, 0x9E, 0xDF}, {0x42, 0x67, 0x8E}, {0x10, 0x25, 0x33}}
     };
-    bool sync = true;
+    int sync_mode = config_VideoSync_Disabled;
     bool color_correction = true;
     float background_color[config_Theme_Count][3] = {
         {128.0f / 255.0f, 128.0f / 255.0f, 128.0f / 255.0f},

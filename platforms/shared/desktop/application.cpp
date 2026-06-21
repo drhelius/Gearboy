@@ -368,7 +368,7 @@ static bool sdl_init(void)
     }
 #endif
 
-    display_set_vsync(config_video.sync);
+    display_use_vsync_if_enabled();
     display_check_mixed_refresh_rates();
 
     SDL_SetWindowMinimumSize(application_sdl_window, (int)(500 * content_scale), (int)(300 * content_scale));
@@ -492,14 +492,14 @@ static void sdl_events_app(const SDL_Event* event)
         }
         case SDL_EVENT_WINDOW_FOCUS_GAINED:
         {
-            display_set_vsync(config_video.sync);
+            display_use_vsync_if_enabled();
             if (config_emulator.pause_when_inactive && !paused_when_focus_lost)
                 emu_resume();
             break;
         }
         case SDL_EVENT_WINDOW_FOCUS_LOST:
         {
-            display_set_vsync(false);
+            display_disable_vsync();
             if (config_emulator.pause_when_inactive)
             {
                 paused_when_focus_lost = emu_is_paused();
@@ -514,7 +514,7 @@ static void sdl_events_app(const SDL_Event* event)
             {
                 current_display_id = new_display;
                 display_check_mixed_refresh_rates();
-                if (config_video.sync && !display_is_vsync_forced_off())
+                if (config_video.sync_mode != config_VideoSync_Disabled && !display_is_vsync_forced_off())
                     display_recreate_gl_context();
                 else
                 {

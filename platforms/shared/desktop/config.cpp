@@ -183,12 +183,15 @@ void config_read(void)
 
     int file_version = read_int("General", "Version", 0);
 
-    if (file_version < config_version)
+    if (file_version < 2)
     {
         Log("Settings version %d is outdated (current: %d). Using defaults.", file_version, config_version);
         config_write();
         return;
     }
+
+    if (file_version < config_version)
+        Log("Migrating settings version %d to %d", file_version, config_version);
 
     Log("Loading settings from %s (version %d)", config_emu_file_path, file_version);
 
@@ -332,7 +335,19 @@ void config_read(void)
     config_video.shader_preset_path = read_string("Video", "ShaderPresetFile");
     config_video.palette = read_int("Video", "Palette", 0);
     config_video.color_correction = read_bool("Video", "ColorCorrection", true);
-    config_video.sync = read_bool("Video", "Sync", true);
+    config_video.sync_mode = read_int("Video", "SyncMode", -1);
+    if (config_video.sync_mode < config_VideoSync_Disabled || config_video.sync_mode > config_VideoSync_VRR)
+    {
+        bool sync = read_bool("Video", "Sync", true);
+        bool vrr = read_bool("Video", "VRR", false);
+        config_video.sync_mode = sync ? (vrr ? config_VideoSync_VRR : config_VideoSync_Fixed) : config_VideoSync_Disabled;
+    }
+    else
+        config_video.sync_mode = CLAMP(config_video.sync_mode, config_VideoSync_Disabled, config_VideoSync_VRR);
+#if !defined(_WIN32)
+    if (config_video.sync_mode == config_VideoSync_VRR)
+        config_video.sync_mode = config_VideoSync_Disabled;
+#endif
     config_video.background_color[config_Theme_Dark][0] = read_float("Video", "BackgroundColorR", 0.1f);
     config_video.background_color[config_Theme_Dark][1] = read_float("Video", "BackgroundColorG", 0.1f);
     config_video.background_color[config_Theme_Dark][2] = read_float("Video", "BackgroundColorB", 0.1f);
@@ -564,7 +579,7 @@ void config_write(void)
     sync_shader_preset_parameter_defaults();
     write_int("Video", "Palette", config_video.palette);
     write_bool("Video", "ColorCorrection", config_video.color_correction);
-    write_bool("Video", "Sync", config_video.sync);
+    write_int("Video", "SyncMode", config_video.sync_mode);
     write_float("Video", "BackgroundColorR", config_video.background_color[config_Theme_Dark][0]);
     write_float("Video", "BackgroundColorG", config_video.background_color[config_Theme_Dark][1]);
     write_float("Video", "BackgroundColorB", config_video.background_color[config_Theme_Dark][2]);

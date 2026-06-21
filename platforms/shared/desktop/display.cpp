@@ -39,6 +39,9 @@ static int last_vsync_state = -1;
 static bool multi_monitor_mixed_refresh = false;
 static bool pending_gl_context_recreate = false;
 
+static bool display_is_vrr_enabled(void);
+static void display_set_swap_interval(bool enabled);
+
 void display_begin_frame(void)
 {
     frame_time_start = SDL_GetPerformanceCounter();
@@ -95,9 +98,12 @@ void display_frame_throttle(void)
 
 bool display_should_run_emu_frame(void)
 {
-    if (config_video.sync && !emu_is_empty() && !emu_is_paused()
+    if (config_video.sync_mode != config_VideoSync_Disabled && !emu_is_empty() && !emu_is_paused()
         && !emu_is_debug_idle() && emu_is_audio_open() && !config_emulator.ffwd)
     {
+        if (display_is_vrr_enabled())
+            return true;
+
         bool should_run = (vsync_frame_counter == 0);
         vsync_frame_counter++;
         if (vsync_frame_counter >= vsync_frames_per_emu_frame)
@@ -108,13 +114,16 @@ bool display_should_run_emu_frame(void)
     return true;
 }
 
-void display_set_vsync(bool enabled)
+void display_use_vsync_if_enabled(void)
 {
-    bool effective = enabled && !display_is_vsync_forced_off();
-    SDL_GL_SetSwapInterval(0);
-    if (effective)
-        SDL_GL_SetSwapInterval(1);
-    last_vsync_state = effective ? 1 : 0;
+    bool effective = config_video.sync_mode != config_VideoSync_Disabled && !display_is_vsync_forced_off();
+    display_set_swap_interval(effective);
+    display_update_frame_pacing();
+}
+
+void display_disable_vsync(void)
+{
+    display_set_swap_interval(false);
     display_update_frame_pacing();
 }
 
@@ -138,11 +147,18 @@ void display_update_frame_pacing(void)
     else
         vsync_frames_per_emu_frame = (monitor_refresh_rate + emu_fps / 2) / emu_fps;
 
+    if (display_is_vrr_enabled())
+        vsync_frames_per_emu_frame = 1;
+
     vsync_frames_per_emu_frame = CLAMP(vsync_frames_per_emu_frame, 1, 8);
 
     vsync_frame_counter = 0;
 
+#if defined(_WIN32)
+    Debug("Monitor refresh rate: %d Hz, vsync frames per emu frame: %d%s", monitor_refresh_rate, vsync_frames_per_emu_frame, display_is_vrr_enabled() ? " (VRR)" : "");
+#else
     Debug("Monitor refresh rate: %d Hz, vsync frames per emu frame: %d", monitor_refresh_rate, vsync_frames_per_emu_frame);
+#endif
 }
 
 void display_check_mixed_refresh_rates(void)
@@ -187,13 +203,12 @@ void display_check_mixed_refresh_rates(void)
 
         if (display_is_vsync_forced_off())
         {
-            SDL_GL_SetSwapInterval(0);
-            last_vsync_state = 0;
+            display_set_swap_interval(false);
             Debug("Vsync forced off: multi-viewport with mixed refresh rate monitors");
         }
-        else if (config_video.sync)
+        else if (config_video.sync_mode != config_VideoSync_Disabled)
         {
-            display_set_vsync(true);
+            display_use_vsync_if_enabled();
         }
     }
 }
@@ -221,13 +236,30 @@ void display_recreate_gl_context(void)
         SDL_GL_MakeCurrent(application_sdl_window, display_gl_context);
         SDL_GL_DestroyContext(old_context);
 
-        bool enable_vsync = config_video.sync && !display_is_vsync_forced_off();
-        SDL_GL_SetSwapInterval(0);
-        if (enable_vsync)
-            SDL_GL_SetSwapInterval(1);
+        bool enable_vsync = config_video.sync_mode != config_VideoSync_Disabled && !display_is_vsync_forced_off();
+        display_set_swap_interval(enable_vsync);
 
         ImGui_ImplSDL3_InitForOpenGL(application_sdl_window, display_gl_context);
         ogl_renderer_init();
         display_update_frame_pacing();
     }
+}
+
+static bool display_is_vrr_enabled(void)
+{
+#if defined(_WIN32)
+    return config_video.sync_mode == config_VideoSync_VRR;
+#else
+    return false;
+#endif
+}
+
+static void display_set_swap_interval(bool enabled)
+{
+    if (enabled)
+        SDL_GL_SetSwapInterval(1);
+    else
+        SDL_GL_SetSwapInterval(0);
+
+    last_vsync_state = enabled ? 1 : 0;
 }
