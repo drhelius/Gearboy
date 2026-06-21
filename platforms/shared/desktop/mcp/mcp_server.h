@@ -31,6 +31,7 @@
 #include "json.hpp"
 #include "mcp_transport.h"
 #include "mcp_debug_adapter.h"
+#include "mcp_tool_registry.h"
 
 using json = nlohmann::json;
 
@@ -208,6 +209,14 @@ private:
     void HandleResourcesList(const json& request);
     void HandleResourcesRead(const json& request);
 
+    json BuildToolList();
+    void EnsureToolRegistry();
+    void AddRouterTools(json& tools);
+    json HandleRouterListCategories();
+    json HandleRouterGetCategoryTools(const json& arguments);
+    json HandleRouterSearchTools(const json& arguments);
+    void SendToolResult(int64_t id, const json& result);
+
     void LoadResources();
     void LoadResourcesFromCategory(const std::string& category, const std::string& tocPath);
     std::string ReadFileContents(const std::string& filePath);
@@ -222,6 +231,7 @@ private:
     std::thread m_thread;
     std::atomic<bool> m_running;
     bool m_initialized;
+    McpToolRegistry m_toolRegistry;
     std::vector<ResourceInfo> m_resources;
     std::map<std::string, ResourceInfo> m_resourceMap;
 };

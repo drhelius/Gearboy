@@ -76,6 +76,30 @@ The HTTP transport mode runs the emulator with an embedded web server on `127.0.
 
 Add `--headless` to run without a GUI window. This is useful for servers, CLI agents, or any machine without a display. All MCP tools work identically in headless mode. Requires `--mcp-stdio` or `--mcp-http`.
 
+## MCP Tool Router
+
+By default, Gearboy exposes a compact set of high-frequency tools directly and routes advanced debugger tools through four discovery tools. This keeps MCP context small while preserving access to the full debugger surface.
+
+Direct tools: `load_media`, `get_media_info`, `debug_pause`, `debug_continue`, `debug_step_into`, `get_cpu_status`, `read_memory`, `write_memory`, `get_disassembly`, `set_breakpoint`, `get_screenshot`, and `controller_button`.
+
+Router tools:
+
+- `list_tool_categories` lists routed tool categories with descriptions and tool counts.
+- `get_category_tools` lists routed tools in a category with descriptions and real input schemas.
+- `search_tools` searches direct and routed tools by keyword, category, title, description, and aliases.
+- `execute_tool` executes a routed tool by name with arguments. Use `get_category_tools` or `search_tools` first to discover the tool name and input schema.
+
+Example routed call:
+
+```json
+{
+  "name": "get_lcd_status",
+  "arguments": {}
+}
+```
+
+Add `--mcp-no-router` to expose every MCP tool directly.
+
 ## Quick Start
 
 ### STDIO Mode with VS Code
@@ -286,6 +310,8 @@ Once configured, you can ask your AI assistant:
 - "The game is rendering corrupted graphics. Examine the LCD registers, check the VRAM contents, inspect the OAM sprite table, and diagnose what's causing the corruption. Set up watches on relevant memory addresses"
 
 ## Available MCP Tools
+
+This is the full tool catalog. By default, advanced tools are discoverable through `list_tool_categories`, `get_category_tools`, and `search_tools`, then invoked with `execute_tool`.
 
 The server exposes tools organized in the following categories:
 

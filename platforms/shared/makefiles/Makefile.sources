@@ -48,6 +48,7 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/gui_debug_psg.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_sgb.cpp \
     $(DESKTOP_SRC_DIR)/mcp/mcp_debug_adapter.cpp \
+    $(DESKTOP_SRC_DIR)/mcp/mcp_tool_registry.cpp \
     $(DESKTOP_SRC_DIR)/mcp/mcp_server.cpp \
     $(SRC_DIR)/Audio.cpp \
     $(SRC_DIR)/Cartridge.cpp \
