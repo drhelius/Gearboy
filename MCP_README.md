@@ -78,16 +78,17 @@ Add `--headless` to run without a GUI window. This is useful for servers, CLI ag
 
 ## MCP Tool Router
 
-By default, Gearboy exposes a compact set of high-frequency tools directly and routes advanced debugger tools through four discovery tools. This keeps MCP context small while preserving access to the full debugger surface.
+By default, Gearboy exposes a compact set of high-frequency tools directly and routes advanced debugger tools through lightweight discovery tools. This keeps MCP context small while preserving access to the full debugger surface.
 
 Direct tools: `load_media`, `get_media_info`, `debug_pause`, `debug_continue`, `debug_step_into`, `get_cpu_status`, `read_memory`, `write_memory`, `get_disassembly`, `set_breakpoint`, `get_screenshot`, and `controller_button`.
 
 Router tools:
 
 - `list_tool_categories` lists routed tool categories with descriptions and tool counts.
-- `get_category_tools` lists routed tools in a category with descriptions and real input schemas.
-- `search_tools` searches direct and routed tools by keyword, category, title, description, and aliases.
-- `execute_tool` executes a routed tool by name with arguments. Use `get_category_tools` or `search_tools` first to discover the tool name and input schema.
+- `get_category_tools` lists routed tools in a category with compact descriptions.
+- `search_tools` searches direct and routed tools and returns compact category/tool/description matches.
+- `get_tool_info` returns one tool's real input schema and metadata.
+- `execute_tool` executes a routed tool by name with arguments. Use `get_tool_info` after discovery when you need the exact input schema.
 
 Example routed call:
 

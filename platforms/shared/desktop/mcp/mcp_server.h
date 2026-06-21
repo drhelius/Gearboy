@@ -214,6 +214,7 @@ private:
     void AddRouterTools(json& tools);
     json HandleRouterListCategories();
     json HandleRouterGetCategoryTools(const json& arguments);
+    json HandleRouterGetToolInfo(const json& arguments);
     json HandleRouterSearchTools(const json& arguments);
     void SendToolResult(int64_t id, const json& result);
 

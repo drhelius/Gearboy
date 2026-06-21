@@ -306,10 +306,20 @@ json McpToolRegistry::GetToolsInCategory(const std::string& category) const
             continue;
 
         if (ToolCategoryForName(name) == category)
-            tools.push_back(ToolToRouterJson(*it));
+            tools.push_back(ToolToSummaryJson(*it));
     }
 
     return tools;
+}
+
+json McpToolRegistry::GetToolInfo(const std::string& tool_name) const
+{
+    const json* tool = FindTool(tool_name);
+
+    if (tool == NULL)
+        return json::object();
+
+    return ToolToInfoJson(*tool);
 }
 
 std::string McpToolRegistry::GetCategoryTitle(const std::string& category) const
@@ -366,7 +376,7 @@ json McpToolRegistry::SearchTools(const std::string& query) const
 
         if (ToLower(haystack).find(query_lower) != std::string::npos)
         {
-            tools.push_back(ToolToRouterJson(*it));
+            tools.push_back(ToolToSearchJson(*it));
 
             if (tools.size() >= kMcpSearchToolLimit)
                 return tools;
@@ -397,6 +407,7 @@ bool McpToolRegistry::IsRouterToolName(const std::string& tool_name) const
 
     return (name == "list_tool_categories") ||
            (name == "get_category_tools") ||
+           (name == "get_tool_info") ||
            (name == "search_tools") ||
            (name == "execute_tool");
 }
@@ -563,7 +574,33 @@ int McpToolRegistry::CountToolsInCategory(const std::string& category, bool incl
     return count;
 }
 
-json McpToolRegistry::ToolToRouterJson(const json& tool) const
+json McpToolRegistry::ToolToSummaryJson(const json& tool) const
+{
+    json result;
+    std::string name = tool.value("name", "");
+
+    result["name"] = name;
+    result["description"] = tool.value("description", "");
+
+    return result;
+}
+
+json McpToolRegistry::ToolToSearchJson(const json& tool) const
+{
+    json result;
+    std::string name = tool.value("name", "");
+
+    result["category"] = ToolCategoryForName(name);
+    result["tool"] = name;
+    result["description"] = tool.value("description", "");
+
+    if (IsDirectToolName(name))
+        result["category"] = "direct";
+
+    return result;
+}
+
+json McpToolRegistry::ToolToInfoJson(const json& tool) const
 {
     json result;
     std::string name = tool.value("name", "");
@@ -572,8 +609,10 @@ json McpToolRegistry::ToolToRouterJson(const json& tool) const
     result["title"] = tool.value("title", name);
     result["description"] = tool.value("description", "");
     result["category"] = ToolCategoryForName(name);
-    result["aliases"] = AliasesForTool(name);
     result["direct"] = IsDirectToolName(name);
+
+    if (IsDirectToolName(name))
+        result["category"] = "direct";
 
     if (tool.contains("inputSchema"))
         result["inputSchema"] = tool["inputSchema"];

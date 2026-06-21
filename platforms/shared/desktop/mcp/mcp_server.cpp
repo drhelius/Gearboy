@@ -1410,13 +1410,27 @@ void McpServer::AddRouterTools(json& tools)
     tools.push_back({
         {"name", "get_category_tools"},
         {"title", "Get Category Tools"},
-        {"description", "List routed tools in a category with descriptions and real input schemas. Use category names returned by list_tool_categories."},
+        {"description", "List routed tools in a category with compact descriptions. Use category names returned by list_tool_categories, then call get_tool_info for one tool's input schema."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"category", {{"type", "string"}}}
             }},
             {"required", json::array({"category"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_tool_info"},
+        {"title", "Get Tool Info"},
+        {"description", "Return one MCP tool's title, description, category, direct/routed status, and real input schema. Use this after search_tools or get_category_tools before execute_tool."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"name", {{"type", "string"}}}
+            }},
+            {"required", json::array({"name"})},
             {"additionalProperties", false}
         }}
     });
@@ -1499,8 +1513,27 @@ json McpServer::HandleRouterSearchTools(const json& arguments)
         {"query", query},
         {"count", tools.size()},
         {"limit", m_toolRegistry.GetSearchToolLimit()},
-        {"tools", tools}
+        {"matches", tools}
     };
+}
+
+json McpServer::HandleRouterGetToolInfo(const json& arguments)
+{
+    EnsureToolRegistry();
+
+    std::string tool_name = arguments.value("name", "");
+    json tool = m_toolRegistry.GetToolInfo(tool_name);
+
+    if (tool.empty())
+    {
+        return {
+            {"error", "Unknown tool"},
+            {"name", tool_name},
+            {"hint", "Use search_tools or get_category_tools to discover available tool names."}
+        };
+    }
+
+    return tool;
 }
 
 void McpServer::SendToolResult(int64_t id, const json& result)
@@ -1551,6 +1584,12 @@ void McpServer::HandleToolsCall(const json& request)
     if (!g_mcp_router_disabled && m_toolRegistry.IsRouterTool(toolName, "get_category_tools"))
     {
         SendToolResult(id, HandleRouterGetCategoryTools(arguments));
+        return;
+    }
+
+    if (!g_mcp_router_disabled && m_toolRegistry.IsRouterTool(toolName, "get_tool_info"))
+    {
+        SendToolResult(id, HandleRouterGetToolInfo(arguments));
         return;
     }
 
