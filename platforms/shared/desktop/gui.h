@@ -126,7 +126,7 @@ EXTERN bool gui_init(void);
 EXTERN void gui_destroy(void);
 EXTERN void gui_render(void);
 EXTERN void gui_shortcut(gui_ShortCutEvent event);
-EXTERN bool gui_load_rom(const char* path);
+EXTERN bool gui_load_rom(const char* path, const char* symbol_path = NULL);
 EXTERN bool gui_is_rom_loading(void);
 EXTERN bool gui_finish_loading_rom(void);
 EXTERN void gui_set_style(void);

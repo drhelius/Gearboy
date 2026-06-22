@@ -124,13 +124,18 @@ int application_init(const ApplicationParams& params)
     if (config_emulator.fullscreen)
         application_trigger_fullscreen(true);
 
-    if (IsValidPointer(params.rom_file) && (strlen(params.rom_file) > 0))
+    bool rom_file_argument = IsValidPointer(params.rom_file) && (strlen(params.rom_file) > 0);
+    bool symbol_file_argument = IsValidPointer(params.symbol_file) && (strlen(params.symbol_file) > 0);
+
+    if (rom_file_argument)
     {
         Log("Rom file argument: %s", params.rom_file);
-        gui_load_rom(params.rom_file);
+        if (symbol_file_argument)
+            Log("Symbol file argument: %s", params.symbol_file);
+        gui_load_rom(params.rom_file, params.symbol_file);
     }
 
-    if (IsValidPointer(params.symbol_file) && (strlen(params.symbol_file) > 0))
+    if (!rom_file_argument && symbol_file_argument)
     {
         Log("Symbol file argument: %s", params.symbol_file);
         // gui_debug_reset_symbols();
@@ -429,8 +434,8 @@ static void handle_single_instance(void)
     if (single_instance_get_pending_load(s_pending_rom_path, sizeof(s_pending_rom_path), s_pending_symbol_path, sizeof(s_pending_symbol_path)))
     {
         if (s_pending_rom_path[0] != '\0')
-            gui_load_rom(s_pending_rom_path);
-        if (s_pending_symbol_path[0] != '\0')
+            gui_load_rom(s_pending_rom_path, s_pending_symbol_path);
+        else if (s_pending_symbol_path[0] != '\0')
         {
             // gui_debug_reset_symbols();
             // gui_debug_load_symbols_file(s_pending_symbol_path);

@@ -47,6 +47,7 @@ static bool error_window_active = false;
 static char error_message[4096] = "";
 static bool loading_rom_active = false;
 static char loading_rom_path[4096] = "";
+static char loading_symbol_path[4096] = "";
 
 
 static void main_window(void);
@@ -285,7 +286,7 @@ void gui_shortcut(gui_ShortCutEvent event)
     }
 }
 
-bool gui_load_rom(const char* path)
+bool gui_load_rom(const char* path, const char* symbol_path)
 {
     if (loading_rom_active)
         return false;
@@ -296,6 +297,13 @@ bool gui_load_rom(const char* path)
 
     strncpy(loading_rom_path, path, sizeof(loading_rom_path) - 1);
     loading_rom_path[sizeof(loading_rom_path) - 1] = '\0';
+    if (IsValidPointer(symbol_path) && (strlen(symbol_path) > 0))
+    {
+        strncpy(loading_symbol_path, symbol_path, sizeof(loading_symbol_path) - 1);
+        loading_symbol_path[sizeof(loading_symbol_path) - 1] = '\0';
+    }
+    else
+        loading_symbol_path[0] = '\0';
     loading_rom_active = true;
 
     emu_load_rom_async(path, config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);
@@ -661,10 +669,15 @@ static bool finish_loading_rom(void)
 
     gui_debug_reset();
 
-    std::string str(loading_rom_path);
-    str = str.substr(0, str.find_last_of("."));
-    gui_debug_load_symbols_file((str + ".sym").c_str());
-    gui_debug_load_symbols_file((str + ".noi").c_str());
+    if (loading_symbol_path[0] != '\0')
+        gui_debug_load_symbols_file(loading_symbol_path);
+    else
+    {
+        std::string str(loading_rom_path);
+        str = str.substr(0, str.find_last_of("."));
+        gui_debug_load_symbols_file((str + ".sym").c_str());
+        gui_debug_load_symbols_file((str + ".noi").c_str());
+    }
 
     gui_debug_auto_load_settings();
 
