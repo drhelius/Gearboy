@@ -32,7 +32,7 @@
     #define EXTERN extern
 #endif
 
-static const int config_version = 3;
+static const int config_version = 4;
 static const int config_max_recent_roms = 10;
 static const int config_max_custom_palettes = 5;
 static const int config_memory_editor_count = 17;

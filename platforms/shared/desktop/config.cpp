@@ -336,7 +336,7 @@ void config_read(void)
     config_video.palette = read_int("Video", "Palette", 0);
     config_video.color_correction = read_bool("Video", "ColorCorrection", true);
     config_video.sync_mode = read_int("Video", "SyncMode", -1);
-    if (config_video.sync_mode < config_VideoSync_Disabled || config_video.sync_mode > config_VideoSync_VRR)
+    if ((file_version < config_version) || (config_video.sync_mode < config_VideoSync_Disabled) || (config_video.sync_mode > config_VideoSync_VRR))
     {
         bool sync = read_bool("Video", "Sync", true);
         bool vrr = read_bool("Video", "VRR", false);
@@ -346,7 +346,7 @@ void config_read(void)
         config_video.sync_mode = CLAMP(config_video.sync_mode, config_VideoSync_Disabled, config_VideoSync_VRR);
 #if !defined(_WIN32)
     if (config_video.sync_mode == config_VideoSync_VRR)
-        config_video.sync_mode = config_VideoSync_Disabled;
+    config_video.sync_mode = config_VideoSync_Fixed;
 #endif
     config_video.background_color[config_Theme_Dark][0] = read_float("Video", "BackgroundColorR", 0.1f);
     config_video.background_color[config_Theme_Dark][1] = read_float("Video", "BackgroundColorG", 0.1f);
