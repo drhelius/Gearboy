@@ -97,14 +97,12 @@ For game compatibility reports, separate bugs from unsupported cartridge hardwar
 1. Compare the issue to similar open and closed issues.
 2. If there is a high-confidence duplicate, add `duplicate` and close the triggering issue using the configured `close-issue` safe output with duplicate state reason.
 3. Include the duplicate explanation in the close comment. Do not call `add-comment` separately for duplicates.
-4. Use a clearly automated, readable Markdown close comment with line breaks. Use this shape:
+4. Use a clearly automated, polite Markdown close comment with line breaks. Use this shape:
 
 ```markdown
-Automated triage result: duplicate issue.
+Automated triage result: this appears to duplicate #123 because it describes the same affected game and mapper symptom.
 
-- Matches: #123.
-- Reason: same affected game and mapper symptom.
-- Action: closing this issue as a duplicate.
+Closing this as a duplicate. If this report describes a different case, please add the details and it can be reopened.
 ```
 5. Do not close issues for any non-duplicate classification.
 
@@ -113,15 +111,14 @@ Automated triage result: duplicate issue.
 1. Apply the chosen labels with `add-labels`.
 2. When calling `add-labels`, provide each label as a separate exact label string from the allowlist. Do not emit bracketed, comma-joined, or combined label strings such as `[bug, needs info]`.
 3. Default to labels only. Do not post a comment unless Phase 5 closes a duplicate or Phase 2 requires a narrowly scoped version/platform clarification.
-4. For clarification comments, use a clearly automated, readable Markdown request with line breaks. Use this shape:
+4. For clarification comments, use a clearly automated, polite Markdown request with line breaks. Use this shape:
 
 ```markdown
-Automated triage request: missing required environment details.
+Automated triage request: please provide the Gearboy version and platform/frontend so this bug report can be investigated.
 
-- Gearboy version:
-- Platform/frontend:
+No other details are needed for initial triage.
 ```
 
 ## Style
 
-Keep comments brief, neutral, and explicitly automated, but write in complete readable sentences rather than terse status fragments. Every comment body must use Markdown line breaks: one short summary line, one blank line, then one to three short bullet lines. Do not write comments as a single paragraph or a single long sentence. Do not use first person, apologies, thanks, conversational warmth, or human-like sign-offs. Do not expose secrets, private resource identifiers, tokens, generated hostnames, or user-sensitive paths. Redact sensitive values as `<redacted>`.
+Keep comments brief, neutral, polite, and explicitly automated, but write in complete readable sentences rather than terse status fragments. Every comment body must use Markdown line breaks: one short automated summary sentence, one blank line, then one short follow-up sentence. Do not write comments as a single paragraph, a single long sentence, a form, or a checklist. Do not use first person, apologies, thanks, human-like warmth, or sign-offs. Do not expose secrets, private resource identifiers, tokens, generated hostnames, or user-sensitive paths. Redact sensitive values as `<redacted>`.
