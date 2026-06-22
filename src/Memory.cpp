@@ -239,9 +239,6 @@ void Memory::Reset(bool bCGB, bool bSGB)
         u8 hdma3 = m_HDMA[2];
         u8 hdma4 = m_HDMA[3];
 
-        if (hdma1 > 0x7f && hdma1 < 0xa0)
-            hdma1 = 0;
-
         m_HDMASource = (hdma1 << 8) | (hdma2 & 0xF0);
         m_HDMADestination = ((hdma3 & 0x1F) << 8) | (hdma4 & 0xF0);
         m_HDMADestination |= 0x8000;
@@ -357,6 +354,12 @@ void Memory::SwitchCGBDMA(u8 value)
 {
     m_iHDMABytes = 16 + ((value & 0x7f) * 16);
 
+    if (!m_bHDMAEnabled && IsHDMASourceInvalid())
+    {
+        m_HDMA[4] = value | 0x80;
+        return;
+    }
+
     if (m_bHDMAEnabled)
     {
         if (IsSetBit(value, 7))
@@ -392,24 +395,14 @@ unsigned int Memory::PerformHDMA()
     u16 source = m_HDMASource & 0xFFF0;
     u16 destination = (m_HDMADestination & 0x1FF0) | 0x8000;
 
-    if (source >= 0xD000 && source < 0xE000)
-    {
-        for (int i = 0; i < 0x10; i++)
-            WriteCGBLCDRAM(destination + i, ReadCGBWRAM(source + i));
-    }
-    else
-    {
-        for (int i = 0; i < 0x10; i++)
-            WriteCGBLCDRAM(destination + i, Read(source + i));
-    }
+    for (int i = 0; i < 0x10; i++)
+        WriteCGBLCDRAM(destination + i, Read(source + i));
 
     m_HDMADestination += 0x10;
     if (m_HDMADestination == 0xA000)
         m_HDMADestination = 0x8000;
 
     m_HDMASource += 0x10;
-    if (m_HDMASource == 0x8000)
-        m_HDMASource = 0xA000;
 
     m_HDMA[1] = m_HDMASource & 0xFF;
     m_HDMA[0] = m_HDMASource >> 8;
@@ -431,23 +424,11 @@ void Memory::PerformGDMA(u8 value)
     u16 source = m_HDMASource & 0xFFF0;
     u16 destination = (m_HDMADestination & 0x1FF0) | 0x8000;
 
-    if (source >= 0xD000 && source < 0xE000)
+    for (int i = 0; i < m_iHDMABytes; i++)
     {
-        for (int i = 0; i < m_iHDMABytes; i++)
-        {
-            u16 dmaDestination = ((destination + i) & 0x1FFF) | 0x8000;
-            u16 dmaSource = source + i;
-            u8 dmaValue = (dmaSource < 0xE000) ? ReadCGBWRAM(dmaSource) : Read(dmaSource);
-            WriteCGBLCDRAM(dmaDestination, dmaValue);
-        }
-    }
-    else
-    {
-        for (int i = 0; i < m_iHDMABytes; i++)
-        {
-            u16 dmaDestination = ((destination + i) & 0x1FFF) | 0x8000;
-            WriteCGBLCDRAM(dmaDestination, Read(source + i));
-        }
+        u16 dmaSource = source + i;
+        u16 dmaDestination = ((destination + i) & 0x1FFF) | 0x8000;
+        WriteCGBLCDRAM(dmaDestination, Read(dmaSource));
     }
 
     m_HDMADestination = ((m_HDMADestination + m_iHDMABytes) & 0x1FFF) | 0x8000;
@@ -471,6 +452,12 @@ bool Memory::IsHDMAEnabled() const
     return m_bHDMAEnabled;
 }
 
+bool Memory::IsHDMASourceInvalid() const
+{
+    u16 source = m_HDMASource & 0xFFF0;
+    return source >= 0x8000 && source < 0xA000;
+}
+
 void Memory::SetHDMARegister(int reg, u8 value)
 {
     switch (reg)
@@ -478,8 +465,6 @@ void Memory::SetHDMARegister(int reg, u8 value)
         case 1:
         {
             // HDMA1
-            if (value > 0x7f && value < 0xa0)
-                value = 0;
             m_HDMASource = (value << 8) | (m_HDMASource & 0xF0);
             break;
         }

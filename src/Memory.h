@@ -96,6 +96,7 @@ public:
 private:
     void LoadBootroom(const char* szFilePath, bool gbc);
     void CheckBreakpoints(u16 address, bool write);
+    bool IsHDMASourceInvalid() const;
 
 private:
     Processor* m_pProcessor;
