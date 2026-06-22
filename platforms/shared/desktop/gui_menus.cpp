@@ -756,9 +756,11 @@ static void menu_video(void)
                 ImGui::BeginTooltip();
                 ImGui::Text("Disabled: do not synchronize presentation to the monitor.");
                 ImGui::Text("Fixed: use normal VSync for 60 Hz, 120 Hz, and 240 Hz displays.");
+#if defined(_WIN32)
                 ImGui::Text("VRR: present at the Game Boy frame rate.");
                 ImGui::Text("VRR requires fullscreen, a VRR display, and G-SYNC,");
                 ImGui::Text("FreeSync, or Adaptive Sync enabled in your monitor and GPU driver settings.");
+#endif
                 ImGui::EndTooltip();
             }
 
