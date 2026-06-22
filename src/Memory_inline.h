@@ -126,7 +126,7 @@ inline void Memory::WriteCGBWRAM(u16 address, u8 value)
 
 inline void Memory::SwitchCGBWRAM(u8 value)
 {
-    m_iCurrentWRAMBank = value;
+    m_iCurrentWRAMBank = value & 0x07;
 
     if (m_iCurrentWRAMBank == 0)
         m_iCurrentWRAMBank = 1;

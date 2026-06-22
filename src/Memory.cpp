@@ -537,7 +537,9 @@ void Memory::LoadState(std::istream& stream)
     using namespace std;
 
     stream.read(reinterpret_cast<char*> (m_pMap), 65536);
-    stream.read(reinterpret_cast<char*> (&m_iCurrentWRAMBank), sizeof(m_iCurrentWRAMBank));
+    int currentWRAMBank = 0;
+    stream.read(reinterpret_cast<char*> (&currentWRAMBank), sizeof(currentWRAMBank));
+    SwitchCGBWRAM(static_cast<u8>(currentWRAMBank));
     stream.read(reinterpret_cast<char*> (&m_iCurrentLCDRAMBank), sizeof(m_iCurrentLCDRAMBank));
     stream.read(reinterpret_cast<char*> (m_pWRAMBanks), 0x8000);
     stream.read(reinterpret_cast<char*> (m_pLCDRAMBank1), 0x2000);
