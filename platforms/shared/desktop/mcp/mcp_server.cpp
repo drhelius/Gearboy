@@ -2269,8 +2269,13 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     }
     else if (normalizedTool == "memory_find_bytes")
     {
-        int area = arguments["area"];
-        std::string hex_bytes = arguments["hex_bytes"];
+        if (!arguments.contains("area") || !arguments["area"].is_number_integer())
+            return {{"error", "area is required"}};
+        if (!arguments.contains("hex_bytes") || !arguments["hex_bytes"].is_string())
+            return {{"error", "hex_bytes is required"}};
+
+        int area = arguments["area"].get<int>();
+        std::string hex_bytes = arguments["hex_bytes"].get<std::string>();
         return m_debugAdapter.MemoryFindBytes(area, hex_bytes);
     }
     else if (normalizedTool == "get_trace_log")
