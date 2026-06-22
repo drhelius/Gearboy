@@ -436,7 +436,9 @@ void Memory::PerformGDMA(u8 value)
         for (int i = 0; i < m_iHDMABytes; i++)
         {
             u16 dmaDestination = ((destination + i) & 0x1FFF) | 0x8000;
-            WriteCGBLCDRAM(dmaDestination, ReadCGBWRAM(source + i));
+            u16 dmaSource = source + i;
+            u8 dmaValue = (dmaSource < 0xE000) ? ReadCGBWRAM(dmaSource) : Read(dmaSource);
+            WriteCGBLCDRAM(dmaDestination, dmaValue);
         }
     }
     else
