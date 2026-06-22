@@ -391,6 +391,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
     - name: Checkout
       uses: actions/checkout@v6
@@ -433,5 +434,9 @@ jobs:
           --title "${{ env.NAME_UPPER }} ${{ github.ref_name }}" \
           --draft \
           --generate-notes
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
+    - name: Trigger Release Notes Draft
+      run: gh workflow run release-notes-draft.lock.yml --ref ${{ github.ref_name }}
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
