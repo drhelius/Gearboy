@@ -93,7 +93,7 @@ void McpServer::Run()
             {
                 // Text content type (default)
                 std::ostringstream result_ss;
-                result_ss << resp->result.dump(2, ' ', false, json::error_handler_t::replace);
+                result_ss << resp->result.dump(-1, ' ', false, json::error_handler_t::replace);
 
                 mcpResult["content"].push_back({
                     {"type", "text"},
@@ -1545,7 +1545,7 @@ void McpServer::SendToolResult(int64_t id, const json& result)
         {"content", json::array({
             {
                 {"type", "text"},
-                {"text", result.dump(2, ' ', false, json::error_handler_t::replace)}
+                {"text", result.dump(-1, ' ', false, json::error_handler_t::replace)}
             }
         })}
     };

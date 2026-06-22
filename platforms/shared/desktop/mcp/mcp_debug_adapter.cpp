@@ -866,15 +866,16 @@ json DebugAdapter::GetLCDRegisters()
 
     for (int i = 0; i < 12; i++)
     {
-        json reg;
+        json reg = json::array();
         u8 val = memory->Retrieve(lcd_regs[i].addr);
         ss << std::setw(2) << (int)val;
-        reg["address"] = lcd_regs[i].addr;
-        reg["name"] = lcd_regs[i].name;
-        reg["value"] = ss.str(); ss.str("");
+        reg.push_back(lcd_regs[i].name);
+        reg.push_back(lcd_regs[i].addr);
+        reg.push_back(ss.str()); ss.str("");
         registers.push_back(reg);
     }
 
+    result["fields"] = json::array({"name", "address", "value"});
     result["registers"] = registers;
 
     // Decode LCDC bit fields
@@ -1394,12 +1395,12 @@ json DebugAdapter::ListSaveStateSlots()
 {
     json result;
     json slots = json::array();
+    json empty_slots = json::array();
 
     for (int i = 0; i < 5; i++)
     {
         json slot;
         slot["slot"] = i + 1;
-        slot["selected"] = (config_emulator.save_slot == i);
 
         if (emu_savestates[i].rom_name[0] != 0)
         {
@@ -1411,17 +1412,18 @@ json DebugAdapter::ListSaveStateSlots()
 
             if (emu_savestates[i].emu_build[0] != 0)
                 slot["emu_build"] = emu_savestates[i].emu_build;
+
+            slots.push_back(slot);
         }
         else
         {
-            slot["empty"] = true;
+            empty_slots.push_back(i + 1);
         }
-
-        slots.push_back(slot);
     }
 
-    result["slots"] = slots;
     result["current_slot"] = config_emulator.save_slot + 1;
+    result["empty_slots"] = empty_slots;
+    result["slots"] = slots;
 
     return result;
 }
@@ -1761,7 +1763,6 @@ json DebugAdapter::RunToAddress(u16 address)
 
     result["success"] = true;
     result["address"] = address;
-    result["message"] = "Running to address";
 
     return result;
 }
@@ -2323,16 +2324,15 @@ json DebugAdapter::GetMemorySelection(int area)
         start_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << start;
         end_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << end;
 
+        result["selected"] = true;
         result["start"] = start_ss.str();
         result["end"] = end_ss.str();
         result["size"] = end - start + 1;
     }
     else
     {
-        result["start"] = NULL;
-        result["end"] = NULL;
+        result["selected"] = false;
         result["size"] = 0;
-        result["note"] = "No selection";
     }
 
     return result;
@@ -2358,7 +2358,6 @@ json DebugAdapter::MemorySearchCapture(int area)
 
     result["success"] = true;
     result["area"] = area;
-    result["message"] = "Memory snapshot captured";
 
     return result;
 }
@@ -2431,6 +2430,7 @@ json DebugAdapter::MemorySearch(int area, const std::string& op, const std::stri
 
     result["area"] = area;
     result["count"] = count;
+    result["fields"] = json::array({"address", "value", "previous"});
     result["results"] = json::array();
 
     if (count > 0 && results_ptr != NULL)
@@ -2442,21 +2442,20 @@ json DebugAdapter::MemorySearch(int area, const std::string& op, const std::stri
         for (int i = 0; i < max_results; i++)
         {
             MemEditor::Search& search = (*results)[i];
-            json item;
+            json item = json::array();
 
             std::ostringstream addr_ss;
             addr_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << search.address;
 
-            item["address"] = addr_ss.str();
-            item["value"] = search.value;
-            item["previous"] = search.prev_value;
+            item.push_back(addr_ss.str());
+            item.push_back(search.value);
+            item.push_back(search.prev_value);
 
             result["results"].push_back(item);
         }
 
         if (count > 1000)
         {
-            result["note"] = "Results limited to first 1000 matches";
             result["total_matches"] = count;
         }
     }
@@ -2491,22 +2490,19 @@ json DebugAdapter::MemoryFindBytes(int area, const std::string& hex_bytes)
 
     result["area"] = area;
     result["count"] = count;
-    result["results"] = json::array();
+    result["addresses"] = json::array();
 
     int max_results = (count > 100) ? 100 : count;
 
     for (int i = 0; i < max_results; i++)
     {
-        json item;
         std::ostringstream addr_ss;
         addr_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << addresses[i];
-        item["address"] = addr_ss.str();
-        result["results"].push_back(item);
+        result["addresses"].push_back(addr_ss.str());
     }
 
     if (count > 100)
     {
-        result["note"] = "Results limited to first 100 matches";
         result["total_matches"] = count;
     }
 
