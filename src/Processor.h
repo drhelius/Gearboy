@@ -194,6 +194,7 @@ private:
     void CheckBreakpoints();
     void PushCallStack(u16 src, u16 dest, u16 back, u8 bank);
     void PopCallStack();
+    void FormatDisassemblerDataBytes(char* text, size_t text_size, const u8* bytes, int size);
     void SetDisassemblerOperandText(GB_Disassembler_Record* record, const char* text);
     void SetDisassemblerOperand(GB_Disassembler_Record* record, u16 address, bool is_zp, const char* text);
     Processor::Interrupts InterruptPending();

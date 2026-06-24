@@ -90,43 +90,6 @@ GB_Disassembler_Syntax Processor::GetDisassemblerSyntax() const
     return m_disassembler_syntax;
 }
 
-static void processor_format_data_bytes(char* text, size_t text_size, GB_Disassembler_Syntax syntax, const u8* bytes, int size)
-{
-    const char* directive = (syntax == GB_Disassembler_Syntax_WLADX) ? ".db" : "db";
-
-    int pos = snprintf(text, text_size, "{n}%s ", directive);
-    for (int i = 0; i < size && pos > 0 && pos < (int)text_size; i++)
-        pos += snprintf(text + pos, text_size - pos, "%s{o}$%02X", (i == 0) ? "" : ",", bytes[i]);
-}
-
-void Processor::SetDisassemblerOperandText(GB_Disassembler_Record* record, const char* text)
-{
-    if (!IsValidPointer(text) || (text[0] == 0))
-        return;
-
-    const char* match = record->name;
-    const char* last_match = NULL;
-    while ((match = strstr(match, text)) != NULL)
-    {
-        last_match = match;
-        match++;
-    }
-
-    if (IsValidPointer(last_match))
-    {
-        record->operand_offset = (int)(last_match - record->name);
-        record->operand_length = (int)strlen(text);
-    }
-}
-
-void Processor::SetDisassemblerOperand(GB_Disassembler_Record* record, u16 address, bool is_zp, const char* text)
-{
-    record->has_operand_address = true;
-    record->operand_address = address;
-    record->operand_is_zp = is_zp;
-    SetDisassemblerOperandText(record, text);
-}
-
 void Processor::Init()
 {
     Reset(false, false);
@@ -627,6 +590,43 @@ void Processor::DisassembleNextOPCode()
 #endif
 }
 
+void Processor::FormatDisassemblerDataBytes(char* text, size_t text_size, const u8* bytes, int size)
+{
+    const char* directive = (m_disassembler_syntax == GB_Disassembler_Syntax_WLADX) ? ".db" : "db";
+
+    int pos = snprintf(text, text_size, "{n}%s ", directive);
+    for (int i = 0; i < size && pos > 0 && pos < (int)text_size; i++)
+        pos += snprintf(text + pos, text_size - pos, "%s{o}$%02X", (i == 0) ? "" : ",", bytes[i]);
+}
+
+void Processor::SetDisassemblerOperandText(GB_Disassembler_Record* record, const char* text)
+{
+    if (!IsValidPointer(text) || (text[0] == 0))
+        return;
+
+    const char* match = record->name;
+    const char* last_match = NULL;
+    while ((match = strstr(match, text)) != NULL)
+    {
+        last_match = match;
+        match++;
+    }
+
+    if (IsValidPointer(last_match))
+    {
+        record->operand_offset = (int)(last_match - record->name);
+        record->operand_length = (int)strlen(text);
+    }
+}
+
+void Processor::SetDisassemblerOperand(GB_Disassembler_Record* record, u16 address, bool is_zp, const char* text)
+{
+    record->has_operand_address = true;
+    record->operand_address = address;
+    record->operand_is_zp = is_zp;
+    SetDisassemblerOperandText(record, text);
+}
+
 void Processor::PopulateDisassemblerRecord(GB_Disassembler_Record* record, u16 address)
 {
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
@@ -749,7 +749,7 @@ void Processor::PopulateDisassemblerRecord(GB_Disassembler_Record* record, u16 a
             if (m_disassembler_syntax == GB_Disassembler_Syntax_Gearboy)
                 strcpy(record->name, format);
             else
-                processor_format_data_bytes(record->name, sizeof(record->name), m_disassembler_syntax, record->opcodes, record->size);
+                FormatDisassemblerDataBytes(record->name, sizeof(record->name), record->opcodes, record->size);
             break;
         }
         default:
