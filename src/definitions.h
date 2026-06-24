@@ -185,6 +185,14 @@ struct GB_RuntimeInfo
     int screen_height;
 };
 
+enum GB_Disassembler_Syntax
+{
+    GB_Disassembler_Syntax_Gearboy = 0,
+    GB_Disassembler_Syntax_RGBASM,
+    GB_Disassembler_Syntax_WLADX,
+    GB_Disassembler_Syntax_Count
+};
+
 struct GB_Disassembler_Record
 {
     u32 address;
@@ -201,6 +209,9 @@ struct GB_Disassembler_Record
     int irq;
     bool has_operand_address;
     u16 operand_address;
+    bool operand_is_zp;
+    int operand_offset;
+    int operand_length;
     char auto_symbol[64];
 };
 

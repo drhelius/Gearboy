@@ -267,6 +267,7 @@ struct config_Debug
     bool dis_dim_auto_symbols = false;
     bool dis_replace_symbols = true;
     bool dis_replace_labels = true;
+    int dis_syntax = GB_Disassembler_Syntax_Gearboy;
     int dis_look_ahead_count = 20;
     int font_size = 0;
     int scale = 2;

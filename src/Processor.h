@@ -113,6 +113,8 @@ public:
     void SetGameSharkCheat(const char* szCheat);
     void ClearGameSharkCheats();
     ProcessorState* GetState();
+    void SetDisassemblerSyntax(GB_Disassembler_Syntax syntax);
+    GB_Disassembler_Syntax GetDisassemblerSyntax() const;
     void DisassembleNextOPCode();
     void PopulateDisassemblerRecord(GB_Disassembler_Record* record, u16 address);
     void InvalidateOverlappingRecords(u16 address, u8 opcode_size);
@@ -175,6 +177,7 @@ private:
     GB_Breakpoint m_run_to_breakpoint;
     bool m_run_to_breakpoint_requested;
     std::stack<GB_CallStackEntry> m_disassembler_call_stack;
+    GB_Disassembler_Syntax m_disassembler_syntax;
     s32 m_debug_next_irq;
 
     struct GameSharkCode
@@ -191,6 +194,8 @@ private:
     void CheckBreakpoints();
     void PushCallStack(u16 src, u16 dest, u16 back, u8 bank);
     void PopCallStack();
+    void SetDisassemblerOperandText(GB_Disassembler_Record* record, const char* text);
+    void SetDisassemblerOperand(GB_Disassembler_Record* record, u16 address, bool is_zp, const char* text);
     Processor::Interrupts InterruptPending();
     void ServeInterrupt(Interrupts interrupt);
     void UpdateGameShark();

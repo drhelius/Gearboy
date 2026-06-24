@@ -118,6 +118,7 @@ bool gui_init(void)
     emu_enable_bootrom_dmg(config_emulator.dmg_bootrom);
     emu_enable_bootrom_gbc(config_emulator.gbc_bootrom);
     emu_color_correction(config_video.color_correction);
+    emu_set_disassembler_syntax(config_debug.dis_syntax);
 
     strncpy_fit(gui_savefiles_path, config_emulator.savefiles_path.c_str(), sizeof(gui_savefiles_path));
     strncpy_fit(gui_savestates_path, config_emulator.savestates_path.c_str(), sizeof(gui_savestates_path));

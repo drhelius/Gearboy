@@ -773,6 +773,16 @@ void emu_debug_continue(void)
     emu_debug_command = Debug_Command_Continue;
 }
 
+void emu_set_disassembler_syntax(int syntax)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    if (IsValidPointer(gearboy))
+        gearboy->GetProcessor()->SetDisassemblerSyntax((GB_Disassembler_Syntax)syntax);
+#else
+    UNUSED(syntax);
+#endif
+}
+
 void emu_load_bootrom_dmg(const char* file_path)
 {
     gearboy->GetMemory()->LoadBootromDMG(file_path);
