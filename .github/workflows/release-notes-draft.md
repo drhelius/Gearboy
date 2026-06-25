@@ -86,7 +86,7 @@ Detect the newest Gearboy draft release created by the `Build and Release` workf
 1. Read at least six published releases from the last year in this repository.
 2. Use those releases as the style reference. Recent style is concise bullet lists with emoji, followed by a `**Full Changelog**:` compare link.
 3. Prefer the direct bullet style used in recent releases, without `## What's Changed`, unless the existing generated notes include new contributors that should be preserved.
-4. Common phrases include `Improved accuracy`, `Improved MCP server`, `Updated Game Controller DB`, and `Many bug fixes and improvements`.
+4. Each bullet names a concrete, user-facing change in specific wording derived from the merged pull requests (name the exact feature or subsystem). Reserve `Many bug fixes and improvements` as the final catch-all bullet, and avoid vague `Improved X` bullets when a specific description is available.
 
 ### Phase 3: Collect Changes
 
@@ -94,22 +94,35 @@ Detect the newest Gearboy draft release created by the `Build and Release` workf
 2. List merged pull requests and commits between the previous published tag and `${{ github.event.inputs.release_tag }}`. Use these as the source of truth for changes, contributors, and the compare range.
 3. Do not read the draft release body or call GitHub's generate-notes API; the read-only token cannot access drafts. Reconstruct the changelog from merged pull requests and commits instead.
 4. Group the changes into a small number of user-facing bullets. Do not overfit every commit into its own bullet.
-5. Preserve useful `New Contributors` information when you can derive it from first-time contributors among the merged pull requests.
+5. Note the GitHub login of each notable pull request's author. Treat authors other than the repository owner (`drhelius`) as external contributors whose work should be credited with a profile link in Phase 4. Preserve useful `New Contributors` information when present.
 
 ### Phase 4: Draft Notes
 
-Write release notes in this style:
+Write concise, specific release notes in the established style. Every bullet must describe a concrete, user-facing change taken from the merged pull requests — never a vague summary.
+
+Guidelines:
+- Be specific. Prefer `Variable Refresh Rate ready` over `VRR ready`, and `Added WLA-DX and PCEAS syntaxes in disassembler` over `Improved debugger`. Spell out acronyms and name the actual feature, syntax, palette, or subsystem that changed.
+- Avoid generic `Improved X` bullets when a more specific description is available. Take the specifics from the merged pull request titles and descriptions.
+- Credit external contributors. When a change comes from a pull request authored by someone other than the repository owner, append `by [username](https://github.com/username)` using that author's GitHub login.
+- One bullet per notable change. Fold minor or numerous fixes into the single `🐛 Many bug fixes and improvements` bullet. Do not invent features.
+- Keep each bullet brief and on a single line. Never wrap a bullet across multiple lines or add sub-bullets.
+
+Order the bullets like this: notable user-facing features first (most significant first), and always `🐛 Many bug fixes and improvements` last.
+
+Emoji guide (pick the closest match): `🎯` accuracy or hardware behavior, `🖥️` display/video/host integration, `🔊` audio, `🎮` input/controllers, `🎨` palettes/themes/visuals, `🧠` MCP server, `⚙️` debugger/tooling, `🤖` AI, `🐛` bug fixes.
+
+Style example (illustrative only — every bullet must reflect this repository's actual merged changes; never copy these specific items):
 
 ```markdown
-- 🎯 Improved accuracy
-- 🧠 Improved MCP server
-- 🎮 Updated Game Controller DB
+- 🖥️ Variable Refresh Rate ready
+- 🧠 Reduced token usage in MCP server with optional tool router
+- ⚙️ Added WLA-DX and PCEAS syntaxes in disassembler
+- 🎨 New palette by [username](https://github.com/username)
+- 🤖 Agentic Workflows
 - 🐛 Many bug fixes and improvements
 
 **Full Changelog**: https://github.com/drhelius/Gearboy/compare/<previous>...<current>
 ```
-
-Use bullets that match the actual changes. Do not invent features. If the changes are mostly fixes, use `- 🐛 Many bug fixes and improvements`. Keep wording compact and similar to prior releases.
 
 ### Phase 5: Update Release
 
