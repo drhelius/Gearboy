@@ -74,6 +74,7 @@ struct config_Emulator
     bool sgb_border = true;
     bool ffwd = false;
     int ffwd_speed = 1;
+    int runahead = 0;
     bool show_info = false;
     int mbc = 0;
     std::string recent_roms[config_max_recent_roms];

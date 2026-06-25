@@ -26,6 +26,7 @@
 #include "sound_queue.h"
 #include "config.h"
 #include "rewind.h"
+#include "runahead.h"
 #include "events.h"
 #include "mcp/mcp_manager.h"
 
@@ -117,6 +118,7 @@ bool emu_init(void)
     mcp_manager->Init(gearboy);
 
     rewind_init();
+    runahead_init();
 
     for (int i = 0; i < 5; i++)
     {
@@ -140,6 +142,7 @@ void emu_destroy(void)
 
     save_ram();
     rewind_destroy();
+    runahead_destroy();
     SafeDelete(mcp_manager);
     for (int i = 0; i < 5; i++)
         SafeDeleteArray(emu_savestates_screenshots[i].data);
@@ -342,7 +345,13 @@ void emu_update(void)
         if (!gearboy->IsPaused())
         {
             rewind_commit_seek();
-            gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, NULL);
+
+            int runahead = runahead_get_frames();
+            if (runahead > 0)
+                runahead_run(runahead, frame_buffer_565, audio_buffer, &sampleCount);
+            else
+                gearboy->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount, false, NULL);
+
             frame_executed = true;
             frame_completed = true;
         }

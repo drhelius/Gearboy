@@ -268,6 +268,8 @@ void config_read(void)
     config_emulator.theme = read_int("Emulator", "Theme", config_Theme_Dark);
     config_emulator.theme = CLAMP(config_emulator.theme, config_Theme_Light, config_Theme_Dark);
     config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
+    config_emulator.runahead = read_int("Emulator", "RunAhead", 0);
+    config_emulator.runahead = CLAMP(config_emulator.runahead, 0, 3);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.save_slot = CLAMP(config_emulator.save_slot, 0, 4);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
@@ -528,6 +530,7 @@ void config_write(void)
     write_bool("Emulator", "AlwaysShowMenu", config_emulator.always_show_menu);
     write_int("Emulator", "Theme", config_emulator.theme);
     write_int("Emulator", "FFWD", config_emulator.ffwd_speed);
+    write_int("Emulator", "RunAhead", config_emulator.runahead);
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);
     write_bool("Emulator", "PauseWhenInactive", config_emulator.pause_when_inactive);

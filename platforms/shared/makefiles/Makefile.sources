@@ -34,6 +34,7 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/gamepad.cpp \
     $(DESKTOP_SRC_DIR)/emu.cpp \
     $(DESKTOP_SRC_DIR)/rewind.cpp \
+    $(DESKTOP_SRC_DIR)/runahead.cpp \
     $(DESKTOP_SRC_DIR)/sound_queue.cpp \
     $(DESKTOP_SRC_DIR)/single_instance.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug.cpp \
