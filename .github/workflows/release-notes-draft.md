@@ -91,9 +91,9 @@ Detect the newest Gearboy draft release created by the `Build and Release` workf
 ### Phase 3: Collect Changes
 
 1. The target release tag is `${{ github.event.inputs.release_tag }}`. Identify the previous published release tag from the list of published releases (published releases are visible to the read-only token).
-2. List merged pull requests and commits between the previous published tag and `${{ github.event.inputs.release_tag }}`. Use these as the source of truth for changes, contributors, and the compare range.
-3. Do not read the draft release body or call GitHub's generate-notes API; the read-only token cannot access drafts. Reconstruct the changelog from merged pull requests and commits instead.
-4. Group the changes into a small number of user-facing bullets. Do not overfit every commit into its own bullet.
+2. List both the merged pull requests and the full commit log between the previous published tag and `${{ github.event.inputs.release_tag }}`. Most feature work in this repository lands as direct commits without a pull request, so the commit log is the primary source of truth for features; read every commit subject in the range. Use the pull requests mainly to attribute external contributors and to confirm the compare range.
+3. Do not read the draft release body or call GitHub's generate-notes API; the read-only token cannot access drafts. Reconstruct the changelog from the commit log and merged pull requests instead.
+4. Identify notable user-facing changes from the commit subjects, not just from pull requests. Commit-message prefixes signal the affected area (for example `[mcp]` for the MCP server, `[debugger]` for debugger/tooling), and many feature commits have no prefix at all. Group related commits into a single bullet per feature, and fold only genuinely minor or purely internal commits into `Many bug fixes and improvements`. Never collapse a notable feature into the catch-all bullet just because it did not arrive through a pull request.
 5. Note the GitHub login of each notable pull request's author. Treat authors other than the repository owner (`drhelius`) as external contributors whose work should be credited with a profile link in Phase 4. Preserve useful `New Contributors` information when present.
 
 ### Phase 4: Draft Notes
