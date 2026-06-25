@@ -102,6 +102,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - LCD dot matrix effects. 
 - Battery powered RAM save support.
 - Save states with preview and rewind support.
+- Run-ahead support to reduce input latency.
 - Compressed ROM support (ZIP).
 - Bootrom (BIOS) support.
 - *Game Genie* and *GameShark* cheat support.
