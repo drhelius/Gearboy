@@ -443,7 +443,7 @@ jobs:
       actions: write
     steps:
     - name: Trigger Release Notes Draft
-      run: gh workflow run release-notes-draft.lock.yml --ref ${{ github.ref_name }}
+      run: gh workflow run release-notes-draft.lock.yml --ref ${{ github.ref_name }} --field release_tag=${{ github.ref_name }}
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
         GH_REPO: ${{ github.repository }}
