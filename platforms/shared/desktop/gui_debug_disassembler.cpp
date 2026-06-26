@@ -1580,7 +1580,7 @@ static void disassembler_menu(void)
 
         ImGui::Separator();
 
-        if (ImGui::BeginMenu("Run Ahead"))
+        if (ImGui::BeginMenu("Decode Ahead"))
         {
             ImGui::PushItemWidth(200.0f);
             ImGui::SliderInt("##lookahead", &config_debug.dis_look_ahead_count, 0, 100, "%d instructions");
