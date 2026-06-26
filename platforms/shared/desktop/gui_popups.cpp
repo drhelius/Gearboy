@@ -340,10 +340,8 @@ void gui_show_info(void)
     emu_get_info(info, 512);
 
     ImGui::PushFont(gui_default_font);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f,0.502f,0.957f,1.0f));
     ImGui::SetCursorPosX(5.0f);
     ImGui::Text("%s", info);
-    ImGui::PopStyleColor();
     ImGui::PopFont();
 
     ImGui::End();
