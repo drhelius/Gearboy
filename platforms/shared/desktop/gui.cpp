@@ -736,7 +736,7 @@ static void set_style(void)
     style.WindowMinSize = ImVec2(32.0f, 32.0f);
     style.WindowTitleAlign = ImVec2(0.0f, 0.5f);
     style.WindowMenuButtonPosition = ImGuiDir_Left;
-    style.DisplayWindowPadding = ImVec2(96.0f, 32.0f);
+    style.DisplayWindowPadding = ImVec2(100.0f, 70.0f);
     style.ChildRounding = 0.0f;
     style.ChildBorderSize = 1.0f;
     style.PopupRounding = 4.0f;
