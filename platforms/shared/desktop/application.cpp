@@ -300,6 +300,10 @@ static bool sdl_init(void)
 {
     Debug("Initializing SDL...");
 
+#if defined(_WIN32)
+    SDL_SetHint(SDL_HINT_WINDOWS_ENABLE_MENU_MNEMONICS, "1");
+#endif
+
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_SENSOR))
     {
         SDL_ERROR("SDL_Init");
