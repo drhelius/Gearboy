@@ -55,6 +55,7 @@ static void show_status_message(void);
 static void show_error_window(void);
 static void show_loading_popup(void);
 static bool finish_loading_rom(void);
+static void update_window_visibility_padding(void);
 static void set_style(void);
 static void set_style_light(ImGuiStyle& style);
 static void set_style_dark(ImGuiStyle& style);
@@ -142,6 +143,8 @@ void gui_destroy(void)
 void gui_render(void)
 {
     ImGui::NewFrame();
+
+    update_window_visibility_padding();
 
     if (config_debug.debug)
         ImGui::DockSpaceOverViewport();
@@ -358,6 +361,24 @@ void gui_set_error_message(const char* message)
 void gui_set_style(void)
 {
     set_style();
+}
+
+static void update_window_visibility_padding(void)
+{
+    static bool initialized = false;
+    static ImVec2 previous_work_size(0.0f, 0.0f);
+
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    if (!viewport || viewport->WorkSize.x <= 0.0f || viewport->WorkSize.y <= 0.0f)
+        return;
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    bool viewport_shrank = initialized && ((viewport->WorkSize.x < previous_work_size.x) || (viewport->WorkSize.y < previous_work_size.y));
+
+    style.DisplayWindowPadding = viewport_shrank ? ImVec2(100.0f, 70.0f) : ImVec2(19.0f, 19.0f);
+
+    previous_work_size = viewport->WorkSize;
+    initialized = true;
 }
 
 Cartridge::CartridgeTypes gui_get_mbc(int index)
@@ -736,7 +757,6 @@ static void set_style(void)
     style.WindowMinSize = ImVec2(32.0f, 32.0f);
     style.WindowTitleAlign = ImVec2(0.0f, 0.5f);
     style.WindowMenuButtonPosition = ImGuiDir_Left;
-    style.DisplayWindowPadding = ImVec2(100.0f, 70.0f);
     style.ChildRounding = 0.0f;
     style.ChildBorderSize = 1.0f;
     style.PopupRounding = 4.0f;
