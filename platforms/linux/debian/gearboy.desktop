@@ -7,6 +7,7 @@ Exec=/usr/games/gearboy %f
 TryExec=/usr/games/gearboy
 Icon=gearboy
 Terminal=false
+MimeType=application/x-gameboy-rom;application/x-gameboy-color-rom;
 Categories=Game;Emulator;
 Keywords=Game Boy;Game Boy Color;GB;GBC;Nintendo;
 StartupNotify=true

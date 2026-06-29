@@ -22,5 +22,75 @@
     <string>@version@</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.arcade-games</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>Game Boy ROM</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Owner</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.drhelius.gearboy.gb</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>Game Boy Color ROM</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Owner</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.drhelius.gearboy.gbc</string>
+            </array>
+        </dict>
+    </array>
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>com.drhelius.gearboy.gb</string>
+            <key>UTTypeDescription</key>
+            <string>Game Boy ROM</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.data</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>gb</string>
+                    <string>sgb</string>
+                </array>
+                <key>public.mime-type</key>
+                <string>application/x-gameboy-rom</string>
+            </dict>
+        </dict>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>com.drhelius.gearboy.gbc</string>
+            <key>UTTypeDescription</key>
+            <string>Game Boy Color ROM</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.data</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>gbc</string>
+                    <string>cgb</string>
+                </array>
+                <key>public.mime-type</key>
+                <string>application/x-gameboy-color-rom</string>
+            </dict>
+        </dict>
+    </array>
 </dict>
 </plist>
