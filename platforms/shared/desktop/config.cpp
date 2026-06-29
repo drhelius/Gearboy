@@ -19,6 +19,7 @@
 
 #include <SDL3/SDL.h>
 #include <iomanip>
+#include <string>
 #include "gearboy.h"
 
 #define MINI_CASE_SENSITIVE
@@ -29,7 +30,8 @@
 #include "shader_preset.h"
 #include "utils.h"
 
-static bool check_portable(void);
+static char* get_portable_path(void);
+static bool check_portable(const char* base_path);
 static int read_int(const char* group, const char* key, int default_value);
 static void write_int(const char* group, const char* key, int integer);
 static float read_float(const char* group, const char* key, float default_value);
@@ -111,9 +113,10 @@ static void set_defaults(void)
 void config_init(void)
 {
     const char* root_path = NULL;
+    char* portable_path = get_portable_path();
 
-    if (check_portable())
-        root_path = SDL_strdup(SDL_GetBasePath());
+    if (portable_path)
+        root_path = portable_path;
     else
         root_path = SDL_GetPrefPath("Geardome", GEARBOY_TITLE);
 
@@ -693,16 +696,46 @@ void config_write(void)
     }
 }
 
-static bool check_portable(void)
+static char* get_portable_path(void)
 {
-    const char* base_path;
-    char portable_file_path[260];
+    const char* base_path = SDL_GetBasePath();
+    if (base_path == NULL)
+        return NULL;
 
-    base_path = SDL_GetBasePath();
+#if defined(__APPLE__)
+    std::string app_path = base_path;
+    const std::string app_contents = ".app/Contents/";
+    size_t app_contents_pos = app_path.rfind(app_contents);
+
+    if (app_contents_pos != std::string::npos)
+    {
+        size_t app_dir_pos = app_path.rfind('/', app_contents_pos);
+
+        if (app_dir_pos != std::string::npos)
+        {
+            std::string portable_path = app_path.substr(0, app_dir_pos + 1);
+
+            if (check_portable(portable_path.c_str()))
+                return SDL_strdup(portable_path.c_str());
+        }
+    }
+#endif
+
+    if (check_portable(base_path))
+        return SDL_strdup(base_path);
+
+    return NULL;
+}
+
+static bool check_portable(const char* base_path)
+{
+    char portable_file_path[512];
+
     if (base_path == NULL)
         return false;
 
-    snprintf(portable_file_path, sizeof(portable_file_path), "%sportable.ini", base_path);
+    if (snprintf(portable_file_path, sizeof(portable_file_path), "%sportable.ini", base_path) >= (int)sizeof(portable_file_path))
+        return false;
 
     FILE* file = fopen_utf8(portable_file_path, "r");
 
