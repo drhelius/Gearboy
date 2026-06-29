@@ -24,10 +24,11 @@ safe-outputs:
   allowed-github-references: []
   jobs:
     create-release:
-      description: "Bump the patch version in README.md and MCP_README.md, commit, push, tag, and push the tag."
+      description: "Bump the patch version in README.md and MCP_README.md, commit, push, tag, push the tag, and trigger the build."
       runs-on: ubuntu-latest
       permissions:
         contents: write
+        actions: write
       output: "Release created."
       env:
         GH_TOKEN: ${{ github.token }}
@@ -75,6 +76,7 @@ safe-outputs:
             git push
             git tag "$NEW" -m "$NEW"
             git push origin "$NEW"
+            gh workflow run "Build and Release" --ref "$NEW"
 ---
 
 # Release
@@ -94,7 +96,7 @@ Create a new release for Gearboy by bumping the patch version, committing, and t
 
 ### Phase 2: Create The Release
 
-Call the `create_release` safe-output tool with `current_version` set to the detected `x.y.z` and `new_version` set to the bumped version. A privileged job updates every occurrence in README.md and MCP_README.md, commits `Bump version to <new_version>`, pushes, creates the tag `<new_version>`, and pushes the tag.
+Call the `create_release` safe-output tool with `current_version` set to the detected `x.y.z` and `new_version` set to the bumped version. A privileged job updates every occurrence in README.md and MCP_README.md, commits `Bump version to <new_version>`, pushes, creates the tag `<new_version>`, pushes the tag, and triggers the Build and Release workflow at that tag so the draft release is created.
 
 ## Style
 
