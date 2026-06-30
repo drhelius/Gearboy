@@ -737,6 +737,7 @@ void Video::RenderBG(int line, int pixel)
         for (int x = 0; x < pixels_to_clear; x++)
         {
             int position = line_width + pixel + x;
+            m_pColorFrameBuffer[position] = 0;
             m_pFrameBuffer[position] = 0;
             m_pColorCacheBuffer[position] = 0;
         }
