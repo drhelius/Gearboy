@@ -782,4 +782,33 @@ void MBC3MemoryRule::LoadState(std::istream& stream)
         m_CurrentROM0Address = m_iCurrentROM0Bank * 0x4000;
         m_iPoke2in1BaseBank = NormalizeROMBank(m_iPoke2in1BaseBank);
     }
+
+    if (!IsPoke2in1() && !m_pCartridge->IsMBC30())
+        m_iCurrentROMBank &= 0x7F;
+
+    if (!IsPoke2in1() && (m_iCurrentROMBank == 0))
+        m_iCurrentROMBank = 1;
+
+    m_iCurrentROMBank = NormalizeROMBank(m_iCurrentROMBank);
+    m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+
+    if (m_iCurrentRAMBank >= 0)
+    {
+        int ramBankMask = IsPKJD() ? GetSafeRAMBankMask() : (m_pCartridge->GetRAMBankCount() - 1);
+
+        if (ramBankMask >= 0)
+        {
+            m_iCurrentRAMBank &= ramBankMask;
+            m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
+        }
+        else
+        {
+            m_iCurrentRAMBank = 0;
+            m_CurrentRAMAddress = 0;
+        }
+    }
+    else
+    {
+        m_CurrentRAMAddress = 0;
+    }
 }
