@@ -87,6 +87,7 @@ int main(int argc, char* argv[])
                 if (i + 1 < argc)
                 {
                     app_params.mcp_tcp_port = atoi(argv[++i]);
+                    app_params.mcp_tcp_port_set = true;
                     if (app_params.mcp_tcp_port <= 0 || app_params.mcp_tcp_port > 65535)
                     {
                         printf("Invalid port number: %d\n", app_params.mcp_tcp_port);
@@ -99,6 +100,7 @@ int main(int argc, char* argv[])
                 if (i + 1 < argc)
                 {
                     app_params.mcp_http_address = argv[++i];
+                    app_params.mcp_http_address_set = true;
                     if (app_params.mcp_http_address.empty())
                         app_params.mcp_http_address = "127.0.0.1";
                 }
@@ -168,6 +170,16 @@ int main(int argc, char* argv[])
 
     config_init();
     config_read();
+
+    if (app_params.mcp_tcp_port_set)
+        config_emulator.mcp_tcp_port = app_params.mcp_tcp_port;
+    else
+        app_params.mcp_tcp_port = config_emulator.mcp_tcp_port;
+
+    if (app_params.mcp_http_address_set)
+        config_emulator.mcp_http_address = app_params.mcp_http_address;
+    else
+        app_params.mcp_http_address = config_emulator.mcp_http_address;
 
     if (headless)
     {

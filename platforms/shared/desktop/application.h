@@ -38,7 +38,9 @@ struct ApplicationParams
     bool force_windowed = false;
     int mcp_mode = -1;
     int mcp_tcp_port = 7777;
+    bool mcp_tcp_port_set = false;
     std::string mcp_http_address = "127.0.0.1";
+    bool mcp_http_address_set = false;
 };
 
 EXTERN SDL_Window* application_sdl_window;
