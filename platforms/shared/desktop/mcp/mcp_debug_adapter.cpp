@@ -28,6 +28,7 @@
 #include "../gui_debug_memeditor.h"
 #include "../gui_debug_rewind.h"
 #include "../config.h"
+#include "../events.h"
 #include "../rewind.h"
 #include <cstring>
 #include <sstream>
@@ -1492,6 +1493,71 @@ json DebugAdapter::LoadState()
 
     result["success"] = true;
     result["slot"] = slot;
+
+    return result;
+}
+
+json DebugAdapter::SaveStateFile(const std::string& file_path)
+{
+    json result;
+
+    if (file_path.empty())
+    {
+        result["error"] = "File path is required";
+        Log("[MCP] SaveStateFile failed: File path is required");
+        return result;
+    }
+
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
+    {
+        result["error"] = "No media loaded";
+        Log("[MCP] SaveStateFile failed: No media loaded");
+        return result;
+    }
+
+    if (!m_core->SaveState(file_path.c_str(), -1, false))
+    {
+        result["error"] = "Failed to save state file";
+        Log("[MCP] SaveStateFile failed: %s", file_path.c_str());
+        return result;
+    }
+
+    result["success"] = true;
+    result["file_path"] = file_path;
+
+    return result;
+}
+
+json DebugAdapter::LoadStateFile(const std::string& file_path)
+{
+    json result;
+
+    if (file_path.empty())
+    {
+        result["error"] = "File path is required";
+        Log("[MCP] LoadStateFile failed: File path is required");
+        return result;
+    }
+
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
+    {
+        result["error"] = "No media loaded";
+        Log("[MCP] LoadStateFile failed: No media loaded");
+        return result;
+    }
+
+    if (!m_core->LoadState(file_path.c_str(), -1, false))
+    {
+        result["error"] = "Failed to load state file";
+        Log("[MCP] LoadStateFile failed: %s", file_path.c_str());
+        return result;
+    }
+
+    events_sync_input();
+    rewind_reset();
+
+    result["success"] = true;
+    result["file_path"] = file_path;
 
     return result;
 }

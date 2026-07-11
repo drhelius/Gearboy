@@ -716,6 +716,40 @@ json McpServer::BuildToolList()
     });
 
     tools.push_back({
+        {"name", "save_state_file"},
+        {"title", "Save State File"},
+        {"description", "Save emulator state to an explicit file path."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"file_path", {
+                    {"type", "string"},
+                    {"description", "Absolute destination file path."}
+                }}
+            }},
+            {"required", json::array({"file_path"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "load_state_file"},
+        {"title", "Load State File"},
+        {"description", "Load emulator state from an explicit file path."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"file_path", {
+                    {"type", "string"},
+                    {"description", "Absolute save-state file path."}
+                }}
+            }},
+            {"required", json::array({"file_path"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
         {"name", "set_fast_forward_speed"},
         {"title", "Set Fast Forward Speed"},
         {"description", "Set fast-forward speed index: 0=1.5x, 1=2x, 2=2.5x, 3=3x, 4=unlimited."},
@@ -2074,6 +2108,22 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     else if (normalizedTool == "load_state")
     {
         return m_debugAdapter.LoadState();
+    }
+    else if (normalizedTool == "save_state_file")
+    {
+        if (!arguments.contains("file_path") || !arguments["file_path"].is_string())
+            return {{"error", "File path is required"}};
+
+        std::string file_path = arguments["file_path"];
+        return m_debugAdapter.SaveStateFile(file_path);
+    }
+    else if (normalizedTool == "load_state_file")
+    {
+        if (!arguments.contains("file_path") || !arguments["file_path"].is_string())
+            return {{"error", "File path is required"}};
+
+        std::string file_path = arguments["file_path"];
+        return m_debugAdapter.LoadStateFile(file_path);
     }
     else if (normalizedTool == "set_fast_forward_speed")
     {

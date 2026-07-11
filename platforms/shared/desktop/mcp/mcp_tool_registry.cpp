@@ -120,7 +120,8 @@ static const char* const kMcpCaptureTools[] =
 
 static const char* const kMcpStateTools[] =
 {
-    "list_save_state_slots", "select_save_state_slot", "save_state", "load_state"
+    "list_save_state_slots", "select_save_state_slot", "save_state", "load_state",
+    "save_state_file", "load_state_file"
 };
 
 static const char* const kMcpRewindTools[] =
