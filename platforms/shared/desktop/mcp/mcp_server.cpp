@@ -1902,13 +1902,20 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     }
     else if (normalizedTool == "write_memory")
     {
-        int area = arguments["area"];
-        std::string offsetStr = arguments["offset"];
+        if (!arguments.contains("area") || !arguments["area"].is_number_integer())
+            return {{"error", "area is required"}};
+        if (!arguments.contains("offset") || !arguments["offset"].is_string())
+            return {{"error", "offset is required"}};
+        if (!arguments.contains("bytes") || !arguments["bytes"].is_string())
+            return {{"error", "bytes is required"}};
+
+        int area = arguments["area"].get<int>();
+        std::string offsetStr = arguments["offset"].get<std::string>();
         u32 offset;
         if (!parse_hex_with_prefix(offsetStr, &offset))
             return {{"error", "Invalid offset format"}};
 
-        std::string bytesStr = arguments["bytes"];
+        std::string bytesStr = arguments["bytes"].get<std::string>();
         std::vector<u8> data;
 
         // Parse hex bytes
