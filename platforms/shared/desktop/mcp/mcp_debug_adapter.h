@@ -156,6 +156,8 @@ public:
     json RemoveSymbol(u8 bank, u16 address);
     json LoadSymbols(const std::string& file_path);
     json ListSymbols();
+    json LookupSymbolByName(const std::string& name);
+    json LookupSymbolAtAddress(u8 bank, u16 address);
     json ListCallStack();
 
     // Memory area operations

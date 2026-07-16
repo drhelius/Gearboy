@@ -2214,6 +2214,63 @@ json DebugAdapter::ListSymbols()
     return result;
 }
 
+json DebugAdapter::LookupSymbolByName(const std::string& name)
+{
+    json result;
+
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
+    {
+        result["error"] = "No media loaded";
+        return result;
+    }
+
+    std::vector<DebugSymbol*> symbols;
+    gui_debug_find_symbols(name.c_str(), symbols);
+
+    json matches = json::array();
+    for (size_t i = 0; i < symbols.size(); i++)
+    {
+        std::ostringstream bank_ss, address_ss;
+        bank_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << symbols[i]->bank;
+        address_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << symbols[i]->address;
+
+        matches.push_back({
+            {"bank", bank_ss.str()},
+            {"address", address_ss.str()},
+            {"name", symbols[i]->text}
+        });
+    }
+
+    result["matches"] = matches;
+    result["count"] = matches.size();
+    return result;
+}
+
+json DebugAdapter::LookupSymbolAtAddress(u8 bank, u16 address)
+{
+    json result;
+
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
+    {
+        result["error"] = "No media loaded";
+        return result;
+    }
+
+    std::ostringstream bank_ss, address_ss;
+    bank_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)bank;
+    address_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << address;
+
+    DebugSymbol* symbol = gui_debug_get_symbol(bank, address);
+    result["found"] = IsValidPointer(symbol);
+    result["bank"] = bank_ss.str();
+    result["address"] = address_ss.str();
+
+    if (IsValidPointer(symbol))
+        result["name"] = symbol->text;
+
+    return result;
+}
+
 json DebugAdapter::ListCallStack()
 {
     json result;
