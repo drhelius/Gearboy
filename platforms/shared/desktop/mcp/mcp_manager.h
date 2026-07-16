@@ -298,8 +298,7 @@ private:
         if (!resp->result.contains("error"))
             return;
 
-        resp->isError = true;
-        resp->errorCode = -32603;
+        resp->isToolError = true;
         resp->errorMessage = resp->result["error"];
     }
 
@@ -587,8 +586,7 @@ private:
 
         DebugResponse* resp = new DebugResponse();
         resp->requestId = m_inputMacro.request_id;
-        resp->isError = true;
-        resp->errorCode = -32603;
+        resp->isToolError = true;
         resp->errorMessage = error;
         resp->result = {{"error", error}};
 

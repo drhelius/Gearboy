@@ -19,6 +19,151 @@
 
 #include "mcp_tool_registry.h"
 #include <cctype>
+#include <sstream>
+
+static const char* json_type_name(const json& value)
+{
+    if (value.is_object()) return "object";
+    if (value.is_array()) return "array";
+    if (value.is_string()) return "string";
+    if (value.is_boolean()) return "boolean";
+    if (value.is_number_integer() || value.is_number_unsigned()) return "integer";
+    if (value.is_number()) return "number";
+    if (value.is_null()) return "null";
+    return "unknown";
+}
+
+static bool json_type_matches(const json& value, const std::string& type)
+{
+    if (type == "object") return value.is_object();
+    if (type == "array") return value.is_array();
+    if (type == "string") return value.is_string();
+    if (type == "boolean") return value.is_boolean();
+    if (type == "integer") return value.is_number_integer() || value.is_number_unsigned();
+    if (type == "number") return value.is_number();
+    if (type == "null") return value.is_null();
+    return true;
+}
+
+static std::string json_path_child(const std::string& path, const std::string& child)
+{
+    return path.empty() ? child : path + "." + child;
+}
+
+static bool validate_json_schema(const json& value, const json& schema, const std::string& path, std::string& error)
+{
+    if (!schema.is_object())
+        return true;
+
+    if (schema.contains("type") && schema["type"].is_string())
+    {
+        std::string type = schema["type"].get<std::string>();
+        if (!json_type_matches(value, type))
+        {
+            error = "Parameter '" + path + "' must be " + type + ", got " + json_type_name(value);
+            return false;
+        }
+    }
+
+    if (schema.contains("enum") && schema["enum"].is_array())
+    {
+        bool found = false;
+        for (json::const_iterator it = schema["enum"].begin(); it != schema["enum"].end(); ++it)
+        {
+            if (value == *it)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            error = "Parameter '" + path + "' has an invalid value";
+            return false;
+        }
+    }
+
+    if (value.is_number())
+    {
+        double number = value.get<double>();
+        if (schema.contains("minimum") && schema["minimum"].is_number() && number < schema["minimum"].get<double>())
+        {
+            error = "Parameter '" + path + "' is below the minimum";
+            return false;
+        }
+        if (schema.contains("maximum") && schema["maximum"].is_number() && number > schema["maximum"].get<double>())
+        {
+            error = "Parameter '" + path + "' is above the maximum";
+            return false;
+        }
+    }
+
+    if (value.is_array())
+    {
+        if (schema.contains("minItems") && schema["minItems"].is_number_integer() && value.size() < schema["minItems"].get<size_t>())
+        {
+            error = "Parameter '" + path + "' has too few items";
+            return false;
+        }
+        if (schema.contains("maxItems") && schema["maxItems"].is_number_integer() && value.size() > schema["maxItems"].get<size_t>())
+        {
+            error = "Parameter '" + path + "' has too many items";
+            return false;
+        }
+        if (schema.contains("items") && schema["items"].is_object())
+        {
+            for (size_t i = 0; i < value.size(); i++)
+            {
+                std::ostringstream item_path;
+                item_path << path << "[" << i << "]";
+                if (!validate_json_schema(value[i], schema["items"], item_path.str(), error))
+                    return false;
+            }
+        }
+    }
+
+    if (value.is_object())
+    {
+        if (schema.contains("required") && schema["required"].is_array())
+        {
+            for (json::const_iterator it = schema["required"].begin(); it != schema["required"].end(); ++it)
+            {
+                if (it->is_string() && !value.contains(it->get<std::string>()))
+                {
+                    error = "Missing required parameter '" + json_path_child(path, it->get<std::string>()) + "'";
+                    return false;
+                }
+            }
+        }
+
+        const json* properties = NULL;
+        if (schema.contains("properties") && schema["properties"].is_object())
+            properties = &schema["properties"];
+
+        for (json::const_iterator it = value.begin(); it != value.end(); ++it)
+        {
+            std::string child_path = json_path_child(path, it.key());
+            if (properties && properties->contains(it.key()))
+            {
+                if (!validate_json_schema(it.value(), (*properties)[it.key()], child_path, error))
+                    return false;
+            }
+            else if (schema.contains("additionalProperties") && schema["additionalProperties"].is_boolean() && !schema["additionalProperties"].get<bool>())
+            {
+                error = "Unexpected parameter '" + child_path + "'";
+                return false;
+            }
+            else if (schema.contains("additionalProperties") && schema["additionalProperties"].is_object())
+            {
+                if (!validate_json_schema(it.value(), schema["additionalProperties"], child_path, error))
+                    return false;
+            }
+        }
+    }
+
+    return true;
+}
 
 struct McpToolCategory
 {
@@ -205,6 +350,24 @@ bool McpToolRegistry::HasCategory(const std::string& category) const
     }
 
     return false;
+}
+
+bool McpToolRegistry::ValidateArguments(const std::string& tool_name, const json& arguments, std::string& error) const
+{
+    const json* tool = FindTool(tool_name);
+    if (!tool)
+    {
+        error = "Unknown tool '" + tool_name + "'";
+        return false;
+    }
+
+    if (!tool->contains("inputSchema") || !(*tool)["inputSchema"].is_object())
+    {
+        error = "Tool has no valid input schema";
+        return false;
+    }
+
+    return validate_json_schema(arguments, (*tool)["inputSchema"], "", error);
 }
 
 json McpToolRegistry::GetStats() const

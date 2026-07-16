@@ -104,6 +104,7 @@ void McpServer::Run()
             json response;
             response["jsonrpc"] = "2.0";
             response["id"] = resp->requestId;
+            mcpResult["isError"] = resp->isToolError;
             response["result"] = mcpResult;
 
             SendResponse(response);
@@ -125,6 +126,26 @@ void McpServer::HandleLine(const std::string& line)
     }
 
     request = json::parse(line);
+
+    if (!request.is_object())
+    {
+        SendError(0, -32600, "Invalid Request: expected an object");
+        return;
+    }
+
+    if (request.contains("id") && !request["id"].is_number_integer() && !request["id"].is_number_unsigned())
+    {
+        SendError(0, -32600, "Invalid Request: id must be an integer");
+        return;
+    }
+
+    int64_t request_id = request.contains("id") ? request["id"].get<int64_t>() : 0;
+
+    if (request.contains("params") && !request["params"].is_object())
+    {
+        SendError(request_id, -32602, "Invalid params: expected an object");
+        return;
+    }
 
     // Validate JSON-RPC structure
     if (!request.contains("jsonrpc") || request["jsonrpc"] != "2.0")
@@ -172,8 +193,7 @@ void McpServer::HandleLine(const std::string& line)
     }
     else
     {
-        int64_t id = request.contains("id") ? request["id"].get<int64_t>() : 0;
-        SendError(id, -32601, "Method not found: " + method);
+        SendError(request_id, -32601, "Method not found: " + method);
     }
 }
 
@@ -191,6 +211,11 @@ void McpServer::HandleInitialize(const json& request)
     std::string protocolVersion = "2025-11-25";
     if (request.contains("params") && request["params"].contains("protocolVersion"))
     {
+        if (!request["params"]["protocolVersion"].is_string())
+        {
+            SendError(id, -32602, "Invalid params: protocolVersion must be a string");
+            return;
+        }
         protocolVersion = request["params"]["protocolVersion"];
     }
 
@@ -1386,6 +1411,15 @@ json McpServer::BuildToolList()
         }}
     });
 
+    for (json::iterator it = tools.begin(); it != tools.end(); ++it)
+    {
+        if (it->contains("inputSchema") && (*it)["inputSchema"].is_object() &&
+            !(*it)["inputSchema"].contains("additionalProperties"))
+        {
+            (*it)["inputSchema"]["additionalProperties"] = false;
+        }
+    }
+
     return tools;
 }
 
@@ -1583,6 +1617,7 @@ void McpServer::SendToolResult(int64_t id, const json& result)
             }
         })}
     };
+    response["result"]["isError"] = result.contains("error");
 
     SendResponse(response);
 }
@@ -1597,47 +1632,73 @@ void McpServer::HandleToolsCall(const json& request)
 
     int64_t id = request["id"];
 
-    if (!request.contains("params") || !request["params"].contains("name"))
+    if (!request.contains("params") || !request["params"].contains("name") || !request["params"]["name"].is_string())
     {
         SendError(id, -32602, "Invalid params: missing tool name");
         return;
     }
 
     std::string toolName = request["params"]["name"];
+    if (request["params"].contains("arguments") && !request["params"]["arguments"].is_object())
+    {
+        SendError(id, -32602, "Invalid params: arguments must be an object");
+        return;
+    }
+
     json arguments = request["params"].contains("arguments") ? request["params"]["arguments"] : json::object();
 
-    if (!g_mcp_router_disabled && m_toolRegistry.IsRouterTool(toolName))
-        EnsureToolRegistry();
+    EnsureToolRegistry();
 
     if (!g_mcp_router_disabled && m_toolRegistry.IsRouterTool(toolName, "list_tool_categories"))
     {
+        if (!arguments.empty())
+        {
+            SendError(id, -32602, "Invalid params: list_tool_categories takes no arguments");
+            return;
+        }
         SendToolResult(id, HandleRouterListCategories());
         return;
     }
 
     if (!g_mcp_router_disabled && m_toolRegistry.IsRouterTool(toolName, "get_category_tools"))
     {
+        if (arguments.size() != 1 || !arguments.contains("category") || !arguments["category"].is_string())
+        {
+            SendError(id, -32602, "Invalid params: category must be a string");
+            return;
+        }
         SendToolResult(id, HandleRouterGetCategoryTools(arguments));
         return;
     }
 
     if (!g_mcp_router_disabled && m_toolRegistry.IsRouterTool(toolName, "get_tool_info"))
     {
+        if (arguments.size() != 1 || !arguments.contains("name") || !arguments["name"].is_string())
+        {
+            SendError(id, -32602, "Invalid params: name must be a string");
+            return;
+        }
         SendToolResult(id, HandleRouterGetToolInfo(arguments));
         return;
     }
 
     if (!g_mcp_router_disabled && m_toolRegistry.IsRouterTool(toolName, "search_tools"))
     {
+        if (arguments.size() != 1 || !arguments.contains("query") || !arguments["query"].is_string())
+        {
+            SendError(id, -32602, "Invalid params: query must be a string");
+            return;
+        }
         SendToolResult(id, HandleRouterSearchTools(arguments));
         return;
     }
 
     if (!g_mcp_router_disabled && m_toolRegistry.IsRouterTool(toolName, "execute_tool"))
     {
-        if (!arguments.contains("name") || !arguments["name"].is_string())
+        if (arguments.size() > 2 || !arguments.contains("name") || !arguments["name"].is_string() ||
+            (arguments.size() == 2 && !arguments.contains("arguments")))
         {
-            SendError(id, -32602, "Invalid params: missing routed tool name");
+            SendError(id, -32602, "Invalid params: execute_tool accepts only name and arguments");
             return;
         }
 
@@ -1645,14 +1706,27 @@ void McpServer::HandleToolsCall(const json& request)
 
         if (!m_toolRegistry.HasTool(toolName))
         {
-            SendToolResult(id, {{"error", "Unknown tool"}, {"name", toolName}});
+            SendError(id, -32602, "Invalid params: unknown routed tool '" + toolName + "'");
             return;
         }
 
-        if (arguments.contains("arguments") && arguments["arguments"].is_object())
+        if (arguments.contains("arguments") && !arguments["arguments"].is_object())
+        {
+            SendError(id, -32602, "Invalid params: routed arguments must be an object");
+            return;
+        }
+
+        if (arguments.contains("arguments"))
             arguments = arguments["arguments"];
         else
             arguments = json::object();
+    }
+
+    std::string validation_error;
+    if (!m_toolRegistry.ValidateArguments(toolName, arguments, validation_error))
+    {
+        SendError(id, -32602, "Invalid params: " + validation_error);
+        return;
     }
 
     // Enqueue command for main thread to execute
@@ -2515,9 +2589,9 @@ void McpServer::HandleResourcesRead(const json& request)
 
     int64_t id = request["id"];
 
-    if (!request.contains("params") || !request["params"].contains("uri"))
+    if (!request.contains("params") || !request["params"].contains("uri") || !request["params"]["uri"].is_string())
     {
-        SendError(id, -32602, "Invalid params: missing uri");
+        SendError(id, -32602, "Invalid params: uri must be a string");
         return;
     }
 

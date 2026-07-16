@@ -55,8 +55,9 @@ struct DebugCommand
 struct DebugResponse
 {
     int64_t requestId;
-    bool isError;
-    int errorCode;
+    bool isError = false;
+    bool isToolError = false;
+    int errorCode = 0;
     std::string errorMessage;
     json result;
 };

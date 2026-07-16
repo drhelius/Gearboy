@@ -36,6 +36,7 @@ public:
     bool IsEmpty() const;
     bool HasTool(const std::string& tool_name) const;
     bool HasCategory(const std::string& category) const;
+    bool ValidateArguments(const std::string& tool_name, const json& arguments, std::string& error) const;
 
     json GetStats() const;
     json GetCategories() const;
