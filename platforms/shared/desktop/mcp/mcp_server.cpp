@@ -660,7 +660,7 @@ json McpServer::BuildToolList()
     tools.push_back({
         {"name", "load_media"},
         {"title", "Load Media"},
-        {"description", "Load ROM media (.gb .dmg .gbc .cgb .sgb .zip), auto-load .sym, reset emulator."},
+        {"description", "Load ROM media (.gb .dmg .gbc .cgb .sgb .zip); reset emulator and auto-load symbols. Debugger state may be lost unless saved debugger settings are enabled."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
