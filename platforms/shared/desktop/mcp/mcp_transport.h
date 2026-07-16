@@ -143,6 +143,14 @@ public:
             return;
         }
 
+        if (!is_loopback_bind_address() && m_auth_token.empty())
+        {
+            Error("[MCP] HTTP bearer token %s is required for non-loopback bind address %s", MCP_HTTP_AUTH_ENV, m_bind_address.c_str());
+            SOCKET_CLOSE(m_server_socket);
+            m_server_socket = INVALID_SOCKET_VALUE;
+            return;
+        }
+
         if (bind(m_server_socket, (struct sockaddr*)&addr, sizeof(addr)) < 0)
         {
             Error("[MCP] Failed to bind to %s:%d", m_bind_address.c_str(), port);
@@ -162,8 +170,6 @@ public:
         Log("[MCP] HTTP server listening on http://%s:%d%s", m_bind_address.c_str(), port, MCP_HTTP_ENDPOINT_PATH);
         if (!m_auth_token.empty())
             Log("[MCP] HTTP bearer token authentication enabled from %s", MCP_HTTP_AUTH_ENV);
-        else if (!is_loopback_bind_address())
-            Log("[MCP] Warning: HTTP server is bound to a non-loopback address without authentication");
     }
 
     ~HttpTransport()
@@ -263,11 +269,13 @@ public:
         return true;
     }
 
-    std::string extract_http_header(const std::string& request, const char* header_name)
+    int extract_http_header(const std::string& request, const char* header_name, std::string& value)
     {
+        value.clear();
+        int count = 0;
         size_t line_start = request.find("\r\n");
         if (line_start == std::string::npos)
-            return "";
+            return 0;
 
         line_start += 2;
 
@@ -275,13 +283,14 @@ public:
         {
             size_t line_end = request.find("\r\n", line_start);
             if (line_end == std::string::npos)
-                return "";
+                return count;
 
             if (line_end == line_start)
-                return "";
+                return count;
 
             if (header_name_matches(request, line_start, line_end, header_name))
             {
+                count++;
                 size_t value_start = line_start + strlen(header_name) + 1;
                 while ((value_start < line_end) && ((request[value_start] == ' ') || (request[value_start] == '\t')))
                     value_start++;
@@ -290,13 +299,14 @@ public:
                 while ((value_end > value_start) && ((request[value_end - 1] == ' ') || (request[value_end - 1] == '\t')))
                     value_end--;
 
-                return request.substr(value_start, value_end - value_start);
+                if (count == 1)
+                    value = request.substr(value_start, value_end - value_start);
             }
 
             line_start = line_end + 2;
         }
 
-        return "";
+        return count;
     }
 
     std::string sanitize_http_headers_for_debug(const std::string& headers)
@@ -336,37 +346,50 @@ public:
         return origin == "http://" + address + ":" + port;
     }
 
+    bool is_loopback_address(const std::string& address)
+    {
+        struct in_addr parsed_address;
+        if (inet_pton(AF_INET, address.c_str(), &parsed_address) != 1)
+            return false;
+
+        return (ntohl(parsed_address.s_addr) & 0xFF000000) == 0x7F000000;
+    }
+
     bool is_loopback_bind_address()
     {
-        return m_bind_address.find("127.") == 0;
+        return is_loopback_address(m_bind_address);
     }
 
-    bool is_allowed_host(const std::string& host)
+    bool get_socket_local_address(socket_t client, std::string& address)
     {
-        if (host_matches_address(host, m_bind_address))
-            return true;
+        struct sockaddr_in local_address;
+        memset(&local_address, 0, sizeof(local_address));
+        socket_len_t local_length = sizeof(local_address);
+        if (getsockname(client, (struct sockaddr*)&local_address, &local_length) != 0 || local_address.sin_family != AF_INET)
+            return false;
 
-        if (is_loopback_bind_address())
-        {
-            return host_matches_address(host, "127.0.0.1") ||
-                   host_matches_address(host, "localhost");
-        }
+        char buffer[INET_ADDRSTRLEN];
+        if (!inet_ntop(AF_INET, &local_address.sin_addr, buffer, sizeof(buffer)))
+            return false;
 
-        return false;
+        address = buffer;
+        return true;
     }
 
-    bool is_allowed_origin(const std::string& origin)
+    bool is_allowed_host(const std::string& host, const std::string& local_address)
     {
-        if (origin_matches_address(origin, m_bind_address))
+        if (host_matches_address(host, local_address))
             return true;
 
-        if (is_loopback_bind_address())
-        {
-            return origin_matches_address(origin, "127.0.0.1") ||
-                   origin_matches_address(origin, "localhost");
-        }
+        return is_loopback_address(local_address) && host_matches_address(host, "localhost");
+    }
 
-        return false;
+    bool is_allowed_origin(const std::string& origin, const std::string& local_address)
+    {
+        if (origin_matches_address(origin, local_address))
+            return true;
+
+        return is_loopback_address(local_address) && origin_matches_address(origin, "localhost");
     }
 
     std::string get_cors_origin_header()
@@ -415,7 +438,14 @@ public:
         if (m_auth_token.empty())
             return true;
 
-        std::string authorization = extract_http_header(request, "Authorization");
+        std::string authorization;
+        if (extract_http_header(request, "Authorization", authorization) != 1)
+        {
+            Debug("[MCP] Rejecting request with missing or duplicate Authorization header");
+            send_http_response(client, 401, "Unauthorized", "text/plain", "401 Unauthorized", true, "WWW-Authenticate: Bearer\r\n");
+            return false;
+        }
+
         std::string expected = "Bearer " + m_auth_token;
 
         if (authorization == expected)
@@ -428,25 +458,34 @@ public:
 
     bool validate_and_reject_http_access(const std::string& request, socket_t client)
     {
-        std::string host = extract_http_header(request, "Host");
-        if (!is_allowed_host(host))
+        std::string local_address;
+        if (!get_socket_local_address(client, local_address))
         {
-            Debug("[MCP] Rejecting request with foreign Host: %s", host.c_str());
+            Debug("[MCP] Rejecting request because the local socket address is unavailable");
             send_http_response(client, 403, "Forbidden", "text/plain", "403 Forbidden", false);
             return false;
         }
 
-        std::string origin = extract_http_header(request, "Origin");
+        std::string host;
+        if (extract_http_header(request, "Host", host) != 1 || !is_allowed_host(host, local_address))
+        {
+            Debug("[MCP] Rejecting request with missing, duplicate, or foreign Host: %s", host.c_str());
+            send_http_response(client, 403, "Forbidden", "text/plain", "403 Forbidden", false);
+            return false;
+        }
+
+        std::string origin;
+        int origin_count = extract_http_header(request, "Origin", origin);
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             m_current_origin.clear();
-            if (!origin.empty() && is_allowed_origin(origin))
+            if (origin_count == 1 && is_allowed_origin(origin, local_address))
                 m_current_origin = origin;
         }
 
-        if (!origin.empty() && m_current_origin.empty())
+        if (origin_count > 1 || (origin_count == 1 && m_current_origin.empty()))
         {
-            Debug("[MCP] Rejecting request with foreign Origin: %s", origin.c_str());
+            Debug("[MCP] Rejecting request with duplicate or foreign Origin: %s", origin.c_str());
             send_http_response(client, 403, "Forbidden", "text/plain", "403 Forbidden", false);
             return false;
         }
