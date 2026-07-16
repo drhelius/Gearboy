@@ -18,6 +18,7 @@
  */
 
 #include "mcp_debug_adapter.h"
+#include "Input.h"
 #include "log.h"
 #include "../utils.h"
 #include "../emu.h"
@@ -1722,6 +1723,23 @@ json DebugAdapter::ControllerButton(int player, const std::string& button, const
     result["action"] = action;
 
     return result;
+}
+
+json DebugAdapter::GetInputState()
+{
+    static const char* button_names[] = {"up", "down", "left", "right", "a", "b", "start", "select"};
+    static const Gameboy_Keys button_keys[] = {Up_Key, Down_Key, Left_Key, Right_Key, A_Key, B_Key, Start_Key, Select_Key};
+
+    json pressed = json::array();
+    Input* input = m_core->GetInput();
+
+    for (size_t i = 0; i < sizeof(button_keys) / sizeof(button_keys[0]); i++)
+    {
+        if (input->IsKeyPressed(button_keys[i]))
+            pressed.push_back(button_names[i]);
+    }
+
+    return {{"players", json::array({{{"player", 1}, {"pressed", pressed}}})}};
 }
 
 json DebugAdapter::ListSprites()

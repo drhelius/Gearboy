@@ -923,6 +923,17 @@ json McpServer::BuildToolList()
     });
 
     tools.push_back({
+        {"name", "get_input_state"},
+        {"title", "Get Input State"},
+        {"description", "Get effective pressed buttons and pending tap releases."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
         {"name", "list_sprites"},
         {"title", "List Sprites"},
         {"description", "List 40 OAM sprites: position, tile, attributes, CGB palette/bank."},
@@ -2269,6 +2280,10 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         std::string button = arguments["button"];
         std::string action = arguments["action"];
         return m_debugAdapter.ControllerButton(player, button, action);
+    }
+    else if (normalizedTool == "get_input_state")
+    {
+        return m_debugAdapter.GetInputState();
     }
     else if (normalizedTool == "controller_macro")
     {

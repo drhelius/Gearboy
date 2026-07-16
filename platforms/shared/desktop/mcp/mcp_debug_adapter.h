@@ -147,6 +147,7 @@ public:
 
     // Controller input
     json ControllerButton(int player, const std::string& button, const std::string& action);
+    json GetInputState();
 
     // Disassembler operations
     json AddDisassemblerBookmark(u16 address, const std::string& name);

@@ -52,7 +52,8 @@ This server provides tools for game development, rom hacking, reverse engineerin
 - **Disassembly**: View disassembled SM83 code around PC or any address
 - **Hardware Inspection**: SM83 CPU, LCD controller, APU audio channels
 - **Sprite Viewer**: List and inspect all 40 OAM sprites with images
-- **Symbol Support**: Add, remove, and list debug symbols
+- **Symbol Support**: Add, remove, list, and look up debug symbols
+- **Input State**: Inspect effective pressed buttons and pending tap releases
 - **Bookmarks**: Memory and disassembler bookmarks for navigation
 - **Call Stack**: View function call hierarchy
 - **Trace Logger**: CPU instruction trace with interleaved hardware events (LCD, APU, I/O, bank switching)
@@ -355,11 +356,14 @@ The server exposes tools organized in the following categories:
 - `add_symbol` - Add symbol (label) at specified address
 - `remove_symbol` - Remove symbol
 - `list_symbols` - List all defined symbols
+- `lookup_symbol_by_name` - Find all exact-name symbol matches
+- `lookup_symbol_at_address` - Find symbol at bank/address
 - `add_disassembler_bookmark` - Add bookmark in disassembler
 - `remove_disassembler_bookmark` - Remove disassembler bookmark
 - `list_disassembler_bookmarks` - List all disassembler bookmarks
 - `get_call_stack` - View function call hierarchy
 - `get_trace_log` - Read trace logger entries (CPU + hardware events). Start the trace logger from the debugger window first
+- `set_trace_log` - Start or stop trace logging with event filters
 
 ### Breakpoints
 - `set_breakpoint` - Set execution, read, or write breakpoint (supports 3 memory areas: rom_ram, vram, io)
@@ -390,6 +394,8 @@ The server exposes tools organized in the following categories:
 - `select_save_state_slot` - Select active save state slot (1-5) for save/load operations
 - `save_state` - Save emulator state to currently selected slot
 - `load_state` - Load emulator state from currently selected slot
+- `save_state_file` - Save emulator state to an explicit file path
+- `load_state_file` - Load emulator state from an explicit file path
 - `set_fast_forward_speed` - Set fast forward speed multiplier (0: 1.5x, 1: 2x, 2: 2.5x, 3: 3x, 4: Unlimited)
 - `toggle_fast_forward` - Toggle fast forward mode on/off
 - `get_rewind_status` - Get rewind buffer status (enabled, snapshots, capacity, buffered seconds)
@@ -398,6 +404,7 @@ The server exposes tools organized in the following categories:
 ### Controller Input
 - `controller_button` - Control a button on the Game Boy. Use action 'press' to hold the button, 'release' to let it go, or 'press_and_release' to simulate a quick tap. Buttons: up, down, left, right, a, b, start, select
 - `controller_macro` - Run an ordered input macro. Top-level `player` defaults to 1, and each command may override it. Supported commands are `tap`, `press`, `release`, and `wait`; timing is explicit through `wait` frame counts
+- `get_input_state` - Get effective pressed buttons and pending tap releases
 
 ## How MCP Works in Gearboy
 

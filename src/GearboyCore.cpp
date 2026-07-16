@@ -341,6 +341,11 @@ Video* GearboyCore::GetVideo()
     return m_pVideo;
 }
 
+Input* GearboyCore::GetInput()
+{
+    return m_pInput;
+}
+
 TraceLogger* GearboyCore::GetTraceLogger()
 {
     return m_trace_logger;

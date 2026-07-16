@@ -54,6 +54,11 @@ void Input::KeyReleased(Gameboy_Keys key)
     m_JoypadState[0] |= key;
 }
 
+bool Input::IsKeyPressed(Gameboy_Keys key) const
+{
+    return !(m_JoypadState[0] & key);
+}
+
 void Input::KeyPressed(Gameboy_Keys key, int player)
 {
     if (player >= 0 && player < 4)

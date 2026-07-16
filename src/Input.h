@@ -34,6 +34,7 @@ public:
     void Tick(unsigned int clockCycles);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
+    bool IsKeyPressed(Gameboy_Keys key) const;
     void KeyPressed(Gameboy_Keys key, int player);
     void KeyReleased(Gameboy_Keys key, int player);
     void SetCurrentPlayer(int player);
