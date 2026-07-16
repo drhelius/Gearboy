@@ -296,6 +296,7 @@ void config_read(void)
     config_emulator.window_width = read_int("Emulator", "WindowWidth", 800);
     config_emulator.window_height = read_int("Emulator", "WindowHeight", 700);
     config_emulator.status_messages = read_bool("Emulator", "StatusMessages", false);
+    config_emulator.allow_screensaver = read_bool("Emulator", "AllowScreenSaver", false);
     config_emulator.mcp_tcp_port = read_int("Emulator", "MCPTCPPort", 7777);
     config_emulator.mcp_http_address = read_string("Emulator", "MCPHTTPAddress");
     if (config_emulator.mcp_http_address.empty())
@@ -556,6 +557,7 @@ void config_write(void)
     write_int("Emulator", "WindowWidth", config_emulator.window_width);
     write_int("Emulator", "WindowHeight", config_emulator.window_height);
     write_bool("Emulator", "StatusMessages", config_emulator.status_messages);
+    write_bool("Emulator", "AllowScreenSaver", config_emulator.allow_screensaver);
     write_int("Emulator", "MCPTCPPort", config_emulator.mcp_tcp_port);
     write_string("Emulator", "MCPHTTPAddress", config_emulator.mcp_http_address);
     write_int("Emulator", "TiltSource", config_emulator.tilt_source);

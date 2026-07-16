@@ -622,6 +622,13 @@ static void menu_emulator(void)
 
         ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
         ImGui::MenuItem("Pause When Inactive", "", &config_emulator.pause_when_inactive);
+        if (ImGui::MenuItem("Allow Screen Saver", "", &config_emulator.allow_screensaver))
+        {
+            if (config_emulator.allow_screensaver)
+                SDL_EnableScreenSaver();
+            else
+                SDL_DisableScreenSaver();
+        }
 
         ImGui::Separator();
 

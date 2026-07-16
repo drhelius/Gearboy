@@ -300,6 +300,8 @@ static bool sdl_init(void)
 {
     Debug("Initializing SDL...");
 
+    SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, config_emulator.allow_screensaver ? "1" : "0");
+
 #if defined(_WIN32)
     SDL_SetHint(SDL_HINT_WINDOWS_ENABLE_MENU_MNEMONICS, "1");
 #endif
