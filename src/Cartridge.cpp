@@ -253,35 +253,51 @@ bool Cartridge::LoadFromFile(const char* path)
     if (file.is_open())
     {
         int size = static_cast<int> (file.tellg());
-        char* memblock = new char[size];
-        file.seekg(0, ios::beg);
-        file.read(memblock, size);
+        if (size > 0)
+        {
+            char* memblock = new char[size];
+            file.seekg(0, ios::beg);
+
+            if (file.read(memblock, size))
+            {
+                string fn(path);
+                transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
+                string extension = fn.substr(fn.find_last_of(".") + 1);
+
+                if (extension == "zip")
+                {
+                    Debug("Loading from ZIP...");
+                    m_bLoaded = LoadFromZipFile(reinterpret_cast<u8*> (memblock), size);
+                }
+                else
+                {
+                    m_bLoaded = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
+                }
+
+                if (m_bLoaded)
+                {
+                    Debug("ROM loaded", path);
+                }
+                else
+                {
+                    Log("There was a problem loading the memory for file %s...", path);
+                }
+            }
+            else
+            {
+                Log("There was a problem reading the file %s...", path);
+                m_bLoaded = false;
+            }
+
+            SafeDeleteArray(memblock);
+        }
+        else
+        {
+            Log("Invalid file size %d for file %s...", size, path);
+            m_bLoaded = false;
+        }
+
         file.close();
-
-        string fn(path);
-        transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
-        string extension = fn.substr(fn.find_last_of(".") + 1);
-
-        if (extension == "zip")
-        {
-            Debug("Loading from ZIP...");
-            m_bLoaded = LoadFromZipFile(reinterpret_cast<u8*> (memblock), size);
-        }
-        else
-        {
-            m_bLoaded = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
-        }
-
-        if (m_bLoaded)
-        {
-            Debug("ROM loaded", path);
-        }
-        else
-        {
-            Log("There was a problem loading the memory for file %s...", path);
-        }
-
-        SafeDeleteArray(memblock);
     }
     else
     {
