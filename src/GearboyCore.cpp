@@ -629,7 +629,7 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
             s32 fileSize = (s32)file.tellg();
             file.seekg(0, file.beg);
 
-            if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
+            if ((fileSize > 0) && m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
             {
                 Debug("RAM loaded");
             }
