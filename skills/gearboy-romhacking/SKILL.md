@@ -12,9 +12,10 @@ description: >-
   in Game Boy or Game Boy Color games. Also use for any ROM hacking, memory
   poking, or game modification task involving Gearboy.
 compatibility: >-
-  Requires the Gearboy MCP server. Before installing or configuring, call
-  debug_get_status to check if the server is already connected. If it responds,
-  the server is ready — skip setup entirely.
+  Requires the Gearboy MCP server. Direct tool mode is the default. Before
+  installing or configuring, call debug_get_status to check if the server is
+  already connected. If --mcp-router is enabled, use get_tool_info and
+  execute_tool for routed tools.
 metadata:
   author: drhelius
   version: "1.0"
@@ -28,9 +29,9 @@ Hack, modify, and translate Game Boy and Game Boy Color ROMs using the Gearboy e
 
 ## MCP Server Prerequisite
 
-**IMPORTANT — Check before installing:** Before attempting any installation or configuration, you MUST first verify if the Gearboy MCP server is already connected in your current session. Call `debug_get_status` — if it returns a valid response, the server is active and ready.
+**IMPORTANT — Check before installing:** Before attempting any installation or configuration, you MUST first verify if the Gearboy MCP server is already connected in your current session. In the default mode, call `debug_get_status` directly. If Gearboy was intentionally started with `--mcp-router`, call `get_tool_info` with `{"name":"debug_get_status"}`, then call `execute_tool` with `{"name":"debug_get_status","arguments":{}}`. A valid response from either workflow means the server is active and ready.
 
-Only if the tool is not available or the call fails, you need to help install and configure the Gearboy MCP server:
+Only if neither workflow is available or the call fails, you need to help install and configure the Gearboy MCP server:
 
 ### Installing Gearboy
 

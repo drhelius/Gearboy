@@ -25,7 +25,7 @@
 #include "console_utils.h"
 
 extern bool g_mcp_stdio_mode;
-extern bool g_mcp_router_disabled;
+extern bool g_mcp_router_enabled;
 
 int main(int argc, char* argv[])
 {
@@ -74,9 +74,9 @@ int main(int argc, char* argv[])
                 mcp_http_set = true;
                 app_params.mcp_mode = 1;
             }
-            else if ((strcmp(argv[i], "--mcp-no-router") == 0) || (strcmp(argv[i], "--mcp-disable-router") == 0))
+            else if ((strcmp(argv[i], "--mcp-router") == 0) || (strcmp(argv[i], "--mcp-enable-router") == 0))
             {
-                g_mcp_router_disabled = true;
+                g_mcp_router_enabled = true;
             }
             else if (strcmp(argv[i], "--headless") == 0)
             {
@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
         printf("  -w, --windowed        Start in windowed mode with menu visible\n");
         printf("      --mcp-stdio       Auto-start MCP server with stdio transport\n");
         printf("      --mcp-http        Auto-start MCP server with HTTP transport\n");
-        printf("      --mcp-no-router   Expose all MCP tools directly\n");
+        printf("      --mcp-router      Enable compact MCP tool routing\n");
         printf("      --mcp-http-address A HTTP bind address (default: 127.0.0.1)\n");
         printf("      --mcp-http-port N HTTP port for MCP server (default: 7777)\n");
         printf("      --headless        Run without GUI (requires --mcp-stdio or --mcp-http)\n");

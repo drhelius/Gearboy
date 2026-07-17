@@ -79,9 +79,11 @@ Add `--headless` to run without a GUI window. This is useful for servers, CLI ag
 
 ## MCP Tool Router
 
-By default, Gearboy exposes a compact set of high-frequency tools directly and routes advanced debugger tools through lightweight discovery tools. This keeps MCP context small while preserving access to the full debugger surface.
+By default, Gearboy exposes every MCP tool directly. This avoids nested tool discovery in clients that already defer MCP schemas, including Claude Code.
 
-Direct tools: `load_media`, `get_media_info`, `debug_pause`, `debug_continue`, `debug_step_into`, `get_cpu_status`, `read_memory`, `write_memory`, `get_disassembly`, `set_breakpoint`, `get_screenshot`, and `controller_button`.
+Add `--mcp-router` to expose a compact set of high-frequency tools directly and route advanced debugger tools through lightweight discovery tools. This reduces MCP context while preserving access to the full debugger surface.
+
+Direct tools in routed mode: `load_media`, `get_media_info`, `debug_pause`, `debug_continue`, `debug_step_into`, `get_cpu_status`, `read_memory`, `write_memory`, `get_disassembly`, `set_breakpoint`, `get_screenshot`, and `controller_button`.
 
 Router tools:
 
@@ -89,7 +91,7 @@ Router tools:
 - `get_category_tools` lists routed tools in a category with compact descriptions.
 - `search_tools` searches direct and routed tools and returns compact category/tool/description matches.
 - `get_tool_info` returns one tool's real input schema and metadata.
-- `execute_tool` executes a routed tool by name with arguments. Use `get_tool_info` after discovery when you need the exact input schema.
+- `execute_tool` executes a routed tool by name. First use `search_tools` or `get_category_tools` to discover the tool, then call `get_tool_info` to obtain its exact input schema.
 
 Example routed call:
 
@@ -100,7 +102,7 @@ Example routed call:
 }
 ```
 
-Add `--mcp-no-router` to expose every MCP tool directly.
+Without `--mcp-router`, call every MCP tool directly.
 
 ## Quick Start
 
@@ -315,7 +317,7 @@ Once configured, you can ask your AI assistant:
 
 ## Available MCP Tools
 
-This is the full tool catalog. By default, advanced tools are discoverable through `list_tool_categories`, `get_category_tools`, and `search_tools`, then invoked with `execute_tool`.
+This is the full tool catalog. All tools are exposed directly by default. With `--mcp-router`, discover advanced tools through `search_tools` or `get_category_tools`, inspect their schemas with `get_tool_info`, then invoke them with `execute_tool`.
 
 The server exposes tools organized in the following categories:
 

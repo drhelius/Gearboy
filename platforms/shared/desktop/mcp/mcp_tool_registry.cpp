@@ -539,7 +539,24 @@ json McpToolRegistry::SearchTools(const std::string& query) const
         haystack += " ";
         haystack += AliasesForTool(name);
 
-        if (ToLower(haystack).find(query_lower) != std::string::npos)
+        std::string haystack_lower = ToLower(haystack);
+        std::istringstream terms(query_lower);
+        std::string term;
+        bool has_terms = false;
+        bool matches = true;
+
+        while (terms >> term)
+        {
+            has_terms = true;
+
+            if (haystack_lower.find(term) == std::string::npos)
+            {
+                matches = false;
+                break;
+            }
+        }
+
+        if (has_terms && matches)
         {
             tools.push_back(ToolToSearchJson(*it));
 
