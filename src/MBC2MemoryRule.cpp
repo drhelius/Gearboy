@@ -221,4 +221,10 @@ void MBC2MemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
     stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
     stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
+
+    m_iCurrentROMBank &= 0x0F;
+    if (m_iCurrentROMBank == 0)
+        m_iCurrentROMBank = 1;
+    m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+    m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
 }

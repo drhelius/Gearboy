@@ -280,4 +280,20 @@ void CameraMemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iCaptureClocks), sizeof(m_iCaptureClocks));
     stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
     stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
+
+    m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+    m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+
+    int ramBankCount = m_pCartridge->GetRAMBankCount();
+    if (ramBankCount > 0)
+    {
+        m_iCurrentRAMBank &= 0x0F;
+        m_iCurrentRAMBank &= (ramBankCount - 1);
+        m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
+    }
+    else
+    {
+        m_iCurrentRAMBank = 0;
+        m_CurrentRAMAddress = 0;
+    }
 }

@@ -452,4 +452,10 @@ void MBC7MemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*>(&m_iEEPROMReadBits), sizeof(m_iEEPROMReadBits));
     stream.read(reinterpret_cast<char*>(&m_iEEPROMArgumentBitsLeft), sizeof(m_iEEPROMArgumentBitsLeft));
     stream.read(reinterpret_cast<char*>(&m_bEEPROMWriteEnabled), sizeof(m_bEEPROMWriteEnabled));
+
+    m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+    m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+
+    if (m_iEEPROMArgumentBitsLeft > 16)
+        m_iEEPROMArgumentBitsLeft = 0;
 }
