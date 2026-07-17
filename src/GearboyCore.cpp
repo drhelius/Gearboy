@@ -1212,7 +1212,7 @@ bool GearboyCore::GetSaveStateScreenshot(int index, const char* path, GB_SaveSta
 {
     using namespace std;
 
-    if (!IsValidPointer(screenshot->data) || (screenshot->size == 0))
+    if (!IsValidPointer(screenshot) || !IsValidPointer(screenshot->data) || (screenshot->size == 0))
     {
         Log("Invalid save state screenshot buffer");
         return false;
