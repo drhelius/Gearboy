@@ -186,9 +186,10 @@ int main(int argc, char* argv[])
         ret = application_headless_init(app_params);
 
         if (ret == 0)
+        {
             application_headless_mainloop();
-
-        application_headless_destroy();
+            application_headless_destroy();
+        }
 
         config_write();
         config_destroy();
