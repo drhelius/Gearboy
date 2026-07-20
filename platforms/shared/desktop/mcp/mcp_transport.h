@@ -690,22 +690,9 @@ public:
                 
                 Debug("[MCP] HTTP GET request (SSE not supported, responding 405)");
 
-                std::string method_not_allowed = 
-                    "HTTP/1.1 405 Method Not Allowed\r\n"
-                    "Content-Type: application/json\r\n"
-                    "Content-Length: 56\r\n" +
-                    get_cors_origin_header() +
-                    "Connection: close\r\n"
-                    "\r\n"
-                    "{\"error\":\"SSE streaming not supported by this server\"}";
-
-                ::send(client, method_not_allowed.c_str(), (int)method_not_allowed.length(), 0);
-
-                std::lock_guard<std::mutex> lock(m_mutex);
-                SOCKET_CLOSE(m_current_client);
-                m_current_client = INVALID_SOCKET_VALUE;
-                m_current_origin.clear();
-                m_client_cv.notify_all();
+                const std::string body = "{\"error\":\"SSE streaming not supported by this server\"}";
+                send_http_response(client, 405, "Method Not Allowed", "application/json", body, true,
+                                   "Allow: POST, OPTIONS\r\n");
                 continue; // Wait for next request
             }
 
