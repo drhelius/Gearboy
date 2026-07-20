@@ -499,8 +499,6 @@ public:
         return true;
     }
 
-    // Helper function to validate access and path, and send rejection responses.
-    // Returns true if the request is valid, false if rejected (and response already sent).
     bool validate_and_reject_invalid_request(const std::string& request, socket_t client, bool require_auth)
     {
         if (!validate_and_reject_http_access(request, client))
