@@ -169,11 +169,7 @@ void McpServer::HandleLine(const std::string& line)
     }
     else if (method == "notifications/initialized")
     {
-        // Notifications don't need JSON-RPC response, but HTTP needs HTTP response
-        if (dynamic_cast<HttpTransport*>(m_transport))
-        {
-            m_transport->send("{}");
-        }
+        m_transport->acknowledge_notification();
     }
     else if (method == "tools/list")
     {

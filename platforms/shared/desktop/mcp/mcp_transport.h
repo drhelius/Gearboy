@@ -57,6 +57,7 @@ class McpTransportInterface
 public:
     virtual ~McpTransportInterface() {}
     virtual bool send(const std::string& jsonLine) = 0;
+    virtual bool acknowledge_notification() = 0;
     virtual bool recv(std::string& jsonLine) = 0;
     virtual void close() = 0;
 };
@@ -78,6 +79,12 @@ public:
         std::cout << jsonLine << "\n";
         std::cout.flush();
         return true;
+    }
+
+    bool acknowledge_notification()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return !m_closed;
     }
 
     bool recv(std::string& jsonLine)
@@ -182,49 +189,12 @@ public:
 
     bool send(const std::string& jsonLine)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_closed || m_current_client == INVALID_SOCKET_VALUE)
-        {
-            Debug("[MCP] HTTP send failed: %s (closed=%d, client=%d)", 
-                m_closed ? "server closed" : "no client connected",
-                m_closed, (int)m_current_client);
-            return false;
-        }
+        return send_http_response(200, "OK", "application/json", jsonLine, true);
+    }
 
-        // Build HTTP response (close connection after each response for simplicity)
-        std::string http_response = 
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: application/json\r\n"
-            "Content-Length: " + std::to_string(jsonLine.length()) + "\r\n" +
-            get_cors_origin_header() +
-            "Connection: close\r\n"
-            "\r\n" +
-            jsonLine;
-
-        int sent = ::send(m_current_client, http_response.c_str(), (int)http_response.length(), 0);
-
-        if (sent <= 0)
-        {
-            Error("[MCP] HTTP send() failed: %d", sent);
-            SOCKET_CLOSE(m_current_client);
-            m_current_client = INVALID_SOCKET_VALUE;
-            m_client_cv.notify_all();
-            return false;
-        }
-
-        std::string log_output = jsonLine.length() > 500 
-            ? jsonLine.substr(0, 500) + "..." 
-            : jsonLine;
-        Debug("[MCP] HTTP response sent (%d bytes): %s", 
-            sent, log_output.c_str());
-
-        // Close connection after response (VS Code will reconnect for next request)
-        SOCKET_CLOSE(m_current_client);
-        m_current_client = INVALID_SOCKET_VALUE;
-        m_current_origin.clear();
-        m_client_cv.notify_all();
-
-        return true;
+    bool acknowledge_notification()
+    {
+        return send_http_response(202, "Accepted", NULL, "", true);
     }
 
     // Helper function to extract path from HTTP request line
@@ -404,6 +374,11 @@ public:
     void close_current_client()
     {
         std::lock_guard<std::mutex> lock(m_mutex);
+        close_current_client_locked();
+    }
+
+    void close_current_client_locked()
+    {
         if (m_current_client != INVALID_SOCKET_VALUE)
             SOCKET_CLOSE(m_current_client);
         m_current_client = INVALID_SOCKET_VALUE;
@@ -411,12 +386,25 @@ public:
         m_client_cv.notify_all();
     }
 
-    void send_http_response(socket_t client, int code, const char* status, const char* content_type, const std::string& body, bool include_cors, const char* extra_headers = NULL)
+    bool send_http_response(int code, const char* status, const char* content_type, const std::string& body, bool include_cors, const char* extra_headers = NULL)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_closed || m_current_client == INVALID_SOCKET_VALUE)
+        {
+            Debug("[MCP] HTTP send failed: %s (closed=%d, client=%d)",
+                m_closed ? "server closed" : "no client connected",
+                m_closed, (int)m_current_client);
+            return false;
+        }
+
         std::string response =
-            "HTTP/1.1 " + std::to_string(code) + " " + status + "\r\n"
-            "Content-Type: " + content_type + "\r\n"
-            "Content-Length: " + std::to_string(body.length()) + "\r\n";
+            "HTTP/1.1 " + std::to_string(code) + " " + status + "\r\n";
+
+        if (content_type)
+        {
+            response += "Content-Type: " + std::string(content_type) + "\r\n";
+            response += "Content-Length: " + std::to_string(body.length()) + "\r\n";
+        }
 
         if (include_cors)
             response += get_cors_origin_header();
@@ -429,8 +417,26 @@ public:
             "\r\n" +
             body;
 
-        ::send(client, response.c_str(), (int)response.length(), 0);
-        close_current_client();
+        size_t total_sent = 0;
+        while (total_sent < response.length())
+        {
+            int sent = ::send(m_current_client, response.c_str() + total_sent,
+                              (int)(response.length() - total_sent), 0);
+            if (sent <= 0)
+            {
+                Error("[MCP] HTTP send() failed: %d", sent);
+                close_current_client_locked();
+                return false;
+            }
+            total_sent += sent;
+        }
+
+        std::string log_output = body.length() > 500 ? body.substr(0, 500) + "..." : body;
+        Debug("[MCP] HTTP response sent (%d bytes): %d %s%s%s",
+              (int)total_sent, code, status, body.empty() ? "" : ": ", log_output.c_str());
+
+        close_current_client_locked();
+        return true;
     }
 
     bool validate_and_reject_bearer_auth(const std::string& request, socket_t client)
@@ -442,7 +448,7 @@ public:
         if (extract_http_header(request, "Authorization", authorization) != 1)
         {
             Debug("[MCP] Rejecting request with missing or duplicate Authorization header");
-            send_http_response(client, 401, "Unauthorized", "text/plain", "401 Unauthorized", true, "WWW-Authenticate: Bearer\r\n");
+            send_http_response(401, "Unauthorized", "text/plain", "401 Unauthorized", true, "WWW-Authenticate: Bearer\r\n");
             return false;
         }
 
@@ -452,7 +458,7 @@ public:
             return true;
 
         Debug("[MCP] Rejecting request with missing or invalid bearer token");
-        send_http_response(client, 401, "Unauthorized", "text/plain", "401 Unauthorized", true, "WWW-Authenticate: Bearer\r\n");
+        send_http_response(401, "Unauthorized", "text/plain", "401 Unauthorized", true, "WWW-Authenticate: Bearer\r\n");
         return false;
     }
 
@@ -462,7 +468,7 @@ public:
         if (!get_socket_local_address(client, local_address))
         {
             Debug("[MCP] Rejecting request because the local socket address is unavailable");
-            send_http_response(client, 403, "Forbidden", "text/plain", "403 Forbidden", false);
+            send_http_response(403, "Forbidden", "text/plain", "403 Forbidden", false);
             return false;
         }
 
@@ -470,7 +476,7 @@ public:
         if (extract_http_header(request, "Host", host) != 1 || !is_allowed_host(host, local_address))
         {
             Debug("[MCP] Rejecting request with missing, duplicate, or foreign Host: %s", host.c_str());
-            send_http_response(client, 403, "Forbidden", "text/plain", "403 Forbidden", false);
+            send_http_response(403, "Forbidden", "text/plain", "403 Forbidden", false);
             return false;
         }
 
@@ -486,7 +492,7 @@ public:
         if (origin_count > 1 || (origin_count == 1 && m_current_origin.empty()))
         {
             Debug("[MCP] Rejecting request with duplicate or foreign Origin: %s", origin.c_str());
-            send_http_response(client, 403, "Forbidden", "text/plain", "403 Forbidden", false);
+            send_http_response(403, "Forbidden", "text/plain", "403 Forbidden", false);
             return false;
         }
 
@@ -510,7 +516,7 @@ public:
         }
 
         Debug("[MCP] Rejecting request to invalid path: %s", path.c_str());
-        send_http_response(client, 404, "Not Found", "text/plain", "404 Not Found", true);
+        send_http_response(404, "Not Found", "text/plain", "404 Not Found", true);
         return false;
     }
 
@@ -634,11 +640,7 @@ public:
             if (connection_closed)
             {
                 Log("[MCP] Client disconnected, cleaning up");
-                std::lock_guard<std::mutex> lock(m_mutex);
-                SOCKET_CLOSE(m_current_client);
-                m_current_client = INVALID_SOCKET_VALUE;
-                m_current_origin.clear();
-                m_client_cv.notify_all();
+                close_current_client();
                 continue; // Wait for next connection
             }
 
@@ -650,21 +652,9 @@ public:
 
                 Debug("[MCP] HTTP OPTIONS request (CORS preflight)");
 
-                std::string options_response = 
-                    "HTTP/1.1 204 No Content\r\n" +
-                    get_cors_origin_header() +
-                    "Access-Control-Allow-Methods: POST, OPTIONS\r\n"
-                    "Access-Control-Allow-Headers: Authorization, Content-Type, Accept, MCP-Session-Id, MCP-Protocol-Version\r\n"
-                    "Connection: close\r\n"
-                    "\r\n";
-
-                ::send(client, options_response.c_str(), (int)options_response.length(), 0);
-
-                std::lock_guard<std::mutex> lock(m_mutex);
-                SOCKET_CLOSE(m_current_client);
-                m_current_client = INVALID_SOCKET_VALUE;
-                m_current_origin.clear();
-                m_client_cv.notify_all();
+                send_http_response(204, "No Content", NULL, "", true,
+                                   "Access-Control-Allow-Methods: POST, OPTIONS\r\n"
+                                   "Access-Control-Allow-Headers: Authorization, Content-Type, Accept, MCP-Session-Id, MCP-Protocol-Version\r\n");
                 continue; // Wait for next connection
             }
 
@@ -691,7 +681,7 @@ public:
                 Debug("[MCP] HTTP GET request (SSE not supported, responding 405)");
 
                 const std::string body = "{\"error\":\"SSE streaming not supported by this server\"}";
-                send_http_response(client, 405, "Method Not Allowed", "application/json", body, true,
+                send_http_response(405, "Method Not Allowed", "application/json", body, true,
                                    "Allow: POST, OPTIONS\r\n");
                 continue; // Wait for next request
             }
@@ -705,11 +695,7 @@ public:
 
                 Debug("[MCP] HTTP POST without body (non-standard, closing connection)");
 
-                std::lock_guard<std::mutex> lock(m_mutex);
-                SOCKET_CLOSE(m_current_client);
-                m_current_client = INVALID_SOCKET_VALUE;
-                m_current_origin.clear();
-                m_client_cv.notify_all();
+                close_current_client();
                 continue; // Wait for next request
             }
 
@@ -725,11 +711,7 @@ public:
                     Debug("[MCP] Request line: %s", request.substr(0, first_line_end).c_str());
                 }
 
-                std::lock_guard<std::mutex> lock(m_mutex);
-                SOCKET_CLOSE(m_current_client);
-                m_current_client = INVALID_SOCKET_VALUE;
-                m_current_origin.clear();
-                m_client_cv.notify_all();
+                close_current_client();
                 continue; // Wait for next connection
             }
         }
