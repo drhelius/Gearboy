@@ -47,14 +47,14 @@ struct ResourceInfo
 
 struct DebugCommand
 {
-    int64_t requestId;
+    json requestId;
     std::string toolName;
     json arguments;
 };
 
 struct DebugResponse
 {
-    int64_t requestId;
+    json requestId;
     bool isError = false;
     bool isToolError = false;
     int errorCode = 0;
@@ -217,14 +217,14 @@ private:
     json HandleRouterGetCategoryTools(const json& arguments);
     json HandleRouterGetToolInfo(const json& arguments);
     json HandleRouterSearchTools(const json& arguments);
-    void SendToolResult(int64_t id, const json& result);
+    void SendToolResult(const json& id, const json& result);
 
     void LoadResources();
     void LoadResourcesFromCategory(const std::string& category, const std::string& tocPath);
     std::string ReadFileContents(const std::string& filePath);
 
     void SendResponse(const json& response);
-    void SendError(int64_t id, int code, const std::string& message, const json& data = json::object());
+    void SendError(const json& id, int code, const std::string& message, const json& data = json::object());
 
     McpTransportInterface* m_transport;
     DebugAdapter& m_debugAdapter;
