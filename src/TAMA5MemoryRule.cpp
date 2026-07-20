@@ -645,4 +645,7 @@ void TAMA5MemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*>(m_Registers), sizeof(m_Registers));
     stream.read(reinterpret_cast<char*>(m_SRAM), sizeof(m_SRAM));
     stream.read(reinterpret_cast<char*>(&m_RTC), sizeof(m_RTC));
+
+    m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+    m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
 }
