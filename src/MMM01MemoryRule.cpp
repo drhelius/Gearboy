@@ -104,6 +104,8 @@ void MMM01MemoryRule::UpdateBanks()
         int ramBankCount = m_pCartridge->GetRAMBankCount();
         if (ramBankCount > 0)
             m_iCurrentRAMBank &= (ramBankCount - 1);
+        else
+            m_iCurrentRAMBank = 0;
     }
     else
     {
@@ -169,7 +171,7 @@ void MMM01MemoryRule::PerformWrite(u16 address, u8 value)
         case 0x0000:
         {
             // RAM Enable + RAM Bank Mask + Mapping Enable
-            m_bRamEnabled = ((value & 0x0F) == 0x0A);
+            m_bRamEnabled = (m_pCartridge->GetRAMBankCount() > 0) && ((value & 0x0F) == 0x0A);
 
             if (!m_bLocked)
             {
@@ -382,4 +384,9 @@ void MMM01MemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
     stream.read(reinterpret_cast<char*> (&m_CurrentROM0Address), sizeof(m_CurrentROM0Address));
     stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
+
+    if (m_pCartridge->GetRAMBankCount() == 0)
+        m_bRamEnabled = false;
+
+    UpdateBanks();
 }
