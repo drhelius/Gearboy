@@ -23,7 +23,8 @@
 #define MCP_HTTP_ENDPOINT_PATH "/mcp"
 #define MCP_HTTP_AUTH_ENV "GEARBOY_MCP_HTTP_TOKEN"
 #define MCP_HTTP_MAX_HEADER_SIZE (64 * 1024)
-#define MCP_HTTP_MAX_BODY_SIZE (4 * 1024 * 1024)
+#define MCP_MAX_MESSAGE_SIZE (4 * 1024 * 1024)
+#define MCP_HTTP_MAX_BODY_SIZE MCP_MAX_MESSAGE_SIZE
 #define MCP_HTTP_RECEIVE_TIMEOUT_MS 5000
 #define MCP_HTTP_SEND_TIMEOUT_MS 5000
 #define MCP_STDIO_POLL_TIMEOUT_MS 100
@@ -147,7 +148,16 @@ public:
             char buffer[4096];
             int received = read_stdin(buffer, sizeof(buffer));
             if (received > 0)
+            {
+                const char* newline = (const char*)memchr(buffer, '\n', (size_t)received);
+                size_t bytes_before_newline = newline ? (size_t)(newline - buffer) : (size_t)received;
+                if (bytes_before_newline > MCP_MAX_MESSAGE_SIZE ||
+                    m_input_buffer.size() > MCP_MAX_MESSAGE_SIZE - bytes_before_newline)
+                {
+                    return false;
+                }
                 m_input_buffer.append(buffer, received);
+            }
             else if (received == 0)
                 m_input_eof = true;
             else if (received != -2)

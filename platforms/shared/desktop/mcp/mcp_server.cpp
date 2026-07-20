@@ -94,6 +94,7 @@ void McpServer::Run()
         }
 
         SafeDelete(resp);
+        m_commandQueue.Complete();
     }
 }
 
@@ -1868,7 +1869,11 @@ void McpServer::HandleToolsCall(const json& request)
     cmd->requestId = id;
     cmd->toolName = toolName;
     cmd->arguments = arguments;
-    m_commandQueue.Push(cmd);
+    if (!m_commandQueue.Push(cmd))
+    {
+        SafeDelete(cmd);
+        SendError(id, MCP_ERROR_INTERNAL, "Server busy");
+    }
 }
 
 static int GetBreakpointTypeFromString(const std::string& memory_area)

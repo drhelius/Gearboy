@@ -35,6 +35,8 @@
 
 using json = nlohmann::json;
 
+#define MCP_MAX_PENDING_COMMANDS 64
+
 enum McpErrorCode
 {
     MCP_ERROR_PARSE = -32700,
@@ -75,10 +77,20 @@ struct DebugResponse
 class CommandQueue
 {
 public:
-    void Push(DebugCommand* cmd)
+    CommandQueue()
+    {
+        m_pending = 0;
+    }
+
+    bool Push(DebugCommand* cmd)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_pending >= MCP_MAX_PENDING_COMMANDS)
+            return false;
+
         m_queue.push(cmd);
+        m_pending++;
+        return true;
     }
 
     DebugCommand* Pop()
@@ -91,6 +103,13 @@ public:
         return cmd;
     }
 
+    void Complete()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_pending > 0)
+            m_pending--;
+    }
+
     void Clear()
     {
         std::lock_guard<std::mutex> lock(m_mutex);
@@ -99,11 +118,13 @@ public:
             SafeDelete(m_queue.front());
             m_queue.pop();
         }
+        m_pending = 0;
     }
 
 private:
     std::queue<DebugCommand*> m_queue;
     std::mutex m_mutex;
+    size_t m_pending;
 };
 
 class ResponseQueue
