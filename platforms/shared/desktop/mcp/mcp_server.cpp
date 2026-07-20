@@ -105,7 +105,7 @@ void McpServer::HandleLine(const std::string& line)
     {
         if (!m_transport->validate_protocol_version(""))
             return;
-        SendError(json(), -32700, "Parse error: Invalid JSON");
+        SendError(json(), MCP_ERROR_PARSE, "Parse error: Invalid JSON");
         return;
     }
 
@@ -115,7 +115,7 @@ void McpServer::HandleLine(const std::string& line)
     {
         if (!m_transport->validate_protocol_version(""))
             return;
-        SendError(json(), -32600, "Invalid Request: expected an object");
+        SendError(json(), MCP_ERROR_INVALID_REQUEST, "Invalid Request: expected an object");
         return;
     }
 
@@ -139,7 +139,7 @@ void McpServer::HandleLine(const std::string& line)
     if (request.contains("id") && !request["id"].is_string() &&
         !request["id"].is_number_integer() && !request["id"].is_number_unsigned())
     {
-        reject_or_send_error(json(), -32600, "Invalid Request: id must be a string or integer");
+        reject_or_send_error(json(), MCP_ERROR_INVALID_REQUEST, "Invalid Request: id must be a string or integer");
         return;
     }
 
@@ -147,13 +147,13 @@ void McpServer::HandleLine(const std::string& line)
 
     if (!request.contains("jsonrpc") || request["jsonrpc"] != "2.0")
     {
-        reject_or_send_error(json(), -32600, "Invalid Request: missing or invalid jsonrpc version");
+        reject_or_send_error(json(), MCP_ERROR_INVALID_REQUEST, "Invalid Request: missing or invalid jsonrpc version");
         return;
     }
 
     if (!request.contains("method") || !request["method"].is_string())
     {
-        reject_or_send_error(json(), -32600, "Invalid Request: missing method");
+        reject_or_send_error(json(), MCP_ERROR_INVALID_REQUEST, "Invalid Request: missing method");
         return;
     }
 
@@ -161,13 +161,13 @@ void McpServer::HandleLine(const std::string& line)
 
     if (request.contains("params") && !request["params"].is_object())
     {
-        reject_or_send_error(request_id, -32602, "Invalid params: expected an object");
+        reject_or_send_error(request_id, MCP_ERROR_INVALID_PARAMS, "Invalid params: expected an object");
         return;
     }
 
     if (!m_initialized && method != "initialize" && method != "ping")
     {
-        reject_or_send_error(request_id, -32002, "Server not initialized");
+        reject_or_send_error(request_id, MCP_ERROR_INVALID_REQUEST, "Server not initialized");
         return;
     }
 
@@ -207,7 +207,7 @@ void McpServer::HandleLine(const std::string& line)
     }
     else
     {
-        SendError(request_id, -32601, "Method not found: " + method);
+        SendError(request_id, MCP_ERROR_METHOD_NOT_FOUND, "Method not found: " + method);
     }
 }
 
@@ -218,7 +218,7 @@ void McpServer::HandleInitialize(const json& request)
     if (!request.contains("params") || !request["params"].contains("protocolVersion") ||
         !request["params"]["protocolVersion"].is_string())
     {
-        SendError(id, -32602, "Invalid params: protocolVersion must be a string");
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: protocolVersion must be a string");
         return;
     }
 
@@ -1691,14 +1691,14 @@ void McpServer::HandleToolsCall(const json& request)
 
     if (!request.contains("params") || !request["params"].contains("name") || !request["params"]["name"].is_string())
     {
-        SendError(id, -32602, "Invalid params: missing tool name");
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: missing tool name");
         return;
     }
 
     std::string toolName = request["params"]["name"];
     if (request["params"].contains("arguments") && !request["params"]["arguments"].is_object())
     {
-        SendError(id, -32602, "Invalid params: arguments must be an object");
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: arguments must be an object");
         return;
     }
 
@@ -1710,7 +1710,7 @@ void McpServer::HandleToolsCall(const json& request)
     {
         if (!arguments.empty())
         {
-            SendError(id, -32602, "Invalid params: list_tool_categories takes no arguments");
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: list_tool_categories takes no arguments");
             return;
         }
         SendToolResult(id, HandleRouterListCategories());
@@ -1721,7 +1721,7 @@ void McpServer::HandleToolsCall(const json& request)
     {
         if (arguments.size() != 1 || !arguments.contains("category") || !arguments["category"].is_string())
         {
-            SendError(id, -32602, "Invalid params: category must be a string");
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: category must be a string");
             return;
         }
         SendToolResult(id, HandleRouterGetCategoryTools(arguments));
@@ -1732,7 +1732,7 @@ void McpServer::HandleToolsCall(const json& request)
     {
         if (arguments.size() != 1 || !arguments.contains("name") || !arguments["name"].is_string())
         {
-            SendError(id, -32602, "Invalid params: name must be a string");
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: name must be a string");
             return;
         }
         SendToolResult(id, HandleRouterGetToolInfo(arguments));
@@ -1743,7 +1743,7 @@ void McpServer::HandleToolsCall(const json& request)
     {
         if (arguments.size() != 1 || !arguments.contains("query") || !arguments["query"].is_string())
         {
-            SendError(id, -32602, "Invalid params: query must be a string");
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: query must be a string");
             return;
         }
         SendToolResult(id, HandleRouterSearchTools(arguments));
@@ -1755,7 +1755,7 @@ void McpServer::HandleToolsCall(const json& request)
         if (arguments.size() > 2 || !arguments.contains("name") || !arguments["name"].is_string() ||
             (arguments.size() == 2 && !arguments.contains("arguments")))
         {
-            SendError(id, -32602, "Invalid params: execute_tool accepts only name and arguments");
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: execute_tool accepts only name and arguments");
             return;
         }
 
@@ -1763,13 +1763,13 @@ void McpServer::HandleToolsCall(const json& request)
 
         if (!m_toolRegistry.HasTool(toolName))
         {
-            SendError(id, -32602, "Invalid params: unknown routed tool '" + toolName + "'");
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: unknown routed tool '" + toolName + "'");
             return;
         }
 
         if (arguments.contains("arguments") && !arguments["arguments"].is_object())
         {
-            SendError(id, -32602, "Invalid params: routed arguments must be an object");
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: routed arguments must be an object");
             return;
         }
 
@@ -1782,7 +1782,7 @@ void McpServer::HandleToolsCall(const json& request)
     std::string validation_error;
     if (!m_toolRegistry.ValidateArguments(toolName, arguments, validation_error))
     {
-        SendError(id, -32602, "Invalid params: " + validation_error);
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: " + validation_error);
         return;
     }
 
@@ -2650,7 +2650,7 @@ void McpServer::HandleResourcesRead(const json& request)
 
     if (!request.contains("params") || !request["params"].contains("uri") || !request["params"]["uri"].is_string())
     {
-        SendError(id, -32602, "Invalid params: uri must be a string");
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: uri must be a string");
         return;
     }
 
@@ -2659,7 +2659,7 @@ void McpServer::HandleResourcesRead(const json& request)
     std::map<std::string, ResourceInfo>::const_iterator it = m_resourceMap.find(uri);
     if (it == m_resourceMap.end())
     {
-        SendError(id, -32602, "Resource not found: " + uri);
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Resource not found: " + uri);
         return;
     }
 
@@ -2668,7 +2668,7 @@ void McpServer::HandleResourcesRead(const json& request)
 
     if (content.empty())
     {
-        SendError(id, -32602, "Failed to read resource file: " + resource.filePath);
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Failed to read resource file: " + resource.filePath);
         return;
     }
 

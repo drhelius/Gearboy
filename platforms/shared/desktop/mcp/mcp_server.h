@@ -35,6 +35,14 @@
 
 using json = nlohmann::json;
 
+enum McpErrorCode
+{
+    MCP_ERROR_PARSE = -32700,
+    MCP_ERROR_INVALID_REQUEST = -32600,
+    MCP_ERROR_METHOD_NOT_FOUND = -32601,
+    MCP_ERROR_INVALID_PARAMS = -32602
+};
+
 struct ResourceInfo
 {
     std::string uri;
