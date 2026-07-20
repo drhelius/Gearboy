@@ -165,6 +165,18 @@ void McpServer::HandleLine(const std::string& line)
         return;
     }
 
+    if (method == "initialize" && is_notification)
+    {
+        reject_or_send_error(json(), MCP_ERROR_INVALID_REQUEST, "Initialize must be a request");
+        return;
+    }
+
+    if (method == "initialize" && m_initialized)
+    {
+        reject_or_send_error(request_id, MCP_ERROR_INVALID_REQUEST, "Server already initialized");
+        return;
+    }
+
     if (!m_initialized && method != "initialize" && method != "ping")
     {
         reject_or_send_error(request_id, MCP_ERROR_INVALID_REQUEST, "Server not initialized");
@@ -211,14 +223,80 @@ void McpServer::HandleLine(const std::string& line)
     }
 }
 
+static bool ValidateInitializeParams(const json& params, std::string& error)
+{
+    if (!params.contains("protocolVersion"))
+    {
+        error = "Missing required parameter 'protocolVersion'";
+        return false;
+    }
+    if (!params["protocolVersion"].is_string())
+    {
+        error = "Parameter 'protocolVersion' must be a string";
+        return false;
+    }
+
+    if (!params.contains("capabilities"))
+    {
+        error = "Missing required parameter 'capabilities'";
+        return false;
+    }
+    if (!params["capabilities"].is_object())
+    {
+        error = "Parameter 'capabilities' must be an object";
+        return false;
+    }
+
+    if (!params.contains("clientInfo"))
+    {
+        error = "Missing required parameter 'clientInfo'";
+        return false;
+    }
+    if (!params["clientInfo"].is_object())
+    {
+        error = "Parameter 'clientInfo' must be an object";
+        return false;
+    }
+
+    const json& client_info = params["clientInfo"];
+    if (!client_info.contains("name"))
+    {
+        error = "Missing required parameter 'clientInfo.name'";
+        return false;
+    }
+    if (!client_info["name"].is_string())
+    {
+        error = "Parameter 'clientInfo.name' must be a string";
+        return false;
+    }
+    if (!client_info.contains("version"))
+    {
+        error = "Missing required parameter 'clientInfo.version'";
+        return false;
+    }
+    if (!client_info["version"].is_string())
+    {
+        error = "Parameter 'clientInfo.version' must be a string";
+        return false;
+    }
+
+    return true;
+}
+
 void McpServer::HandleInitialize(const json& request)
 {
     const json& id = request["id"];
 
-    if (!request.contains("params") || !request["params"].contains("protocolVersion") ||
-        !request["params"]["protocolVersion"].is_string())
+    if (!request.contains("params"))
     {
-        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: protocolVersion must be a string");
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: missing params");
+        return;
+    }
+
+    std::string validation_error;
+    if (!ValidateInitializeParams(request["params"], validation_error))
+    {
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: " + validation_error);
         return;
     }
 
