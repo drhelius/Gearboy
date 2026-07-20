@@ -2637,6 +2637,21 @@ void McpServer::LoadResources()
     LoadResourcesFromCategory("hardware", resourcesPath + "/hardware/toc.json");
 }
 
+static bool IsValidResourceName(const std::string& name)
+{
+    if (name.empty() || name == "." || name == "..")
+        return false;
+
+    for (size_t i = 0; i < name.size(); i++)
+    {
+        unsigned char character = (unsigned char)name[i];
+        if (character < 0x20 || character == 0x7F || character == '/' || character == '\\')
+            return false;
+    }
+
+    return true;
+}
+
 void McpServer::LoadResourcesFromCategory(const std::string& category, const std::string& tocPath)
 {
     std::ifstream file(tocPath);
@@ -2649,7 +2664,14 @@ void McpServer::LoadResourcesFromCategory(const std::string& category, const std
     std::stringstream buffer;
     buffer << file.rdbuf();
     std::string content = buffer.str();
+    bool read_error = file.bad();
     file.close();
+
+    if (read_error)
+    {
+        Log("[MCP] Warning: Failed to read resources TOC file: %s", tocPath.c_str());
+        return;
+    }
 
     if (!json::accept(content))
     {
@@ -2667,36 +2689,71 @@ void McpServer::LoadResourcesFromCategory(const std::string& category, const std
 
     std::string tocDir = tocPath.substr(0, tocPath.find_last_of("/\\"));
 
-    for (const json& item : toc["toc"])
+    for (size_t i = 0; i < toc["toc"].size(); i++)
     {
-        if (!item.contains("uri") || !item.contains("title"))
+        const json& item = toc["toc"][i];
+        if (!item.is_object() || !item.contains("uri") || !item["uri"].is_string() ||
+            !item.contains("title") || !item["title"].is_string() ||
+            (item.contains("description") && !item["description"].is_string()) ||
+            (item.contains("mimeType") && !item["mimeType"].is_string()))
+        {
+            Log("[MCP] Warning: Invalid resource entry %d in TOC file: %s", (int)i, tocPath.c_str());
             continue;
+        }
+
+        std::string name = item["uri"].get<std::string>();
+        if (!IsValidResourceName(name))
+        {
+            Log("[MCP] Warning: Invalid resource name in TOC file: %s", tocPath.c_str());
+            continue;
+        }
 
         ResourceInfo resource;
-        resource.uri = "gearboy://" + category + "/" + item["uri"].get<std::string>();
+        resource.uri = "gearboy://" + category + "/" + name;
         resource.title = item["title"].get<std::string>();
         resource.description = item.contains("description") ? item["description"].get<std::string>() : "";
         resource.mimeType = item.contains("mimeType") ? item["mimeType"].get<std::string>() : "text/plain";
         resource.category = category;
-        resource.filePath = tocDir + "/" + item["uri"].get<std::string>() + ".md";
+        resource.filePath = tocDir + "/" + name + ".md";
+
+        if (m_resourceMap.find(resource.uri) != m_resourceMap.end())
+        {
+            Log("[MCP] Warning: Duplicate resource URI in TOC file: %s", resource.uri.c_str());
+            continue;
+        }
 
         m_resources.push_back(resource);
         m_resourceMap[resource.uri] = resource;
     }
 }
 
-std::string McpServer::ReadFileContents(const std::string& filePath)
+bool McpServer::ReadFileContents(const std::string& filePath, std::string& content)
 {
-    std::ifstream file(filePath);
+    content.clear();
+    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file.is_open())
     {
         Log("[MCP] Warning: Failed to open resource file: %s", filePath.c_str());
-        return "";
+        return false;
     }
 
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
+    std::streamoff file_size = file.tellg();
+    if (file_size < 0)
+    {
+        Log("[MCP] Warning: Failed to read resource file: %s", filePath.c_str());
+        return false;
+    }
+
+    content.resize((size_t)file_size);
+    file.seekg(0, std::ios::beg);
+    if (!file || (!content.empty() && !file.read(&content[0], (std::streamsize)content.size())))
+    {
+        Log("[MCP] Warning: Failed to read resource file: %s", filePath.c_str());
+        content.clear();
+        return false;
+    }
+
+    return true;
 }
 
 void McpServer::HandleResourcesList(const json& request)
@@ -2747,9 +2804,9 @@ void McpServer::HandleResourcesRead(const json& request)
     }
 
     const ResourceInfo& resource = it->second;
-    std::string content = ReadFileContents(resource.filePath);
+    std::string content;
 
-    if (content.empty())
+    if (!ReadFileContents(resource.filePath, content))
     {
         SendError(id, MCP_ERROR_INTERNAL, "Failed to read resource", {{"uri", uri}});
         return;

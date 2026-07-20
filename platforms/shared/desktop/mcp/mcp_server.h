@@ -256,7 +256,7 @@ private:
 
     void LoadResources();
     void LoadResourcesFromCategory(const std::string& category, const std::string& tocPath);
-    std::string ReadFileContents(const std::string& filePath);
+    bool ReadFileContents(const std::string& filePath, std::string& content);
 
     void SendResponse(const json& response);
     void SendError(const json& id, int code, const std::string& message, const json& data = json::object());
