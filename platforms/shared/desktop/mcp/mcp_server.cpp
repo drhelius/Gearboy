@@ -126,9 +126,19 @@ void McpServer::HandleLine(const std::string& line)
         return;
     }
 
+    bool is_notification = !request.contains("id");
+
+    const auto reject_or_send_error = [this, is_notification](int64_t id, int code, const std::string& message)
+    {
+        if (is_notification)
+            m_transport->reject_notification();
+        else
+            SendError(id, code, message);
+    };
+
     if (request.contains("id") && !request["id"].is_number_integer() && !request["id"].is_number_unsigned())
     {
-        SendError(0, -32600, "Invalid Request: id must be an integer");
+        reject_or_send_error(0, -32600, "Invalid Request: id must be an integer");
         return;
     }
 
@@ -136,31 +146,33 @@ void McpServer::HandleLine(const std::string& line)
 
     if (request.contains("params") && !request["params"].is_object())
     {
-        SendError(request_id, -32602, "Invalid params: expected an object");
+        reject_or_send_error(request_id, -32602, "Invalid params: expected an object");
         return;
     }
 
     if (!request.contains("jsonrpc") || request["jsonrpc"] != "2.0")
     {
-        SendError(0, -32600, "Invalid Request: missing or invalid jsonrpc version");
+        reject_or_send_error(0, -32600, "Invalid Request: missing or invalid jsonrpc version");
         return;
     }
 
     if (!request.contains("method") || !request["method"].is_string())
     {
-        SendError(0, -32600, "Invalid Request: missing method");
+        reject_or_send_error(0, -32600, "Invalid Request: missing method");
         return;
     }
 
     std::string method = request["method"];
 
+    if (is_notification)
+    {
+        m_transport->acknowledge_notification();
+        return;
+    }
+
     if (method == "initialize")
     {
         HandleInitialize(request);
-    }
-    else if (method == "notifications/initialized")
-    {
-        m_transport->acknowledge_notification();
     }
     else if (method == "tools/list")
     {

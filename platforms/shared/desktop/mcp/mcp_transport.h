@@ -62,6 +62,7 @@ public:
     virtual ~McpTransportInterface() {}
     virtual bool send(const std::string& jsonLine) = 0;
     virtual bool acknowledge_notification() = 0;
+    virtual bool reject_notification() = 0;
     virtual bool recv(std::string& jsonLine) = 0;
     virtual void close() = 0;
 };
@@ -89,6 +90,11 @@ public:
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         return !m_closed;
+    }
+
+    bool reject_notification()
+    {
+        return acknowledge_notification();
     }
 
     bool recv(std::string& jsonLine)
@@ -198,6 +204,11 @@ public:
     bool acknowledge_notification()
     {
         return send_http_response(202, "Accepted", NULL, "", true);
+    }
+
+    bool reject_notification()
+    {
+        return send_http_response(400, "Bad Request", NULL, "", true);
     }
 
     bool extract_http_method(const std::string& request, std::string& method)
