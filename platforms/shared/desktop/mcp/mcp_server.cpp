@@ -2659,7 +2659,7 @@ void McpServer::HandleResourcesRead(const json& request)
     std::map<std::string, ResourceInfo>::const_iterator it = m_resourceMap.find(uri);
     if (it == m_resourceMap.end())
     {
-        SendError(id, MCP_ERROR_INVALID_PARAMS, "Resource not found: " + uri);
+        SendError(id, MCP_ERROR_RESOURCE_NOT_FOUND, "Resource not found", {{"uri", uri}});
         return;
     }
 
@@ -2668,7 +2668,7 @@ void McpServer::HandleResourcesRead(const json& request)
 
     if (content.empty())
     {
-        SendError(id, MCP_ERROR_INVALID_PARAMS, "Failed to read resource file: " + resource.filePath);
+        SendError(id, MCP_ERROR_INTERNAL, "Failed to read resource", {{"uri", uri}});
         return;
     }
 
