@@ -123,6 +123,11 @@ public:
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_running = false;
+        while (!m_queue.empty())
+        {
+            SafeDelete(m_queue.front());
+            m_queue.pop();
+        }
         m_cv.notify_all();
     }
 
@@ -172,29 +177,28 @@ public:
             return;
 
         LoadResources();
+        m_initialized = false;
         m_running.store(true);
+        m_readerThread = std::thread(&McpServer::ReaderLoop, this);
         m_thread = std::thread(&McpServer::Run, this);
     }
 
     void Stop()
     {
+        std::lock_guard<std::mutex> lock(m_stopMutex);
         m_running.store(false);
+        m_transport->close();
         m_responseQueue.Stop();
 
-        // Detach the thread instead of joining to avoid blocking on stdin read
-        // The thread will exit naturally when recv() returns or on next iteration
+        if (m_readerThread.joinable())
+            m_readerThread.join();
         if (m_thread.joinable())
-            m_thread.detach();
+            m_thread.join();
     }
 
     bool IsRunning() const
     {
         return m_running.load();
-    }
-
-    McpTransportInterface* GetTransport() const
-    {
-        return m_transport;
     }
 
     json ExecuteCommand(const std::string& toolName, const json& arguments);
@@ -231,6 +235,8 @@ private:
     CommandQueue& m_commandQueue;
     ResponseQueue& m_responseQueue;
     std::thread m_thread;
+    std::thread m_readerThread;
+    std::mutex m_stopMutex;
     std::atomic<bool> m_running;
     bool m_initialized;
     McpToolRegistry m_toolRegistry;

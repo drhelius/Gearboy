@@ -25,12 +25,15 @@
 #define MCP_HTTP_MAX_HEADER_SIZE (64 * 1024)
 #define MCP_HTTP_MAX_BODY_SIZE (4 * 1024 * 1024)
 #define MCP_HTTP_RECEIVE_TIMEOUT_MS 5000
+#define MCP_HTTP_SEND_TIMEOUT_MS 5000
+#define MCP_STDIO_POLL_TIMEOUT_MS 100
 #define MCP_PROTOCOL_VERSION "2025-11-25"
 
 #include <string>
 #include <iostream>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
@@ -39,15 +42,19 @@
 #ifdef _WIN32
     #include <winsock2.h>
     #include <ws2tcpip.h>
+    #include <windows.h>
+    #include <conio.h>
     #pragma comment(lib, "ws2_32.lib")
     typedef SOCKET socket_t;
     typedef int socket_len_t;
     #define INVALID_SOCKET_VALUE INVALID_SOCKET
     #define SOCKET_CLOSE(s) closesocket(s)
+    #define SOCKET_SHUTDOWN(s) shutdown(s, SD_BOTH)
 #else
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
+    #include <sys/select.h>
     #include <sys/time.h>
     #include <unistd.h>
     #include <fcntl.h>
@@ -55,6 +62,7 @@
     typedef socklen_t socket_len_t;
     #define INVALID_SOCKET_VALUE -1
     #define SOCKET_CLOSE(s) ::close(s)
+    #define SOCKET_SHUTDOWN(s) ::shutdown(s, SHUT_RDWR)
 #endif
 
 class McpTransportInterface
@@ -75,14 +83,15 @@ class StdioTransport : public McpTransportInterface
 public:
     StdioTransport()
     {
-        m_closed = false;
+        m_closed.store(false);
+        m_input_eof = false;
     }
     ~StdioTransport() {}
 
     bool send(const std::string& jsonLine)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_closed)
+        if (m_closed.load())
             return false;
         std::cout << jsonLine << "\n";
         std::cout.flush();
@@ -92,7 +101,7 @@ public:
     bool acknowledge_notification()
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        return !m_closed;
+        return !m_closed.load();
     }
 
     bool reject_notification()
@@ -113,19 +122,133 @@ public:
 
     bool recv(std::string& jsonLine)
     {
-        if (m_closed)
-            return false;
-        return static_cast<bool>(std::getline(std::cin, jsonLine));
+        while (!m_closed.load())
+        {
+            size_t line_end = m_input_buffer.find('\n');
+            if (line_end != std::string::npos)
+            {
+                jsonLine = m_input_buffer.substr(0, line_end);
+                m_input_buffer.erase(0, line_end + 1);
+                if (!jsonLine.empty() && jsonLine[jsonLine.length() - 1] == '\r')
+                    jsonLine.erase(jsonLine.length() - 1);
+                return true;
+            }
+
+            if (m_input_eof)
+            {
+                if (m_input_buffer.empty())
+                    return false;
+
+                jsonLine = m_input_buffer;
+                m_input_buffer.clear();
+                return true;
+            }
+
+            char buffer[4096];
+            int received = read_stdin(buffer, sizeof(buffer));
+            if (received > 0)
+                m_input_buffer.append(buffer, received);
+            else if (received == 0)
+                m_input_eof = true;
+            else if (received != -2)
+                return false;
+        }
+
+        return false;
     }
 
     void close()
     {
-        m_closed = true;
+        m_closed.store(true);
     }
 
 private:
+    int read_stdin(char* buffer, int length)
+    {
+#ifdef _WIN32
+        HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
+        if (input == NULL || input == INVALID_HANDLE_VALUE)
+            return -1;
+
+        DWORD input_type = GetFileType(input);
+        if (input_type == FILE_TYPE_PIPE)
+        {
+            DWORD available = 0;
+            if (!PeekNamedPipe(input, NULL, 0, NULL, &available, NULL))
+            {
+                if (GetLastError() == ERROR_BROKEN_PIPE)
+                    return 0;
+                return -1;
+            }
+
+            if (available == 0)
+            {
+                Sleep(MCP_STDIO_POLL_TIMEOUT_MS);
+                return -2;
+            }
+
+            DWORD received = 0;
+            DWORD bytes_to_read = available < (DWORD)length ? available : (DWORD)length;
+            if (!ReadFile(input, buffer, bytes_to_read, &received, NULL))
+                return GetLastError() == ERROR_BROKEN_PIPE ? 0 : -1;
+            return (int)received;
+        }
+
+        if (input_type == FILE_TYPE_CHAR)
+        {
+            DWORD wait_result = WaitForSingleObject(input, MCP_STDIO_POLL_TIMEOUT_MS);
+            if (wait_result == WAIT_TIMEOUT)
+                return -2;
+            if (wait_result != WAIT_OBJECT_0)
+                return -1;
+
+            int received = 0;
+            while (received < length && _kbhit())
+            {
+                int character = _getch();
+                if (character == '\r')
+                    character = '\n';
+                buffer[received++] = (char)character;
+                if (character == '\n')
+                    break;
+            }
+            return received > 0 ? received : -2;
+        }
+
+        DWORD received = 0;
+        if (!ReadFile(input, buffer, (DWORD)length, &received, NULL))
+        {
+            if (GetLastError() == ERROR_BROKEN_PIPE)
+                return 0;
+            return -1;
+        }
+        return (int)received;
+#else
+        fd_set read_set;
+        FD_ZERO(&read_set);
+        FD_SET(STDIN_FILENO, &read_set);
+
+        struct timeval timeout;
+        timeout.tv_sec = MCP_STDIO_POLL_TIMEOUT_MS / 1000;
+        timeout.tv_usec = (MCP_STDIO_POLL_TIMEOUT_MS % 1000) * 1000;
+
+        int ready = select(STDIN_FILENO + 1, &read_set, NULL, NULL, &timeout);
+        if (ready == 0)
+            return -2;
+        if (ready < 0)
+            return errno == EINTR ? -2 : -1;
+
+        ssize_t received = ::read(STDIN_FILENO, buffer, (size_t)length);
+        if (received < 0)
+            return (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) ? -2 : -1;
+        return (int)received;
+#endif
+    }
+
     std::mutex m_mutex;
-    bool m_closed;
+    std::atomic<bool> m_closed;
+    std::string m_input_buffer;
+    bool m_input_eof;
 };
 
 class HttpTransport : public McpTransportInterface
@@ -133,7 +256,7 @@ class HttpTransport : public McpTransportInterface
 public:
     HttpTransport(const std::string& address, int port)
     {
-        m_closed = false;
+        m_closed.store(false);
         m_port = port;
         m_bind_address = address.empty() ? "127.0.0.1" : address;
         if (m_bind_address == "localhost")
@@ -369,16 +492,24 @@ public:
         return true;
     }
 
-    bool configure_client_receive_timeout(socket_t client)
+    bool configure_client_socket_timeouts(socket_t client)
     {
 #ifdef _WIN32
-        DWORD timeout = MCP_HTTP_RECEIVE_TIMEOUT_MS;
-        return setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout)) == 0;
+        DWORD receive_timeout = MCP_HTTP_RECEIVE_TIMEOUT_MS;
+        DWORD send_timeout = MCP_HTTP_SEND_TIMEOUT_MS;
+        return setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, (const char*)&receive_timeout, sizeof(receive_timeout)) == 0 &&
+               setsockopt(client, SOL_SOCKET, SO_SNDTIMEO, (const char*)&send_timeout, sizeof(send_timeout)) == 0;
 #else
-        struct timeval timeout;
-        timeout.tv_sec = MCP_HTTP_RECEIVE_TIMEOUT_MS / 1000;
-        timeout.tv_usec = (MCP_HTTP_RECEIVE_TIMEOUT_MS % 1000) * 1000;
-        return setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == 0;
+        struct timeval receive_timeout;
+        receive_timeout.tv_sec = MCP_HTTP_RECEIVE_TIMEOUT_MS / 1000;
+        receive_timeout.tv_usec = (MCP_HTTP_RECEIVE_TIMEOUT_MS % 1000) * 1000;
+
+        struct timeval send_timeout;
+        send_timeout.tv_sec = MCP_HTTP_SEND_TIMEOUT_MS / 1000;
+        send_timeout.tv_usec = (MCP_HTTP_SEND_TIMEOUT_MS % 1000) * 1000;
+
+        return setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, &receive_timeout, sizeof(receive_timeout)) == 0 &&
+               setsockopt(client, SOL_SOCKET, SO_SNDTIMEO, &send_timeout, sizeof(send_timeout)) == 0;
 #endif
     }
 
@@ -507,22 +638,23 @@ public:
     void close_current_client_locked()
     {
         if (m_current_client != INVALID_SOCKET_VALUE)
+        {
+            SOCKET_SHUTDOWN(m_current_client);
             SOCKET_CLOSE(m_current_client);
+        }
         m_current_client = INVALID_SOCKET_VALUE;
         m_current_origin.clear();
-        m_pending_protocol_version.clear();
-        m_pending_protocol_version_count = 0;
         m_client_cv.notify_all();
     }
 
     bool send_http_response(int code, const char* status, const char* content_type, const std::string& body, bool include_cors, const char* extra_headers = NULL)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_closed || m_current_client == INVALID_SOCKET_VALUE)
+        if (m_closed.load() || m_current_client == INVALID_SOCKET_VALUE)
         {
             Debug("[MCP] HTTP send failed: %s (closed=%d, client=%d)",
-                m_closed ? "server closed" : "no client connected",
-                m_closed, (int)m_current_client);
+            m_closed.load() ? "server closed" : "no client connected",
+            m_closed.load(), (int)m_current_client);
             return false;
         }
 
@@ -558,6 +690,12 @@ public:
                 return false;
             }
             total_sent += sent;
+
+            if (m_closed.load())
+            {
+                close_current_client_locked();
+                return false;
+            }
         }
 
         std::string log_output = body.length() > 500 ? body.substr(0, 500) + "..." : body;
@@ -649,29 +787,34 @@ public:
 
     bool recv(std::string& jsonLine)
     {
-        while (!m_closed && m_server_socket != INVALID_SOCKET_VALUE)
+        while (!m_closed.load())
         {
+            socket_t server_socket = INVALID_SOCKET_VALUE;
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
                 m_client_cv.wait(lock, [this]
                 {
-                    return m_closed || m_current_client == INVALID_SOCKET_VALUE;
+                    return m_closed.load() || m_current_client == INVALID_SOCKET_VALUE;
                 });
 
-                if (m_closed)
+                if (m_closed.load())
                 {
                     Debug("[MCP] Server closed, stopping recv loop");
                     return false;
                 }
+
+                server_socket = m_server_socket;
+                if (server_socket == INVALID_SOCKET_VALUE)
+                    return false;
             }
 
             struct sockaddr_in client_addr;
             socket_len_t client_len = sizeof(client_addr);
-            socket_t client = accept(m_server_socket, (struct sockaddr*)&client_addr, &client_len);
+            socket_t client = accept(server_socket, (struct sockaddr*)&client_addr, &client_len);
 
             if (client == INVALID_SOCKET_VALUE)
             {
-                if (m_closed)
+                if (m_closed.load())
                 {
                     Debug("[MCP] Server closed, stopping recv loop");
                     return false;
@@ -684,15 +827,21 @@ public:
 
             {
                 std::lock_guard<std::mutex> lock(m_mutex);
+                if (m_closed.load())
+                {
+                    SOCKET_SHUTDOWN(client);
+                    SOCKET_CLOSE(client);
+                    return false;
+                }
                 m_current_client = client;
                 m_current_origin.clear();
             }
             m_pending_protocol_version.clear();
             m_pending_protocol_version_count = 0;
 
-            if (!configure_client_receive_timeout(client))
+            if (!configure_client_socket_timeouts(client))
             {
-                Error("[MCP] Failed to configure HTTP client receive timeout");
+                Error("[MCP] Failed to configure HTTP client socket timeouts");
                 close_current_client();
                 continue;
             }
@@ -893,27 +1042,26 @@ public:
 
     void close()
     {
-        m_closed = true;
-        m_client_cv.notify_all();
+        if (m_closed.exchange(true))
+            return;
 
-        if (m_current_client != INVALID_SOCKET_VALUE)
-        {
-            SOCKET_CLOSE(m_current_client);
-            m_current_client = INVALID_SOCKET_VALUE;
-        }
-        m_current_origin.clear();
+        std::lock_guard<std::mutex> lock(m_mutex);
+        close_current_client_locked();
 
         if (m_server_socket != INVALID_SOCKET_VALUE)
         {
+            SOCKET_SHUTDOWN(m_server_socket);
             SOCKET_CLOSE(m_server_socket);
             m_server_socket = INVALID_SOCKET_VALUE;
         }
+
+        m_client_cv.notify_all();
     }
 
 private:
     std::mutex m_mutex;
     std::condition_variable m_client_cv;
-    bool m_closed;
+    std::atomic<bool> m_closed;
     int m_port;
     std::string m_bind_address;
     std::string m_auth_token;
