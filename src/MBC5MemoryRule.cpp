@@ -271,4 +271,18 @@ void MBC5MemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
     m_RomBankLow = m_iCurrentROMBank & 0xFF;
     UpdateBanks();
+
+    int ramBankCount = m_pCartridge->GetRAMBankCount();
+    if (ramBankCount > 0)
+    {
+        m_iCurrentRAMBank &= m_pCartridge->IsRumblePresent() ? 0x07 : 0x0F;
+        m_iCurrentRAMBank &= (ramBankCount - 1);
+        m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
+    }
+    else
+    {
+        m_iCurrentRAMBank = 0;
+        m_CurrentRAMAddress = 0;
+        m_bRamEnabled = false;
+    }
 }
