@@ -57,7 +57,7 @@ inline bool EditableRegister1(
     const char* bit_str = current_value ? "1" : "0";
     ImVec4 color = current_value ? true_color : false_color;
 
-    if (write_callback != nullptr)
+    if (write_callback != NULL)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, color);
         if (ImGui::Selectable(bit_str, false, ImGuiSelectableFlags_None, ImGui::CalcTextSize(bit_str)))
@@ -158,7 +158,7 @@ inline bool EditableRegister8(
         char value_str[16];
         snprintf(value_str, sizeof(value_str), "$%02X", current_value);
 
-        if (write_callback != nullptr)
+        if (write_callback != NULL)
         {
             if (ImGui::Selectable(value_str, false, 0, ImVec2(0, 0)))
             {
@@ -267,7 +267,7 @@ inline bool EditableRegister16(
         char value_str[16];
         snprintf(value_str, sizeof(value_str), "$%04X", current_value);
 
-        if (write_callback != nullptr)
+        if (write_callback != NULL)
         {
             if (ImGui::Selectable(value_str, false, 0, ImVec2(0, 0)))
             {

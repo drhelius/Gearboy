@@ -43,8 +43,8 @@ inline bool attach_parent_console(int argc, char* argv[])
 
     if (AttachConsole(ATTACH_PARENT_PROCESS))
     {
-        FILE* fp_stdout = nullptr;
-        FILE* fp_stderr = nullptr;
+        FILE* fp_stdout = NULL;
+        FILE* fp_stderr = NULL;
 
         freopen_s(&fp_stdout, "CONOUT$", "w", stdout);
         freopen_s(&fp_stderr, "CONOUT$", "w", stderr);
