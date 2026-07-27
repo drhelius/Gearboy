@@ -716,7 +716,7 @@ public:
         return true;
     }
 
-    bool validate_and_reject_bearer_auth(const std::string& request, socket_t client)
+    bool validate_and_reject_bearer_auth(const std::string& request)
     {
         if (m_auth_token.empty())
             return true;
@@ -784,7 +784,7 @@ public:
         std::string path = extract_http_path(request);
         if (path == MCP_HTTP_ENDPOINT_PATH)
         {
-            if (require_auth && !validate_and_reject_bearer_auth(request, client))
+            if (require_auth && !validate_and_reject_bearer_auth(request))
                 return false;
 
             return true;
