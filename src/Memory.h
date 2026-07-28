@@ -88,6 +88,9 @@ public:
     void EnableBootromGBC(bool enable);
     void LoadBootromDMG(const char* szFilePath);
     void LoadBootromGBC(const char* szFilePath);
+    bool LoadBootromFromBuffer(const u8* buffer, int size, bool gbc);
+    void UnloadBootrom(bool gbc);
+    bool IsBootromLoaded(bool gbc);
     bool IsBootromEnabled();
     void DisableBootromRegistry();
     bool IsBootromRegistryEnabled();

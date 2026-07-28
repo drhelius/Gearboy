@@ -763,12 +763,10 @@ void Memory::LoadBootroom(const char* szFilePath, bool gbc)
     using namespace std;
 
     int expectedSize = gbc ? 0x900 : 0x100;
-    u8* bootrom = gbc ? m_pBootromGBC : m_pBootromDMG;
+    UnloadBootrom(gbc);
 
     ifstream file;
     open_ifstream_utf8(file, szFilePath, ios::in | ios::binary | ios::ate);
-
-    bool ret = false;
 
     if (file.is_open())
     {
@@ -776,11 +774,16 @@ void Memory::LoadBootroom(const char* szFilePath, bool gbc)
 
         if (size == expectedSize)
         {
+            u8 bootrom[0x900];
             file.seekg(0, ios::beg);
-            file.read(reinterpret_cast<char*>(bootrom), size);
+            if (!file.read(reinterpret_cast<char*>(bootrom), size))
+            {
+                Log("There was a problem reading the bootrom file %s", szFilePath);
+                return;
+            }
             file.close();
 
-            ret = true;
+            LoadBootromFromBuffer(bootrom, size, gbc);
 
             Debug("Bootrom %s loaded", szFilePath);
         }
@@ -793,9 +796,39 @@ void Memory::LoadBootroom(const char* szFilePath, bool gbc)
     {
         Log("There was a problem opening the file %s", szFilePath);
     }
+}
+
+bool Memory::LoadBootromFromBuffer(const u8* buffer, int size, bool gbc)
+{
+    UnloadBootrom(gbc);
+
+    int expectedSize = gbc ? 0x900 : 0x100;
+    if (!IsValidPointer(buffer) || (size != expectedSize))
+        return false;
+
+    u8* bootrom = gbc ? m_pBootromGBC : m_pBootromDMG;
+    memcpy(bootrom, buffer, size);
 
     if (gbc)
-        m_bBootromGBCLoaded = ret;
+        m_bBootromGBCLoaded = true;
     else
-        m_bBootromDMGLoaded = ret;
+        m_bBootromDMGLoaded = true;
+
+    return true;
+}
+
+void Memory::UnloadBootrom(bool gbc)
+{
+    if (gbc)
+        m_bBootromGBCLoaded = false;
+    else
+        m_bBootromDMGLoaded = false;
+}
+
+bool Memory::IsBootromLoaded(bool gbc)
+{
+    if (gbc)
+        return m_bBootromGBCLoaded;
+
+    return m_bBootromDMGLoaded;
 }
