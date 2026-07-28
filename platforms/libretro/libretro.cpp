@@ -108,6 +108,7 @@ static retro_environment_t environ_cb;
 
 static void reset_controller_device(void);
 static void apply_controller_device(unsigned port, unsigned device, bool log_device);
+static bool load_rom(const struct retro_game_info* info);
 
 // red, green, blue
 static GB_Color original_palette[4] = {{0x87, 0x96, 0x03},{0x4D, 0x6B, 0x03},{0x2B, 0x55, 0x03},{0x14, 0x44, 0x03}};
@@ -913,7 +914,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
     core->SetSGBEnabled(sgb_enabled);
     core->SetSGBBorder(sgb_border);
-    if (!core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, force_dmg, mapper, force_gba))
+    if (!load_rom(info))
     {
         log_cb(RETRO_LOG_ERROR, "Invalid or corrupted ROM.\n");
         return false;
@@ -1008,6 +1009,52 @@ bool retro_load_game(const struct retro_game_info *info)
     environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
 
     return true;
+}
+
+static bool load_rom(const struct retro_game_info* info)
+{
+    if (!info)
+        return false;
+
+    if (IsValidPointer(info->data) && (info->size > 0))
+        return core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, force_dmg, mapper, force_gba);
+
+    if (!info->path || !info->path[0])
+        return false;
+
+    if (!vfs_interface)
+        return core->LoadROM(info->path, force_dmg, mapper, force_gba);
+
+    retro_vfs_file_handle* file = vfs_interface->open(info->path, RETRO_VFS_FILE_ACCESS_READ,
+        RETRO_VFS_FILE_ACCESS_HINT_NONE);
+    if (!file)
+        return false;
+
+    s64 size = (s64)vfs_interface->size(file);
+    if ((size <= 0) || (size > 0x7FFFFFFF))
+    {
+        vfs_interface->close(file);
+        return false;
+    }
+
+    u8* buffer = new u8[(int)size];
+    s64 total = 0;
+
+    while (total < size)
+    {
+        s64 read = (s64)vfs_interface->read(file, buffer + total, size - total);
+        if (read <= 0)
+            break;
+
+        total += read;
+    }
+
+    bool loaded = vfs_interface->close(file) == 0 && total == size;
+    if (loaded)
+        loaded = core->LoadROMFromBuffer(buffer, (int)size, force_dmg, mapper, force_gba);
+
+    SafeDeleteArray(buffer);
+    return loaded;
 }
 
 void retro_unload_game(void)
