@@ -172,12 +172,6 @@ void McpServer::HandleLine(const std::string& line)
         return;
     }
 
-    if (method == "initialize" && m_initialized)
-    {
-        reject_or_send_error(request_id, MCP_ERROR_INVALID_REQUEST, "Server already initialized");
-        return;
-    }
-
     if (!m_initialized && method != "initialize" && method != "ping")
     {
         reject_or_send_error(request_id, MCP_ERROR_INVALID_REQUEST, "Server not initialized");

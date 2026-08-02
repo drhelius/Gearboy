@@ -77,6 +77,18 @@ The HTTP transport mode runs the emulator with an embedded web server on `127.0.
 
 Add `--headless` to run without a GUI window. This is useful for servers, CLI agents, or any machine without a display. All MCP tools work identically in headless mode. Requires `--mcp-stdio` or `--mcp-http`.
 
+### Concurrent Clients
+
+The HTTP server accepts repeated valid MCP initialization requests. All connected clients control the same Gearboy instance. Individual HTTP requests are serialized, but multi-request debugging workflows are not atomic. Concurrent agents can interfere with each other through pauses, resets, breakpoints, memory writes, media loads, and save states.
+
+For independent agent tasks, run one Gearboy instance per agent on a unique HTTP port. Use `--headless` and give each instance its own portable application directory so its configuration and runtime files are isolated:
+
+```bash
+./gearboy --mcp-http --headless --portable --mcp-http-port 7778
+```
+
+The `--portable` option stores configuration and user data beside the application. Alternatively, create an empty `portable.ini` beside the executable in each application directory. On macOS, place it next to each `.app` bundle.
+
 ## MCP Tool Router
 
 By default, Gearboy exposes every MCP tool directly. This avoids nested tool discovery in clients that already defer MCP schemas, including Claude Code.
