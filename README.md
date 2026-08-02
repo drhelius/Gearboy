@@ -122,7 +122,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 ### Basic Usage
 - **Boot ROM**: Gearboy can run with or without a Boot ROM. You can optionally load a Boot ROM and enable it.
 - **Mouse Cursor**: Automatically hides when hovering over the main output window or when Main Menu is disabled.
-- **Portable Mode**: Create an empty file named `portable.ini` in the same directory as the application binary to enable portable mode. On macOS, place the file next to the `.app` bundle.
+- **Portable Mode**: Run with `--portable`, or create an empty file named `portable.ini` in the same directory as the application binary. On macOS, place the file next to the `.app` bundle.
 
 ### Debugging Features
 - **Docking Windows**: In debug mode, you can dock windows together by pressing SHIFT and dragging a window onto another.
@@ -147,6 +147,7 @@ Options:
       --mcp-http-address A HTTP bind address (default: 127.0.0.1)
       --mcp-http-port N    HTTP port for MCP server (default: 7777)
       --headless           Run without GUI (requires --mcp-stdio or --mcp-http)
+        --portable           Store configuration and user data beside the application
   -v, --version            Display version information
   -h, --help               Display this help message
 ```

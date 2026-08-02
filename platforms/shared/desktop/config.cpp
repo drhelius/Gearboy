@@ -30,7 +30,7 @@
 #include "shader_preset.h"
 #include "utils.h"
 
-static char* get_portable_path(void);
+static char* get_portable_path(bool force_portable);
 static bool check_portable(const char* base_path);
 static int read_int(const char* group, const char* key, int default_value);
 static void write_int(const char* group, const char* key, int integer);
@@ -110,10 +110,10 @@ static void set_defaults(void)
     config_hotkeys[config_HotkeyIndex_Mute] = make_hotkey(SDL_SCANCODE_U, SDL_KMOD_CTRL);
 }
 
-void config_init(void)
+void config_init(bool force_portable)
 {
     const char* root_path = NULL;
-    char* portable_path = get_portable_path();
+    char* portable_path = get_portable_path(force_portable);
 
     if (portable_path)
         root_path = portable_path;
@@ -698,7 +698,7 @@ void config_write(void)
     }
 }
 
-static char* get_portable_path(void)
+static char* get_portable_path(bool force_portable)
 {
     const char* base_path = SDL_GetBasePath();
     if (base_path == NULL)
@@ -717,13 +717,13 @@ static char* get_portable_path(void)
         {
             std::string portable_path = app_path.substr(0, app_dir_pos + 1);
 
-            if (check_portable(portable_path.c_str()))
+            if (force_portable || check_portable(portable_path.c_str()))
                 return SDL_strdup(portable_path.c_str());
         }
     }
 #endif
 
-    if (check_portable(base_path))
+    if (force_portable || check_portable(base_path))
         return SDL_strdup(base_path);
 
     return NULL;

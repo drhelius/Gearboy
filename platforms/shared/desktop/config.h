@@ -297,7 +297,7 @@ EXTERN config_Input_Gamepad_Shortcuts config_input_gamepad_shortcuts;
 EXTERN config_Hotkey config_hotkeys[config_HotkeyIndex_COUNT];
 EXTERN config_Debug config_debug;
 
-EXTERN void config_init(void);
+EXTERN void config_init(bool force_portable);
 EXTERN void config_destroy(void);
 EXTERN void config_read(void);
 EXTERN void config_write(void);

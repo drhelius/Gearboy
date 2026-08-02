@@ -37,6 +37,7 @@ int main(int argc, char* argv[])
     bool mcp_stdio_set = false;
     bool mcp_http_set = false;
     bool headless = false;
+    bool portable = false;
 
     for (int i = 1; i < argc; i++)
     {
@@ -81,6 +82,10 @@ int main(int argc, char* argv[])
             else if (strcmp(argv[i], "--headless") == 0)
             {
                 headless = true;
+            }
+            else if (strcmp(argv[i], "--portable") == 0)
+            {
+                portable = true;
             }
             else if (strcmp(argv[i], "--mcp-http-port") == 0)
             {
@@ -160,6 +165,7 @@ int main(int argc, char* argv[])
         printf("      --mcp-http-address A HTTP bind address (default: 127.0.0.1)\n");
         printf("      --mcp-http-port N HTTP port for MCP server (default: 7777)\n");
         printf("      --headless        Run without GUI (requires --mcp-stdio or --mcp-http)\n");
+        printf("      --portable        Store configuration and user data beside the application\n");
         printf("  -v, --version         Display version information\n");
         printf("  -h, --help            Display this help message\n");
         return ret;
@@ -168,7 +174,7 @@ int main(int argc, char* argv[])
     if (app_params.force_fullscreen && app_params.force_windowed)
         app_params.force_fullscreen = false;
 
-    config_init();
+    config_init(portable);
     config_read();
 
     if (app_params.mcp_tcp_port_set)
