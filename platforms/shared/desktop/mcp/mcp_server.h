@@ -243,6 +243,7 @@ private:
     void HandleToolsList(const json& request);
     void HandleToolsCall(const json& request);
     void HandleResourcesList(const json& request);
+    void HandleResourceTemplatesList(const json& request);
     void HandleResourcesRead(const json& request);
 
     json BuildToolList();

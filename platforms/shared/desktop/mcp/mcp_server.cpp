@@ -208,6 +208,10 @@ void McpServer::HandleLine(const std::string& line)
     {
         HandleResourcesList(request);
     }
+    else if (method == "resources/templates/list")
+    {
+        HandleResourceTemplatesList(request);
+    }
     else if (method == "resources/read")
     {
         HandleResourcesRead(request);
@@ -2846,6 +2850,18 @@ void McpServer::HandleResourcesList(const json& request)
     response["id"] = id;
     response["result"] = {
         {"resources", resources}
+    };
+
+    SendResponse(response);
+}
+
+void McpServer::HandleResourceTemplatesList(const json& request)
+{
+    json response;
+    response["jsonrpc"] = "2.0";
+    response["id"] = request["id"];
+    response["result"] = {
+        {"resourceTemplates", json::array()}
     };
 
     SendResponse(response);
