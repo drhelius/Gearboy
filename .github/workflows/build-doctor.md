@@ -89,7 +89,7 @@ Classify the failure by Gearboy subsystem before reporting:
 - `Update Homebrew Tap`: check release version discovery, macOS release artifact URLs, SHA256 calculation, `drhelius/homebrew-geardome` checkout with `HOMEBREW_TAP_TOKEN`, cask generation, and git commit or push failures. The cask should depend on `macos: :monterey` and point to Gearboy macOS arm64/intel release zips.
 - `Publish MCP Server`: check release tag discovery, `*.mcpb` artifact download, expected macOS/windows/linux SHA256 file names, `server.json` generation from `platforms/shared/desktop/mcp/server.json.template`, `mcp-publisher` installation, GitHub OIDC login, and registry publish errors. For macOS MCPB packages, verify the app bundle `Contents/Frameworks` directory is present at the MCPB root so server binaries can resolve SDL3.
 - `Trigger PPA Build`: check release version discovery and the repository dispatch payload sent to `drhelius/ppa-geardome` with emulator `gearboy`, version, and distro matrix values `resolute`, `noble`, and `jammy`. Distinguish a missing/invalid `PPA_TRIGGER_TOKEN` from downstream package build failures.
-- `Trigger RPM Build`: check release version discovery and the repository dispatch payload sent to `drhelius/rpm-geardome` with emulator `gearboy`, version, and Fedora matrix values `43`, `42`, and `41`. Distinguish a missing/invalid `RPM_TRIGGER_TOKEN` from downstream package build failures.
+- `Trigger RPM Build`: check release version discovery and the repository dispatch payload sent to `drhelius/rpm-geardome` with emulator `gearboy`, version, and the selected Fedora matrix value. Distinguish a missing/invalid `RPM_TRIGGER_TOKEN` from downstream package build failures.
 
 ### Phase 4: Historical And Change Context
 
