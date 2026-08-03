@@ -19,6 +19,7 @@ UNAME_S := $(shell uname -s)
 PLATFORM = "undefined"
 
 OBJECTS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
+CODEQL_OBJECTS := $(filter-out $(DEPS_DIR)/%,$(OBJECTS))
 
 INCLUDES += -I$(SRC_DIR) -I$(DESKTOP_SRC_DIR)
 
@@ -101,3 +102,6 @@ clean:
 
 header:
 	@echo "$$HEADER"
+
+codeql: $(CODEQL_OBJECTS)
+    @echo CodeQL build completed: $(TARGET_NAME)

@@ -1,5 +1,7 @@
-paths:
-  - src
-  - platforms/shared
+name: "CodeQL configuration"
+
+queries:
+  - uses: security-extended
+
 paths-ignore:
   - platforms/shared/dependencies

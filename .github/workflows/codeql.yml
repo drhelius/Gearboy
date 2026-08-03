@@ -6,7 +6,6 @@ on:
     branches: [ "master" ]
     paths-ignore:
       - '**.md'
-      - '.github/**'
       - '.vscode/**'
       - '.devcontainer/**'
   pull_request:
@@ -29,6 +28,8 @@ jobs:
         include:
         - language: c-cpp
           build-mode: manual
+        - language: actions
+          build-mode: none
     steps:
     - name: Checkout
       uses: actions/checkout@v6
@@ -36,9 +37,11 @@ jobs:
         fetch-depth: 0
   
     - name: Update OS
+      if: matrix.language == 'c-cpp'
       run: sudo apt-get update -qq
 
     - name: Install dependencies
+      if: matrix.language == 'c-cpp'
       run: |
         sudo apt-get install -y build-essential cmake \
         libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev \
@@ -46,6 +49,7 @@ jobs:
         libdrm-dev libgbm-dev libgl1-mesa-dev libegl1-mesa-dev libdbus-1-dev libudev-dev libxtst-dev
 
     - name: Build and install SDL3
+      if: matrix.language == 'c-cpp'
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
@@ -57,6 +61,7 @@ jobs:
         sudo cmake --install /tmp/SDL3/build
 
     - name: Get build number
+      if: matrix.language == 'c-cpp'
       run: |
         echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
 
@@ -67,11 +72,32 @@ jobs:
         build-mode: ${{ matrix.build-mode }}
         config-file: ./.github/codeql/codeql-config.yml
    
-    - name: make
-      run: make
+    - name: Build
+      if: matrix.language == 'c-cpp'
+      run: make codeql
       working-directory: platforms/linux
 
     - name: Perform CodeQL Analysis
+      id: analyze
       uses: github/codeql-action/analyze@v4
       with:
+        category: "/language:${{matrix.language}}"
+        output: sarif-results
+        upload: ${{ (matrix.language == 'c-cpp' && 'never') || 'always' }}
+
+    - name: Filter dependency results
+      if: matrix.language == 'c-cpp'
+      env:
+        SARIF_DIR: ${{ steps.analyze.outputs.sarif-output }}
+      run: |
+        for sarif_file in "$SARIF_DIR"/*.sarif; do
+          jq '(.runs[] | select(.results != null).results) |= map(select((((.locations[0].physicalLocation.artifactLocation.uri // "") | test("(^|/)platforms/shared/dependencies/")) | not)))' "$sarif_file" > "$sarif_file.filtered"
+          mv "$sarif_file.filtered" "$sarif_file"
+        done
+
+    - name: Upload filtered CodeQL results
+      if: matrix.language == 'c-cpp'
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: ${{ steps.analyze.outputs.sarif-output }}
         category: "/language:${{matrix.language}}"
