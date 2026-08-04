@@ -449,6 +449,16 @@ void single_instance_poll(void)
     }
 #endif
 
+    if (!should_check)
+    {
+        FILE* mailbox = fopen(s_mailbox_path.c_str(), "r");
+        if (mailbox)
+        {
+            fclose(mailbox);
+            should_check = true;
+        }
+    }
+
     if (should_check)
         read_mailbox();
 }
