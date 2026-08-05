@@ -19,7 +19,7 @@ jobs:
       id-token: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7.0.1
     - name: Get release tag
       id: release_info
       run: |
