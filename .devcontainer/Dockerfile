@@ -4,8 +4,7 @@ ENV LANG="C.UTF-8"
 
 # Install basic build tools
 RUN apt-get update \
-    && apt-get upgrade -y \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates \
         curl \
         git \
@@ -13,6 +12,7 @@ RUN apt-get update \
         vim \
         make \
         cmake \
+        pkg-config \
         unzip \
         zip \
         xxd \
@@ -34,17 +34,14 @@ RUN apt-get update \
         libgbm-dev \
         libgl1-mesa-dev \
         libegl1-mesa-dev \
+        libgl1-mesa-dri \
         libdbus-1-dev \
         libudev-dev \
+        libxtst-dev \
         libgtk-3-dev \
-    && SDL3_TAG=$(curl -s https://api.github.com/repos/libsdl-org/SDL/releases/latest | jq -r '.tag_name') \
-    && git clone --depth 1 --branch "$SDL3_TAG" https://github.com/libsdl-org/SDL.git /tmp/SDL3 \
-    && cmake -S /tmp/SDL3 -B /tmp/SDL3/build -DCMAKE_INSTALL_PREFIX=/usr -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF \
-    && cmake --build /tmp/SDL3/build -j"$(nproc)" \
-    && cmake --install /tmp/SDL3/build \
-    && rm -rf /tmp/SDL3 \
+        libsdl3-dev \
     && rm -rf /var/lib/apt/lists/* \
-    && apt-get autoremove -y && apt-get clean -y
+    && apt-get clean -y
 
 # Default to zsh shell
 ENV SHELL=/usr/bin/zsh \

@@ -9,13 +9,20 @@
         "userUid": "automatic",
         "userGid": "automatic"
       },
-      "ghcr.io/devcontainers/features/desktop-lite:1": {}
+      "ghcr.io/devcontainers/features/desktop-lite:1": {
+        "webPort": "6080"
+      }
   },
   "forwardPorts": [6080],
   "portsAttributes": {
     "6080": {
-      "label": "desktop"
+      "label": "Desktop",
+      "onAutoForward": "openBrowserOnce",
+      "protocol": "http"
     }
+  },
+  "containerEnv": {
+    "LIBGL_ALWAYS_SOFTWARE": "1"
   },
   "remoteUser": "codespace",
   "containerUser": "codespace",
