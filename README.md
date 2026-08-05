@@ -1,5 +1,7 @@
 # Gearboy
 
+[![MCP Toplist](https://mcptoplist.com/badge/io.github.drhelius%2Fgearboy.svg)](https://mcptoplist.com/server/io.github.drhelius%2Fgearboy)
+
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/drhelius/Gearboy/gearboy.yml)](https://github.com/drhelius/Gearboy/actions/workflows/gearboy.yml)
 [![GitHub Releases)](https://img.shields.io/github/v/tag/drhelius/Gearboy?label=version)](https://github.com/drhelius/Gearboy/releases)
 [![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/commits/master)
