@@ -35,7 +35,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Update OS
@@ -83,7 +83,7 @@ jobs:
       contents: read
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Update OS
@@ -120,7 +120,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Get build number
@@ -150,7 +150,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Install dependencies
@@ -218,7 +218,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Setup msbuild
@@ -264,7 +264,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Get build number
@@ -311,7 +311,7 @@ jobs:
           - { platform: linux, arch: arm64, os: ubuntu-24.04-arm, artifact_name: ubuntu24.04-arm64 }
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Get build number
@@ -393,7 +393,7 @@ jobs:
       contents: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Get build number
