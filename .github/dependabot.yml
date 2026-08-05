@@ -3,12 +3,15 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: cron
+      cronjob: "0 9 1,15 * *"
   - package-ecosystem: docker
     directory: /.devcontainer
     schedule:
-      interval: weekly
+      interval: cron
+      cronjob: "0 9 1,15 * *"
   - package-ecosystem: devcontainers
     directory: /.devcontainer
     schedule:
-      interval: weekly
+      interval: cron
+      cronjob: "0 9 1,15 * *"
