@@ -49,6 +49,15 @@
 #define Error Log
 #endif
 
+static inline bool get_local_time(time_t timestamp, struct tm* time_info)
+{
+#if defined(_WIN32)
+    return localtime_s(time_info, &timestamp) == 0;
+#else
+    return localtime_r(&timestamp, time_info) != NULL;
+#endif
+}
+
 // strncpy_fit, strncat_fit, fopen_utf8, get_date_time_string are defined in common.h
 
 static inline void create_directory_if_not_exists(const char* path)

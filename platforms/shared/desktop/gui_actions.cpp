@@ -28,6 +28,7 @@
 #include "gearboy.h"
 #include "application.h"
 #include "display.h"
+#include "utils.h"
 
 void gui_action_reset(void)
 {
@@ -127,11 +128,11 @@ void gui_action_save_screenshot(const char* path)
         return;
 
     time_t now = time(0);
-    tm* ltm = localtime(&now);
+    tm ltm;
 
     char date_time_buffer[32] = {};
-    if (ltm != NULL)
-        strftime(date_time_buffer, sizeof(date_time_buffer), "%Y-%m-%d %H%M%S", ltm);
+    if (get_local_time(now, &ltm))
+        strftime(date_time_buffer, sizeof(date_time_buffer), "%Y-%m-%d %H%M%S", &ltm);
     string date_time = date_time_buffer;
 
     string file_path;
