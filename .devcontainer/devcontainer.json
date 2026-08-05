@@ -22,8 +22,11 @@
     }
   },
   "containerEnv": {
-    "LIBGL_ALWAYS_SOFTWARE": "1"
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "VNC_RESOLUTION": "1920x1080x24",
+    "XDG_RUNTIME_DIR": "/tmp/xdg-runtime-codespace"
   },
+  "postStartCommand": "mkdir -p /tmp/xdg-runtime-codespace && chmod 700 /tmp/xdg-runtime-codespace",
   "remoteUser": "codespace",
   "containerUser": "codespace",
   "customizations": {
