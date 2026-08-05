@@ -361,6 +361,17 @@ static bool sdl_init(void)
 
     display_gl_context = SDL_GL_CreateContext(application_sdl_window);
 
+#if defined(__linux__)
+    if (!display_gl_context)
+    {
+        Log("Unable to create OpenGL 3.3 context, trying the default OpenGL context");
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 0);
+        display_gl_context = SDL_GL_CreateContext(application_sdl_window);
+    }
+#endif
+
     if (!display_gl_context)
     {
         SDL_ERROR("SDL_GL_CreateContext");
