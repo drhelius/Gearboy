@@ -5,6 +5,13 @@ updates:
     schedule:
       interval: cron
       cronjob: "0 9 1,15 * *"
+    ignore:
+      - dependency-name: actions/cache/restore
+      - dependency-name: actions/cache/save
+      - dependency-name: actions/checkout
+      - dependency-name: actions/setup-node
+      - dependency-name: github/gh-aw-actions/setup
+      - dependency-name: github/gh-aw-actions/setup-cli
   - package-ecosystem: docker
     directory: /.devcontainer
     schedule:
