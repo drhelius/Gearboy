@@ -343,6 +343,7 @@ void config_read(void)
     config_video.shader_mode = CLAMP(config_video.shader_mode, config_ShaderMode_PixelPerfect, config_ShaderMode_External);
     config_video.shader_preset_path = read_string("Video", "ShaderPresetFile");
     config_video.palette = read_int("Video", "Palette", 0);
+    config_video.palette = CLAMP(config_video.palette, 0, 10);
     config_video.color_correction = read_bool("Video", "ColorCorrection", true);
     config_video.sync_mode = read_int("Video", "SyncMode", -1);
     if ((file_version < config_version) || (config_video.sync_mode < config_VideoSync_Disabled) || (config_video.sync_mode > config_VideoSync_VRR))
