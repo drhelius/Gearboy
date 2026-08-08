@@ -43,6 +43,9 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get install -y build-essential cmake \
+        libasound2-dev libpulse-dev libpipewire-0.3-dev libjack-dev \
+        libsndio-dev libfribidi-dev libthai-dev libibus-1.0-dev \
+        libusb-1.0-0-dev libunwind-dev libaudio-dev \
         libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev \
         libxi-dev libxss-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
         libdrm-dev libgbm-dev libgl1-mesa-dev libegl1-mesa-dev libdbus-1-dev libudev-dev libxtst-dev
@@ -91,6 +94,9 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get install -y build-essential cmake \
+        libasound2-dev libpulse-dev libpipewire-0.3-dev libjack-dev \
+        libsndio-dev libfribidi-dev libthai-dev libibus-1.0-dev \
+        libusb-1.0-0-dev libunwind-dev libaudio-dev \
         libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev \
         libxi-dev libxss-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
         libdrm-dev libgbm-dev libgl1-mesa-dev libegl1-mesa-dev libdbus-1-dev libudev-dev libxtst-dev
