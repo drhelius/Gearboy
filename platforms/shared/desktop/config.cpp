@@ -249,6 +249,7 @@ void config_read(void)
     config_debug.dis_syntax = CLAMP(config_debug.dis_syntax, GB_Disassembler_Syntax_Gearboy, GB_Disassembler_Syntax_Count - 1);
     config_debug.dis_look_ahead_count = read_int("Debug", "DisLookAheadCount", 20);
     config_debug.font_size = read_int("Debug", "FontSize", 0);
+    config_debug.font_size = CLAMP(config_debug.font_size, 0, 3);
     config_debug.scale = read_int("Debug", "Scale", 2);
     config_debug.multi_viewport = read_bool("Debug", "MultiViewport", false);
     config_debug.single_instance = read_bool("Debug", "SingleInstance", false);
