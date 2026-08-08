@@ -196,7 +196,9 @@ void FlashcartMemoryRule::PerformWrite(u16 address, u8 value)
             if (m_bRamEnabled && m_iRAMBytesSize > 0)
                 m_pRAMBanks[((address - 0xA000) + m_CurrentRAMAddress) & (m_iRAMBytesSize - 1)] = value;
             else
+            {
                 Debug("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+            }
             break;
         }
         default:

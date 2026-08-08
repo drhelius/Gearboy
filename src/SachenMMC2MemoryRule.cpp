@@ -269,7 +269,9 @@ void SachenMMC2MemoryRule::PerformWrite(u16 address, u8 value)
             if ((m_iRAMBytesSize > 0) && IsValidPointer(m_pRAMBanks))
                 m_pRAMBanks[(address - 0xA000) & (m_iRAMBytesSize - 1)] = value;
             else
+            {
                 Debug("--> ** Attempting to write to RAM without ram in cart  %X %X", address, value);
+            }
             break;
         }
         default:
