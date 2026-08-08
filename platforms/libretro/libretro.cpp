@@ -516,19 +516,16 @@ static void update_input(void)
         {
             float ax = sensor_interface.get_sensor_input(0, RETRO_SENSOR_ACCELEROMETER_X);
             float az = sensor_interface.get_sensor_input(0, RETRO_SENSOR_ACCELEROMETER_Z);
-            if (ax != 0.0f || az != 0.0f)
-            {
-                int sx = MAX(sensor_sensitivity_x, 1);
-                int sy = MAX(sensor_sensitivity_y, 1);
-                libretro_tilt_x = ax * (float)sx / 5.0f;
-                libretro_tilt_y = az * (float)sy / 5.0f;
-                if (sensor_invert_x)
-                    libretro_tilt_x = -libretro_tilt_x;
-                if (sensor_invert_y)
-                    libretro_tilt_y = -libretro_tilt_y;
-                libretro_tilt_x = CLAMP(libretro_tilt_x, -4.0f, 4.0f);
-                libretro_tilt_y = CLAMP(libretro_tilt_y, -4.0f, 4.0f);
-            }
+            int sx = MAX(sensor_sensitivity_x, 1);
+            int sy = MAX(sensor_sensitivity_y, 1);
+            libretro_tilt_x = ax * (float)sx / 5.0f;
+            libretro_tilt_y = az * (float)sy / 5.0f;
+            if (sensor_invert_x)
+                libretro_tilt_x = -libretro_tilt_x;
+            if (sensor_invert_y)
+                libretro_tilt_y = -libretro_tilt_y;
+            libretro_tilt_x = CLAMP(libretro_tilt_x, -4.0f, 4.0f);
+            libretro_tilt_y = CLAMP(libretro_tilt_y, -4.0f, 4.0f);
         }
     }
     else if (tilt_source == 2)
