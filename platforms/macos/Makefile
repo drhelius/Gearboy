@@ -25,5 +25,7 @@ bundle:
 	cp -r ../shared/desktop/mcp/resources $(APP_NAME).app/Contents/Resources/mcp/
 	cp -r ../shared/desktop/shaders/* $(APP_NAME).app/Contents/Resources/shaders/
 
-dist: clean all bundle
+dist: clean
+	+$(MAKE) all
+	+$(MAKE) bundle
 	@echo Success!!
