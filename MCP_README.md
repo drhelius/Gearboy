@@ -339,7 +339,7 @@ The server exposes tools organized in the following categories:
 - `debug_step_into` - Step one SM83 instruction
 - `debug_step_over` - Step over subroutine calls
 - `debug_step_out` - Step out of current subroutine
-- `debug_step_frame` - Step one or more frames
+- `debug_step_frame` - Step one or more frames. Optional `frames` is 1-1000 (default 1). Optional `mode` is `async` (default, returns after scheduling) or `sync` (returns after all requested frames complete at VBlank). Use `mode: "sync"` when issuing dependent tool calls.
 - `debug_run_to_cursor` - Continue execution until reaching specified address
 - `debug_reset` - Reset emulation
 - `debug_get_status` - Get debug status (paused, at_breakpoint, pc address)

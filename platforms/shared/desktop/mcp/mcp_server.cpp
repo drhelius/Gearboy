@@ -405,7 +405,7 @@ json McpServer::BuildToolList()
     tools.push_back({
         {"name", "debug_step_frame"},
         {"title", "Debug Step Frame"},
-        {"description", "Run one or more video frames to VBlank."},
+        {"description", "Run one or more video frames to VBlank. Default mode is async; use mode sync to wait until all requested frames complete."},
         {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
         {"inputSchema", {
             {"type", "object"},
@@ -415,6 +415,11 @@ json McpServer::BuildToolList()
                     {"description", "Number of frames to step. Default 1."},
                     {"minimum", 1},
                     {"maximum", 1000}
+                }},
+                {"mode", {
+                    {"type", "string"},
+                    {"description", "async returns after scheduling; sync waits until all requested frames complete. Default async."},
+                    {"enum", json::array({"async", "sync"})}
                 }}
             }},
             {"additionalProperties", false}
@@ -1999,7 +2004,7 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
             return {{"error", "Invalid frames value (must be 1-1000)"}};
 
         m_debugAdapter.StepFrame(frames);
-        return {{"success", true}, {"frames", frames}};
+        return {{"success", true}, {"mode", "async"}, {"pending", true}, {"frames", frames}};
     }
     else if (normalizedTool == "debug_reset")
     {

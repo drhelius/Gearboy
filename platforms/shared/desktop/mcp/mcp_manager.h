@@ -72,6 +72,15 @@ struct McpInputMacroState
     bool restore_pause;
 };
 
+struct McpFrameStepState
+{
+    bool active;
+    json request_id;
+    int requested_frames;
+    u64 start_frame;
+    u64 target_frame;
+};
+
 class McpManager
 {
 public:
@@ -84,6 +93,7 @@ public:
         m_tcp_address = "127.0.0.1";
         m_pending_media_load = false;
         m_pending_media_load_request_id = json();
+        reset_frame_step();
         reset_input_macro();
     }
 
@@ -118,6 +128,7 @@ public:
         m_responseQueue.Reset();
         m_pending_media_load = false;
         m_pending_media_load_file_path.clear();
+        reset_frame_step();
         reset_input_macro();
 
         McpTransportInterface* transport = NULL;
@@ -146,6 +157,7 @@ public:
     {
         SafeDelete(m_server);
         m_commandQueue.Clear();
+        reset_frame_step();
     }
 
     bool IsRunning() const
@@ -173,11 +185,23 @@ public:
                 i++;
         }
 
-            if (m_inputMacro.active)
+        if (m_frameStep.active)
+        {
+            if (emu_frame_counter >= m_frameStep.target_frame ||
+                emu_frame_counter < m_frameStep.start_frame ||
+                emu_is_debug_idle() || emu_is_paused())
             {
-                pump_input_macro(core);
-                return;
+                finish_frame_step();
             }
+            else
+                return;
+        }
+
+        if (m_inputMacro.active)
+        {
+            pump_input_macro(core);
+            return;
+        }
 
         if (m_pending_media_load)
         {
@@ -199,6 +223,42 @@ public:
         DebugCommand* cmd = NULL;
         while ((cmd = m_commandQueue.Pop()) != NULL)
         {
+            if (is_sync_step_frame_command(cmd->toolName, cmd->arguments))
+            {
+                int frames = cmd->arguments.value("frames", 1);
+
+                if (frames < 1 || frames > 1000)
+                {
+                    DebugResponse* resp = new DebugResponse();
+                    resp->requestId = cmd->requestId;
+                    resp->isToolError = true;
+                    resp->errorMessage = "Invalid frames value (must be 1-1000)";
+                    resp->result = { {"error", resp->errorMessage} };
+                    m_responseQueue.Push(resp);
+                }
+                else if (emu_is_empty())
+                {
+                    DebugResponse* resp = new DebugResponse();
+                    resp->requestId = cmd->requestId;
+                    resp->isToolError = true;
+                    resp->errorMessage = "No media loaded";
+                    resp->result = { {"error", resp->errorMessage} };
+                    m_responseQueue.Push(resp);
+                }
+                else
+                {
+                    m_frameStep.active = true;
+                    m_frameStep.request_id = cmd->requestId;
+                    m_frameStep.requested_frames = frames;
+                    m_frameStep.start_frame = emu_frame_counter;
+                    m_frameStep.target_frame = emu_frame_counter + (u64)frames;
+                    m_debugAdapter->StepFrame(frames);
+                }
+
+                SafeDelete(cmd);
+                break;
+            }
+
             bool was_idle = emu_is_debug_idle();
 
             if (is_load_media_command(cmd->toolName))
@@ -293,6 +353,13 @@ private:
         return normalize_tool_name(tool_name) == "controller_macro";
     }
 
+    bool is_sync_step_frame_command(const std::string& tool_name, const json& arguments) const
+    {
+        return normalize_tool_name(tool_name) == "debug_step_frame" &&
+            arguments.contains("mode") && arguments["mode"].is_string() &&
+            arguments["mode"] == "sync";
+    }
+
     bool is_get_input_state_command(const std::string& tool_name) const
     {
         return normalize_tool_name(tool_name) == "get_input_state";
@@ -322,6 +389,44 @@ private:
 
         resp->isToolError = true;
         resp->errorMessage = resp->result["error"];
+    }
+
+    void reset_frame_step()
+    {
+        m_frameStep.active = false;
+        m_frameStep.request_id = json();
+        m_frameStep.requested_frames = 0;
+        m_frameStep.start_frame = 0;
+        m_frameStep.target_frame = 0;
+    }
+
+    void finish_frame_step()
+    {
+        u64 frames_executed = 0;
+        if (emu_frame_counter >= m_frameStep.start_frame)
+            frames_executed = emu_frame_counter - m_frameStep.start_frame;
+
+        bool complete = frames_executed >= (u64)m_frameStep.requested_frames;
+
+        DebugResponse* resp = new DebugResponse();
+        resp->requestId = m_frameStep.request_id;
+        resp->isError = false;
+        resp->result = {
+            {"success", complete},
+            {"mode", "sync"},
+            {"frames", m_frameStep.requested_frames},
+            {"frames_executed", (int)frames_executed}
+        };
+
+        if (!complete)
+        {
+            resp->isToolError = true;
+            resp->errorMessage = "Synchronous frame step interrupted before all requested frames completed";
+            resp->result["error"] = resp->errorMessage;
+        }
+
+        reset_frame_step();
+        m_responseQueue.Push(resp);
     }
 
     void reset_input_macro()
@@ -644,6 +749,7 @@ private:
     json m_pending_media_load_request_id;
     std::string m_pending_media_load_file_path;
     std::vector<DelayedButtonRelease> m_delayedReleases;
+    McpFrameStepState m_frameStep;
     McpInputMacroState m_inputMacro;
 };
 
