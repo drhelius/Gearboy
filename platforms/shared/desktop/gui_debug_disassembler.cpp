@@ -1562,7 +1562,7 @@ static void disassembler_menu(void)
 
         if (ImGui::BeginMenu("Syntax"))
         {
-            static const char* syntax_names[GB_Disassembler_Syntax_Count] = { "Gearboy", "RGBASM", "WLA-DX" };
+            static const char* syntax_names[GB_Disassembler_Syntax_Count] = { GEARBOY_TITLE, "RGBASM", "WLA-DX" };
 
             for (int i = 0; i < GB_Disassembler_Syntax_Count; i++)
             {

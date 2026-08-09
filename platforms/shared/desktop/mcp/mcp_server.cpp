@@ -312,8 +312,8 @@ void McpServer::HandleInitialize(const json& request)
         }},
         {"serverInfo", {
             {"name", "gearboy-mcp-server"},
-            {"title", "Gearboy MCP Server"},
-            {"description", "Debug/control Gearboy Game Boy/Game Boy Color: execution, breakpoints, memory, SM83 CPU, LCD/PPU, APU, SGB, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
+            {"title", GEARBOY_TITLE " MCP Server"},
+            {"description", "Debug/control " GEARBOY_TITLE " Game Boy/Game Boy Color: execution, breakpoints, memory, SM83 CPU, LCD/PPU, APU, SGB, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
             {"version", GEARBOY_VERSION}
         }}
     };
