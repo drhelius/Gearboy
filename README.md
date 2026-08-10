@@ -135,21 +135,21 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 gearboy [options] [rom_file] [symbol_file]
 
 Arguments:
-  [rom_file]               ROM file: accepts ROMs (.gb, .dmg, .gbc, .cgb, .sgb) or ZIP (.zip)
-  [symbol_file]            Optional symbol file for debugging
+  [rom_file]                  ROM file: accepts ROMs (.gb, .dmg, .gbc, .cgb, .sgb) or ZIP (.zip)
+  [symbol_file]               Optional symbol file for debugging
 
 Options:
-  -f, --fullscreen         Start in fullscreen mode
-  -w, --windowed           Start in windowed mode with menu visible
-      --mcp-stdio          Auto-start MCP server with stdio transport
-      --mcp-http           Auto-start MCP server with HTTP transport
-      --mcp-router         Enable compact MCP tool routing
-      --mcp-http-address A HTTP bind address (default: 127.0.0.1)
-      --mcp-http-port N    HTTP port for MCP server (default: 7777)
-      --headless           Run without GUI (requires --mcp-stdio or --mcp-http)
-        --portable           Store configuration and user data beside the application
-  -v, --version            Display version information
-  -h, --help               Display this help message
+  -f, --fullscreen            Start in fullscreen mode
+  -w, --windowed              Start in windowed mode with menu visible
+      --mcp-stdio             Auto-start MCP server with stdio transport
+      --mcp-http              Auto-start MCP server with HTTP transport
+      --mcp-router            Enable compact MCP tool routing
+      --mcp-http-address A    HTTP bind address (default: 127.0.0.1)
+      --mcp-http-port N       HTTP port for MCP server (default: 7777)
+      --headless              Run without GUI (requires --mcp-stdio or --mcp-http)
+      --portable              Store configuration and user data beside the application
+  -v, --version               Display version information
+  -h, --help                  Display this help message
 ```
 
 ### MCP Server
