@@ -558,9 +558,9 @@ void Cartridge::SetGameGenieCheat(const char* szCheat)
 
 void Cartridge::ClearGameGenieCheats()
 {
-    std::list<GameGenieCode>::iterator it;
+    std::list<GameGenieCode>::reverse_iterator it;
 
-    for (it = m_GameGenieList.begin(); it != m_GameGenieList.end(); it++)
+    for (it = m_GameGenieList.rbegin(); it != m_GameGenieList.rend(); it++)
     {
         m_pTheROM[it->address] = it->old_value;
     }
