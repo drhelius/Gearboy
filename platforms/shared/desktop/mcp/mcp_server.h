@@ -28,6 +28,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <algorithm>
 #include "json.hpp"
 #include "mcp_transport.h"
 #include "mcp_debug_adapter.h"
@@ -101,6 +102,29 @@ public:
         DebugCommand* cmd = m_queue.front();
         m_queue.pop();
         return cmd;
+    }
+
+    DebugCommand* Pop(const char* tool_name)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        DebugCommand* match = NULL;
+        size_t count = m_queue.size();
+
+        for (size_t i = 0; i < count; i++)
+        {
+            DebugCommand* cmd = m_queue.front();
+            m_queue.pop();
+
+            std::string normalized_name = cmd->toolName;
+            std::replace(normalized_name.begin(), normalized_name.end(), '.', '_');
+
+            if (!match && normalized_name == tool_name)
+                match = cmd;
+            else
+                m_queue.push(cmd);
+        }
+
+        return match;
     }
 
     void Complete()
