@@ -22,7 +22,9 @@
 #include <ctype.h>
 #include <algorithm>
 #include "Cartridge.h"
+#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "miniz.h"
+#undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "common.h"
 
 Cartridge::Cartridge()

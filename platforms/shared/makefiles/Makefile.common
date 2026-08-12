@@ -65,6 +65,7 @@ endif
 
 ifeq ($(UNAME_S), Linux)
     PLATFORM = "Linux"
+    CPPFLAGS += -D_LARGEFILE64_SOURCE=1
     LDFLAGS += -lGL -ldl `pkg-config --libs sdl3`
     CPPFLAGS += `pkg-config --cflags sdl3`
     TARGET := $(TARGET_NAME)
