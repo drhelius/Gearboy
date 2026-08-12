@@ -45,7 +45,7 @@ CPPFLAGS += -Wall -Wextra -Wformat -fno-exceptions -DEMULATOR_BUILD=\"$(GIT_VERS
 $(DEPS_DIR)/%.o: CPPFLAGS += -w
 
 CXXFLAGS += -std=c++11
-CFLAGS += -std=c99
+CFLAGS += -std=gnu99
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
@@ -65,7 +65,6 @@ endif
 
 ifeq ($(UNAME_S), Linux)
     PLATFORM = "Linux"
-    CPPFLAGS += -D_LARGEFILE64_SOURCE=1
     LDFLAGS += -lGL -ldl `pkg-config --libs sdl3`
     CPPFLAGS += `pkg-config --cflags sdl3`
     TARGET := $(TARGET_NAME)
