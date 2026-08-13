@@ -362,7 +362,7 @@ endif
 	$(CXX) $(CXXFLAGS) -std=c++11 -c -o $@ $<
 
 %.o: %.c
-	$(CC) $(CXXFLAGS) -std=c99 -c -o $@ $<
+	$(CC) $(CXXFLAGS) -std=gnu99 -c -o $@ $<
 
 clean:
 	rm -f $(OBJECTS) $(TARGET)
