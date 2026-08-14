@@ -307,12 +307,12 @@ static Uint16 input_build_state(int controller)
         // Use analog sticks
         else
         {
-            const Sint16 STICK_DEAD_ZONE = 8000;
-            const Sint16 rawx = SDL_GetGamepadAxis(sdl_controller, (SDL_GamepadAxis)config_input.gamepad_x_axis);
-            const Sint16 rawy = SDL_GetGamepadAxis(sdl_controller, (SDL_GamepadAxis)config_input.gamepad_y_axis);
+            const int STICK_DEAD_ZONE = 8000;
+            const int rawx = SDL_GetGamepadAxis(sdl_controller, (SDL_GamepadAxis)config_input.gamepad_x_axis);
+            const int rawy = SDL_GetGamepadAxis(sdl_controller, (SDL_GamepadAxis)config_input.gamepad_y_axis);
 
-            const Sint16 x = config_input.gamepad_invert_x_axis ? -rawx : rawx;
-            const Sint16 y = config_input.gamepad_invert_y_axis ? -rawy : rawy;
+            const int x = config_input.gamepad_invert_x_axis ? -rawx : rawx;
+            const int y = config_input.gamepad_invert_y_axis ? -rawy : rawy;
 
             if (x < -STICK_DEAD_ZONE)
                 ret |= Left_Key;
