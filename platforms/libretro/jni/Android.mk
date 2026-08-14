@@ -10,7 +10,7 @@ include $(CORE_DIR)/Makefile.common
 
 COREFLAGS := -DHAVE_STDINT_H -DHAVE_INTTYPES_H -D__LIBRETRO__ -DGEARBOY_DISABLE_DISASSEMBLER -DGEARBOY_DISABLE_VGMRECORDER $(INCLUDES)
 
-GIT_VERSION ?= " $(shell git describe --abbrev=7 --dirty --always --tags || echo unknown)"
+GIT_VERSION ?= " $(shell git -c safe.directory="$(abspath $(ROOT_DIR))" describe --abbrev=7 --dirty --always --tags || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
    COREFLAGS += -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
 endif

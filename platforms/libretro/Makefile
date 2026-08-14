@@ -331,7 +331,8 @@ else
 	CXXFLAGS += -O3 -DNDEBUG
 endif
 
-GIT_VERSION ?= $(shell git describe --abbrev=7 --dirty --always --tags || echo unknown)
+PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
+GIT_VERSION ?= $(shell git -c safe.directory="$(PROJECT_ROOT)" describe --abbrev=7 --dirty --always --tags || echo unknown)
 ifneq ($(GIT_VERSION), unknown)
 	CXXFLAGS += -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
 endif
