@@ -200,6 +200,9 @@
     <ClInclude Include="..\shared\desktop\application_headless.h" />
     <ClInclude Include="..\shared\desktop\backers.h" />
     <ClInclude Include="..\shared\desktop\config.h" />
+    <ClInclude Include="..\shared\desktop\config_data.h" />
+    <ClInclude Include="..\shared\desktop\config_definitions.inc.h" />
+    <ClInclude Include="..\shared\desktop\config_macros.h" />
     <ClInclude Include="..\shared\desktop\console_utils.h" />
     <ClInclude Include="..\shared\desktop\emu.h" />
     <ClInclude Include="..\shared\desktop\rewind.h" />
