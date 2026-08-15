@@ -131,6 +131,8 @@ EXTERN void emu_mcp_start(void);
 EXTERN void emu_mcp_stop(void);
 EXTERN bool emu_mcp_is_running(void);
 EXTERN int emu_mcp_get_transport_mode(void);
+EXTERN const char* emu_mcp_get_http_address(void);
+EXTERN int emu_mcp_get_http_port(void);
 EXTERN void emu_mcp_pump_commands(void);
 
 #undef EMU_IMPORT

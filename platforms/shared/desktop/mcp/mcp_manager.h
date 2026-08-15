@@ -170,6 +170,16 @@ public:
         return (int)m_transport_mode;
     }
 
+    const char* GetTcpAddress() const
+    {
+        return m_tcp_address.c_str();
+    }
+
+    int GetTcpPort() const
+    {
+        return m_tcp_port;
+    }
+
     void PumpCommands(GearboyCore* core)
     {
         u64 current_cycles = core->GetMasterClockCycles();
