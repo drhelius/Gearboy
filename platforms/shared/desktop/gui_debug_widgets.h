@@ -314,17 +314,24 @@ inline bool SliderIntWithSteps(const char* label, int* v, int v_min, int v_max, 
     if (v_step <= 0)
         v_step = 1;
 
-    int v_i = *v;
-    bool value_changed = ImGui::SliderInt(label, &v_i, v_min, v_max, display_format, ImGuiSliderFlags_AlwaysClamp);
+    int old_value = *v;
+    int step_count = (v_max - v_min + v_step - 1) / v_step;
+    int value = CLAMP(*v, v_min, v_max);
+    int step = (value - v_min + v_step / 2) / v_step;
+    ImGui::SliderInt(label, &step, 0, step_count, "",
+        ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_NoInput);
+    *v = MIN(v_min + step * v_step, v_max);
 
-    int diff = v_i - v_min;
-    int remain = diff % v_step;
+    char value_text[64];
+    snprintf(value_text, sizeof(value_text), display_format, *v);
+    ImVec2 item_min = ImGui::GetItemRectMin();
+    ImVec2 item_max = ImGui::GetItemRectMax();
+    ImVec2 text_size = ImGui::CalcTextSize(value_text);
+    ImVec2 text_pos(item_min.x + (item_max.x - item_min.x - text_size.x) * 0.5f,
+        item_min.y + (item_max.y - item_min.y - text_size.y) * 0.5f);
+    ImGui::GetWindowDrawList()->AddText(text_pos, ImGui::GetColorU32(ImGuiCol_Text), value_text);
 
-    if (remain < 0)
-        remain += v_step;
-
-    *v = v_i - remain;
-    return value_changed;
+    return *v != old_value;
 }
 
 #endif // GUI_DEBUG_WIDGETS_H
