@@ -72,6 +72,10 @@ private:
 inline void Audio::Tick(unsigned int clockCycles)
 {
     m_ElapsedCycles += clockCycles;
+#ifndef GEARBOY_DISABLE_VGMRECORDER
+    if (m_bVgmRecordingEnabled)
+        m_VgmRecorder.UpdateTiming(clockCycles);
+#endif
 }
 
 inline u8 Audio::ReadAudioRegister(u16 address)

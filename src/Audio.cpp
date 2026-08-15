@@ -138,11 +138,6 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
     for (int i = 0; i < 4; i++)
         m_pApu->read_debug_samples(m_pDebugChannelBuffer[i], i, AUDIO_BUFFER_SIZE, &m_iDebugChannelSamples[i]);
 
-#ifndef GEARBOY_DISABLE_VGMRECORDER
-    if (m_bVgmRecordingEnabled)
-        m_VgmRecorder.UpdateTiming(count / 2);
-#endif
-
     m_ElapsedCycles = 0;
 }
 

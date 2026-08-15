@@ -27,6 +27,7 @@ VgmRecorder::VgmRecorder()
     m_PendingWait = 0;
     m_TotalSamples = 0;
     m_ClockRate = 0;
+    m_TimingRemainder = 0;
     m_bDoubleSpeed = false;
     m_bGbDmgUsed = false;
 }
@@ -50,6 +51,7 @@ void VgmRecorder::Start(const char* file_path, int clock_rate, bool is_double_sp
     m_bRecording = true;
     m_PendingWait = 0;
     m_TotalSamples = 0;
+    m_TimingRemainder = 0;
     m_bGbDmgUsed = false;
     m_CommandBuffer.clear();
     
@@ -179,15 +181,6 @@ void VgmRecorder::WriteGbDmg(u16 address, u8 data)
     {
         Log("VGM: Skipping invalid address 0x%04X", address);
     }
-}
-
-void VgmRecorder::UpdateTiming(int elapsed_samples)
-{
-    if (!m_bRecording)
-        return;
-
-    m_PendingWait += elapsed_samples;
-    m_TotalSamples += elapsed_samples;
 }
 
 void VgmRecorder::WriteCommand(u8 command)
