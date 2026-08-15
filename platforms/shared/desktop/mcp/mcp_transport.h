@@ -273,7 +273,10 @@ public:
             m_bind_address = "127.0.0.1";
         const char* auth_token = getenv(MCP_HTTP_AUTH_ENV);
         if (auth_token && auth_token[0])
+        {
             m_auth_token = auth_token;
+            Log("[MCP] HTTP bearer token detected in %s", MCP_HTTP_AUTH_ENV);
+        }
         m_server_socket = INVALID_SOCKET_VALUE;
         m_current_client = INVALID_SOCKET_VALUE;
         m_pending_protocol_version_count = 0;
