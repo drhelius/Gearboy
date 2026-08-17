@@ -46,6 +46,57 @@ inline u32 read_u32_le(const u8* p)
     return (u32)p[0] | ((u32)p[1] << 8) | ((u32)p[2] << 16) | ((u32)p[3] << 24);
 }
 
+inline void write_u16_le(u8* p, u16 value)
+{
+    p[0] = (u8)(value >> 0);
+    p[1] = (u8)(value >> 8);
+}
+
+inline void write_u32_le(u8* p, u32 value)
+{
+    p[0] = (u8)(value >> 0);
+    p[1] = (u8)(value >> 8);
+    p[2] = (u8)(value >> 16);
+    p[3] = (u8)(value >> 24);
+}
+
+inline u32 utf8_decode_next(const char* text, size_t length, size_t& index)
+{
+    const u8* data = (const u8*)text;
+    u32 codepoint = data[index++];
+
+    if (codepoint < 0x80)
+        return codepoint;
+
+    if (((codepoint & 0xE0) == 0xC0) && (index < length) && ((data[index] & 0xC0) == 0x80))
+    {
+        codepoint = ((codepoint & 0x1F) << 6) | (data[index++] & 0x3F);
+        return codepoint >= 0x80 ? codepoint : 0xFFFD;
+    }
+
+    if (((codepoint & 0xF0) == 0xE0) && ((index + 1) < length) &&
+        ((data[index] & 0xC0) == 0x80) && ((data[index + 1] & 0xC0) == 0x80))
+    {
+        codepoint = ((codepoint & 0x0F) << 12) | ((data[index] & 0x3F) << 6) | (data[index + 1] & 0x3F);
+        index += 2;
+        if ((codepoint >= 0x800) && ((codepoint < 0xD800) || (codepoint > 0xDFFF)))
+            return codepoint;
+        return 0xFFFD;
+    }
+
+    if (((codepoint & 0xF8) == 0xF0) && ((index + 2) < length) &&
+        ((data[index] & 0xC0) == 0x80) && ((data[index + 1] & 0xC0) == 0x80) &&
+        ((data[index + 2] & 0xC0) == 0x80))
+    {
+        codepoint = ((codepoint & 0x07) << 18) | ((data[index] & 0x3F) << 12) |
+                    ((data[index + 1] & 0x3F) << 6) | (data[index + 2] & 0x3F);
+        index += 3;
+        return ((codepoint >= 0x10000) && (codepoint <= 0x10FFFF)) ? codepoint : 0xFFFD;
+    }
+
+    return 0xFFFD;
+}
+
 inline u16 read_u16_be(const u8* p)
 {
     return (u16)p[1] | ((u16)p[0] << 8);

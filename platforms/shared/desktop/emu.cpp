@@ -1038,7 +1038,17 @@ void emu_start_vgm_recording(const char* file_path)
         return;
     if (gearboy->GetAudio()->IsVgmRecording())
         emu_stop_vgm_recording();
-    if (gearboy->GetAudio()->StartVgmRecording(file_path, GEARBOY_MASTER_CLOCK_RATE, false))
+    VgmMetadata metadata;
+    metadata.system_name = "Nintendo Game Boy";
+    if (gearboy->IsSGB())
+        metadata.system_name = "Nintendo Super Game Boy";
+    else if (gearboy->IsCGB())
+        metadata.system_name = "Nintendo Game Boy Color";
+
+    metadata.game_name = gearboy->GetCartridge()->GetFileName();
+    metadata.comment = "Created with " GEARBOY_TITLE " " GEARBOY_VERSION;
+
+    if (gearboy->GetAudio()->StartVgmRecording(file_path, GEARBOY_MASTER_CLOCK_RATE, false, metadata))
         Log("VGM recording started: %s", file_path);
 }
 

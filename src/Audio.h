@@ -49,7 +49,7 @@ public:
     bool IsPSGDebugEnabled();
     blip_sample_t* GetDebugChannelBuffer(int channel);
     int GetDebugChannelSamples(int channel);
-    bool StartVgmRecording(const char* file_path, int clock_rate, bool is_double_speed);
+    bool StartVgmRecording(const char* file_path, int clock_rate, bool is_double_speed, const VgmMetadata& metadata);
     void StopVgmRecording();
     bool IsVgmRecording() const;
 
