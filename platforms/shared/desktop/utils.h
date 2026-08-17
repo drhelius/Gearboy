@@ -21,6 +21,7 @@
 #define UTILS_H
 
 #include <stdio.h>
+#include <string>
 #include <string.h>
 #if defined(_WIN32)
 #include <windows.h>
@@ -131,6 +132,31 @@ static inline int get_reset_value(int option)
         default:
             return -1;
     }
+}
+
+static inline std::string base64_encode(const unsigned char* data, int size)
+{
+    static const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    std::string result;
+    result.reserve(((size + 2) / 3) * 4);
+
+    int i = 0;
+    while (i < size)
+    {
+        unsigned char byte1 = data[i++];
+        bool has_byte2 = i < size;
+        unsigned char byte2 = has_byte2 ? data[i++] : 0;
+        bool has_byte3 = i < size;
+        unsigned char byte3 = has_byte3 ? data[i++] : 0;
+
+        result.push_back(base64_chars[byte1 >> 2]);
+        result.push_back(base64_chars[((byte1 & 0x03) << 4) | (byte2 >> 4)]);
+        result.push_back(has_byte2 ? base64_chars[((byte2 & 0x0F) << 2) | (byte3 >> 6)] : '=');
+        result.push_back(has_byte3 ? base64_chars[byte3 & 0x3F] : '=');
+    }
+
+    return result;
 }
 
 static inline int ends_with(const char* s, const char* suffix)

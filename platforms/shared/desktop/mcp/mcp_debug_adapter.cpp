@@ -1188,30 +1188,6 @@ json DebugAdapter::GetAPUStatus()
     return status;
 }
 
-// Base64 encoding table
-static const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-static std::string base64_encode(const unsigned char* data, int size)
-{
-    std::string result;
-    result.reserve(((size + 2) / 3) * 4);
-
-    int i = 0;
-    while (i < size)
-    {
-        unsigned char byte1 = data[i++];
-        unsigned char byte2 = (i < size) ? data[i++] : 0;
-        unsigned char byte3 = (i < size) ? data[i++] : 0;
-
-        result.push_back(base64_chars[byte1 >> 2]);
-        result.push_back(base64_chars[((byte1 & 0x03) << 4) | (byte2 >> 4)]);
-        result.push_back((i > size + 1) ? '=' : base64_chars[((byte2 & 0x0F) << 2) | (byte3 >> 6)]);
-        result.push_back((i > size) ? '=' : base64_chars[byte3 & 0x3F]);
-    }
-
-    return result;
-}
-
 json DebugAdapter::GetScreenshot()
 {
     json result;
