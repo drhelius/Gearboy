@@ -4,6 +4,12 @@
 #include "CommonMemoryRule.h"
 #include "IORegistersMemoryRule.h"
 
+INLINE void Memory::TraceLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length)
+{
+    if (IsValidPointer(m_pTraceLogger) && m_pTraceLogger->IsEventEnabled(TRACE_LCD, event))
+        LogLCDDMAEvent(event, source, destination, length);
+}
+
 inline u8 Memory::Read(u16 address)
 {
     #ifndef GEARBOY_DISABLE_DISASSEMBLER
@@ -220,6 +226,20 @@ inline u8 Memory::GetBank(u16 address)
         return (u8)m_pCurrentMemoryRule->GetCurrentRomBank1Index();
 }
 
+inline u16 Memory::GetTraceBank(u16 address)
+{
+    if (address >= 0x8000)
+        return 0;
+
+    if (!IsValidPointer(m_pCurrentMemoryRule))
+        return 0;
+
+    if (address < 0x4000)
+        return (u16)m_pCurrentMemoryRule->GetCurrentRomBank0Index();
+    else
+        return (u16)m_pCurrentMemoryRule->GetCurrentRomBank1Index();
+}
+
 inline GB_Disassembler_Record* Memory::GetDisassemblerRecord(u16 address)
 {
     u32 physical_address = GetPhysicalAddress(address);
@@ -237,7 +257,7 @@ inline GB_Disassembler_Record* Memory::GetDisassemblerRecord(u16 address)
     }
 }
 
-inline GB_Disassembler_Record* Memory::GetDisassemblerRecord(u16 address, u8 bank)
+inline GB_Disassembler_Record* Memory::GetDisassemblerRecord(u16 address, u16 bank)
 {
     if (address >= 0x8000)
         return m_pDisassembledMap[address];

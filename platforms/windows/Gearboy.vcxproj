@@ -80,6 +80,7 @@
     <ClCompile Include="..\shared\desktop\gui_debug_psg.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_sgb.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_trace_logger.cpp" />
+    <ClCompile Include="..\shared\desktop\trace_logger_formatter.cpp" />
     <ClCompile Include="..\shared\desktop\gui_filedialogs.cpp" />
     <ClCompile Include="..\shared\desktop\gui_menus.cpp" />
     <ClCompile Include="..\shared\desktop\gui_popups.cpp" />
@@ -222,6 +223,7 @@
     <ClInclude Include="..\shared\desktop\gui_debug_sgb.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_text.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_trace_logger.h" />
+    <ClInclude Include="..\shared\desktop\trace_logger_formatter.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_widgets.h" />
     <ClInclude Include="..\shared\desktop\gui_filedialogs.h" />
     <ClInclude Include="..\shared\desktop\gui_menus.h" />

@@ -20,7 +20,6 @@
 #define GUI_ACTIONS_IMPORT
 #include "gui_actions.h"
 #include "gui.h"
-#include "gui_debug_trace_logger.h"
 #include "config.h"
 #include "emu.h"
 #include "rewind.h"
@@ -33,7 +32,6 @@
 void gui_action_reset(void)
 {
     gui_set_status_message("Resetting...", 3000);
-    gui_debug_trace_logger_clear();
 
     emu_resume();
     emu_reset(config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);
@@ -51,12 +49,18 @@ void gui_action_reset(void)
 
 void gui_action_reload_rom(void)
 {
+    char rom_path[4096] = {};
     if (!emu_is_empty())
     {
-        char rom_path[4096];
         strncpy_fit(rom_path, emu_get_core()->GetCartridge()->GetFilePath(), sizeof(rom_path));
-        gui_load_rom(rom_path);
     }
+    else if (!config_emulator.recent_roms[0].empty())
+    {
+        strncpy_fit(rom_path, config_emulator.recent_roms[0].c_str(), sizeof(rom_path));
+    }
+
+    if (rom_path[0] != '\0')
+        gui_load_rom(rom_path);
 }
 
 void gui_action_pause(void)

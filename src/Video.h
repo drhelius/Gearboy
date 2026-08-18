@@ -21,10 +21,10 @@
 #define	VIDEO_H
 
 #include "definitions.h"
+#include "TraceLogger.h"
 
 class Memory;
 class Processor;
-class TraceLogger;
 
 typedef u16 (*PaletteMatrix)[8][4][2];
 
@@ -66,6 +66,8 @@ private:
     void RenderWindow(int line);
     void RenderSprites(int line);
     void UpdateStatRegister();
+    INLINE void TraceEvent(u8 event, u8 value);
+    void LogTraceEvent(u8 event, u8 value);
 
 private:
     Memory* m_pMemory;
@@ -96,5 +98,11 @@ private:
     GB_Color_Format m_pixelFormat;
     TraceLogger* m_pTraceLogger;
 };
+
+INLINE void Video::TraceEvent(u8 event, u8 value)
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_LCD, event))
+        LogTraceEvent(event, value);
+}
 
 #endif	/* VIDEO_H */

@@ -162,10 +162,10 @@ int application_init(const ApplicationParams& params)
 void application_destroy(void)
 {
     save_window_size();
-    emu_destroy();
     ogl_renderer_destroy();
     ImGui_ImplSDL3_Shutdown();
     gui_destroy();
+    emu_destroy();
     gamepad_destroy();
     sdl_destroy();
     single_instance_destroy();

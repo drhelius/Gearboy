@@ -20,6 +20,7 @@
 #include <iostream>
 #include <fstream>
 #include "Memory.h"
+#include "TraceLogger.h"
 #include "Processor.h"
 #include "Video.h"
 #include "common.h"
@@ -35,6 +36,7 @@ Memory::Memory()
     InitPointer(m_pLCDRAMBank1);
     InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
+    InitPointer(m_pTraceLogger);
     InitPointer(m_pCurrentMemoryRule);
     InitPointer(m_pBootromDMG);
     InitPointer(m_pBootromGBC);
@@ -47,12 +49,40 @@ Memory::Memory()
         m_HDMA[i] = 0;
     m_HDMASource = 0;
     m_HDMADestination = 0;
+    m_HDMATraceSource = 0;
+    m_HDMATraceDestination = 0;
+    m_HDMATraceLength = 0;
     m_bBootromDMGEnabled = false;
     m_bBootromGBCEnabled = false;
     m_bBootromRegistryDisabled = false;
     m_bBootromDMGLoaded = false;
     m_bBootromGBCLoaded = false;
     m_bCurrentRuleNeedsHighMemoryAccessNotifications = false;
+}
+
+void Memory::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
+}
+
+void Memory::LogLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    GB_Trace_Entry e = {};
+    e.type = TRACE_LCD;
+    e.lcd.event = event;
+    e.lcd.address = source;
+    e.lcd.value = destination;
+    e.lcd.length = length;
+    e.lcd.line = m_pMap[0xFF44];
+    e.lcd.mode = (u8)m_pVideo->GetCurrentStatusMode();
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(event);
+    UNUSED(source);
+    UNUSED(destination);
+    UNUSED(length);
+#endif
 }
 
 Memory::~Memory()
@@ -135,6 +165,9 @@ void Memory::Reset(bool bCGB, bool bSGB)
     m_iCurrentLCDRAMBank = 0;
     m_bHDMAEnabled = false;
     m_iHDMABytes = 0;
+    m_HDMATraceSource = 0;
+    m_HDMATraceDestination = 0;
+    m_HDMATraceLength = 0;
     m_bBootromRegistryDisabled = false;
 
     if (IsBootromEnabled())
@@ -313,9 +346,12 @@ void Memory::MemoryDump(const char* szFilePath)
 void Memory::PerformDMA(u8 value)
 {
     u16 address = value << 8;
+    u16 source = address;
 
     if (address > 0xF100)
         return;
+
+    TraceLCDDMAEvent(TRACE_LCD_OAM_DMA_START, source, 0xFE00, 0x00A0);
 
     if (m_bCGB)
     {
@@ -348,6 +384,8 @@ void Memory::PerformDMA(u8 value)
         for (int i = 0; i < 0xA0; i++)
             Load(0xFE00 + i, Read(address + i));
     }
+
+    TraceLCDDMAEvent(TRACE_LCD_OAM_DMA_END, source, 0xFE00, 0x00A0);
 }
 
 void Memory::SwitchCGBDMA(u8 value)
@@ -370,6 +408,8 @@ void Memory::SwitchCGBDMA(u8 value)
         {
             m_HDMA[4] = 0xFF;
             m_bHDMAEnabled = false;
+            TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_CANCEL, m_HDMASource & 0xFFF0,
+                (m_HDMADestination & 0x1FF0) | 0x8000, (u16)m_iHDMABytes);
         }
     }
     else
@@ -378,6 +418,11 @@ void Memory::SwitchCGBDMA(u8 value)
         {
             m_bHDMAEnabled = true;
             m_HDMA[4] = value & 0x7F;
+            m_HDMATraceSource = m_HDMASource & 0xFFF0;
+            m_HDMATraceDestination = (m_HDMADestination & 0x1FF0) | 0x8000;
+            m_HDMATraceLength = (u16)m_iHDMABytes;
+            TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_START, m_HDMATraceSource,
+                m_HDMATraceDestination, m_HDMATraceLength);
             if (m_pVideo->GetCurrentStatusMode() == 0)
             {
                 m_pProcessor->AddCycles(PerformHDMA());
@@ -385,7 +430,12 @@ void Memory::SwitchCGBDMA(u8 value)
         }
         else
         {
+            u16 source = m_HDMASource & 0xFFF0;
+            u16 destination = (m_HDMADestination & 0x1FF0) | 0x8000;
+            u16 length = (u16)m_iHDMABytes;
+            TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_START, source, destination, length);
             PerformGDMA(value);
+            TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_END, source, destination, length);
         }
     }
 }
@@ -415,6 +465,11 @@ unsigned int Memory::PerformHDMA()
 
     if (m_HDMA[4] == 0xFF)
         m_bHDMAEnabled = false;
+
+    TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_BLOCK, source, destination, 0x0010);
+    if (!m_bHDMAEnabled)
+        TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_END, m_HDMATraceSource,
+            m_HDMATraceDestination, m_HDMATraceLength);
 
     return (m_pProcessor->CGBSpeed() ? 17 : 9) * (m_pProcessor->CGBSpeed() ? 2 : 4);
 }
@@ -548,6 +603,19 @@ void Memory::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (m_HDMA), sizeof(m_HDMA));
     stream.read(reinterpret_cast<char*> (&m_HDMASource), sizeof(m_HDMASource));
     stream.read(reinterpret_cast<char*> (&m_HDMADestination), sizeof(m_HDMADestination));
+
+    if (m_bHDMAEnabled)
+    {
+        m_HDMATraceSource = m_HDMASource & 0xFFF0;
+        m_HDMATraceDestination = (m_HDMADestination & 0x1FF0) | 0x8000;
+        m_HDMATraceLength = (u16)m_iHDMABytes;
+    }
+    else
+    {
+        m_HDMATraceSource = 0;
+        m_HDMATraceDestination = 0;
+        m_HDMATraceLength = 0;
+    }
 }
 
 u8* Memory::GetROM0()

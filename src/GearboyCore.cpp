@@ -141,7 +141,7 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pCartridge = new Cartridge();
     m_pSGB = new SGB(m_pMemory, m_pVideo);
     m_pSGBFrameBuffer = new u16[SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT];
-    m_trace_logger = new TraceLogger();
+    m_trace_logger = new TraceLogger(&m_master_clock_cycles);
 
     m_pMemory->Init();
     m_pProcessor->Init();
@@ -153,6 +153,7 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
 
     m_pProcessor->SetTraceLogger(m_trace_logger);
     m_pVideo->SetTraceLogger(m_trace_logger);
+    m_pMemory->SetTraceLogger(m_trace_logger);
 
     InitMemoryRules();
     InitDMGPalette();
@@ -180,16 +181,19 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
         do
         {
             unsigned int clockCycles = m_pProcessor->RunFor(1);
+            unsigned int cpuClockCycles = clockCycles;
+
+            m_master_clock_cycles += cpuClockCycles;
 
             m_pProcessor->UpdateTimers(clockCycles);
             m_pProcessor->UpdateSerial(clockCycles);
 
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
+            m_master_clock_cycles += clockCycles - cpuClockCycles;
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
             m_pMBC3MemoryRule->Tick(clockCycles);
             totalClocks += clockCycles;
-            m_master_clock_cycles += clockCycles;
 
             if (debug_enable)
             {
@@ -236,16 +240,19 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             #else
                 unsigned int clockCycles = m_pProcessor->RunFor(1);
             #endif
+            unsigned int cpuClockCycles = clockCycles;
+
+            m_master_clock_cycles += cpuClockCycles;
 
             m_pProcessor->UpdateTimers(clockCycles);
             m_pProcessor->UpdateSerial(clockCycles);
 
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
+            m_master_clock_cycles += clockCycles - cpuClockCycles;
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
             m_pMBC3MemoryRule->Tick(clockCycles);
             totalClocks += clockCycles;
-            m_master_clock_cycles += clockCycles;
 
             if (totalClocks > GAMEBOY_CLOCKS_SAFE_LIMIT)
                 vblank = true;

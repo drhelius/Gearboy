@@ -28,30 +28,132 @@ enum GB_Trace_Type : u8
 {
     TRACE_CPU = 0,
     TRACE_CPU_IRQ,
-    TRACE_LCD_WRITE,
-    TRACE_LCD_STATUS,
-    TRACE_APU_WRITE,
-    TRACE_IO_WRITE,
-    TRACE_BANK_SWITCH,
+    TRACE_LCD,
+    TRACE_INPUT,
+    TRACE_TIMER,
+    TRACE_APU,
+    TRACE_SERIAL,
+    TRACE_MAPPER,
     TRACE_TYPE_COUNT,
 };
 
-typedef GB_Trace_Type GS_Trace_Type;
+static_assert(TRACE_TYPE_COUNT < 32, "Trace category count exceeds flag width");
 
-#define TRACE_FLAG_CPU          (1 << TRACE_CPU)
-#define TRACE_FLAG_CPU_IRQ      (1 << TRACE_CPU_IRQ)
-#define TRACE_FLAG_LCD_WRITE    (1 << TRACE_LCD_WRITE)
-#define TRACE_FLAG_LCD_STATUS   (1 << TRACE_LCD_STATUS)
-#define TRACE_FLAG_APU_WRITE    (1 << TRACE_APU_WRITE)
-#define TRACE_FLAG_IO_WRITE     (1 << TRACE_IO_WRITE)
-#define TRACE_FLAG_BANK_SWITCH  (1 << TRACE_BANK_SWITCH)
-#define TRACE_FLAG_ALL          0xFF
+#define TRACE_FLAG_CPU          (1U << TRACE_CPU)
+#define TRACE_FLAG_CPU_IRQ      (1U << TRACE_CPU_IRQ)
+#define TRACE_FLAG_LCD          (1U << TRACE_LCD)
+#define TRACE_FLAG_INPUT        (1U << TRACE_INPUT)
+#define TRACE_FLAG_TIMER        (1U << TRACE_TIMER)
+#define TRACE_FLAG_APU          (1U << TRACE_APU)
+#define TRACE_FLAG_SERIAL       (1U << TRACE_SERIAL)
+#define TRACE_FLAG_MAPPER       (1U << TRACE_MAPPER)
+#define TRACE_FLAG_ALL          ((1U << TRACE_TYPE_COUNT) - 1)
 
-#define GB_LCD_EVENT_VBLANK       0
-#define GB_LCD_EVENT_STAT_IRQ     1
-#define GB_LCD_EVENT_LYC_MATCH    2
-#define GB_LCD_EVENT_MODE_CHANGE  3
-#define GB_LCD_EVENT_HDMA         4
+enum GB_Trace_LCD_Event : u8
+{
+    TRACE_LCD_REG_WRITE = 0,
+    TRACE_LCD_VBLANK_IRQ,
+    TRACE_LCD_STAT_IRQ,
+    TRACE_LCD_OAM_DMA_START,
+    TRACE_LCD_OAM_DMA_END,
+    TRACE_LCD_CGB_DMA_START,
+    TRACE_LCD_CGB_DMA_BLOCK,
+    TRACE_LCD_CGB_DMA_END,
+    TRACE_LCD_CGB_DMA_CANCEL,
+};
+
+enum GB_Trace_Input_Event : u8
+{
+    TRACE_INPUT_READ = 0,
+    TRACE_INPUT_WRITE,
+};
+
+enum GB_Trace_Timer_Event : u8
+{
+    TRACE_TIMER_IRQ_REQUEST = 0,
+    TRACE_TIMER_DIV_WRITE,
+    TRACE_TIMER_TIMA_WRITE,
+    TRACE_TIMER_TMA_WRITE,
+    TRACE_TIMER_TAC_WRITE,
+    TRACE_TIMER_RELOAD,
+};
+
+enum GB_Trace_APU_Event : u8
+{
+    TRACE_APU_GLOBAL_WRITE = 0,
+    TRACE_APU_PULSE1_WRITE,
+    TRACE_APU_PULSE2_WRITE,
+    TRACE_APU_WAVE_WRITE,
+    TRACE_APU_NOISE_WRITE,
+    TRACE_APU_WAVE_RAM_WRITE,
+};
+
+enum GB_Trace_Serial_Event : u8
+{
+    TRACE_SERIAL_REG_WRITE = 0,
+    TRACE_SERIAL_TRANSFER_START,
+    TRACE_SERIAL_TRANSFER_END,
+    TRACE_SERIAL_IRQ_REQUEST,
+};
+
+enum GB_Trace_Mapper_Event : u8
+{
+    TRACE_MAPPER_ROM = 0,
+    TRACE_MAPPER_RAM_RTC,
+    TRACE_MAPPER_CONTROL,
+};
+
+#define TRACE_EVENT_FLAG(event)              (1U << (event))
+
+#define TRACE_LCD_FILTER_REGISTERS           TRACE_EVENT_FLAG(TRACE_LCD_REG_WRITE)
+#define TRACE_LCD_FILTER_INTERRUPTS          \
+    (TRACE_EVENT_FLAG(TRACE_LCD_VBLANK_IRQ) | TRACE_EVENT_FLAG(TRACE_LCD_STAT_IRQ))
+#define TRACE_LCD_FILTER_DMA                  \
+    (TRACE_EVENT_FLAG(TRACE_LCD_OAM_DMA_START) | TRACE_EVENT_FLAG(TRACE_LCD_OAM_DMA_END) | \
+     TRACE_EVENT_FLAG(TRACE_LCD_CGB_DMA_START) | TRACE_EVENT_FLAG(TRACE_LCD_CGB_DMA_BLOCK) | \
+     TRACE_EVENT_FLAG(TRACE_LCD_CGB_DMA_END) | TRACE_EVENT_FLAG(TRACE_LCD_CGB_DMA_CANCEL))
+#define TRACE_LCD_FILTER_ALL                  \
+    (TRACE_LCD_FILTER_REGISTERS | TRACE_LCD_FILTER_INTERRUPTS | TRACE_LCD_FILTER_DMA)
+
+#define TRACE_INPUT_FILTER_READS             TRACE_EVENT_FLAG(TRACE_INPUT_READ)
+#define TRACE_INPUT_FILTER_WRITES            TRACE_EVENT_FLAG(TRACE_INPUT_WRITE)
+#define TRACE_INPUT_FILTER_ALL               (TRACE_INPUT_FILTER_READS | TRACE_INPUT_FILTER_WRITES)
+
+#define TRACE_TIMER_FILTER_INTERRUPTS        TRACE_EVENT_FLAG(TRACE_TIMER_IRQ_REQUEST)
+#define TRACE_TIMER_FILTER_REGISTERS         \
+    (TRACE_EVENT_FLAG(TRACE_TIMER_DIV_WRITE) | TRACE_EVENT_FLAG(TRACE_TIMER_TIMA_WRITE) | \
+     TRACE_EVENT_FLAG(TRACE_TIMER_TMA_WRITE) | TRACE_EVENT_FLAG(TRACE_TIMER_TAC_WRITE) | \
+     TRACE_EVENT_FLAG(TRACE_TIMER_RELOAD))
+#define TRACE_TIMER_FILTER_ALL               (TRACE_TIMER_FILTER_INTERRUPTS | TRACE_TIMER_FILTER_REGISTERS)
+
+#define TRACE_APU_FILTER_GLOBAL              TRACE_EVENT_FLAG(TRACE_APU_GLOBAL_WRITE)
+#define TRACE_APU_FILTER_PULSE1              TRACE_EVENT_FLAG(TRACE_APU_PULSE1_WRITE)
+#define TRACE_APU_FILTER_PULSE2              TRACE_EVENT_FLAG(TRACE_APU_PULSE2_WRITE)
+#define TRACE_APU_FILTER_WAVE                TRACE_EVENT_FLAG(TRACE_APU_WAVE_WRITE)
+#define TRACE_APU_FILTER_NOISE               TRACE_EVENT_FLAG(TRACE_APU_NOISE_WRITE)
+#define TRACE_APU_FILTER_WAVE_RAM            TRACE_EVENT_FLAG(TRACE_APU_WAVE_RAM_WRITE)
+#define TRACE_APU_FILTER_ALL                 \
+    (TRACE_APU_FILTER_GLOBAL | TRACE_APU_FILTER_PULSE1 | TRACE_APU_FILTER_PULSE2 | \
+     TRACE_APU_FILTER_WAVE | TRACE_APU_FILTER_NOISE | TRACE_APU_FILTER_WAVE_RAM)
+
+#define TRACE_SERIAL_FILTER_REGISTERS        TRACE_EVENT_FLAG(TRACE_SERIAL_REG_WRITE)
+#define TRACE_SERIAL_FILTER_TRANSFERS        \
+    (TRACE_EVENT_FLAG(TRACE_SERIAL_TRANSFER_START) | TRACE_EVENT_FLAG(TRACE_SERIAL_TRANSFER_END))
+#define TRACE_SERIAL_FILTER_INTERRUPTS       TRACE_EVENT_FLAG(TRACE_SERIAL_IRQ_REQUEST)
+#define TRACE_SERIAL_FILTER_ALL              \
+    (TRACE_SERIAL_FILTER_REGISTERS | TRACE_SERIAL_FILTER_TRANSFERS | TRACE_SERIAL_FILTER_INTERRUPTS)
+
+#define TRACE_MAPPER_FILTER_ROM              TRACE_EVENT_FLAG(TRACE_MAPPER_ROM)
+#define TRACE_MAPPER_FILTER_RAM_RTC          TRACE_EVENT_FLAG(TRACE_MAPPER_RAM_RTC)
+#define TRACE_MAPPER_FILTER_CONTROL          TRACE_EVENT_FLAG(TRACE_MAPPER_CONTROL)
+#define TRACE_MAPPER_FILTER_ALL              \
+    (TRACE_MAPPER_FILTER_ROM | TRACE_MAPPER_FILTER_RAM_RTC | TRACE_MAPPER_FILTER_CONTROL)
+
+#define TRACE_MAPPER_FLAG_RAM_ENABLED        0x01
+#define TRACE_MAPPER_FLAG_RTC_ENABLED        0x02
+#define TRACE_MAPPER_FLAG_MODE               0x04
+#define TRACE_MAPPER_FLAG_RUMBLE             0x08
+#define TRACE_MAPPER_FLAG_LOCKED             0x10
 
 struct GB_Trace_Entry
 {
@@ -62,12 +164,15 @@ struct GB_Trace_Entry
         struct
         {
             u16 pc;
-            u8 bank;
+            u16 bank;
             u16 af;
             u16 bc;
             u16 de;
             u16 hl;
             u16 sp;
+            u8 size;
+            u8 halt_bug;
+            u8 opcodes[4];
         } cpu;
 
         struct
@@ -79,70 +184,124 @@ struct GB_Trace_Entry
 
         struct
         {
-            u8 reg;
-            u8 value;
-        } lcd_write;
-
-        struct
-        {
-            u8 event;
-            u8 value;
+            u16 address;
+            u16 value;
+            u16 value2;
+            u16 value3;
+            u16 length;
             u16 line;
-        } lcd_status;
+            u8 reg;
+            u8 event;
+            u8 raw;
+            u8 mode;
+        } lcd;
+
+        struct
+        {
+            u8 value;
+            u8 result;
+            u8 select;
+            u8 player;
+            u8 event;
+            u8 sgb_state;
+        } input;
+
+        struct
+        {
+            u16 divider;
+            u8 counter;
+            u8 reload;
+            u8 control;
+            u8 value;
+            u8 event;
+            u8 enabled;
+        } timer;
 
         struct
         {
             u16 address;
             u8 value;
-        } apu_write;
+            u8 effective;
+            u8 event;
+        } apu;
+
+        struct
+        {
+            u8 data;
+            u8 control;
+            u8 value;
+            u8 event;
+            u8 internal_clock;
+        } serial;
 
         struct
         {
             u16 address;
+            u16 rom_bank0;
+            u16 rom_bank1;
+            s16 ram_bank;
             u8 value;
-            bool is_write;
-        } io_write;
-
-        struct
-        {
-            u16 address;
-            u8 value;
-        } bank_switch;
+            u8 mapper;
+            u8 event;
+            u8 flags;
+            u8 flags_valid;
+        } mapper;
     };
 };
 
-typedef GB_Trace_Entry GS_Trace_Entry;
+static_assert(sizeof(GB_Trace_Entry) <= 40, "Trace entry exceeds memory budget");
 
 class TraceLogger
 {
 public:
-    TraceLogger();
+    TraceLogger(const u64* master_clock_cycles = NULL);
     ~TraceLogger();
     void Reset();
+    bool SetCapacity(u32 capacity);
     INLINE bool IsEnabled(GB_Trace_Type type) const;
+    INLINE bool IsEventEnabled(GB_Trace_Type type, u8 event) const;
     INLINE void TraceLog(const GB_Trace_Entry& entry);
     void SetEnabledFlags(u32 flags);
+    void SetEventFilter(GB_Trace_Type type, u32 filter);
     u32 GetEnabledFlags() const;
+    u32 GetEventFilter(GB_Trace_Type type) const;
     const GB_Trace_Entry* GetBuffer() const;
     u32 GetCount() const;
+    u32 GetCapacity() const;
     u32 GetPosition() const;
     u64 GetTotalLogged() const;
+    u64 GetSequence() const;
     const GB_Trace_Entry& GetEntry(u32 index) const;
 
 private:
     GB_Trace_Entry* m_buffer;
     u32 m_position;
     u32 m_count;
+    u32 m_capacity;
     u32 m_enabled_flags;
+    u32 m_event_filters[TRACE_TYPE_COUNT];
     u64 m_total_logged;
+    u64 m_sequence;
+    const u64* m_master_clock_cycles;
 };
 
 INLINE bool TraceLogger::IsEnabled(GB_Trace_Type type) const
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    return (m_enabled_flags & (1 << type)) != 0;
+    return type < TRACE_TYPE_COUNT && (m_enabled_flags & (1U << type)) != 0 && m_buffer;
 #else
     UNUSED(type);
+    return false;
+#endif
+}
+
+INLINE bool TraceLogger::IsEventEnabled(GB_Trace_Type type, u8 event) const
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    return IsEnabled(type) && event < 32 && (m_event_filters[type] & TRACE_EVENT_FLAG(event)) != 0;
+#else
+    UNUSED(type);
+    UNUSED(event);
     return false;
 #endif
 }
@@ -151,10 +310,15 @@ INLINE void TraceLogger::TraceLog(const GB_Trace_Entry& entry)
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
     m_buffer[m_position] = entry;
-    m_position = (m_position + 1) % TRACE_BUFFER_SIZE;
-    if (m_count < TRACE_BUFFER_SIZE)
+    if (IsValidPointer(m_master_clock_cycles))
+        m_buffer[m_position].cycle = *m_master_clock_cycles;
+    m_position++;
+    if (m_position == m_capacity)
+        m_position = 0;
+    if (m_count < m_capacity)
         m_count++;
     m_total_logged++;
+    m_sequence++;
 #else
     UNUSED(entry);
 #endif

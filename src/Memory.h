@@ -28,6 +28,7 @@ class Processor;
 class Video;
 class CommonMemoryRule;
 class IORegistersMemoryRule;
+class TraceLogger;
 
 class Memory
 {
@@ -41,6 +42,7 @@ public:
     void SetCurrentRule(MemoryRule* pRule);
     void SetCommonRule(CommonMemoryRule* pRule);
     void SetIORule(IORegistersMemoryRule* pRule);
+    void SetTraceLogger(TraceLogger* pTraceLogger);
     MemoryRule* GetCurrentRule();
     u8* GetMemoryMap();
     u8 Read(u16 address);
@@ -56,7 +58,7 @@ public:
     void Load(u16 address, u8 value);
     u8 DebugRetrieve(u16 address);
     GB_Disassembler_Record* GetDisassemblerRecord(u16 address);
-    GB_Disassembler_Record* GetDisassemblerRecord(u16 address, u8 bank);
+    GB_Disassembler_Record* GetDisassemblerRecord(u16 address, u16 bank);
     GB_Disassembler_Record* GetOrCreateDisassemblerRecord(u16 address);
     void ResetDisassemblerRecords();
     GB_Disassembler_Record** GetAllDisassemblerRecords();
@@ -84,6 +86,7 @@ public:
     u8* GetWRAM1();
     u32 GetPhysicalAddress(u16 address);
     u8 GetBank(u16 address);
+    u16 GetTraceBank(u16 address);
     void EnableBootromDMG(bool enable);
     void EnableBootromGBC(bool enable);
     void LoadBootromDMG(const char* szFilePath);
@@ -100,12 +103,15 @@ private:
     void LoadBootroom(const char* szFilePath, bool gbc);
     void CheckBreakpoints(u16 address, bool write);
     bool IsHDMASourceInvalid() const;
+    INLINE void TraceLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length);
+    void LogLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length);
 
 private:
     Processor* m_pProcessor;
     Video* m_pVideo;
     CommonMemoryRule* m_pCommonMemoryRule;
     IORegistersMemoryRule* m_pIORegistersMemoryRule;
+    TraceLogger* m_pTraceLogger;
     MemoryRule* m_pCurrentMemoryRule;
     u8* m_pMap;
     GB_Disassembler_Record** m_pDisassembledMap;
@@ -120,6 +126,9 @@ private:
     u8 m_HDMA[5];
     u16 m_HDMASource;
     u16 m_HDMADestination;
+    u16 m_HDMATraceSource;
+    u16 m_HDMATraceDestination;
+    u16 m_HDMATraceLength;
     bool m_bBootromDMGEnabled;
     bool m_bBootromGBCEnabled;
     bool m_bBootromDMGLoaded;

@@ -86,6 +86,8 @@ void HuC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             // $0E switches to IR mode, anything else switches to RAM mode
             m_bIRMode = ((value & 0x0F) == 0x0E);
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                m_bIRMode ? TRACE_MAPPER_FLAG_MODE : TRACE_MAPPER_FLAG_RAM_ENABLED);
             break;
         }
         case 0x2000:
@@ -93,7 +95,7 @@ void HuC1MemoryRule::PerformWrite(u16 address, u8 value)
             m_iCurrentROMBank = value & 0x3F;
             m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
             m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x4000:
@@ -101,7 +103,7 @@ void HuC1MemoryRule::PerformWrite(u16 address, u8 value)
             m_iCurrentRAMBank = value & 0x03;
             m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
             m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x6000:

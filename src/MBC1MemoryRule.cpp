@@ -140,26 +140,31 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
                     (*m_pRamChangedCallback)();
                 }
             }
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
             break;
         }
         case 0x2000:
         {
             m_RomBankLow = value & 0x1F;
             UpdateBanks();
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x4000:
         {
             m_HigherRomBankBits = value & 0x03;
             UpdateBanks();
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x6000:
         {
             m_iMode = value & 0x01;
             UpdateBanks();
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                (m_iMode ? TRACE_MAPPER_FLAG_MODE : 0));
             break;
         }
         case 0xA000:

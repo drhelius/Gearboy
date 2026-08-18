@@ -323,6 +323,9 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                     (*m_pRamChangedCallback)();
                 }
                 m_bRTCEnabled = false;
+                TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                    (m_bPoke2in1Bank0Change ? TRACE_MAPPER_FLAG_MODE : 0));
                 break;
             }
 
@@ -335,6 +338,9 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                 (*m_pRamChangedCallback)();
             }
             m_bRTCEnabled = enabled && m_pCartridge->IsRTCPresent();
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                (m_bRTCEnabled ? TRACE_MAPPER_FLAG_RTC_ENABLED : 0));
             break;
         }
         case 0x2000:
@@ -352,7 +358,7 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                 m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
                 m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
             }
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x4000:
@@ -365,8 +371,6 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                 {
                     m_iCurrentRAMBank = value;
                     m_CurrentRAMAddress = (m_iCurrentRAMBank & GetSafeRAMBankMask()) * 0x2000;
-                    TraceBankSwitch(address, value);
-
                     if (value < 8)
                     {
                         m_bPKJDRAMSelected = true;
@@ -385,6 +389,9 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                     m_RTCRegister = value - 8;
                     m_iCurrentRAMBank = -1;
                 }
+                TraceMapperEvent(address, value, TRACE_MAPPER_RAM_RTC,
+                    (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                    (m_iCurrentRAMBank < 0 ? TRACE_MAPPER_FLAG_RTC_ENABLED : 0));
                 break;
             }
 
@@ -399,8 +406,10 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                 int ramBankCount = m_pCartridge->GetRAMBankCount();
                 m_iCurrentRAMBank = value;
                 m_CurrentRAMAddress = (ramBankCount > 0) ? ((m_iCurrentRAMBank & (ramBankCount - 1)) * 0x2000) : 0;
-                TraceBankSwitch(address, value);
             }
+            TraceMapperEvent(address, value, TRACE_MAPPER_RAM_RTC,
+                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                (m_iCurrentRAMBank < 0 ? TRACE_MAPPER_FLAG_RTC_ENABLED : 0));
             break;
         }
         case 0x6000:
@@ -414,6 +423,8 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                 m_RTC.LatchedDays = m_RTC.Days & 0xFF;
                 m_RTC.LatchedControl = (m_RTC.Control & 0xC0) | ((m_RTC.Days >> 8) & 0x01);
             }
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                m_bRTCEnabled ? TRACE_MAPPER_FLAG_RTC_ENABLED : 0);
             break;
         }
         case 0xA000:

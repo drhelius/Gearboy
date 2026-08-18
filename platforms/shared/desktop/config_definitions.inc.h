@@ -53,17 +53,31 @@ static inline void process(config_Operation operation)
 
     // Trace logger
     CONFIG_BOOL("Debug", "TraceCounter", config_debug.trace_counter, true);
+    CONFIG_BOOL("Debug", "TraceCycles", config_debug.trace_cycles, false);
     CONFIG_BOOL("Debug", "TraceBank", config_debug.trace_bank, true);
     CONFIG_BOOL("Debug", "TraceRegisters", config_debug.trace_registers, true);
     CONFIG_BOOL("Debug", "TraceFlags", config_debug.trace_flags, true);
     CONFIG_BOOL("Debug", "TraceBytes", config_debug.trace_bytes, true);
+    CONFIG_BOOL("Debug", "TraceCpuEnabled", config_debug.trace_cpu_enabled, true);
     CONFIG_BOOL("Debug", "TraceCpu", config_debug.trace_cpu, true);
     CONFIG_BOOL("Debug", "TraceCpuIrq", config_debug.trace_cpu_irq, true);
-    CONFIG_BOOL("Debug", "TraceLcdWrite", config_debug.trace_lcd_write, true);
-    CONFIG_BOOL("Debug", "TraceLcdStatus", config_debug.trace_lcd_status, true);
-    CONFIG_BOOL("Debug", "TraceApuWrite", config_debug.trace_apu_write, true);
-    CONFIG_BOOL("Debug", "TraceIoWrite", config_debug.trace_io_write, true);
-    CONFIG_BOOL("Debug", "TraceBankSwitch", config_debug.trace_bank_switch, true);
+    CONFIG_BOOL("Debug", "TraceLcd", config_debug.trace_lcd, false);
+    CONFIG_BOOL("Debug", "TraceInput", config_debug.trace_input, false);
+    CONFIG_BOOL("Debug", "TraceTimer", config_debug.trace_timer, false);
+    CONFIG_BOOL("Debug", "TraceApu", config_debug.trace_apu, false);
+    CONFIG_BOOL("Debug", "TraceSerial", config_debug.trace_serial, false);
+    CONFIG_BOOL("Debug", "TraceMapper", config_debug.trace_mapper, false);
+    CONFIG_INT_RANGE("Debug", "TraceLcdEvents", config_debug.trace_lcd_events, TRACE_LCD_FILTER_ALL, 0, TRACE_LCD_FILTER_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceInputEvents", config_debug.trace_input_events, TRACE_INPUT_FILTER_ALL, 0, TRACE_INPUT_FILTER_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceTimerEvents", config_debug.trace_timer_events, TRACE_TIMER_FILTER_ALL, 0, TRACE_TIMER_FILTER_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceApuEvents", config_debug.trace_apu_events, TRACE_APU_FILTER_ALL, 0, TRACE_APU_FILTER_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceSerialEvents", config_debug.trace_serial_events, TRACE_SERIAL_FILTER_ALL, 0, TRACE_SERIAL_FILTER_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceMapperEvents", config_debug.trace_mapper_events, TRACE_MAPPER_FILTER_ALL, 0, TRACE_MAPPER_FILTER_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceOutput", config_debug.trace_output, 0, 0, 1);
+    CONFIG_INT_RANGE("Debug", "TraceCapacity", config_debug.trace_capacity, 0, 0, 4);
+    CONFIG_INT_RANGE("Debug", "TraceDiskDirOption", config_debug.trace_disk_dir_option, 0, 0, 2);
+    CONFIG_INT_RANGE("Debug", "TraceDiskSize", config_debug.trace_disk_size, 2, 0, 6);
+    CONFIG_STRING_NOT_EMPTY("Debug", "TraceDiskPath", config_debug.trace_disk_path, config_root_path);
 
     // Disassembler
     CONFIG_BOOL("Debug", "DisMem", config_debug.dis_show_mem, true);
@@ -367,13 +381,51 @@ static void normalize(void)
 
 static void migrate(int file_version)
 {
-    int sync_mode = -1;
     std::string stored;
+
+    if (file_version < 5)
+    {
+        write_bool("Debug", "TraceCycles", false);
+
+        bool trace_cpu = read_bool("Debug", "TraceCpu", true);
+        bool trace_cpu_irq = read_bool("Debug", "TraceCpuIrq", true);
+        bool trace_lcd_write = read_bool("Debug", "TraceLcdWrite", true);
+        bool trace_lcd_status = read_bool("Debug", "TraceLcdStatus", true);
+        bool trace_apu_write = read_bool("Debug", "TraceApuWrite", true);
+        bool trace_io_write = read_bool("Debug", "TraceIoWrite", true);
+        bool trace_bank_switch = read_bool("Debug", "TraceBankSwitch", true);
+        bool default_trace_filters = trace_cpu && trace_cpu_irq && trace_lcd_write &&
+            trace_lcd_status && trace_apu_write && trace_io_write && trace_bank_switch;
+
+        write_bool("Debug", "TraceCpuEnabled", trace_cpu || trace_cpu_irq);
+        write_bool("Debug", "TraceLcd", default_trace_filters ? false : (trace_lcd_write || trace_lcd_status || trace_io_write));
+        write_bool("Debug", "TraceInput", false);
+        write_bool("Debug", "TraceTimer", false);
+        write_bool("Debug", "TraceApu", default_trace_filters ? false : trace_apu_write);
+        write_bool("Debug", "TraceSerial", false);
+        write_bool("Debug", "TraceMapper", default_trace_filters ? false : trace_bank_switch);
+
+        int lcd_events = 0;
+        if (trace_lcd_write)
+            lcd_events |= TRACE_LCD_FILTER_REGISTERS;
+        if (trace_lcd_status)
+            lcd_events |= TRACE_LCD_FILTER_INTERRUPTS | TRACE_LCD_FILTER_DMA;
+        if (trace_io_write)
+            lcd_events |= TRACE_LCD_FILTER_DMA;
+        write_int("Debug", "TraceLcdEvents", lcd_events);
+        write_int("Debug", "TraceInputEvents", TRACE_INPUT_FILTER_ALL);
+        write_int("Debug", "TraceTimerEvents", TRACE_TIMER_FILTER_ALL);
+        write_int("Debug", "TraceApuEvents", TRACE_APU_FILTER_ALL);
+        write_int("Debug", "TraceSerialEvents", TRACE_SERIAL_FILTER_ALL);
+        write_int("Debug", "TraceMapperEvents", TRACE_MAPPER_FILTER_ALL);
+    }
+
+    int sync_mode = -1;
     bool valid_sync_mode = get_setting("Video", "SyncMode", &stored) &&
         parse_int_string(stored, &sync_mode) && sync_mode >= config_VideoSync_Disabled &&
         sync_mode <= config_VideoSync_VRR;
 
-    if (file_version < config_version || !valid_sync_mode)
+    if (file_version < 4 || !valid_sync_mode)
     {
         bool sync = read_bool("Video", "Sync", true);
         bool vrr = read_bool("Video", "VRR", false);

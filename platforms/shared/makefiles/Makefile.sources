@@ -43,6 +43,7 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/gui_debug_memory.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_memeditor.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_trace_logger.cpp \
+    $(DESKTOP_SRC_DIR)/trace_logger_formatter.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_processor.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_video.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_io.cpp \

@@ -28,8 +28,29 @@
     #define EXTERN extern
 #endif
 
+enum gui_TraceOutput
+{
+    gui_TraceOutput_Memory,
+    gui_TraceOutput_Disk
+};
+
 EXTERN void gui_debug_window_trace_logger(void);
+EXTERN void gui_debug_trace_logger_init(void);
+EXTERN void gui_debug_trace_logger_update(void);
+EXTERN void gui_debug_trace_logger_shutdown(void);
 EXTERN void gui_debug_trace_logger_clear(void);
+EXTERN void gui_debug_trace_logger_reset(void);
+EXTERN void gui_debug_trace_logger_set_output_directory(const char* path);
+EXTERN int gui_debug_trace_logger_memory_size_index(const char* size);
+EXTERN int gui_debug_trace_logger_disk_size_index(const char* size);
+EXTERN const char* gui_debug_trace_logger_memory_size_name(int index);
+EXTERN const char* gui_debug_trace_logger_disk_size_name(int index);
+EXTERN bool gui_debug_trace_logger_configure(int output, int memory_size, int disk_size, const char* output_path);
+EXTERN void gui_debug_trace_logger_set_event_filters(const u32* filters);
+EXTERN bool gui_debug_trace_logger_start(u32 flags);
+EXTERN bool gui_debug_trace_logger_stop(void);
+EXTERN bool gui_debug_trace_logger_is_enabled(void);
+EXTERN const char* gui_debug_trace_logger_get_output_path(void);
 EXTERN void gui_debug_save_log(const char* file_path);
 
 #undef GUI_DEBUG_TRACE_LOGGER_IMPORT

@@ -199,6 +199,11 @@ private:
     void SetDisassemblerOperand(GB_Disassembler_Record* record, u16 address, bool is_zp, const char* text);
     Processor::Interrupts InterruptPending();
     void ServeInterrupt(Interrupts interrupt);
+    void LogTraceInstruction(u16 pc, bool halt_bug);
+    INLINE void TraceTimerEvent(u8 event, u8 value);
+    INLINE void TraceSerialEvent(u8 event, u8 value);
+    void LogTimerEvent(u8 event, u8 value);
+    void LogSerialEvent(u8 event, u8 value);
     void UpdateGameShark();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);

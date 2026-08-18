@@ -155,6 +155,9 @@ void FlashcartMemoryRule::PerformWrite(u16 address, u8 value)
                 else if (m_iRAMBytesSize > 0)
                     m_bRamEnabled = ((value & 0x0F) == 0x0A);
             }
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                (m_bConfigMode ? TRACE_MAPPER_FLAG_MODE : 0));
             break;
         }
         case 0x2000:
@@ -169,7 +172,7 @@ void FlashcartMemoryRule::PerformWrite(u16 address, u8 value)
                 m_RomBankHigh = value & 0x01;
             }
             UpdateBanks();
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x4000:
@@ -179,7 +182,7 @@ void FlashcartMemoryRule::PerformWrite(u16 address, u8 value)
                 m_iCurrentRAMBank = value & 0x0F;
                 UpdateBanks();
             }
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x6000:
@@ -189,6 +192,9 @@ void FlashcartMemoryRule::PerformWrite(u16 address, u8 value)
                 m_RomBankMask = m_RomBankLatch;
                 UpdateBanks();
             }
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                (m_bConfigMode ? TRACE_MAPPER_FLAG_MODE : 0));
             break;
         }
         case 0xA000:

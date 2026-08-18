@@ -505,7 +505,7 @@ void TAMA5MemoryRule::PerformWrite(u16 address, u8 value)
                             m_iCurrentROMBank = m_Registers[TAMA5_BANK_LO] | (m_Registers[TAMA5_BANK_HI] << 4);
                             m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
                             m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
-                            TraceBankSwitch(address, value);
+                            TraceMapperEvent(address, value);
                             break;
                         }
                         case TAMA5_ADDR_LO:

@@ -62,7 +62,9 @@ public:
     virtual void LoadState(std::istream& stream);
 
 protected:
-    INLINE void TraceBankSwitch(u16 address, u8 value);
+    void TraceMapperEvent(u16 address, u8 value, u8 event = 0xFF);
+    void TraceMapperEvent(u16 address, u8 value, u8 event, u8 flags);
+    void TraceMapperEventInternal(u16 address, u8 value, u8 event, u8 flags, bool flags_valid);
 
     Processor* m_pProcessor;
     Memory* m_pMemory;
@@ -74,22 +76,5 @@ protected:
     RamChangedCallback m_pRamChangedCallback;
     TraceLogger* m_pTraceLogger;
 };
-
-INLINE void MemoryRule::TraceBankSwitch(u16 address, u8 value)
-{
-#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    if (m_pTraceLogger && m_pTraceLogger->IsEnabled(TRACE_BANK_SWITCH))
-    {
-        GB_Trace_Entry e = {};
-        e.type = TRACE_BANK_SWITCH;
-        e.bank_switch.address = address;
-        e.bank_switch.value = value;
-        m_pTraceLogger->TraceLog(e);
-    }
-#else
-    UNUSED(address);
-    UNUSED(value);
-#endif
-}
 
 #endif	/* MEMORYRULE_H */

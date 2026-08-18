@@ -249,6 +249,9 @@ void HuC3MemoryRule::PerformWrite(u16 address, u8 value)
             {
                 (*m_pRamChangedCallback)();
             }
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                (m_iMode != 0x0A ? TRACE_MAPPER_FLAG_MODE : 0));
             break;
         }
         case 0x2000:
@@ -256,7 +259,7 @@ void HuC3MemoryRule::PerformWrite(u16 address, u8 value)
             m_iCurrentROMBank = value & 0x7F;
             m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
             m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x4000:
@@ -264,12 +267,14 @@ void HuC3MemoryRule::PerformWrite(u16 address, u8 value)
             m_iCurrentRAMBank = value & 0x0F;
             m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
             m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x6000:
         {
             // Games write $01 here on startup
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
             break;
         }
         case 0xA000:

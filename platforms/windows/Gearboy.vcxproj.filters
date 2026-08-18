@@ -61,6 +61,9 @@
     <ClCompile Include="..\shared\desktop\gui_debug_trace_logger.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\desktop\trace_logger_formatter.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\desktop\gui_popups.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
@@ -331,6 +334,9 @@
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug_trace_logger.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\trace_logger_formatter.h">
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug_widgets.h">

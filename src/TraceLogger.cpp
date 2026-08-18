@@ -18,20 +18,24 @@
  */
 
 #include "TraceLogger.h"
-#include <string.h>
+#include <new>
 
-TraceLogger::TraceLogger()
+TraceLogger::TraceLogger(const u64* master_clock_cycles)
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    m_buffer = new GB_Trace_Entry[TRACE_BUFFER_SIZE];
-    memset(m_buffer, 0, sizeof(GB_Trace_Entry) * TRACE_BUFFER_SIZE);
+    m_buffer = new (std::nothrow) GB_Trace_Entry[TRACE_BUFFER_SIZE];
 #else
     m_buffer = NULL;
 #endif
+    m_capacity = TRACE_BUFFER_SIZE;
     m_position = 0;
     m_count = 0;
     m_enabled_flags = 0;
+    for (int i = 0; i < TRACE_TYPE_COUNT; i++)
+        m_event_filters[i] = 0xFFFFFFFFU;
     m_total_logged = 0;
+    m_sequence = 0;
+    m_master_clock_cycles = master_clock_cycles;
 }
 
 TraceLogger::~TraceLogger()
@@ -44,9 +48,29 @@ void TraceLogger::Reset()
     m_position = 0;
     m_count = 0;
     m_total_logged = 0;
+}
+
+bool TraceLogger::SetCapacity(u32 capacity)
+{
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    if (m_buffer)
-        memset(m_buffer, 0, sizeof(GB_Trace_Entry) * TRACE_BUFFER_SIZE);
+    if (capacity == 0)
+        return false;
+    if (capacity == m_capacity && m_buffer)
+        return true;
+
+    GB_Trace_Entry* buffer = new(std::nothrow) GB_Trace_Entry[capacity];
+    if (!buffer)
+        return false;
+
+    SafeDeleteArray(m_buffer);
+    m_buffer = buffer;
+    m_capacity = capacity;
+    Reset();
+    return true;
+#else
+    m_capacity = capacity;
+    Reset();
+    return capacity > 0;
 #endif
 }
 
@@ -55,9 +79,22 @@ void TraceLogger::SetEnabledFlags(u32 flags)
     m_enabled_flags = flags;
 }
 
+void TraceLogger::SetEventFilter(GB_Trace_Type type, u32 filter)
+{
+    if (type < TRACE_TYPE_COUNT)
+        m_event_filters[type] = filter;
+}
+
 u32 TraceLogger::GetEnabledFlags() const
 {
     return m_enabled_flags;
+}
+
+u32 TraceLogger::GetEventFilter(GB_Trace_Type type) const
+{
+    if (type < TRACE_TYPE_COUNT)
+        return m_event_filters[type];
+    return 0;
 }
 
 const GB_Trace_Entry* TraceLogger::GetBuffer() const
@@ -70,6 +107,11 @@ u32 TraceLogger::GetCount() const
     return m_count;
 }
 
+u32 TraceLogger::GetCapacity() const
+{
+    return m_capacity;
+}
+
 u32 TraceLogger::GetPosition() const
 {
     return m_position;
@@ -80,19 +122,24 @@ u64 TraceLogger::GetTotalLogged() const
     return m_total_logged;
 }
 
+u64 TraceLogger::GetSequence() const
+{
+    return m_sequence;
+}
+
 const GB_Trace_Entry& TraceLogger::GetEntry(u32 index) const
 {
     static const GB_Trace_Entry k_empty = {};
     if (!m_buffer || m_count == 0)
         return k_empty;
     u32 actual;
-    if (m_count < TRACE_BUFFER_SIZE)
+    if (m_count < m_capacity)
     {
         if (index >= m_count)
             return k_empty;
         actual = index;
     }
     else
-        actual = (m_position + index) % TRACE_BUFFER_SIZE;
+        actual = (m_position + index) % m_capacity;
     return m_buffer[actual];
 }

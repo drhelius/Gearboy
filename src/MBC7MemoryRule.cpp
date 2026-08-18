@@ -310,6 +310,8 @@ void MBC7MemoryRule::PerformWrite(u16 address, u8 value)
         case 0x0000:
         {
             m_bRamEnable1 = ((value & 0x0F) == 0x0A);
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                (m_bRamEnable1 && m_bRamEnable2) ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
             break;
         }
         case 0x2000:
@@ -317,12 +319,14 @@ void MBC7MemoryRule::PerformWrite(u16 address, u8 value)
             m_iCurrentROMBank = value;
             m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
             m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x4000:
         {
             m_bRamEnable2 = (value == 0x40);
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                (m_bRamEnable1 && m_bRamEnable2) ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
             break;
         }
         case 0x6000:

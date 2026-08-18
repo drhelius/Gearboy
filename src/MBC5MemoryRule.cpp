@@ -105,6 +105,8 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
                     (*m_pRamChangedCallback)();
                 }
             }
+            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
             break;
         }
         case 0x2000:
@@ -118,7 +120,9 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
                 m_RomBankHigh = value & 0x01;
             }
             UpdateBanks();
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value, TRACE_MAPPER_ROM,
+                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                (m_iRumbleStrength ? TRACE_MAPPER_FLAG_RUMBLE : 0));
             break;
         }
         case 0x4000:
@@ -135,7 +139,7 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
             }
             m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
             m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
-            TraceBankSwitch(address, value);
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x6000:

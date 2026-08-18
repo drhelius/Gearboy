@@ -56,7 +56,7 @@ This server provides tools for game development, rom hacking, reverse engineerin
 - **Input State**: Inspect effective pressed buttons and pending tap releases
 - **Bookmarks**: Memory and disassembler bookmarks for navigation
 - **Call Stack**: View function call hierarchy
-- **Trace Logger**: CPU instruction trace with interleaved hardware events (LCD, APU, I/O, bank switching)
+- **Trace Logger**: CPU instruction trace with interleaved LCD, input, timer, APU, serial, and mapper events
 - **Rewind**: Time-travel debugging with snapshot status and seek tools
 - **Screenshot Capture**: Get current frame as PNG image
 - **GUI Integration**: MCP server runs alongside the emulator GUI, sharing the same state
@@ -376,8 +376,8 @@ The server exposes tools organized in the following categories:
 - `remove_disassembler_bookmark` - Remove disassembler bookmark
 - `list_disassembler_bookmarks` - List all disassembler bookmarks
 - `get_call_stack` - View function call hierarchy
-- `get_trace_log` - Read trace logger entries (CPU + hardware events). Start the trace logger from the debugger window first
-- `set_trace_log` - Start or stop trace logging with event filters
+- `get_trace_log` - Read trace logger entries using absolute sequence pagination. Responses include `total_entries`, `total_logged`, `oldest_sequence`, `start`, `next_sequence`, `count`, `overrun`, and `lines`
+- `set_trace_log` - Start or stop trace logging. Use `filters` for exact streams such as `cpu.instructions`, `lcd.interrupts`, or `serial.transfers`; omitting it enables the safe default of CPU instructions and interrupts. Storage options are `output` (`memory` or `disk`), `memory_size` (`100K` through `5M`), `disk_size` (`10MB` through `1GB`, or `unbounded`), and `output_path`
 
 ### Breakpoints
 - `set_breakpoint` - Set execution, read, or write breakpoint (supports 3 memory areas: rom_ram, vram, io)

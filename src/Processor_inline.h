@@ -5,6 +5,18 @@
 #include "log.h"
 #include "Memory.h"
 
+INLINE void Processor::TraceTimerEvent(u8 event, u8 value)
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_TIMER, event))
+        LogTimerEvent(event, value);
+}
+
+INLINE void Processor::TraceSerialEvent(u8 event, u8 value)
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_SERIAL, event))
+        LogSerialEvent(event, value);
+}
+
 inline bool Processor::InterruptIsAboutToRaise()
 {
     u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
@@ -74,7 +86,9 @@ inline void Processor::IncrementTIMA()
     if (tima == 0xFF)
     {
         m_pMemory->Load(0xFF05, m_pMemory->Retrieve(0xFF06));
+        TraceTimerEvent(TRACE_TIMER_RELOAD, m_pMemory->Retrieve(0xFF05));
         RequestInterrupt(Timer_Interrupt);
+        TraceTimerEvent(TRACE_TIMER_IRQ_REQUEST, m_pMemory->Retrieve(0xFF05));
     }
     else
     {
@@ -722,4 +736,3 @@ inline void Processor::PopCallStack()
 #endif
 }
 #endif	/* PROCESSOR_INLINE_H */
-

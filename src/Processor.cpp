@@ -195,10 +195,6 @@ u8 Processor::RunFor(u8 ticks)
         {
             Interrupts interrupt = InterruptPending();
 
-#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-            u16 prev_pc = PC.GetValue();
-#endif
-
             if (m_bIME && (interrupt != None_Interrupt) && (m_iAccurateOPCodeState == 0))
             {
                 ServeInterrupt(interrupt);
@@ -206,6 +202,11 @@ u8 Processor::RunFor(u8 ticks)
             }
             else
             {
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                if ((m_iAccurateOPCodeState == 0) && m_pTraceLogger->IsEnabled(TRACE_CPU))
+                    LogTraceInstruction(PC.GetValue(), m_bSkipPCBug);
+#endif
+
                 u8 opcode = m_pMemory->Read(PC.GetValue());
                 PC.Increment();
 
@@ -300,21 +301,6 @@ u8 Processor::RunFor(u8 ticks)
 
             #ifndef GEARBOY_DISABLE_DISASSEMBLER
             DisassembleNextOPCode();
-
-            if ((m_iAccurateOPCodeState == 0) && !interrupt_served && m_pTraceLogger->IsEnabled(TRACE_CPU))
-            {
-                GB_Trace_Entry e = {};
-                e.type = TRACE_CPU;
-                e.cpu.pc = prev_pc;
-                GS_Disassembler_Record* record = m_pMemory->GetDisassemblerRecord(prev_pc);
-                e.cpu.bank = IsValidPointer(record) ? record->bank : 0;
-                e.cpu.af = AF.GetValue();
-                e.cpu.bc = BC.GetValue();
-                e.cpu.de = DE.GetValue();
-                e.cpu.hl = HL.GetValue();
-                e.cpu.sp = SP.GetValue();
-                m_pTraceLogger->TraceLog(e);
-            }
             #endif
         }
 
@@ -338,6 +324,82 @@ u8 Processor::RunFor(u8 ticks)
     }
 
     return executed;
+}
+
+void Processor::LogTraceInstruction(u16 pc, bool halt_bug)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    GB_Trace_Entry e = {};
+    e.type = TRACE_CPU;
+    e.cpu.pc = pc;
+    e.cpu.bank = m_pMemory->GetTraceBank(pc);
+    e.cpu.af = AF.GetValue();
+    e.cpu.bc = BC.GetValue();
+    e.cpu.de = DE.GetValue();
+    e.cpu.hl = HL.GetValue();
+    e.cpu.sp = SP.GetValue();
+    e.cpu.halt_bug = halt_bug ? 1 : 0;
+
+    e.cpu.opcodes[0] = m_pMemory->DebugRetrieve(pc);
+    u16 second_address = halt_bug ? pc : (u16)(pc + 1);
+    if (e.cpu.opcodes[0] == 0xCB)
+    {
+        e.cpu.opcodes[1] = m_pMemory->DebugRetrieve(second_address);
+        e.cpu.size = kOPCodeCBNames[e.cpu.opcodes[1]].size;
+    }
+    else
+        e.cpu.size = kOPCodeNames[e.cpu.opcodes[0]].size;
+
+    if (e.cpu.size > sizeof(e.cpu.opcodes))
+        e.cpu.size = sizeof(e.cpu.opcodes);
+
+    for (u8 i = 1; i < e.cpu.size; i++)
+    {
+        u16 address = halt_bug ? (u16)(pc + i - 1) : (u16)(pc + i);
+        e.cpu.opcodes[i] = m_pMemory->DebugRetrieve(address);
+    }
+
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(pc);
+    UNUSED(halt_bug);
+#endif
+}
+
+void Processor::LogTimerEvent(u8 event, u8 value)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    GB_Trace_Entry e = {};
+    e.type = TRACE_TIMER;
+    e.timer.divider = GetDIVCounter();
+    e.timer.counter = m_pMemory->Retrieve(0xFF05);
+    e.timer.reload = m_pMemory->Retrieve(0xFF06);
+    e.timer.control = m_pMemory->Retrieve(0xFF07);
+    e.timer.value = value;
+    e.timer.event = event;
+    e.timer.enabled = (e.timer.control & 0x04) ? 1 : 0;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(event);
+    UNUSED(value);
+#endif
+}
+
+void Processor::LogSerialEvent(u8 event, u8 value)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    GB_Trace_Entry e = {};
+    e.type = TRACE_SERIAL;
+    e.serial.data = m_pMemory->Retrieve(0xFF01);
+    e.serial.control = m_pMemory->Retrieve(0xFF02);
+    e.serial.value = value;
+    e.serial.event = event;
+    e.serial.internal_clock = (e.serial.control & 0x01) ? 1 : 0;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(event);
+    UNUSED(value);
+#endif
 }
 
 void Processor::ServeInterrupt(Interrupts interrupt)
@@ -485,12 +547,16 @@ void Processor::UpdateTimers(u8 ticks)
             if (tima == 0xFF)
             {
                 tima = m_pMemory->Retrieve(0xFF06);
+                m_pMemory->Load(0xFF05, tima);
+                TraceTimerEvent(TRACE_TIMER_RELOAD, tima);
                 RequestInterrupt(Timer_Interrupt);
+                TraceTimerEvent(TRACE_TIMER_IRQ_REQUEST, tima);
             }
             else
+            {
                 tima++;
-
-            m_pMemory->Load(0xFF05, tima);
+                m_pMemory->Load(0xFF05, tima);
+            }
         }
     }
 }
@@ -517,7 +583,9 @@ void Processor::UpdateSerial(u8 ticks)
             if (m_iSerialBit > 7)
             {
                 m_pMemory->Load(0xFF02, sc & 0x7F);
+                TraceSerialEvent(TRACE_SERIAL_TRANSFER_END, m_pMemory->Retrieve(0xFF01));
                 RequestInterrupt(Serial_Interrupt);
+                TraceSerialEvent(TRACE_SERIAL_IRQ_REQUEST, m_pMemory->Retrieve(0xFF01));
                 m_iSerialBit = -1;
 
                 return;
