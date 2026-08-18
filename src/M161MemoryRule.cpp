@@ -94,8 +94,11 @@ void M161MemoryRule::PerformWrite(u16 address, u8 value)
                 m_iCurrentROMBank = value & 0x07;
                 UpdateBanks();
                 m_bLocked = true;
-                TraceMapperEvent(address, static_cast<u8>(m_iCurrentROMBank), TRACE_MAPPER_ROM,
-                    TRACE_MAPPER_FLAG_LOCKED);
+                if (IsTraceMapperEventEnabled(TRACE_MAPPER_ROM))
+                {
+                    LogTraceMapperEvent(address, static_cast<u8>(m_iCurrentROMBank),
+                        TRACE_MAPPER_ROM, TRACE_MAPPER_FLAG_LOCKED, true);
+                }
             }
             break;
         }

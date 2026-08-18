@@ -5,16 +5,28 @@
 #include "log.h"
 #include "Memory.h"
 
-INLINE void Processor::TraceTimerEvent(u8 event, u8 value)
+INLINE void Processor::TraceInstruction(u16 pc, bool halt_bug)
 {
-    if (m_pTraceLogger->IsEventEnabled(TRACE_TIMER, event))
-        LogTimerEvent(event, value);
+    if (m_pTraceLogger->IsEnabled(TRACE_CPU))
+        LogTraceInstruction(pc, halt_bug);
 }
 
-INLINE void Processor::TraceSerialEvent(u8 event, u8 value)
+INLINE void Processor::TraceIRQEvent(u16 pc, u16 vector, u8 irq_type)
+{
+    if (m_pTraceLogger->IsEnabled(TRACE_CPU_IRQ))
+        LogIRQEvent(pc, vector, irq_type);
+}
+
+INLINE void Processor::TraceTimerEvent(u8 event)
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_TIMER, event))
+        LogTimerEvent(event);
+}
+
+INLINE void Processor::TraceSerialEvent(u8 event)
 {
     if (m_pTraceLogger->IsEventEnabled(TRACE_SERIAL, event))
-        LogSerialEvent(event, value);
+        LogSerialEvent(event);
 }
 
 inline bool Processor::InterruptIsAboutToRaise()
@@ -86,9 +98,9 @@ inline void Processor::IncrementTIMA()
     if (tima == 0xFF)
     {
         m_pMemory->Load(0xFF05, m_pMemory->Retrieve(0xFF06));
-        TraceTimerEvent(TRACE_TIMER_RELOAD, m_pMemory->Retrieve(0xFF05));
+        TraceTimerEvent(TRACE_TIMER_RELOAD);
         RequestInterrupt(Timer_Interrupt);
-        TraceTimerEvent(TRACE_TIMER_IRQ_REQUEST, m_pMemory->Retrieve(0xFF05));
+        TraceTimerEvent(TRACE_TIMER_IRQ_REQUEST);
     }
     else
     {

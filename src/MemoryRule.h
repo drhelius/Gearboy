@@ -62,9 +62,9 @@ public:
     virtual void LoadState(std::istream& stream);
 
 protected:
-    void TraceMapperEvent(u16 address, u8 value, u8 event = 0xFF);
-    void TraceMapperEvent(u16 address, u8 value, u8 event, u8 flags);
-    void TraceMapperEventInternal(u16 address, u8 value, u8 event, u8 flags, bool flags_valid);
+    INLINE void TraceMapperEvent(u16 address, u8 value, u8 event = 0xFF);
+    INLINE bool IsTraceMapperEventEnabled(u8 event) const;
+    void LogTraceMapperEvent(u16 address, u8 value, u8 event, u8 flags, bool flags_valid);
 
     Processor* m_pProcessor;
     Memory* m_pMemory;
@@ -76,5 +76,40 @@ protected:
     RamChangedCallback m_pRamChangedCallback;
     TraceLogger* m_pTraceLogger;
 };
+
+INLINE void MemoryRule::TraceMapperEvent(u16 address, u8 value, u8 event)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    if (!m_pTraceLogger->IsEnabled(TRACE_MAPPER))
+        return;
+
+    if (event == 0xFF)
+    {
+        if (address < 0x2000 || address >= 0x6000)
+            event = TRACE_MAPPER_CONTROL;
+        else if (address < 0x4000)
+            event = TRACE_MAPPER_ROM;
+        else
+            event = TRACE_MAPPER_RAM_RTC;
+    }
+
+    if (m_pTraceLogger->IsEventEnabled(TRACE_MAPPER, event))
+        LogTraceMapperEvent(address, value, event, 0, false);
+#else
+    UNUSED(address);
+    UNUSED(value);
+    UNUSED(event);
+#endif
+}
+
+INLINE bool MemoryRule::IsTraceMapperEventEnabled(u8 event) const
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    return m_pTraceLogger->IsEventEnabled(TRACE_MAPPER, event);
+#else
+    UNUSED(event);
+    return false;
+#endif
+}
 
 #endif	/* MEMORYRULE_H */

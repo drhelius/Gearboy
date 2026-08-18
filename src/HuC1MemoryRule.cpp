@@ -86,8 +86,11 @@ void HuC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             // $0E switches to IR mode, anything else switches to RAM mode
             m_bIRMode = ((value & 0x0F) == 0x0E);
-            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                m_bIRMode ? TRACE_MAPPER_FLAG_MODE : TRACE_MAPPER_FLAG_RAM_ENABLED);
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    m_bIRMode ? TRACE_MAPPER_FLAG_MODE : TRACE_MAPPER_FLAG_RAM_ENABLED, true);
+            }
             break;
         }
         case 0x2000:

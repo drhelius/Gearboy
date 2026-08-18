@@ -43,48 +43,9 @@ void MemoryRule::SetTraceLogger(TraceLogger* pTraceLogger)
     m_pTraceLogger = pTraceLogger;
 }
 
-void MemoryRule::TraceMapperEvent(u16 address, u8 value, u8 event)
+void MemoryRule::LogTraceMapperEvent(u16 address, u8 value, u8 event, u8 flags, bool flags_valid)
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    if (!IsValidPointer(m_pTraceLogger) || !m_pTraceLogger->IsEnabled(TRACE_MAPPER))
-        return;
-
-    if (event == 0xFF)
-    {
-        if (address < 0x2000 || address >= 0x6000)
-            event = TRACE_MAPPER_CONTROL;
-        else if (address < 0x4000)
-            event = TRACE_MAPPER_ROM;
-        else
-            event = TRACE_MAPPER_RAM_RTC;
-    }
-
-    TraceMapperEventInternal(address, value, event, 0, false);
-#else
-    UNUSED(address);
-    UNUSED(value);
-    UNUSED(event);
-#endif
-}
-
-void MemoryRule::TraceMapperEvent(u16 address, u8 value, u8 event, u8 flags)
-{
-#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    TraceMapperEventInternal(address, value, event, flags, true);
-#else
-    UNUSED(address);
-    UNUSED(value);
-    UNUSED(event);
-    UNUSED(flags);
-#endif
-}
-
-void MemoryRule::TraceMapperEventInternal(u16 address, u8 value, u8 event, u8 flags, bool flags_valid)
-{
-#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    if (!IsValidPointer(m_pTraceLogger) || !m_pTraceLogger->IsEventEnabled(TRACE_MAPPER, event))
-        return;
-
     GB_Trace_Entry e = {};
     e.type = TRACE_MAPPER;
     e.mapper.address = address;

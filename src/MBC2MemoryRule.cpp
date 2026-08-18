@@ -99,8 +99,11 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
                 {
                     (*m_pRamChangedCallback)();
                 }
-                TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                    m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
+                if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+                {
+                    LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                        m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0, true);
+                }
             }
             break;
         }

@@ -111,8 +111,11 @@ void CameraMemoryRule::PerformWrite(u16 address, u8 value)
             {
                 (*m_pRamChangedCallback)();
             }
-            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0, true);
+            }
             break;
         }
         case 0x2000:
@@ -120,9 +123,12 @@ void CameraMemoryRule::PerformWrite(u16 address, u8 value)
             m_iCurrentROMBank = value;
             m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
             m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
-            TraceMapperEvent(address, value, TRACE_MAPPER_ROM,
-                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
-                (m_bCameraRegistersSelected ? TRACE_MAPPER_FLAG_MODE : 0));
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_ROM))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_ROM,
+                    (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                    (m_bCameraRegistersSelected ? TRACE_MAPPER_FLAG_MODE : 0), true);
+            }
             break;
         }
         case 0x4000:

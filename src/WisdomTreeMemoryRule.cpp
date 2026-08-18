@@ -89,7 +89,11 @@ void WisdomTreeMemoryRule::PerformWrite(u16 address, u8 value)
         {
             m_iCurrentROMBank = address & 0x00FF;
             UpdateBanks();
-            TraceMapperEvent(address, static_cast<u8>(m_iCurrentROMBank), TRACE_MAPPER_ROM);
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_ROM))
+            {
+                LogTraceMapperEvent(address, static_cast<u8>(m_iCurrentROMBank),
+                    TRACE_MAPPER_ROM, 0, false);
+            }
             break;
         }
         case 0xA000:

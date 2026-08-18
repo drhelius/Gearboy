@@ -110,8 +110,11 @@ void MultiMBC1MemoryRule::PerformWrite(u16 address, u8 value)
                     (*m_pRamChangedCallback)();
                 }
             }
-            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0, true);
+            }
             break;
         }
         case 0x2000:
@@ -132,9 +135,12 @@ void MultiMBC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             m_iMulticartMode = value & 0x01;
             SetROMBanks();
-            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
-                (m_iMulticartMode ? TRACE_MAPPER_FLAG_MODE : 0));
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                    (m_iMulticartMode ? TRACE_MAPPER_FLAG_MODE : 0), true);
+            }
             break;
         }
         default:

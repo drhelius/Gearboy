@@ -249,9 +249,12 @@ void HuC3MemoryRule::PerformWrite(u16 address, u8 value)
             {
                 (*m_pRamChangedCallback)();
             }
-            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
-                (m_iMode != 0x0A ? TRACE_MAPPER_FLAG_MODE : 0));
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                    (m_iMode != 0x0A ? TRACE_MAPPER_FLAG_MODE : 0), true);
+            }
             break;
         }
         case 0x2000:
@@ -273,8 +276,11 @@ void HuC3MemoryRule::PerformWrite(u16 address, u8 value)
         case 0x6000:
         {
             // Games write $01 here on startup
-            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0, true);
+            }
             break;
         }
         case 0xA000:

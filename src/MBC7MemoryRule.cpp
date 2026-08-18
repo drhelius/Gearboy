@@ -310,8 +310,11 @@ void MBC7MemoryRule::PerformWrite(u16 address, u8 value)
         case 0x0000:
         {
             m_bRamEnable1 = ((value & 0x0F) == 0x0A);
-            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                (m_bRamEnable1 && m_bRamEnable2) ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    (m_bRamEnable1 && m_bRamEnable2) ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0, true);
+            }
             break;
         }
         case 0x2000:
@@ -325,8 +328,11 @@ void MBC7MemoryRule::PerformWrite(u16 address, u8 value)
         case 0x4000:
         {
             m_bRamEnable2 = (value == 0x40);
-            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                (m_bRamEnable1 && m_bRamEnable2) ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    (m_bRamEnable1 && m_bRamEnable2) ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0, true);
+            }
             break;
         }
         case 0x6000:

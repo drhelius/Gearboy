@@ -182,9 +182,12 @@ void MMM01MemoryRule::PerformWrite(u16 address, u8 value)
                     UpdateBanks();
                 }
             }
-            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
-                (m_bLocked ? TRACE_MAPPER_FLAG_LOCKED : 0));
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                    (m_bLocked ? TRACE_MAPPER_FLAG_LOCKED : 0), true);
+            }
             break;
         }
         case 0x2000:
@@ -236,10 +239,13 @@ void MMM01MemoryRule::PerformWrite(u16 address, u8 value)
             }
 
             UpdateBanks();
-            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
-                (m_bMBC1Mode ? TRACE_MAPPER_FLAG_MODE : 0) |
-                (m_bLocked ? TRACE_MAPPER_FLAG_LOCKED : 0));
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                    (m_bMBC1Mode ? TRACE_MAPPER_FLAG_MODE : 0) |
+                    (m_bLocked ? TRACE_MAPPER_FLAG_LOCKED : 0), true);
+            }
             break;
         }
         case 0xA000:

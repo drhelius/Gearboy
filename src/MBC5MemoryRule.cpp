@@ -105,8 +105,11 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
                     (*m_pRamChangedCallback)();
                 }
             }
-            TraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
-                m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0);
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0, true);
+            }
             break;
         }
         case 0x2000:
@@ -120,9 +123,12 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
                 m_RomBankHigh = value & 0x01;
             }
             UpdateBanks();
-            TraceMapperEvent(address, value, TRACE_MAPPER_ROM,
-                (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
-                (m_iRumbleStrength ? TRACE_MAPPER_FLAG_RUMBLE : 0));
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_ROM))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_ROM,
+                    (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                    (m_iRumbleStrength ? TRACE_MAPPER_FLAG_RUMBLE : 0), true);
+            }
             break;
         }
         case 0x4000:
