@@ -376,7 +376,7 @@ The server exposes tools organized in the following categories:
 - `remove_disassembler_bookmark` - Remove disassembler bookmark
 - `list_disassembler_bookmarks` - List all disassembler bookmarks
 - `get_call_stack` - View function call hierarchy
-- `get_trace_log` - Read trace logger entries using absolute sequence pagination. Responses include `total_entries`, `total_logged`, `oldest_sequence`, `start`, `next_sequence`, `count`, `overrun`, and `lines`
+- `get_trace_log` - Read trace logger entries using absolute sequence pagination. Responses include `total_entries`, `total_logged`, `oldest_sequence`, `start`, `next_sequence`, `count`, `overrun`, and `lines`. Omit `start` for the latest 100 retained entries, or use a negative value to start that many entries from the retained tail
 - `set_trace_log` - Start or stop trace logging. Use `filters` for exact streams such as `cpu.instructions`, `lcd.interrupts`, or `serial.transfers`; omitting it enables the safe default of CPU instructions and interrupts. Storage options are `output` (`memory` or `disk`), `memory_size` (`100K` through `5M`), `disk_size` (`10MB` through `1GB`, or `unbounded`), and `output_path`
 
 ### Breakpoints

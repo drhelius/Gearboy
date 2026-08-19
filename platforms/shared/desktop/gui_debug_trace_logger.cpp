@@ -57,6 +57,7 @@ static Uint64 trace_logger_disk_last_flush = 0;
 
 static const u32 k_trace_logger_capacities[] = {100000, 500000, 1000000, 2000000, 5000000};
 static const char* const k_trace_logger_capacity_names[] = {"100K", "500K", "1M", "2M", "5M"};
+static const char* const k_trace_logger_capacity_labels[] = {"100K (4 MB)", "500K (20 MB)", "1M (40 MB)", "2M (80 MB)", "5M (200 MB)"};
 static const char* const k_trace_logger_disk_size_names[] = {
     "10MB", "50MB", "100MB", "250MB", "500MB", "1GB", "unbounded"
 };
@@ -109,7 +110,7 @@ void gui_debug_window_trace_logger(void)
         }
         else
         {
-            gui_debug_trace_logger_start(trace_logger_get_config_flags());
+            trace_logger_start(trace_logger_get_config_flags(), false);
         }
     }
 
@@ -140,15 +141,7 @@ void gui_debug_window_trace_logger(void)
     if (config_debug.trace_output == gui_TraceOutput_Memory)
     {
         int previous_capacity = config_debug.trace_capacity;
-        char capacity_labels[IM_ARRAYSIZE(k_trace_logger_capacities)][32];
-        const char* capacity_items[IM_ARRAYSIZE(k_trace_logger_capacities)];
-        for (int i = 0; i < IM_ARRAYSIZE(k_trace_logger_capacities); i++)
-        {
-            double memory_mib = ((double)k_trace_logger_capacities[i] * sizeof(GB_Trace_Entry)) / (1024.0 * 1024.0);
-            snprintf(capacity_labels[i], sizeof(capacity_labels[i]), "%s (%.1f MiB)", k_trace_logger_capacity_names[i], memory_mib);
-            capacity_items[i] = capacity_labels[i];
-        }
-        if (ImGui::Combo("##trace_capacity", &config_debug.trace_capacity, capacity_items, IM_ARRAYSIZE(capacity_items)) && !trace_logger_apply_capacity())
+        if (ImGui::Combo("##trace_capacity", &config_debug.trace_capacity, k_trace_logger_capacity_labels, IM_ARRAYSIZE(k_trace_logger_capacity_labels)) && !trace_logger_apply_capacity())
             config_debug.trace_capacity = previous_capacity;
     }
     else
@@ -578,7 +571,7 @@ static void trace_logger_menu(void)
             ImGui::Separator();
             ImGui::BeginDisabled(!config_debug.trace_cpu_enabled);
             ImGui::MenuItem("Instructions", "", &config_debug.trace_cpu);
-            ImGui::MenuItem("Interrupts", "", &config_debug.trace_cpu_irq);
+            ImGui::MenuItem("IRQs", "", &config_debug.trace_cpu_irq);
             ImGui::EndDisabled();
             ImGui::EndMenu();
         }
@@ -928,7 +921,7 @@ static void trace_logger_set_config_event_filter(GB_Trace_Type type, u32 filter)
 
 static void trace_logger_menu_event_filter(const char* label, int* filter, u32 mask)
 {
-    bool enabled = ((u32)*filter & mask) == mask;
+    bool enabled = ((u32)*filter & mask) != 0;
     if (ImGui::MenuItem(label, "", &enabled))
     {
         if (enabled)
@@ -1060,7 +1053,7 @@ static void render_entry_colored(const GB_Trace_Entry& entry, u64 index,
     {
         char counter[32];
         snprintf(counter, sizeof(counter), "%06llu ", (unsigned long long)index);
-        prefix_length += strlen(counter);
+        prefix_length += (int)strlen(counter);
         ImGui::TextColored(gray, "%s", counter);
         ImGui::SameLine(0, 0);
     }
@@ -1070,7 +1063,7 @@ static void render_entry_colored(const GB_Trace_Entry& entry, u64 index,
         char cycles[64];
         trace_log_format_cycle_prefix(entry, previous_cycle_valid, previous_cycle,
                                       cycles, sizeof(cycles));
-        prefix_length += strlen(cycles);
+        prefix_length += (int)strlen(cycles);
         ImGui::TextColored(gray, "%s", cycles);
         ImGui::SameLine(0, 0);
     }

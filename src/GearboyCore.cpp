@@ -141,7 +141,7 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pCartridge = new Cartridge();
     m_pSGB = new SGB(m_pMemory, m_pVideo);
     m_pSGBFrameBuffer = new u16[SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT];
-    m_trace_logger = new TraceLogger(&m_master_clock_cycles);
+
 
     m_pMemory->Init();
     m_pProcessor->Init();
@@ -151,9 +151,12 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pCartridge->Init();
     m_pSGB->Init();
 
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    m_trace_logger = new TraceLogger(&m_master_clock_cycles);
     m_pProcessor->SetTraceLogger(m_trace_logger);
     m_pVideo->SetTraceLogger(m_trace_logger);
     m_pMemory->SetTraceLogger(m_trace_logger);
+#endif
 
     InitMemoryRules();
     InitDMGPalette();

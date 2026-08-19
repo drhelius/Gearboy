@@ -24,7 +24,6 @@
 #include <string>
 #include "gearboy.h"
 
-static const char* config_application_name = GEARBOY_TITLE;
 static const int config_version = 5;
 static const int config_minimum_version = 2;
 static const int config_max_recent_roms = 10;

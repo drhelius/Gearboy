@@ -274,11 +274,17 @@ public:
     const GB_Trace_Entry& GetEntry(u32 index) const;
 
 private:
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    void UpdateEnabled();
+#endif
     GB_Trace_Entry* m_buffer;
     u32 m_position;
     u32 m_count;
     u32 m_capacity;
     u32 m_enabled_flags;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    bool m_enabled;
+#endif
     u32 m_event_filters[TRACE_TYPE_COUNT];
     u64 m_total_logged;
     u64 m_sequence;
@@ -288,7 +294,10 @@ private:
 INLINE bool TraceLogger::IsEnabled(GB_Trace_Type type) const
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    return type < TRACE_TYPE_COUNT && (m_enabled_flags & (1U << type)) != 0 && m_buffer;
+    if (likely(!m_enabled))
+        return false;
+
+    return type < TRACE_TYPE_COUNT && (m_enabled_flags & (1U << type)) != 0;
 #else
     UNUSED(type);
     return false;
@@ -298,7 +307,11 @@ INLINE bool TraceLogger::IsEnabled(GB_Trace_Type type) const
 INLINE bool TraceLogger::IsEventEnabled(GB_Trace_Type type, u8 event) const
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    return IsEnabled(type) && event < 32 && (m_event_filters[type] & TRACE_EVENT_FLAG(event)) != 0;
+    if (likely(!m_enabled))
+        return false;
+
+    return type < TRACE_TYPE_COUNT && (m_enabled_flags & (1U << type)) != 0 &&
+        event < 32 && (m_event_filters[type] & TRACE_EVENT_FLAG(event)) != 0;
 #else
     UNUSED(type);
     UNUSED(event);

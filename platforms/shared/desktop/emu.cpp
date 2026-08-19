@@ -194,6 +194,7 @@ void emu_load_rom_async(const char* file_path, bool force_dmg, Cartridge::Cartri
         return;
 
     gui_debug_trace_logger_reset();
+
     emu_debug_command = Debug_Command_None;
     reset_buffers();
     save_ram();

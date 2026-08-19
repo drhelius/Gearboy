@@ -1568,8 +1568,7 @@ json McpServer::BuildToolList()
             {"properties", {
                 {"start", {
                     {"type", "integer"},
-                    {"description", "Absolute trace sequence (omit for latest retained entries)"},
-                    {"minimum", 0}
+                    {"description", "Absolute trace sequence, or a negative value to read that many entries from the retained tail (omit for latest 100)"}
                 }},
                 {"count", {
                     {"type", "integer"},
@@ -2664,7 +2663,7 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     }
     else if (normalizedTool == "get_trace_log")
     {
-        s64 start = arguments.value("start", (s64)-1);
+        s64 start = arguments.value("start", (s64)-100);
         int count = arguments.value("count", 100);
         return m_debugAdapter.GetTraceLog(start, count);
     }

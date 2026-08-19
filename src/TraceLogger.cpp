@@ -31,6 +31,9 @@ TraceLogger::TraceLogger(const u64* master_clock_cycles)
     m_position = 0;
     m_count = 0;
     m_enabled_flags = 0;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    UpdateEnabled();
+#endif
     for (int i = 0; i < TRACE_TYPE_COUNT; i++)
         m_event_filters[i] = 0xFFFFFFFFU;
     m_total_logged = 0;
@@ -65,6 +68,7 @@ bool TraceLogger::SetCapacity(u32 capacity)
     SafeDeleteArray(m_buffer);
     m_buffer = buffer;
     m_capacity = capacity;
+    UpdateEnabled();
     Reset();
     return true;
 #else
@@ -77,7 +81,17 @@ bool TraceLogger::SetCapacity(u32 capacity)
 void TraceLogger::SetEnabledFlags(u32 flags)
 {
     m_enabled_flags = flags;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    UpdateEnabled();
+#endif
 }
+
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+void TraceLogger::UpdateEnabled()
+{
+    m_enabled = IsValidPointer(m_buffer) && m_enabled_flags != 0;
+}
+#endif
 
 void TraceLogger::SetEventFilter(GB_Trace_Type type, u32 filter)
 {

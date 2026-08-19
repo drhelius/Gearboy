@@ -81,6 +81,14 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define CLAMP(value, min, max) MIN(MAX(value, min), max)
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define likely(x)   __builtin_expect(!!(x), 1)
+    #define unlikely(x) __builtin_expect(!!(x), 0)
+#else
+    #define likely(x)   (x)
+    #define unlikely(x) (x)
+#endif
+
 typedef uint8_t u8;
 typedef int8_t s8;
 typedef uint16_t u16;

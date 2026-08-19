@@ -2653,7 +2653,10 @@ json DebugAdapter::GetTraceLog(s64 start, int count)
     u64 actual_start;
     bool overrun = false;
     if (start < 0)
-        actual_start = (total - oldest > (u64)count) ? (total - (u64)count) : oldest;
+    {
+        u64 tail = (u64)(-(start + 1)) + 1;
+        actual_start = (total - oldest > tail) ? (total - tail) : oldest;
+    }
     else
     {
         actual_start = (u64)start;
@@ -2678,7 +2681,7 @@ json DebugAdapter::GetTraceLog(s64 start, int count)
     }
 
     u32 actual_count = (u32)count;
-    if (actual_start + actual_count > total)
+    if ((u64)actual_count > total - actual_start)
         actual_count = (u32)(total - actual_start);
     u32 buffer_start = (u32)(actual_start - oldest);
 
@@ -2690,7 +2693,7 @@ json DebugAdapter::GetTraceLog(s64 start, int count)
         const GB_Trace_Entry& entry = tl->GetEntry(buffer_start + i);
         char buf[GB_TRACE_FORMAT_BUFFER_SIZE];
 
-        GB_Trace_Format_Options options;
+        GB_Trace_Format_Options options = {};
         options.bank = true;
         options.registers = true;
         options.flags = true;

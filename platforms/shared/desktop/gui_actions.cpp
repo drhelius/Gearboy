@@ -20,6 +20,7 @@
 #define GUI_ACTIONS_IMPORT
 #include "gui_actions.h"
 #include "gui.h"
+#include "gui_debug_trace_logger.h"
 #include "config.h"
 #include "emu.h"
 #include "rewind.h"
@@ -32,6 +33,8 @@
 void gui_action_reset(void)
 {
     gui_set_status_message("Resetting...", 3000);
+
+    gui_debug_trace_logger_clear();
 
     emu_resume();
     emu_reset(config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);

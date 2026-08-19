@@ -111,6 +111,20 @@ static bool validate_json_schema(const json& value, const json& schema, const st
             error = "Parameter '" + path + "' has too many items";
             return false;
         }
+        if (schema.value("uniqueItems", false))
+        {
+            for (size_t i = 0; i < value.size(); i++)
+            {
+                for (size_t j = i + 1; j < value.size(); j++)
+                {
+                    if (value[i] == value[j])
+                    {
+                        error = "Parameter '" + path + "' must contain unique items";
+                        return false;
+                    }
+                }
+            }
+        }
         if (schema.contains("items") && schema["items"].is_object())
         {
             for (size_t i = 0; i < value.size(); i++)
