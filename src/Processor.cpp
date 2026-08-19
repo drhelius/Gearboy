@@ -751,19 +751,9 @@ void Processor::PopulateDisassemblerRecord(GB_Disassembler_Record* record, u16 a
     for (int i = 0; i < info.size && i < 4; i++)
         record->opcodes[i] = m_pMemory->DebugRetrieve(address + i);
 
-    int pos = 0;
-    for (int i = 0; i < 4; i++)
-    {
-        if (i < record->size)
-        {
-            static const char hex_chars[] = "0123456789ABCDEF";
-            u8 byte = record->opcodes[i];
-            record->bytes[pos++] = hex_chars[byte >> 4];
-            record->bytes[pos++] = hex_chars[byte & 0x0F];
-            record->bytes[pos++] = ' ';
-        }
-    }
-    record->bytes[pos] = 0;
+    format_hex_bytes(record->opcodes,
+                     MIN(record->size, (int)sizeof(record->opcodes)),
+                     record->bytes, sizeof(record->bytes));
 
     InvalidateOverlappingRecords(address, (u8)record->size);
 

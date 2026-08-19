@@ -26,7 +26,6 @@ struct GB_Trace_Format_Options
     u64 previous_cycle;
 };
 
-void trace_log_format_cpu_bytes(const GB_Trace_Entry& entry, char* buffer, size_t buffer_size);
 void trace_log_format_cycle_prefix(const GB_Trace_Entry& entry, bool previous_cycle_valid,
     u64 previous_cycle, char* buffer, size_t buffer_size);
 void trace_logger_format_entry(const GB_Trace_Entry& entry,

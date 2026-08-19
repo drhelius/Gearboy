@@ -117,6 +117,23 @@ inline u16 lo(u16 a)
     return (u16)(a & 0xFF);
 }
 
+inline void format_hex_bytes(const u8* bytes, size_t count, char* buffer, size_t buffer_size)
+{
+    if (buffer_size == 0)
+        return;
+
+    static const char hex_chars[] = "0123456789ABCDEF";
+    size_t position = 0;
+    for (size_t i = 0; i < count && (position + 3) < buffer_size; i++)
+    {
+        u8 byte = bytes[i];
+        buffer[position++] = hex_chars[byte >> 4];
+        buffer[position++] = hex_chars[byte & 0x0F];
+        buffer[position++] = ' ';
+    }
+    buffer[position] = '\0';
+}
+
 inline int as_hex(const char c)
 {
     if (c >= '0' && c <= '9')

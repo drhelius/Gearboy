@@ -1028,7 +1028,9 @@ static void render_cpu_entry_colored(const GB_Trace_Entry& entry, int prefix_len
     if (config_debug.trace_bytes)
     {
         char bytes[16];
-        trace_log_format_cpu_bytes(entry, bytes, sizeof(bytes));
+        format_hex_bytes(entry.cpu.opcodes,
+                         MIN(entry.cpu.size, (u8)sizeof(entry.cpu.opcodes)),
+                         bytes, sizeof(bytes));
         float char_width = ImGui::CalcTextSize("A").x;
         float bytes_column = char_width * 37;
         if (config_debug.trace_registers) bytes_column += char_width * 34;
