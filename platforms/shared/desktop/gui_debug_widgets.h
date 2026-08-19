@@ -323,7 +323,14 @@ inline bool SliderIntWithSteps(const char* label, int* v, int v_min, int v_max, 
     *v = MIN(v_min + step * v_step, v_max);
 
     char value_text[64];
-    snprintf(value_text, sizeof(value_text), display_format, *v);
+    const char* value_placeholder = strstr(display_format, "%d");
+    if (value_placeholder)
+    {
+        int prefix_length = (int)(value_placeholder - display_format);
+        snprintf(value_text, sizeof(value_text), "%.*s%d%s", prefix_length, display_format, *v, value_placeholder + 2);
+    }
+    else
+        snprintf(value_text, sizeof(value_text), "%d", *v);
     ImVec2 item_min = ImGui::GetItemRectMin();
     ImVec2 item_max = ImGui::GetItemRectMax();
     ImVec2 text_size = ImGui::CalcTextSize(value_text);
