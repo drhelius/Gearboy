@@ -359,6 +359,10 @@ void Processor::LogTraceInstruction(u16 pc, bool halt_bug)
         e.cpu.opcodes[i] = m_pMemory->DebugRetrieve(address);
     }
 
+    GB_Disassembler_Record* record = m_pMemory->GetDisassemblerRecord(pc, e.cpu.bank);
+    if (IsValidPointer(record))
+        strncpy_fit(e.cpu.name, record->name, sizeof(e.cpu.name));
+
     m_pTraceLogger->TraceLog(e);
 #else
     UNUSED(pc);

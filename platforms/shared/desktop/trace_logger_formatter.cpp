@@ -9,58 +9,42 @@
  */
 
 #include "trace_logger_formatter.h"
-#include "Memory.h"
 #include "Cartridge.h"
 #include <cstdio>
 #include <cstring>
 
-GB_Disassembler_Record* trace_log_get_cpu_record(Memory* memory, const GB_Trace_Entry& entry)
-{
-    if (entry.cpu.size > sizeof(entry.cpu.opcodes))
-        return NULL;
-
-    GB_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.cpu.pc, entry.cpu.bank);
-    if (!IsValidPointer(record) || record->size != entry.cpu.size ||
-        memcmp(record->opcodes, entry.cpu.opcodes, entry.cpu.size) != 0)
-    {
-        return NULL;
-    }
-
-    return record;
-}
-
-void trace_log_format_cpu_bytes(const GB_Trace_Entry& entry, char* buf, int buf_size)
+void trace_log_format_cpu_bytes(const GB_Trace_Entry& entry, char* buffer, size_t buffer_size)
 {
     static const char k_hex[] = "0123456789ABCDEF";
     int pos = 0;
     u8 size = MIN(entry.cpu.size, (u8)sizeof(entry.cpu.opcodes));
-    for (u8 i = 0; i < size && (pos + 3) < buf_size; i++)
+    for (u8 i = 0; i < size && (size_t)(pos + 3) < buffer_size; i++)
     {
         u8 value = entry.cpu.opcodes[i];
-        buf[pos++] = k_hex[value >> 4];
-        buf[pos++] = k_hex[value & 0x0F];
-        buf[pos++] = ' ';
+        buffer[pos++] = k_hex[value >> 4];
+        buffer[pos++] = k_hex[value & 0x0F];
+        buffer[pos++] = ' ';
     }
-    buf[pos] = '\0';
+    buffer[pos] = '\0';
 }
 
 void trace_log_format_cycle_prefix(const GB_Trace_Entry& entry, bool previous_cycle_valid,
-    u64 previous_cycle, char* buf, int buf_size)
+    u64 previous_cycle, char* buffer, size_t buffer_size)
 {
     if (previous_cycle_valid && entry.cycle >= previous_cycle)
     {
-        snprintf(buf, buf_size, "@%012llu +%-12llu ",
+        snprintf(buffer, buffer_size, "@%012llu +%-12llu ",
                  (unsigned long long)entry.cycle,
                  (unsigned long long)(entry.cycle - previous_cycle));
     }
     else if (previous_cycle_valid)
     {
-        snprintf(buf, buf_size, "@%012llu RESET         ",
+        snprintf(buffer, buffer_size, "@%012llu RESET         ",
                  (unsigned long long)entry.cycle);
     }
     else
     {
-        snprintf(buf, buf_size, "@%012llu               ",
+        snprintf(buffer, buffer_size, "@%012llu               ",
                  (unsigned long long)entry.cycle);
     }
 }
@@ -121,16 +105,15 @@ static const char* get_mapper_name(u8 mapper)
     return "UNKNOWN";
 }
 
-static void format_cpu_entry(Memory* memory, const GB_Trace_Entry& entry,
+static void format_cpu_entry(const GB_Trace_Entry& entry,
     const GB_Trace_Format_Options& options, char* buf, int buf_size)
 {
-    GB_Disassembler_Record* record = trace_log_get_cpu_record(memory, entry);
     char instr[64] = "???";
     char bytes[16] = "";
 
-    if (IsValidPointer(record))
+    if (entry.cpu.name[0] != 0)
     {
-        strncpy(instr, record->name, sizeof(instr) - 1);
+        strncpy(instr, entry.cpu.name, sizeof(instr) - 1);
         instr[sizeof(instr) - 1] = '\0';
 
         char* p = instr;
@@ -178,26 +161,29 @@ static void format_cpu_entry(Memory* memory, const GB_Trace_Entry& entry,
              options.bytes ? bytes : "", entry.cpu.halt_bug ? "[HALT bug]" : "");
 }
 
-void trace_log_format_entry(Memory* memory, const GB_Trace_Entry& entry,
-    const GB_Trace_Format_Options& options, char* buf, int buf_size)
+void trace_logger_format_entry(const GB_Trace_Entry& entry,
+    const GB_Trace_Format_Options& options, char* buffer, size_t buffer_size)
 {
+    char* buf = buffer;
+    int buf_size = (int)buffer_size;
+
     if (options.cycles)
     {
         GB_Trace_Format_Options body_options = options;
         body_options.cycles = false;
         char body[GB_TRACE_FORMAT_BUFFER_SIZE];
         char prefix[64];
-        trace_log_format_entry(memory, entry, body_options, body, sizeof(body));
+        trace_logger_format_entry(entry, body_options, body, sizeof(body));
         trace_log_format_cycle_prefix(entry, options.previous_cycle_valid,
                                       options.previous_cycle, prefix, sizeof(prefix));
-        snprintf(buf, buf_size, "%s%s", prefix, body);
+        snprintf(buffer, buffer_size, "%s%s", prefix, body);
         return;
     }
 
     switch (entry.type)
     {
         case TRACE_CPU:
-            format_cpu_entry(memory, entry, options, buf, buf_size);
+            format_cpu_entry(entry, options, buffer, (int)buffer_size);
             break;
         case TRACE_CPU_IRQ:
         {

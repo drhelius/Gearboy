@@ -57,7 +57,7 @@ static Uint64 trace_logger_disk_last_flush = 0;
 
 static const u32 k_trace_logger_capacities[] = {100000, 500000, 1000000, 2000000, 5000000};
 static const char* const k_trace_logger_capacity_names[] = {"100K", "500K", "1M", "2M", "5M"};
-static const char* const k_trace_logger_capacity_labels[] = {"100K (4 MB)", "500K (20 MB)", "1M (40 MB)", "2M (80 MB)", "5M (200 MB)"};
+static const char* const k_trace_logger_capacity_labels[] = {"100K (10 MB)", "500K (50 MB)", "1M (100 MB)", "2M (200 MB)", "5M (500 MB)"};
 static const char* const k_trace_logger_disk_size_names[] = {
     "10MB", "50MB", "100MB", "250MB", "500MB", "1GB", "unbounded"
 };
@@ -951,14 +951,11 @@ static void format_entry_text(const GB_Trace_Entry& entry, bool cycles,
     options.cycles = cycles;
     options.previous_cycle_valid = previous_cycle_valid;
     options.previous_cycle = previous_cycle;
-    trace_log_format_entry(emu_get_core()->GetMemory(), entry, options, buf, buf_size);
+    trace_logger_format_entry(entry, options, buf, buf_size);
 }
 
 static void render_cpu_entry_colored(const GB_Trace_Entry& entry, int prefix_length)
 {
-    Memory* memory = emu_get_core()->GetMemory();
-    GS_Disassembler_Record* record = trace_log_get_cpu_record(memory, entry);
-
     if (config_debug.trace_bank)
     {
         ImGui::TextColored(violet, "%03X:", entry.cpu.bank);
@@ -1004,9 +1001,9 @@ static void render_cpu_entry_colored(const GB_Trace_Entry& entry, int prefix_len
                  (f & FLAG_CARRY) ? 'C' : 'c');
     }
 
-    if (IsValidPointer(record))
+    if (entry.cpu.name[0] != 0)
     {
-        std::string instr = record->name;
+        std::string instr = entry.cpu.name;
         size_t pos;
         pos = instr.find("{n}");
         if (pos != std::string::npos)

@@ -173,6 +173,7 @@ struct GB_Trace_Entry
             u8 size;
             u8 halt_bug;
             u8 opcodes[4];
+            char name[64];
         } cpu;
 
         struct
@@ -249,7 +250,7 @@ struct GB_Trace_Entry
     };
 };
 
-static_assert(sizeof(GB_Trace_Entry) <= 40, "Trace entry exceeds memory budget");
+static_assert(sizeof(GB_Trace_Entry) <= 104, "Trace entry exceeds memory budget");
 
 class TraceLogger
 {
