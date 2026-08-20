@@ -805,6 +805,13 @@ static void menu_video(void)
 
         ImGui::Separator();
 
+        if (ImGui::MenuItem("Disable Sprite Limit", "", &config_video.sprite_limit))
+        {
+            emu_video_no_sprite_limit(config_video.sprite_limit);
+        }
+
+        ImGui::Separator();
+
         if (ImGui::BeginMenu("Palette"))
         {
             ImGui::PushItemWidth(130.0f);

@@ -40,6 +40,7 @@ public:
     void EnableScreen();
     void DisableScreen();
     void SetSGBTransferMode(bool enabled);
+    void SetNoSpriteLimit(bool noSpriteLimit);
     bool IsScreenEnabled() const;
     const u8* GetFrameBuffer() const;
     const u16* GetColorFrameBuffer() const;
@@ -65,6 +66,8 @@ private:
     void RenderBG(int line, int pixel);
     void RenderWindow(int line);
     void RenderSprites(int line);
+    void RenderSpritesNoLimit(int line, int spriteHeight, int lineWidth);
+    INLINE void RenderSprite(int line, int sprite, int spriteHeight, int lineWidth);
     void UpdateStatRegister();
     INLINE void TraceEvent(u8 event, u8 value);
     void LogTraceEvent(u8 event, u8 value);
@@ -88,6 +91,7 @@ private:
     bool m_bScreenEnabled;
     bool m_bCGB;
     bool m_bSGBTransferMode;
+    bool m_bNoSpriteLimit;
     u16 m_CGBSpritePalettes[8][4][2];
     u16 m_CGBBackgroundPalettes[8][4][2];
     bool m_bScanLineTransfered;

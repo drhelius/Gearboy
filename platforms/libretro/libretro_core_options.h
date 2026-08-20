@@ -44,7 +44,7 @@ struct retro_core_option_v2_category option_cats_us[] = {
     {
         "video",
         "Video",
-        "Configure DMG palette and Game Boy Color correction settings."
+        "Configure DMG palette, Game Boy Color correction and sprite limit settings."
     },
     {
         "input",
@@ -370,6 +370,20 @@ struct retro_core_option_v2_definition option_defs_us[] = {
         "GBC Color Correction",
         NULL,
         "Apply color correction for Game Boy Color games to simulate the original GBC LCD screen output. When disabled, raw RGB colors are displayed which may appear overly saturated on modern displays.",
+        NULL,
+        "video",
+        {
+            { "Disabled", NULL },
+            { "Enabled",  NULL },
+            { NULL, NULL },
+        },
+        "Disabled"
+    },
+    {
+        "gearboy_no_sprite_limit",
+        "No Sprite Limit",
+        NULL,
+        "Remove the per-line sprite limit. This reduces flickering but may cause glitches in certain games. It's best to keep this option disabled.",
         NULL,
         "video",
         {

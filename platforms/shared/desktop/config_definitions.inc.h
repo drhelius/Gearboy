@@ -182,6 +182,7 @@ static inline void process(config_Operation operation)
     CONFIG_BOOL("Video", "FPS", config_video.fps, false);
     CONFIG_INT_RANGE("Video", "Palette", config_video.palette, 0, 0, 10);
     CONFIG_BOOL("Video", "ColorCorrection", config_video.color_correction, true);
+    CONFIG_BOOL("Video", "SpriteLimit", config_video.sprite_limit, false);
     CONFIG_INT_RANGE("Video", "ShaderMode", config_video.shader_mode, config_ShaderMode_PixelPerfect, config_ShaderMode_PixelPerfect, config_ShaderMode_External);
 
     if (operation == config_Operation_Write)

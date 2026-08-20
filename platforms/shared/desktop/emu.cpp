@@ -716,6 +716,11 @@ void emu_color_correction(bool correction)
     gearboy->EnableColorCorrection(correction);
 }
 
+void emu_video_no_sprite_limit(bool enabled)
+{
+    gearboy->GetVideo()->SetNoSpriteLimit(enabled);
+}
+
 void emu_debug_step_over(void)
 {
     Processor* processor = emu_get_core()->GetProcessor();

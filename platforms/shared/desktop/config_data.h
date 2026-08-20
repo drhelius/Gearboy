@@ -114,6 +114,7 @@ struct config_Video
     GB_Color color[config_max_custom_palettes][4];
     int sync_mode;
     bool color_correction;
+    bool sprite_limit;
     float background_color[config_Theme_Count][3];
     float background_color_debugger[config_Theme_Count][3];
     int shader_mode;

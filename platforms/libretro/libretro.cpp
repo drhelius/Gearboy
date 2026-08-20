@@ -850,6 +850,17 @@ static void check_variables(void)
         core->EnableColorCorrection(color_correction);
     }
 
+    var.key = "gearboy_no_sprite_limit";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Enabled") == 0)
+            core->GetVideo()->SetNoSpriteLimit(true);
+        else
+            core->GetVideo()->SetNoSpriteLimit(false);
+    }
+
     var.key = "gearboy_up_down_allowed";
     var.value = NULL;
 

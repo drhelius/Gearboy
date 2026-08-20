@@ -75,6 +75,7 @@ int application_headless_init(const ApplicationParams& params)
     emu_enable_bootrom_dmg(config_emulator.dmg_bootrom);
     emu_enable_bootrom_gbc(config_emulator.gbc_bootrom);
     emu_color_correction(config_video.color_correction);
+    emu_video_no_sprite_limit(config_video.sprite_limit);
 
     gui_debug_init();
 
