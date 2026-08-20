@@ -140,7 +140,15 @@ public:
     void UpdateSerial(u8 ticks);
 
 private:
-    typedef void (Processor::*OPCptr) (void);
+    typedef void (Processor::*OPCmemberptr) (void);
+    typedef void (*OPCptr) (Processor*);
+
+    template<OPCmemberptr Opcode>
+    static void OPCodeThunk(Processor* cpu)
+    {
+        (cpu->*Opcode)();
+    }
+
     OPCptr m_OPCodes[256];
     OPCptr m_OPCodesCB[256];
     Memory* m_pMemory;
@@ -258,7 +266,7 @@ private:
     void OPCodes_SET_HL(int bit);
     void OPCodes_RES(u8* reg, int bit);
     void OPCodes_RES_HL(int bit);
-    void InitOPCodeFunctors();
+    void InitOPCodeTable();
     void OPCode0x00();
     void OPCode0x01();
     void OPCode0x02();
