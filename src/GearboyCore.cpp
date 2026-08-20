@@ -228,7 +228,9 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pCartridge->UpdateCurrentRTC();
         }
 
-        if (!bDMGbuffer || m_bCGB)
+        if (bDMGbuffer && !m_bCGB)
+            RenderDMGIndexFrame(pFrameBuffer);
+        else
             RenderFrameBuffer(pFrameBuffer);
 
         breakpoint_result = m_pProcessor->BreakpointHit() || m_pProcessor->RunToBreakpointHit();
@@ -272,7 +274,9 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pCartridge->UpdateCurrentRTC();
         }
 
-        if (!bDMGbuffer || m_bCGB)
+        if (bDMGbuffer && !m_bCGB)
+            RenderDMGIndexFrame(pFrameBuffer);
+        else
             RenderFrameBuffer(pFrameBuffer);
 #endif
     }
@@ -1677,6 +1681,21 @@ void GearboyCore::RenderDMGFrame(u16* pFrameBuffer) const
         for (int i = 0; i < pixels; i++)
         {
             pFrameBuffer[i] = m_DMGPalette[pGameboyFrameBuffer[i]];
+        }
+    }
+}
+
+void GearboyCore::RenderDMGIndexFrame(u16* pFrameBuffer) const
+{
+    if (IsValidPointer(pFrameBuffer))
+    {
+        int pixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
+        const u8* pGameboyFrameBuffer = m_pVideo->GetFrameBuffer();
+
+        // Normal DMG and SGB colors are derived from this index buffer.
+        for (int i = 0; i < pixels; i++)
+        {
+            pFrameBuffer[i] = pGameboyFrameBuffer[i];
         }
     }
 }

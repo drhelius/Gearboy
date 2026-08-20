@@ -122,6 +122,7 @@ public:
 
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;
+    void RenderDMGIndexFrame(u16* pFrameBuffer) const;
     void RenderSGBFrame(u16* pFrameBuffer);
     void ApplyColorCorrection(u16* pFrameBuffer, int size);
     void BuildColorCorrectionLUT();

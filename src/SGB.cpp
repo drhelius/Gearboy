@@ -773,16 +773,24 @@ void SGB::RenderGameScreen(u16* pFrameBuffer, GB_Color_Format pixelFormat)
 
     u8* input = m_EffectiveScreenBuffer;
 
-    for (int y = 0; y < GAMEBOY_HEIGHT; y++)
+    for (int attrY = 0; attrY < SGB_ATTR_MAP_HEIGHT; attrY++)
     {
-        int attrRow = (y >> 3) * SGB_ATTR_MAP_WIDTH;
-        u16* row = &pFrameBuffer[(offsetX) + (offsetY + y) * SGB_SCREEN_WIDTH];
-
-        for (int x = 0; x < GAMEBOY_WIDTH; x++)
+        int attrRow = attrY * SGB_ATTR_MAP_WIDTH;
+        for (int pixelY = 0; pixelY < 8; pixelY++)
         {
-            u8 palette = m_AttributeMap[attrRow + (x >> 3)] & 3;
-            u8 colorIndex = (*(input++)) & 3;
-            row[x] = colors[colorIndex + palette * 4];
+            int y = (attrY << 3) + pixelY;
+            u16* output = &pFrameBuffer[offsetX +
+                    (offsetY + y) * SGB_SCREEN_WIDTH];
+
+            for (int attrX = 0; attrX < SGB_ATTR_MAP_WIDTH; attrX++)
+            {
+                int paletteBase = (m_AttributeMap[attrRow + attrX] & 3) << 2;
+
+                for (int pixelX = 0; pixelX < 8; pixelX++)
+                {
+                    *(output++) = colors[paletteBase + (*(input++) & 3)];
+                }
+            }
         }
     }
 }

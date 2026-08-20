@@ -635,9 +635,6 @@ void Video::RenderBG(int line, int pixel)
 #else
         int pixels_to_render = 4;
 #endif
-        int offset_x_init = pixel & 0x7;
-        int offset_x_end = offset_x_init + pixels_to_render;
-        int screen_tile = pixel >> 3;
         int tile_start_addr = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
         int map_start_addr = IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
         u8 scroll_x = m_pMemory->Retrieve(0xFF43);
@@ -648,19 +645,24 @@ void Video::RenderBG(int line, int pixel)
         int tile_pixel_y_2 = tile_pixel_y << 1;
         int tile_pixel_y_flip_2 = (7 - tile_pixel_y) << 1;
         u8 palette = m_pMemory->Retrieve(0xFF47);
+        int screen_pixel_x = pixel;
+        int remaining = pixels_to_render;
 
-        for (int offset_x = offset_x_init; offset_x < offset_x_end; offset_x++)
+        while (remaining > 0)
         {
-            int screen_pixel_x = (screen_tile << 3) + offset_x;
             u8 map_pixel_x = screen_pixel_x + scroll_x;
             int map_tile_x = map_pixel_x >> 3;
             int map_tile_offset_x = map_pixel_x & 0x7;
+            int run = 8 - map_tile_offset_x;
+            if (run > remaining)
+                run = remaining;
+
             u16 map_tile_addr = map_start_addr + line_scrolled_32 + map_tile_x;
             int map_tile = 0;
 
             if (tile_start_addr == 0x8800)
             {
-                map_tile = static_cast<s8> (m_pMemory->Retrieve(map_tile_addr));
+                map_tile = (s8)m_pMemory->Retrieve(map_tile_addr);
                 map_tile += 128;
             }
             else
@@ -668,53 +670,78 @@ void Video::RenderBG(int line, int pixel)
                 map_tile = m_pMemory->Retrieve(map_tile_addr);
             }
 
-            u8 cgb_tile_attr = m_bCGB ? m_pMemory->ReadCGBLCDRAM(map_tile_addr, true) : 0;
-            u8 cgb_tile_pal = m_bCGB ? (cgb_tile_attr & 0x07) : 0;
-            bool cgb_tile_bank = m_bCGB ? IsSetBit(cgb_tile_attr, 3) : false;
-            bool cgb_tile_xflip = m_bCGB ? IsSetBit(cgb_tile_attr, 5) : false;
-            bool cgb_tile_yflip = m_bCGB ? IsSetBit(cgb_tile_attr, 6) : false;
             int map_tile_16 = map_tile << 4;
-            u8 byte1 = 0;
-            u8 byte2 = 0;
-            int final_pixely_2 = cgb_tile_yflip ? tile_pixel_y_flip_2 : tile_pixel_y_2;
-            int tile_address = tile_start_addr + map_tile_16 + final_pixely_2;
-
-            if (cgb_tile_bank)
-            {
-                byte1 = m_pMemory->ReadCGBLCDRAM(tile_address, true);
-                byte2 = m_pMemory->ReadCGBLCDRAM(tile_address + 1, true);
-            }
-            else
-            {
-                byte1 = m_pMemory->Retrieve(tile_address);
-                byte2 = m_pMemory->Retrieve(tile_address + 1);
-            }
-
-            int pixel_x_in_tile = map_tile_offset_x;
-
-            if (cgb_tile_xflip)
-            {
-                pixel_x_in_tile = 7 - pixel_x_in_tile;
-            }
-            int pixel_x_in_tile_bit = 0x1 << (7 - pixel_x_in_tile);
-            int pixel_data = (byte1 & pixel_x_in_tile_bit) ? 1 : 0;
-            pixel_data |= (byte2 & pixel_x_in_tile_bit) ? 2 : 0;
-
-            int index = line_width + screen_pixel_x;
-            m_pColorCacheBuffer[index] = pixel_data & 0x03;
 
             if (m_bCGB)
             {
-                bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7) && IsSetBit(lcdc, 0);
-                if (cgb_tile_priority && (pixel_data != 0))
-                    m_pColorCacheBuffer[index] = SetBit(m_pColorCacheBuffer[index], 2);
-                m_pColorFrameBuffer[index] = m_CGBBackgroundPalettes[cgb_tile_pal][pixel_data][1];
+                u8 cgb_tile_attr = m_pMemory->ReadCGBLCDRAM(map_tile_addr, true);
+                u8 cgb_tile_pal = cgb_tile_attr & 0x07;
+                bool cgb_tile_bank = IsSetBit(cgb_tile_attr, 3);
+                bool cgb_tile_xflip = IsSetBit(cgb_tile_attr, 5);
+                bool cgb_tile_yflip = IsSetBit(cgb_tile_attr, 6);
+                bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7) &&
+                        IsSetBit(lcdc, 0);
+                int final_pixely_2 = cgb_tile_yflip ?
+                        tile_pixel_y_flip_2 : tile_pixel_y_2;
+                int tile_address = tile_start_addr + map_tile_16 + final_pixely_2;
+                u8 byte1 = 0;
+                u8 byte2 = 0;
+
+                if (cgb_tile_bank)
+                {
+                    byte1 = m_pMemory->ReadCGBLCDRAM(tile_address, true);
+                    byte2 = m_pMemory->ReadCGBLCDRAM(tile_address + 1, true);
+                }
+                else
+                {
+                    byte1 = m_pMemory->Retrieve(tile_address);
+                    byte2 = m_pMemory->Retrieve(tile_address + 1);
+                }
+
+                int pixel_bit = cgb_tile_xflip ?
+                        (0x01 << map_tile_offset_x) :
+                        (0x80 >> map_tile_offset_x);
+
+                for (int i = 0; i < run; i++)
+                {
+                    int pixel_data = (byte1 & pixel_bit) ? 1 : 0;
+                    pixel_data |= (byte2 & pixel_bit) ? 2 : 0;
+
+                    int index = line_width + screen_pixel_x + i;
+                    m_pColorCacheBuffer[index] = pixel_data & 0x03;
+                    if (cgb_tile_priority && (pixel_data != 0))
+                        m_pColorCacheBuffer[index] =
+                                SetBit(m_pColorCacheBuffer[index], 2);
+                    m_pColorFrameBuffer[index] =
+                            m_CGBBackgroundPalettes[cgb_tile_pal][pixel_data][1];
+
+                    pixel_bit = cgb_tile_xflip ?
+                            (pixel_bit << 1) : (pixel_bit >> 1);
+                }
             }
             else
             {
-                u8 color = (palette >> (pixel_data << 1)) & 0x03;
-                m_pColorFrameBuffer[index] = m_pFrameBuffer[index] = color;
+                int tile_address = tile_start_addr + map_tile_16 + tile_pixel_y_2;
+                u8 byte1 = m_pMemory->Retrieve(tile_address);
+                u8 byte2 = m_pMemory->Retrieve(tile_address + 1);
+                int pixel_bit = 0x80 >> map_tile_offset_x;
+
+                for (int i = 0; i < run; i++)
+                {
+                    int pixel_data = (byte1 & pixel_bit) ? 1 : 0;
+                    pixel_data |= (byte2 & pixel_bit) ? 2 : 0;
+
+                    int index = line_width + screen_pixel_x + i;
+                    m_pColorCacheBuffer[index] = pixel_data & 0x03;
+                    m_pFrameBuffer[index] =
+                            (palette >> (pixel_data << 1)) & 0x03;
+
+                    pixel_bit >>= 1;
+                }
             }
+
+            screen_pixel_x += run;
+            remaining -= run;
         }
     }
     else
@@ -727,7 +754,6 @@ void Video::RenderBG(int line, int pixel)
         for (int x = 0; x < pixels_to_clear; x++)
         {
             int position = line_width + pixel + x;
-            m_pColorFrameBuffer[position] = 0;
             m_pFrameBuffer[position] = 0;
             m_pColorCacheBuffer[position] = 0;
         }
@@ -837,7 +863,7 @@ void Video::RenderWindow(int line)
             else
             {
                 u8 color = (palette >> (pixel << 1)) & 0x03;
-                m_pColorFrameBuffer[position] = m_pFrameBuffer[position] = color;
+                m_pFrameBuffer[position] = color;
             }
         }
     }
@@ -963,7 +989,7 @@ void Video::RenderSprites(int line)
             else
             {
                 u8 color = (palette >> (pixel << 1)) & 0x03;
-                m_pColorFrameBuffer[position] = m_pFrameBuffer[position] = color;
+                m_pFrameBuffer[position] = color;
             }
         }
     }
