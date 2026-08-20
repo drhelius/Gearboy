@@ -161,6 +161,7 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     InitMemoryRules();
     InitDMGPalette();
     BuildColorCorrectionLUT();
+    m_pVideo->SetColorCorrection(m_ColorCorrectionLUT, m_bColorCorrectionEnabled);
 }
 
 bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer, GB_Debug_Run* debug)
@@ -416,9 +417,6 @@ void GearboyCore::RenderFrameBuffer(u16* pFrameBuffer)
 
         if (IsValidPointer(color_frame_buffer) && (color_frame_buffer != pFrameBuffer))
             memcpy(pFrameBuffer, color_frame_buffer, GAMEBOY_WIDTH * GAMEBOY_HEIGHT * sizeof(u16));
-
-        if (m_bColorCorrectionEnabled)
-            ApplyColorCorrection(pFrameBuffer, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
 
         return;
     }
@@ -1352,6 +1350,8 @@ void GearboyCore::SetSGBBorder(bool enabled)
 void GearboyCore::EnableColorCorrection(bool enabled)
 {
     m_bColorCorrectionEnabled = enabled;
+    if (IsValidPointer(m_pVideo))
+        m_pVideo->SetColorCorrection(m_ColorCorrectionLUT, enabled);
 }
 
 void GearboyCore::BuildColorCorrectionLUT()
@@ -1425,17 +1425,6 @@ void GearboyCore::BuildColorCorrectionLUT()
             result |= 0x8000;
 
         m_ColorCorrectionLUT[i] = result;
-    }
-}
-
-void GearboyCore::ApplyColorCorrection(u16* pFrameBuffer, int size)
-{
-    if (!IsValidPointer(pFrameBuffer))
-        return;
-
-    for (int i = 0; i < size; i++)
-    {
-        pFrameBuffer[i] = m_ColorCorrectionLUT[pFrameBuffer[i]];
     }
 }
 

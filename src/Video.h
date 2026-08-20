@@ -44,6 +44,7 @@ public:
     bool IsScreenEnabled() const;
     const u8* GetFrameBuffer() const;
     const u16* GetColorFrameBuffer() const;
+    void SetColorCorrection(const u16* pColorCorrectionLUT, bool enabled);
     void UpdatePaletteToSpecification(bool background, u8 value);
     void SetColorPalette(bool background, u8 value);
     bool VRAMAccessBlocked() const;
@@ -68,6 +69,8 @@ private:
     void RenderSprites(int line);
     void RenderSpritesNoLimit(int line, int spriteHeight, int lineWidth);
     INLINE void RenderSprite(int line, int sprite, int spriteHeight, int lineWidth);
+    void RebuildCGBRenderPalettes();
+    NO_INLINE void UpdateCGBRenderPalette(bool background, int palette, int color);
     void UpdateStatRegister();
     INLINE void TraceEvent(u8 event, u8 value);
     void LogTraceEvent(u8 event, u8 value);
@@ -101,6 +104,11 @@ private:
     u8 m_IRQ48Signal;
     GB_Color_Format m_pixelFormat;
     TraceLogger* m_pTraceLogger;
+    u16 m_CGBSpriteRenderPalettes[8][4];
+    u16 m_CGBBackgroundRenderPalettes[8][4];
+    const u16* m_pColorCorrectionLUT;
+    bool m_bColorCorrectionEnabled;
+    u16 m_CGBWhiteColor;
 };
 
 INLINE void Video::TraceEvent(u8 event, u8 value)

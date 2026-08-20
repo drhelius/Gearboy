@@ -47,6 +47,9 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bCGB = false;
     m_bSGBTransferMode = false;
     m_bNoSpriteLimit = false;
+    InitPointer(m_pColorCorrectionLUT);
+    m_bColorCorrectionEnabled = false;
+    m_CGBWhiteColor = 0xFFFF;
     m_bScanLineTransfered = false;
     m_iHideFrames = 0;
     m_IRQ48Signal = 0;
@@ -113,6 +116,8 @@ void Video::Reset(bool bCGB)
             m_CGBSpritePalettes[p][c][0] = 0x0000;
             m_CGBSpritePalettes[p][c][1] = 0x0000;
         }
+
+    RebuildCGBRenderPalettes();
 
     m_iStatusMode = 1;
     m_iStatusModeCounter = 0;
@@ -206,7 +211,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                                 if (m_bCGB)
                                 {
                                     for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
-                                        m_pColorFrameBuffer[i] = 0xFFFF;
+                                        m_pColorFrameBuffer[i] = m_CGBWhiteColor;
                                 }
                                 else
                                 {
@@ -384,7 +389,7 @@ bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_For
                 if (m_bCGB)
                 {
                     for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
-                        m_pColorFrameBuffer[i] = 0xFFFF;
+                        m_pColorFrameBuffer[i] = m_CGBWhiteColor;
                 }
                 else
                 {
@@ -430,7 +435,7 @@ void Video::DisableScreen()
         if (m_bCGB)
         {
             for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
-                m_pColorFrameBuffer[i] = 0xFFFF;
+                m_pColorFrameBuffer[i] = m_CGBWhiteColor;
         }
         else
         {
@@ -454,6 +459,43 @@ const u8* Video::GetFrameBuffer() const
 const u16* Video::GetColorFrameBuffer() const
 {
     return m_pColorFrameBuffer;
+}
+
+void Video::SetColorCorrection(const u16* pColorCorrectionLUT, bool enabled)
+{
+    m_pColorCorrectionLUT = pColorCorrectionLUT;
+    m_bColorCorrectionEnabled = enabled;
+    RebuildCGBRenderPalettes();
+}
+
+void Video::RebuildCGBRenderPalettes()
+{
+    for (int palette = 0; palette < 8; palette++)
+    {
+        for (int color = 0; color < 4; color++)
+        {
+            UpdateCGBRenderPalette(true, palette, color);
+            UpdateCGBRenderPalette(false, palette, color);
+        }
+    }
+
+    m_CGBWhiteColor = (m_bColorCorrectionEnabled &&
+            IsValidPointer(m_pColorCorrectionLUT)) ?
+            m_pColorCorrectionLUT[0xFFFF] : 0xFFFF;
+}
+
+void Video::UpdateCGBRenderPalette(bool background, int palette, int color)
+{
+    u16 normal = background ? m_CGBBackgroundPalettes[palette][color][1] :
+            m_CGBSpritePalettes[palette][color][1];
+    u16 render = (m_bColorCorrectionEnabled &&
+            IsValidPointer(m_pColorCorrectionLUT)) ?
+            m_pColorCorrectionLUT[normal] : normal;
+
+    if (background)
+        m_CGBBackgroundRenderPalettes[palette][color] = render;
+    else
+        m_CGBSpriteRenderPalettes[palette][color] = render;
 }
 
 void Video::UpdatePaletteToSpecification(bool background, u8 value)
@@ -522,6 +564,8 @@ void Video::SetColorPalette(bool background, u8 value)
             break;
         }
     }
+
+    UpdateCGBRenderPalette(background, pal, index);
 
 }
 
@@ -618,7 +662,7 @@ void Video::ScanLine(int line)
             if (m_bCGB)
             {
                 for (int x = 0; x < GAMEBOY_WIDTH; x++)
-                    m_pColorFrameBuffer[line_width + x] = 0xFFFF;
+                    m_pColorFrameBuffer[line_width + x] = m_CGBWhiteColor;
             }
             else
             {
@@ -719,7 +763,7 @@ void Video::RenderBG(int line, int pixel)
                         m_pColorCacheBuffer[index] =
                                 SetBit(m_pColorCacheBuffer[index], 2);
                     m_pColorFrameBuffer[index] =
-                            m_CGBBackgroundPalettes[cgb_tile_pal][pixel_data][1];
+                            m_CGBBackgroundRenderPalettes[cgb_tile_pal][pixel_data];
 
                     pixel_bit = cgb_tile_xflip ?
                             (pixel_bit << 1) : (pixel_bit >> 1);
@@ -865,7 +909,8 @@ void Video::RenderWindow(int line)
                 bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7) && IsSetBit(lcdc, 0);
                 if (cgb_tile_priority && (pixel != 0))
                     m_pColorCacheBuffer[position] = SetBit(m_pColorCacheBuffer[position], 2);
-                 m_pColorFrameBuffer[position] = m_CGBBackgroundPalettes[cgb_tile_pal][pixel][1];
+                m_pColorFrameBuffer[position] =
+                        m_CGBBackgroundRenderPalettes[cgb_tile_pal][pixel];
             }
             else
             {
@@ -959,7 +1004,8 @@ INLINE void Video::RenderSprite(int line, int sprite, int sprite_height, int lin
         m_pSpriteXCacheBuffer[position] = sprite_x;
         if (m_bCGB)
         {
-            m_pColorFrameBuffer[position] = m_CGBSpritePalettes[cgb_tile_pal][pixel][1];
+            m_pColorFrameBuffer[position] =
+                    m_CGBSpriteRenderPalettes[cgb_tile_pal][pixel];
         }
         else
         {
@@ -1122,6 +1168,8 @@ void Video::LoadState(std::istream& stream, u32 version)
     {
         m_bWindowYTrigger = false;
     }
+
+    RebuildCGBRenderPalettes();
 }
 
 PaletteMatrix Video::GetCGBBackgroundPalettes()
