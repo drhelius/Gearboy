@@ -55,7 +55,7 @@ private:
     int m_iCurrentPlayer;
 };
 
-inline void Input::Tick(unsigned int clockCycles)
+INLINE void Input::Tick(unsigned int clockCycles)
 {
     m_iInputCycles += clockCycles;
 
@@ -66,13 +66,13 @@ inline void Input::Tick(unsigned int clockCycles)
     }
 }
 
-inline void Input::Write(u8 value)
+INLINE void Input::Write(u8 value)
 {
     m_P1 = (m_P1 & 0xCF) | (value & 0x30);
     Update();
 }
 
-inline u8 Input::Read()
+INLINE u8 Input::Read()
 {
     return m_P1;
 }

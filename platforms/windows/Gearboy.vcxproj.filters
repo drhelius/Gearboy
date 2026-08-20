@@ -522,6 +522,9 @@
     <ClInclude Include="..\..\src\Video.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\Video_inline.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\VgmRecorder.h">
       <Filter>src</Filter>
     </ClInclude>

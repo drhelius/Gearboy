@@ -48,12 +48,12 @@ private:
     INLINE void TraceLCDRegister(u16 address, u8 raw);
     INLINE void TraceLCDInterrupt(u8 event, u8 source);
     INLINE void TraceAPURegister(u16 address, u8 raw);
-    void LogTraceInputEvent(u8 event, u8 value, u8 result);
-    void LogTraceTimerEvent(u8 event, u8 value);
-    void LogTraceSerialEvent(u8 event, u8 value);
-    void LogTraceLCDRegister(u16 address, u8 raw);
-    void LogTraceLCDInterrupt(u8 event, u8 source);
-    void LogTraceAPURegister(u8 event, u16 address, u8 raw);
+    NO_INLINE void LogTraceInputEvent(u8 event, u8 value, u8 result);
+    NO_INLINE void LogTraceTimerEvent(u8 event, u8 value);
+    NO_INLINE void LogTraceSerialEvent(u8 event, u8 value);
+    NO_INLINE void LogTraceLCDRegister(u16 address, u8 raw);
+    NO_INLINE void LogTraceLCDInterrupt(u8 event, u8 source);
+    NO_INLINE void LogTraceAPURegister(u8 event, u16 address, u8 raw);
 
 private:
     Processor* m_pProcessor;

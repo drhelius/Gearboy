@@ -65,11 +65,11 @@ public:
     void Reset();
     bool IsValidROM() const;
     bool IsLoadedROM() const;
-    CartridgeTypes GetType() const;
-    int GetRAMSize() const;
+    INLINE CartridgeTypes GetType() const;
+    INLINE int GetRAMSize() const;
     int GetROMSize() const;
-    int GetROMBankCount() const;
-    int GetRAMBankCount() const;
+    INLINE int GetROMBankCount() const;
+    INLINE int GetRAMBankCount() const;
     const char* GetName() const;
     const char* GetFilePath() const;
     const char* GetFileName() const;
@@ -77,7 +77,7 @@ public:
     int GetTotalSize() const;
     bool HasRam() const;
     bool HasBattery() const;
-    u8* GetTheROM() const;
+    INLINE u8* GetTheROM() const;
     bool LoadFromFile(const char* path);
     bool LoadFromBuffer(const u8* buffer, int size);
     int GetVersion() const;
@@ -85,7 +85,7 @@ public:
     bool IsCGB() const;
     void UpdateCurrentRTC();
     time_t GetCurrentRTC();
-    bool IsRTCPresent() const;
+    INLINE bool IsRTCPresent() const;
     bool IsRumblePresent() const;
     bool IsMBC30() const;
     void SetGameGenieCheat(const char* szCheat);
@@ -128,5 +128,35 @@ private:
     int m_iROMBankCount;
     std::list<GameGenieCode> m_GameGenieList;
 };
+
+INLINE Cartridge::CartridgeTypes Cartridge::GetType() const
+{
+    return m_Type;
+}
+
+INLINE int Cartridge::GetRAMSize() const
+{
+    return m_iRAMSize;
+}
+
+INLINE int Cartridge::GetROMBankCount() const
+{
+    return m_iROMBankCount;
+}
+
+INLINE int Cartridge::GetRAMBankCount() const
+{
+    return m_iRAMBankCount;
+}
+
+INLINE u8* Cartridge::GetTheROM() const
+{
+    return m_pTheROM;
+}
+
+INLINE bool Cartridge::IsRTCPresent() const
+{
+    return m_bRTCPresent;
+}
 
 #endif	/* CARTRIDGE_H */

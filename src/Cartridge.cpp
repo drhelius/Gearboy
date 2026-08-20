@@ -98,29 +98,9 @@ bool Cartridge::IsLoadedROM() const
     return m_bLoaded;
 }
 
-Cartridge::CartridgeTypes Cartridge::GetType() const
-{
-    return m_Type;
-}
-
-int Cartridge::GetRAMSize() const
-{
-    return m_iRAMSize;
-}
-
 int Cartridge::GetROMSize() const
 {
     return m_iROMSize;
-}
-
-int Cartridge::GetRAMBankCount() const
-{
-    return m_iRAMBankCount;
-}
-
-int Cartridge::GetROMBankCount() const
-{
-    return m_iROMBankCount;
 }
 
 const char* Cartridge::GetName() const
@@ -156,11 +136,6 @@ bool Cartridge::HasRam() const
 bool Cartridge::HasBattery() const
 {
     return m_bBattery;
-}
-
-u8* Cartridge::GetTheROM() const
-{
-    return m_pTheROM;
 }
 
 bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
@@ -500,11 +475,6 @@ void Cartridge::UpdateCurrentRTC()
 time_t Cartridge::GetCurrentRTC()
 {
     return m_RTCCurrentTime;
-}
-
-bool Cartridge::IsRTCPresent() const
-{
-    return m_bRTCPresent;
 }
 
 bool Cartridge::IsRumblePresent() const

@@ -130,7 +130,7 @@ inline void Memory::Write(u16 address, u8 value)
     }
 }
 
-inline u8 Memory::ReadCGBWRAM(u16 address)
+INLINE u8 Memory::ReadCGBWRAM(u16 address)
 {
     if (address < 0xD000)
         return m_pWRAMBanks[(address - 0xC000)];
@@ -138,7 +138,7 @@ inline u8 Memory::ReadCGBWRAM(u16 address)
         return m_pWRAMBanks[(address - 0xD000) + (0x1000 * m_iCurrentWRAMBank)];
 }
 
-inline void Memory::WriteCGBWRAM(u16 address, u8 value)
+INLINE void Memory::WriteCGBWRAM(u16 address, u8 value)
 {
     if (address < 0xD000)
         m_pWRAMBanks[(address - 0xC000)] = value;
@@ -146,7 +146,7 @@ inline void Memory::WriteCGBWRAM(u16 address, u8 value)
         m_pWRAMBanks[(address - 0xD000) + (0x1000 * m_iCurrentWRAMBank)] = value;
 }
 
-inline void Memory::SwitchCGBWRAM(u8 value)
+INLINE void Memory::SwitchCGBWRAM(u8 value)
 {
     m_iCurrentWRAMBank = value & 0x07;
 
@@ -154,7 +154,7 @@ inline void Memory::SwitchCGBWRAM(u8 value)
         m_iCurrentWRAMBank = 1;
 }
 
-inline u8 Memory::ReadCGBLCDRAM(u16 address, bool forceBank1)
+INLINE u8 Memory::ReadCGBLCDRAM(u16 address, bool forceBank1)
 {
     if (forceBank1 || (m_iCurrentLCDRAMBank == 1))
         return m_pLCDRAMBank1[address - 0x8000];
@@ -162,7 +162,7 @@ inline u8 Memory::ReadCGBLCDRAM(u16 address, bool forceBank1)
         return Retrieve(address);
 }
 
-inline void Memory::WriteCGBLCDRAM(u16 address, u8 value)
+INLINE void Memory::WriteCGBLCDRAM(u16 address, u8 value)
 {
     if (m_iCurrentLCDRAMBank == 1)
         m_pLCDRAMBank1[address - 0x8000] = value;
@@ -170,17 +170,17 @@ inline void Memory::WriteCGBLCDRAM(u16 address, u8 value)
         Load(address, value);
 }
 
-inline void Memory::SwitchCGBLCDRAM(u8 value)
+INLINE void Memory::SwitchCGBLCDRAM(u8 value)
 {
     m_iCurrentLCDRAMBank = value;
 }
 
-inline u8 Memory::Retrieve(u16 address)
+INLINE u8 Memory::Retrieve(u16 address)
 {
     return m_pMap[address];
 }
 
-inline void Memory::Load(u16 address, u8 value)
+INLINE void Memory::Load(u16 address, u8 value)
 {
     m_pMap[address] = value;
 }
@@ -289,14 +289,14 @@ inline GB_Disassembler_Record** Memory::GetAllDisassemblerRecords()
     return m_pDisassembledROMMap;
 }
 
-inline void Memory::CheckBreakpoints(u16 address, bool write)
+INLINE bool Memory::IsVRAMAccessBlocked() const
 {
-    if (address >= 0xFF00 && address <= 0xFF7F)
-        m_pProcessor->CheckMemoryBreakpoints(Processor::GB_BREAKPOINT_TYPE_IO, address - 0xFF00, !write);
-    else if (address >= 0x8000 && address <= 0x9FFF)
-        m_pProcessor->CheckMemoryBreakpoints(Processor::GB_BREAKPOINT_TYPE_VRAM, address - 0x8000, !write);
-    else
-        m_pProcessor->CheckMemoryBreakpoints(Processor::GB_BREAKPOINT_TYPE_ROMRAM, address, !write);
+    return IsValidPointer(m_pVideo) && m_pVideo->VRAMAccessBlocked();
+}
+
+INLINE bool Memory::IsHDMAEnabled() const
+{
+    return m_bHDMAEnabled;
 }
 
 #endif	/* MEMORY_INLINE_H */

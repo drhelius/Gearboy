@@ -88,6 +88,16 @@ void Memory::LogLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length)
 #endif
 }
 
+void Memory::CheckBreakpoints(u16 address, bool write)
+{
+    if (address >= 0xFF00 && address <= 0xFF7F)
+        m_pProcessor->CheckMemoryBreakpoints(Processor::GB_BREAKPOINT_TYPE_IO, address - 0xFF00, !write);
+    else if (address >= 0x8000 && address <= 0x9FFF)
+        m_pProcessor->CheckMemoryBreakpoints(Processor::GB_BREAKPOINT_TYPE_VRAM, address - 0x8000, !write);
+    else
+        m_pProcessor->CheckMemoryBreakpoints(Processor::GB_BREAKPOINT_TYPE_ROMRAM, address, !write);
+}
+
 Memory::~Memory()
 {
     InitPointer(m_pProcessor);
@@ -128,11 +138,6 @@ void Memory::SetProcessor(Processor* pProcessor)
 void Memory::SetVideo(Video* pVideo)
 {
     m_pVideo = pVideo;
-}
-
-bool Memory::IsVRAMAccessBlocked() const
-{
-    return IsValidPointer(m_pVideo) && m_pVideo->VRAMAccessBlocked();
 }
 
 void Memory::Init()
@@ -528,11 +533,6 @@ void Memory::PerformGDMA(u8 value)
         clock_cycles = 1 + 8 * ((value & 0x7f) + 1);
 
     m_pProcessor->AddCycles(clock_cycles * (m_pProcessor->CGBSpeed() ? 2 : 4));
-}
-
-bool Memory::IsHDMAEnabled() const
-{
-    return m_bHDMAEnabled;
 }
 
 bool Memory::IsHDMASourceInvalid() const

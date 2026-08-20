@@ -1,9 +1,11 @@
 #ifndef PROCESSOR_INLINE_H
 #define	PROCESSOR_INLINE_H
 
+#include <cassert>
 #include "definitions.h"
 #include "log.h"
 #include "Memory.h"
+#include "opcode_timing.h"
 
 INLINE void Processor::TraceInstruction(u16 pc, bool halt_bug)
 {
@@ -187,7 +189,7 @@ inline int Processor::AdjustedCycles(int cycles)
     return cycles >> m_iSpeedMultiplier;
 }
 
-inline void Processor::InvalidOPCode()
+NO_INLINE COLD inline void Processor::InvalidOPCode()
 {
     Debug("--> ** INVALID OP Code");
 }
@@ -752,4 +754,248 @@ inline void Processor::PopCallStack()
         m_disassembler_call_stack.pop();
 #endif
 }
+
+INLINE u8 Processor::RunFor(u8 ticks)
+{
+    u8 executed = 0;
+
+    assert(m_iMachineCycle == (unsigned int)(4 >> m_iSpeedMultiplier));
+
+    while (executed < ticks)
+    {
+        m_iCurrentClockCycles = 0;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        m_cpu_breakpoint_hit = false;
+        m_memory_breakpoint_hit = false;
+        m_run_to_breakpoint_hit = false;
+#endif
+
+        if (m_iAccurateOPCodeState == 0 && m_bHalt)
+        {
+            m_iCurrentClockCycles += m_iMachineCycle;
+
+            if (m_iUnhaltCycles > 0)
+            {
+                m_iUnhaltCycles -= m_iCurrentClockCycles;
+
+                if (m_iUnhaltCycles <= 0)
+                {
+                    m_iUnhaltCycles = 0;
+                    m_bHalt = false;
+                }
+            }
+
+            if (m_bHalt && (InterruptPending() != None_Interrupt) && (m_iUnhaltCycles == 0))
+            {
+                m_iUnhaltCycles = AdjustedCycles(12);
+            }
+        }
+
+        bool interrupt_served = false;
+        bool halt_bug_active = false;
+
+        if (!m_bHalt)
+        {
+            Interrupts interrupt = InterruptPending();
+
+            if (m_bIME && (interrupt != None_Interrupt) && (m_iAccurateOPCodeState == 0))
+            {
+                ServeInterrupt(interrupt);
+                interrupt_served = true;
+            }
+            else
+            {
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                if (m_iAccurateOPCodeState == 0)
+                    TraceInstruction(PC.GetValue(), m_bSkipPCBug);
+#endif
+
+                u8 opcode = m_pMemory->Read(PC.GetValue());
+                PC.Increment();
+
+                if (m_bSkipPCBug)
+                {
+                    halt_bug_active = true;
+                    PC.Decrement();
+                }
+
+                const u8* accurateOPcodes;
+                const u8* machineCycles;
+                OPCptr* opcodeTable;
+                bool isCB = (opcode == 0xCB);
+
+                if (isCB)
+                {
+                    accurateOPcodes = kOPCodeCBAccurate;
+                    machineCycles = kOPCodeCBMachineCycles;
+                    opcodeTable = m_OPCodesCB;
+
+                    opcode = m_pMemory->Read(PC.GetValue());
+                    PC.Increment();
+
+                    if (m_bSkipPCBug)
+                    {
+                        halt_bug_active = true;
+                        PC.Decrement();
+                    }
+                }
+                else
+                {
+                    accurateOPcodes = kOPCodeAccurate;
+                    machineCycles = kOPCodeMachineCycles;
+                    opcodeTable = m_OPCodes;
+                }
+
+                if ((accurateOPcodes[opcode] != 0) && (m_iAccurateOPCodeState == 0))
+                {
+                    int left_cycles = (accurateOPcodes[opcode] < 3 ? 2 : 3);
+                    m_iCurrentClockCycles += (machineCycles[opcode] - left_cycles) * m_iMachineCycle;
+                    m_iAccurateOPCodeState = 1;
+
+                    if (!halt_bug_active)
+                    {
+                        PC.Decrement();
+                        if (isCB)
+                            PC.Decrement();
+                    }
+                }
+                else
+                {
+                    opcodeTable[opcode](this);
+
+                    if (halt_bug_active)
+                        m_bSkipPCBug = false;
+
+                    if (m_bBranchTaken)
+                    {
+                        m_bBranchTaken = false;
+                        m_iCurrentClockCycles += kOPCodeBranchMachineCycles[opcode] * m_iMachineCycle;
+                    }
+                    else
+                    {
+                        switch (m_iAccurateOPCodeState)
+                        {
+                        case 0:
+                            m_iCurrentClockCycles += machineCycles[opcode] * m_iMachineCycle;
+                            break;
+                        case 1:
+                            if (accurateOPcodes[opcode] == 3)
+                            {
+                                m_iCurrentClockCycles += m_iMachineCycle;
+                                m_iAccurateOPCodeState = 2;
+                                PC.Decrement();
+                                if (isCB)
+                                    PC.Decrement();
+                            }
+                            else
+                            {
+                                m_iCurrentClockCycles += 2 * m_iMachineCycle;
+                                m_iAccurateOPCodeState = 0;
+                            }
+                            break;
+                        case 2:
+                            m_iCurrentClockCycles += 2 * m_iMachineCycle;
+                            m_iAccurateOPCodeState = 0;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            #ifndef GEARBOY_DISABLE_DISASSEMBLER
+            DisassembleNextOPCode();
+            #endif
+        }
+
+        if (!interrupt_served && (m_iInterruptDelayCycles > 0))
+        {
+            m_iInterruptDelayCycles -= m_iCurrentClockCycles;
+        }
+
+        if (!interrupt_served && (m_iAccurateOPCodeState == 0) && (m_iIMECycles > 0))
+        {
+            m_iIMECycles -= m_iCurrentClockCycles;
+
+            if (m_iIMECycles <= 0)
+            {
+                m_iIMECycles = 0;
+                m_bIME = true;
+            }
+        }
+
+        executed += m_iCurrentClockCycles;
+    }
+
+    return executed;
+}
+
+INLINE void Processor::UpdateTimers(u8 ticks)
+{
+    m_iDIVCycles += ticks;
+
+    unsigned int div_cycles = AdjustedCycles(256);
+
+    while (m_iDIVCycles >= div_cycles)
+    {
+        m_iDIVCycles -= div_cycles;
+        u8 div = m_pMemory->Retrieve(0xFF04);
+        div++;
+        m_pMemory->Load(0xFF04, div);
+    }
+
+    u8 tac = m_pMemory->Retrieve(0xFF07);
+
+    // if tima is running
+    if (tac & 0x04)
+    {
+        m_iTIMACycles += ticks;
+
+        unsigned int freq = 0;
+
+        switch (tac & 0x03)
+        {
+            case 0:
+                freq = AdjustedCycles(1024);
+                break;
+            case 1:
+                freq = AdjustedCycles(16);
+                break;
+            case 2:
+                freq = AdjustedCycles(64);
+                break;
+            case 3:
+                freq = AdjustedCycles(256);
+                break;
+        }
+
+        while (m_iTIMACycles >= freq)
+        {
+            m_iTIMACycles -= freq;
+            u8 tima = m_pMemory->Retrieve(0xFF05);
+
+            if (tima == 0xFF)
+            {
+                tima = m_pMemory->Retrieve(0xFF06);
+                m_pMemory->Load(0xFF05, tima);
+                TraceTimerEvent(TRACE_TIMER_RELOAD);
+                RequestInterrupt(Timer_Interrupt);
+                TraceTimerEvent(TRACE_TIMER_IRQ_REQUEST);
+            }
+            else
+            {
+                tima++;
+                m_pMemory->Load(0xFF05, tima);
+            }
+        }
+    }
+}
+
+INLINE void Processor::UpdateSerial(u8 ticks)
+{
+    u8 sc = m_pMemory->Retrieve(0xFF02);
+
+    if (unlikely((sc & 0x81) == 0x81))
+        UpdateSerialActive(ticks, sc);
+}
+
 #endif	/* PROCESSOR_INLINE_H */

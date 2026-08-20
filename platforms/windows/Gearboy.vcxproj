@@ -173,6 +173,7 @@
     <ClInclude Include="..\..\src\RomOnlyMemoryRule.h" />
     <ClInclude Include="..\..\src\SixteenBitRegister.h" />
     <ClInclude Include="..\..\src\Video.h" />
+    <ClInclude Include="..\..\src\Video_inline.h" />
     <ClInclude Include="..\..\src\VgmRecorder.h" />
     <ClInclude Include="..\..\src\SGB.h" />
     <ClInclude Include="..\..\src\TraceLogger.h" />

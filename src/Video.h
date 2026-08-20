@@ -36,25 +36,25 @@ public:
     void Init();
     void Reset(bool bCGB);
     void ResetToBootromState();
-    bool Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_Format pixelFormat);
+    inline bool Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_Format pixelFormat);
     void EnableScreen();
     void DisableScreen();
     void SetSGBTransferMode(bool enabled);
     void SetNoSpriteLimit(bool noSpriteLimit);
-    bool IsScreenEnabled() const;
-    const u8* GetFrameBuffer() const;
-    const u16* GetColorFrameBuffer() const;
+    INLINE bool IsScreenEnabled() const;
+    INLINE const u8* GetFrameBuffer() const;
+    INLINE const u16* GetColorFrameBuffer() const;
     void SetColorCorrection(const u16* pColorCorrectionLUT, bool enabled);
     void UpdatePaletteToSpecification(bool background, u8 value);
     void SetColorPalette(bool background, u8 value);
-    bool VRAMAccessBlocked() const;
-    bool CGBPaletteAccessBlocked() const;
-    int GetCurrentStatusMode() const;
+    INLINE bool VRAMAccessBlocked() const;
+    INLINE bool CGBPaletteAccessBlocked() const;
+    INLINE int GetCurrentStatusMode() const;
     void RefreshStatInterruptSignal(bool requestInterrupt);
     void ResetWindowLine();
     void CheckWindowY();
     void CompareLYToLYC();
-    u8 GetIRQ48Signal() const;
+    INLINE u8 GetIRQ48Signal() const;
     void SetIRQ48Signal(u8 signal);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
@@ -67,13 +67,13 @@ private:
     void RenderBG(int line, int pixel);
     void RenderWindow(int line);
     void RenderSprites(int line);
-    void RenderSpritesNoLimit(int line, int spriteHeight, int lineWidth);
+    NO_INLINE void RenderSpritesNoLimit(int line, int spriteHeight, int lineWidth);
     INLINE void RenderSprite(int line, int sprite, int spriteHeight, int lineWidth);
     void RebuildCGBRenderPalettes();
     NO_INLINE void UpdateCGBRenderPalette(bool background, int palette, int color);
     void UpdateStatRegister();
     INLINE void TraceEvent(u8 event, u8 value);
-    void LogTraceEvent(u8 event, u8 value);
+    NO_INLINE void LogTraceEvent(u8 event, u8 value);
 
 private:
     Memory* m_pMemory;
@@ -116,5 +116,42 @@ INLINE void Video::TraceEvent(u8 event, u8 value)
     if (m_pTraceLogger->IsEventEnabled(TRACE_LCD, event))
         LogTraceEvent(event, value);
 }
+
+INLINE bool Video::IsScreenEnabled() const
+{
+    return m_bScreenEnabled;
+}
+
+INLINE const u8* Video::GetFrameBuffer() const
+{
+    return m_pFrameBuffer;
+}
+
+INLINE const u16* Video::GetColorFrameBuffer() const
+{
+    return m_pColorFrameBuffer;
+}
+
+INLINE bool Video::CGBPaletteAccessBlocked() const
+{
+    return m_bCGB && m_bScreenEnabled && (m_iStatusMode == 3);
+}
+
+INLINE bool Video::VRAMAccessBlocked() const
+{
+    return false;
+}
+
+INLINE int Video::GetCurrentStatusMode() const
+{
+    return m_iStatusMode;
+}
+
+INLINE u8 Video::GetIRQ48Signal() const
+{
+    return m_IRQ48Signal;
+}
+
+#include "Video_inline.h"
 
 #endif	/* VIDEO_H */

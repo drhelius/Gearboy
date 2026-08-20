@@ -262,12 +262,15 @@ inline int AsHex(const char c)
 #if defined(__GNUC__) || defined(__clang__)
     #define INLINE inline __attribute__((always_inline))
     #define NO_INLINE __attribute__((noinline))
+    #define COLD __attribute__((cold))
 #elif defined(_MSC_VER)
     #define INLINE __forceinline
     #define NO_INLINE __declspec(noinline)
+    #define COLD
 #else
     #define INLINE inline
     #define NO_INLINE
+    #define COLD
 #endif
 
 #if !defined(DEBUG_GEARBOY)

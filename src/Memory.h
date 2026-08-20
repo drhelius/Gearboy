@@ -54,7 +54,7 @@ public:
     u8 ReadCGBLCDRAM(u16 address, bool forceBank1);
     void WriteCGBLCDRAM(u16 address, u8 value);
     void SwitchCGBLCDRAM(u8 value);
-    bool IsVRAMAccessBlocked() const;
+    INLINE bool IsVRAMAccessBlocked() const;
     u8 Retrieve(u16 address);
     void Load(u16 address, u8 value);
     u8 DebugRetrieve(u16 address);
@@ -69,7 +69,7 @@ public:
     void SwitchCGBDMA(u8 value);
     unsigned int PerformHDMA();
     void PerformGDMA(u8 value);
-    bool IsHDMAEnabled() const;
+    INLINE bool IsHDMAEnabled() const;
     void SetHDMARegister(int reg, u8 value);
     u8 GetHDMARegister(int reg) const;
     u8* GetCGBRAM();
@@ -102,10 +102,10 @@ public:
 
 private:
     void LoadBootroom(const char* szFilePath, bool gbc);
-    void CheckBreakpoints(u16 address, bool write);
+    NO_INLINE void CheckBreakpoints(u16 address, bool write);
     bool IsHDMASourceInvalid() const;
     INLINE void TraceLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length);
-    void LogLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length);
+    NO_INLINE void LogLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length);
 
 private:
     Processor* m_pProcessor;

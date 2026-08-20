@@ -511,15 +511,8 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
     }
 }
 
-void MBC3MemoryRule::Tick(unsigned int clockCycles)
+void MBC3MemoryRule::TickRTC()
 {
-    if (!m_pCartridge->IsRTCPresent())
-        return;
-    if (IsSetBit(m_RTC.Control, 6))
-        return;
-
-    m_iRTCCycles += clockCycles;
-
     while (m_iRTCCycles >= GEARBOY_MASTER_CLOCK_RATE)
     {
         m_iRTCCycles -= GEARBOY_MASTER_CLOCK_RATE;

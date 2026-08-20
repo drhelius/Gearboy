@@ -69,7 +69,7 @@ private:
     void ApplyVolume();
 };
 
-inline void Audio::Tick(unsigned int clockCycles)
+INLINE void Audio::Tick(unsigned int clockCycles)
 {
     m_ElapsedCycles += clockCycles;
 #ifndef GEARBOY_DISABLE_VGMRECORDER
@@ -78,22 +78,22 @@ inline void Audio::Tick(unsigned int clockCycles)
 #endif
 }
 
-inline u8 Audio::ReadAudioRegister(u16 address)
+INLINE u8 Audio::ReadAudioRegister(u16 address)
 {
     return m_pApu->read_register(m_ElapsedCycles, address);
 }
 
-inline u8 Audio::ReadPCM12()
+INLINE u8 Audio::ReadPCM12()
 {
     return (u8)m_pApu->read_pcm12(m_ElapsedCycles);
 }
 
-inline u8 Audio::ReadPCM34()
+INLINE u8 Audio::ReadPCM34()
 {
     return (u8)m_pApu->read_pcm34(m_ElapsedCycles);
 }
 
-inline void Audio::WriteAudioRegister(u16 address, u8 value)
+INLINE void Audio::WriteAudioRegister(u16 address, u8 value)
 {
     m_pApu->write_register(m_ElapsedCycles, address, value);
 #ifndef GEARBOY_DISABLE_VGMRECORDER
@@ -102,7 +102,7 @@ inline void Audio::WriteAudioRegister(u16 address, u8 value)
 #endif
 }
 
-inline Gb_Apu* Audio::GetApu()
+INLINE Gb_Apu* Audio::GetApu()
 {
     return m_pApu;
 }

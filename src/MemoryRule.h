@@ -65,7 +65,7 @@ public:
 protected:
     INLINE void TraceMapperEvent(u16 address, u8 value, u8 event = 0xFF);
     INLINE bool IsTraceMapperEventEnabled(u8 event) const;
-    void LogTraceMapperEvent(u16 address, u8 value, u8 event, u8 flags, bool flags_valid);
+    NO_INLINE void LogTraceMapperEvent(u16 address, u8 value, u8 event, u8 flags, bool flags_valid);
 
     Processor* m_pProcessor;
     Memory* m_pMemory;
