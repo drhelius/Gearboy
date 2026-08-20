@@ -36,6 +36,11 @@ RomOnlyMemoryRule::~RomOnlyMemoryRule()
 {
 }
 
+bool RomOnlyMemoryRule::MapsROMDirectly()
+{
+    return true;
+}
+
 void RomOnlyMemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;

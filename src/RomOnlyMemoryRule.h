@@ -30,6 +30,7 @@ public:
     virtual ~RomOnlyMemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
+    virtual bool MapsROMDirectly();
     virtual void Reset(bool bCGB);
     virtual void SaveRam(std::ostream &file);
     virtual bool LoadRam(std::istream &file, s32 fileSize);

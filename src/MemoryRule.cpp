@@ -38,6 +38,11 @@ MemoryRule::~MemoryRule()
 {
 }
 
+bool MemoryRule::MapsROMDirectly()
+{
+    return false;
+}
+
 void MemoryRule::SetTraceLogger(TraceLogger* pTraceLogger)
 {
     m_pTraceLogger = pTraceLogger;

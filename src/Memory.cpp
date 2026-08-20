@@ -38,6 +38,8 @@ Memory::Memory()
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pTraceLogger);
     InitPointer(m_pCurrentMemoryRule);
+    InitPointer(m_pDirectROMPages[0]);
+    InitPointer(m_pDirectROMPages[1]);
     InitPointer(m_pBootromDMG);
     InitPointer(m_pBootromGBC);
     m_bCGB = false;
@@ -58,6 +60,7 @@ Memory::Memory()
     m_bBootromDMGLoaded = false;
     m_bBootromGBCLoaded = false;
     m_bCurrentRuleNeedsHighMemoryAccessNotifications = false;
+    m_bCurrentRuleMapsROMDirectly = false;
 }
 
 void Memory::SetTraceLogger(TraceLogger* pTraceLogger)
@@ -161,6 +164,9 @@ void Memory::Reset(bool bCGB, bool bSGB)
     InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pCurrentMemoryRule);
+    InitPointer(m_pDirectROMPages[0]);
+    InitPointer(m_pDirectROMPages[1]);
+    m_bCurrentRuleMapsROMDirectly = false;
     m_iCurrentWRAMBank = 1;
     m_iCurrentLCDRAMBank = 0;
     m_bHDMAEnabled = false;
@@ -283,6 +289,28 @@ void Memory::SetCurrentRule(MemoryRule* pRule)
     m_pCurrentMemoryRule = pRule;
     m_bCurrentRuleNeedsHighMemoryAccessNotifications = IsValidPointer(pRule) &&
             pRule->NeedsHighMemoryAccessNotifications();
+    m_bCurrentRuleMapsROMDirectly = IsValidPointer(pRule) &&
+            pRule->MapsROMDirectly();
+    RefreshDirectROMPages();
+}
+
+void Memory::RefreshDirectROMPages()
+{
+    InitPointer(m_pDirectROMPages[0]);
+    InitPointer(m_pDirectROMPages[1]);
+
+    if (m_bCurrentRuleMapsROMDirectly)
+    {
+        m_pDirectROMPages[0] = m_pCurrentMemoryRule->GetRomBank0();
+        m_pDirectROMPages[1] = m_pCurrentMemoryRule->GetCurrentRomBank1();
+
+        if (!IsValidPointer(m_pDirectROMPages[0]) ||
+                !IsValidPointer(m_pDirectROMPages[1]))
+        {
+            InitPointer(m_pDirectROMPages[0]);
+            InitPointer(m_pDirectROMPages[1]);
+        }
+    }
 }
 
 void Memory::SetCommonRule(CommonMemoryRule* pRule)

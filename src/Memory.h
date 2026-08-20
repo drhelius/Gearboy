@@ -40,6 +40,7 @@ public:
     void Init();
     void Reset(bool bCGB, bool bSGB = false);
     void SetCurrentRule(MemoryRule* pRule);
+    void RefreshDirectROMPages();
     void SetCommonRule(CommonMemoryRule* pRule);
     void SetIORule(IORegistersMemoryRule* pRule);
     void SetTraceLogger(TraceLogger* pTraceLogger);
@@ -113,6 +114,7 @@ private:
     IORegistersMemoryRule* m_pIORegistersMemoryRule;
     TraceLogger* m_pTraceLogger;
     MemoryRule* m_pCurrentMemoryRule;
+    u8* m_pDirectROMPages[2];
     u8* m_pMap;
     GB_Disassembler_Record** m_pDisassembledMap;
     GB_Disassembler_Record** m_pDisassembledROMMap;
@@ -137,6 +139,7 @@ private:
     u8* m_pBootromGBC;
     bool m_bBootromRegistryDisabled;
     bool m_bCurrentRuleNeedsHighMemoryAccessNotifications;
+    bool m_bCurrentRuleMapsROMDirectly;
 };
 
 #include "Memory_inline.h"

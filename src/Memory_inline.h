@@ -35,12 +35,24 @@ inline u8 Memory::Read(u16 address)
                 }
             }
 
+            if (likely(IsValidPointer(m_pDirectROMPages[0])))
+                return m_pDirectROMPages[0][address];
+
             return m_pCurrentMemoryRule->PerformRead(address);
         }
         case 0x2000:
+        {
+            if (likely(IsValidPointer(m_pDirectROMPages[0])))
+                return m_pDirectROMPages[0][address];
+
+            return m_pCurrentMemoryRule->PerformRead(address);
+        }
         case 0x4000:
         case 0x6000:
         {
+            if (likely(IsValidPointer(m_pDirectROMPages[1])))
+                return m_pDirectROMPages[1][address & 0x3FFF];
+
             return m_pCurrentMemoryRule->PerformRead(address);
         }
         case 0x8000:
@@ -84,6 +96,8 @@ inline void Memory::Write(u16 address, u8 value)
         case 0x6000:
         {
             m_pCurrentMemoryRule->PerformWrite(address, value);
+            if (m_bCurrentRuleMapsROMDirectly)
+                RefreshDirectROMPages();
             break;
         }
         case 0x8000:

@@ -41,6 +41,7 @@ public:
     virtual ~MemoryRule();
     virtual u8 PerformRead(u16 address) = 0;
     virtual void PerformWrite(u16 address, u8 value) = 0;
+    virtual bool MapsROMDirectly();
     virtual bool NeedsHighMemoryAccessNotifications();
     virtual void NotifyHighMemoryRead(u16 address);
     virtual void NotifyHighMemoryWrite(u16 address, u8 value);

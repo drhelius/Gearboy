@@ -38,6 +38,11 @@ MBC5MemoryRule::~MBC5MemoryRule()
     SafeDeleteArray(m_pRAMBanks);
 }
 
+bool MBC5MemoryRule::MapsROMDirectly()
+{
+    return true;
+}
+
 void MBC5MemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;

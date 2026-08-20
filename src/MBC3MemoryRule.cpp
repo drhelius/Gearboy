@@ -39,6 +39,11 @@ MBC3MemoryRule::~MBC3MemoryRule()
     SafeDeleteArray(m_pRAMBanks);
 }
 
+bool MBC3MemoryRule::MapsROMDirectly()
+{
+    return !IsPoke2in1();
+}
+
 void MBC3MemoryRule::Reset(bool bCGB)
 {
     ResizeRAMBanks();

@@ -36,6 +36,11 @@ MBC2MemoryRule::~MBC2MemoryRule()
 {
 }
 
+bool MBC2MemoryRule::MapsROMDirectly()
+{
+    return true;
+}
+
 void MBC2MemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;

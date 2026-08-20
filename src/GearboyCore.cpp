@@ -1072,6 +1072,7 @@ bool GearboyCore::LoadState(std::istream& stream)
     m_pInput->LoadState(stream, header.version);
     m_pAudio->LoadState(stream, header.version);
     m_pMemory->GetCurrentRule()->LoadState(stream);
+    m_pMemory->RefreshDirectROMPages();
 
     if (header.version >= 102 && m_bSGB)
         m_pSGB->LoadState(stream);
@@ -1120,6 +1121,7 @@ bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
     m_pInput->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pAudio->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pMemory->GetCurrentRule()->LoadState(stream);
+    m_pMemory->RefreshDirectROMPages();
 
     return true;
 }
