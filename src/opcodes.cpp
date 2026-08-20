@@ -151,6 +151,8 @@ void Processor::OPCode0x10()
                 m_iSpeedMultiplier = 0;
                 m_pMemory->Load(0xFF4D, 0x00);
             }
+
+            m_iMachineCycle = 4 >> m_iSpeedMultiplier;
         }
     }
 }

@@ -167,17 +167,18 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
 {
     bool breakpoint_result = false;
 
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    bool debug_enable = IsValidPointer(debug);
+
+    if (debug_enable)
+        m_pProcessor->EnableBreakpoints(debug->stop_on_breakpoint, debug->stop_on_irq);
+    else
+        m_pProcessor->EnableBreakpoints(false, false);
+#endif
+
     if (!m_bPaused && m_pCartridge->IsLoadedROM())
     {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-        bool debug_enable = false;
-
-        if (IsValidPointer(debug))
-        {
-            debug_enable = true;
-            m_pProcessor->EnableBreakpoints(debug->stop_on_breakpoint, debug->stop_on_irq);
-        }
-
         bool vblank = false;
         int totalClocks = 0;
 

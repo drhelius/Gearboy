@@ -717,6 +717,11 @@ inline std::vector<Processor::GB_Breakpoint>* Processor::GetBreakpoints()
     return &m_breakpoints;
 }
 
+INLINE bool Processor::MemoryBreakpointsEnabled() const
+{
+    return m_breakpoints_enabled;
+}
+
 inline std::stack<Processor::GB_CallStackEntry>* Processor::GetDisassemblerCallStack()
 {
     return &m_disassembler_call_stack;

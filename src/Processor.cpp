@@ -36,6 +36,7 @@ Processor::Processor(Memory* pMemory)
     m_bHalt = false;
     m_bCGBSpeed = false;
     m_iSpeedMultiplier = 0;
+    m_iMachineCycle = 4;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_iCurrentClockCycles = 0;
@@ -102,6 +103,7 @@ void Processor::Reset(bool bCGB, bool bGBA, bool bSGB)
     m_bHalt = false;
     m_bCGBSpeed = false;
     m_iSpeedMultiplier = 0;
+    m_iMachineCycle = 4;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_iCurrentClockCycles = 0;
@@ -160,16 +162,20 @@ u8 Processor::RunFor(u8 ticks)
 {
     u8 executed = 0;
 
+    assert(m_iMachineCycle == (unsigned int)(4 >> m_iSpeedMultiplier));
+
     while (executed < ticks)
     {
         m_iCurrentClockCycles = 0;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
         m_cpu_breakpoint_hit = false;
         m_memory_breakpoint_hit = false;
         m_run_to_breakpoint_hit = false;
+#endif
 
         if (m_iAccurateOPCodeState == 0 && m_bHalt)
         {
-            m_iCurrentClockCycles += AdjustedCycles(4);
+            m_iCurrentClockCycles += m_iMachineCycle;
 
             if (m_iUnhaltCycles > 0)
             {
@@ -246,7 +252,7 @@ u8 Processor::RunFor(u8 ticks)
                 if ((accurateOPcodes[opcode] != 0) && (m_iAccurateOPCodeState == 0))
                 {
                     int left_cycles = (accurateOPcodes[opcode] < 3 ? 2 : 3);
-                    m_iCurrentClockCycles += (machineCycles[opcode] - left_cycles) * AdjustedCycles(4);
+                    m_iCurrentClockCycles += (machineCycles[opcode] - left_cycles) * m_iMachineCycle;
                     m_iAccurateOPCodeState = 1;
 
                     if (!halt_bug_active)
@@ -266,19 +272,19 @@ u8 Processor::RunFor(u8 ticks)
                     if (m_bBranchTaken)
                     {
                         m_bBranchTaken = false;
-                        m_iCurrentClockCycles += kOPCodeBranchMachineCycles[opcode] * AdjustedCycles(4);
+                        m_iCurrentClockCycles += kOPCodeBranchMachineCycles[opcode] * m_iMachineCycle;
                     }
                     else
                     {
                         switch (m_iAccurateOPCodeState)
                         {
                         case 0:
-                            m_iCurrentClockCycles += machineCycles[opcode] * AdjustedCycles(4);
+                            m_iCurrentClockCycles += machineCycles[opcode] * m_iMachineCycle;
                             break;
                         case 1:
                             if (accurateOPcodes[opcode] == 3)
                             {
-                                m_iCurrentClockCycles += 1 * AdjustedCycles(4);
+                                m_iCurrentClockCycles += m_iMachineCycle;
                                 m_iAccurateOPCodeState = 2;
                                 PC.Decrement();
                                 if (isCB)
@@ -286,12 +292,12 @@ u8 Processor::RunFor(u8 ticks)
                             }
                             else
                             {
-                                m_iCurrentClockCycles += 2 * AdjustedCycles(4);
+                                m_iCurrentClockCycles += 2 * m_iMachineCycle;
                                 m_iAccurateOPCodeState = 0;
                             }
                             break;
                         case 2:
-                            m_iCurrentClockCycles += 2 * AdjustedCycles(4);
+                            m_iCurrentClockCycles += 2 * m_iMachineCycle;
                             m_iAccurateOPCodeState = 0;
                             break;
                         }
@@ -1364,6 +1370,7 @@ void Processor::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iInterruptDelayCycles), sizeof(m_iInterruptDelayCycles));
     stream.read(reinterpret_cast<char*> (&m_bCGBSpeed), sizeof(m_bCGBSpeed));
     stream.read(reinterpret_cast<char*> (&m_iSpeedMultiplier), sizeof(m_iSpeedMultiplier));
+    m_iMachineCycle = 4 >> m_iSpeedMultiplier;
     stream.read(reinterpret_cast<char*> (&m_iAccurateOPCodeState), sizeof(m_iAccurateOPCodeState));
     stream.read(reinterpret_cast<char*> (&m_iReadCache), sizeof(m_iReadCache));
 }

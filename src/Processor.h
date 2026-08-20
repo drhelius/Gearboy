@@ -121,6 +121,7 @@ public:
     void DisassembleAhead(int count);
     void DisassembleAhead(u16 start_address, int count, int depth);
     void EnableBreakpoints(bool enable, bool irqs);
+    INLINE bool MemoryBreakpointsEnabled() const;
     bool BreakpointHit();
     bool MemoryBreakpointHit();
     bool RunToBreakpointHit();
@@ -174,6 +175,7 @@ private:
     int m_iInterruptDelayCycles;
     bool m_bCGBSpeed;
     int m_iSpeedMultiplier;
+    unsigned int m_iMachineCycle;
     int m_iAccurateOPCodeState;
     u8 m_iReadCache;
     bool m_breakpoints_enabled;

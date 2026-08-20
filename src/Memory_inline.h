@@ -13,7 +13,8 @@ INLINE void Memory::TraceLCDDMAEvent(u8 event, u16 source, u16 destination, u16 
 inline u8 Memory::Read(u16 address)
 {
     #ifndef GEARBOY_DISABLE_DISASSEMBLER
-    CheckBreakpoints(address, false);
+    if (unlikely(m_pProcessor->MemoryBreakpointsEnabled()))
+        CheckBreakpoints(address, false);
     #endif
 
     switch (address & 0xE000)
@@ -71,7 +72,8 @@ inline u8 Memory::Read(u16 address)
 inline void Memory::Write(u16 address, u8 value)
 {
     #ifndef GEARBOY_DISABLE_DISASSEMBLER
-    CheckBreakpoints(address, true);
+    if (unlikely(m_pProcessor->MemoryBreakpointsEnabled()))
+        CheckBreakpoints(address, true);
     #endif
 
     switch (address & 0xE000)
