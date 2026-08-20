@@ -18,8 +18,6 @@
  */
 
 #include <string>
-#include <string.h>
-
 #define SOUND_QUEUE_IMPORT
 #include "sound_queue.h"
 #include "utils.h"
@@ -32,14 +30,12 @@ static bool sound_queue_sound_open;
 static int sound_queue_max_queued_bytes;
 static int sound_queue_buffer_size;
 static int sound_queue_bytes_per_second;
-static s16* sound_queue_last_written;
 
 static bool is_running_in_wsl(void);
 
 void sound_queue_init(void)
 {
     InitPointer(sound_queue_stream);
-    InitPointer(sound_queue_last_written);
     sound_queue_sound_open = false;
 
     int audio_drivers_count = SDL_GetNumAudioDrivers();
@@ -98,9 +94,6 @@ bool sound_queue_start(int sample_rate, int channel_count, int buffer_size, int 
     sound_queue_max_queued_bytes = buffer_size * buffer_count * (int)sizeof(s16);
     sound_queue_bytes_per_second = sample_rate * channel_count * (int)sizeof(s16);
 
-    sound_queue_last_written = new s16[buffer_size];
-    memset(sound_queue_last_written, 0, buffer_size * sizeof(s16));
-
     SDL_AudioSpec spec;
     spec.freq = sample_rate;
     spec.format = SDL_AUDIO_S16;
@@ -140,8 +133,6 @@ void sound_queue_stop(void)
 
         Debug("Sound Queue: Stopped");
     }
-
-    SafeDeleteArray(sound_queue_last_written);
 }
 
 int sound_queue_get_sample_count(void)
@@ -149,11 +140,6 @@ int sound_queue_get_sample_count(void)
     if (!sound_queue_stream)
         return 0;
     return SDL_GetAudioStreamQueued(sound_queue_stream) / (int)sizeof(s16);
-}
-
-s16* sound_queue_get_currently_playing(void)
-{
-    return sound_queue_last_written;
 }
 
 bool sound_queue_is_open(void)
@@ -201,9 +187,6 @@ void sound_queue_write(s16* samples, int count, bool sync)
     }
 
     SDL_PutAudioStreamData(sound_queue_stream, samples, bytes);
-
-    int copy_count = count < sound_queue_buffer_size ? count : sound_queue_buffer_size;
-    memcpy(sound_queue_last_written, samples + (count - copy_count), copy_count * sizeof(s16));
 }
 
 static bool is_running_in_wsl(void)

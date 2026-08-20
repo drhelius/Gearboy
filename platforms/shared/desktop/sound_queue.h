@@ -36,7 +36,6 @@ EXTERN bool sound_queue_start(int sample_rate, int channel_count, int buffer_siz
 EXTERN void sound_queue_stop(void);
 EXTERN void sound_queue_write(s16* samples, int count, bool sync);
 EXTERN int sound_queue_get_sample_count(void);
-EXTERN s16* sound_queue_get_currently_playing(void);
 EXTERN bool sound_queue_is_open(void);
 
 #undef SOUND_QUEUE_IMPORT
