@@ -332,7 +332,7 @@ endif
 
 LDFLAGS += $(LIBM)
 
-DEFAULT_LTO_PLATFORMS := unix% osx% ios% tvos% win
+DEFAULT_LTO_PLATFORMS := unix% osx% ios% tvos% win%
 LTO ?= $(if $(filter $(DEFAULT_LTO_PLATFORMS),$(platform)),1,0)
 
 DEBUG ?= 0
