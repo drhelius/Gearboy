@@ -95,21 +95,30 @@ void rewind_push(void)
     if (active)
         return;
 
-    if (!ensure_storage())
-        return;
-
     frame_accum++;
     if (frame_accum < config_rewind.frames_per_snapshot)
         return;
     frame_accum = 0;
+
+    if (!ensure_storage())
+        return;
 
     u8* slot = buffer + ((size_t)head * slot_size);
     size_t size = slot_size;
 
     if (!emu_get_core()->SaveState(slot, size, true))
     {
-        Log("Rewind: failed to save snapshot into %zu-byte slot", slot_size);
-        return;
+        storage_dirty = true;
+        if (!ensure_storage())
+            return;
+
+        slot = buffer + ((size_t)head * slot_size);
+        size = slot_size;
+        if (!emu_get_core()->SaveState(slot, size, true))
+        {
+            Log("Rewind: failed to save snapshot into %zu-byte slot", slot_size);
+            return;
+        }
     }
 
     sizes[head] = size;
@@ -247,12 +256,12 @@ static bool ensure_storage(void)
     }
 
     int target_capacity = get_target_capacity();
+    if (!storage_dirty && IsValidPointer(buffer) && (capacity == target_capacity))
+        return true;
+
     size_t target_slot_size = get_target_slot_size();
     if (target_slot_size == 0)
         return false;
-
-    if (!storage_dirty && IsValidPointer(buffer) && (capacity == target_capacity) && (slot_size >= target_slot_size))
-        return true;
 
     if (storage_dirty && IsValidPointer(buffer) && (capacity == target_capacity) && (slot_size >= target_slot_size))
     {

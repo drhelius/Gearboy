@@ -164,7 +164,7 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pVideo->SetColorCorrection(m_ColorCorrectionLUT, m_bColorCorrectionEnabled);
 }
 
-bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer, GB_Debug_Run* debug)
+bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer, GB_Debug_Run* debug, bool render)
 {
     bool breakpoint_result = false;
 
@@ -229,10 +229,13 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pCartridge->UpdateCurrentRTC();
         }
 
-        if (bDMGbuffer && !m_bCGB)
-            RenderDMGIndexFrame(pFrameBuffer);
-        else
-            RenderFrameBuffer(pFrameBuffer);
+        if (render)
+        {
+            if (bDMGbuffer && !m_bCGB)
+                RenderDMGIndexFrame(pFrameBuffer);
+            else
+                RenderFrameBuffer(pFrameBuffer);
+        }
 
         breakpoint_result = m_pProcessor->BreakpointHit() || m_pProcessor->RunToBreakpointHit();
 #else
@@ -275,10 +278,13 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pCartridge->UpdateCurrentRTC();
         }
 
-        if (bDMGbuffer && !m_bCGB)
-            RenderDMGIndexFrame(pFrameBuffer);
-        else
-            RenderFrameBuffer(pFrameBuffer);
+        if (render)
+        {
+            if (bDMGbuffer && !m_bCGB)
+                RenderDMGIndexFrame(pFrameBuffer);
+            else
+                RenderFrameBuffer(pFrameBuffer);
+        }
 #endif
     }
 
