@@ -198,6 +198,12 @@ static inline bool ends_with_no_case(const char* text, const char* suffix)
     return true;
 }
 
+static inline void append_extension_if_missing(std::string& path, const char* extension)
+{
+    if (extension && extension[0] != '\0' && !ends_with_no_case(path.c_str(), extension))
+        path += extension;
+}
+
 static inline bool is_absolute_path(const char* path)
 {
     if (!path || path[0] == '\0')
