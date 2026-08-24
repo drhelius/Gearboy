@@ -21,6 +21,7 @@ tools:
     toolsets: [repos]
 safe-outputs:
   report-failure-as-issue: false
+  footer: false
   noop:
     report-as-issue: false
   mentions: false
