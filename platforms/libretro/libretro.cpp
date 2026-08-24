@@ -25,6 +25,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
+#include <string>
+#include <vector>
 
 #include <stdio.h>
 #include "libretro.h"
@@ -103,12 +105,15 @@ static bool IsJoypadDevice(unsigned device)
 static GearboyCore* core;
 static Cartridge::CartridgeTypes mapper = Cartridge::CartridgeNotSupported;
 static const retro_vfs_interface* vfs_interface = NULL;
+static std::vector<std::string> libretro_cheats;
 
 static retro_environment_t environ_cb;
 
 static void reset_controller_device(void);
 static void apply_controller_device(unsigned port, unsigned device, bool log_device);
 static bool load_rom(const struct retro_game_info* info);
+static void apply_cheats(void);
+static void clear_cheats(void);
 
 // red, green, blue
 static GB_Color original_palette[4] = {{0x87, 0x96, 0x03},{0x4D, 0x6B, 0x03},{0x2B, 0x55, 0x03},{0x14, 0x44, 0x03}};
@@ -161,6 +166,7 @@ void retro_init(void)
 
 void retro_deinit(void)
 {
+    clear_cheats();
     SafeDeleteArray(gearboy_frame_buf);
     SafeDelete(core);
     vfs_interface = NULL;
@@ -915,6 +921,7 @@ void retro_reset(void)
 
 bool retro_load_game(const struct retro_game_info *info)
 {
+    clear_cheats();
     core->GetCartridge()->Reset();
     environ_cb(RETRO_ENVIRONMENT_GET_SENSOR_INTERFACE, &sensor_interface);
     check_variables();
@@ -1072,6 +1079,7 @@ static bool load_rom(const struct retro_game_info* info)
 
 void retro_unload_game(void)
 {
+    clear_cheats();
 }
 
 unsigned retro_get_region(void)
@@ -1133,13 +1141,42 @@ size_t retro_get_memory_size(unsigned id)
     return 0;
 }
 
-void retro_cheat_reset(void)
+static void apply_cheats(void)
 {
     core->ClearCheats();
+
+    for (size_t i = 0; i < libretro_cheats.size(); i++)
+    {
+        if (!libretro_cheats[i].empty())
+            core->SetCheat(libretro_cheats[i].c_str());
+    }
+}
+
+static void clear_cheats(void)
+{
+    libretro_cheats.clear();
+    if (IsValidPointer(core))
+        core->ClearCheats();
+}
+
+void retro_cheat_reset(void)
+{
+    clear_cheats();
 }
 
 void retro_cheat_set(unsigned index, bool enabled, const char *code)
 {
     if (enabled)
-        core->SetCheat(code);
+    {
+        if (index >= libretro_cheats.size())
+            libretro_cheats.resize(index + 1);
+
+        libretro_cheats[index] = code ? code : "";
+    }
+    else if (index < libretro_cheats.size())
+    {
+        libretro_cheats[index].clear();
+    }
+
+    apply_cheats();
 }
