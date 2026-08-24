@@ -296,7 +296,9 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
     {
         Log("Loading from buffer... Size: %d", size);
         m_iTotalSize = size;
-        m_pTheROM = new u8[m_iTotalSize];
+        u32 allocatedSize = MAX(pow_2_ceil(m_iTotalSize), 0x8000U);
+        m_pTheROM = new u8[allocatedSize];
+        memset(m_pTheROM, 0xFF, allocatedSize);
         memcpy(m_pTheROM, buffer, m_iTotalSize);
         m_bLoaded = true;
         return GatherMetadata();
