@@ -20,6 +20,9 @@ tools:
     mode: gh-proxy
     toolsets: [repos]
 safe-outputs:
+  report-failure-as-issue: false
+  noop:
+    report-as-issue: false
   mentions: false
   allowed-github-references: []
   jobs:
@@ -43,7 +46,7 @@ safe-outputs:
           type: string
       steps:
         - name: Checkout
-          uses: actions/checkout@v4
+          uses: actions/checkout@v7.0.1
           with:
             fetch-depth: 0
         - name: Bump version and tag
