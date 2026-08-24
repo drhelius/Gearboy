@@ -59,7 +59,7 @@ static void draw_transport_bar(void)
     bool has_snapshots = snapshot_count > 0;
     bool is_empty = emu_is_empty();
     bool is_paused = emu_is_paused() || emu_is_debug_idle();
-    bool can_scrub = has_snapshots && is_paused && !is_empty;
+    bool can_scrub = has_snapshots && is_paused && !is_empty && !emu_link_cable_is_active();
     bool at_newest = seek_position <= 0;
     bool at_oldest = seek_position >= snapshot_count - 1;
 
@@ -133,7 +133,7 @@ static void draw_timeline(void)
     int snapshot_count = rewind_get_snapshot_count();
     bool is_empty = emu_is_empty();
     bool is_paused = emu_is_paused() || emu_is_debug_idle();
-    bool can_scrub = snapshot_count > 0 && is_paused && !is_empty;
+    bool can_scrub = snapshot_count > 0 && is_paused && !is_empty && !emu_link_cable_is_active();
 
     if (!can_scrub)
     {

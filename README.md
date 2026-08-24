@@ -98,6 +98,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3, MBC5, MBC7, HuC-1, HuC-3, MMM01, Pocket Camera, TAMA5, MBC1M, Wisdom Tree, M161, Sachen MMC1, Sachen MMC2 and PKJD.
 - Game Boy Color support.
 - Super Game Boy support.
+- Local two-instance Game Boy link cable support on desktop platforms.
 - LCD screen ghosting effect as seen in the original Game Boy.
 - LCD dot matrix effects. 
 - Battery powered RAM save support.
@@ -121,6 +122,8 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 
 ### Basic Usage
 - **Boot ROM**: Gearboy can run with or without a Boot ROM. You can optionally load a Boot ROM and enable it.
+- **Link Cable**:
+Open `Link Cable` menu in two desktop instances, select the same session, and connect both, or start each process with `--link-cable-join N`. Independent instances should use separate application copies or `--portable` data directories so configuration, saves, and single-instance handling do not conflict.
 - **Mouse Cursor**: Automatically hides when hovering over the main output window or when Main Menu is disabled.
 - **Portable Mode**: Run with `--portable`, or create an empty file named `portable.ini` in the same directory as the application binary. On macOS, place the file next to the `.app` bundle.
 
@@ -146,7 +149,8 @@ Options:
       --mcp-router            Enable compact MCP tool routing
       --mcp-http-address A    HTTP bind address (default: 127.0.0.1)
       --mcp-http-port N       HTTP port for MCP server (default: 7777)
-      --headless              Run without GUI (requires --mcp-stdio or --mcp-http)
+      --link-cable-join N     Join local link cable session 1-255
+      --headless              Run without GUI (requires MCP or link cable)
       --portable              Store configuration and user data beside the application
   -v, --version               Display version information
   -h, --help                  Display this help message

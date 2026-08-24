@@ -43,8 +43,14 @@ Processor::Processor(Memory* pMemory)
     m_iDIVCycles = 0;
     m_iTIMACycles = 0;
     m_iIMECycles = 0;
-    m_iSerialBit = 0;
-    m_iSerialCycles = 0;
+    m_iSerialDividerOffset = 0;
+    m_link_cable_state_callback = NULL;
+    m_link_cable_start_callback = NULL;
+    m_link_cable_poll_callback = NULL;
+    m_link_cable_sync_callback = NULL;
+    m_link_cable_user_data = NULL;
+    m_bLinkCableConnected = false;
+    ResetSerialRuntime();
     m_bCGB = false;
     m_iUnhaltCycles = 0;
     m_iInterruptDelayCycles = 0;
@@ -110,9 +116,15 @@ void Processor::Reset(bool bCGB, bool bGBA, bool bSGB)
     m_iDIVCycles = 0;
     m_iTIMACycles = 0;
     m_iIMECycles = 0;
-    m_iSerialBit = 0;
-    m_iSerialCycles = 0;
+    ResetSerialRuntime();
     m_iUnhaltCycles = 0;
+
+    m_iSerialDividerOffset = 0;
+    if (!m_pMemory->IsBootromEnabled() && !m_bCGB && !bSGB)
+    {
+        // Internal divider phase left by the DMG/MGB boot ROM.
+        m_iSerialDividerOffset = 0xCC;
+    }
 
     if(m_pMemory->IsBootromEnabled())
     {
@@ -342,40 +354,349 @@ void Processor::ServeInterrupt(Interrupts interrupt)
 #endif
 }
 
-void Processor::UpdateSerialActive(u8 ticks, u8 sc)
+void Processor::ResetSerialRuntime()
 {
-    m_iSerialCycles += ticks;
+    m_iSerialBit = -1;
+    m_iSerialCycles = 0;
+    m_bSerialTransferActive = false;
+    m_bSerialWaitingExternal = false;
+    m_bSerialInternalClock = false;
+    m_bSerialControlWritePending = false;
+    m_bSerialDataWritePending = false;
+    m_bSerialRestorePending = false;
+    m_iSerialPendingControl = 0;
+    m_iSerialPendingData = 0;
+    m_iSerialIncomingByte = 0xFF;
+    m_iSerialOutgoingByte = 0xFF;
+    m_iSerialBitCycles = 0;
+    m_iSerialTransferId = 0;
+    m_iSerialRequestCycle = 0;
+    m_iSerialNextShiftCycle = 0;
+    m_iLinkCableNextSyncCycle = 0;
+    m_iLinkCableSyncCycles = LINK_CABLE_IDLE_SYNC_CYCLES;
+}
 
-    if (m_iSerialBit < 0)
+u8 Processor::NormalizeSerialControl(u8 value) const
+{
+    if (m_bCGB)
+        return (value & 0x83) | 0x7C;
+
+    return (value & 0x81) | 0x7E;
+}
+
+void Processor::NotifySerialDataWrite(u8 value)
+{
+    m_iSerialPendingData = value;
+    m_bSerialDataWritePending = true;
+}
+
+void Processor::NotifySerialControlWrite(u8 value)
+{
+    m_iSerialPendingControl = value;
+    m_bSerialControlWritePending = true;
+}
+
+void Processor::SetLinkCableCallbacks(GB_LinkCableStateCallback state_callback,
+    GB_LinkCableStartCallback start_callback,
+    GB_LinkCablePollCallback poll_callback,
+    GB_LinkCableSyncCallback sync_callback, void* user_data)
+{
+    m_link_cable_state_callback = state_callback;
+    m_link_cable_start_callback = start_callback;
+    m_link_cable_poll_callback = poll_callback;
+    m_link_cable_sync_callback = sync_callback;
+    m_link_cable_user_data = user_data;
+}
+
+void Processor::SetLinkCableConnected(bool connected, u64 current_cycle)
+{
+    if (connected == m_bLinkCableConnected)
     {
+        if (connected)
+            PublishSerialState(current_cycle);
+        return;
+    }
+
+    m_bLinkCableConnected = connected;
+    m_iLinkCableNextSyncCycle = current_cycle;
+    m_iLinkCableSyncCycles = LINK_CABLE_IDLE_SYNC_CYCLES;
+
+    if (connected)
+        PublishSerialState(current_cycle);
+}
+
+bool Processor::IsLinkCableConnected() const
+{
+    return m_bLinkCableConnected;
+}
+
+void Processor::GetSerialState(SerialState& state) const
+{
+    state.bit_index = m_iSerialBit;
+    state.cycles = m_iSerialCycles;
+    state.transfer_active = m_bSerialTransferActive;
+    state.waiting_external = m_bSerialWaitingExternal;
+    state.internal_clock = m_bSerialInternalClock;
+    state.restore_pending = m_bSerialRestorePending;
+    state.incoming_byte = m_iSerialIncomingByte;
+    state.outgoing_byte = m_iSerialOutgoingByte;
+    state.bit_cycles = m_iSerialBitCycles;
+    state.transfer_id = m_iSerialTransferId;
+    state.request_cycle = m_iSerialRequestCycle;
+    state.next_shift_cycle = m_iSerialNextShiftCycle;
+}
+
+void Processor::PublishSerialState(u64 cycle)
+{
+    if (m_bLinkCableConnected && m_link_cable_state_callback)
+    {
+        m_link_cable_state_callback(cycle, m_pMemory->Retrieve(0xFF01), m_pMemory->Retrieve(0xFF02), m_link_cable_user_data);
+    }
+}
+
+void Processor::ProcessSerialControlWrite(u64 current_cycle)
+{
+    u8 sc = m_iSerialPendingControl;
+
+    m_bSerialControlWritePending = false;
+    m_bSerialRestorePending = false;
+    m_bSerialTransferActive = false;
+    m_bSerialWaitingExternal = false;
+    m_bSerialInternalClock = false;
+    m_iSerialBit = -1;
+    m_iSerialCycles = 0;
+    m_iSerialBitCycles = 0;
+    m_iSerialNextShiftCycle = 0;
+
+    PublishSerialState(current_cycle);
+
+    if ((sc & 0x80) == 0)
+        return;
+
+    m_iSerialBit = 0;
+
+    if ((sc & 0x01) == 0)
+    {
+        m_bSerialWaitingExternal = true;
+        return;
+    }
+
+    StartInternalSerialTransfer(current_cycle);
+}
+
+void Processor::StartInternalSerialTransfer(u64 current_cycle)
+{
+    u8 sc = m_pMemory->Retrieve(0xFF02);
+    bool fast_cgb = m_bCGB && ((sc & 0x02) != 0);
+
+    m_bSerialTransferActive = true;
+    m_bSerialWaitingExternal = false;
+    m_bSerialInternalClock = true;
+    m_iSerialBit = 0;
+    m_iSerialCycles = 0;
+    m_iSerialIncomingByte = 0xFF;
+    m_iSerialOutgoingByte = m_pMemory->Retrieve(0xFF01);
+    m_iSerialBitCycles = (u32)(fast_cgb ? AdjustedCycles(16) : AdjustedCycles(512));
+    m_iSerialRequestCycle = current_cycle;
+    m_iSerialNextShiftCycle = current_cycle + GetFirstSerialShiftCycles(fast_cgb);
+    m_iSerialTransferId++;
+
+    if (m_bLinkCableConnected && m_link_cable_start_callback)
+    {
+        m_link_cable_start_callback(m_iSerialRequestCycle,
+            m_iSerialNextShiftCycle, m_iSerialBitCycles,
+            m_iSerialOutgoingByte, m_iSerialTransferId,
+            &m_iSerialIncomingByte, m_link_cable_user_data);
+    }
+}
+
+u32 Processor::GetFirstSerialShiftCycles(bool fast_cgb) const
+{
+    u32 divider = ((u32)m_pMemory->Retrieve(0xFF04) << 8) | (m_iDIVCycles << m_iSpeedMultiplier);
+    divider += m_iSerialDividerOffset;
+    u32 falling_edge_cycles = fast_cgb ? 8 : 256;
+    u32 phase = divider & (falling_edge_cycles - 1);
+    u32 first_shift_cycles = (falling_edge_cycles - phase) + falling_edge_cycles;
+
+    return first_shift_cycles >> m_iSpeedMultiplier;
+}
+
+void Processor::PollExternalSerialTransfer(u64 current_cycle)
+{
+    if (!m_bLinkCableConnected || !m_link_cable_poll_callback || !m_bSerialWaitingExternal || m_bSerialTransferActive)
+    {
+        return;
+    }
+
+    GB_LinkCableTransfer transfer = {};
+
+    if (!m_link_cable_poll_callback(current_cycle, &transfer, m_link_cable_user_data))
+    {
+        return;
+    }
+
+    u8 sc = m_pMemory->Retrieve(0xFF02);
+    if ((sc & 0x81) != 0x80 || transfer.bit_cycles == 0)
+        return;
+
+    m_iSerialIncomingByte = transfer.incoming_byte;
+    m_iSerialOutgoingByte = transfer.local_byte;
+    m_iSerialBitCycles = transfer.bit_cycles;
+    m_iSerialTransferId = transfer.transfer_id;
+    m_iSerialRequestCycle = transfer.request_cycle;
+    m_iSerialNextShiftCycle = transfer.first_shift_cycle;
+    m_iSerialBit = 0;
+    m_iSerialCycles = 0;
+    m_bSerialTransferActive = true;
+    m_bSerialWaitingExternal = false;
+    m_bSerialInternalClock = false;
+    m_pMemory->Load(0xFF01, transfer.local_byte);
+}
+
+void Processor::RestoreSerialTransfer(u64 current_cycle)
+{
+    m_bSerialRestorePending = false;
+
+    u8 sc = m_pMemory->Retrieve(0xFF02);
+
+    if ((sc & 0x80) == 0)
+    {
+        m_iSerialBit = -1;
+        m_iSerialCycles = 0;
+        return;
+    }
+
+    if ((sc & 0x01) == 0)
+    {
+        m_bSerialWaitingExternal = true;
+        m_bSerialTransferActive = false;
+        m_bSerialInternalClock = false;
         m_iSerialBit = 0;
         m_iSerialCycles = 0;
         return;
     }
 
-    int serial_cycles = AdjustedCycles(512);
+    bool fast_cgb = m_bCGB && ((sc & 0x02) != 0);
+    m_iSerialBitCycles = (u32)(fast_cgb ? AdjustedCycles(16) : AdjustedCycles(512));
 
-    if (m_iSerialCycles >= serial_cycles)
+    if (m_iSerialBit < 0)
+        m_iSerialBit = 0;
+    else if (m_iSerialBit > 7)
+        m_iSerialBit = 7;
+
+    if (m_iSerialCycles < 0)
+        m_iSerialCycles = 0;
+    else if ((u32)m_iSerialCycles >= m_iSerialBitCycles)
+        m_iSerialCycles = (int)m_iSerialBitCycles - 1;
+
+    m_iSerialIncomingByte = 0xFF;
+    m_iSerialOutgoingByte = m_pMemory->Retrieve(0xFF01);
+    m_iSerialRequestCycle = current_cycle;
+    m_iSerialNextShiftCycle = current_cycle + (m_iSerialBitCycles - (u32)m_iSerialCycles);
+    m_bSerialTransferActive = true;
+    m_bSerialWaitingExternal = false;
+    m_bSerialInternalClock = true;
+}
+
+void Processor::ShiftSerialBit(u64 edge_cycle)
+{
+    if (!m_bSerialTransferActive || m_iSerialBit < 0 || m_iSerialBit > 7)
+        return;
+
+    u8 incoming_bit = (m_iSerialIncomingByte >> (7 - m_iSerialBit)) & 0x01;
+    u8 sb = m_pMemory->Retrieve(0xFF01);
+    m_pMemory->Load(0xFF01, (u8)((sb << 1) | incoming_bit));
+    m_iSerialBit++;
+
+    if (m_iSerialBit == 8)
     {
-        if (m_iSerialBit > 7)
-        {
-            m_pMemory->Load(0xFF02, sc & 0x7F);
-            TraceSerialEvent(TRACE_SERIAL_TRANSFER_END);
-            RequestInterrupt(Serial_Interrupt);
-            TraceSerialEvent(TRACE_SERIAL_IRQ_REQUEST);
-            m_iSerialBit = -1;
+        u8 sc = m_pMemory->Retrieve(0xFF02);
+        m_pMemory->Load(0xFF02, sc & 0x7F);
+        TraceSerialEvent(TRACE_SERIAL_TRANSFER_END);
+        RequestInterrupt(Serial_Interrupt);
+        TraceSerialEvent(TRACE_SERIAL_IRQ_REQUEST);
+        PublishSerialState(edge_cycle);
 
-            return;
-        }
-
-        u8 sb = m_pMemory->Retrieve(0xFF01);
-        sb <<= 1;
-        sb |= 0x01;
-        m_pMemory->Load(0xFF01, sb);
-
-        m_iSerialCycles -= serial_cycles;
-        m_iSerialBit++;
+        m_bSerialTransferActive = false;
+        m_bSerialWaitingExternal = false;
+        m_bSerialInternalClock = false;
+        m_iSerialBit = -1;
+        m_iSerialCycles = 0;
+        m_iSerialBitCycles = 0;
+        m_iSerialNextShiftCycle = 0;
     }
+}
+
+void Processor::UpdateSerialActive(u8 ticks, u64 current_cycle)
+{
+    UNUSED(ticks);
+
+    if (m_bSerialDataWritePending)
+    {
+        m_bSerialDataWritePending = false;
+        PublishSerialState(current_cycle);
+    }
+
+    if (m_bSerialControlWritePending)
+        ProcessSerialControlWrite(current_cycle);
+    else if (m_bSerialRestorePending)
+        RestoreSerialTransfer(current_cycle);
+
+    PollExternalSerialTransfer(current_cycle);
+
+    while (m_bSerialTransferActive && current_cycle >= m_iSerialNextShiftCycle)
+    {
+        u64 edge_cycle = m_iSerialNextShiftCycle;
+        ShiftSerialBit(edge_cycle);
+
+        if (m_bSerialTransferActive)
+            m_iSerialNextShiftCycle += m_iSerialBitCycles;
+    }
+
+    if (m_bSerialTransferActive && m_iSerialBitCycles != 0 && m_iSerialNextShiftCycle > current_cycle)
+    {
+        u64 remaining = m_iSerialNextShiftCycle - current_cycle;
+        if (remaining < m_iSerialBitCycles)
+            m_iSerialCycles = (int)(m_iSerialBitCycles - remaining);
+        else
+            m_iSerialCycles = 0;
+    }
+}
+
+u32 Processor::GetLinkCablePromiseCycles(u64 current_cycle) const
+{
+    u64 promise = LINK_CABLE_MAX_PROMISE_CYCLES;
+
+    if (m_bSerialTransferActive)
+    {
+        if (m_iSerialNextShiftCycle > current_cycle)
+            promise = MIN(promise, m_iSerialNextShiftCycle - current_cycle);
+        else
+            promise = 0;
+    }
+    else if (m_bSerialWaitingExternal)
+    {
+        promise = MIN(promise, (u64)LINK_CABLE_FAST_SYNC_CYCLES);
+    }
+
+    return (u32)promise;
+}
+
+u32 Processor::GetLinkCableSyncCycles(u64 current_cycle) const
+{
+    if (m_bSerialWaitingExternal)
+        return LINK_CABLE_FAST_SYNC_CYCLES;
+
+    if (m_bSerialTransferActive)
+    {
+        if (m_iSerialNextShiftCycle <= current_cycle)
+            return 1;
+
+        return (u32)MIN((u64)LINK_CABLE_IDLE_SYNC_CYCLES,
+            m_iSerialNextShiftCycle - current_cycle);
+    }
+
+    return LINK_CABLE_IDLE_SYNC_CYCLES;
 }
 
 void Processor::UpdateGameShark()
@@ -1133,6 +1454,18 @@ void Processor::LoadState(std::istream& stream)
     m_iMachineCycle = 4 >> m_iSpeedMultiplier;
     stream.read(reinterpret_cast<char*> (&m_iAccurateOPCodeState), sizeof(m_iAccurateOPCodeState));
     stream.read(reinterpret_cast<char*> (&m_iReadCache), sizeof(m_iReadCache));
+
+    int serial_bit = m_iSerialBit;
+    int serial_cycles = m_iSerialCycles;
+    ResetSerialRuntime();
+    m_bLinkCableConnected = false;
+
+    if ((m_pMemory->Retrieve(0xFF02) & 0x80) != 0)
+    {
+        m_iSerialBit = serial_bit;
+        m_iSerialCycles = serial_cycles;
+        m_bSerialRestorePending = true;
+    }
 }
 
 void Processor::SetGameSharkCheat(const char* szCheat)

@@ -64,9 +64,13 @@ static void save_window_size(void);
 #if defined(__APPLE__)
 static void* macos_fullscreen_observer = NULL;
 static void* macos_nswindow = NULL;
+static bool macos_new_instance_enabled = false;
 extern "C" void* macos_install_fullscreen_observer(void* nswindow, void(*enter_cb)(), void(*exit_cb)());
 extern "C" void macos_set_native_fullscreen(void* nswindow, bool enter);
 extern "C" void macos_refocus_window(void* nswindow);
+extern "C" void macos_install_dock_menu(void);
+extern "C" void macos_remove_dock_menu(void);
+extern "C" void macos_launch_new_instance(void);
 #endif
 
 int application_init(const ApplicationParams& params)
@@ -154,6 +158,9 @@ int application_init(const ApplicationParams& params)
         emu_mcp_start();
     }
 
+    if (params.link_cable_session_set)
+        emu_link_cable_connect(params.link_cable_session);
+
     application_refocus_window();
 
     return 0;
@@ -161,6 +168,10 @@ int application_init(const ApplicationParams& params)
 
 void application_destroy(void)
 {
+#if defined(__APPLE__)
+    macos_remove_dock_menu();
+#endif
+
     save_window_size();
     ogl_renderer_destroy();
     ImGui_ImplSDL3_Shutdown();
@@ -279,6 +290,10 @@ void application_input_pump(void)
 
 bool application_check_single_instance(const char* rom_file, const char* symbol_file)
 {
+#if defined(__APPLE__)
+    macos_new_instance_enabled = !config_debug.single_instance;
+#endif
+
     if (!config_debug.single_instance)
         return true;
 
@@ -295,6 +310,19 @@ bool application_check_single_instance(const char* rom_file, const char* symbol_
 
     return true;
 }
+
+#if defined(__APPLE__)
+bool application_can_launch_new_instance(void)
+{
+    return macos_new_instance_enabled;
+}
+
+void application_launch_new_instance(void)
+{
+    if (macos_new_instance_enabled)
+        macos_launch_new_instance();
+}
+#endif
 
 static bool sdl_init(void)
 {
@@ -388,6 +416,9 @@ static bool sdl_init(void)
         macos_nswindow = nswindow;
         macos_fullscreen_observer = macos_install_fullscreen_observer(nswindow, on_enter_fullscreen, on_exit_fullscreen);
     }
+
+    if (macos_new_instance_enabled)
+        macos_install_dock_menu();
 #endif
 
     display_use_vsync_if_enabled();
@@ -522,7 +553,7 @@ static void sdl_events_app(const SDL_Event* event)
         case SDL_EVENT_WINDOW_FOCUS_LOST:
         {
             display_disable_vsync();
-            if (config_emulator.pause_when_inactive)
+            if (config_emulator.pause_when_inactive && !emu_link_cable_is_active())
             {
                 paused_when_focus_lost = emu_is_paused();
                 emu_pause();
@@ -582,6 +613,8 @@ static void run_emulator(void)
     if (!events_input_updated())
         events_emu();
     events_reset_input();
+
+    display_update_vsync_state();
 }
 
 static void save_window_size(void)

@@ -22,6 +22,7 @@
 
 #include "definitions.h"
 #include "Cartridge.h"
+#include "link_cable.h"
 
 class Memory;
 class Processor;
@@ -118,6 +119,12 @@ public:
     SGB* GetSGB();
     TraceLogger* GetTraceLogger();
     u64 GetMasterClockCycles();
+    u64 GetLinkCableCycle() const;
+    void SetLinkCableCallbacks(GB_LinkCableStateCallback state_callback, GB_LinkCableStartCallback start_callback,
+        GB_LinkCablePollCallback poll_callback, GB_LinkCableSyncCallback sync_callback, void* user_data);
+    void SetLinkCableConnected(bool connected);
+    bool IsLinkCableConnected() const;
+    void SynchronizeLinkCable();
     void SetAccelerometer(double x, double y);
 
 private:
@@ -178,6 +185,7 @@ private:
     u8* m_pSaveStateFrameBuffer;
     TraceLogger* m_trace_logger;
     u64 m_master_clock_cycles;
+    u64 m_link_cable_cycles;
 };
 
 #endif /* CORE_H */

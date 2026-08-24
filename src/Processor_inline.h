@@ -1,3 +1,22 @@
+/*
+ * Gearboy - Nintendo Game Boy Emulator
+ * Copyright (C) 2012  Ignacio Sanchez
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
+ */
+
 #ifndef PROCESSOR_INLINE_H
 #define	PROCESSOR_INLINE_H
 
@@ -27,7 +46,7 @@ INLINE void Processor::TraceTimerEvent(u8 event)
 
 INLINE void Processor::TraceSerialEvent(u8 event)
 {
-    if (m_pTraceLogger->IsEventEnabled(TRACE_SERIAL, event))
+    if (IsValidPointer(m_pTraceLogger) && m_pTraceLogger->IsEventEnabled(TRACE_SERIAL, event))
         LogSerialEvent(event);
 }
 
@@ -113,6 +132,7 @@ inline void Processor::IncrementTIMA()
 inline void Processor::ResetDIVCycles()
 {
     m_iDIVCycles = 0;
+    m_iSerialDividerOffset = 0;
     m_pMemory->Load(0xFF04, 0x00);
 }
 
@@ -990,12 +1010,31 @@ INLINE void Processor::UpdateTimers(u8 ticks)
     }
 }
 
-INLINE void Processor::UpdateSerial(u8 ticks)
+INLINE void Processor::UpdateSerial(u8 ticks, u64 current_cycle)
 {
     u8 sc = m_pMemory->Retrieve(0xFF02);
 
-    if (unlikely((sc & 0x81) == 0x81))
-        UpdateSerialActive(ticks, sc);
+    if (unlikely(m_bSerialDataWritePending || m_bSerialControlWritePending ||
+        m_bSerialRestorePending || m_bSerialTransferActive ||
+        m_bSerialWaitingExternal || ((sc & 0x80) != 0 && m_iSerialBit >= 0)))
+    {
+        UpdateSerialActive(ticks, current_cycle);
+    }
+}
+
+INLINE void Processor::SynchronizeLinkCable(u64 current_cycle)
+{
+    if (likely(!m_bLinkCableConnected || !m_link_cable_sync_callback))
+        return;
+
+    u32 sync_cycles = GetLinkCableSyncCycles(current_cycle);
+
+    if (current_cycle >= m_iLinkCableNextSyncCycle || sync_cycles != m_iLinkCableSyncCycles)
+    {
+        m_link_cable_sync_callback(current_cycle, GetLinkCablePromiseCycles(current_cycle), m_link_cable_user_data);
+        m_iLinkCableSyncCycles = sync_cycles;
+        m_iLinkCableNextSyncCycle = current_cycle + MAX((u32)1, sync_cycles);
+    }
 }
 
 #endif	/* PROCESSOR_INLINE_H */

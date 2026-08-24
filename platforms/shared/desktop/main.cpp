@@ -117,6 +117,25 @@ int main(int argc, char* argv[])
                 app_params.mcp_http_address = argv[++i];
                 app_params.mcp_http_address_set = true;
             }
+            else if (strcmp(argv[i], "--link-cable-join") == 0)
+            {
+                if (i + 1 >= argc || argv[i + 1][0] == '-')
+                {
+                    fprintf(stderr, "Missing value for --link-cable-join\n");
+                    return -1;
+                }
+
+                char* end = NULL;
+                long session = strtol(argv[++i], &end, 10);
+                if (!end || *end != '\0' || session <= 0 || session > 255)
+                {
+                    fprintf(stderr, "Invalid link cable session: %s\n", argv[i]);
+                    return -1;
+                }
+
+                app_params.link_cable_session = (int)session;
+                app_params.link_cable_session_set = true;
+            }
             else
             {
                 printf("Unknown option: %s\n", argv[i]);
@@ -129,7 +148,9 @@ int main(int argc, char* argv[])
     int non_option_count = 0;
     for (int i = 1; i < argc; i++)
     {
-        if ((strcmp(argv[i], "--mcp-http-port") == 0) || (strcmp(argv[i], "--mcp-http-address") == 0))
+        if ((strcmp(argv[i], "--mcp-http-port") == 0) ||
+            (strcmp(argv[i], "--mcp-http-address") == 0) ||
+            (strcmp(argv[i], "--link-cable-join") == 0))
         {
             if (i + 1 < argc)
                 i++;
@@ -174,7 +195,8 @@ int main(int argc, char* argv[])
         printf("      --mcp-router            Enable compact MCP tool routing\n");
         printf("      --mcp-http-address A    HTTP bind address (default: 127.0.0.1)\n");
         printf("      --mcp-http-port N       HTTP port for MCP server (default: 7777)\n");
-        printf("      --headless              Run without GUI (requires --mcp-stdio or --mcp-http)\n");
+        printf("      --link-cable-join N     Join local link cable session 1-255\n");
+        printf("      --headless              Run without GUI (requires MCP or link cable)\n");
         printf("      --portable              Store configuration and user data beside the application\n");
         printf("  -v, --version               Display version information\n");
         printf("  -h, --help                  Display this help message\n");
@@ -196,6 +218,11 @@ int main(int argc, char* argv[])
         config_emulator.mcp_http_address = app_params.mcp_http_address;
     else
         app_params.mcp_http_address = config_emulator.mcp_http_address;
+
+    if (app_params.link_cable_session_set)
+        config_emulator.link_cable_session = app_params.link_cable_session;
+    else
+        app_params.link_cable_session = config_emulator.link_cable_session;
 
     if (headless)
     {

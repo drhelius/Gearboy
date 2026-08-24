@@ -21,6 +21,7 @@
 #define EMU_H
 
 #include "gearboy.h"
+#include "link_cable/link_cable_manager.h"
 
 #ifdef EMU_IMPORT
     #define EXTERN
@@ -135,6 +136,14 @@ EXTERN int emu_mcp_get_transport_mode(void);
 EXTERN const char* emu_mcp_get_http_address(void);
 EXTERN int emu_mcp_get_http_port(void);
 EXTERN void emu_mcp_pump_commands(void);
+EXTERN bool emu_link_cable_connect(int session);
+EXTERN void emu_link_cable_stop(void);
+EXTERN void emu_link_cable_pump(void);
+EXTERN bool emu_link_cable_is_active(void);
+EXTERN bool emu_link_cable_is_cable_connected(void);
+EXTERN LinkCableStatus emu_link_cable_get_status(void);
+EXTERN void emu_link_cable_reset_metrics(void);
+EXTERN void emu_link_cable_set_normal_barrier_stall_us(u32 stall_us);
 
 #undef EMU_IMPORT
 #undef EXTERN

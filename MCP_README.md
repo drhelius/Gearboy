@@ -75,7 +75,7 @@ The HTTP transport mode runs the emulator with an embedded web server on `127.0.
 
 ### Headless Mode
 
-Add `--headless` to run without a GUI window. This is useful for servers, CLI agents, or any machine without a display. All MCP tools work identically in headless mode. Requires `--mcp-stdio` or `--mcp-http`.
+Add `--headless` to run without a GUI window. This is useful for servers, CLI agents, or any machine without a display. All MCP tools work identically in headless mode. Headless mode requires `--mcp-stdio`, `--mcp-http`, or `--link-cable-join N`; link-only mode does not expose MCP tools.
 
 ### Concurrent Clients
 
@@ -390,6 +390,8 @@ The server exposes tools organized in the following categories:
 - `get_lcd_registers` - Get all LCD registers (LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX) with decoded bit fields. Also CGB registers (KEY1, VBK, HDMA, BCPS, BCPD, OCPS, OCPD, SVBK)
 - `get_lcd_status` - Get LCD status (mode 0-3, screen enabled, LY, LYC match, CGB info)
 - `get_apu_status` - Get Game Boy APU status for all 4 channels (Square 1 with sweep, Square 2, Wave, Noise): volume, frequency, envelope, duty, wave RAM, panning, master volume
+- `get_serial_status` - Get SB/SC registers, decoded clock mode/speed, transfer progress and timing, serial IRQ state, and local link-cable session/transport diagnostics
+- `reset_link_cable_metrics` - Reset local link-cable activity, synchronization, wait, and recovery counters
 - `get_sgb_status` - Get Super Game Boy status: SGB active, mask mode, multiplayer state, last command, transfer state, border animation, effective palettes, and attribute map
 
 ### Sprites

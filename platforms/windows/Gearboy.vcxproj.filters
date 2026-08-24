@@ -13,6 +13,9 @@
     <ClCompile Include="..\shared\desktop\config.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\desktop\link_cable\link_cable_manager.cpp">
+      <Filter>desktop\link_cable</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\desktop\emu.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
@@ -53,6 +56,9 @@
       <Filter>desktop</Filter>
     </ClCompile>
     <ClCompile Include="..\shared\desktop\gui_debug_psg.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_link_cable.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
     <ClCompile Include="..\shared\desktop\gui_debug_sgb.cpp">
@@ -282,6 +288,12 @@
     <ClInclude Include="..\shared\desktop\console_utils.h">
       <Filter>desktop</Filter>
     </ClInclude>
+    <ClInclude Include="..\shared\desktop\link_cable\link_cable_manager.h">
+      <Filter>desktop\link_cable</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\link_cable\link_cable_wire.h">
+      <Filter>desktop\link_cable</Filter>
+    </ClInclude>
     <ClInclude Include="..\shared\desktop\emu.h">
       <Filter>desktop</Filter>
     </ClInclude>
@@ -325,6 +337,9 @@
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug_psg.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_link_cable.h">
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug_sgb.h">
@@ -433,6 +448,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\GearboyCore.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\link_cable.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Input.h">
@@ -611,6 +629,9 @@
     </Filter>
     <Filter Include="desktop">
       <UniqueIdentifier>{b305c14e-49f4-4f2f-9d40-5b15a839fbb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="desktop\link_cable">
+      <UniqueIdentifier>{c52e7a89-8da5-4b4a-bc6d-ef327b70ec3c}</UniqueIdentifier>
     </Filter>
     <Filter Include="dependencies\miniz">
       <UniqueIdentifier>{466b2296-06dc-4afd-a898-3c4ed168681e}</UniqueIdentifier>

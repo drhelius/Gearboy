@@ -40,9 +40,9 @@ int application_headless_init(const ApplicationParams& params)
     Log("\n%s", GEARBOY_TITLE_ASCII);
     Log("%s %s Headless Mode", GEARBOY_TITLE, GEARBOY_VERSION);
 
-    if (params.mcp_mode < 0)
+    if (params.mcp_mode < 0 && !params.link_cable_session_set)
     {
-        Error("Headless mode requires --mcp-stdio or --mcp-http");
+        Error("Headless mode requires MCP or --link-cable-join");
         return 1;
     }
 
@@ -97,13 +97,19 @@ int application_headless_init(const ApplicationParams& params)
         gui_debug_load_symbols_file(params.symbol_file);
     }
 
-    const char* mcp_http_address = params.mcp_http_address.empty() ? "127.0.0.1" : params.mcp_http_address.c_str();
-    if (params.mcp_mode == 0)
-        Log("Starting MCP server (mode: stdio)...");
-    else
-        Log("Starting MCP server (mode: http, address: %s, port: %d)...", mcp_http_address, params.mcp_tcp_port);
-    emu_mcp_set_transport(params.mcp_mode, params.mcp_tcp_port, mcp_http_address);
-    emu_mcp_start();
+    if (params.mcp_mode >= 0)
+    {
+        const char* mcp_http_address = params.mcp_http_address.empty() ? "127.0.0.1" : params.mcp_http_address.c_str();
+        if (params.mcp_mode == 0)
+            Log("Starting MCP server (mode: stdio)...");
+        else
+            Log("Starting MCP server (mode: http, address: %s, port: %d)...", mcp_http_address, params.mcp_tcp_port);
+        emu_mcp_set_transport(params.mcp_mode, params.mcp_tcp_port, mcp_http_address);
+        emu_mcp_start();
+    }
+
+    if (params.link_cable_session_set)
+        emu_link_cable_connect(params.link_cable_session);
 
     signal(SIGINT, headless_signal_handler);
     signal(SIGTERM, headless_signal_handler);
@@ -130,9 +136,9 @@ void application_headless_mainloop(void)
         gui_debug_update();
         gui_finish_loading_rom();
 
-        if (!emu_mcp_is_running())
+        if (!emu_mcp_is_running() && !emu_link_cable_is_active())
         {
-            Log("MCP server stopped, exiting headless mode");
+            Log("No service running, exiting headless mode");
             break;
         }
 

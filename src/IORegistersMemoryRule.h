@@ -359,15 +359,18 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         {
             // SB
             m_pMemory->Load(address, value);
+            m_pProcessor->NotifySerialDataWrite(value);
             TraceSerialEvent(TRACE_SERIAL_REG_WRITE, value);
             break;
         }
         case 0xFF02:
         {
             // SC
-            m_pMemory->Load(address, value);
+            u8 normalized = m_pProcessor->NormalizeSerialControl(value);
+            m_pMemory->Load(address, normalized);
+            m_pProcessor->NotifySerialControlWrite(normalized);
             TraceSerialEvent(TRACE_SERIAL_REG_WRITE, value);
-            if ((value & 0x81) == 0x81)
+            if ((normalized & 0x80) != 0)
                 TraceSerialEvent(TRACE_SERIAL_TRANSFER_START, value);
             break;
         }

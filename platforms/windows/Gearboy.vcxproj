@@ -64,6 +64,7 @@
     <ClCompile Include="..\shared\desktop\application.cpp" />
     <ClCompile Include="..\shared\desktop\application_headless.cpp" />
     <ClCompile Include="..\shared\desktop\config.cpp" />
+    <ClCompile Include="..\shared\desktop\link_cable\link_cable_manager.cpp" />
     <ClCompile Include="..\shared\desktop\emu.cpp" />
     <ClCompile Include="..\shared\desktop\rewind.cpp" />
     <ClCompile Include="..\shared\desktop\runahead.cpp" />
@@ -78,6 +79,7 @@
     <ClCompile Include="..\shared\desktop\gui_debug_video.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_io.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_psg.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_link_cable.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_sgb.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_trace_logger.cpp" />
     <ClCompile Include="..\shared\desktop\trace_logger_formatter.cpp" />
@@ -145,6 +147,7 @@
     <ClInclude Include="..\..\src\definitions.h" />
     <ClInclude Include="..\..\src\gearboy.h" />
     <ClInclude Include="..\..\src\GearboyCore.h" />
+    <ClInclude Include="..\..\src\link_cable.h" />
     <ClInclude Include="..\..\src\Input.h" />
     <ClInclude Include="..\..\src\IORegistersMemoryRule.h" />
     <ClInclude Include="..\..\src\MBC1MemoryRule.h" />
@@ -206,6 +209,8 @@
     <ClInclude Include="..\shared\desktop\config_definitions.inc.h" />
     <ClInclude Include="..\shared\desktop\config_macros.h" />
     <ClInclude Include="..\shared\desktop\console_utils.h" />
+    <ClInclude Include="..\shared\desktop\link_cable\link_cable_manager.h" />
+    <ClInclude Include="..\shared\desktop\link_cable\link_cable_wire.h" />
     <ClInclude Include="..\shared\desktop\emu.h" />
     <ClInclude Include="..\shared\desktop\rewind.h" />
     <ClInclude Include="..\shared\desktop\runahead.h" />
@@ -221,6 +226,7 @@
     <ClInclude Include="..\shared\desktop\gui_debug_video.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_io.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_psg.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_link_cable.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_sgb.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_text.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_trace_logger.h" />

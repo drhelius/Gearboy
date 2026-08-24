@@ -93,6 +93,7 @@ GearboyCore::GearboyCore()
     m_bColorCorrectionEnabled = false;
     m_pSaveStateFrameBuffer = NULL;
     m_master_clock_cycles = 0;
+    m_link_cable_cycles = 0;
 }
 
 GearboyCore::~GearboyCore()
@@ -189,15 +190,18 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             unsigned int cpuClockCycles = clockCycles;
 
             m_master_clock_cycles += cpuClockCycles;
+            m_link_cable_cycles += cpuClockCycles;
 
             m_pProcessor->UpdateTimers(clockCycles);
-            m_pProcessor->UpdateSerial(clockCycles);
+            m_pProcessor->UpdateSerial(clockCycles, m_link_cable_cycles);
 
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
             m_master_clock_cycles += clockCycles - cpuClockCycles;
+            m_link_cable_cycles += clockCycles - cpuClockCycles;
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
             m_pMBC3MemoryRule->Tick(clockCycles);
+            SynchronizeLinkCable();
             totalClocks += clockCycles;
 
             if (debug_enable)
@@ -253,15 +257,18 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             unsigned int cpuClockCycles = clockCycles;
 
             m_master_clock_cycles += cpuClockCycles;
+            m_link_cable_cycles += cpuClockCycles;
 
             m_pProcessor->UpdateTimers(clockCycles);
-            m_pProcessor->UpdateSerial(clockCycles);
+            m_pProcessor->UpdateSerial(clockCycles, m_link_cable_cycles);
 
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
             m_master_clock_cycles += clockCycles - cpuClockCycles;
+            m_link_cable_cycles += clockCycles - cpuClockCycles;
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
             m_pMBC3MemoryRule->Tick(clockCycles);
+            SynchronizeLinkCable();
             totalClocks += clockCycles;
 
             if (totalClocks > GAMEBOY_CLOCKS_SAFE_LIMIT)
@@ -376,6 +383,32 @@ TraceLogger* GearboyCore::GetTraceLogger()
 u64 GearboyCore::GetMasterClockCycles()
 {
     return m_master_clock_cycles;
+}
+
+u64 GearboyCore::GetLinkCableCycle() const
+{
+    return m_link_cable_cycles;
+}
+
+void GearboyCore::SetLinkCableCallbacks(GB_LinkCableStateCallback state_callback, GB_LinkCableStartCallback start_callback,
+    GB_LinkCablePollCallback poll_callback, GB_LinkCableSyncCallback sync_callback, void* user_data)
+{
+    m_pProcessor->SetLinkCableCallbacks(state_callback, start_callback, poll_callback, sync_callback, user_data);
+}
+
+void GearboyCore::SetLinkCableConnected(bool connected)
+{
+    m_pProcessor->SetLinkCableConnected(connected, m_link_cable_cycles);
+}
+
+bool GearboyCore::IsLinkCableConnected() const
+{
+    return m_pProcessor->IsLinkCableConnected();
+}
+
+void GearboyCore::SynchronizeLinkCable()
+{
+    m_pProcessor->SynchronizeLinkCable(m_link_cable_cycles);
 }
 
 void GearboyCore::SetAccelerometer(double x, double y)
@@ -1659,6 +1692,9 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
 
     m_pSGB->Reset();
     m_pIORegistersMemoryRule->SetSGB(m_bSGB ? m_pSGB : NULL);
+
+    if (m_pProcessor->IsLinkCableConnected())
+        m_pProcessor->SetLinkCableConnected(true, m_link_cable_cycles);
 
     if (m_bSGB)
         Log("Reset: Super Game Boy mode enabled");

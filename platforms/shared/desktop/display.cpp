@@ -37,6 +37,7 @@ static int vsync_frames_per_emu_frame = 1;
 static int vsync_frame_counter = 0;
 static int last_vsync_state = -1;
 static bool multi_monitor_mixed_refresh = false;
+static bool last_link_cable_connected = false;
 static bool pending_gl_context_recreate = false;
 
 static bool display_is_vrr_enabled(void);
@@ -99,7 +100,8 @@ void display_frame_throttle(void)
 bool display_should_run_emu_frame(void)
 {
     if (config_video.sync_mode != config_VideoSync_Disabled && !emu_is_empty() && !emu_is_paused()
-        && !emu_is_debug_idle() && emu_is_audio_open() && !config_emulator.ffwd)
+        && !emu_is_debug_idle() && emu_is_audio_open() && !config_emulator.ffwd
+        && !emu_link_cable_is_cable_connected())
     {
         if (display_is_vrr_enabled())
             return true;
@@ -116,7 +118,9 @@ bool display_should_run_emu_frame(void)
 
 void display_use_vsync_if_enabled(void)
 {
-    bool effective = config_video.sync_mode != config_VideoSync_Disabled && !display_is_vsync_forced_off();
+    bool effective = config_video.sync_mode != config_VideoSync_Disabled &&
+        !display_is_vsync_forced_off() &&
+        !emu_link_cable_is_cable_connected();
     display_set_swap_interval(effective);
     display_update_frame_pacing();
 }
@@ -125,6 +129,17 @@ void display_disable_vsync(void)
 {
     display_set_swap_interval(false);
     display_update_frame_pacing();
+}
+
+void display_update_vsync_state(void)
+{
+    bool connected = emu_link_cable_is_cable_connected();
+
+    if (connected == last_link_cable_connected)
+        return;
+
+    last_link_cable_connected = connected;
+    display_use_vsync_if_enabled();
 }
 
 void display_update_frame_pacing(void)
@@ -236,7 +251,9 @@ void display_recreate_gl_context(void)
         SDL_GL_MakeCurrent(application_sdl_window, display_gl_context);
         SDL_GL_DestroyContext(old_context);
 
-        bool enable_vsync = config_video.sync_mode != config_VideoSync_Disabled && !display_is_vsync_forced_off();
+        bool enable_vsync = config_video.sync_mode != config_VideoSync_Disabled &&
+            !display_is_vsync_forced_off() &&
+            !emu_link_cable_is_cable_connected();
         display_set_swap_interval(enable_vsync);
 
         ImGui_ImplSDL3_InitForOpenGL(application_sdl_window, display_gl_context);

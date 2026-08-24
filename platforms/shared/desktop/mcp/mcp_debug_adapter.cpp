@@ -848,6 +848,135 @@ json DebugAdapter::GetCPUStatus()
     return status;
 }
 
+json DebugAdapter::GetSerialStatus()
+{
+    Processor* processor = m_core->GetProcessor();
+    Memory* memory = m_core->GetMemory();
+    Processor::SerialState serial;
+    processor->GetSerialState(serial);
+
+    u8 sb = memory->Retrieve(0xFF01);
+    u8 sc = memory->Retrieve(0xFF02);
+    bool start_requested = (sc & 0x80) != 0;
+    bool internal_clock = serial.transfer_active ? serial.internal_clock : ((sc & 0x01) != 0);
+    bool fast_clock = m_core->IsCGB() && ((sc & 0x02) != 0);
+
+    const char* transfer_mode = "idle";
+    if (serial.restore_pending)
+        transfer_mode = "restore_pending";
+    else if (serial.transfer_active)
+        transfer_mode = serial.internal_clock ? "internal_active" : "external_active";
+    else if (serial.waiting_external)
+        transfer_mode = "external_wait";
+
+    json status;
+    std::ostringstream ss;
+    ss << std::hex << std::uppercase << std::setfill('0');
+
+    json registers;
+    ss << std::setw(2) << (int)sb;
+    registers["SB"] = ss.str();
+    ss.str("");
+    ss << std::setw(2) << (int)sc;
+    registers["SC"] = ss.str();
+    ss.str("");
+    status["registers"] = registers;
+
+    json control;
+    control["system"] = m_core->IsCGB() ? "cgb" : "dmg";
+    control["start_requested"] = start_requested;
+    control["clock_source"] = internal_clock ? "internal" : "external";
+    control["clock_speed"] = fast_clock ? "cgb_fast" : "normal";
+    control["cpu_speed"] = processor->CGBSpeed() ? "double" : "normal";
+    control["cable_connected"] = processor->IsLinkCableConnected();
+    status["control"] = control;
+
+    json transfer;
+    transfer["mode"] = transfer_mode;
+    transfer["active"] = serial.transfer_active;
+    transfer["waiting_external"] = serial.waiting_external;
+    transfer["restore_pending"] = serial.restore_pending;
+    transfer["bits_shifted"] = CLAMP(serial.bit_index, 0, 8);
+    transfer["bit_phase_cycles"] = serial.cycles;
+    transfer["bit_cycles"] = serial.bit_cycles;
+    ss << std::setw(2) << (int)serial.outgoing_byte;
+    transfer["outgoing_byte"] = ss.str();
+    ss.str("");
+    ss << std::setw(2) << (int)serial.incoming_byte;
+    transfer["incoming_byte"] = ss.str();
+    ss.str("");
+    transfer["transfer_id"] = serial.transfer_id;
+    transfer["link_cycle"] = m_core->GetLinkCableCycle();
+    transfer["last_request_cycle"] = serial.request_cycle;
+    transfer["next_edge_cycle"] = serial.next_shift_cycle;
+    status["transfer"] = transfer;
+
+    bool irq_requested = (memory->Retrieve(0xFF0F) & Processor::Serial_Interrupt) != 0;
+    bool irq_enabled = (memory->Retrieve(0xFFFF) & Processor::Serial_Interrupt) != 0;
+
+    json interrupt;
+    interrupt["requested"] = irq_requested;
+    interrupt["enabled"] = irq_enabled;
+    interrupt["asserted"] = irq_requested && irq_enabled;
+    status["interrupt"] = interrupt;
+
+    LinkCableStatus link = emu_link_cable_get_status();
+    const char* link_mode = "disabled";
+    if (link.mode == LinkCableModeConnected)
+        link_mode = "connected";
+    else if (link.mode == LinkCableModeFault)
+        link_mode = "fault";
+
+    json network;
+    network["transport"] = "shared_memory";
+    network["mode"] = link_mode;
+    network["cable_connected"] = link.cable_connected;
+    network["endpoint"] = link.endpoint;
+    network["last_error"] = link.last_error;
+    network["session"] = link.session;
+    network["local_peer_id"] = link.local_peer_id;
+    network["peer_count"] = link.peer_count;
+    network["pacing_peer"] = link.pacing_peer;
+    network["link_cycle"] = m_core->GetLinkCableCycle();
+    network["promise_cycles"] = processor->GetLinkCablePromiseCycles( m_core->GetLinkCableCycle());
+    network["states_published"] = link.states_published;
+    network["transfers_published"] = link.transfers_published;
+    network["transfers_delivered"] = link.transfers_delivered;
+    network["transfers_no_peer"] = link.transfers_no_peer;
+    network["transfers_unarmed"] = link.transfers_unarmed;
+    network["clock_conflicts"] = link.clock_conflicts;
+    network["late_descriptors"] = link.late_descriptors;
+    network["sync_calls"] = link.sync_calls;
+    network["snapshot_waits"] = link.snapshot_waits;
+    network["snapshot_wait_us"] = link.snapshot_wait_us;
+    network["barrier_waits"] = link.barrier_waits;
+    network["barrier_wait_us"] = link.barrier_wait_us;
+    network["barrier_wait_max_us"] = link.barrier_wait_max_us;
+    network["barrier_wait_over_1ms"] = link.barrier_wait_over_1ms;
+    network["barrier_wait_over_10ms"] = link.barrier_wait_over_10ms;
+    network["barrier_wait_over_50ms"] = link.barrier_wait_over_50ms;
+    network["spin_iterations"] = link.spin_iterations;
+    network["sleep_calls"] = link.sleep_calls;
+    network["sync_gap_max_us"] = link.sync_gap_max_us;
+    network["sync_gap_over_50ms"] = link.sync_gap_over_50ms;
+    network["peer_detaches"] = link.peer_detaches;
+    network["peer_detach_max_age_us"] = link.peer_detach_max_age_us;
+    network["slot_reclaims"] = link.slot_reclaims;
+    network["seqlock_retries"] = link.seqlock_retries;
+    network["state_ring_overruns"] = link.state_ring_overruns;
+    network["transfer_ring_overruns"] = link.transfer_ring_overruns;
+    network["attachments"] = link.attachments;
+    status["link_cable"] = network;
+
+    return status;
+}
+
+json DebugAdapter::ResetLinkCableMetrics()
+{
+    emu_link_cable_reset_metrics();
+    return {{"success", true}};
+}
+
 json DebugAdapter::GetLCDRegisters()
 {
     json result;
@@ -1528,6 +1657,8 @@ json DebugAdapter::LoadStateFile(const std::string& file_path)
         Log("[MCP] LoadStateFile failed: No media loaded");
         return result;
     }
+
+    emu_link_cable_stop();
 
     if (!m_core->LoadState(file_path.c_str(), -1, false))
     {

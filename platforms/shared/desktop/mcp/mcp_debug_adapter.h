@@ -123,6 +123,8 @@ public:
     json GetLCDRegisters();
     json GetLCDStatus();
     json GetAPUStatus();
+    json GetSerialStatus();
+    json ResetLinkCableMetrics();
     json GetScreenshot();
     json GetSGBStatus();
     json ListSprites();

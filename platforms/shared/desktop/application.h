@@ -41,6 +41,8 @@ struct ApplicationParams
     bool mcp_tcp_port_set = false;
     std::string mcp_http_address = "127.0.0.1";
     bool mcp_http_address_set = false;
+    int link_cable_session = 1;
+    bool link_cable_session_set = false;
 };
 
 EXTERN SDL_Window* application_sdl_window;
@@ -59,6 +61,10 @@ EXTERN void application_refocus_window(void);
 EXTERN void application_update_title_with_rom(const char* rom);
 EXTERN void application_input_pump(void);
 EXTERN bool application_check_single_instance(const char* rom_file, const char* symbol_file);
+#if defined(__APPLE__)
+EXTERN bool application_can_launch_new_instance(void);
+EXTERN void application_launch_new_instance(void);
+#endif
 
 #undef APPLICATION_IMPORT
 #undef EXTERN

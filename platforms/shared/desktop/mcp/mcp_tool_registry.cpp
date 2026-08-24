@@ -205,6 +205,7 @@ static const McpToolCategory kMcpToolCategories[] =
     {"symbols", "Symbols", "Add, remove, load, list, and look up debug symbols or labels."},
     {"hardware_lcd", "LCD Hardware", "Inspect Game Boy LCD registers, display timing, status, palettes, and video state."},
     {"hardware_audio", "Audio Hardware", "Inspect Game Boy APU state, channels, mixer, volume, and sound registers."},
+    {"hardware_serial", "Serial Hardware", "Inspect Game Boy SB/SC serial transfers, interrupts, timing, and local link-cable transport."},
     {"hardware_sgb", "Super Game Boy", "Inspect Super Game Boy command, border, mask, multiplayer, palette, and transfer state."},
     {"media", "Media", "Load ROMs, list recent media, load symbols, and inspect loaded cartridge/media information."},
     {"capture", "Capture", "Capture current screenshots and Game Boy sprite images or sprite metadata."},
@@ -263,6 +264,11 @@ static const char* const kMcpAudioTools[] =
     "get_apu_status"
 };
 
+static const char* const kMcpSerialTools[] =
+{
+    "get_serial_status", "reset_link_cable_metrics"
+};
+
 static const char* const kMcpSgbTools[] =
 {
     "get_sgb_status"
@@ -309,6 +315,7 @@ static const McpToolCategoryTools kMcpToolCategoryTools[] =
     {"symbols", kMcpSymbolTools, MCP_ARRAY_COUNT(kMcpSymbolTools)},
     {"hardware_lcd", kMcpLcdTools, MCP_ARRAY_COUNT(kMcpLcdTools)},
     {"hardware_audio", kMcpAudioTools, MCP_ARRAY_COUNT(kMcpAudioTools)},
+    {"hardware_serial", kMcpSerialTools, MCP_ARRAY_COUNT(kMcpSerialTools)},
     {"hardware_sgb", kMcpSgbTools, MCP_ARRAY_COUNT(kMcpSgbTools)},
     {"media", kMcpMediaTools, MCP_ARRAY_COUNT(kMcpMediaTools)},
     {"capture", kMcpCaptureTools, MCP_ARRAY_COUNT(kMcpCaptureTools)},
@@ -697,6 +704,8 @@ std::string McpToolRegistry::AliasesForTool(const std::string& tool_name) const
         StringContains(name, "audio") || StringContains(name, "ym2413") ||
         StringContains(name, "ay8910"))
         aliases += " sound audio channel tone noise volume";
+    if (StringContains(name, "serial") || StringContains(name, "link_cable"))
+        aliases += " serial link cable sb sc clock transfer irq peer session shared memory";
     if (StringContains(name, "breakpoint"))
         aliases += " watchpoint stop read write execute irq interrupt";
     if (StringContains(name, "memory"))

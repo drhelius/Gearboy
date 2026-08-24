@@ -30,6 +30,7 @@
 #include "events.h"
 #include "gui_debug_trace_logger.h"
 #include "mcp/mcp_manager.h"
+#include "link_cable/link_cable_manager.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #if defined(_WIN32)
@@ -49,6 +50,8 @@ static u16* frame_buffer_565;
 static s16* audio_buffer;
 static bool audio_enabled;
 static McpManager* mcp_manager;
+static LinkCableManager* link_cable_manager;
+static bool link_cable_applied;
 static float tilt_x = 0.0f;
 static float tilt_y = 0.0f;
 static u16* debug_background_buffer_565;
@@ -88,6 +91,11 @@ static void update_debug_tile_buffers(void);
 static void update_debug_oam_buffers(void);
 static void reset_rewind_timing(void);
 static int get_rewind_pop_budget(void);
+static void link_cable_state_callback(u64 cycle, u8 sb, u8 sc, void* user_data);
+static void link_cable_start_callback(u64 request_cycle, u64 first_shift_cycle, u32 bit_cycles,
+    u8 outgoing_byte, u32 transfer_id, u8* incoming_byte, void* user_data);
+static bool link_cable_poll_callback(u64 current_cycle, GB_LinkCableTransfer* transfer, void* user_data);
+static void link_cable_sync_callback(u64 cycle, u32 promise_cycles, void* user_data);
 
 bool emu_init(void)
 {
@@ -96,6 +104,14 @@ bool emu_init(void)
     init_debug();
     gearboy = new GearboyCore();
     gearboy->Init();
+
+    link_cable_manager = new LinkCableManager();
+    link_cable_manager->SetNormalBarrierStallUs((u32)config_emulator.link_cable_stall_us);
+    link_cable_applied = false;
+    gearboy->SetLinkCableCallbacks(link_cable_state_callback,
+        link_cable_start_callback, link_cable_poll_callback,
+        link_cable_sync_callback, link_cable_manager);
+
     sound_queue_init();
     audio_buffer = new s16[AUDIO_BUFFER_SIZE];
     for (int i = 0; i < AUDIO_BUFFER_SIZE; i++)
@@ -145,6 +161,8 @@ void emu_destroy(void)
     rewind_destroy();
     runahead_destroy();
     SafeDelete(mcp_manager);
+    SafeDelete(link_cable_manager);
+
     for (int i = 0; i < 5; i++)
         SafeDeleteArray(emu_savestates_screenshots[i].data);
 
@@ -268,6 +286,7 @@ void emu_update(void)
         return;
 
     emu_mcp_pump_commands();
+    emu_link_cable_pump();
 
     if (emu_is_empty())
         return;
@@ -280,7 +299,7 @@ void emu_update(void)
     bool frame_executed = false;
     bool frame_completed = false;
 
-    if (rewind_is_active())
+    if (!emu_link_cable_is_active() && rewind_is_active())
     {
         int to_pop = get_rewind_pop_budget();
 
@@ -350,7 +369,7 @@ void emu_update(void)
         {
             rewind_commit_seek();
 
-            int runahead = runahead_get_frames();
+            int runahead = emu_link_cable_is_active() ? 0 : runahead_get_frames();
             if (runahead > 0)
                 runahead_run(runahead, frame_buffer_565, audio_buffer, &sampleCount);
             else
@@ -377,7 +396,8 @@ void emu_update(void)
 
     if ((sampleCount > 0) && !gearboy->IsPaused())
     {
-        sound_queue_write(audio_buffer, sampleCount, emu_audio_sync);
+        bool sync_audio = emu_audio_sync && (!emu_link_cable_is_active() || link_cable_manager->IsPacingPeer());
+        sound_queue_write(audio_buffer, sampleCount, sync_audio);
     }
     else if (gearboy->IsPaused())
     {
@@ -585,6 +605,7 @@ void emu_load_ram(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
 {
     if (!emu_is_empty())
     {
+        emu_link_cable_stop();
         gui_debug_trace_logger_reset();
         save_ram();
         gearboy->SetSGBEnabled(config_emulator.sgb);
@@ -622,6 +643,7 @@ void emu_load_state_slot(int index)
 {
     if (!emu_is_empty())
     {
+        emu_link_cable_stop();
         const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
         if (gearboy->LoadState(dir, index, false))
         {
@@ -642,6 +664,7 @@ void emu_load_state_file(const char* file_path)
 {
     if (!emu_is_empty())
     {
+        emu_link_cable_stop();
         if (gearboy->LoadState(file_path, -1, false))
         {
             events_sync_input();
@@ -1162,6 +1185,114 @@ void emu_mcp_pump_commands(void)
 {
     if (mcp_manager && mcp_manager->IsRunning())
         mcp_manager->PumpCommands(gearboy);
+}
+
+bool emu_link_cable_connect(int session)
+{
+    if (!link_cable_manager)
+        return false;
+
+    config_emulator.ffwd = false;
+    config_audio.sync = true;
+
+    rewind_reset();
+
+    bool started = link_cable_manager->Connect((u8)session, gearboy->GetLinkCableCycle());
+    emu_link_cable_pump();
+
+    return started;
+}
+
+void emu_link_cable_stop(void)
+{
+    if (link_cable_manager)
+        link_cable_manager->Stop();
+
+    if (gearboy && link_cable_applied)
+    {
+        gearboy->SetLinkCableConnected(false);
+        link_cable_applied = false;
+    }
+}
+
+void emu_link_cable_pump(void)
+{
+    if (!link_cable_manager || !gearboy)
+        return;
+
+    bool cable_connected = link_cable_manager->IsCableConnected();
+
+    if (cable_connected != link_cable_applied)
+    {
+        gearboy->SetLinkCableConnected(cable_connected);
+        link_cable_applied = cable_connected;
+    }
+}
+
+bool emu_link_cable_is_active(void)
+{
+    return link_cable_manager && link_cable_manager->IsActive();
+}
+
+bool emu_link_cable_is_cable_connected(void)
+{
+    return link_cable_manager && link_cable_manager->IsCableConnected();
+}
+
+LinkCableStatus emu_link_cable_get_status(void)
+{
+    if (link_cable_manager)
+        return link_cable_manager->GetStatus();
+
+    LinkCableStatus status = {};
+    status.mode = LinkCableModeDisabled;
+    return status;
+}
+
+void emu_link_cable_reset_metrics(void)
+{
+    if (link_cable_manager)
+        link_cable_manager->ResetMetrics();
+}
+
+void emu_link_cable_set_normal_barrier_stall_us(u32 stall_us)
+{
+    if (link_cable_manager)
+        link_cable_manager->SetNormalBarrierStallUs(stall_us);
+}
+
+static void link_cable_state_callback(u64 cycle, u8 sb, u8 sc, void* user_data)
+{
+    LinkCableManager* manager = (LinkCableManager*)user_data;
+
+    if (manager)
+        manager->PublishPortState(cycle, sb, sc);
+}
+
+static void link_cable_start_callback(u64 request_cycle, u64 first_shift_cycle, u32 bit_cycles,
+    u8 outgoing_byte, u32 transfer_id, u8* incoming_byte, void* user_data)
+{
+    LinkCableManager* manager = (LinkCableManager*)user_data;
+
+    if (manager)
+    {
+        manager->StartTransfer(request_cycle, first_shift_cycle, bit_cycles,
+            outgoing_byte, transfer_id, incoming_byte);
+    }
+}
+
+static bool link_cable_poll_callback(u64 current_cycle, GB_LinkCableTransfer* transfer, void* user_data)
+{
+    LinkCableManager* manager = (LinkCableManager*)user_data;
+    return manager ? manager->PollTransfer(current_cycle, transfer) : false;
+}
+
+static void link_cable_sync_callback(u64 cycle, u32 promise_cycles, void* user_data)
+{
+    LinkCableManager* manager = (LinkCableManager*)user_data;
+
+    if (manager)
+        manager->Synchronize(cycle, promise_cycles);
 }
 
 static void reset_buffers(void)

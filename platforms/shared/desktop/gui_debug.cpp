@@ -30,6 +30,7 @@
 #include "gui_debug_video.h"
 #include "gui_debug_io.h"
 #include "gui_debug_psg.h"
+#include "gui_debug_link_cable.h"
 #include "gui_debug_trace_logger.h"
 #include "gui_debug_sgb.h"
 #include "emu.h"
@@ -97,6 +98,10 @@ void gui_debug_windows(void)
             gui_debug_window_io();
         if (config_debug.show_psg)
             gui_debug_window_psg();
+        if (config_debug.show_link_cable)
+            gui_debug_window_link_cable();
+        if (config_debug.show_link_cable_transport)
+            gui_debug_window_link_cable_transport();
         if (config_debug.show_video_nametable)
             gui_debug_window_vram_nametable();
         if (config_debug.show_video_tiles)

@@ -779,6 +779,30 @@ json McpServer::BuildToolList()
     });
 
     tools.push_back({
+        {"name", "get_serial_status"},
+        {"title", "Get Serial / Link Cable Status"},
+        {"description", "Read Game Boy SB/SC serial engine, IRQ, timing, and local link-cable transport diagnostics."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "reset_link_cable_metrics"},
+        {"title", "Reset Link Cable Metrics"},
+        {"description", "Reset local link-cable transport, synchronization, wait, and recovery counters."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
         {"name", "get_screenshot"},
         {"title", "Get Screenshot"},
         {"description", "Capture current screen/frame/video output as PNG screenshot image."},
@@ -2390,6 +2414,14 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     else if (normalizedTool == "get_apu_status")
     {
         return m_debugAdapter.GetAPUStatus();
+    }
+    else if (normalizedTool == "get_serial_status")
+    {
+        return m_debugAdapter.GetSerialStatus();
+    }
+    else if (normalizedTool == "reset_link_cable_metrics")
+    {
+        return m_debugAdapter.ResetLinkCableMetrics();
     }
     else if (normalizedTool == "get_screenshot")
     {

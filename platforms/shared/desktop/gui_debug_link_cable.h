@@ -17,32 +17,18 @@
  *
  */
 
-#ifndef DISPLAY_H
-#define DISPLAY_H
+#ifndef GUI_DEBUG_LINK_CABLE_H
+#define GUI_DEBUG_LINK_CABLE_H
 
-#include <SDL3/SDL.h>
-
-#ifdef DISPLAY_IMPORT
+#ifdef GUI_DEBUG_LINK_CABLE_IMPORT
     #define EXTERN
 #else
     #define EXTERN extern
 #endif
 
-EXTERN SDL_GLContext display_gl_context;
+EXTERN void gui_debug_window_link_cable(void);
+EXTERN void gui_debug_window_link_cable_transport(void);
 
-EXTERN void display_begin_frame(void);
-EXTERN void display_render(void);
-EXTERN void display_frame_throttle(void);
-EXTERN bool display_should_run_emu_frame(void);
-EXTERN void display_update_vsync_state(void);
-EXTERN void display_use_vsync_if_enabled(void);
-EXTERN void display_disable_vsync(void);
-EXTERN void display_update_frame_pacing(void);
-EXTERN void display_recreate_gl_context(void);
-EXTERN void display_request_gl_context_recreate(void);
-EXTERN void display_check_mixed_refresh_rates(void);
-EXTERN bool display_is_vsync_forced_off(void);
-
-#undef DISPLAY_IMPORT
+#undef GUI_DEBUG_LINK_CABLE_IMPORT
 #undef EXTERN
-#endif /* DISPLAY_H */
+#endif /* GUI_DEBUG_LINK_CABLE_H */

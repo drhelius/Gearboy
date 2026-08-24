@@ -24,7 +24,7 @@
 #include <string>
 #include "gearboy.h"
 
-static const int config_version = 5;
+static const int config_version = 6;
 static const int config_minimum_version = 2;
 static const int config_max_recent_roms = 10;
 static const int config_max_custom_palettes = 5;
@@ -88,6 +88,8 @@ struct config_Emulator
     bool allow_screensaver;
     int mcp_tcp_port;
     std::string mcp_http_address;
+    int link_cable_session;
+    int link_cable_stall_us;
     int tilt_source;
     int mouse_sensitivity_x;
     int mouse_sensitivity_y;
@@ -224,6 +226,8 @@ struct config_Debug
     bool show_video_gbc_palettes;
     bool show_io;
     bool show_psg;
+    bool show_link_cable;
+    bool show_link_cable_transport;
     bool show_trace_logger;
     bool show_rewind;
     bool show_sgb_state;

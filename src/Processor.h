@@ -25,6 +25,7 @@
 #include <stack>
 #include "definitions.h"
 #include "SixteenBitRegister.h"
+#include "link_cable.h"
 
 class Memory;
 class TraceLogger;
@@ -93,6 +94,22 @@ public:
         bool* Halt;
     };
 
+    struct SerialState
+    {
+        int bit_index;
+        int cycles;
+        bool transfer_active;
+        bool waiting_external;
+        bool internal_clock;
+        bool restore_pending;
+        u8 incoming_byte;
+        u8 outgoing_byte;
+        u32 bit_cycles;
+        u32 transfer_id;
+        u64 request_cycle;
+        u64 next_shift_cycle;
+    };
+
 public:
     Processor(Memory* pMemory);
     ~Processor();
@@ -137,8 +154,18 @@ public:
     void CheckMemoryBreakpoints(int type, u16 address, bool read);
     bool Halted();
     void SetTraceLogger(TraceLogger* pTraceLogger);
+    u8 NormalizeSerialControl(u8 value) const;
+    void NotifySerialDataWrite(u8 value);
+    void NotifySerialControlWrite(u8 value);
+    void SetLinkCableCallbacks(GB_LinkCableStateCallback state_callback, GB_LinkCableStartCallback start_callback,
+        GB_LinkCablePollCallback poll_callback, GB_LinkCableSyncCallback sync_callback, void* user_data);
+    void SetLinkCableConnected(bool connected, u64 current_cycle);
+    bool IsLinkCableConnected() const;
+    void GetSerialState(SerialState& state) const;
+    u32 GetLinkCablePromiseCycles(u64 current_cycle) const;
     INLINE void UpdateTimers(u8 ticks);
-    INLINE void UpdateSerial(u8 ticks);
+    INLINE void UpdateSerial(u8 ticks, u64 current_cycle);
+    INLINE void SynchronizeLinkCable(u64 current_cycle);
 
 private:
     typedef void (Processor::*OPCmemberptr) (void);
@@ -169,6 +196,29 @@ private:
     unsigned int m_iTIMACycles;
     int m_iSerialBit;
     int m_iSerialCycles;
+    bool m_bSerialTransferActive;
+    bool m_bSerialWaitingExternal;
+    bool m_bSerialInternalClock;
+    bool m_bSerialControlWritePending;
+    bool m_bSerialDataWritePending;
+    bool m_bSerialRestorePending;
+    u8 m_iSerialPendingControl;
+    u8 m_iSerialPendingData;
+    u8 m_iSerialIncomingByte;
+    u8 m_iSerialOutgoingByte;
+    u8 m_iSerialDividerOffset;
+    u32 m_iSerialBitCycles;
+    u32 m_iSerialTransferId;
+    u64 m_iSerialRequestCycle;
+    u64 m_iSerialNextShiftCycle;
+    GB_LinkCableStateCallback m_link_cable_state_callback;
+    GB_LinkCableStartCallback m_link_cable_start_callback;
+    GB_LinkCablePollCallback m_link_cable_poll_callback;
+    GB_LinkCableSyncCallback m_link_cable_sync_callback;
+    void* m_link_cable_user_data;
+    bool m_bLinkCableConnected;
+    u64 m_iLinkCableNextSyncCycle;
+    u32 m_iLinkCableSyncCycles;
     int m_iIMECycles;
     int m_iUnhaltCycles;
     bool m_bCGB;
@@ -217,7 +267,16 @@ private:
     INLINE void TraceSerialEvent(u8 event);
     NO_INLINE void LogTimerEvent(u8 event);
     NO_INLINE void LogSerialEvent(u8 event);
-    NO_INLINE void UpdateSerialActive(u8 ticks, u8 sc);
+    NO_INLINE void UpdateSerialActive(u8 ticks, u64 current_cycle);
+    void ResetSerialRuntime();
+    void ProcessSerialControlWrite(u64 current_cycle);
+    void StartInternalSerialTransfer(u64 current_cycle);
+    u32 GetFirstSerialShiftCycles(bool fast_cgb) const;
+    void PollExternalSerialTransfer(u64 current_cycle);
+    void RestoreSerialTransfer(u64 current_cycle);
+    void ShiftSerialBit(u64 edge_cycle);
+    void PublishSerialState(u64 cycle);
+    u32 GetLinkCableSyncCycles(u64 current_cycle) const;
     void UpdateGameShark();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);
