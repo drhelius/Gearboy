@@ -43,6 +43,11 @@ bool MemoryRule::MapsROMDirectly()
     return false;
 }
 
+u8 MemoryRule::GetMapperType()
+{
+    return (u8)m_pCartridge->GetType();
+}
+
 void MemoryRule::SetTraceLogger(TraceLogger* pTraceLogger)
 {
     m_pTraceLogger = pTraceLogger;
@@ -54,11 +59,23 @@ void MemoryRule::LogTraceMapperEvent(u16 address, u8 value, u8 event, u8 flags, 
     GB_Trace_Entry e = {};
     e.type = TRACE_MAPPER;
     e.mapper.address = address;
-    e.mapper.rom_bank0 = (u16)GetCurrentRomBank0Index();
-    e.mapper.rom_bank1 = (u16)GetCurrentRomBank1Index();
-    e.mapper.ram_bank = (s16)GetCurrentRamBankIndex();
+    u8 mapper = GetMapperType();
+
+    if (mapper == Cartridge::CartridgeMBC6)
+    {
+        e.mapper.rom_bank0 = GetCurrentRomBankIndex(0x4000);
+        e.mapper.rom_bank1 = GetCurrentRomBankIndex(0x6000);
+        e.mapper.ram_bank = (s16)((GetCurrentRamBankIndex(0xA000) << 8) | GetCurrentRamBankIndex(0xB000));
+    }
+    else
+    {
+        e.mapper.rom_bank0 = (u16)GetCurrentRomBank0Index();
+        e.mapper.rom_bank1 = (u16)GetCurrentRomBank1Index();
+        e.mapper.ram_bank = (s16)GetCurrentRamBankIndex();
+    }
+
     e.mapper.value = value;
-    e.mapper.mapper = (u8)m_pCartridge->GetType();
+    e.mapper.mapper = mapper;
     e.mapper.event = event;
     e.mapper.flags = flags;
     e.mapper.flags_valid = flags_valid ? 1 : 0;
@@ -134,6 +151,12 @@ int MemoryRule::GetCurrentRamBankIndex()
     return 0;
 }
 
+int MemoryRule::GetCurrentRamBankIndex(u16 address)
+{
+    UNUSED(address);
+    return GetCurrentRamBankIndex();
+}
+
 u8* MemoryRule::GetRomBank0()
 {
     Debug("MemoryRule::GetRomBank0 not implemented");
@@ -156,6 +179,27 @@ int MemoryRule::GetCurrentRomBank1Index()
 {
     Debug("MemoryRule::GetCurrentRomBank1Index not implemented");
     return 1;
+}
+
+u16 MemoryRule::GetCurrentRomBankIndex(u16 address)
+{
+    if (address < 0x4000)
+        return (u16)GetCurrentRomBank0Index();
+
+    return (u16)GetCurrentRomBank1Index();
+}
+
+u32 MemoryRule::GetPhysicalROMAddress(u16 address)
+{
+    return GetPhysicalROMAddress(address, GetCurrentRomBankIndex(address));
+}
+
+u32 MemoryRule::GetPhysicalROMAddress(u16 address, u16 bank)
+{
+    if (address < 0x4000)
+        return (u32)(0x4000 * bank) + address;
+
+    return (u32)(0x4000 * bank) + (address & 0x3FFF);
 }
 
 u8* MemoryRule::GetRTCMemory()

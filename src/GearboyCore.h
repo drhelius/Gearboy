@@ -36,6 +36,7 @@ class MBC1MemoryRule;
 class MBC2MemoryRule;
 class MBC3MemoryRule;
 class MBC5MemoryRule;
+class MBC6MemoryRule;
 class MultiMBC1MemoryRule;
 class HuC1MemoryRule;
 class HuC3MemoryRule;
@@ -156,6 +157,7 @@ private:
     MBC2MemoryRule* m_pMBC2MemoryRule;
     MBC3MemoryRule* m_pMBC3MemoryRule;
     MBC5MemoryRule* m_pMBC5MemoryRule;
+    MBC6MemoryRule* m_pMBC6MemoryRule;
     MultiMBC1MemoryRule* m_pMultiMBC1MemoryRule;
     HuC1MemoryRule* m_pHuC1MemoryRule;
     HuC3MemoryRule* m_pHuC3MemoryRule;

@@ -63,6 +63,7 @@ public:
     GB_Disassembler_Record* GetOrCreateDisassemblerRecord(u16 address);
     void ResetDisassemblerRecords();
     GB_Disassembler_Record** GetAllDisassemblerRecords();
+    void InvalidateDisassemblerRecords(u32 start, u32 size);
     void LoadBank0and1FromROM(u8* pTheROM);
     void MemoryDump(const char* szFilePath);
     void PerformDMA(u8 value);

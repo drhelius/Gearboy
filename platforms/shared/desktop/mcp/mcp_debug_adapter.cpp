@@ -362,17 +362,19 @@ std::vector<u8> DebugAdapter::ReadMemoryArea(int area, u32 offset, size_t size)
     return result;
 }
 
-void DebugAdapter::WriteMemoryArea(int area, u32 offset, const std::vector<u8>& data)
+bool DebugAdapter::WriteMemoryArea(int area, u32 offset, const std::vector<u8>& data)
 {
     MemoryAreaInfo info = GetMemoryAreaInfo(area);
 
-    if (info.data == NULL || offset >= info.size)
-        return;
+    if (info.data == NULL || offset >= info.size || info.read_only)
+        return false;
 
     for (size_t i = 0; i < data.size() && (offset + i) < info.size; i++)
     {
         info.data[offset + i] = data[i];
     }
+
+    return true;
 }
 
 std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_address, int bank, bool resolve_symbols)
@@ -511,6 +513,7 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
     info.id = area;
     info.data = NULL;
     info.size = 0;
+    info.read_only = false;
 
     Memory* memory = m_core->GetMemory();
 
@@ -525,6 +528,7 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
             info.name = "ROM1";
             info.data = memory->GetROM1();
             info.size = 0x4000;
+            info.read_only = memory->GetCurrentRule()->GetMapperType() == Cartridge::CartridgeMBC6;
             break;
         case MEMORY_EDITOR_VRAM:
             info.name = "VRAM";
@@ -535,7 +539,7 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
         {
             info.name = "RAM";
             MemoryRule* rule = memory->GetCurrentRule();
-            if (m_core->GetCartridge()->HasRam() && IsValidPointer(rule))
+            if (IsValidPointer(rule) && (m_core->GetCartridge()->HasRam() || rule->GetMapperType() == Cartridge::CartridgeMBC6))
             {
                 size_t ram_size = rule->GetRamSize();
                 if (ram_size > 0x2000)
@@ -544,6 +548,7 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
                 {
                     info.data = memory->GetRAM();
                     info.size = (u32)ram_size;
+                    info.read_only = rule->GetMapperType() == Cartridge::CartridgeMBC6;
                 }
             }
             break;
@@ -721,7 +726,7 @@ json DebugAdapter::GetMediaInfo()
         "MBC5", "MBC1 Multi", "HuC1", "HuC3",
         "MMM01", "Camera", "MBC7", "TAMA5",
         "Wisdom Tree", "M161", "Sachen MMC1",
-        "Sachen MMC2", "PKJD", "Bung/EMS", "Poke 2-in-1", "Not Supported"
+        "Sachen MMC2", "PKJD", "Bung/EMS", "Poke 2-in-1", "MBC6", "Not Supported"
     };
     int type_idx = (int)type;
     if (type_idx >= 0 && type_idx < (int)(sizeof(type_names) / sizeof(type_names[0])))

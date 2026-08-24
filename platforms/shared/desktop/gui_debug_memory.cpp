@@ -22,7 +22,9 @@ static int mem_edit_select = -1;
 static char set_value_buffer[8] = "";
 static int current_rom0_bank = -1;
 static int current_rom1_bank = -1;
+static int current_rom2_bank = -1;
 static int current_ram_bank = -1;
+static int current_ram2_bank = -1;
 static int current_wram_bank = -1;
 static int current_vram_bank = -1;
 static const int DEBUG_MEMORY_MAX_SETTINGS_RECORDS = 0x10000;
@@ -69,12 +71,14 @@ void gui_debug_memory_reset(void)
 {
     GearboyCore* core = emu_get_core();
     Memory* memory = core->GetMemory();
+    MemoryRule* rule = memory->GetCurrentRule();
+    bool mbc6 = IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6;
+    bool has_ram = core->GetCartridge()->HasRam() || mbc6;
 
     mem_edit[MEMORY_EDITOR_ROM0].Reset("ROM0", memory->GetROM0(), 0x4000);
-    mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000);
+    mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000, 1, mbc6);
     mem_edit[MEMORY_EDITOR_VRAM].Reset("VRAM", memory->GetVRAM(), 0x2000, 0x8000);
 
-    MemoryRule* rule = memory->GetCurrentRule();
     reset_ram_editor(core, memory, rule);
 
     mem_edit[MEMORY_EDITOR_WRAM0].Reset("WRAM0", memory->GetWRAM0(), 0x1000, 0xC000);
@@ -95,8 +99,10 @@ void gui_debug_memory_reset(void)
     mem_edit[MEMORY_EDITOR_SGB_EFF_PAL].Reset("SGB EPal", (u8*)sgb->GetEffectivePalettes(), 4 * 4 * 2);
 
     current_rom0_bank = (rule != NULL) ? rule->GetCurrentRomBank0Index() : -1;
-    current_rom1_bank = (rule != NULL) ? rule->GetCurrentRomBank1Index() : -1;
-    current_ram_bank = (rule != NULL && core->GetCartridge()->HasRam()) ? rule->GetCurrentRamBankIndex() : 0;
+    current_rom1_bank = (rule != NULL) ? rule->GetCurrentRomBankIndex(0x4000) : -1;
+    current_rom2_bank = (rule != NULL) ? rule->GetCurrentRomBankIndex(0x6000) : -1;
+    current_ram_bank = (rule != NULL && has_ram) ? rule->GetCurrentRamBankIndex(0xA000) : 0;
+    current_ram2_bank = (rule != NULL && has_ram) ? rule->GetCurrentRamBankIndex(0xB000) : 0;
     current_wram_bank = memory->GetCurrentCGBRAMBank();
     current_vram_bank = memory->GetCurrentLCDRAMBank();
 }
@@ -129,16 +135,38 @@ void gui_debug_window_memory(void)
 
     if (rule != NULL)
     {
-        ImGui::TextColored(cyan, "ROM0"); ImGui::SameLine();
-        ImGui::Text("$%02X", rule->GetCurrentRomBank0Index()); ImGui::SameLine();
-        ImGui::TextColored(cyan, "ROM1"); ImGui::SameLine();
-        ImGui::Text("$%02X", rule->GetCurrentRomBank1Index());
+        if (rule->GetMapperType() == Cartridge::CartridgeMBC6)
+        {
+            u16 bank_a = rule->GetCurrentRomBankIndex(0x4000);
+            u16 bank_b = rule->GetCurrentRomBankIndex(0x6000);
+            ImGui::TextColored(cyan, (bank_a & 0x80) ? "FLASHA" : "ROMA"); ImGui::SameLine();
+            ImGui::Text("$%02X", bank_a & 0x7F); ImGui::SameLine();
+            ImGui::TextColored(cyan, (bank_b & 0x80) ? "FLASHB" : "ROMB"); ImGui::SameLine();
+            ImGui::Text("$%02X", bank_b & 0x7F);
+        }
+        else
+        {
+            ImGui::TextColored(cyan, "ROM0"); ImGui::SameLine();
+            ImGui::Text("$%02X", rule->GetCurrentRomBank0Index()); ImGui::SameLine();
+            ImGui::TextColored(cyan, "ROM1"); ImGui::SameLine();
+            ImGui::Text("$%02X", rule->GetCurrentRomBank1Index());
+        }
 
-        if (core->GetCartridge()->HasRam())
+        if (core->GetCartridge()->HasRam() || rule->GetMapperType() == Cartridge::CartridgeMBC6)
         {
             ImGui::SameLine();
-            ImGui::TextColored(cyan, "  RAM"); ImGui::SameLine();
-            ImGui::Text("$%02X", rule->GetCurrentRamBankIndex());
+            if (rule->GetMapperType() == Cartridge::CartridgeMBC6)
+            {
+                ImGui::TextColored(cyan, "  RAMA"); ImGui::SameLine();
+                ImGui::Text("$%02X", rule->GetCurrentRamBankIndex(0xA000)); ImGui::SameLine();
+                ImGui::TextColored(cyan, "RAMB"); ImGui::SameLine();
+                ImGui::Text("$%02X", rule->GetCurrentRamBankIndex(0xB000));
+            }
+            else
+            {
+                ImGui::TextColored(cyan, "  RAM"); ImGui::SameLine();
+                ImGui::Text("$%02X", rule->GetCurrentRamBankIndex());
+            }
         }
 
         if (core->IsCGB())
@@ -165,7 +193,8 @@ void gui_debug_window_memory(void)
 static void draw_tabs(void)
 {
     GearboyCore* core = emu_get_core();
-    bool has_ram = core->GetCartridge()->HasRam();
+    MemoryRule* rule = core->GetMemory()->GetCurrentRule();
+    bool has_ram = core->GetCartridge()->HasRam() || (IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6);
 
     for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
     {
@@ -203,7 +232,7 @@ static void reset_ram_editor(GearboyCore* core, Memory* memory, MemoryRule* rule
 {
     size_t ram_size = 0;
 
-    if (rule != NULL && core->GetCartridge()->HasRam())
+    if (rule != NULL && (core->GetCartridge()->HasRam() || rule->GetMapperType() == Cartridge::CartridgeMBC6))
     {
         ram_size = rule->GetRamSize();
         if (ram_size > 0x2000)
@@ -211,7 +240,8 @@ static void reset_ram_editor(GearboyCore* core, Memory* memory, MemoryRule* rule
     }
 
     u8* ram_ptr = (ram_size > 0 && rule != NULL) ? rule->GetCurrentRamBank() : memory->GetMemoryMap() + 0xA000;
-    mem_edit[MEMORY_EDITOR_RAM].Reset("RAM", ram_ptr, (int)ram_size, 0xA000);
+    bool read_only = IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6;
+    mem_edit[MEMORY_EDITOR_RAM].Reset("RAM", ram_ptr, (int)ram_size, 0xA000, 1, read_only);
 }
 
 static void refresh_memory_banks(void)
@@ -230,18 +260,30 @@ static void refresh_memory_banks(void)
         current_rom0_bank = rom0_bank;
     }
 
-    int rom1_bank = rule->GetCurrentRomBank1Index();
-    if (rom1_bank != current_rom1_bank)
+    bool mbc6 = rule->GetMapperType() == Cartridge::CartridgeMBC6;
+    if (mbc6)
     {
-        mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000);
-        current_rom1_bank = rom1_bank;
+        memory->GetROM1();
+        memory->GetRAM();
     }
 
-    int ram_bank = core->GetCartridge()->HasRam() ? rule->GetCurrentRamBankIndex() : 0;
-    if (ram_bank != current_ram_bank)
+    int rom1_bank = rule->GetCurrentRomBankIndex(0x4000);
+    int rom2_bank = rule->GetCurrentRomBankIndex(0x6000);
+    if (rom1_bank != current_rom1_bank || rom2_bank != current_rom2_bank)
+    {
+        mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000, 1, mbc6);
+        current_rom1_bank = rom1_bank;
+        current_rom2_bank = rom2_bank;
+    }
+
+    bool has_ram = core->GetCartridge()->HasRam() || mbc6;
+    int ram_bank = has_ram ? rule->GetCurrentRamBankIndex(0xA000) : 0;
+    int ram2_bank = has_ram ? rule->GetCurrentRamBankIndex(0xB000) : 0;
+    if (ram_bank != current_ram_bank || ram2_bank != current_ram2_bank)
     {
         reset_ram_editor(core, memory, rule);
         current_ram_bank = ram_bank;
+        current_ram2_bank = ram2_bank;
     }
 
     int wram_bank = memory->GetCurrentCGBRAMBank();

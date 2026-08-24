@@ -43,6 +43,7 @@ MemEditor::MemEditor()
     m_hex_addr_format[0] = 0;
     m_hex_addr_digits = 2;
     m_mem_word = 1;
+    m_read_only = false;
     m_goto_address[0] = 0;
     m_find_next[0] = 0;
     m_add_bookmark = false;
@@ -73,7 +74,8 @@ MemEditor::~MemEditor()
     SafeDeleteArray(m_search_data);
 }
 
-void MemEditor::Reset(const char* title, uint8_t* mem_data, int mem_size, int base_display_addr, int word)
+void MemEditor::Reset(const char* title, uint8_t* mem_data, int mem_size, int base_display_addr,
+        int word, bool read_only)
 {
     SafeDeleteArray(m_search_data);
 
@@ -82,6 +84,8 @@ void MemEditor::Reset(const char* title, uint8_t* mem_data, int mem_size, int ba
     m_mem_size = 0;
     m_mem_base_addr = base_display_addr;
     m_mem_word = CLAMP(word, 1, 2);
+    m_read_only = read_only;
+    m_editing_address = -1;
     m_hex_addr_digits = 2;
     m_hex_addr_format[0] = 0;
 
@@ -249,7 +253,7 @@ void MemEditor::Draw(bool ascii, bool preview, bool options, bool cursors)
 
                         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 
-                        if (m_editing_address == byte_address)
+                        if (!m_read_only && m_editing_address == byte_address)
                         {
                             ImGui::PushItemWidth((character_size).x * (2 * m_mem_word));
 
@@ -324,7 +328,7 @@ void MemEditor::Draw(bool ascii, bool preview, bool options, bool cursors)
                             else if (m_mem_word == 2)
                                 ImGui::TextColored(color, m_options.uppercase_hex ? "%04X" : "%04x", data);
 
-                            if (cell_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                            if (!m_read_only && cell_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                             {
                                 m_editing_address = byte_address;
                                 m_set_keyboard_here = true;
@@ -792,7 +796,7 @@ void MemEditor::DrawContexMenu(int address, bool cell_hovered, bool options)
             Copy(true);
         }
 
-        if (ImGui::Selectable("Paste"))
+        if (!m_read_only && ImGui::Selectable("Paste"))
         {
             Paste();
         }
@@ -1682,6 +1686,9 @@ void MemEditor::Copy(bool as_decimal)
 
 void MemEditor::Paste()
 {
+    if (m_read_only)
+        return;
+
     char* clipboard = SDL_GetClipboardText();
 
     if (clipboard != NULL)
@@ -1776,7 +1783,7 @@ void MemEditor::ClearSelection()
 
 void MemEditor::SetValueToSelection(int value)
 {
-    if (!IsValidPointer(m_mem_data) || m_mem_size <= 0 || m_mem_word <= 0)
+    if (m_read_only || !IsValidPointer(m_mem_data) || m_mem_size <= 0 || m_mem_word <= 0)
         return;
 
     int selection_start = m_selection_start;
@@ -1868,7 +1875,7 @@ void MemEditor::SaveToBinaryFile(const char* file_path)
 
 void MemEditor::LoadFromBinaryFile(const char* file_path)
 {
-    if (!IsValidPointer(m_mem_data) || m_mem_size <= 0 || m_mem_word <= 0)
+    if (m_read_only || !IsValidPointer(m_mem_data) || m_mem_size <= 0 || m_mem_word <= 0)
         return;
 
     int size = m_mem_size * m_mem_word;
@@ -2242,7 +2249,7 @@ uint32_t MemEditor::ReadWatchValue(const Watch& watch)
 
 void MemEditor::WriteWatchValue(const Watch& watch, uint32_t value)
 {
-    if (!CanWatchRangeFit(watch.address, watch.size))
+    if (m_read_only || !CanWatchRangeFit(watch.address, watch.size))
         return;
 
     int bytes = WatchSizeBytes(watch.size);

@@ -33,6 +33,7 @@
 #include "MBC2MemoryRule.h"
 #include "MBC3MemoryRule.h"
 #include "MBC5MemoryRule.h"
+#include "MBC6MemoryRule.h"
 #include "MultiMBC1MemoryRule.h"
 #include "HuC1MemoryRule.h"
 #include "HuC3MemoryRule.h"
@@ -67,6 +68,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC2MemoryRule);
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
+    InitPointer(m_pMBC6MemoryRule);
     InitPointer(m_pHuC1MemoryRule);
     InitPointer(m_pHuC3MemoryRule);
     InitPointer(m_pMMM01MemoryRule);
@@ -98,6 +100,7 @@ GearboyCore::GearboyCore()
 
 GearboyCore::~GearboyCore()
 {
+    SafeDelete(m_pMBC6MemoryRule);
     SafeDelete(m_pMBC5MemoryRule);
     SafeDelete(m_pMBC3MemoryRule);
     SafeDelete(m_pMBC2MemoryRule);
@@ -302,6 +305,7 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::Cart
 {
     if (m_pCartridge->LoadFromFile(szFilePath))
     {
+        m_pMBC6MemoryRule->InitializePersistentMemory();
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB(), forceGBA);
         m_pMemory->ResetDisassemblerRecords();
@@ -328,6 +332,7 @@ bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, C
 
     if (m_pCartridge->LoadFromBuffer(buffer, size))
     {
+        m_pMBC6MemoryRule->InitializePersistentMemory();
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB(), forceGBA);
         m_pMemory->ResetDisassemblerRecords();
@@ -583,7 +588,10 @@ void GearboyCore::SaveRam()
 
 void GearboyCore::SaveRam(const char* szPath, bool fullPath)
 {
-    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    MemoryRule* rule = m_pMemory->GetCurrentRule();
+    bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6);
+
+    if (m_pCartridge->IsLoadedROM() && persistent && IsValidPointer(rule))
     {
         Debug("Saving RAM...");
 
@@ -616,7 +624,7 @@ void GearboyCore::SaveRam(const char* szPath, bool fullPath)
         ofstream file;
         open_ofstream_utf8(file, path.c_str(), ios::out | ios::binary);
 
-        m_pMemory->GetCurrentRule()->SaveRam(file);
+        rule->SaveRam(file);
 
         Debug("RAM saved");
     }
@@ -629,7 +637,10 @@ void GearboyCore::LoadRam()
 
 void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 {
-    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    MemoryRule* rule = m_pMemory->GetCurrentRule();
+    bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6);
+
+    if (m_pCartridge->IsLoadedROM() && persistent && IsValidPointer(rule))
     {
         Debug("Loading RAM...");
 
@@ -681,7 +692,7 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
             s32 fileSize = (s32)file.tellg();
             file.seekg(0, file.beg);
 
-            if ((fileSize > 0) && m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
+            if ((fileSize > 0) && rule->LoadRam(file, fileSize))
             {
                 Debug("RAM loaded");
             }
@@ -1028,7 +1039,7 @@ bool GearboyCore::LoadState(std::istream& stream)
     size_t size = static_cast<size_t>(stream.tellg());
     stream.seekg(0, ios::beg);
 
-    GB_SaveState_Header_Libretro header;
+    GB_SaveState_Header_Libretro header = {};
 #if !defined(__LIBRETRO__)
     bool is_desktop_savestate = false;
 #endif
@@ -1073,6 +1084,12 @@ bool GearboyCore::LoadState(std::istream& stream)
     {
         Log("Save state header does not match current version, trying legacy format...");
         return LoadStateLegacy(stream, size);
+    }
+
+    if (m_pMemory->GetCurrentRule() == m_pMBC6MemoryRule && header.version < GB_SAVESTATE_MBC6_VERSION)
+    {
+        Log("MBC6 save states from unsupported mapper versions cannot be loaded");
+        return false;
     }
 
 #if !defined(__LIBRETRO__)
@@ -1124,6 +1141,12 @@ bool GearboyCore::LoadState(std::istream& stream)
 bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
 {
     using namespace std;
+
+    if (m_pMemory->GetCurrentRule() == m_pMBC6MemoryRule)
+    {
+        Log("Legacy MBC6 save states cannot be loaded");
+        return false;
+    }
 
     if (size < (2 * sizeof(u32)))
     {
@@ -1506,6 +1529,8 @@ void GearboyCore::InitMemoryRules()
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pMBC5MemoryRule = new MBC5MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pMBC6MemoryRule = new MBC6MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pHuC1MemoryRule = new HuC1MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pHuC3MemoryRule = new HuC3MemoryRule(m_pProcessor, m_pMemory,
@@ -1540,6 +1565,7 @@ void GearboyCore::InitMemoryRules()
     m_pMBC2MemoryRule->SetTraceLogger(m_trace_logger);
     m_pMBC3MemoryRule->SetTraceLogger(m_trace_logger);
     m_pMBC5MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC6MemoryRule->SetTraceLogger(m_trace_logger);
     m_pHuC1MemoryRule->SetTraceLogger(m_trace_logger);
     m_pHuC3MemoryRule->SetTraceLogger(m_trace_logger);
     m_pMMM01MemoryRule->SetTraceLogger(m_trace_logger);
@@ -1586,6 +1612,9 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
             break;
         case Cartridge::CartridgeMBC5:
             m_pMemory->SetCurrentRule(m_pMBC5MemoryRule);
+            break;
+        case Cartridge::CartridgeMBC6:
+            m_pMemory->SetCurrentRule(m_pMBC6MemoryRule);
             break;
         case Cartridge::CartridgeHuC1:
             m_pMemory->SetCurrentRule(m_pHuC1MemoryRule);
@@ -1677,6 +1706,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pMBC2MemoryRule->Reset(m_bCGB);
     m_pMBC3MemoryRule->Reset(m_bCGB);
     m_pMBC5MemoryRule->Reset(m_bCGB);
+    m_pMBC6MemoryRule->Reset(m_bCGB);
     m_pHuC1MemoryRule->Reset(m_bCGB);
     m_pHuC3MemoryRule->Reset(m_bCGB);
     m_pMMM01MemoryRule->Reset(m_bCGB);

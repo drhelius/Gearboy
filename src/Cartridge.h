@@ -49,6 +49,7 @@ public:
         CartridgePKJD,
         CartridgeBungEMS,
         CartridgePoke2in1,
+        CartridgeMBC6,
         CartridgeNotSupported
     };
 

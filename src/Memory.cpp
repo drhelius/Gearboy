@@ -113,7 +113,7 @@ Memory::~Memory()
 
     if (IsValidPointer(m_pDisassembledROMMap))
     {
-        for (int i = 0; i < MAX_ROM_SIZE; i++)
+        for (int i = 0; i < MAX_ROM_DISASSEMBLY_SIZE; i++)
         {
             SafeDelete(m_pDisassembledROMMap[i]);
         }
@@ -154,8 +154,9 @@ void Memory::Init()
         InitPointer(m_pDisassembledMap[i]);
     }
 
-    m_pDisassembledROMMap = new GB_Disassembler_Record*[MAX_ROM_SIZE];
-    for (int i = 0; i < MAX_ROM_SIZE; i++)
+    m_pDisassembledROMMap = new GB_Disassembler_Record*[MAX_ROM_DISASSEMBLY_SIZE];
+
+    for (int i = 0; i < MAX_ROM_DISASSEMBLY_SIZE; i++)
     {
         InitPointer(m_pDisassembledROMMap[i]);
     }
@@ -697,7 +698,7 @@ GB_Disassembler_Record* Memory::GetOrCreateDisassemblerRecord(u16 address)
     GB_Disassembler_Record** map = rom ? m_pDisassembledROMMap : m_pDisassembledMap;
     u32 offset = rom ? physical_address : (u32)address;
 
-    if (rom && offset >= MAX_ROM_SIZE)
+    if (rom && offset >= MAX_ROM_DISASSEMBLY_SIZE)
         return NULL;
 
     GB_Disassembler_Record* record = map[offset];
@@ -798,7 +799,7 @@ void Memory::ResetDisassemblerRecords()
 
     if (IsValidPointer(m_pDisassembledROMMap))
     {
-        for (int i = 0; i < MAX_ROM_SIZE; i++)
+        for (int i = 0; i < MAX_ROM_DISASSEMBLY_SIZE; i++)
         {
             SafeDelete(m_pDisassembledROMMap[i]);
         }
@@ -812,6 +813,24 @@ void Memory::ResetDisassemblerRecords()
     }
 
     #endif
+}
+
+void Memory::InvalidateDisassemblerRecords(u32 start, u32 size)
+{
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
+    if (!IsValidPointer(m_pDisassembledROMMap) || start >= MAX_ROM_DISASSEMBLY_SIZE)
+        return;
+
+    u32 end = start + size;
+    if (end < start || end > MAX_ROM_DISASSEMBLY_SIZE)
+        end = MAX_ROM_DISASSEMBLY_SIZE;
+
+    for (u32 i = start; i < end; i++)
+        SafeDelete(m_pDisassembledROMMap[i]);
+#else
+    UNUSED(start);
+    UNUSED(size);
+#endif
 }
 
 void Memory::ResetBootromDisassembledMemory()

@@ -63,7 +63,7 @@ public:
     MemEditor();
     ~MemEditor();
 
-    void Reset(const char* title, uint8_t* mem_data, int mem_size, int base_display_addr = 0x0000, int word = 1);
+    void Reset(const char* title, uint8_t* mem_data, int mem_size, int base_display_addr = 0x0000, int word = 1, bool read_only = false);
     void Draw(bool ascii = true, bool preview = true, bool options = true, bool cursors = true);
     void DrawWatchWindow();
     void DrawSearchWindow();
@@ -157,6 +157,7 @@ private:
     char m_hex_addr_format[16];
     int m_hex_addr_digits;
     int m_mem_word;
+    bool m_read_only;
     char m_goto_address[7];
     char m_find_next[5];
     bool m_add_bookmark;

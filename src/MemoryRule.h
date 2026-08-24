@@ -42,6 +42,7 @@ public:
     virtual u8 PerformRead(u16 address) = 0;
     virtual void PerformWrite(u16 address, u8 value) = 0;
     virtual bool MapsROMDirectly();
+    virtual u8 GetMapperType();
     virtual bool NeedsHighMemoryAccessNotifications();
     virtual void NotifyHighMemoryRead(u16 address);
     virtual void NotifyHighMemoryWrite(u16 address, u8 value);
@@ -54,10 +55,14 @@ public:
     virtual u8* GetRamBanks();
     virtual u8* GetCurrentRamBank();
     virtual int GetCurrentRamBankIndex();
+    virtual int GetCurrentRamBankIndex(u16 address);
     virtual u8* GetRomBank0();
     virtual int GetCurrentRomBank0Index();
     virtual u8* GetCurrentRomBank1();
     virtual int GetCurrentRomBank1Index();
+    virtual u16 GetCurrentRomBankIndex(u16 address);
+    virtual u32 GetPhysicalROMAddress(u16 address);
+    virtual u32 GetPhysicalROMAddress(u16 address, u16 bank);
     virtual u8* GetRTCMemory();
     virtual void SaveState(std::ostream& stream);
     virtual void LoadState(std::istream& stream);

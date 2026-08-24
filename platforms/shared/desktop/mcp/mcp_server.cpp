@@ -2206,6 +2206,7 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
             areaObj["id"] = area.id;
             areaObj["name"] = area.name;
             areaObj["size"] = area.size;
+            areaObj["read_only"] = area.read_only;
             areaArray.push_back(areaObj);
         }
         return {{"areas", areaArray}};
@@ -2259,7 +2260,8 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
             data.push_back(byte);
         }
 
-        m_debugAdapter.WriteMemoryArea(area, offset, data);
+        if (!m_debugAdapter.WriteMemoryArea(area, offset, data))
+            return {{"error", "Memory area is invalid or read-only"}};
         return {{"success", true}, {"area", area}, {"offset", offsetStr}, {"bytes_written", data.size()}};
     }
     // Registers

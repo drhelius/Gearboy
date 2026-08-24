@@ -35,6 +35,7 @@
     <ClCompile Include="..\..\src\MBC2MemoryRule.cpp" />
     <ClCompile Include="..\..\src\MBC3MemoryRule.cpp" />
     <ClCompile Include="..\..\src\MBC5MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\MBC6MemoryRule.cpp" />
     <ClCompile Include="..\..\src\Memory.cpp" />
     <ClCompile Include="..\..\src\MemoryRule.cpp" />
     <ClCompile Include="..\..\src\MultiMBC1MemoryRule.cpp" />
@@ -154,6 +155,7 @@
     <ClInclude Include="..\..\src\MBC2MemoryRule.h" />
     <ClInclude Include="..\..\src\MBC3MemoryRule.h" />
     <ClInclude Include="..\..\src\MBC5MemoryRule.h" />
+    <ClInclude Include="..\..\src\MBC6MemoryRule.h" />
     <ClInclude Include="..\..\src\Memory.h" />
     <ClInclude Include="..\..\src\MemoryRule.h" />
     <ClInclude Include="..\..\src\Memory_inline.h" />

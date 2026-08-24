@@ -620,6 +620,8 @@ static void check_variables(void)
             mapper = Cartridge::CartridgeMBC3;
         else if (strcmp(var.value, "MBC 5") == 0)
             mapper = Cartridge::CartridgeMBC5;
+        else if (strcmp(var.value, "MBC 6") == 0)
+            mapper = Cartridge::CartridgeMBC6;
         else if (strcmp(var.value, "MBC 1 Multicart") == 0)
             mapper = Cartridge::CartridgeMBC1Multi;
         else if (strcmp(var.value, "HuC 1") == 0)
@@ -957,6 +959,7 @@ bool retro_load_game(const struct retro_game_info *info)
     memset(descs, 0, sizeof(descs));
 
     MemoryRule* current_rule = core->GetMemory()->GetCurrentRule();
+    bool mbc6 = current_rule->GetMapperType() == Cartridge::CartridgeMBC6;
     size_t cart_ram_size = current_rule->GetRamSize();
     size_t cart_ram_bank_size = (cart_ram_size < 0x2000) ? cart_ram_size : 0x2000;
 
@@ -980,6 +983,7 @@ bool retro_load_game(const struct retro_game_info *info)
     descs[4].ptr   = (cart_ram_bank_size > 0) ? current_rule->GetCurrentRamBank() : NULL;
     descs[4].start = 0xA000;
     descs[4].len   = cart_ram_bank_size;
+    descs[4].flags = mbc6 ? RETRO_MEMDESC_CONST : 0;
     // VRAM
     descs[5].ptr   = core->GetMemory()->GetMemoryMap() + 0x8000; // todo: fix GBC
     descs[5].start = 0x8000;
@@ -992,6 +996,7 @@ bool retro_load_game(const struct retro_game_info *info)
     descs[7].ptr   = current_rule->GetCurrentRomBank1();
     descs[7].start = 0x4000;
     descs[7].len   = 0x4000;
+    descs[7].flags = mbc6 ? RETRO_MEMDESC_CONST : 0;
     // OAM
     descs[8].ptr   = core->GetMemory()->GetMemoryMap() + 0xFE00;
     descs[8].start = 0xFE00;

@@ -64,6 +64,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/MBC2MemoryRule.cpp \
     $(SRC_DIR)/MBC3MemoryRule.cpp \
     $(SRC_DIR)/MBC5MemoryRule.cpp \
+    $(SRC_DIR)/MBC6MemoryRule.cpp \
     $(SRC_DIR)/Memory.cpp \
     $(SRC_DIR)/MemoryRule.cpp \
     $(SRC_DIR)/MultiMBC1MemoryRule.cpp \

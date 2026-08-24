@@ -62,6 +62,7 @@
 //#define GEARBOY_DISABLE_DISASSEMBLER
 
 #define MAX_ROM_SIZE 0x800000
+#define MAX_ROM_DISASSEMBLY_SIZE 0x900000
 
 #define SafeDelete(pointer) if(pointer != NULL) {delete pointer; pointer = NULL;}
 #define SafeDeleteArray(pointer) if(pointer != NULL) {delete [] pointer; pointer = NULL;}
@@ -126,9 +127,10 @@ typedef void (*RamChangedCallback) (void);
 #define SAVESTATE_MAGIC 0x28011983
 
 #define GB_SAVESTATE_MAGIC 0x28011983
-#define GB_SAVESTATE_VERSION 103
+#define GB_SAVESTATE_VERSION 104
 #define GB_SAVESTATE_MIN_VERSION 100
 #define GB_SAVESTATE_LEGACY_VERSION 0
+#define GB_SAVESTATE_MBC6_VERSION 104
 
 static const u16 kTACTriggerBits[] = {512, 8, 32, 128};
 

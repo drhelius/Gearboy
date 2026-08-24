@@ -1352,6 +1352,8 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "MBC 3";
         case Cartridge::CartridgeMBC5:
             return "MBC 5";
+        case Cartridge::CartridgeMBC6:
+            return "MBC 6";
         case Cartridge::CartridgeHuC1:
             return "HuC 1";
         case Cartridge::CartridgeHuC3:

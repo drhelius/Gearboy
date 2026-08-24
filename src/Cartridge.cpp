@@ -344,6 +344,10 @@ void Cartridge::CheckCartridgeType(int type)
         case 0x1E: // MBC5 + RUMBLE + SRAM + BATT
             m_Type = CartridgeMBC5;
             break;
+        // --- MBC6 ---
+        case 0x20: // MBC6 + SRAM + FLASH
+            m_Type = CartridgeMBC6;
+            break;
         // --- MBC7 ---
         case 0x22: // MBC7 + ACCEL + EEPROM + BATT
             m_Type = CartridgeMBC7;
@@ -394,6 +398,7 @@ void Cartridge::CheckCartridgeType(int type)
         case 0x17:
         case 0x1B:
         case 0x1E:
+        case 0x20:
         case 0x22:
         case 0xFC:
         case 0xFD:
@@ -648,6 +653,10 @@ bool Cartridge::GatherMetadata()
     {
         m_iRAMBankCount = 4;
     }
+    else if (m_Type == CartridgeMBC6)
+    {
+        m_iRAMBankCount = 8;
+    }
     else
     {
         switch (m_iRAMSize)
@@ -734,6 +743,9 @@ bool Cartridge::GatherMetadata()
             break;
         case Cartridge::CartridgeMBC5:
             Log("MBC5 found");
+            break;
+        case Cartridge::CartridgeMBC6:
+            Log("MBC6 found");
             break;
         case Cartridge::CartridgeWisdomTree:
             Log("Wisdom Tree found");

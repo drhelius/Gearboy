@@ -16,6 +16,7 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/MBC2MemoryRule.cpp \
                $(SOURCE_DIR)/MBC3MemoryRule.cpp \
                $(SOURCE_DIR)/MBC5MemoryRule.cpp \
+               $(SOURCE_DIR)/MBC6MemoryRule.cpp \
                $(SOURCE_DIR)/MultiMBC1MemoryRule.cpp \
                $(SOURCE_DIR)/HuC1MemoryRule.cpp \
                $(SOURCE_DIR)/HuC3MemoryRule.cpp \
