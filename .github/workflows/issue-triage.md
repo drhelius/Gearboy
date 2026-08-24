@@ -28,6 +28,7 @@ safe-outputs:
   allowed-github-references: []
   add-labels:
     target: triggering
+    issue-intent: false
     max: 3
     allowed:
       - agentic workflows
@@ -47,6 +48,7 @@ safe-outputs:
     hide-older-comments: true
   close-issue:
     target: triggering
+    issue-intent: false
     max: 1
     state-reason: duplicate
 ---
