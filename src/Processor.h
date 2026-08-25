@@ -102,6 +102,7 @@ public:
         bool waiting_external;
         bool internal_clock;
         bool restore_pending;
+        bool bytes_valid;
         u8 incoming_byte;
         u8 outgoing_byte;
         u32 bit_cycles;
@@ -202,6 +203,7 @@ private:
     bool m_bSerialControlWritePending;
     bool m_bSerialDataWritePending;
     bool m_bSerialRestorePending;
+    bool m_bSerialBytesValid;
     u8 m_iSerialPendingControl;
     u8 m_iSerialPendingData;
     u8 m_iSerialIncomingByte;
@@ -264,9 +266,9 @@ private:
     NO_INLINE void LogTraceInstruction(u16 pc, bool halt_bug);
     NO_INLINE void LogIRQEvent(u16 pc, u16 vector, u8 irq_type);
     INLINE void TraceTimerEvent(u8 event);
-    INLINE void TraceSerialEvent(u8 event);
+    INLINE void TraceSerialEvent(u8 event, u64 link_cycle);
     NO_INLINE void LogTimerEvent(u8 event);
-    NO_INLINE void LogSerialEvent(u8 event);
+    NO_INLINE void LogSerialEvent(u8 event, u64 link_cycle);
     NO_INLINE void UpdateSerialActive(u8 ticks, u64 current_cycle);
     void ResetSerialRuntime();
     void ProcessSerialControlWrite(u64 current_cycle);

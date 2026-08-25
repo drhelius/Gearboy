@@ -97,19 +97,25 @@ void IORegistersMemoryRule::LogTraceTimerEvent(u8 event, u8 value)
 #endif
 }
 
-void IORegistersMemoryRule::LogTraceSerialEvent(u8 event, u8 value)
+void IORegistersMemoryRule::LogTraceSerialEvent(u8 event, u16 address, u8 value)
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
     GB_Trace_Entry e = {};
     e.type = TRACE_SERIAL;
+    e.serial.link_cycle = m_pTraceLogger->GetLinkCableCycle();
+    e.serial.address = address;
     e.serial.data = m_pMemory->Retrieve(0xFF01);
     e.serial.control = m_pMemory->Retrieve(0xFF02);
     e.serial.value = value;
     e.serial.event = event;
     e.serial.internal_clock = (e.serial.control & 0x01) ? 1 : 0;
+    e.serial.fast_clock = (m_bCGB && (e.serial.control & 0x02)) ? 1 : 0;
+    e.serial.cgb = m_bCGB ? 1 : 0;
+    e.serial.double_speed = m_pProcessor->CGBSpeed() ? 1 : 0;
     m_pTraceLogger->TraceLog(e);
 #else
     UNUSED(event);
+    UNUSED(address);
     UNUSED(value);
 #endif
 }

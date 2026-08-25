@@ -25,6 +25,7 @@
 #include "Processor.h"
 #include "TraceLogger.h"
 #include "Video.h"
+#include "trace_logger_formatter.h"
 
 bool g_mcp_stdio_mode = true;
 
@@ -297,6 +298,8 @@ static void TestSerialDebugState()
         "serial diagnostics report an active internal transfer");
     Check(!state.waiting_external && !state.restore_pending,
         "serial diagnostics distinguish active from waiting state");
+    Check(!state.bytes_valid,
+        "serial diagnostics do not expose an incomplete byte as a result");
     Check(state.bit_index == 0 && state.cycles == 0 &&
         state.bit_cycles == 16,
         "serial diagnostics expose initial bit timing");
@@ -317,6 +320,8 @@ static void TestSerialDebugState()
     Check(!state.transfer_active && state.bit_index == -1 &&
         state.bit_cycles == 0 && state.next_shift_cycle == 0,
         "serial diagnostics return to idle after edge eight");
+    Check(state.bytes_valid,
+        "serial diagnostics retain the completed byte pair");
 }
 
 static void TestExternalWait()
@@ -338,6 +343,123 @@ static void TestExternalWait()
     Check((memory->Retrieve(0xFF0F) & Processor::Serial_Interrupt) == 0,
         "external wait does not request a serial IRQ");
 }
+
+static void FormatSerialTrace(const GB_Trace_Entry& entry, char* buffer, size_t size)
+{
+    GB_Trace_Format_Options options = {};
+    trace_logger_format_entry(entry, options, buffer, size);
+}
+
+static void TestSerialTraceFormatting()
+{
+    u64 master_cycle = 10;
+    u64 link_cycle = 20;
+    TraceLogger logger(&master_cycle, &link_cycle);
+    Check(logger.GetLinkCableCycle() == 20,
+        "serial trace logger exposes the monotonic link cycle");
+
+    char buffer[GB_TRACE_FORMAT_BUFFER_SIZE];
+    GB_Trace_Entry entry = {};
+    entry.type = TRACE_SERIAL;
+    entry.serial.event = TRACE_SERIAL_REG_WRITE;
+    entry.serial.address = 0xFF01;
+    entry.serial.value = 0x55;
+    entry.serial.data = 0x55;
+    entry.serial.control = 0xFE;
+    entry.serial.link_cycle = 100;
+    FormatSerialTrace(entry, buffer, sizeof(buffer));
+    Check(strcmp(buffer,
+        "  [SER]  WRITE SB($FF01) Raw:$55 Read:$55 SC:$FE Link:100") == 0,
+        "serial trace identifies SB writes");
+
+    entry.serial.address = 0xFF02;
+    entry.serial.value = 0x80;
+    entry.serial.link_cycle = 120;
+    FormatSerialTrace(entry, buffer, sizeof(buffer));
+    Check(strcmp(buffer,
+        "  [SER]  WRITE SC($FF02) Raw:$80 Read:$FE SB:$55 Request:SET "
+        "Clock:EXTERNAL Speed:NORMAL CPU:NORMAL System:DMG Link:120") == 0,
+        "DMG SC trace reports an external request at normal speed");
+
+    memset(&entry, 0, sizeof(entry));
+    entry.type = TRACE_SERIAL;
+    entry.serial.event = TRACE_SERIAL_TRANSFER_START;
+    entry.serial.link_cycle = 200;
+    entry.serial.request_cycle = 200;
+    entry.serial.first_shift_cycle = 208;
+    entry.serial.bit_cycles = 8;
+    entry.serial.transfer_id = 7;
+    entry.serial.internal_clock = 1;
+    entry.serial.fast_clock = 1;
+    entry.serial.cgb = 1;
+    entry.serial.double_speed = 1;
+    entry.serial.outgoing_byte = 0xA5;
+    FormatSerialTrace(entry, buffer, sizeof(buffer));
+    Check(strcmp(buffer,
+        "  [SER]  TRANSFER START ID:7 TX:$A5 Clock:INTERNAL Speed:CGB_FAST "
+        "CPU:DOUBLE System:CGB Period:8 Request:200 FirstEdge:208 Link:200") == 0,
+        "serial start trace exposes transfer identity and phase timing");
+
+    entry.serial.event = TRACE_SERIAL_TRANSFER_END;
+    entry.serial.data = 0x3C;
+    entry.serial.link_cycle = 264;
+    FormatSerialTrace(entry, buffer, sizeof(buffer));
+    Check(strcmp(buffer,
+        "  [SER]  TRANSFER END ID:7 TX:$A5 RX:$3C Clock:INTERNAL Speed:CGB_FAST "
+        "CPU:DOUBLE System:CGB Period:8 Link:264") == 0,
+        "serial end trace distinguishes transmitted and received bytes");
+
+    entry.serial.event = TRACE_SERIAL_IRQ_REQUEST;
+    FormatSerialTrace(entry, buffer, sizeof(buffer));
+    Check(strcmp(buffer,
+        "  [SER]  IRQ REQUEST ID:7 RX:$3C Link:264") == 0,
+        "serial IRQ trace retains transfer correlation");
+}
+
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+static void TestSerialTraceEvents()
+{
+    SerialTestCore test(false, false);
+    GearboyCore* core = test.Core();
+    Memory* memory = core->GetMemory();
+    Processor* processor = core->GetProcessor();
+    TraceLogger* logger = core->GetTraceLogger();
+    logger->SetEnabledFlags(TRACE_FLAG_SERIAL);
+    logger->SetEventFilter(TRACE_SERIAL, TRACE_SERIAL_FILTER_ALL);
+
+    memory->Write(0xFF01, 0x55);
+    memory->Write(0xFF02, 0x80);
+    processor->UpdateSerial(0, 100);
+
+    Check(logger->GetCount() == 2,
+        "external clock arming logs register writes without a transfer start");
+    Check(logger->GetEntry(0).serial.address == 0xFF01 &&
+        logger->GetEntry(1).serial.address == 0xFF02,
+        "serial register events retain their addresses");
+
+    memory->Write(0xFF01, 0xA5);
+    memory->Write(0xFF02, 0x81);
+    processor->UpdateSerial(0, 200);
+
+    Check(logger->GetCount() == 5 &&
+        logger->GetEntry(4).serial.event == TRACE_SERIAL_TRANSFER_START,
+        "internal clock activation emits one real transfer start");
+    const GB_Trace_Entry& start = logger->GetEntry(4);
+    Check(start.serial.link_cycle == 200 && start.serial.transfer_id == 1 &&
+        start.serial.outgoing_byte == 0xA5 && start.serial.bit_cycles == 512,
+        "transfer start event captures link timing and transmitted byte");
+
+    Processor::SerialState state;
+    processor->GetSerialState(state);
+    processor->UpdateSerial(0,
+        state.next_shift_cycle + (u64)state.bit_cycles * 7);
+
+    Check(logger->GetCount() == 7 &&
+        logger->GetEntry(5).serial.event == TRACE_SERIAL_TRANSFER_END &&
+        logger->GetEntry(6).serial.event == TRACE_SERIAL_IRQ_REQUEST,
+        "completed transfer emits correlated end and serial IRQ events");
+}
+#endif
 
 static void TestRestartAndAbort()
 {
@@ -649,6 +771,10 @@ int main()
     TestBootSerialPhase();
     TestSerialDebugState();
     TestExternalWait();
+    TestSerialTraceFormatting();
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    TestSerialTraceEvents();
+#endif
     TestRestartAndAbort();
     TestBitOrder();
     TestLateExternalDescriptor();

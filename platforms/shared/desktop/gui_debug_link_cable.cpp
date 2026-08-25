@@ -35,14 +35,14 @@ static void serial_write_callback(u16 address, u8 value, void* user_data);
 static void draw_byte_value(const char* label, u8 value);
 static void draw_metric(const char* label, u64 value);
 static void draw_metric_pair(const char* label, u64 first, u64 second);
-static void draw_hardware_tab(GearboyCore* core, Memory* memory, Processor* processor);
-static void draw_transport_tab(GearboyCore* core, Processor* processor);
+static void draw_hardware_content(GearboyCore* core, Memory* memory, Processor* processor);
+static void draw_transport_content(GearboyCore* core, Processor* processor);
 
 void gui_debug_window_link_cable(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(100, 90), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(266, 438), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(266, 456), ImGuiCond_FirstUseEver);
     ImGui::Begin("Link Cable", &config_debug.show_link_cable);
 
     GearboyCore* core = emu_get_core();
@@ -50,7 +50,7 @@ void gui_debug_window_link_cable(void)
     Processor* processor = core->GetProcessor();
 
     ImGui::PushFont(gui_default_font);
-    draw_hardware_tab(core, memory, processor);
+    draw_hardware_content(core, memory, processor);
     ImGui::PopFont();
 
     ImGui::End();
@@ -61,14 +61,14 @@ void gui_debug_window_link_cable_transport(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(430, 90), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(304, 550), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(304, 630), ImGuiCond_FirstUseEver);
     ImGui::Begin("Link Cable (Transport)", &config_debug.show_link_cable_transport);
 
     GearboyCore* core = emu_get_core();
     Processor* processor = core->GetProcessor();
 
     ImGui::PushFont(gui_default_font);
-    draw_transport_tab(core, processor);
+    draw_transport_content(core, processor);
     ImGui::PopFont();
 
     ImGui::End();
@@ -100,16 +100,19 @@ static void draw_metric_pair(const char* label, u64 first, u64 second)
     ImGui::TextColored(white, "%llu / %llu", (unsigned long long)first, (unsigned long long)second);
 }
 
-static void draw_hardware_tab(GearboyCore* core, Memory* memory, Processor* processor)
+static void draw_hardware_content(GearboyCore* core, Memory* memory, Processor* processor)
 {
     u8 sb = memory->Retrieve(0xFF01);
     u8 sc = memory->Retrieve(0xFF02);
     Processor::SerialState serial;
     processor->GetSerialState(serial);
+    LinkCableStatus link = emu_link_cable_get_status();
 
     bool start_requested = (sc & 0x80) != 0;
     bool internal_clock = serial.transfer_active ? serial.internal_clock : ((sc & 0x01) != 0);
     bool fast_clock = core->IsCGB() && ((sc & 0x02) != 0);
+    bool session_active = core->IsLinkCableConnected();
+    bool peer_connected = link.mode == LinkCableModeConnected && link.peer_count > 1;
 
     const char* mode = "IDLE";
     ImVec4 mode_color = gray;
@@ -146,8 +149,15 @@ static void draw_hardware_tab(GearboyCore* core, Memory* memory, Processor* proc
     ImGui::TextColored(processor->CGBSpeed() ? yellow : white, "%s", processor->CGBSpeed() ? "DOUBLE" : "NORMAL");
     ImGui::TextColored(violet, " SYSTEM         "); ImGui::SameLine();
     ImGui::TextColored(white, "%s", core->IsCGB() ? "CGB" : "DMG");
-    ImGui::TextColored(violet, " CABLE          "); ImGui::SameLine();
-    ImGui::TextColored(core->IsLinkCableConnected() ? green : gray, "%s", core->IsLinkCableConnected() ? "CONNECTED" : "DISCONNECTED");
+    ImGui::TextColored(violet, " SESSION ACTIVE "); ImGui::SameLine();
+    ImGui::TextColored(session_active ? green : gray, "%s", session_active ? "YES" : "NO");
+    ImGui::TextColored(violet, " REMOTE PEER   "); ImGui::SameLine();
+    if (peer_connected)
+        ImGui::TextColored(green, "CONNECTED");
+    else if (session_active)
+        ImGui::TextColored(yellow, "WAITING");
+    else
+        ImGui::TextColored(gray, "-");
 
     ImGui::Separator();
     ImGui::TextColored(magenta, "TRANSFER ENGINE:");
@@ -181,8 +191,29 @@ static void draw_hardware_tab(GearboyCore* core, Memory* memory, Processor* proc
         ImGui::TextColored(gray, "-");
     }
 
-    draw_byte_value(" OUTGOING BYTE  ", serial.outgoing_byte);
-    draw_byte_value(" INCOMING BYTE  ", serial.incoming_byte);
+    if (serial.waiting_external)
+    {
+        draw_byte_value(" PENDING TX     ", sb);
+        ImGui::TextColored(violet, " INCOMING BYTE  "); ImGui::SameLine();
+        ImGui::TextColored(yellow, "WAITING FOR CLOCK");
+    }
+    else if (serial.transfer_active)
+    {
+        draw_byte_value(" OUTGOING BYTE  ", serial.outgoing_byte);
+        draw_byte_value(" INCOMING BYTE  ", serial.incoming_byte);
+    }
+    else if (serial.bytes_valid)
+    {
+        draw_byte_value(" LAST TX BYTE   ", serial.outgoing_byte);
+        draw_byte_value(" LAST RX BYTE   ", serial.incoming_byte);
+    }
+    else
+    {
+        ImGui::TextColored(violet, " OUTGOING BYTE  "); ImGui::SameLine();
+        ImGui::TextColored(gray, "-");
+        ImGui::TextColored(violet, " INCOMING BYTE  "); ImGui::SameLine();
+        ImGui::TextColored(gray, "-");
+    }
 
     ImGui::TextColored(violet, " TRANSFER ID    "); ImGui::SameLine();
     ImGui::TextColored(white, "%u", serial.transfer_id);
@@ -226,33 +257,45 @@ static void draw_hardware_tab(GearboyCore* core, Memory* memory, Processor* proc
     ImGui::TextColored(irq_requested && irq_enabled ? green : gray, "%s", irq_requested && irq_enabled ? "YES" : "NO");
 }
 
-static void draw_transport_tab(GearboyCore* core, Processor* processor)
+static void draw_transport_content(GearboyCore* core, Processor* processor)
 {
     LinkCableStatus link = emu_link_cable_get_status();
+    bool session_active = link.mode == LinkCableModeConnected;
+    bool peer_connected = session_active && link.peer_count > 1;
 
     const char* mode = "DISABLED";
-    if (link.mode == LinkCableModeConnected)
-        mode = "OK";
+    if (session_active)
+        mode = "ACTIVE";
     else if (link.mode == LinkCableModeFault)
         mode = "FAULT";
 
     ImGui::TextColored(magenta, "SESSION:");
 
-    ImGui::TextColored(violet, " CABLE          "); ImGui::SameLine();
-    ImGui::TextColored(link.cable_connected ? green : red, "%s", link.cable_connected ? "CONNECTED" : "DISCONNECTED");
     ImGui::TextColored(violet, " STATUS         "); ImGui::SameLine();
     ImGui::TextColored(link.mode == LinkCableModeFault ? red : white, "%s", mode);
-    ImGui::TextColored(violet, " SESSION        "); ImGui::SameLine();
-    ImGui::TextColored(white, "%u", link.session);
-    ImGui::TextColored(violet, " PEER           "); ImGui::SameLine();
-    if (link.mode == LinkCableModeConnected)
-        ImGui::TextColored(white, "%d / %d", link.local_peer_id, link.peer_count);
+    ImGui::TextColored(violet, " SESSION ID     "); ImGui::SameLine();
+    if (session_active)
+        ImGui::TextColored(white, "%u", link.session);
+    else
+        ImGui::TextColored(gray, "-");
+    ImGui::TextColored(violet, " LOCAL PEER     "); ImGui::SameLine();
+    if (session_active)
+        ImGui::TextColored(white, "%d", link.local_peer_id);
+    else
+        ImGui::TextColored(gray, "-");
+    ImGui::TextColored(violet, " PEER COUNT     "); ImGui::SameLine();
+    ImGui::TextColored(session_active ? white : gray, "%d", link.peer_count);
+    ImGui::TextColored(violet, " REMOTE PEER   "); ImGui::SameLine();
+    if (peer_connected)
+        ImGui::TextColored(green, "CONNECTED");
+    else if (session_active)
+        ImGui::TextColored(yellow, "WAITING");
     else
         ImGui::TextColored(gray, "-");
 
     ImGui::TextColored(violet, " PACING         "); ImGui::SameLine();
 
-    if (link.mode == LinkCableModeConnected)
+    if (peer_connected)
     {
         ImGui::TextColored(link.pacing_peer ? green : cyan, "%s", link.pacing_peer ? "THIS PEER" : "REMOTE PEER");
     }
@@ -284,6 +327,7 @@ static void draw_transport_tab(GearboyCore* core, Processor* processor)
     draw_metric_pair(" SNAPSHOT # / us", link.snapshot_waits, link.snapshot_wait_us);
     draw_metric_pair(" BARRIER # / us ", link.barrier_waits, link.barrier_wait_us);
     draw_metric_pair(" MAX WAIT/GAP us", link.barrier_wait_max_us, link.sync_gap_max_us);
+    draw_metric(" GAPS >50ms     ", link.sync_gap_over_50ms);
 
     ImGui::TextColored(violet, " WAITS 1/10/50ms"); ImGui::SameLine();
     ImGui::TextColored(white, "%llu / %llu / %llu",
@@ -297,6 +341,7 @@ static void draw_transport_tab(GearboyCore* core, Processor* processor)
     ImGui::TextColored(magenta, "RECOVERY:");
 
     draw_metric_pair(" DETACH / RECLAIM", link.peer_detaches, link.slot_reclaims);
+    draw_metric(" MAX DETACH us  ", link.peer_detach_max_age_us);
     draw_metric(" ATTACHMENTS     ", link.attachments);
     draw_metric(" SEQ RETRIES     ", link.seqlock_retries);
     draw_metric_pair(" STATE/TX OVERRUN", link.state_ring_overruns, link.transfer_ring_overruns);

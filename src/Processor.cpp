@@ -248,19 +248,29 @@ void Processor::LogTimerEvent(u8 event)
 #endif
 }
 
-void Processor::LogSerialEvent(u8 event)
+void Processor::LogSerialEvent(u8 event, u64 link_cycle)
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
     GB_Trace_Entry e = {};
     e.type = TRACE_SERIAL;
+    e.serial.link_cycle = link_cycle;
+    e.serial.request_cycle = m_iSerialRequestCycle;
+    e.serial.first_shift_cycle = m_iSerialNextShiftCycle;
+    e.serial.bit_cycles = m_iSerialBitCycles;
+    e.serial.transfer_id = m_iSerialTransferId;
     e.serial.data = m_pMemory->Retrieve(0xFF01);
     e.serial.control = m_pMemory->Retrieve(0xFF02);
     e.serial.value = e.serial.data;
     e.serial.event = event;
-    e.serial.internal_clock = (e.serial.control & 0x01) ? 1 : 0;
+    e.serial.internal_clock = m_bSerialInternalClock ? 1 : 0;
+    e.serial.fast_clock = (m_iSerialBitCycles > 0 && m_iSerialBitCycles <= 16) ? 1 : 0;
+    e.serial.cgb = m_bCGB ? 1 : 0;
+    e.serial.double_speed = m_bCGBSpeed ? 1 : 0;
+    e.serial.outgoing_byte = m_iSerialOutgoingByte;
     m_pTraceLogger->TraceLog(e);
 #else
     UNUSED(event);
+    UNUSED(link_cycle);
 #endif
 }
 
@@ -364,6 +374,7 @@ void Processor::ResetSerialRuntime()
     m_bSerialControlWritePending = false;
     m_bSerialDataWritePending = false;
     m_bSerialRestorePending = false;
+    m_bSerialBytesValid = false;
     m_iSerialPendingControl = 0;
     m_iSerialPendingData = 0;
     m_iSerialIncomingByte = 0xFF;
@@ -438,6 +449,7 @@ void Processor::GetSerialState(SerialState& state) const
     state.waiting_external = m_bSerialWaitingExternal;
     state.internal_clock = m_bSerialInternalClock;
     state.restore_pending = m_bSerialRestorePending;
+    state.bytes_valid = m_bSerialBytesValid;
     state.incoming_byte = m_iSerialIncomingByte;
     state.outgoing_byte = m_iSerialOutgoingByte;
     state.bit_cycles = m_iSerialBitCycles;
@@ -473,6 +485,7 @@ void Processor::ProcessSerialControlWrite(u64 current_cycle)
     if ((sc & 0x80) == 0)
         return;
 
+    m_bSerialBytesValid = false;
     m_iSerialBit = 0;
 
     if ((sc & 0x01) == 0)
@@ -508,6 +521,8 @@ void Processor::StartInternalSerialTransfer(u64 current_cycle)
             m_iSerialOutgoingByte, m_iSerialTransferId,
             &m_iSerialIncomingByte, m_link_cable_user_data);
     }
+
+    TraceSerialEvent(TRACE_SERIAL_TRANSFER_START, current_cycle);
 }
 
 u32 Processor::GetFirstSerialShiftCycles(bool fast_cgb) const
@@ -550,7 +565,9 @@ void Processor::PollExternalSerialTransfer(u64 current_cycle)
     m_bSerialTransferActive = true;
     m_bSerialWaitingExternal = false;
     m_bSerialInternalClock = false;
+    m_bSerialBytesValid = false;
     m_pMemory->Load(0xFF01, transfer.local_byte);
+    TraceSerialEvent(TRACE_SERIAL_TRANSFER_START, current_cycle);
 }
 
 void Processor::RestoreSerialTransfer(u64 current_cycle)
@@ -596,6 +613,7 @@ void Processor::RestoreSerialTransfer(u64 current_cycle)
     m_bSerialTransferActive = true;
     m_bSerialWaitingExternal = false;
     m_bSerialInternalClock = true;
+    m_bSerialBytesValid = false;
 }
 
 void Processor::ShiftSerialBit(u64 edge_cycle)
@@ -612,9 +630,10 @@ void Processor::ShiftSerialBit(u64 edge_cycle)
     {
         u8 sc = m_pMemory->Retrieve(0xFF02);
         m_pMemory->Load(0xFF02, sc & 0x7F);
-        TraceSerialEvent(TRACE_SERIAL_TRANSFER_END);
+        m_bSerialBytesValid = true;
+        TraceSerialEvent(TRACE_SERIAL_TRANSFER_END, edge_cycle);
         RequestInterrupt(Serial_Interrupt);
-        TraceSerialEvent(TRACE_SERIAL_IRQ_REQUEST);
+        TraceSerialEvent(TRACE_SERIAL_IRQ_REQUEST, edge_cycle);
         PublishSerialState(edge_cycle);
 
         m_bSerialTransferActive = false;

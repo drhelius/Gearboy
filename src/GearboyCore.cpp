@@ -156,7 +156,7 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pSGB->Init();
 
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    m_trace_logger = new TraceLogger(&m_master_clock_cycles);
+    m_trace_logger = new TraceLogger(&m_master_clock_cycles, &m_link_cable_cycles);
     m_pProcessor->SetTraceLogger(m_trace_logger);
     m_pVideo->SetTraceLogger(m_trace_logger);
     m_pMemory->SetTraceLogger(m_trace_logger);

@@ -44,13 +44,13 @@ public:
 private:
     INLINE void TraceInputEvent(u8 event, u8 value, u8 result = 0);
     INLINE void TraceTimerEvent(u8 event, u8 value);
-    INLINE void TraceSerialEvent(u8 event, u8 value);
+    INLINE void TraceSerialEvent(u8 event, u16 address, u8 value);
     INLINE void TraceLCDRegister(u16 address, u8 raw);
     INLINE void TraceLCDInterrupt(u8 event, u8 source);
     INLINE void TraceAPURegister(u16 address, u8 raw);
     NO_INLINE void LogTraceInputEvent(u8 event, u8 value, u8 result);
     NO_INLINE void LogTraceTimerEvent(u8 event, u8 value);
-    NO_INLINE void LogTraceSerialEvent(u8 event, u8 value);
+    NO_INLINE void LogTraceSerialEvent(u8 event, u16 address, u8 value);
     NO_INLINE void LogTraceLCDRegister(u16 address, u8 raw);
     NO_INLINE void LogTraceLCDInterrupt(u8 event, u8 source);
     NO_INLINE void LogTraceAPURegister(u8 event, u16 address, u8 raw);
@@ -97,13 +97,14 @@ INLINE void IORegistersMemoryRule::TraceTimerEvent(u8 event, u8 value)
 #endif
 }
 
-INLINE void IORegistersMemoryRule::TraceSerialEvent(u8 event, u8 value)
+INLINE void IORegistersMemoryRule::TraceSerialEvent(u8 event, u16 address, u8 value)
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
     if (m_pTraceLogger->IsEventEnabled(TRACE_SERIAL, event))
-        LogTraceSerialEvent(event, value);
+        LogTraceSerialEvent(event, address, value);
 #else
     UNUSED(event);
+    UNUSED(address);
     UNUSED(value);
 #endif
 }
@@ -360,7 +361,7 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             // SB
             m_pMemory->Load(address, value);
             m_pProcessor->NotifySerialDataWrite(value);
-            TraceSerialEvent(TRACE_SERIAL_REG_WRITE, value);
+            TraceSerialEvent(TRACE_SERIAL_REG_WRITE, address, value);
             break;
         }
         case 0xFF02:
@@ -369,9 +370,7 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             u8 normalized = m_pProcessor->NormalizeSerialControl(value);
             m_pMemory->Load(address, normalized);
             m_pProcessor->NotifySerialControlWrite(normalized);
-            TraceSerialEvent(TRACE_SERIAL_REG_WRITE, value);
-            if ((normalized & 0x80) != 0)
-                TraceSerialEvent(TRACE_SERIAL_TRANSFER_START, value);
+            TraceSerialEvent(TRACE_SERIAL_REG_WRITE, address, value);
             break;
         }
         case 0xFF04:

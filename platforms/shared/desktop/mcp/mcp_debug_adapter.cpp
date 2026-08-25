@@ -893,23 +893,36 @@ json DebugAdapter::GetSerialStatus()
     control["clock_source"] = internal_clock ? "internal" : "external";
     control["clock_speed"] = fast_clock ? "cgb_fast" : "normal";
     control["cpu_speed"] = processor->CGBSpeed() ? "double" : "normal";
-    control["cable_connected"] = processor->IsLinkCableConnected();
     status["control"] = control;
+
+    const char* byte_state = "none";
+    if (serial.waiting_external)
+        byte_state = "pending";
+    else if (serial.transfer_active)
+        byte_state = "active";
+    else if (serial.bytes_valid)
+        byte_state = "last";
+
+    u8 outgoing_byte = serial.waiting_external ? sb : serial.outgoing_byte;
+    bool incoming_byte_valid = serial.transfer_active ||
+        (!serial.waiting_external && serial.bytes_valid);
 
     json transfer;
     transfer["mode"] = transfer_mode;
+    transfer["byte_state"] = byte_state;
     transfer["active"] = serial.transfer_active;
     transfer["waiting_external"] = serial.waiting_external;
     transfer["restore_pending"] = serial.restore_pending;
     transfer["bits_shifted"] = CLAMP(serial.bit_index, 0, 8);
     transfer["bit_phase_cycles"] = serial.cycles;
     transfer["bit_cycles"] = serial.bit_cycles;
-    ss << std::setw(2) << (int)serial.outgoing_byte;
+    ss << std::setw(2) << (int)outgoing_byte;
     transfer["outgoing_byte"] = ss.str();
     ss.str("");
     ss << std::setw(2) << (int)serial.incoming_byte;
     transfer["incoming_byte"] = ss.str();
     ss.str("");
+    transfer["incoming_byte_valid"] = incoming_byte_valid;
     transfer["transfer_id"] = serial.transfer_id;
     transfer["link_cycle"] = m_core->GetLinkCableCycle();
     transfer["last_request_cycle"] = serial.request_cycle;
@@ -928,22 +941,25 @@ json DebugAdapter::GetSerialStatus()
     LinkCableStatus link = emu_link_cable_get_status();
     const char* link_mode = "disabled";
     if (link.mode == LinkCableModeConnected)
-        link_mode = "connected";
+        link_mode = "active";
     else if (link.mode == LinkCableModeFault)
         link_mode = "fault";
+
+    bool session_active = link.mode == LinkCableModeConnected;
+    bool peer_connected = session_active && link.peer_count > 1;
 
     json network;
     network["transport"] = "shared_memory";
     network["mode"] = link_mode;
-    network["cable_connected"] = link.cable_connected;
-    network["endpoint"] = link.endpoint;
+    network["session_active"] = session_active;
+    network["peer_connected"] = peer_connected;
     network["last_error"] = link.last_error;
     network["session"] = link.session;
     network["local_peer_id"] = link.local_peer_id;
     network["peer_count"] = link.peer_count;
-    network["pacing_peer"] = link.pacing_peer;
+    network["pacing_peer"] = peer_connected && link.pacing_peer;
     network["link_cycle"] = m_core->GetLinkCableCycle();
-    network["promise_cycles"] = processor->GetLinkCablePromiseCycles( m_core->GetLinkCableCycle());
+    network["promise_cycles"] = processor->GetLinkCablePromiseCycles(m_core->GetLinkCableCycle());
     network["states_published"] = link.states_published;
     network["transfers_published"] = link.transfers_published;
     network["transfers_delivered"] = link.transfers_delivered;

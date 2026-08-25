@@ -44,10 +44,10 @@ INLINE void Processor::TraceTimerEvent(u8 event)
         LogTimerEvent(event);
 }
 
-INLINE void Processor::TraceSerialEvent(u8 event)
+INLINE void Processor::TraceSerialEvent(u8 event, u64 link_cycle)
 {
     if (IsValidPointer(m_pTraceLogger) && m_pTraceLogger->IsEventEnabled(TRACE_SERIAL, event))
-        LogSerialEvent(event);
+        LogSerialEvent(event, link_cycle);
 }
 
 inline bool Processor::InterruptIsAboutToRaise()

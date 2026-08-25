@@ -23,6 +23,7 @@
 #include <ctime>
 #include <thread>
 #if !defined(_WIN32)
+#include <sys/mman.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #endif
@@ -44,7 +45,11 @@ static u8 TestSession(int offset)
 #if defined(_WIN32)
     return (u8)(180 + offset);
 #else
-    return (u8)(20 + ((getpid() + offset * 37) % 200));
+    u8 session = (u8)(20 + ((getpid() + offset * 37) % 200));
+    char name[64];
+    snprintf(name, sizeof(name), "/" LINK_CABLE_SHM_PREFIX "%u", session);
+    shm_unlink(name);
+    return session;
 #endif
 }
 

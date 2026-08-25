@@ -598,31 +598,69 @@ void trace_logger_format_entry(const GB_Trace_Entry& entry,
         case TRACE_SERIAL:
         {
             const char* clock = entry.serial.internal_clock ? "INTERNAL" : "EXTERNAL";
-            const char* speed = (entry.serial.control & 0x02) ? "FAST" : "NORMAL";
-            const char* state = (entry.serial.control & 0x80) ? "ACTIVE" : "IDLE";
+            const char* speed = entry.serial.fast_clock ? "CGB_FAST" : "NORMAL";
+            const char* cpu = entry.serial.double_speed ? "DOUBLE" : "NORMAL";
+            const char* system = entry.serial.cgb ? "CGB" : "DMG";
             switch (entry.serial.event)
             {
                 case TRACE_SERIAL_REG_WRITE:
-                    snprintf(buf, buf_size, "  [SER]  REG WRITE Data:$%02X SB:$%02X SC:$%02X Clock:%s SpeedBit:%s State:%s",
-                             entry.serial.value, entry.serial.data, entry.serial.control,
-                             clock, speed, state);
+                    if (entry.serial.address == 0xFF01)
+                    {
+                        snprintf(buf, buf_size,
+                                 "  [SER]  WRITE SB($FF01) Raw:$%02X Read:$%02X SC:$%02X Link:%llu",
+                                 entry.serial.value, entry.serial.data, entry.serial.control,
+                                 (unsigned long long)entry.serial.link_cycle);
+                    }
+                    else if (entry.serial.address == 0xFF02)
+                    {
+                        snprintf(buf, buf_size,
+                                 "  [SER]  WRITE SC($FF02) Raw:$%02X Read:$%02X SB:$%02X "
+                                 "Request:%s Clock:%s Speed:%s CPU:%s System:%s Link:%llu",
+                                 entry.serial.value, entry.serial.control, entry.serial.data,
+                                 (entry.serial.control & 0x80) ? "SET" : "CLEAR",
+                                 clock, speed, cpu, system,
+                                 (unsigned long long)entry.serial.link_cycle);
+                    }
+                    else
+                    {
+                        snprintf(buf, buf_size,
+                                 "  [SER]  WRITE REG($%04X) Raw:$%02X SB:$%02X SC:$%02X Link:%llu",
+                                 entry.serial.address, entry.serial.value, entry.serial.data,
+                                 entry.serial.control,
+                                 (unsigned long long)entry.serial.link_cycle);
+                    }
                     break;
                 case TRACE_SERIAL_TRANSFER_START:
-                    snprintf(buf, buf_size, "  [SER]  TRANSFER START SB:$%02X SC:$%02X Clock:%s SpeedBit:%s",
-                             entry.serial.data, entry.serial.control, clock, speed);
+                    snprintf(buf, buf_size,
+                             "  [SER]  TRANSFER START ID:%u TX:$%02X Clock:%s Speed:%s "
+                             "CPU:%s System:%s Period:%u Request:%llu FirstEdge:%llu Link:%llu",
+                             entry.serial.transfer_id, entry.serial.outgoing_byte,
+                             clock, speed, cpu, system, entry.serial.bit_cycles,
+                             (unsigned long long)entry.serial.request_cycle,
+                             (unsigned long long)entry.serial.first_shift_cycle,
+                             (unsigned long long)entry.serial.link_cycle);
                     break;
                 case TRACE_SERIAL_TRANSFER_END:
-                    snprintf(buf, buf_size, "  [SER]  TRANSFER END SB:$%02X SC:$%02X Clock:%s SpeedBit:%s",
-                             entry.serial.data, entry.serial.control, clock, speed);
+                    snprintf(buf, buf_size,
+                             "  [SER]  TRANSFER END ID:%u TX:$%02X RX:$%02X Clock:%s Speed:%s "
+                             "CPU:%s System:%s Period:%u Link:%llu",
+                             entry.serial.transfer_id, entry.serial.outgoing_byte,
+                             entry.serial.data, clock, speed, cpu, system,
+                             entry.serial.bit_cycles,
+                             (unsigned long long)entry.serial.link_cycle);
                     break;
                 case TRACE_SERIAL_IRQ_REQUEST:
-                    snprintf(buf, buf_size, "  [SER]  IRQ REQUEST SB:$%02X SC:$%02X Clock:%s",
-                             entry.serial.data, entry.serial.control, clock);
+                    snprintf(buf, buf_size,
+                             "  [SER]  IRQ REQUEST ID:%u RX:$%02X Link:%llu",
+                             entry.serial.transfer_id, entry.serial.data,
+                             (unsigned long long)entry.serial.link_cycle);
                     break;
                 default:
-                    snprintf(buf, buf_size, "  [SER]  UNKNOWN EVENT($%02X) SB:$%02X SC:$%02X Data:$%02X",
+                    snprintf(buf, buf_size,
+                             "  [SER]  UNKNOWN EVENT($%02X) SB:$%02X SC:$%02X Data:$%02X Link:%llu",
                              entry.serial.event, entry.serial.data,
-                             entry.serial.control, entry.serial.value);
+                             entry.serial.control, entry.serial.value,
+                             (unsigned long long)entry.serial.link_cycle);
                     break;
             }
             break;

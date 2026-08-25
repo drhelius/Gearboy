@@ -228,11 +228,21 @@ struct GB_Trace_Entry
 
         struct
         {
+            u64 link_cycle;
+            u64 request_cycle;
+            u64 first_shift_cycle;
+            u32 bit_cycles;
+            u32 transfer_id;
+            u16 address;
             u8 data;
             u8 control;
             u8 value;
             u8 event;
             u8 internal_clock;
+            u8 fast_clock;
+            u8 cgb;
+            u8 double_speed;
+            u8 outgoing_byte;
         } serial;
 
         struct
@@ -255,7 +265,7 @@ static_assert(sizeof(GB_Trace_Entry) <= 104, "Trace entry exceeds memory budget"
 class TraceLogger
 {
 public:
-    TraceLogger(const u64* master_clock_cycles = NULL);
+    TraceLogger(const u64* master_clock_cycles = NULL, const u64* link_cable_cycles = NULL);
     ~TraceLogger();
     void Reset();
     bool SetCapacity(u32 capacity);
@@ -272,6 +282,7 @@ public:
     u32 GetPosition() const;
     u64 GetTotalLogged() const;
     u64 GetSequence() const;
+    u64 GetLinkCableCycle() const;
     const GB_Trace_Entry& GetEntry(u32 index) const;
 
 private:
@@ -290,6 +301,7 @@ private:
     u64 m_total_logged;
     u64 m_sequence;
     const u64* m_master_clock_cycles;
+    const u64* m_link_cable_cycles;
 };
 
 INLINE bool TraceLogger::IsEnabled(GB_Trace_Type type) const

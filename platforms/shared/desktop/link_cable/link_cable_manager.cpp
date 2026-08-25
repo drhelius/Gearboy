@@ -39,6 +39,9 @@
 #define LINK_CABLE_SHM_MAGIC 0x47424C4B
 #define LINK_CABLE_SHM_VERSION 1
 #define LINK_CABLE_BARRIER_SLEEP_US 100
+#if !defined(LINK_CABLE_SHM_PREFIX)
+#define LINK_CABLE_SHM_PREFIX "gearboy-link-"
+#endif
 
 static u64 link_cable_saturating_add(u64 value, u64 add)
 {
@@ -124,11 +127,8 @@ bool LinkCableManager::Connect(u8 session, u64 local_cycle)
 
     memset(&m_status, 0, sizeof(m_status));
     m_status.mode = LinkCableModeConnected;
-    m_status.cable_connected = true;
     m_status.session = session;
     m_status.attachments = 1;
-
-    snprintf(m_status.endpoint, sizeof(m_status.endpoint), "Shared session %u", session);
 
     RefreshStatus();
 
@@ -470,7 +470,7 @@ bool LinkCableManager::Map(u8 session)
     bool created;
 
 #if defined(_WIN32)
-    snprintf(name, sizeof(name), "Local\\gearboy-link-%u", session);
+    snprintf(name, sizeof(name), "Local\\" LINK_CABLE_SHM_PREFIX "%u", session);
 
     HANDLE mapping = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL,
         PAGE_READWRITE, 0, (DWORD)sizeof(Shared), name);
@@ -494,7 +494,7 @@ bool LinkCableManager::Map(u8 session)
     m_mapping_handle = mapping;
     m_shared = (Shared*)address;
 #else
-    snprintf(name, sizeof(name), "/gearboy-link-%u", session);
+    snprintf(name, sizeof(name), "/" LINK_CABLE_SHM_PREFIX "%u", session);
 
     int fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL, 0600);
     created = fd >= 0;
@@ -945,7 +945,6 @@ void LinkCableManager::RecordBarrierWait(u64 wait)
 void LinkCableManager::SetFault(const char* message)
 {
     m_status.mode = LinkCableModeFault;
-    m_status.cable_connected = false;
     snprintf(m_status.last_error, sizeof(m_status.last_error), "%s", message);
     Error("Link cable: %s", message);
 }

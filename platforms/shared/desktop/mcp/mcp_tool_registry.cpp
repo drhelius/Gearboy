@@ -212,7 +212,7 @@ static const McpToolCategory kMcpToolCategories[] =
     {"state", "Save States", "List save slots, select a slot, save emulator state, and load emulator state."},
     {"rewind", "Rewind", "Inspect rewind buffer status and seek to rewind snapshots for time-travel debugging."},
     {"input", "Input", "Inspect, press, release, tap, or macro Game Boy input."},
-    {"trace", "Trace", "Read trace log entries and configure CPU, interrupt, video, audio, memory, and debug-message tracing."},
+    {"trace", "Trace", "Read trace entries and configure CPU, IRQ, LCD, input, timer, APU, serial, and mapper tracing."},
     {"tools", "Other Tools", "Additional emulator/debugger tools that do not fit another category."}
 };
 
@@ -693,10 +693,8 @@ std::string McpToolRegistry::AliasesForTool(const std::string& tool_name) const
     std::string name = NormalizeToolName(tool_name);
     std::string aliases = ToolCategoryForName(name);
 
-    if (StringContains(name, "mikey"))
-        aliases += " timers timer irq interrupt hblank vblank audio uart comlynx";
-    if (StringContains(name, "suzy") || StringContains(name, "sprite"))
-        aliases += " sprites sprite blitter math collision scb";
+    if (StringContains(name, "sprite"))
+        aliases += " sprites sprite oam object tile attributes palette";
     if (StringContains(name, "vdp") || StringContains(name, "lcd") ||
         StringContains(name, "huc62"))
         aliases += " video display scanline hblank vblank palette tiles background";

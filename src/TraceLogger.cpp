@@ -20,7 +20,7 @@
 #include "TraceLogger.h"
 #include <new>
 
-TraceLogger::TraceLogger(const u64* master_clock_cycles)
+TraceLogger::TraceLogger(const u64* master_clock_cycles, const u64* link_cable_cycles)
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
     m_buffer = new (std::nothrow) GB_Trace_Entry[TRACE_BUFFER_SIZE];
@@ -39,6 +39,7 @@ TraceLogger::TraceLogger(const u64* master_clock_cycles)
     m_total_logged = 0;
     m_sequence = 0;
     m_master_clock_cycles = master_clock_cycles;
+    m_link_cable_cycles = link_cable_cycles;
 }
 
 TraceLogger::~TraceLogger()
@@ -139,6 +140,11 @@ u64 TraceLogger::GetTotalLogged() const
 u64 TraceLogger::GetSequence() const
 {
     return m_sequence;
+}
+
+u64 TraceLogger::GetLinkCableCycle() const
+{
+    return IsValidPointer(m_link_cable_cycles) ? *m_link_cable_cycles : 0;
 }
 
 const GB_Trace_Entry& TraceLogger::GetEntry(u32 index) const

@@ -1329,9 +1329,17 @@ static void menu_link_cable(void)
     switch (status.mode)
     {
         case LinkCableModeConnected:
-            ImGui::TextColored(cornflower_blue, "%s", status.endpoint);
-            ImGui::TextDisabled("Peer %d of %d", status.local_peer_id,
-                status.peer_count);
+            ImGui::TextColored(cornflower_blue, "Session %u active", status.session);
+            if (status.peer_count > 1)
+            {
+                ImGui::TextDisabled("Peer %d of %d - connected",
+                    status.local_peer_id, status.peer_count);
+            }
+            else
+            {
+                ImGui::TextDisabled("Peer %d - waiting for remote peer",
+                    status.local_peer_id);
+            }
             break;
         case LinkCableModeFault:
             ImGui::TextColored(error_red, "%s", status.last_error);
@@ -1615,8 +1623,16 @@ static void draw_service_status(void)
 
     if (link_active)
     {
-        snprintf(link_status, sizeof(link_status), "LINK: S%u P%d/%d",
-            link.session, link.local_peer_id, link.peer_count);
+        if (link.peer_count > 1)
+        {
+            snprintf(link_status, sizeof(link_status), "LINK: S%u P%d/%d",
+                link.session, link.local_peer_id, link.peer_count);
+        }
+        else
+        {
+            snprintf(link_status, sizeof(link_status), "LINK: S%u WAITING",
+                link.session);
+        }
         show_link_status = true;
     }
 

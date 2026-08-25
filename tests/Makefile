@@ -11,6 +11,7 @@ OBJECTS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
 INCLUDES += -I$(SRC_DIR)
 INCLUDES += -I$(DEPS_DIR)/miniz
+INCLUDES += -I../platforms/shared/desktop
 
 USE_CLANG ?= 0
 ifeq ($(USE_CLANG), 1)
@@ -73,6 +74,8 @@ $(LINK_CABLE_WIRE_TARGET_NAME): link_cable_wire_tests.cpp
 
 $(LINK_CABLE_MANAGER_TARGET_NAME): link_cable_manager_tests.cpp ../platforms/shared/desktop/link_cable/link_cable_manager.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I../platforms/shared/desktop -pthread -o $@ $^ $(LDFLAGS)
+
+$(LINK_CABLE_MANAGER_TARGET_NAME): CPPFLAGS += -DLINK_CABLE_SHM_PREFIX=\"gearboy-link-tests-\"
 
 %.o: %.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<

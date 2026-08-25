@@ -36,7 +36,6 @@ enum LinkCableMode
 struct LinkCableStatus
 {
     LinkCableMode mode;
-    bool cable_connected;
     u8 session;
     u8 local_peer_id;
     int peer_count;
@@ -68,7 +67,6 @@ struct LinkCableStatus
     u64 transfer_ring_overruns;
     u64 attachments;
     bool pacing_peer;
-    char endpoint[128];
     char last_error[128];
 };
 
