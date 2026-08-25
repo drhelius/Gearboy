@@ -42,7 +42,7 @@ void gui_debug_window_link_cable(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(100, 90), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(266, 456), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(258, 450), ImGuiCond_FirstUseEver);
     ImGui::Begin("Link Cable", &config_debug.show_link_cable);
 
     GearboyCore* core = emu_get_core();
@@ -61,7 +61,7 @@ void gui_debug_window_link_cable_transport(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(430, 90), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(304, 630), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(286, 600), ImGuiCond_FirstUseEver);
     ImGui::Begin("Link Cable (Transport)", &config_debug.show_link_cable_transport);
 
     GearboyCore* core = emu_get_core();
@@ -285,7 +285,7 @@ static void draw_transport_content(GearboyCore* core, Processor* processor)
         ImGui::TextColored(gray, "-");
     ImGui::TextColored(violet, " PEER COUNT     "); ImGui::SameLine();
     ImGui::TextColored(session_active ? white : gray, "%d", link.peer_count);
-    ImGui::TextColored(violet, " REMOTE PEER   "); ImGui::SameLine();
+    ImGui::TextColored(violet, " REMOTE PEER    "); ImGui::SameLine();
     if (peer_connected)
         ImGui::TextColored(green, "CONNECTED");
     else if (session_active)
@@ -341,7 +341,7 @@ static void draw_transport_content(GearboyCore* core, Processor* processor)
     ImGui::TextColored(magenta, "RECOVERY:");
 
     draw_metric_pair(" DETACH / RECLAIM", link.peer_detaches, link.slot_reclaims);
-    draw_metric(" MAX DETACH us  ", link.peer_detach_max_age_us);
+    draw_metric(" MAX DETACH us   ", link.peer_detach_max_age_us);
     draw_metric(" ATTACHMENTS     ", link.attachments);
     draw_metric(" SEQ RETRIES     ", link.seqlock_retries);
     draw_metric_pair(" STATE/TX OVERRUN", link.state_ring_overruns, link.transfer_ring_overruns);
