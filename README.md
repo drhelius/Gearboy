@@ -122,10 +122,10 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 
 ### Basic Usage
 - **Boot ROM**: Gearboy can run with or without a Boot ROM. You can optionally load a Boot ROM and enable it.
-- **Link Cable**:
-Open `Link Cable` menu in two desktop instances, select the same session, and connect both, or start each process with `--link-cable-join N`. Independent instances should use separate application copies or `--portable` data directories so configuration, saves, and single-instance handling do not conflict.
 - **Mouse Cursor**: Automatically hides when hovering over the main output window or when Main Menu is disabled.
 - **Portable Mode**: Run with `--portable`, or create an empty file named `portable.ini` in the same directory as the application binary. On macOS, place the file next to the `.app` bundle.
+- **Link Cable**:
+Open `Link Cable` menu in two desktop instances, select the same session, and connect both, or start each process with `--link-cable-join N`. Independent instances should use separate application copies or `--portable` data directories so configuration, saves, and single-instance handling do not conflict.
 
 ### Debugging Features
 - **Docking Windows**: In debug mode, you can dock windows together by pressing SHIFT and dragging a window onto another.
