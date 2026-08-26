@@ -48,7 +48,7 @@ int runahead_get_frames(void)
 {
     int frames = config_emulator.runahead;
 
-    if ((frames <= 0) || config_emulator.ffwd)
+    if ((frames <= 0) || config_emulator.ffwd || config_debug.debug)
         return 0;
 
     return frames;
