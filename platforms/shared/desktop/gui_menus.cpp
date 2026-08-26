@@ -53,6 +53,9 @@ static bool open_dmg_bootrom = false;
 static bool open_gbc_bootrom = false;
 static bool save_debug_settings = false;
 static bool load_debug_settings = false;
+static const ImVec4 service_link_color(0.39f, 0.58f, 0.93f, 1.0f);
+static const ImVec4 service_mcp_http_color(0.10f, 0.90f, 0.10f, 1.0f);
+static const ImVec4 service_mcp_stdio_color(0.90f, 0.70f, 0.10f, 1.0f);
 static ShaderPresetInfo shader_presets[SHADER_PRESET_MAX_DISCOVERED];
 static int shader_preset_count = 0;
 
@@ -498,7 +501,7 @@ static void menu_emulator(void)
             ImGui::Separator();
             if (strlen(gui_dmg_bootrom_path) > 0)
             {
-                ImGui::TextColored(ImVec4(0.10f, 0.90f, 0.10f, 1.0f), "DMG Boot ROM loaded");
+                ImGui::TextColored(service_mcp_http_color, "DMG Boot ROM loaded");
             }
             else
             {
@@ -531,7 +534,7 @@ static void menu_emulator(void)
             ImGui::Separator();
             if (strlen(gui_gbc_bootrom_path) > 0)
             {
-                ImGui::TextColored(ImVec4(0.10f, 0.90f, 0.10f, 1.0f), "GBC Boot ROM loaded");
+                ImGui::TextColored(service_mcp_http_color, "GBC Boot ROM loaded");
             }
             else
             {
@@ -1310,7 +1313,6 @@ static void menu_link_cable(void)
     gui_in_use = true;
     LinkCableStatus status = emu_link_cable_get_status();
     bool active = emu_link_cable_is_active();
-    const ImVec4 cornflower_blue(0.39f, 0.58f, 0.93f, 1.0f);
     const ImVec4 error_red(0.98f, 0.15f, 0.45f, 1.0f);
 
 #if defined(__APPLE__)
@@ -1333,7 +1335,7 @@ static void menu_link_cable(void)
     switch (status.mode)
     {
         case LinkCableModeConnected:
-            ImGui::TextColored(cornflower_blue, "Session %u active", status.session);
+            ImGui::TextColored(service_link_color, "Session %u active", status.session);
             if (status.peer_count > 1)
             {
                 ImGui::TextDisabled("Peer %d of %d - connected",
@@ -1475,9 +1477,9 @@ static void menu_debug(void)
             ImGui::Separator();
 
             if (stdio_running)
-                ImGui::TextColored(ImVec4(0.90f, 0.70f, 0.10f, 1.0f), "STDIO mode active");
+                ImGui::TextColored(service_mcp_stdio_color, "STDIO mode active");
             else if (http_running)
-                ImGui::TextColored(ImVec4(0.10f, 0.90f, 0.10f, 1.0f), "Listening on %s:%d",
+                ImGui::TextColored(service_mcp_http_color, "Listening on %s:%d",
                     emu_mcp_get_http_address(), emu_mcp_get_http_port());
             else
                 ImGui::TextColored(ImVec4(0.98f, 0.15f, 0.45f, 1.0f), "Stopped");
@@ -1622,8 +1624,7 @@ static void draw_service_status(void)
     char mcp_status[128] = {};
     bool show_link_status = false;
     bool show_mcp_status = false;
-    ImVec4 link_color(0.39f, 0.58f, 0.93f, 1.0f);
-    ImVec4 mcp_color(0.10f, 0.90f, 0.10f, 1.0f);
+    ImVec4 mcp_color = service_mcp_http_color;
 
     if (link_active)
     {
@@ -1646,7 +1647,7 @@ static void draw_service_status(void)
         if (transport_mode == 0)
         {
             snprintf(mcp_status, sizeof(mcp_status), "MCP: STDIO");
-            mcp_color = ImVec4(0.90f, 0.70f, 0.10f, 1.0f);
+            mcp_color = service_mcp_stdio_color;
             show_mcp_status = true;
         }
         else if (transport_mode == 1)
@@ -1682,7 +1683,7 @@ static void draw_service_status(void)
     ImGui::AlignTextToFramePadding();
 
     if (show_link_status)
-        ImGui::TextColored(link_color, "%s", link_status);
+        ImGui::TextColored(service_link_color, "%s", link_status);
 
     if (show_mcp_status)
     {
