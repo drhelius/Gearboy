@@ -188,7 +188,7 @@ static inline void process(config_Operation operation)
 
     // Display
     CONFIG_INT("Video", "Scale", config_video.scale, 0);
-    CONFIG_INT("Video", "ScaleManual", config_video.scale_manual, 1);
+    CONFIG_INT_RANGE("Video", "ScaleManual", config_video.scale_manual, 1, 1, 20);
     CONFIG_INT("Video", "AspectRatio", config_video.ratio, 0);
     CONFIG_BOOL("Video", "FPS", config_video.fps, false);
     CONFIG_INT_RANGE("Video", "Palette", config_video.palette, 0, 0, 10);
