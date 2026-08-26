@@ -26,7 +26,7 @@
 
 static const int config_version = 7;
 static const int config_minimum_version = 2;
-static const int config_max_recent_roms = 10;
+static const int config_max_recent_roms = 15;
 static const int config_max_custom_palettes = 5;
 static const int config_memory_editor_count = 17;
 
