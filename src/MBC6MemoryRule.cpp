@@ -668,7 +668,7 @@ bool MBC6MemoryRule::LoadRam(std::istream& file, s32 fileSize)
     if (complete)
         memcpy(m_pPersistentMemory, temporary, kPersistentSize);
 
-    SafeDeleteArray(temporary);
+    delete [] temporary;
 
     if (!complete)
         return false;
