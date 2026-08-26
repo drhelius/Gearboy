@@ -693,8 +693,10 @@ static void prepare_drawable_lines(void)
 
 static void draw_disassembly(void)
 {
+    ImVec4 hover_color = (config_emulator.theme == config_Theme_Light) ? ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered] : (ImVec4)mid_gray;
+
     ImGui::PushFont(gui_default_font);
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, mid_gray);
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, hover_color);
 
     bool window_visible = ImGui::BeginChild("##dis", ImVec2(ImGui::GetContentRegionAvail().x, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
 
@@ -786,7 +788,10 @@ static void draw_disassembly(void)
                 else if (line.record->subroutine && !ImGui::IsItemHovered())
                 {
                     enable_bg_color = true;
-                    bg_color = (config_emulator.theme == config_Theme_Light) ? black : dark_gray;
+                    if (config_emulator.theme == config_Theme_Light)
+                        bg_color = ImGui::GetStyle().Colors[ImGuiCol_Header];
+                    else
+                        bg_color = dark_gray;
                 }
 
                 if (enable_bg_color)
@@ -853,7 +858,11 @@ static void draw_disassembly(void)
                 bool is_ret = is_return_instruction(line.record);
                 if (is_ret)
                 {
-                    ImVec4 separator_color = (config_emulator.theme == config_Theme_Light) ? black : dark_green;
+                    ImVec4 separator_color;
+                    if (config_emulator.theme == config_Theme_Light)
+                        separator_color = ImGui::GetStyle().Colors[ImGuiCol_Separator];
+                    else
+                        separator_color = dark_green;
                     ImGui::PushStyleColor(ImGuiCol_Separator, separator_color);
                     ImGui::Separator();
                     ImGui::PopStyleColor();
