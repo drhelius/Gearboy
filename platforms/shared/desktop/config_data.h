@@ -24,7 +24,7 @@
 #include <string>
 #include "gearboy.h"
 
-static const int config_version = 6;
+static const int config_version = 7;
 static const int config_minimum_version = 2;
 static const int config_max_recent_roms = 10;
 static const int config_max_custom_palettes = 5;
@@ -61,6 +61,7 @@ struct config_Emulator
     int save_slot;
     bool start_paused;
     bool pause_when_inactive;
+    bool softpatching;
     bool force_dmg;
     bool force_gba;
     bool sgb;

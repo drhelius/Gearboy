@@ -102,6 +102,11 @@ inline u16 read_u16_be(const u8* p)
     return (u16)p[1] | ((u16)p[0] << 8);
 }
 
+inline u32 read_u24_be(const u8* p)
+{
+    return (u32)p[2] | ((u32)p[1] << 8) | ((u32)p[0] << 16);
+}
+
 inline u32 read_u32_be(const u8* p)
 {
     return (u32)p[3] | ((u32)p[2] << 8) | ((u32)p[1] << 16) | ((u32)p[0] << 24);

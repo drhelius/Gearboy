@@ -72,6 +72,7 @@ static std::thread loading_thread;
 static bool loading_thread_active = false;
 static bool loading_result;
 static char loading_file_path[4096];
+static bool loading_softpatching;
 static bool loading_force_dmg;
 static Cartridge::CartridgeTypes loading_mbc;
 static bool loading_force_gba;
@@ -193,7 +194,7 @@ void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
     emu_audio_reset();
     save_ram();
     gearboy->SetSGBEnabled(config_emulator.sgb);
-    gearboy->LoadROM(file_path, force_dmg, mbc, force_gba);
+    gearboy->LoadROM(file_path, force_dmg, mbc, force_gba, config_emulator.softpatching);
     load_ram();
     rewind_reset();
     emu_debug_continue();
@@ -202,7 +203,8 @@ void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
 static void load_rom_thread_func(void)
 {
     gearboy->SetSGBEnabled(config_emulator.sgb);
-    loading_result = gearboy->LoadROM(loading_file_path, loading_force_dmg, loading_mbc, loading_force_gba);
+    loading_result = gearboy->LoadROM(loading_file_path, loading_force_dmg, loading_mbc,
+        loading_force_gba, loading_softpatching);
     loading_state.store(Loading_State_Finished);
 }
 
@@ -220,6 +222,7 @@ void emu_load_rom_async(const char* file_path, bool force_dmg, Cartridge::Cartri
     strncpy(loading_file_path, file_path, sizeof(loading_file_path) - 1);
     loading_file_path[sizeof(loading_file_path) - 1] = '\0';
     loading_result = false;
+    loading_softpatching = config_emulator.softpatching;
     loading_force_dmg = force_dmg;
     loading_mbc = mbc;
     loading_force_gba = force_gba;

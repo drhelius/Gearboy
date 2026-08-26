@@ -237,6 +237,7 @@
     <ClInclude Include="..\shared\desktop\gui_filedialogs.h" />
     <ClInclude Include="..\shared\desktop\gui_menus.h" />
     <ClInclude Include="..\shared\desktop\gui_popups.h" />
+    <ClInclude Include="..\..\src\ips_patch.h" />
     <ClInclude Include="..\shared\desktop\license.h" />
     <ClInclude Include="..\shared\desktop\ogl_renderer.h" />
     <ClInclude Include="..\shared\desktop\ogl_shader_program.h" />

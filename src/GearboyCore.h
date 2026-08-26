@@ -71,7 +71,9 @@ public:
     ~GearboyCore();
     void Init(GB_Color_Format pixelFormat = GB_PIXEL_RGB565);
     bool RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer = false, GB_Debug_Run* debug = NULL, bool render = true);
-    bool LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
+    bool LoadROM(const char* szFilePath, bool forceDMG,
+        Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported,
+        bool forceGBA = false, bool softpatching = false);
     bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
     bool GetRuntimeInfo(GB_RuntimeInfo& runtime_info);
     void KeyPressed(Gameboy_Keys key);

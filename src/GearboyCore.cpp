@@ -301,9 +301,10 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
     return breakpoint_result;
 }
 
-bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType, bool forceGBA)
+bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG,
+    Cartridge::CartridgeTypes forceType, bool forceGBA, bool softpatching)
 {
-    if (m_pCartridge->LoadFromFile(szFilePath))
+    if (m_pCartridge->LoadFromFile(szFilePath, softpatching))
     {
         m_pMBC6MemoryRule->InitializePersistentMemory();
         m_bForceDMG = forceDMG;
@@ -315,7 +316,12 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::Cart
         m_pProcessor->DisassembleNextOPCode();
 #endif
 
-        if (!romTypeOK)
+        if (!romTypeOK && m_pCartridge->IsSoftpatchApplied())
+        {
+            Error("Media rejected after applying IPS patch %s. Loading unpatched media.", m_pCartridge->GetSoftpatchPath());
+            return LoadROM(szFilePath, forceDMG, forceType, forceGBA, false);
+        }
+        else if (!romTypeOK)
         {
             Log("There was a problem with the cartridge header. File: %s...", szFilePath);
         }

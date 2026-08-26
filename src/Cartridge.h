@@ -79,8 +79,10 @@ public:
     bool HasRam() const;
     bool HasBattery() const;
     INLINE u8* GetTheROM() const;
-    bool LoadFromFile(const char* path);
+    bool LoadFromFile(const char* path, bool softpatching = false);
     bool LoadFromBuffer(const u8* buffer, int size);
+    bool IsSoftpatchApplied() const;
+    const char* GetSoftpatchPath() const;
     int GetVersion() const;
     bool IsSGB() const;
     bool IsCGB() const;
@@ -94,7 +96,8 @@ public:
 
 private:
     bool GatherMetadata();
-    bool LoadFromZipFile(const u8* buffer, int size);
+    bool LoadFromZipFile(const u8* buffer, int size, bool softpatching);
+    bool LoadFromBufferWithSoftpatch(const u8* buffer, int size, bool softpatching);
     void CheckCartridgeType(int type);
     bool IsM161Cartridge(u32 full_crc, u32 header_crc) const;
     bool IsKnownMMM01Cartridge(u32 full_crc) const;
@@ -127,6 +130,8 @@ private:
     bool m_bMBC30;
     int m_iRAMBankCount;
     int m_iROMBankCount;
+    bool m_softpatch_applied;
+    char m_softpatch_path[4096];
     std::list<GameGenieCode> m_GameGenieList;
 };
 
