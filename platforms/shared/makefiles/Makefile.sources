@@ -21,6 +21,7 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/application_headless.cpp \
     $(DESKTOP_SRC_DIR)/config.cpp \
     $(DESKTOP_SRC_DIR)/gui.cpp \
+    $(DESKTOP_SRC_DIR)/gui_cheats.cpp \
     $(DESKTOP_SRC_DIR)/gui_filedialogs.cpp \
     $(DESKTOP_SRC_DIR)/gui_menus.cpp \
     $(DESKTOP_SRC_DIR)/gui_popups.cpp \

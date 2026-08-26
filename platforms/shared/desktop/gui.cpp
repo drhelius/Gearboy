@@ -32,6 +32,7 @@
 
 #define GUI_IMPORT
 #include "gui.h"
+#include "gui_cheats.h"
 #include "gui_menus.h"
 #include "gui_popups.h"
 #include "gui_actions.h"
@@ -129,6 +130,7 @@ bool gui_init(void)
     strncpy_fit(gui_mcp_http_address, config_emulator.mcp_http_address.c_str(), sizeof(gui_mcp_http_address));
 
     gui_debug_init();
+    gui_cheats_init();
     gui_init_menus();
 
     return true;
@@ -161,6 +163,7 @@ void gui_render(void)
         main_window();
 
     gui_debug_windows();
+    gui_cheats_window();
 
     if (config_emulator.show_info)
         gui_show_info();
@@ -689,8 +692,7 @@ static void show_loading_popup(void)
 
 static bool finish_loading_rom(void)
 {
-    gui_cheat_list.clear();
-    emu_clear_cheats();
+    gui_cheats_clear();
 
     gui_debug_reset();
 
