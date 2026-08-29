@@ -193,6 +193,7 @@ struct GB_RuntimeInfo
 {
     int screen_width;
     int screen_height;
+    double fps;
 };
 
 enum GB_Disassembler_Syntax

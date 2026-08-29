@@ -101,6 +101,7 @@ EXTERN u32 emu_savestates_generation;
 EXTERN void emu_add_cheat(const char* cheat);
 EXTERN void emu_clear_cheats(void);
 EXTERN void emu_get_info(char* info, int buffer_size);
+EXTERN double emu_get_frame_rate(void);
 EXTERN GearboyCore* emu_get_core(void);
 EXTERN void emu_color_correction(bool correction);
 EXTERN void emu_video_no_sprite_limit(bool enabled);

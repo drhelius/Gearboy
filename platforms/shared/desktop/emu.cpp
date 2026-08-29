@@ -732,6 +732,17 @@ void emu_get_info(char* info, int buffer_size)
     }
 }
 
+double emu_get_frame_rate(void)
+{
+    if (!IsValidPointer(gearboy))
+        return 60.0;
+
+    GB_RuntimeInfo runtime;
+    gearboy->GetRuntimeInfo(runtime);
+
+    return runtime.fps;
+}
+
 GearboyCore* emu_get_core(void)
 {
     return gearboy;

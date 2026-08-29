@@ -32,15 +32,19 @@
 
 static Uint64 frame_time_start = 0;
 static Uint64 frame_time_end = 0;
-static int monitor_refresh_rate = 60;
-static int vsync_frames_per_emu_frame = 1;
-static int vsync_frame_counter = 0;
+static double monitor_refresh_rate = 60.0;
+static double content_frame_rate = 60.0;
+static double vsync_frame_accumulator = 0.0;
 static int last_vsync_state = -1;
 static bool multi_monitor_mixed_refresh = false;
 static bool last_link_cable_connected = false;
+static bool fixed_vsync_fallback_logged = false;
 static bool pending_gl_context_recreate = false;
 
 static bool display_is_vrr_enabled(void);
+static bool display_fixed_vsync_supported(void);
+static bool display_update_content_frame_rate(void);
+static void display_reset_vsync_accumulator(void);
 static void display_set_swap_interval(bool enabled);
 
 void display_begin_frame(void)
@@ -99,18 +103,31 @@ void display_frame_throttle(void)
 
 bool display_should_run_emu_frame(void)
 {
-    if (config_video.sync_mode != config_VideoSync_Disabled && !emu_is_empty() && !emu_is_paused()
+    if (display_is_vrr_enabled())
+        return true;
+
+    if (display_update_content_frame_rate() && config_video.sync_mode == config_VideoSync_Fixed)
+        display_use_vsync_if_enabled();
+
+    if (config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state == 1
+        && !emu_is_empty() && !emu_is_paused()
         && !emu_is_debug_idle() && emu_is_audio_open() && !config_emulator.ffwd
         && !emu_link_cable_is_cable_connected())
     {
-        if (display_is_vrr_enabled())
+        if (!display_fixed_vsync_supported() || content_frame_rate + 0.000001 >= monitor_refresh_rate)
             return true;
 
-        bool should_run = (vsync_frame_counter == 0);
-        vsync_frame_counter++;
-        if (vsync_frame_counter >= vsync_frames_per_emu_frame)
-            vsync_frame_counter = 0;
-        return should_run;
+        vsync_frame_accumulator += content_frame_rate;
+
+        if (vsync_frame_accumulator + 0.000001 >= monitor_refresh_rate)
+        {
+            vsync_frame_accumulator -= monitor_refresh_rate;
+            if (vsync_frame_accumulator < 0.0)
+                vsync_frame_accumulator = 0.0;
+            return true;
+        }
+
+        return false;
     }
 
     return true;
@@ -118,11 +135,16 @@ bool display_should_run_emu_frame(void)
 
 void display_use_vsync_if_enabled(void)
 {
+    display_update_frame_pacing();
+
     bool effective = config_video.sync_mode != config_VideoSync_Disabled &&
         !display_is_vsync_forced_off() &&
         !emu_link_cable_is_cable_connected();
+
+    if (config_video.sync_mode == config_VideoSync_Fixed && !display_fixed_vsync_supported())
+        effective = false;
+
     display_set_swap_interval(effective);
-    display_update_frame_pacing();
 }
 
 void display_disable_vsync(void)
@@ -149,31 +171,30 @@ void display_update_frame_pacing(void)
     if (display == 0)
         display = SDL_GetPrimaryDisplay();
 
+    double refresh_rate = 60.0;
     const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(display);
-    if (mode && mode->refresh_rate > 0)
-        monitor_refresh_rate = (int)mode->refresh_rate;
-    else
-        monitor_refresh_rate = 60;
 
-    const int emu_fps = 60;
+    if (mode)
+    {
+        if (mode->refresh_rate_numerator > 0 && mode->refresh_rate_denominator > 0)
+            refresh_rate = (double)mode->refresh_rate_numerator / (double)mode->refresh_rate_denominator;
+        else if (mode->refresh_rate > 0.0f)
+            refresh_rate = (double)mode->refresh_rate;
+    }
 
-    if (monitor_refresh_rate <= emu_fps + 5)
-        vsync_frames_per_emu_frame = 1;
-    else
-        vsync_frames_per_emu_frame = (monitor_refresh_rate + emu_fps / 2) / emu_fps;
+    if (refresh_rate < monitor_refresh_rate - 0.000001 || refresh_rate > monitor_refresh_rate + 0.000001)
+    {
+        monitor_refresh_rate = refresh_rate;
+        display_reset_vsync_accumulator();
+    }
 
-    if (display_is_vrr_enabled())
-        vsync_frames_per_emu_frame = 1;
+    display_update_content_frame_rate();
 
-    vsync_frames_per_emu_frame = CLAMP(vsync_frames_per_emu_frame, 1, 8);
+    if (config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state == 1 && !display_fixed_vsync_supported())
+        display_set_swap_interval(false);
 
-    vsync_frame_counter = 0;
-
-#if defined(_WIN32)
-    Debug("Monitor refresh rate: %d Hz, vsync frames per emu frame: %d%s", monitor_refresh_rate, vsync_frames_per_emu_frame, display_is_vrr_enabled() ? " (VRR)" : "");
-#else
-    Debug("Monitor refresh rate: %d Hz, vsync frames per emu frame: %d", monitor_refresh_rate, vsync_frames_per_emu_frame);
-#endif
+    Debug("Monitor refresh rate: %.3f Hz, content frame rate: %.3f FPS%s",
+        monitor_refresh_rate, content_frame_rate, display_is_vrr_enabled() ? " (VRR)" : "");
 }
 
 void display_check_mixed_refresh_rates(void)
@@ -251,14 +272,11 @@ void display_recreate_gl_context(void)
         SDL_GL_MakeCurrent(application_sdl_window, display_gl_context);
         SDL_GL_DestroyContext(old_context);
 
-        bool enable_vsync = config_video.sync_mode != config_VideoSync_Disabled &&
-            !display_is_vsync_forced_off() &&
-            !emu_link_cable_is_cable_connected();
-        display_set_swap_interval(enable_vsync);
+        last_vsync_state = -1;
+        display_use_vsync_if_enabled();
 
         ImGui_ImplSDL3_InitForOpenGL(application_sdl_window, display_gl_context);
         ogl_renderer_init();
-        display_update_frame_pacing();
     }
 }
 
@@ -271,12 +289,69 @@ static bool display_is_vrr_enabled(void)
 #endif
 }
 
+static bool display_fixed_vsync_supported(void)
+{
+    bool supported = monitor_refresh_rate + 0.1 >= content_frame_rate;
+
+    if (!supported && !fixed_vsync_fallback_logged)
+    {
+        Log("Fixed VSync disabled: %.3f Hz monitor is slower than %.3f FPS content",
+            monitor_refresh_rate, content_frame_rate);
+        fixed_vsync_fallback_logged = true;
+    }
+    else if (supported)
+        fixed_vsync_fallback_logged = false;
+
+    return supported;
+}
+
+static bool display_update_content_frame_rate(void)
+{
+    double frame_rate = emu_get_frame_rate();
+
+    if (frame_rate <= 0.0)
+        frame_rate = 60.0;
+
+    if (frame_rate >= content_frame_rate - 0.000001 && frame_rate <= content_frame_rate + 0.000001)
+        return false;
+
+    content_frame_rate = frame_rate;
+    display_reset_vsync_accumulator();
+    return true;
+}
+
+static void display_reset_vsync_accumulator(void)
+{
+    vsync_frame_accumulator = monitor_refresh_rate - content_frame_rate;
+    if (vsync_frame_accumulator < 0.0)
+        vsync_frame_accumulator = 0.0;
+}
+
 static void display_set_swap_interval(bool enabled)
 {
-    if (enabled)
-        SDL_GL_SetSwapInterval(1);
-    else
-        SDL_GL_SetSwapInterval(0);
+    int requested = enabled ? 1 : 0;
 
-    last_vsync_state = enabled ? 1 : 0;
+    if (!SDL_GL_SetSwapInterval(requested))
+    {
+        Log("SDL_GL_SetSwapInterval(%d) failed: %s", requested, SDL_GetError());
+        last_vsync_state = -1;
+        return;
+    }
+
+    int effective = 0;
+    if (!SDL_GL_GetSwapInterval(&effective))
+    {
+        Log("SDL_GL_GetSwapInterval failed: %s", SDL_GetError());
+        last_vsync_state = -1;
+        return;
+    }
+
+    if (effective != last_vsync_state)
+    {
+        Debug("Swap interval: %d", effective);
+        if (effective == 1)
+            display_reset_vsync_accumulator();
+    }
+
+    last_vsync_state = effective;
 }

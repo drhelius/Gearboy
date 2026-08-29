@@ -206,7 +206,7 @@ static inline void process(config_Operation operation)
         CONFIG_STRING("Video", "ShaderPresetFile", config_video.shader_preset_path, "");
     }
 
-    CONFIG_INT_RANGE("Video", "SyncMode", config_video.sync_mode, config_VideoSync_Disabled, config_VideoSync_Disabled, config_VideoSync_VRR);
+    CONFIG_INT_RANGE("Video", "SyncMode", config_video.sync_mode, config_VideoSync_Fixed, config_VideoSync_Disabled, config_VideoSync_VRR);
 
     // Background colors
     CONFIG_FLOAT("Video", "BackgroundColorR", config_video.background_color[config_Theme_Dark][0], 0.1f);

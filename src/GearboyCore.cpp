@@ -447,6 +447,9 @@ bool GearboyCore::GetRuntimeInfo(GB_RuntimeInfo& runtime_info)
         runtime_info.screen_width = GAMEBOY_WIDTH;
         runtime_info.screen_height = GAMEBOY_HEIGHT;
     }
+
+    runtime_info.fps = (double)GEARBOY_MASTER_CLOCK_RATE / (double)GAMEBOY_CLOCKS_PER_FRAME;
+
     return m_pCartridge->IsLoadedROM();
 }
 

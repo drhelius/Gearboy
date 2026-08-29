@@ -719,11 +719,12 @@ static void menu_video(void)
 
         if (ImGui::BeginMenu("Vertical Sync"))
         {
-            ImGui::PushItemWidth(240.0f);
 #if defined(_WIN32)
-            if (ImGui::Combo("##sync_mode", &config_video.sync_mode, "Disabled\0Fixed (60 Hz, 120 Hz, 240 Hz)\0Variable Refresh Rate (VRR)\0\0"))
+            ImGui::PushItemWidth(220.0f);
+            if (ImGui::Combo("##sync_mode", &config_video.sync_mode, "Disabled\0Fixed Vertical Sync\0Variable Refresh Rate (VRR)\0\0"))
 #else
-            if (ImGui::Combo("##sync_mode", &config_video.sync_mode, "Disabled\0Fixed (60 Hz, 120 Hz, 240 Hz)\0\0"))
+            ImGui::PushItemWidth(100.0f);
+            if (ImGui::Combo("##sync_mode", &config_video.sync_mode, "Disabled\0Enabled\0\0"))
 #endif
             {
                 if (config_video.sync_mode != config_VideoSync_Disabled)
@@ -737,19 +738,18 @@ static void menu_video(void)
             }
             ImGui::PopItemWidth();
 
+#if defined(_WIN32)
             if (ImGui::IsItemHovered())
             {
                 ImGui::BeginTooltip();
                 ImGui::Text("Disabled: do not synchronize presentation to the monitor.");
-                ImGui::Text("Fixed: use normal VSync for 60 Hz, 120 Hz, and 240 Hz displays.");
-#if defined(_WIN32)
+                ImGui::Text("Fixed Vertical Sync: use normal VSync.");
                 ImGui::Text("VRR: present at the Game Boy frame rate.");
-                ImGui::Text("VRR requires fullscreen, a VRR display, and G-SYNC,");
+                ImGui::Text("\nVRR requires fullscreen, a VRR display, and G-SYNC,");
                 ImGui::Text("FreeSync, or Adaptive Sync enabled in your monitor and GPU driver settings.");
-#endif
                 ImGui::EndTooltip();
             }
-
+#endif
             ImGui::EndMenu();
         }
 
