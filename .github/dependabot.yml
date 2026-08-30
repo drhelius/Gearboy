@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: cron
+      cronjob: "0 9 1,15 * *"
+    exclude-paths:
+      - ".github/workflows/*.lock.yml"
+      - ".github/workflows/agentics-maintenance.yml"
+  - package-ecosystem: docker
+    directory: /.devcontainer
+    schedule:
+      interval: cron
+      cronjob: "0 9 1,15 * *"
+  - package-ecosystem: devcontainers
+    directory: /.devcontainer
+    schedule:
+      interval: cron
+      cronjob: "0 9 1,15 * *"

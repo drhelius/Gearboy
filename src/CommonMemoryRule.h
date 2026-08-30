@@ -21,6 +21,7 @@
 #define	COMMONMEMORYRULE_H
 
 #include "definitions.h"
+#include "log.h"
 
 class Memory;
 
@@ -48,11 +49,20 @@ inline u8 CommonMemoryRule::PerformRead(u16 address)
         {
             case 0x8000:
             {
+                if (m_pMemory->IsVRAMAccessBlocked())
+                    return 0xFF;
+
                 return m_pMemory->ReadCGBLCDRAM(address, false);
             }
             case 0xC000:
             {
                 return m_pMemory->ReadCGBWRAM(address);
+            }
+            case 0xE000:
+            {
+                if (address < 0xFE00)
+                    return m_pMemory->ReadCGBWRAM(address - 0x2000);
+                break;
             }
         }
     }
@@ -70,6 +80,9 @@ inline void CommonMemoryRule::PerformWrite(u16 address, u8 value)
     {
         case 0x8000:
         {
+            if (m_pMemory->IsVRAMAccessBlocked())
+                break;
+
             if (m_bCGB)
                 m_pMemory->WriteCGBLCDRAM(address, value);
             else
@@ -116,7 +129,7 @@ inline void CommonMemoryRule::PerformWrite(u16 address, u8 value)
         }
         default:
         {
-            Log("--> ** Writing to invalid area %X %X", address, value);
+            Debug("--> ** Writing to invalid area %X %X", address, value);
             m_pMemory->Load(address, value);
         }
     }

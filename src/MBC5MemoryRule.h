@@ -30,6 +30,7 @@ public:
     virtual ~MBC5MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
+    virtual bool MapsROMDirectly();
     virtual void Reset(bool bCGB);
     virtual void SaveRam(std::ostream &file);
     virtual bool LoadRam(std::istream &file, s32 fileSize);
@@ -45,10 +46,15 @@ public:
     virtual void LoadState(std::istream& stream);
 
 private:
+    void UpdateBanks();
+
+private:
     int m_iCurrentRAMBank;
     int m_iCurrentROMBank;
-    int m_iCurrentROMBankHi;
+    u8 m_RomBankLow;
+    u8 m_RomBankHigh;
     bool m_bRamEnabled;
+    int m_iRumbleStrength;
     u8* m_pRAMBanks;
     int m_CurrentROMAddress;
     int m_CurrentRAMAddress;

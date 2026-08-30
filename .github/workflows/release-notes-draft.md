@@ -1,0 +1,137 @@
+---
+name: Release Notes Draft
+description: Draft release notes for newly created draft releases using the established emulator release style.
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to draft notes for (e.g. 1.7.12)"
+        required: false
+        type: string
+        default: ""
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+  copilot-requests: write
+strict: true
+network:
+  allowed:
+    - defaults
+    - github
+    - github-actions
+tools:
+  github:
+    mode: gh-proxy
+    toolsets: [repos, issues, pull_requests, actions]
+  cache-memory: true
+safe-outputs:
+  report-failure-as-issue: false
+  footer: false
+  noop:
+    report-as-issue: false
+  mentions: false
+  allowed-github-references: []
+  jobs:
+    update-draft-release:
+      description: "Replace the draft release notes for the target release tag with the provided markdown body."
+      runs-on: ubuntu-latest
+      permissions:
+        contents: write
+      output: "Draft release notes updated."
+      env:
+        GH_TOKEN: ${{ github.token }}
+        RELEASE_TAG: ${{ github.event.inputs.release_tag }}
+      inputs:
+        body:
+          description: "The complete release notes markdown to set as the draft release body."
+          required: true
+          type: string
+      steps:
+        - name: Update draft release notes
+          run: |
+            if [ -z "$RELEASE_TAG" ]; then
+              echo "No release tag provided; nothing to update."
+              exit 0
+            fi
+            if [ ! -f "$GH_AW_AGENT_OUTPUT" ]; then
+              echo "No agent output found"
+              exit 1
+            fi
+            BODY=$(jq -r '.items[] | select(.type == "update_draft_release") | .body' "$GH_AW_AGENT_OUTPUT")
+            if [ -z "$BODY" ]; then
+              echo "No body provided by agent"
+              exit 1
+            fi
+            printf '%s' "$BODY" > /tmp/release-notes.md
+            gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --notes-file /tmp/release-notes.md
+---
+
+# Release Notes Draft
+
+## Task
+
+Detect the newest Gearboy draft release created by the `Build and Release` workflow and replace its generated release notes with concise notes that match the recent manual release style.
+
+## Procedure
+
+### Phase 1: Identify The Target Release
+
+1. The target release tag is provided as the `release_tag` input: `${{ github.event.inputs.release_tag }}`. The `Build and Release` workflow sets this when it dispatches this workflow after creating the draft release.
+2. Important: this workflow runs with a read-only token, which cannot see draft releases when listing them. Do not try to list or detect draft releases. Treat the release for tag `${{ github.event.inputs.release_tag }}` as the target.
+3. If `${{ github.event.inputs.release_tag }}` is empty, call `noop` with a short explanation.
+4. If `/tmp/gh-aw/agent/memory/release-notes-draft/processed-drafts.json` shows that tag `${{ github.event.inputs.release_tag }}` was already processed, call `noop`.
+
+### Phase 2: Learn The Local Style
+
+1. Read at least six published releases from the last year in this repository.
+2. Use those releases as the style reference. Recent style is concise bullet lists with emoji, followed by a `**Full Changelog**:` compare link.
+3. Prefer the direct bullet style used in recent releases, without `## What's Changed`, unless the existing generated notes include new contributors that should be preserved.
+4. Each bullet names a concrete, user-facing change in specific wording derived from the merged pull requests (name the exact feature or subsystem). Reserve `Many bug fixes and improvements` as the final catch-all bullet, and avoid vague `Improved X` bullets when a specific description is available.
+
+### Phase 3: Collect Changes
+
+1. The target release tag is `${{ github.event.inputs.release_tag }}`. Identify the previous published release tag from the list of published releases (published releases are visible to the read-only token).
+2. List both the merged pull requests and the full commit log between the previous published tag and `${{ github.event.inputs.release_tag }}`. Most feature work in this repository lands as direct commits without a pull request, so the commit log is the primary source of truth for features; read every commit subject in the range. Use the pull requests mainly to attribute external contributors and to confirm the compare range.
+3. Do not read the draft release body or call GitHub's generate-notes API; the read-only token cannot access drafts. Reconstruct the changelog from the commit log and merged pull requests instead.
+4. Identify notable user-facing changes from the commit subjects, not just from pull requests. Commit-message prefixes signal the affected area (for example `[mcp]` for the MCP server, `[debugger]` for debugger/tooling), and many feature commits have no prefix at all. Group related commits into a single bullet per feature, and fold only genuinely minor or purely internal commits into `Many bug fixes and improvements`. Never collapse a notable feature into the catch-all bullet just because it did not arrive through a pull request.
+5. Note the GitHub login of each notable pull request's author. Treat authors other than the repository owner (`drhelius`) as external contributors whose work should be credited with a profile link in Phase 4. Preserve useful `New Contributors` information when present.
+
+### Phase 4: Draft Notes
+
+Write concise, specific release notes in the established style. Every bullet must describe a concrete, user-facing change taken from the merged pull requests — never a vague summary.
+
+Guidelines:
+- Be specific. Prefer `Variable Refresh Rate ready` over `VRR ready`, and `Added WLA-DX and PCEAS syntaxes in disassembler` over `Improved debugger`. Spell out acronyms and name the actual feature, syntax, palette, or subsystem that changed.
+- Avoid generic `Improved X` bullets when a more specific description is available. Take the specifics from the merged pull request titles and descriptions.
+- Credit external contributors. When a change comes from a pull request authored by someone other than the repository owner, append `by [username](https://github.com/username)` using that author's GitHub login.
+- One bullet per notable change. Fold minor or numerous fixes into the single `🐛 Many bug fixes and improvements` bullet. Do not invent features.
+- Keep each bullet brief and on a single line. Never wrap a bullet across multiple lines or add sub-bullets.
+
+Order the bullets like this: notable user-facing features first (most significant first), and always `🐛 Many bug fixes and improvements` last.
+
+Emoji guide (pick the closest match): `🎯` accuracy or hardware behavior, `🖥️` display/video/host integration, `🔊` audio, `🎮` input/controllers, `🎨` palettes/themes/visuals, `🧠` MCP server, `⚙️` debugger/tooling, `🤖` AI, `🐛` bug fixes.
+
+Style example (illustrative only — every bullet must reflect this repository's actual merged changes; never copy these specific items):
+
+```markdown
+- 🖥️ Variable Refresh Rate ready
+- 🧠 Reduced token usage in MCP server with optional tool router
+- ⚙️ Added WLA-DX and PCEAS syntaxes in disassembler
+- 🎨 New palette by [username](https://github.com/username)
+- 🤖 Agentic Workflows
+- 🐛 Many bug fixes and improvements
+
+**Full Changelog**: https://github.com/drhelius/Gearboy/compare/<previous>...<current>
+```
+
+### Phase 5: Update Release
+
+Call the `update_draft_release` safe-output tool with `body` set to the complete new release notes markdown. A privileged job applies it to the draft release for tag `${{ github.event.inputs.release_tag }}` using `gh release edit`.
+
+After requesting the update, store a compact record under `/tmp/gh-aw/agent/memory/release-notes-draft/processed-drafts.json` with tag `${{ github.event.inputs.release_tag }}` and timestamp.
+
+## Style
+
+Keep the notes short, factual, and in the established emulator release style. Do not add a sign-off, long generated summary, or internal analysis.

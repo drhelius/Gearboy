@@ -40,24 +40,68 @@ MBC1MemoryRule::~MBC1MemoryRule()
     SafeDeleteArray(m_pRAMBanks);
 }
 
+bool MBC1MemoryRule::MapsROMDirectly()
+{
+    return true;
+}
+
 void MBC1MemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
     m_iMode = 0;
     m_iCurrentRAMBank = 0;
     m_iCurrentROMBank = 1;
+    m_RomBankLow = 1;
     m_HigherRomBankBits = 0;
     m_bRamEnabled = false;
     for (int i = 0; i < kMBC1RamBanksSize; i++)
         m_pRAMBanks[i] = 0xFF;
     m_CurrentROMAddress = 0x4000;
     m_CurrentRAMAddress = 0;
+    if (m_pCartridge->GetRAMSize() == 0x01)
+        m_iRamBytesSize = 0x800;
+    else
+        m_iRamBytesSize = m_pCartridge->GetRAMBankCount() * 0x2000;
+}
+
+void MBC1MemoryRule::UpdateBanks()
+{
+    m_iCurrentROMBank = (m_RomBankLow & 0x1F) | (m_HigherRomBankBits << 5);
+
+    if ((m_iCurrentROMBank & 0x1F) == 0)
+        m_iCurrentROMBank++;
+
+    m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+    m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+
+    if (m_iMode == 1)
+    {
+        m_iCurrentRAMBank = m_HigherRomBankBits;
+        m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
+        m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
+    }
+    else
+    {
+        m_iCurrentRAMBank = 0;
+        m_CurrentRAMAddress = 0;
+    }
 }
 
 u8 MBC1MemoryRule::PerformRead(u16 address)
 {
     switch (address & 0xE000)
     {
+        case 0x0000:
+        case 0x2000:
+        {
+            if (m_iMode == 1)
+            {
+                u8* pROM = m_pCartridge->GetTheROM();
+                int bank0 = (m_HigherRomBankBits << 5) & (m_pCartridge->GetROMBankCount() - 1);
+                return pROM[(bank0 * 0x4000) + address];
+            }
+            return m_pMemory->Retrieve(address);
+        }
         case 0x4000:
         case 0x6000:
         {
@@ -68,21 +112,13 @@ u8 MBC1MemoryRule::PerformRead(u16 address)
         {
             if (m_bRamEnabled)
             {
-                if (m_iMode == 0)
-                {
-                    if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
-                    {
-                        // only 2KB of ram
-                        Log("--> ** Attempting to read from invalid RAM %X", address);
-                    }
-                    return m_pRAMBanks[address - 0xA000];
-                }
-                else
-                    return m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress];
+                if (m_iRamBytesSize > 0)
+                    return m_pRAMBanks[((address - 0xA000) + m_CurrentRAMAddress) & (m_iRamBytesSize - 1)];
+                return 0xFF;
             }
             else
             {
-                Log("--> ** Attempting to read from disabled ram %X", address);
+                Debug("--> ** Attempting to read from disabled ram %X", address);
                 return 0xFF;
             }
         }
@@ -109,58 +145,36 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
                     (*m_pRamChangedCallback)();
                 }
             }
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0, true);
+            }
             break;
         }
         case 0x2000:
         {
-            if (m_iMode == 0)
-            {
-                m_iCurrentROMBank = (value & 0x1F) | (m_HigherRomBankBits << 5);
-            }
-            else
-            {
-                m_iCurrentROMBank = value & 0x1F;
-            }
-
-            if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
-                    || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
-                m_iCurrentROMBank++;
-
-            m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
-            m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+            m_RomBankLow = value & 0x1F;
+            UpdateBanks();
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x4000:
         {
-            if (m_iMode == 1)
-            {
-                m_iCurrentRAMBank = value & 0x03;
-                m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
-                m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
-            }
-            else
-            {
-                m_HigherRomBankBits = value & 0x03;
-                m_iCurrentROMBank = (m_iCurrentROMBank & 0x1F) | (m_HigherRomBankBits << 5);
-
-                if (m_iCurrentROMBank == 0x00 || m_iCurrentROMBank == 0x20
-                        || m_iCurrentROMBank == 0x40 || m_iCurrentROMBank == 0x60)
-                    m_iCurrentROMBank++;
-
-                m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
-                m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
-            }
+            m_HigherRomBankBits = value & 0x03;
+            UpdateBanks();
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x6000:
         {
-            if ((m_pCartridge->GetRAMSize() != 3) && (value & 0x01))
+            m_iMode = value & 0x01;
+            UpdateBanks();
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
             {
-                Log("--> ** Attempting to change MBC1 to mode 1 with incorrect RAM banks %X %X", address, value);
-            }
-            else
-            {
-                m_iMode = value & 0x01;
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                    (m_iMode ? TRACE_MAPPER_FLAG_MODE : 0), true);
             }
             break;
         }
@@ -168,22 +182,12 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             if (m_bRamEnabled)
             {
-                if (m_iMode == 0)
-                {
-                    if ((m_pCartridge->GetRAMSize() == 1) && (address >= 0xA800))
-                    {
-                        // only 2KB of ram
-                        Log("--> ** Attempting to write on invalid RAM %X %X", address, value);
-                    }
-
-                    m_pRAMBanks[address - 0xA000] = value;
-                }
-                else
-                    m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress] = value;
+                if (m_iRamBytesSize > 0)
+                    m_pRAMBanks[((address - 0xA000) + m_CurrentRAMAddress) & (m_iRamBytesSize - 1)] = value;
             }
             else
             {
-                Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+                Debug("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
             }
             break;
         }
@@ -197,8 +201,8 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
 
 void MBC1MemoryRule::SaveRam(std::ostream &file)
 {
-    Log("MBC1MemoryRule save RAM...");
-    Log("MBC1MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
+    Debug("MBC1MemoryRule save RAM...");
+    Debug("MBC1MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
 
     u32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
 
@@ -208,13 +212,13 @@ void MBC1MemoryRule::SaveRam(std::ostream &file)
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
 
-    Log("MBC1MemoryRule save RAM done");
+    Debug("MBC1MemoryRule save RAM done");
 }
 
 bool MBC1MemoryRule::LoadRam(std::istream &file, s32 fileSize)
 {
-    Log("MBC1MemoryRule load RAM...");
-    Log("MBC1MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
+    Debug("MBC1MemoryRule load RAM...");
+    Debug("MBC1MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
 
     s32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
 
@@ -238,7 +242,7 @@ bool MBC1MemoryRule::LoadRam(std::istream &file, s32 fileSize)
         m_pRAMBanks[i] = ram_byte;
     }
 
-    Log("MBC1MemoryRule load RAM done");
+    Debug("MBC1MemoryRule load RAM done");
 
     return true;
 }
@@ -276,11 +280,19 @@ int MBC1MemoryRule::GetCurrentRomBank1Index()
 
 u8* MBC1MemoryRule::GetRomBank0()
 {
+    if (m_iMode == 1)
+    {
+        u8* pROM = m_pCartridge->GetTheROM();
+        int bank0 = (m_HigherRomBankBits << 5) & (m_pCartridge->GetROMBankCount() - 1);
+        return pROM + (bank0 * 0x4000);
+    }
     return m_pMemory->GetMemoryMap() + 0x0000;
 }
 
 int MBC1MemoryRule::GetCurrentRomBank0Index()
 {
+    if (m_iMode == 1)
+        return (m_HigherRomBankBits << 5) & (m_pCartridge->GetROMBankCount() - 1);
     return 0;
 }
 
@@ -310,4 +322,6 @@ void MBC1MemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (m_pRAMBanks), kMBC1RamBanksSize);
     stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
     stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
+    m_RomBankLow = m_iCurrentROMBank & 0x1F;
+    UpdateBanks();
 }

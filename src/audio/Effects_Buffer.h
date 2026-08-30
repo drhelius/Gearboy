@@ -90,6 +90,7 @@ private:
 
 		void* operator new ( size_t, void* p ) { return p; }
 		void operator delete ( void* ) { }
+		void operator delete ( void*, void* ) { }
 
 		~buf_t() { }
 	};

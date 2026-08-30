@@ -17,6 +17,7 @@
  *
  */
 
+#include <math.h>
 #include "GearboyCore.h"
 #include "Memory.h"
 #include "Processor.h"
@@ -32,7 +33,23 @@
 #include "MBC2MemoryRule.h"
 #include "MBC3MemoryRule.h"
 #include "MBC5MemoryRule.h"
+#include "MBC6MemoryRule.h"
 #include "MultiMBC1MemoryRule.h"
+#include "HuC1MemoryRule.h"
+#include "HuC3MemoryRule.h"
+#include "MMM01MemoryRule.h"
+#include "CameraMemoryRule.h"
+#include "MBC7MemoryRule.h"
+#include "TAMA5MemoryRule.h"
+#include "WisdomTreeMemoryRule.h"
+#include "M161MemoryRule.h"
+#include "SachenMMC1MemoryRule.h"
+#include "SachenMMC2MemoryRule.h"
+#include "FlashcartMemoryRule.h"
+#include "TraceLogger.h"
+#include "SGB.h"
+#include "common.h"
+#include "memory_stream.h"
 
 GearboyCore::GearboyCore()
 {
@@ -42,6 +59,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pAudio);
     InitPointer(m_pInput);
     InitPointer(m_pCartridge);
+    InitPointer(m_pSGB);
     InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
@@ -50,36 +68,72 @@ GearboyCore::GearboyCore()
     InitPointer(m_pMBC2MemoryRule);
     InitPointer(m_pMBC3MemoryRule);
     InitPointer(m_pMBC5MemoryRule);
+    InitPointer(m_pMBC6MemoryRule);
+    InitPointer(m_pHuC1MemoryRule);
+    InitPointer(m_pHuC3MemoryRule);
+    InitPointer(m_pMMM01MemoryRule);
+    InitPointer(m_pCameraMemoryRule);
+    InitPointer(m_pMBC7MemoryRule);
+    InitPointer(m_pTAMA5MemoryRule);
+    InitPointer(m_pWisdomTreeMemoryRule);
+    InitPointer(m_pM161MemoryRule);
+    InitPointer(m_pSachenMMC1MemoryRule);
+    InitPointer(m_pSachenMMC2MemoryRule);
+    InitPointer(m_pFlashcartMemoryRule);
     InitPointer(m_pRamChangedCallback);
+    InitPointer(m_trace_logger);
     m_bCGB = false;
     m_bGBA = false;
+    m_bSGB = false;
     m_bPaused = false;
     m_bForceDMG = false;
+    m_bSGBEnabled = true;
+    m_bSGBBorder = true;
+    InitPointer(m_pSGBFrameBuffer);
     m_iRTCUpdateCount = 0;
     m_pixelFormat = GB_PIXEL_RGB565;
+    m_bColorCorrectionEnabled = false;
+    m_pSaveStateFrameBuffer = NULL;
+    m_master_clock_cycles = 0;
+    m_link_cable_cycles = 0;
 }
 
 GearboyCore::~GearboyCore()
 {
+    SafeDelete(m_pMBC6MemoryRule);
     SafeDelete(m_pMBC5MemoryRule);
     SafeDelete(m_pMBC3MemoryRule);
     SafeDelete(m_pMBC2MemoryRule);
     SafeDelete(m_pMultiMBC1MemoryRule);
     SafeDelete(m_pMBC1MemoryRule);
+    SafeDelete(m_pHuC1MemoryRule);
+    SafeDelete(m_pHuC3MemoryRule);
+    SafeDelete(m_pMMM01MemoryRule);
+    SafeDelete(m_pCameraMemoryRule);
+    SafeDelete(m_pMBC7MemoryRule);
+    SafeDelete(m_pTAMA5MemoryRule);
+    SafeDelete(m_pWisdomTreeMemoryRule);
+    SafeDelete(m_pM161MemoryRule);
+    SafeDelete(m_pSachenMMC1MemoryRule);
+    SafeDelete(m_pSachenMMC2MemoryRule);
+    SafeDelete(m_pFlashcartMemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
     SafeDelete(m_pCommonMemoryRule);
     SafeDelete(m_pCartridge);
+    SafeDelete(m_pSGB);
+    SafeDeleteArray(m_pSGBFrameBuffer);
     SafeDelete(m_pInput);
     SafeDelete(m_pAudio);
     SafeDelete(m_pVideo);
     SafeDelete(m_pProcessor);
     SafeDelete(m_pMemory);
+    SafeDelete(m_trace_logger);
 }
 
 void GearboyCore::Init(GB_Color_Format pixelFormat)
 {
-    Log("--== %s %s by Ignacio Sanchez ==--", GEARBOY_TITLE, GEARBOY_VERSION);
+    Log("Loading %s core %s by Ignacio Sanchez", GEARBOY_TITLE, GEARBOY_VERSION);
 
     m_pixelFormat = pixelFormat;
 
@@ -89,6 +143,9 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pAudio = new Audio();
     m_pInput = new Input(m_pMemory, m_pProcessor);
     m_pCartridge = new Cartridge();
+    m_pSGB = new SGB(m_pMemory, m_pVideo);
+    m_pSGBFrameBuffer = new u16[SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT];
+
 
     m_pMemory->Init();
     m_pProcessor->Init();
@@ -96,48 +153,79 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pAudio->Init();
     m_pInput->Init();
     m_pCartridge->Init();
+    m_pSGB->Init();
+
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    m_trace_logger = new TraceLogger(&m_master_clock_cycles, &m_link_cable_cycles);
+    m_pProcessor->SetTraceLogger(m_trace_logger);
+    m_pVideo->SetTraceLogger(m_trace_logger);
+    m_pMemory->SetTraceLogger(m_trace_logger);
+#endif
 
     InitMemoryRules();
     InitDMGPalette();
+    BuildColorCorrectionLUT();
+    m_pVideo->SetColorCorrection(m_ColorCorrectionLUT, m_bColorCorrectionEnabled);
 }
 
-bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer, bool step, bool stopOnBreakpoints)
+bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool bDMGbuffer, GB_Debug_Run* debug, bool render)
 {
-    bool breakpoint = false;
+    bool breakpoint_result = false;
+
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    bool debug_enable = IsValidPointer(debug);
+
+    if (debug_enable)
+        m_pProcessor->EnableBreakpoints(debug->stop_on_breakpoint, debug->stop_on_irq);
+    else
+        m_pProcessor->EnableBreakpoints(false, false);
+#endif
 
     if (!m_bPaused && m_pCartridge->IsLoadedROM())
     {
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
         bool vblank = false;
         int totalClocks = 0;
-        while (!vblank)
+
+        do
         {
-            #ifdef PERFORMANCE
-                unsigned int clockCycles = m_pProcessor->RunFor(75);
-            #else
-                unsigned int clockCycles = m_pProcessor->RunFor(1);
-            #endif
+            unsigned int clockCycles = m_pProcessor->RunFor(1);
+            unsigned int cpuClockCycles = clockCycles;
+
+            m_master_clock_cycles += cpuClockCycles;
+            m_link_cable_cycles += cpuClockCycles;
 
             m_pProcessor->UpdateTimers(clockCycles);
-            m_pProcessor->UpdateSerial(clockCycles);
-            
+            m_pProcessor->UpdateSerial(clockCycles, m_link_cable_cycles);
+
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
+            m_master_clock_cycles += clockCycles - cpuClockCycles;
+            m_link_cable_cycles += clockCycles - cpuClockCycles;
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
-
+            m_pMBC3MemoryRule->Tick(clockCycles);
+            SynchronizeLinkCable();
             totalClocks += clockCycles;
 
-#ifndef GEARBOY_DISABLE_DISASSEMBLER
-            if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())) && !m_pProcessor->Halted() && !m_pProcessor->DuringOpCode())
+            if (debug_enable)
             {
-                vblank = true;
-                if (m_pProcessor->BreakpointHit())
-                    breakpoint = true;
-            }
-#endif
+                if (debug->step_debugger && !m_pProcessor->DuringOpCode() && !m_pProcessor->Halted())
+                    vblank = true;
 
-            if (totalClocks > 702240)
+                if (m_pProcessor->MemoryBreakpointHit())
+                    vblank = true;
+
+                if (m_pProcessor->BreakpointHit())
+                    vblank = true;
+
+                if (debug->stop_on_run_to_breakpoint && m_pProcessor->RunToBreakpointHit())
+                    vblank = true;
+            }
+
+            if (totalClocks > GAMEBOY_CLOCKS_SAFE_LIMIT)
                 vblank = true;
         }
+        while (!vblank);
 
         m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
 
@@ -148,28 +236,92 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_pCartridge->UpdateCurrentRTC();
         }
 
-        if (!m_bCGB && !bDMGbuffer)
+        if (render)
         {
-            RenderDMGFrame(pFrameBuffer);
+            if (bDMGbuffer && !m_bCGB)
+                RenderDMGIndexFrame(pFrameBuffer);
+            else
+                RenderFrameBuffer(pFrameBuffer);
         }
+
+        breakpoint_result = m_pProcessor->BreakpointHit() || m_pProcessor->RunToBreakpointHit();
+#else
+        UNUSED(debug);
+        bool vblank = false;
+        int totalClocks = 0;
+
+        do
+        {
+            #ifdef PERFORMANCE
+                unsigned int clockCycles = m_pProcessor->RunFor(75);
+            #else
+                unsigned int clockCycles = m_pProcessor->RunFor(1);
+            #endif
+            unsigned int cpuClockCycles = clockCycles;
+
+            m_master_clock_cycles += cpuClockCycles;
+            m_link_cable_cycles += cpuClockCycles;
+
+            m_pProcessor->UpdateTimers(clockCycles);
+            m_pProcessor->UpdateSerial(clockCycles, m_link_cable_cycles);
+
+            vblank = m_pVideo->Tick(clockCycles, pFrameBuffer, m_pixelFormat);
+            m_master_clock_cycles += clockCycles - cpuClockCycles;
+            m_link_cable_cycles += clockCycles - cpuClockCycles;
+            m_pAudio->Tick(clockCycles);
+            m_pInput->Tick(clockCycles);
+            m_pMBC3MemoryRule->Tick(clockCycles);
+            SynchronizeLinkCable();
+            totalClocks += clockCycles;
+
+            if (totalClocks > GAMEBOY_CLOCKS_SAFE_LIMIT)
+                vblank = true;
+        }
+        while (!vblank);
+
+        m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
+
+        m_iRTCUpdateCount++;
+        if (m_iRTCUpdateCount == 20)
+        {
+            m_iRTCUpdateCount = 0;
+            m_pCartridge->UpdateCurrentRTC();
+        }
+
+        if (render)
+        {
+            if (bDMGbuffer && !m_bCGB)
+                RenderDMGIndexFrame(pFrameBuffer);
+            else
+                RenderFrameBuffer(pFrameBuffer);
+        }
+#endif
     }
 
-    return breakpoint;
+    return breakpoint_result;
 }
 
-bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::CartridgeTypes forceType, bool forceGBA)
+bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG,
+    Cartridge::CartridgeTypes forceType, bool forceGBA, bool softpatching)
 {
-    if (m_pCartridge->LoadFromFile(szFilePath))
+    if (m_pCartridge->LoadFromFile(szFilePath, softpatching))
     {
+        m_pMBC6MemoryRule->InitializePersistentMemory();
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB(), forceGBA);
+        m_pMemory->ResetDisassemblerRecords();
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         bool romTypeOK = AddMemoryRules(forceType);
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
-        m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
+        m_pProcessor->DisassembleNextOPCode();
 #endif
 
-        if (!romTypeOK)
+        if (!romTypeOK && m_pCartridge->IsSoftpatchApplied())
+        {
+            Error("Media rejected after applying IPS patch %s. Loading unpatched media.", m_pCartridge->GetSoftpatchPath());
+            return LoadROM(szFilePath, forceDMG, forceType, forceGBA, false);
+        }
+        else if (!romTypeOK)
         {
             Log("There was a problem with the cartridge header. File: %s...", szFilePath);
         }
@@ -182,10 +334,14 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG, Cartridge::Cart
 
 bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType, bool forceGBA)
 {
+    m_pCartridge->Reset();
+
     if (m_pCartridge->LoadFromBuffer(buffer, size))
     {
+        m_pMBC6MemoryRule->InitializePersistentMemory();
         m_bForceDMG = forceDMG;
         Reset(m_bForceDMG ? false : m_pCartridge->IsCGB(), forceGBA);
+        m_pMemory->ResetDisassemblerRecords();
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         bool romTypeOK = AddMemoryRules(forceType);
 
@@ -198,60 +354,6 @@ bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, C
     }
     else
         return false;
-}
-
-void GearboyCore::SaveMemoryDump()
-{
-    if (m_pCartridge->IsLoadedROM() && (strlen(m_pCartridge->GetFilePath()) > 0))
-    {
-        using namespace std;
-
-        char path[512];
-
-        strcpy(path, m_pCartridge->GetFilePath());
-        strcat(path, ".dump");
-
-        Log("Saving Memory Dump %s...", path);
-
-        m_pMemory->MemoryDump(path);
-
-        Log("Memory Dump Saved");
-    }
-}
-
-void GearboyCore::SaveDisassembledROM()
-{
-    Memory::stDisassembleRecord** romMap = m_pMemory->GetDisassembledROMMemoryMap();
-
-    if (m_pCartridge->IsLoadedROM() && (strlen(m_pCartridge->GetFilePath()) > 0) && IsValidPointer(romMap))
-    {
-        using namespace std;
-
-        char path[512];
-
-        strcpy(path, m_pCartridge->GetFilePath());
-        strcat(path, ".dis");
-
-        Log("Saving Disassembled ROM %s...", path);
-
-        ofstream myfile(path, ios::out | ios::trunc);
-
-        if (myfile.is_open())
-        {
-            for (int i = 0; i < 65536; i++)
-            {
-                if (IsValidPointer(romMap[i]) && (romMap[i]->name[0] != 0))
-                {
-                    myfile << "0x" << hex << i << "\t " << romMap[i]->name << "\n";
-                    i += (romMap[i]->size - 1);
-                }
-            }
-
-            myfile.close();
-        }
-
-        Log("Disassembled ROM Saved");
-    }
 }
 
 Memory* GearboyCore::GetMemory()
@@ -277,6 +379,102 @@ Audio* GearboyCore::GetAudio()
 Video* GearboyCore::GetVideo()
 {
     return m_pVideo;
+}
+
+Input* GearboyCore::GetInput()
+{
+    return m_pInput;
+}
+
+TraceLogger* GearboyCore::GetTraceLogger()
+{
+    return m_trace_logger;
+}
+
+u64 GearboyCore::GetMasterClockCycles()
+{
+    return m_master_clock_cycles;
+}
+
+u64 GearboyCore::GetLinkCableCycle() const
+{
+    return m_link_cable_cycles;
+}
+
+void GearboyCore::SetLinkCableCallbacks(GB_LinkCableStateCallback state_callback, GB_LinkCableStartCallback start_callback,
+    GB_LinkCablePollCallback poll_callback, GB_LinkCableSyncCallback sync_callback, void* user_data)
+{
+    m_pProcessor->SetLinkCableCallbacks(state_callback, start_callback, poll_callback, sync_callback, user_data);
+}
+
+void GearboyCore::SetLinkCableConnected(bool connected)
+{
+    m_pProcessor->SetLinkCableConnected(connected, m_link_cable_cycles);
+}
+
+bool GearboyCore::IsLinkCableConnected() const
+{
+    return m_pProcessor->IsLinkCableConnected();
+}
+
+void GearboyCore::SynchronizeLinkCable()
+{
+    m_pProcessor->SynchronizeLinkCable(m_link_cable_cycles);
+}
+
+void GearboyCore::SetAccelerometer(double x, double y)
+{
+    m_pMBC7MemoryRule->SetAccelerometer(x, y);
+}
+
+bool GearboyCore::GetRuntimeInfo(GB_RuntimeInfo& runtime_info)
+{
+    if (m_bSGB)
+    {
+        if (m_bSGBBorder)
+        {
+            runtime_info.screen_width = SGB_SCREEN_WIDTH;
+            runtime_info.screen_height = SGB_SCREEN_HEIGHT;
+        }
+        else
+        {
+            runtime_info.screen_width = GAMEBOY_WIDTH;
+            runtime_info.screen_height = GAMEBOY_HEIGHT;
+        }
+    }
+    else
+    {
+        runtime_info.screen_width = GAMEBOY_WIDTH;
+        runtime_info.screen_height = GAMEBOY_HEIGHT;
+    }
+
+    runtime_info.fps = (double)GEARBOY_MASTER_CLOCK_RATE / (double)GAMEBOY_CLOCKS_PER_FRAME;
+
+    return m_pCartridge->IsLoadedROM();
+}
+
+void GearboyCore::RenderFrameBuffer(u16* pFrameBuffer)
+{
+    if (!IsValidPointer(pFrameBuffer) || !m_pCartridge->IsLoadedROM())
+        return;
+
+    if (m_bSGB)
+    {
+        RenderSGBFrame(pFrameBuffer);
+        return;
+    }
+
+    if (m_bCGB)
+    {
+        const u16* color_frame_buffer = m_pVideo->GetColorFrameBuffer();
+
+        if (IsValidPointer(color_frame_buffer) && (color_frame_buffer != pFrameBuffer))
+            memcpy(pFrameBuffer, color_frame_buffer, GAMEBOY_WIDTH * GAMEBOY_HEIGHT * sizeof(u16));
+
+        return;
+    }
+
+    RenderDMGFrame(pFrameBuffer);
 }
 
 void GearboyCore::KeyPressed(Gameboy_Keys key)
@@ -308,7 +506,7 @@ void GearboyCore::ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType, b
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
         AddMemoryRules(forceType);
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
-        m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
+        m_pProcessor->DisassembleNextOPCode();
 #endif
     }
 }
@@ -317,7 +515,7 @@ void GearboyCore::ResetROMPreservingRAM(bool forceDMG, Cartridge::CartridgeTypes
 {
     if (m_pCartridge->IsLoadedROM())
     {
-        Log("Resetting preserving RAM...");
+        Debug("Resetting preserving RAM...");
 
         using namespace std;
         stringstream stream;
@@ -342,6 +540,11 @@ void GearboyCore::ResetSound()
 void GearboyCore::SetSoundSampleRate(int rate)
 {
     m_pAudio->SetSampleRate(rate);
+}
+
+void GearboyCore::SetSoundMute(bool mute)
+{
+    m_pAudio->Mute(mute);
 }
 
 void GearboyCore::SetSoundVolume(float volume)
@@ -394,9 +597,12 @@ void GearboyCore::SaveRam()
 
 void GearboyCore::SaveRam(const char* szPath, bool fullPath)
 {
-    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    MemoryRule* rule = m_pMemory->GetCurrentRule();
+    bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6);
+
+    if (m_pCartridge->IsLoadedROM() && persistent && IsValidPointer(rule))
     {
-        Log("Saving RAM...");
+        Debug("Saving RAM...");
 
         using namespace std;
 
@@ -408,8 +614,7 @@ void GearboyCore::SaveRam(const char* szPath, bool fullPath)
 
             if (!fullPath)
             {
-                path += "/";
-                path += m_pCartridge->GetFileName();
+                append_path_component(path, m_pCartridge->GetFileName());
             }
         }
         else
@@ -425,11 +630,12 @@ void GearboyCore::SaveRam(const char* szPath, bool fullPath)
 
         Log("Save file: %s", path.c_str());
 
-        ofstream file(path.c_str(), ios::out | ios::binary);
+        ofstream file;
+        open_ofstream_utf8(file, path.c_str(), ios::out | ios::binary);
 
-        m_pMemory->GetCurrentRule()->SaveRam(file);
+        rule->SaveRam(file);
 
-        Log("RAM saved");
+        Debug("RAM saved");
     }
 }
 
@@ -440,9 +646,12 @@ void GearboyCore::LoadRam()
 
 void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 {
-    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    MemoryRule* rule = m_pMemory->GetCurrentRule();
+    bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6);
+
+    if (m_pCartridge->IsLoadedROM() && persistent && IsValidPointer(rule))
     {
-        Log("Loading RAM...");
+        Debug("Loading RAM...");
 
         using namespace std;
 
@@ -454,8 +663,7 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 
             if (!fullPath)
             {
-                sav_path += "/";
-                sav_path += m_pCartridge->GetFileName();
+                append_path_component(sav_path, m_pCartridge->GetFileName());
             }
         }
         else
@@ -475,7 +683,7 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 
         ifstream file;
 
-        file.open(sav_path.c_str(), ios::in | ios::binary);
+        open_ifstream_utf8(file, sav_path.c_str(), ios::in | ios::binary);
 
         // check for old .gearboy saves
         if (file.fail())
@@ -484,7 +692,7 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
             string old_sav_file = rom_path + ".gearboy";
 
             Log("Opening old save file: %s", old_sav_file.c_str());
-            file.open(old_sav_file.c_str(), ios::in | ios::binary);
+            open_ifstream_utf8(file, old_sav_file.c_str(), ios::in | ios::binary);
         }
 
         if (!file.fail())
@@ -493,9 +701,9 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
             s32 fileSize = (s32)file.tellg();
             file.seekg(0, file.beg);
 
-            if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
+            if ((fileSize > 0) && rule->LoadRam(file, fileSize))
             {
-                Log("RAM loaded");
+                Debug("RAM loaded");
             }
             else
             {
@@ -511,97 +719,166 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 
 void GearboyCore::SaveState(int index)
 {
-    Log("Creating save state %d...", index);
-
-    SaveState(NULL, index);
-
-    Log("Save state %d created", index);
+    SaveState(NULL, index, false);
 }
 
 void GearboyCore::SaveState(const char* szPath, int index)
 {
-    Log("Saving state...");
+    SaveState(szPath, index, false);
+}
+
+void GearboyCore::SetFrameBuffer(u8* frame_buffer)
+{
+    m_pSaveStateFrameBuffer = frame_buffer;
+}
+
+std::string GearboyCore::GetSaveStatePath(const char* path, int index)
+{
+    if (index < 0)
+    {
+        if (IsValidPointer(path))
+            return path;
+
+        using namespace std;
+        string full_path = m_pCartridge->GetFilePath();
+        string::size_type dot_index = full_path.rfind('.');
+
+        if (dot_index != string::npos)
+            full_path.replace(dot_index + 1, full_path.length() - dot_index - 1, "state");
+
+        return full_path;
+    }
 
     using namespace std;
+    string full_path;
 
-    size_t size;
-    SaveState(NULL, size);
-
-    u8* buffer = new u8[size];
-    string path = "";
-
-    if (IsValidPointer(szPath))
+    if (IsValidPointer(path))
     {
-        path += szPath;
-        path += "/";
-        path += m_pCartridge->GetFileName();
+        full_path = path;
+        append_path_component(full_path, m_pCartridge->GetFileName());
     }
     else
-    {
-        path = m_pCartridge->GetFilePath();
-    }
+        full_path = m_pCartridge->GetFilePath();
 
-    string::size_type i = path.rfind('.', path.length());
+    string::size_type dot_index = full_path.rfind('.');
 
-    if (i != string::npos) {
-        path.replace(i + 1, 3, "state");
-    }
+    if (dot_index != string::npos)
+        full_path.replace(dot_index + 1, full_path.length() - dot_index - 1, "state");
 
-    std::stringstream sstm;
+    stringstream ss;
+    ss << index;
+    full_path += ss.str();
 
-    if (index < 0)
-        sstm << szPath;
-    else
-        sstm << path << index;
-
-    Log("Save state file: %s", sstm.str().c_str());
-
-    ofstream file(sstm.str().c_str(), ios::out | ios::binary);
-
-    SaveState(file, size);
-
-    SafeDeleteArray(buffer);
-
-    file.close();
-
-    Log("Save state created");
+    return full_path;
 }
 
-bool GearboyCore::SaveState(u8* buffer, size_t& size)
+bool GearboyCore::SaveState(const char* path, int index, bool screenshot)
 {
-    bool ret = false;
+    using namespace std;
 
-    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    if (m_pMemory->IsBootromRegistryEnabled())
     {
-        using namespace std;
+        Debug("Save states disabled when running bootrom");
+        return false;
+    }
 
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Saving state to %s...", full_path.c_str());
+
+    ofstream stream;
+    open_ofstream_utf8(stream, full_path.c_str(), ios::out | ios::binary);
+
+    if (!stream.is_open())
+    {
+        Error("Failed to open save state file for writing: %s", full_path.c_str());
+        return false;
+    }
+
+    size_t size = 0;
+    if (!SaveState(stream, size, screenshot))
+    {
+        stream.close();
+        Error("Failed to save state to file: %s", full_path.c_str());
+        return false;
+    }
+
+    stream.close();
+
+    if (!stream.good())
+    {
+        Error("Failed to write save state file: %s", full_path.c_str());
+        return false;
+    }
+
+    Log("Saved state to %s", full_path.c_str());
+    return true;
+}
+
+bool GearboyCore::SaveState(u8* buffer, size_t& size, bool screenshot)
+{
+    using namespace std;
+
+    Debug("Saving state to buffer [%d bytes]...", size);
+
+    if (m_pMemory->IsBootromRegistryEnabled())
+    {
+        Debug("Save states disabled when running bootrom");
+        return false;
+    }
+
+    if (!m_pCartridge->IsLoadedROM() || !IsValidPointer(m_pMemory->GetCurrentRule()))
+    {
+        Error("Cartridge is not ready when trying to save state");
+        return false;
+    }
+
+    if (!IsValidPointer(buffer))
+    {
         stringstream stream;
-
-        if (SaveState(stream, size))
-            ret = true;
-
-        if (IsValidPointer(buffer))
+        if (!SaveState(stream, size, screenshot))
         {
-            Log("Saving state to buffer [%d bytes]...", size);
-            memcpy(buffer, stream.str().c_str(), size);
-            ret = true;
+            Error("Failed to save state to stream to calculate size");
+            return false;
         }
+        return true;
     }
     else
     {
-        Log("Invalid rom or memory rule.");
-    }
+        memory_stream direct_stream(reinterpret_cast<char*>(buffer), size);
 
-    return ret;
+        if (!SaveState(direct_stream, size, screenshot))
+        {
+            Error("Failed to save state to buffer");
+            return false;
+        }
+
+        if (!direct_stream.good())
+        {
+            Error("Failed to save state to buffer: output buffer is too small");
+            return false;
+        }
+
+        size = direct_stream.size();
+        return true;
+    }
 }
 
-bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
+bool GearboyCore::SaveState(std::ostream& stream, size_t& size, bool screenshot)
 {
+    if (m_pMemory->IsBootromRegistryEnabled())
+    {
+        Debug("Save states disabled when running bootrom");
+        return false;
+    }
+
     if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
-        Log("Gathering save state data...");
+        Debug("Serializing save state...");
 
         using namespace std;
+
+        u8 sgb_marker = m_bSGB ? 1 : 0;
+        stream.write(reinterpret_cast<const char*>(&sgb_marker), sizeof(sgb_marker));
 
         m_pMemory->SaveState(stream);
         m_pProcessor->SaveState(stream);
@@ -610,156 +887,477 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size)
         m_pAudio->SaveState(stream);
         m_pMemory->GetCurrentRule()->SaveState(stream);
 
+        if (m_bSGB)
+            m_pSGB->SaveState(stream);
+
+#if defined(__LIBRETRO__)
+        GB_SaveState_Header_Libretro header;
+        header.magic = GB_SAVESTATE_MAGIC;
+        header.version = GB_SAVESTATE_VERSION;
+        Debug("Save state header magic: 0x%08x", header.magic);
+        Debug("Save state header version: %d", header.version);
+#else
+        GB_SaveState_Header header;
+        memset(&header, 0, sizeof(header));
+        header.magic = GB_SAVESTATE_MAGIC;
+        header.version = GB_SAVESTATE_VERSION;
+
+        header.timestamp = (s64)time(NULL);
+        strncpy(header.rom_name, m_pCartridge->GetFileName(), sizeof(header.rom_name) - 1);
+        header.rom_name[sizeof(header.rom_name) - 1] = 0;
+        header.rom_crc = 0;
+        strncpy(header.emu_build, GEARBOY_VERSION, sizeof(header.emu_build) - 1);
+        header.emu_build[sizeof(header.emu_build) - 1] = 0;
+
+        Debug("Save state header magic: 0x%08x", header.magic);
+        Debug("Save state header version: %d", header.version);
+        Debug("Save state header rom name: %s", header.rom_name);
+        Debug("Save state header emu build: %s", header.emu_build);
+
+        if (screenshot && IsValidPointer(m_pSaveStateFrameBuffer))
+        {
+            header.screenshot_width = GAMEBOY_WIDTH;
+            header.screenshot_height = GAMEBOY_HEIGHT;
+            header.screenshot_size = GAMEBOY_WIDTH * GAMEBOY_HEIGHT * 3;
+            stream.write(reinterpret_cast<const char*>(m_pSaveStateFrameBuffer), header.screenshot_size);
+        }
+        else
+        {
+            header.screenshot_size = 0;
+            header.screenshot_width = 0;
+            header.screenshot_height = 0;
+        }
+
+        Debug("Save state header screenshot size: %d", header.screenshot_size);
+#endif
+
         size = static_cast<size_t>(stream.tellp());
+        size += sizeof(header);
 
-        size += (sizeof(u32) * 2);
+#if !defined(__LIBRETRO__)
+        header.size = static_cast<u32>(size);
+        Debug("Save state header size: %d", header.size);
+#endif
 
-        u32 header_magic = SAVESTATE_MAGIC;
-        u32 header_size = static_cast<u32>(size);
-
-        stream.write(reinterpret_cast<const char*> (&header_magic), sizeof(header_magic));
-        stream.write(reinterpret_cast<const char*> (&header_size), sizeof(header_size));
-
-        Log("Save state size: %d", static_cast<size_t>(stream.tellp()));
+        stream.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
         return true;
     }
 
     Log("Invalid rom or memory rule.");
-
     return false;
 }
 
 void GearboyCore::LoadState(int index)
 {
+    if (m_pMemory->IsBootromRegistryEnabled())
+    {
+        Debug("Save states disabled when running bootrom");
+        return;
+    }
+
     Log("Loading save state %d...", index);
-
-    LoadState(NULL, index);
-
+    LoadState(NULL, index, false);
     Log("State %d file loaded", index);
 }
 
 void GearboyCore::LoadState(const char* szPath, int index)
 {
-    Log("Loading save state...");
+    LoadState(szPath, index, false);
+}
 
+bool GearboyCore::LoadState(const char* path, int index, bool)
+{
     using namespace std;
 
-    string sav_path = "";
-
-    if (IsValidPointer(szPath))
+    if (m_pMemory->IsBootromRegistryEnabled())
     {
-        sav_path += szPath;
-        sav_path += "/";
-        sav_path += m_pCartridge->GetFileName();
+        Debug("Save states disabled when running bootrom");
+        return false;
+    }
+
+    bool ret = false;
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Loading state from %s...", full_path.c_str());
+
+    ifstream stream;
+    open_ifstream_utf8(stream, full_path.c_str(), ios::in | ios::binary);
+
+    if (!stream.fail())
+    {
+        ret = LoadState(stream);
+        if (ret)
+            Log("Loaded state from %s", full_path.c_str());
+        else
+            Log("Failed to load state from %s", full_path.c_str());
     }
     else
     {
-        sav_path = m_pCartridge->GetFilePath();
+        Log("Save state file doesn't exist: %s", full_path.c_str());
     }
 
-    string rom_path = sav_path;
-
-    string::size_type i = sav_path.rfind('.', sav_path.length());
-
-    if (i != string::npos) {
-        sav_path.replace(i + 1, 3, "state");
-    }
-
-    std::stringstream sstm;
-
-    if (index < 0)
-        sstm << szPath;
-    else
-        sstm << sav_path << index;
-
-    Log("Opening save file: %s", sstm.str().c_str());
-
-    ifstream file;
-
-    file.open(sstm.str().c_str(), ios::in | ios::binary);
-
-    if (!file.fail())
-    {
-        if (LoadState(file))
-        {
-            Log("Save state loaded");
-        }
-    }
-    else
-    {
-        Log("Save state file doesn't exist");
-    }
-
-    file.close();
+    stream.close();
+    return ret;
 }
 
 bool GearboyCore::LoadState(const u8* buffer, size_t size)
 {
-    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
+    using namespace std;
+
+    Debug("Loading state from buffer [%d bytes]...", size);
+
+    if (m_pMemory->IsBootromRegistryEnabled())
     {
-        Log("Gathering load state data [%d bytes]...", size);
-
-        using namespace std;
-
-        stringstream stream;
-
-        stream.write(reinterpret_cast<const char*> (buffer), size);
-
-        return LoadState(stream);
+        Debug("Save states disabled when running bootrom");
+        return false;
     }
 
-    Log("Invalid rom or memory rule.");
+    if (!m_pCartridge->IsLoadedROM() || !IsValidPointer(m_pMemory->GetCurrentRule()))
+    {
+        Error("Cartridge is not ready when trying to load state");
+        return false;
+    }
 
-    return false;
+    if (!IsValidPointer(buffer) || (size == 0))
+    {
+        Error("Invalid load state buffer");
+        return false;
+    }
+
+    memory_input_stream direct_stream(reinterpret_cast<const char*>(buffer), size);
+    return LoadState(direct_stream);
 }
 
 bool GearboyCore::LoadState(std::istream& stream)
 {
-    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    if (m_pMemory->IsBootromRegistryEnabled())
     {
-        using namespace std;
-
-        u32 header_magic = 0;
-        u32 header_size = 0;
-
-        stream.seekg(0, ios::end);
-        size_t size = static_cast<size_t>(stream.tellg());
-
-        Log("Load state stream size: %d", size);
-
-        stream.seekg(size - (2 * sizeof(u32)), ios::beg);
-        stream.read(reinterpret_cast<char*> (&header_magic), sizeof(header_magic));
-        stream.read(reinterpret_cast<char*> (&header_size), sizeof(header_size));
-        stream.seekg(0, ios::beg);
-
-        Log("Load state magic: 0x%08x", header_magic);
-        Log("Load state size: %d", header_size);
-
-        if ((header_size == size) && (header_magic == SAVESTATE_MAGIC))
-        {
-            Log("Loading state...");
-
-            m_pMemory->LoadState(stream);
-            m_pProcessor->LoadState(stream);
-            m_pVideo->LoadState(stream);
-            m_pInput->LoadState(stream);
-            m_pAudio->LoadState(stream);
-            m_pMemory->GetCurrentRule()->LoadState(stream);
-
-            return true;
-        }
-        else
-        {
-            Log("Invalid save state size");
-        }
+        Debug("Save states disabled when running bootrom");
+        return false;
     }
-    else
+
+    if (!(m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule())))
     {
         Log("Invalid rom or memory rule");
+        return false;
     }
 
-    return false;
+    using namespace std;
+
+    stream.seekg(0, ios::end);
+    size_t size = static_cast<size_t>(stream.tellg());
+    stream.seekg(0, ios::beg);
+
+    GB_SaveState_Header_Libretro header = {};
+#if !defined(__LIBRETRO__)
+    bool is_desktop_savestate = false;
+#endif
+
+    // Try desktop header first (larger, contains all info)
+    GB_SaveState_Header desktop_header;
+    if (size >= sizeof(desktop_header))
+    {
+        stream.seekg(size - sizeof(desktop_header), ios::beg);
+        stream.read(reinterpret_cast<char*> (&desktop_header), sizeof(desktop_header));
+
+        if (desktop_header.magic == GB_SAVESTATE_MAGIC)
+        {
+            header.magic = desktop_header.magic;
+            header.version = desktop_header.version;
+#if !defined(__LIBRETRO__)
+            is_desktop_savestate = true;
+#endif
+            Debug("Loading desktop save state");
+        }
+    }
+
+    // Fallback to libretro header
+    if (header.magic != GB_SAVESTATE_MAGIC)
+    {
+        if (size < sizeof(header))
+        {
+            Log("Save state too small for current header (%d bytes), trying legacy format...", static_cast<int>(size));
+            return LoadStateLegacy(stream, size);
+        }
+
+        stream.seekg(size - sizeof(header), ios::beg);
+        stream.read(reinterpret_cast<char*>(&header), sizeof(header));
+    }
+
+    stream.seekg(0, ios::beg);
+
+    Debug("Load state header magic: 0x%08x", header.magic);
+    Debug("Load state header version: %d", header.version);
+
+    if (header.magic != GB_SAVESTATE_MAGIC || header.version < GB_SAVESTATE_MIN_VERSION || header.version > GB_SAVESTATE_VERSION)
+    {
+        Log("Save state header does not match current version, trying legacy format...");
+        return LoadStateLegacy(stream, size);
+    }
+
+    if (m_pMemory->GetCurrentRule() == m_pMBC6MemoryRule && header.version < GB_SAVESTATE_MBC6_VERSION)
+    {
+        Log("MBC6 save states from unsupported mapper versions cannot be loaded");
+        return false;
+    }
+
+#if !defined(__LIBRETRO__)
+    if (is_desktop_savestate)
+    {
+        Debug("Load state header size: %d", desktop_header.size);
+        Debug("Load state header rom name: %s", desktop_header.rom_name);
+        Debug("Load state header emu build: %s", desktop_header.emu_build);
+        Debug("Load state header screenshot size: %d", desktop_header.screenshot_size);
+
+        if (desktop_header.size != size)
+        {
+            Log("Invalid save state size: %d (expected %d)", desktop_header.size, static_cast<int>(size));
+            return false;
+        }
+    }
+#endif
+
+    Debug("Loading state...");
+
+    if (header.version >= 102)
+    {
+        u8 sgb_marker = 0;
+        stream.read(reinterpret_cast<char*>(&sgb_marker), sizeof(sgb_marker));
+
+        bool state_has_sgb = (sgb_marker != 0);
+        if (state_has_sgb != m_bSGB)
+        {
+            Log("Save state SGB mode mismatch (state=%s, current=%s)",
+                state_has_sgb ? "SGB" : "DMG", m_bSGB ? "SGB" : "DMG");
+            return false;
+        }
+    }
+
+    m_pMemory->LoadState(stream);
+    m_pProcessor->LoadState(stream);
+    m_pVideo->LoadState(stream, header.version);
+    m_pInput->LoadState(stream, header.version);
+    m_pAudio->LoadState(stream, header.version);
+    m_pMemory->GetCurrentRule()->LoadState(stream);
+    m_pMemory->RefreshDirectROMPages();
+
+    if (header.version >= 102 && m_bSGB)
+        m_pSGB->LoadState(stream);
+
+    return true;
+}
+
+bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
+{
+    using namespace std;
+
+    if (m_pMemory->GetCurrentRule() == m_pMBC6MemoryRule)
+    {
+        Log("Legacy MBC6 save states cannot be loaded");
+        return false;
+    }
+
+    if (size < (2 * sizeof(u32)))
+    {
+        Log("Save state too small for legacy header (%d bytes)", static_cast<int>(size));
+        return false;
+    }
+
+    u32 legacy_magic = 0;
+    u32 legacy_size = 0;
+
+    stream.seekg(size - (2 * sizeof(u32)), ios::beg);
+    stream.read(reinterpret_cast<char*>(&legacy_magic), sizeof(legacy_magic));
+    stream.read(reinterpret_cast<char*>(&legacy_size), sizeof(legacy_size));
+    stream.seekg(0, ios::beg);
+
+    Debug("Load state legacy magic: 0x%08x", legacy_magic);
+    Debug("Load state legacy size: %d", legacy_size);
+
+    if (legacy_magic != SAVESTATE_MAGIC)
+    {
+        Log("Invalid legacy save state magic: 0x%08x", legacy_magic);
+        return false;
+    }
+
+    if (legacy_size != size)
+    {
+        Log("Invalid legacy save state size: %d (expected %d)", legacy_size, static_cast<int>(size));
+        return false;
+    }
+
+    Log("Loading legacy save state (%d bytes)...", static_cast<int>(size));
+
+    m_pMemory->LoadState(stream);
+    m_pProcessor->LoadState(stream);
+    m_pVideo->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
+    m_pInput->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
+    m_pAudio->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
+    m_pMemory->GetCurrentRule()->LoadState(stream);
+    m_pMemory->RefreshDirectROMPages();
+
+    return true;
+}
+
+bool GearboyCore::GetSaveStateHeader(int index, const char* path, GB_SaveState_Header* header, bool* out_sgb)
+{
+    using namespace std;
+
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Loading state header from %s...", full_path.c_str());
+
+    ifstream stream;
+    open_ifstream_utf8(stream, full_path.c_str(), ios::in | ios::binary);
+
+    if (stream.fail())
+    {
+        Debug("Savestate file doesn't exist %s", full_path.c_str());
+        stream.close();
+        return false;
+    }
+
+    stream.seekg(0, ios::end);
+    size_t savestate_size = static_cast<size_t>(stream.tellg());
+    stream.seekg(0, ios::beg);
+
+    if (out_sgb)
+    {
+        *out_sgb = false;
+        if (savestate_size > 0)
+        {
+            u8 sgb_marker = 0;
+            stream.read(reinterpret_cast<char*>(&sgb_marker), sizeof(sgb_marker));
+            *out_sgb = (sgb_marker != 0);
+            stream.seekg(0, ios::beg);
+        }
+    }
+
+    if (savestate_size < sizeof(GB_SaveState_Header))
+    {
+        // Try legacy format (8-byte footer: magic + size)
+        if (savestate_size < (2 * sizeof(u32)))
+        {
+            stream.close();
+            return false;
+        }
+
+        u32 legacy_magic = 0;
+        u32 legacy_size = 0;
+
+        stream.seekg(savestate_size - (2 * sizeof(u32)), ios::beg);
+        stream.read(reinterpret_cast<char*>(&legacy_magic), sizeof(legacy_magic));
+        stream.read(reinterpret_cast<char*>(&legacy_size), sizeof(legacy_size));
+        stream.close();
+
+        if (legacy_magic != SAVESTATE_MAGIC || legacy_size != savestate_size)
+            return false;
+
+        memset(header, 0, sizeof(GB_SaveState_Header));
+        header->magic = legacy_magic;
+        header->version = GB_SAVESTATE_LEGACY_VERSION;
+        header->size = legacy_size;
+        strncpy(header->rom_name, m_pCartridge->GetFileName(), sizeof(header->rom_name) - 1);
+        header->rom_name[sizeof(header->rom_name) - 1] = 0;
+        return true;
+    }
+
+    stream.seekg(savestate_size - sizeof(GB_SaveState_Header), ios::beg);
+    stream.read(reinterpret_cast<char*>(header), sizeof(GB_SaveState_Header));
+    stream.close();
+
+    if (header->magic != GB_SAVESTATE_MAGIC)
+    {
+        // Try legacy format
+        ifstream stream2;
+        open_ifstream_utf8(stream2, full_path.c_str(), ios::in | ios::binary);
+
+        u32 legacy_magic = 0;
+        u32 legacy_size = 0;
+
+        stream2.seekg(savestate_size - (2 * sizeof(u32)), ios::beg);
+        stream2.read(reinterpret_cast<char*>(&legacy_magic), sizeof(legacy_magic));
+        stream2.read(reinterpret_cast<char*>(&legacy_size), sizeof(legacy_size));
+        stream2.close();
+
+        if (legacy_magic != SAVESTATE_MAGIC || legacy_size != savestate_size)
+            return false;
+
+        memset(header, 0, sizeof(GB_SaveState_Header));
+        header->magic = legacy_magic;
+        header->version = GB_SAVESTATE_LEGACY_VERSION;
+        header->size = legacy_size;
+        strncpy(header->rom_name, m_pCartridge->GetFileName(), sizeof(header->rom_name) - 1);
+        header->rom_name[sizeof(header->rom_name) - 1] = 0;
+        return true;
+    }
+
+    return true;
+}
+
+bool GearboyCore::GetSaveStateScreenshot(int index, const char* path, GB_SaveState_Screenshot* screenshot)
+{
+    using namespace std;
+
+    if (!IsValidPointer(screenshot) || !IsValidPointer(screenshot->data) || (screenshot->size == 0))
+    {
+        Log("Invalid save state screenshot buffer");
+        return false;
+    }
+
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Loading state screenshot from %s...", full_path.c_str());
+
+    ifstream stream;
+    open_ifstream_utf8(stream, full_path.c_str(), ios::in | ios::binary);
+
+    if (stream.fail())
+    {
+        Log("Savestate file doesn't exist %s", full_path.c_str());
+        stream.close();
+        return false;
+    }
+
+    GB_SaveState_Header header;
+
+    if (!GetSaveStateHeader(index, path, &header))
+    {
+        Log("Invalid save state header");
+        stream.close();
+        return false;
+    }
+
+    if (header.screenshot_size == 0)
+    {
+        Debug("No screenshot data");
+        stream.close();
+        return false;
+    }
+
+    if (screenshot->size < header.screenshot_size)
+    {
+        Log("Invalid screenshot buffer size %d < %d", screenshot->size, header.screenshot_size);
+        stream.close();
+        return false;
+    }
+
+    screenshot->size = header.screenshot_size;
+    screenshot->width = header.screenshot_width;
+    screenshot->height = header.screenshot_height;
+
+    Debug("Screenshot size: %d bytes", screenshot->size);
+
+    if (header.size < sizeof(header) + screenshot->size)
+    {
+        Log("Invalid screenshot offset");
+        stream.close();
+        return false;
+    }
+
+    stream.seekg(header.size - sizeof(header) - screenshot->size, ios::beg);
+    stream.read(reinterpret_cast<char*>(screenshot->data), screenshot->size);
+    stream.close();
+
+    return true;
 }
 
 void GearboyCore::SetCheat(const char* szCheat)
@@ -800,6 +1398,107 @@ bool GearboyCore::IsGBA()
     return m_bGBA;
 }
 
+bool GearboyCore::IsSGB()
+{
+    return m_bSGB;
+}
+
+SGB* GearboyCore::GetSGB()
+{
+    return m_pSGB;
+}
+
+void GearboyCore::SetSGBEnabled(bool enabled)
+{
+    m_bSGBEnabled = enabled;
+}
+
+void GearboyCore::SetSGBBorder(bool enabled)
+{
+    m_bSGBBorder = enabled;
+}
+
+void GearboyCore::EnableColorCorrection(bool enabled)
+{
+    m_bColorCorrectionEnabled = enabled;
+    if (IsValidPointer(m_pVideo))
+        m_pVideo->SetColorCorrection(m_ColorCorrectionLUT, enabled);
+}
+
+void GearboyCore::BuildColorCorrectionLUT()
+{
+    const float kGamma = 0.6f;
+    const float kR1 = 16.0f;
+    const float kR2 = 0.0f;
+    const float kR3 = 0.0f;
+    const float kG1 = 0.0f;
+    const float kG2 = 13.0f;
+    const float kG3 = 4.0f;
+    const float kB1 = 0.0f;
+    const float kB2 = 1.0f;
+    const float kB3 = 16.0f;
+    const float kLinearGamma = 2.2f;
+    const float kOutputGamma = (1.0f / kLinearGamma) * kGamma;
+    const float kRScale = 255.0f / 31.0f;
+    const float kBScale = 255.0f / 31.0f;
+
+    bool format_565 = (m_pixelFormat == GB_PIXEL_RGB565) || (m_pixelFormat == GB_PIXEL_BGR565);
+    bool order_RGB = (m_pixelFormat == GB_PIXEL_RGB565) || (m_pixelFormat == GB_PIXEL_RGB555);
+
+    int r_shift = format_565 ? 11 : 10;
+    int g_shift = 5;
+    int g_mask = format_565 ? 0x3F : 0x1F;
+    int g_max = format_565 ? 63 : 31;
+    const float kGScale = 255.0f / (float)g_max;
+    u16 color_mask = format_565 ? 0xFFFF : 0x7FFF;
+
+    for (int i = 0; i < 65536; i++)
+    {
+        u16 color = (u16)(i & color_mask);
+        float r8, g8, b8;
+
+        if (order_RGB)
+        {
+            r8 = ((color >> r_shift) & 0x1F) * kRScale;
+            g8 = ((color >> g_shift) & g_mask) * kGScale;
+            b8 = (color & 0x1F) * kBScale;
+        }
+        else
+        {
+            b8 = ((color >> r_shift) & 0x1F) * kBScale;
+            g8 = ((color >> g_shift) & g_mask) * kGScale;
+            r8 = (color & 0x1F) * kRScale;
+        }
+
+        float r_lin = to_linear(r8, kLinearGamma);
+        float g_lin = to_linear(g8, kLinearGamma);
+        float b_lin = to_linear(b8, kLinearGamma);
+
+        float r_out = (r_lin * kR1 + g_lin * kR2 + b_lin * kR3) / 16.0f;
+        float g_out = (r_lin * kG1 + g_lin * kG2 + b_lin * kG3) / 16.0f;
+        float b_out = (r_lin * kB1 + g_lin * kB2 + b_lin * kB3) / 16.0f;
+
+        r_out = to_gamma(r_out, kOutputGamma);
+        g_out = to_gamma(g_out, kOutputGamma);
+        b_out = to_gamma(b_out, kOutputGamma);
+
+        u16 r_final = (u16)((CLAMP(r_out, 0.0f, 255.0f) / 255.0f) * 31.0f + 0.5f);
+        u16 g_final = (u16)((CLAMP(g_out, 0.0f, 255.0f) / 255.0f) * (float)g_max + 0.5f);
+        u16 b_final = (u16)((CLAMP(b_out, 0.0f, 255.0f) / 255.0f) * 31.0f + 0.5f);
+
+        u16 result;
+        if (order_RGB)
+            result = (r_final << r_shift) | (g_final << g_shift) | b_final;
+        else
+            result = (b_final << r_shift) | (g_final << g_shift) | r_final;
+
+        if (!format_565)
+            result |= 0x8000;
+
+        m_ColorCorrectionLUT[i] = result;
+    }
+}
+
 void GearboyCore::InitDMGPalette()
 {
     GB_Color color[4];
@@ -826,30 +1525,67 @@ void GearboyCore::InitDMGPalette()
 void GearboyCore::InitMemoryRules()
 {
     m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor, m_pMemory, m_pVideo, m_pInput, m_pAudio);
-
     m_pCommonMemoryRule = new CommonMemoryRule(m_pMemory);
-
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pMBC1MemoryRule = new MBC1MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pMultiMBC1MemoryRule = new MultiMBC1MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pMBC2MemoryRule = new MBC2MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pMBC3MemoryRule = new MBC3MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-
     m_pMBC5MemoryRule = new MBC5MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pMBC6MemoryRule = new MBC6MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pHuC1MemoryRule = new HuC1MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pHuC3MemoryRule = new HuC3MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pMMM01MemoryRule = new MMM01MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pCameraMemoryRule = new CameraMemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pMBC7MemoryRule = new MBC7MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pTAMA5MemoryRule = new TAMA5MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pWisdomTreeMemoryRule = new WisdomTreeMemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pM161MemoryRule = new M161MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pSachenMMC1MemoryRule = new SachenMMC1MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pSachenMMC2MemoryRule = new SachenMMC2MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pFlashcartMemoryRule = new FlashcartMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetIORule(m_pIORegistersMemoryRule);
     m_pMemory->SetCommonRule(m_pCommonMemoryRule);
+
+    m_pIORegistersMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pRomOnlyMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC1MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMultiMBC1MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC2MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC3MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC5MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC6MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pHuC1MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pHuC3MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMMM01MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pCameraMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMBC7MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pTAMA5MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pWisdomTreeMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pM161MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pSachenMMC1MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pSachenMMC2MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pFlashcartMemoryRule->SetTraceLogger(m_trace_logger);
 }
 
 bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
@@ -879,10 +1615,48 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
             m_pMemory->SetCurrentRule(m_pMBC2MemoryRule);
             break;
         case Cartridge::CartridgeMBC3:
+        case Cartridge::CartridgePKJD:
+        case Cartridge::CartridgePoke2in1:
             m_pMemory->SetCurrentRule(m_pMBC3MemoryRule);
             break;
         case Cartridge::CartridgeMBC5:
             m_pMemory->SetCurrentRule(m_pMBC5MemoryRule);
+            break;
+        case Cartridge::CartridgeMBC6:
+            m_pMemory->SetCurrentRule(m_pMBC6MemoryRule);
+            break;
+        case Cartridge::CartridgeHuC1:
+            m_pMemory->SetCurrentRule(m_pHuC1MemoryRule);
+            break;
+        case Cartridge::CartridgeHuC3:
+            m_pMemory->SetCurrentRule(m_pHuC3MemoryRule);
+            break;
+        case Cartridge::CartridgeMMM01:
+            m_pMemory->SetCurrentRule(m_pMMM01MemoryRule);
+            break;
+        case Cartridge::CartridgeCamera:
+            m_pMemory->SetCurrentRule(m_pCameraMemoryRule);
+            break;
+        case Cartridge::CartridgeMBC7:
+            m_pMemory->SetCurrentRule(m_pMBC7MemoryRule);
+            break;
+        case Cartridge::CartridgeTAMA5:
+            m_pMemory->SetCurrentRule(m_pTAMA5MemoryRule);
+            break;
+        case Cartridge::CartridgeWisdomTree:
+            m_pMemory->SetCurrentRule(m_pWisdomTreeMemoryRule);
+            break;
+        case Cartridge::CartridgeM161:
+            m_pMemory->SetCurrentRule(m_pM161MemoryRule);
+            break;
+        case Cartridge::CartridgeSachenMMC1:
+            m_pMemory->SetCurrentRule(m_pSachenMMC1MemoryRule);
+            break;
+        case Cartridge::CartridgeSachenMMC2:
+            m_pMemory->SetCurrentRule(m_pSachenMMC2MemoryRule);
+            break;
+        case Cartridge::CartridgeBungEMS:
+            m_pMemory->SetCurrentRule(m_pFlashcartMemoryRule);
             break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
@@ -917,13 +1691,22 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
         Log("Reset: Defaulting to Game Boy DMG");
     }
 
-    m_pMemory->Reset(m_bCGB);
-    m_pProcessor->Reset(m_bCGB, m_bGBA);
+    m_bSGB = !m_bCGB && m_pCartridge->IsSGB() && !m_bForceDMG && m_bSGBEnabled;
+    m_pMemory->Reset(m_bCGB, m_bSGB);
+    m_pProcessor->Reset(m_bCGB, m_bGBA, m_bSGB);
+    m_pVideo->SetSGBTransferMode(m_bSGB);
     m_pVideo->Reset(m_bCGB);
+
+    if (m_pMemory->IsBootromEnabled())
+    {
+        m_pVideo->ResetToBootromState();
+    }
+
     m_pAudio->Reset(m_bCGB);
     m_pInput->Reset();
     m_pCartridge->UpdateCurrentRTC();
     m_iRTCUpdateCount = 0;
+    m_master_clock_cycles = 0;
 
     m_pCommonMemoryRule->Reset(m_bCGB);
     m_pRomOnlyMemoryRule->Reset(m_bCGB);
@@ -932,7 +1715,28 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pMBC2MemoryRule->Reset(m_bCGB);
     m_pMBC3MemoryRule->Reset(m_bCGB);
     m_pMBC5MemoryRule->Reset(m_bCGB);
+    m_pMBC6MemoryRule->Reset(m_bCGB);
+    m_pHuC1MemoryRule->Reset(m_bCGB);
+    m_pHuC3MemoryRule->Reset(m_bCGB);
+    m_pMMM01MemoryRule->Reset(m_bCGB);
+    m_pCameraMemoryRule->Reset(m_bCGB);
+    m_pMBC7MemoryRule->Reset(m_bCGB);
+    m_pTAMA5MemoryRule->Reset(m_bCGB);
+    m_pWisdomTreeMemoryRule->Reset(m_bCGB);
+    m_pM161MemoryRule->Reset(m_bCGB);
+    m_pSachenMMC1MemoryRule->Reset(m_bCGB);
+    m_pSachenMMC2MemoryRule->Reset(m_bCGB);
+    m_pFlashcartMemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
+
+    m_pSGB->Reset();
+    m_pIORegistersMemoryRule->SetSGB(m_bSGB ? m_pSGB : NULL);
+
+    if (m_pProcessor->IsLinkCableConnected())
+        m_pProcessor->SetLinkCableConnected(true, m_link_cable_cycles);
+
+    if (m_bSGB)
+        Log("Reset: Super Game Boy mode enabled");
 
     m_bPaused = false;
 }
@@ -947,6 +1751,49 @@ void GearboyCore::RenderDMGFrame(u16* pFrameBuffer) const
         for (int i = 0; i < pixels; i++)
         {
             pFrameBuffer[i] = m_DMGPalette[pGameboyFrameBuffer[i]];
+        }
+    }
+}
+
+void GearboyCore::RenderDMGIndexFrame(u16* pFrameBuffer) const
+{
+    if (IsValidPointer(pFrameBuffer))
+    {
+        int pixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
+        const u8* pGameboyFrameBuffer = m_pVideo->GetFrameBuffer();
+
+        // Normal DMG and SGB colors are derived from this index buffer.
+        for (int i = 0; i < pixels; i++)
+        {
+            pFrameBuffer[i] = pGameboyFrameBuffer[i];
+        }
+    }
+}
+
+void GearboyCore::RenderSGBFrame(u16* pFrameBuffer)
+{
+    if (IsValidPointer(pFrameBuffer))
+    {
+        m_pSGB->CopyScreenBuffer(m_pVideo->GetFrameBuffer());
+
+        if (m_bSGBBorder)
+        {
+            m_pSGB->Render(pFrameBuffer, m_pixelFormat, false);
+        }
+        else
+        {
+            // memset(m_pSGBFrameBuffer, 0, SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT * sizeof(u16));
+            m_pSGB->Render(m_pSGBFrameBuffer, m_pixelFormat, false);
+
+            int offsetX = (SGB_SCREEN_WIDTH - GAMEBOY_WIDTH) / 2;
+            int offsetY = (SGB_SCREEN_HEIGHT - GAMEBOY_HEIGHT) / 2;
+
+            for (int y = 0; y < GAMEBOY_HEIGHT; y++)
+            {
+                memcpy(&pFrameBuffer[y * GAMEBOY_WIDTH],
+                       &m_pSGBFrameBuffer[(offsetY + y) * SGB_SCREEN_WIDTH + offsetX],
+                       GAMEBOY_WIDTH * sizeof(u16));
+            }
         }
     }
 }

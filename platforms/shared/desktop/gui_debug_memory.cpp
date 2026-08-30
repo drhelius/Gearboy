@@ -1,0 +1,773 @@
+/*
+ * Gearboy - Nintendo Game Boy Emulator
+ * Copyright (C) 2012  Ignacio Sanchez
+ * License: GPLv3 - see LICENSE file
+ */
+
+#define GUI_DEBUG_MEMORY_IMPORT
+#include "gui_debug_memory.h"
+
+#include "imgui.h"
+#include "gui_debug_memeditor.h"
+#include "gui_debug_constants.h"
+#include "gui.h"
+#include "config.h"
+#include "emu.h"
+#include "gui_filedialogs.h"
+#include "SGB.h"
+
+static MemEditor mem_edit[MEMORY_EDITOR_MAX];
+static int current_mem_edit = 0;
+static int mem_edit_select = -1;
+static char set_value_buffer[8] = "";
+static int current_rom0_bank = -1;
+static int current_rom1_bank = -1;
+static int current_rom2_bank = -1;
+static int current_ram_bank = -1;
+static int current_ram2_bank = -1;
+static int current_wram_bank = -1;
+static int current_vram_bank = -1;
+static const int DEBUG_MEMORY_MAX_SETTINGS_RECORDS = 0x10000;
+
+static void draw_tabs(void);
+static void memory_editor_menu(void);
+static void reset_ram_editor(GearboyCore* core, Memory* memory, MemoryRule* rule);
+static void refresh_memory_banks(void);
+static bool memory_settings_read_data(std::istream& stream, void* data, size_t size);
+static bool memory_settings_read_count(std::istream& stream, int& count, size_t record_size);
+static bool memory_settings_read_editor(std::istream& stream, std::vector<MemEditor::Bookmark>& bookmarks,
+    std::vector<MemEditor::Watch>& watches, u32& total_records);
+
+void gui_debug_memory_init(void)
+{
+    gui_debug_memory_reset();
+
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        MemEditor::Options options;
+        options.bytes_per_row = config_debug.mem_editor_bytes_per_row[i];
+        options.preview_data_type = config_debug.mem_editor_preview_data_type[i];
+        options.preview_endianess = config_debug.mem_editor_preview_endianess[i];
+        options.uppercase_hex = config_debug.mem_editor_uppercase_hex[i];
+        options.gray_out_zeros = config_debug.mem_editor_gray_out_zeros[i];
+        mem_edit[i].SetOptions(options);
+    }
+}
+
+void gui_debug_memory_destroy(void)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        MemEditor::Options options = mem_edit[i].GetOptions();
+        config_debug.mem_editor_bytes_per_row[i] = options.bytes_per_row;
+        config_debug.mem_editor_preview_data_type[i] = options.preview_data_type;
+        config_debug.mem_editor_preview_endianess[i] = options.preview_endianess;
+        config_debug.mem_editor_uppercase_hex[i] = options.uppercase_hex;
+        config_debug.mem_editor_gray_out_zeros[i] = options.gray_out_zeros;
+    }
+}
+
+void gui_debug_memory_reset(void)
+{
+    GearboyCore* core = emu_get_core();
+    Memory* memory = core->GetMemory();
+    MemoryRule* rule = memory->GetCurrentRule();
+    bool mbc6 = IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6;
+    bool has_ram = core->GetCartridge()->HasRam() || mbc6;
+
+    mem_edit[MEMORY_EDITOR_ROM0].Reset("ROM0", memory->GetROM0(), 0x4000);
+    mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000, 1, mbc6);
+    mem_edit[MEMORY_EDITOR_VRAM].Reset("VRAM", memory->GetVRAM(), 0x2000, 0x8000);
+
+    reset_ram_editor(core, memory, rule);
+
+    mem_edit[MEMORY_EDITOR_WRAM0].Reset("WRAM0", memory->GetWRAM0(), 0x1000, 0xC000);
+    mem_edit[MEMORY_EDITOR_WRAM1].Reset("WRAM1", memory->GetWRAM1(), 0x1000, 0xD000);
+    mem_edit[MEMORY_EDITOR_WRAM].Reset("WRAM", memory->GetWRAM0(), 0x2000, 0xC000);
+    mem_edit[MEMORY_EDITOR_OAM].Reset("OAM", memory->GetMemoryMap() + 0xFE00, 0x00A0, 0xFE00);
+    mem_edit[MEMORY_EDITOR_IO].Reset("IO", memory->GetMemoryMap() + 0xFF00, 0x0080, 0xFF00);
+    mem_edit[MEMORY_EDITOR_HIRAM].Reset("HIRAM", memory->GetMemoryMap() + 0xFF80, 0x007F, 0xFF80);
+
+    SGB* sgb = core->GetSGB();
+    const SGB::Border* border = sgb->GetBorder();
+    mem_edit[MEMORY_EDITOR_SGB_BORDER_TILES].Reset("SGB Tiles", (u8*)border->tiles, SGB_BORDER_TILE_DATA_SIZE);
+    mem_edit[MEMORY_EDITOR_SGB_BORDER_MAP].Reset("SGB Map", (u8*)border->map, 32 * 32 * 2);
+    mem_edit[MEMORY_EDITOR_SGB_BORDER_PAL].Reset("SGB BPal", (u8*)border->palette, 16 * 4 * 2);
+    mem_edit[MEMORY_EDITOR_SGB_SYS_PAL].Reset("SGB SPal", (u8*)sgb->GetSystemPalettes(), SGB_SYSTEM_PALETTE_COUNT * 4 * 2);
+    mem_edit[MEMORY_EDITOR_SGB_ATTR_FILES].Reset("SGB ATF", (u8*)sgb->GetAttributeFiles(), SGB_ATF_COUNT * SGB_ATF_SIZE);
+    mem_edit[MEMORY_EDITOR_SGB_ATTR_MAP].Reset("SGB AMap", (u8*)sgb->GetAttributeMap(), SGB_ATTR_MAP_WIDTH * SGB_ATTR_MAP_HEIGHT);
+    mem_edit[MEMORY_EDITOR_SGB_EFF_PAL].Reset("SGB EPal", (u8*)sgb->GetEffectivePalettes(), 4 * 4 * 2);
+
+    current_rom0_bank = (rule != NULL) ? rule->GetCurrentRomBank0Index() : -1;
+    current_rom1_bank = (rule != NULL) ? rule->GetCurrentRomBankIndex(0x4000) : -1;
+    current_rom2_bank = (rule != NULL) ? rule->GetCurrentRomBankIndex(0x6000) : -1;
+    current_ram_bank = (rule != NULL && has_ram) ? rule->GetCurrentRamBankIndex(0xA000) : 0;
+    current_ram2_bank = (rule != NULL && has_ram) ? rule->GetCurrentRamBankIndex(0xB000) : 0;
+    current_wram_bank = memory->GetCurrentCGBRAMBank();
+    current_vram_bank = memory->GetCurrentLCDRAMBank();
+}
+
+void gui_debug_window_memory(void)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        mem_edit[i].SetGuiFont(gui_roboto_font);
+        mem_edit[i].WatchPopup();
+        mem_edit[i].BookMarkPopup();
+    }
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
+    ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(594, 400), ImGuiCond_FirstUseEver);
+
+    ImGui::Begin("Memory Editor", &config_debug.show_memory, ImGuiWindowFlags_MenuBar);
+
+    memory_editor_menu();
+
+    GearboyCore* core = emu_get_core();
+    Memory* memory = core->GetMemory();
+    MemoryRule* rule = memory->GetCurrentRule();
+
+    refresh_memory_banks();
+
+    ImGui::PushFont(gui_default_font);
+    ImGui::TextColored(green, "  BANKS: "); ImGui::SameLine();
+
+    if (rule != NULL)
+    {
+        if (rule->GetMapperType() == Cartridge::CartridgeMBC6)
+        {
+            u16 bank_a = rule->GetCurrentRomBankIndex(0x4000);
+            u16 bank_b = rule->GetCurrentRomBankIndex(0x6000);
+            ImGui::TextColored(cyan, (bank_a & 0x80) ? "FLASHA" : "ROMA"); ImGui::SameLine();
+            ImGui::Text("$%02X", bank_a & 0x7F); ImGui::SameLine();
+            ImGui::TextColored(cyan, (bank_b & 0x80) ? "FLASHB" : "ROMB"); ImGui::SameLine();
+            ImGui::Text("$%02X", bank_b & 0x7F);
+        }
+        else
+        {
+            ImGui::TextColored(cyan, "ROM0"); ImGui::SameLine();
+            ImGui::Text("$%02X", rule->GetCurrentRomBank0Index()); ImGui::SameLine();
+            ImGui::TextColored(cyan, "ROM1"); ImGui::SameLine();
+            ImGui::Text("$%02X", rule->GetCurrentRomBank1Index());
+        }
+
+        if (core->GetCartridge()->HasRam() || rule->GetMapperType() == Cartridge::CartridgeMBC6)
+        {
+            ImGui::SameLine();
+            if (rule->GetMapperType() == Cartridge::CartridgeMBC6)
+            {
+                ImGui::TextColored(cyan, "  RAMA"); ImGui::SameLine();
+                ImGui::Text("$%02X", rule->GetCurrentRamBankIndex(0xA000)); ImGui::SameLine();
+                ImGui::TextColored(cyan, "RAMB"); ImGui::SameLine();
+                ImGui::Text("$%02X", rule->GetCurrentRamBankIndex(0xB000));
+            }
+            else
+            {
+                ImGui::TextColored(cyan, "  RAM"); ImGui::SameLine();
+                ImGui::Text("$%02X", rule->GetCurrentRamBankIndex());
+            }
+        }
+
+        if (core->IsCGB())
+        {
+            ImGui::SameLine();
+            ImGui::TextColored(cyan, "  WRAM1"); ImGui::SameLine();
+            ImGui::Text("$%02X", memory->GetCurrentCGBRAMBank()); ImGui::SameLine();
+            ImGui::TextColored(cyan, "  VRAM"); ImGui::SameLine();
+            ImGui::Text("$%02X", memory->GetCurrentLCDRAMBank());
+        }
+    }
+    ImGui::PopFont();
+
+    if (ImGui::BeginTabBar("##memory_tabs", ImGuiTabBarFlags_None))
+    {
+        draw_tabs();
+        ImGui::EndTabBar();
+    }
+
+    ImGui::End();
+    ImGui::PopStyleVar();
+}
+
+static void draw_tabs(void)
+{
+    GearboyCore* core = emu_get_core();
+    MemoryRule* rule = core->GetMemory()->GetCurrentRule();
+    bool has_ram = core->GetCartridge()->HasRam() || (IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6);
+
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        if (core->IsCGB())
+        {
+            if (i == MEMORY_EDITOR_WRAM)
+                continue;
+        }
+        else
+        {
+            if (i == MEMORY_EDITOR_WRAM0 || i == MEMORY_EDITOR_WRAM1)
+                continue;
+        }
+
+        if (i == MEMORY_EDITOR_RAM && !has_ram)
+            continue;
+
+        if (i >= MEMORY_EDITOR_SGB_BORDER_TILES && !core->IsSGB())
+            continue;
+
+        if (ImGui::BeginTabItem(mem_edit[i].GetTitle(), NULL, mem_edit_select == i ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
+        {
+            ImGui::PushFont(gui_default_font);
+            if (mem_edit_select == i)
+                mem_edit_select = -1;
+            current_mem_edit = i;
+            mem_edit[i].Draw();
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+    }
+}
+
+static void reset_ram_editor(GearboyCore* core, Memory* memory, MemoryRule* rule)
+{
+    size_t ram_size = 0;
+
+    if (rule != NULL && (core->GetCartridge()->HasRam() || rule->GetMapperType() == Cartridge::CartridgeMBC6))
+    {
+        ram_size = rule->GetRamSize();
+        if (ram_size > 0x2000)
+            ram_size = 0x2000;
+    }
+
+    u8* ram_ptr = (ram_size > 0 && rule != NULL) ? rule->GetCurrentRamBank() : memory->GetMemoryMap() + 0xA000;
+    bool read_only = IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6;
+    mem_edit[MEMORY_EDITOR_RAM].Reset("RAM", ram_ptr, (int)ram_size, 0xA000, 1, read_only);
+}
+
+static void refresh_memory_banks(void)
+{
+    GearboyCore* core = emu_get_core();
+    Memory* memory = core->GetMemory();
+    MemoryRule* rule = memory->GetCurrentRule();
+
+    if (rule == NULL)
+        return;
+
+    int rom0_bank = rule->GetCurrentRomBank0Index();
+    if (rom0_bank != current_rom0_bank)
+    {
+        mem_edit[MEMORY_EDITOR_ROM0].Reset("ROM0", memory->GetROM0(), 0x4000);
+        current_rom0_bank = rom0_bank;
+    }
+
+    bool mbc6 = rule->GetMapperType() == Cartridge::CartridgeMBC6;
+    if (mbc6)
+    {
+        memory->GetROM1();
+        memory->GetRAM();
+    }
+
+    int rom1_bank = rule->GetCurrentRomBankIndex(0x4000);
+    int rom2_bank = rule->GetCurrentRomBankIndex(0x6000);
+    if (rom1_bank != current_rom1_bank || rom2_bank != current_rom2_bank)
+    {
+        mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000, 1, mbc6);
+        current_rom1_bank = rom1_bank;
+        current_rom2_bank = rom2_bank;
+    }
+
+    bool has_ram = core->GetCartridge()->HasRam() || mbc6;
+    int ram_bank = has_ram ? rule->GetCurrentRamBankIndex(0xA000) : 0;
+    int ram2_bank = has_ram ? rule->GetCurrentRamBankIndex(0xB000) : 0;
+    if (ram_bank != current_ram_bank || ram2_bank != current_ram2_bank)
+    {
+        reset_ram_editor(core, memory, rule);
+        current_ram_bank = ram_bank;
+        current_ram2_bank = ram2_bank;
+    }
+
+    int wram_bank = memory->GetCurrentCGBRAMBank();
+    if (wram_bank != current_wram_bank)
+    {
+        mem_edit[MEMORY_EDITOR_WRAM1].Reset("WRAM1", memory->GetWRAM1(), 0x1000, 0xD000);
+        current_wram_bank = wram_bank;
+    }
+
+    int vram_bank = memory->GetCurrentLCDRAMBank();
+    if (vram_bank != current_vram_bank)
+    {
+        mem_edit[MEMORY_EDITOR_VRAM].Reset("VRAM", memory->GetVRAM(), 0x2000, 0x8000);
+        current_vram_bank = vram_bank;
+    }
+}
+
+void gui_debug_memory_search_window(void)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        ImGui::PushFont(gui_default_font);
+        mem_edit[i].DrawSearchWindow();
+        ImGui::PopFont();
+    }
+}
+
+void gui_debug_memory_find_bytes_window(void)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        ImGui::PushFont(gui_default_font);
+        mem_edit[i].DrawFindBytesWindow();
+        ImGui::PopFont();
+    }
+}
+
+void gui_debug_memory_watches_window(void)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        ImGui::PushFont(gui_default_font);
+        mem_edit[i].DrawWatchWindow();
+        ImGui::PopFont();
+    }
+}
+
+void gui_debug_memory_step_frame(void)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        mem_edit[i].StepFrame();
+    }
+}
+
+void gui_debug_memory_copy(void)
+{
+    mem_edit[current_mem_edit].Copy();
+}
+
+void gui_debug_memory_paste(void)
+{
+    mem_edit[current_mem_edit].Paste();
+}
+
+void gui_debug_memory_select_all(void)
+{
+    mem_edit[current_mem_edit].SelectAll();
+}
+
+void gui_debug_memory_goto(int editor, int address)
+{
+    mem_edit_select = editor;
+    mem_edit[editor].JumpToAddress(address);
+}
+
+void gui_debug_memory_save_dump(const char* file_path, bool binary)
+{
+    if (binary)
+        mem_edit[current_mem_edit].SaveToBinaryFile(file_path);
+    else
+        mem_edit[current_mem_edit].SaveToTextFile(file_path);
+}
+
+void gui_debug_memory_load_dump(const char* file_path)
+{
+    mem_edit[current_mem_edit].LoadFromBinaryFile(file_path);
+}
+
+bool gui_debug_memory_select_range(int editor, int start_address, int end_address)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+        return false;
+
+    if (!mem_edit[editor].SetSelection(start_address, end_address))
+        return false;
+
+    mem_edit_select = editor;
+    mem_edit[editor].ScrollToAddress(start_address);
+
+    return true;
+}
+
+void gui_debug_memory_set_selection_value(int editor, u8 value)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+        return;
+
+    mem_edit[editor].SetValueToSelection(value);
+}
+
+void gui_debug_memory_add_bookmark(int editor, int address, const char* name)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+        return;
+
+    std::vector<MemEditor::Bookmark>* bookmarks = mem_edit[editor].GetBookmarks();
+    MemEditor::Bookmark bookmark;
+    bookmark.address = address;
+
+    if (name && strlen(name) > 0)
+    {
+        snprintf(bookmark.name, sizeof(bookmark.name), "%s", name);
+    }
+    else
+    {
+        snprintf(bookmark.name, sizeof(bookmark.name), "Bookmark_%04X", address);
+    }
+
+    bookmarks->push_back(bookmark);
+}
+
+void gui_debug_memory_remove_bookmark(int editor, int address)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+        return;
+
+    std::vector<MemEditor::Bookmark>* bookmarks = mem_edit[editor].GetBookmarks();
+
+    for (std::vector<MemEditor::Bookmark>::iterator it = bookmarks->begin(); it != bookmarks->end(); ++it)
+    {
+        if (it->address == address)
+        {
+            bookmarks->erase(it);
+            break;
+        }
+    }
+}
+
+bool gui_debug_memory_add_watch(int editor, int address, const char* notes, int size)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+        return false;
+
+    int size_index = 0;
+    switch (size)
+    {
+        case 8: size_index = 0; break;
+        case 16: size_index = 1; break;
+        case 24: size_index = 2; break;
+        case 32: size_index = 3; break;
+        default: size_index = 0; break;
+    }
+
+    return mem_edit[editor].AddWatchDirect(address, notes, size_index);
+}
+
+void gui_debug_memory_open_watch_popup(int editor, int address, const char* notes)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+        return;
+
+    mem_edit[editor].PrepareAddWatch(address, notes);
+}
+
+void gui_debug_memory_remove_watch(int editor, int address)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+        return;
+
+    std::vector<MemEditor::Watch>* watches = mem_edit[editor].GetWatches();
+
+    for (std::vector<MemEditor::Watch>::iterator it = watches->begin(); it != watches->end(); ++it)
+    {
+        if (it->address == address)
+        {
+            watches->erase(it);
+            break;
+        }
+    }
+}
+
+void gui_debug_memory_save_settings(std::ostream& stream)
+{
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        mem_edit[i].SaveSettings(stream);
+    }
+}
+
+bool gui_debug_memory_load_settings(std::istream& stream)
+{
+    std::vector<MemEditor::Bookmark> bookmarks[MEMORY_EDITOR_MAX];
+    std::vector<MemEditor::Watch> watches[MEMORY_EDITOR_MAX];
+    u32 total_records = 0;
+
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        if (!memory_settings_read_editor(stream, bookmarks[i], watches[i], total_records))
+            return false;
+    }
+
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        mem_edit[i].GetBookmarks()->swap(bookmarks[i]);
+        mem_edit[i].GetWatches()->swap(watches[i]);
+    }
+
+    return true;
+}
+
+static bool memory_settings_read_data(std::istream& stream, void* data, size_t size)
+{
+    stream.read((char*)data, (std::streamsize)size);
+    return !stream.fail() && stream.gcount() == (std::streamsize)size;
+}
+
+static bool memory_settings_read_count(std::istream& stream, int& count, size_t record_size)
+{
+    if (!memory_settings_read_data(stream, &count, sizeof(count)))
+        return false;
+    if (count < 0 || count > DEBUG_MEMORY_MAX_SETTINGS_RECORDS || record_size == 0)
+        return false;
+
+    std::streampos position = stream.tellg();
+    if (position == std::streampos(-1))
+        return false;
+
+    stream.seekg(0, std::ios::end);
+    std::streampos end = stream.tellg();
+    if (end == std::streampos(-1))
+        return false;
+
+    stream.seekg(position);
+    if (stream.fail() || end < position)
+        return false;
+
+    u64 remaining = (u64)(end - position);
+    return (u64)count <= remaining / record_size;
+}
+
+static bool memory_settings_read_editor(std::istream& stream, std::vector<MemEditor::Bookmark>& bookmarks,
+    std::vector<MemEditor::Watch>& watches, u32& total_records)
+{
+    MemEditor::Bookmark bookmark = {};
+    size_t bookmark_size = sizeof(bookmark.address) + sizeof(bookmark.name);
+    int bookmark_count = 0;
+    if (!memory_settings_read_count(stream, bookmark_count, bookmark_size) ||
+        (u32)bookmark_count > DEBUG_MEMORY_MAX_SETTINGS_RECORDS - total_records)
+        return false;
+
+    total_records += (u32)bookmark_count;
+    bookmarks.reserve((size_t)bookmark_count);
+    for (int i = 0; i < bookmark_count; i++)
+    {
+        MemEditor::Bookmark item = {};
+        if (!memory_settings_read_data(stream, &item.address, sizeof(item.address)) ||
+            !memory_settings_read_data(stream, item.name, sizeof(item.name)))
+            return false;
+
+        item.name[sizeof(item.name) - 1] = 0;
+        bookmarks.push_back(item);
+    }
+
+    MemEditor::Watch watch = {};
+    size_t watch_size = sizeof(watch.address) + sizeof(watch.notes) +
+        sizeof(watch.size) + sizeof(watch.format);
+    int watch_count = 0;
+    if (!memory_settings_read_count(stream, watch_count, watch_size) ||
+        (u32)watch_count > DEBUG_MEMORY_MAX_SETTINGS_RECORDS - total_records)
+        return false;
+
+    total_records += (u32)watch_count;
+    watches.reserve((size_t)watch_count);
+    for (int i = 0; i < watch_count; i++)
+    {
+        MemEditor::Watch item = {};
+        if (!memory_settings_read_data(stream, &item.address, sizeof(item.address)) ||
+            !memory_settings_read_data(stream, item.notes, sizeof(item.notes)) ||
+            !memory_settings_read_data(stream, &item.size, sizeof(item.size)) ||
+            !memory_settings_read_data(stream, &item.format, sizeof(item.format)))
+            return false;
+
+        item.notes[sizeof(item.notes) - 1] = 0;
+        watches.push_back(item);
+    }
+
+    return true;
+}
+
+static void memory_editor_menu(void)
+{
+    ImGui::BeginMenuBar();
+
+    if (ImGui::BeginMenu("File"))
+    {
+        if (ImGui::MenuItem("Save Memory As Text..."))
+            gui_file_dialog_save_memory_dump(false);
+        if (ImGui::MenuItem("Save Memory As Binary..."))
+            gui_file_dialog_save_memory_dump(true);
+        if (ImGui::MenuItem("Load Memory From Binary..."))
+            gui_file_dialog_load_memory_dump();
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Edit"))
+    {
+        if (ImGui::MenuItem("Copy", "Ctrl+C"))
+            gui_debug_memory_copy();
+        if (ImGui::MenuItem("Paste", "Ctrl+V"))
+            gui_debug_memory_paste();
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Selection"))
+    {
+        if (ImGui::MenuItem("Select All", "Ctrl+A"))
+            mem_edit[current_mem_edit].SelectAll();
+        if (ImGui::MenuItem("Clear Selection"))
+            mem_edit[current_mem_edit].ClearSelection();
+
+        if (ImGui::BeginMenu("Set value"))
+        {
+            ImVec2 character_size = ImGui::CalcTextSize("X");
+            int word_bytes = mem_edit[current_mem_edit].GetWordBytes();
+            ImGui::SetNextItemWidth(((word_bytes * 2) + 1) * character_size.x);
+            if (ImGui::InputTextWithHint("##set_value", word_bytes == 1 ? "XX" : "XXXX", set_value_buffer, IM_ARRAYSIZE(set_value_buffer), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase))
+            {
+                u16 value = 0;
+                if (parse_hex_string(set_value_buffer, strlen(set_value_buffer), &value))
+                {
+                    mem_edit[current_mem_edit].SetValueToSelection((int)value);
+                    set_value_buffer[0] = 0;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Set!", ImVec2(40, 0)))
+            {
+                u16 value = 0;
+                if (parse_hex_string(set_value_buffer, strlen(set_value_buffer), &value))
+                {
+                    mem_edit[current_mem_edit].SetValueToSelection((int)value);
+                    set_value_buffer[0] = 0;
+                }
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Bookmarks"))
+    {
+        if (ImGui::MenuItem("Add Bookmark"))
+            mem_edit[current_mem_edit].AddBookmark();
+        if (ImGui::MenuItem("Clear All"))
+            mem_edit[current_mem_edit].RemoveBookmarks();
+
+        std::vector<MemEditor::Bookmark>* bookmarks = mem_edit[current_mem_edit].GetBookmarks();
+
+        if (bookmarks->size() > 0)
+            ImGui::Separator();
+
+        for (long unsigned int i = 0; i < bookmarks->size(); i++)
+        {
+            MemEditor::Bookmark* bookmark = &(*bookmarks)[i];
+            char label[80];
+            snprintf(label, 80, "$%04X: %s", bookmark->address, bookmark->name);
+            if (ImGui::MenuItem(label))
+                mem_edit[current_mem_edit].JumpToAddress(bookmark->address);
+        }
+
+        ImGui::EndMenu();
+    }
+
+    char label[64];
+
+    if (ImGui::BeginMenu("Watches"))
+    {
+        snprintf(label, 64, "Open %s Watch Window", mem_edit[current_mem_edit].GetTitle());
+        if (ImGui::MenuItem(label))
+            mem_edit[current_mem_edit].OpenWatchWindow();
+
+        snprintf(label, 64, "Add %s Watch", mem_edit[current_mem_edit].GetTitle());
+        if (ImGui::MenuItem(label))
+            mem_edit[current_mem_edit].AddWatch();
+
+        snprintf(label, 64, "Clear All %s Watches", mem_edit[current_mem_edit].GetTitle());
+        if (ImGui::MenuItem(label))
+            mem_edit[current_mem_edit].RemoveWatches();
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Search"))
+    {
+        snprintf(label, 64, "Open %s Search Window", mem_edit[current_mem_edit].GetTitle());
+        if (ImGui::MenuItem(label))
+            mem_edit[current_mem_edit].OpenSearchWindow();
+
+        snprintf(label, 64, "Find Bytes in %s...", mem_edit[current_mem_edit].GetTitle());
+        if (ImGui::MenuItem(label))
+            mem_edit[current_mem_edit].OpenFindBytes();
+
+        ImGui::EndMenu();
+    }
+
+    ImGui::EndMenuBar();
+}
+
+int gui_debug_memory_get_bookmarks(int editor, void** bookmarks_ptr)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+    {
+        *bookmarks_ptr = NULL;
+        return 0;
+    }
+
+    std::vector<MemEditor::Bookmark>* bookmarks = mem_edit[editor].GetBookmarks();
+    *bookmarks_ptr = (void*)bookmarks;
+    return (int)bookmarks->size();
+}
+
+int gui_debug_memory_get_watches(int editor, void** watches_ptr)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+    {
+        *watches_ptr = NULL;
+        return 0;
+    }
+
+    std::vector<MemEditor::Watch>* watches = mem_edit[editor].GetWatches();
+    *watches_ptr = (void*)watches;
+    return (int)watches->size();
+}
+
+void gui_debug_memory_get_selection(int editor, int* start, int* end)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+    {
+        *start = -1;
+        *end = -1;
+        return;
+    }
+
+    mem_edit[editor].GetSelection(start, end);
+}
+
+void gui_debug_memory_search_capture(int editor)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+        return;
+
+    mem_edit[editor].SearchCapture();
+}
+
+int gui_debug_memory_search(int editor, int op, int compare_type, int compare_value, int data_type, void** results_ptr)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+    {
+        *results_ptr = NULL;
+        return 0;
+    }
+
+    int count = mem_edit[editor].PerformSearch(op, compare_type, compare_value, data_type);
+    std::vector<MemEditor::Search>* results = mem_edit[editor].GetSearchResults();
+    *results_ptr = (void*)results;
+    return count;
+}
+
+int gui_debug_memory_find_bytes(int editor, const char* hex_str, int* out_addresses, int max_results)
+{
+    if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
+        return 0;
+
+    return mem_edit[editor].FindBytesSequence(hex_str, out_addresses, max_results);
+}

@@ -37,12 +37,19 @@
 #define PERFORMANCE
 #endif
 
-#define GEARBOY_TITLE "Gearboy"
-#define GEARBOY_VERSION "3.3.1"
-
-#ifndef EMULATOR_BUILD
-#define EMULATOR_BUILD "undefined"
+#if !defined(EMULATOR_BUILD)
+    #define EMULATOR_BUILD "undefined"
 #endif
+
+#define GEARBOY_TITLE "Gearboy"
+#define GEARBOY_VERSION EMULATOR_BUILD
+#define GEARBOY_TITLE_ASCII "" \
+"   ____                 _                  \n" \
+"  / ___| ___  __ _ _ __| |__   ___  _   _  \n" \
+" | |  _ / _ \\/ _` | '__| '_ \\ / _ \\| | | | \n" \
+" | |_| |  __/ (_| | |  | |_) | (_) | |_| | \n" \
+"  \\____|\\___|\\__,_|_|  |_.__/ \\___/ \\__, | \n" \
+"                                    |___/  \n"
 
 #ifndef NULL
 #define NULL 0
@@ -55,6 +62,7 @@
 //#define GEARBOY_DISABLE_DISASSEMBLER
 
 #define MAX_ROM_SIZE 0x800000
+#define MAX_ROM_DISASSEMBLY_SIZE 0x900000
 
 #define SafeDelete(pointer) if(pointer != NULL) {delete pointer; pointer = NULL;}
 #define SafeDeleteArray(pointer) if(pointer != NULL) {delete [] pointer; pointer = NULL;}
@@ -62,10 +70,24 @@
 #define InitPointer(pointer) ((pointer) = NULL)
 #define IsValidPointer(pointer) ((pointer) != NULL)
 
+#define UNUSED(expr) (void)(expr)
+
 #if defined(MSB_FIRST) || defined(__BIG_ENDIAN__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 #define IS_BIG_ENDIAN
 #else
 #define IS_LITTLE_ENDIAN
+#endif
+
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define CLAMP(value, min, max) MIN(MAX(value, min), max)
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define likely(x)   __builtin_expect(!!(x), 1)
+    #define unlikely(x) __builtin_expect(!!(x), 0)
+#else
+    #define likely(x)   (x)
+    #define unlikely(x) (x)
 #endif
 
 typedef uint8_t u8;
@@ -85,12 +107,60 @@ typedef void (*RamChangedCallback) (void);
 #define FLAG_CARRY 0x10
 #define FLAG_NONE 0
 
+#define GEARBOY_MASTER_CLOCK_RATE 4194304
+
+#define GEARBOY_MAX_GAMEPADS 1
+
 #define GAMEBOY_WIDTH 160
 #define GAMEBOY_HEIGHT 144
 
+#define SGB_SCREEN_WIDTH 256
+#define SGB_SCREEN_HEIGHT 224
+
+#define GAMEBOY_CLOCKS_PER_FRAME 70224
+#define GAMEBOY_CLOCKS_SAFE_LIMIT ((GAMEBOY_CLOCKS_PER_FRAME * 5) / 4)
+
 #define AUDIO_BUFFER_SIZE 4096
+#define GB_AUDIO_SAMPLE_RATE 44100
+#define GB_AUDIO_QUEUE_SIZE 1850
 
 #define SAVESTATE_MAGIC 0x28011983
+
+#define GB_SAVESTATE_MAGIC 0x28011983
+#define GB_SAVESTATE_VERSION 104
+#define GB_SAVESTATE_MIN_VERSION 100
+#define GB_SAVESTATE_LEGACY_VERSION 0
+#define GB_SAVESTATE_MBC6_VERSION 104
+
+static const u16 kTACTriggerBits[] = {512, 8, 32, 128};
+
+struct GB_SaveState_Header
+{
+    u32 magic;
+    u32 version;
+    u32 size;
+    s64 timestamp;
+    char rom_name[128];
+    u32 rom_crc;
+    u32 screenshot_size;
+    u16 screenshot_width;
+    u16 screenshot_height;
+    char emu_build[32];
+};
+
+struct GB_SaveState_Header_Libretro
+{
+    u32 magic;
+    u32 version;
+};
+
+struct GB_SaveState_Screenshot
+{
+    u32 width;
+    u32 height;
+    u32 size;
+    u8* data;
+};
 
 struct GB_Color
 {
@@ -109,40 +179,54 @@ enum GB_Color_Format
 
 enum Gameboy_Keys
 {
-    A_Key = 4,
-    B_Key = 5,
-    Start_Key = 7,
-    Select_Key = 6,
-    Right_Key = 0,
-    Left_Key = 1,
-    Up_Key = 2,
-    Down_Key = 3
+    A_Key = 0x10,
+    B_Key = 0x20,
+    Start_Key = 0x80,
+    Select_Key = 0x40,
+    Right_Key = 0x01,
+    Left_Key = 0x02,
+    Up_Key = 0x04,
+    Down_Key = 0x08
 };
 
-#ifdef DEBUG_GEARBOY
-    #ifdef __ANDROID__
-        #include <android/log.h>
-        #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "GEARBOY", __VA_ARGS__);
-    #endif
-#define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
-#else
-#define Log(msg, ...)
-#endif
-
-inline void Log_func(const char* const msg, ...)
+struct GB_RuntimeInfo
 {
-    static int count = 1;
-    char szBuf[512];
+    int screen_width;
+    int screen_height;
+    double fps;
+};
 
-    va_list args;
-    va_start(args, msg);
-    vsprintf(szBuf, msg, args);
-    va_end(args);
+enum GB_Disassembler_Syntax
+{
+    GB_Disassembler_Syntax_Gearboy = 0,
+    GB_Disassembler_Syntax_RGBASM,
+    GB_Disassembler_Syntax_WLADX,
+    GB_Disassembler_Syntax_Count
+};
 
-    printf("%d: %s\n", count, szBuf);
+struct GB_Disassembler_Record
+{
+    u32 address;
+    u8 bank;
+    char name[64];
+    char bytes[25];
+    char segment[8];
+    u8 opcodes[4];
+    int size;
+    bool jump;
+    u16 jump_address;
+    u8 jump_bank;
+    bool subroutine;
+    int irq;
+    bool has_operand_address;
+    u16 operand_address;
+    bool operand_is_zp;
+    int operand_offset;
+    int operand_length;
+    char auto_symbol[64];
+};
 
-    count++;
-}
+typedef GB_Disassembler_Record GS_Disassembler_Record;
 
 inline u8 SetBit(const u8 value, const u8 bit)
 {
@@ -163,5 +247,47 @@ inline int AsHex(const char c)
 {
   return c >= 'A' ? c - 'A' + 0xA : c - '0';
 }
+
+#if !defined(DEBUG_GEARBOY)
+    #if defined(__GNUC__) || defined(__clang__)
+        #if !defined(__OPTIMIZE__) && !defined(__OPTIMIZE_SIZE__)
+            #warning "Compiling without optimizations."
+            #define GEARBOY_NO_OPTIMIZATIONS
+        #endif
+    #elif defined(_MSC_VER)
+        #if !defined(NDEBUG)
+            #pragma message("Compiling without optimizations.")
+            #define GEARBOY_NO_OPTIMIZATIONS
+        #endif
+    #endif
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define INLINE inline __attribute__((always_inline))
+    #define NO_INLINE __attribute__((noinline))
+    #define COLD __attribute__((cold))
+#elif defined(_MSC_VER)
+    #define INLINE __forceinline
+    #define NO_INLINE __declspec(noinline)
+    #define COLD
+#else
+    #define INLINE inline
+    #define NO_INLINE
+    #define COLD
+#endif
+
+#if !defined(DEBUG_GEARBOY)
+    #if defined(__GNUC__) || defined(__clang__)
+        #if !defined(__OPTIMIZE__) && !defined(__OPTIMIZE_SIZE__)
+            #warning "Compiling without optimizations."
+            #define GEARBOY_NO_OPTIMIZATIONS
+        #endif
+    #elif defined(_MSC_VER)
+        #if !defined(NDEBUG)
+            #pragma message("Compiling without optimizations.")
+            #define GEARBOY_NO_OPTIMIZATIONS
+        #endif
+    #endif
+#endif
 
 #endif	/* DEFINITIONS_H */

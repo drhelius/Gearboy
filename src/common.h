@@ -1,0 +1,375 @@
+/*
+ * Gearboy - Nintendo Game Boy Emulator
+ * Copyright (C) 2012  Ignacio Sanchez
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/ 
+ * 
+ */
+
+#ifndef COMMON_H
+#define COMMON_H
+
+#include <stdlib.h>
+#include <string>
+#include <string.h>
+#include <fstream>
+#include <time.h>
+#include <math.h>
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <direct.h>
+#include <windows.h>
+#endif
+#include "definitions.h"
+#include "log.h"
+
+inline u16 read_u16_le(const u8* p)
+{
+    return (u16)p[0] | ((u16)p[1] << 8);
+}
+
+inline u32 read_u32_le(const u8* p)
+{
+    return (u32)p[0] | ((u32)p[1] << 8) | ((u32)p[2] << 16) | ((u32)p[3] << 24);
+}
+
+inline void write_u16_le(u8* p, u16 value)
+{
+    p[0] = (u8)(value >> 0);
+    p[1] = (u8)(value >> 8);
+}
+
+inline void write_u32_le(u8* p, u32 value)
+{
+    p[0] = (u8)(value >> 0);
+    p[1] = (u8)(value >> 8);
+    p[2] = (u8)(value >> 16);
+    p[3] = (u8)(value >> 24);
+}
+
+inline u32 utf8_decode_next(const char* text, size_t length, size_t& index)
+{
+    const u8* data = (const u8*)text;
+    u32 codepoint = data[index++];
+
+    if (codepoint < 0x80)
+        return codepoint;
+
+    if (((codepoint & 0xE0) == 0xC0) && (index < length) && ((data[index] & 0xC0) == 0x80))
+    {
+        codepoint = ((codepoint & 0x1F) << 6) | (data[index++] & 0x3F);
+        return codepoint >= 0x80 ? codepoint : 0xFFFD;
+    }
+
+    if (((codepoint & 0xF0) == 0xE0) && ((index + 1) < length) &&
+        ((data[index] & 0xC0) == 0x80) && ((data[index + 1] & 0xC0) == 0x80))
+    {
+        codepoint = ((codepoint & 0x0F) << 12) | ((data[index] & 0x3F) << 6) | (data[index + 1] & 0x3F);
+        index += 2;
+        if ((codepoint >= 0x800) && ((codepoint < 0xD800) || (codepoint > 0xDFFF)))
+            return codepoint;
+        return 0xFFFD;
+    }
+
+    if (((codepoint & 0xF8) == 0xF0) && ((index + 2) < length) &&
+        ((data[index] & 0xC0) == 0x80) && ((data[index + 1] & 0xC0) == 0x80) &&
+        ((data[index + 2] & 0xC0) == 0x80))
+    {
+        codepoint = ((codepoint & 0x07) << 18) | ((data[index] & 0x3F) << 12) |
+                    ((data[index + 1] & 0x3F) << 6) | (data[index + 2] & 0x3F);
+        index += 3;
+        return ((codepoint >= 0x10000) && (codepoint <= 0x10FFFF)) ? codepoint : 0xFFFD;
+    }
+
+    return 0xFFFD;
+}
+
+inline u16 read_u16_be(const u8* p)
+{
+    return (u16)p[1] | ((u16)p[0] << 8);
+}
+
+inline u32 read_u24_be(const u8* p)
+{
+    return (u32)p[2] | ((u32)p[1] << 8) | ((u32)p[0] << 16);
+}
+
+inline u32 read_u32_be(const u8* p)
+{
+    return (u32)p[3] | ((u32)p[2] << 8) | ((u32)p[1] << 16) | ((u32)p[0] << 24);
+}
+
+inline u16 hi(u16 a)
+{
+    return (u16)(a >> 8);
+}
+
+inline u16 lo(u16 a)
+{
+    return (u16)(a & 0xFF);
+}
+
+inline void format_hex_bytes(const u8* bytes, size_t count, char* buffer, size_t buffer_size)
+{
+    if (buffer_size == 0)
+        return;
+
+    static const char hex_chars[] = "0123456789ABCDEF";
+    size_t position = 0;
+    for (size_t i = 0; i < count && (position + 3) < buffer_size; i++)
+    {
+        u8 byte = bytes[i];
+        buffer[position++] = hex_chars[byte >> 4];
+        buffer[position++] = hex_chars[byte & 0x0F];
+        buffer[position++] = ' ';
+    }
+    buffer[position] = '\0';
+}
+
+inline int as_hex(const char c)
+{
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 0xA;
+    if (c >= 'A' && c <= 'F')
+        return c - 'A' + 0xA;
+    return 0;
+}
+
+inline u32 pow_2_ceil(u32 n)
+{
+    --n;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    ++n;
+    return n;
+}
+
+inline void get_date_time_string(time_t timestamp, char* buffer, size_t size)
+{
+    struct tm time_info;
+#if defined(_WIN32)
+    if (localtime_s(&time_info, &timestamp) == 0)
+#else
+    if (localtime_r(&timestamp, &time_info) != NULL)
+#endif
+        strftime(buffer, size, "%Y-%m-%d %H:%M:%S", &time_info);
+    else if (size > 0)
+        buffer[0] = '\0';
+}
+
+inline void get_current_date_time_string(char* buffer, size_t size)
+{
+    time_t timestamp = time(NULL);
+    get_date_time_string(timestamp, buffer, size);
+}
+
+inline bool is_hex_digit(char c)
+{
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+}
+
+template<typename T>
+inline bool parse_hex_string(const char* str, size_t len, T* result, size_t max_digits = sizeof(T) * 2)
+{
+    if (len == 0 || len > max_digits)
+        return false;
+
+    *result = 0;
+    for (size_t i = 0; i < len; i++)
+    {
+        if (!is_hex_digit(str[i]))
+            return false;
+
+        *result = (*result << 4);
+
+        if (str[i] >= '0' && str[i] <= '9')
+            *result |= (str[i] - '0');
+        else if (str[i] >= 'a' && str[i] <= 'f')
+            *result |= (str[i] - 'a' + 10);
+        else // (str[i] >= 'A' && str[i] <= 'F')
+            *result |= (str[i] - 'A' + 10);
+    }
+    return true;
+}
+
+inline bool parse_hex_string(const char* str, size_t len, u8* result)
+{
+    return parse_hex_string<u8>(str, len, result, 2);
+}
+
+inline bool parse_hex_string(const char* str, size_t len, u16* result)
+{
+    return parse_hex_string<u16>(str, len, result, 4);
+}
+
+inline bool parse_hex_string(const char* str, size_t len, u32* result)
+{
+    return parse_hex_string<u32>(str, len, result, 8);
+}
+
+template<typename T>
+inline bool parse_hex_with_prefix(const std::string& hex_str, T* result)
+{
+    const char* str = hex_str.c_str();
+    size_t len = hex_str.length();
+
+    if (len >= 2 && str[0] == '0' && (str[1] == 'x' || str[1] == 'X'))
+    {
+        str += 2;
+        len -= 2;
+    }
+    else if (len >= 1 && str[0] == '$')
+    {
+        str += 1;
+        len -= 1;
+    }
+
+    return parse_hex_string(str, len, result);
+}
+
+inline char* strncpy_fit(char* dest, const char* src, size_t dest_size)
+{
+    if (dest_size == 0)
+        return dest;
+
+    size_t copy_size = strlen(src);
+    if (copy_size >= dest_size)
+        copy_size = dest_size - 1;
+
+    memcpy(dest, src, copy_size);
+    dest[copy_size] = '\0';
+    return dest;
+}
+
+inline char* strncat_fit(char* dest, const char* src, size_t dest_size)
+{
+    if (dest_size == 0)
+        return dest;
+
+    size_t len = strlen(dest);
+    if (len + 1 >= dest_size)
+        return dest;
+
+    return strncat(dest, src, dest_size - len - 1);
+}
+
+inline void append_path_component(std::string& path, const char* component)
+{
+    if (path.length() > 0)
+    {
+        char last = path[path.length() - 1];
+        if (last != '/' && last != '\\')
+        {
+#if defined(_WIN32)
+            path += "\\";
+#else
+            path += "/";
+#endif
+        }
+    }
+
+    path += component;
+}
+
+#if defined(_WIN32)
+inline std::wstring utf8_to_wstring(const char* utf8_str)
+{
+    if (!utf8_str || utf8_str[0] == '\0')
+        return std::wstring();
+
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, utf8_str, -1, NULL, 0);
+    if (size_needed <= 0)
+        return std::wstring();
+
+    std::wstring wstr(size_needed - 1, 0);
+    MultiByteToWideChar(CP_UTF8, 0, utf8_str, -1, &wstr[0], size_needed);
+    return wstr;
+}
+
+inline FILE* fopen_utf8(const char* path, const char* mode)
+{
+    if (!path || !mode)
+        return NULL;
+
+    std::wstring wpath = utf8_to_wstring(path);
+    std::wstring wmode = utf8_to_wstring(mode);
+
+    if (wpath.empty() || wmode.empty())
+        return NULL;
+
+    return _wfopen(wpath.c_str(), wmode.c_str());
+}
+
+inline void open_ifstream_utf8(std::ifstream& stream, const char* path, std::ios_base::openmode mode = std::ios_base::in)
+{
+    if (!path)
+        return;
+
+    std::wstring wpath = utf8_to_wstring(path);
+    if (wpath.empty())
+        return;
+
+    stream.open(wpath.c_str(), mode);
+}
+
+inline void open_ofstream_utf8(std::ofstream& stream, const char* path, std::ios_base::openmode mode = std::ios_base::out)
+{
+    if (!path)
+        return;
+
+    std::wstring wpath = utf8_to_wstring(path);
+    if (wpath.empty())
+        return;
+
+    stream.open(wpath.c_str(), mode);
+}
+#else
+inline FILE* fopen_utf8(const char* path, const char* mode)
+{
+    return fopen(path, mode);
+}
+
+inline void open_ifstream_utf8(std::ifstream& stream, const char* path, std::ios_base::openmode mode = std::ios_base::in)
+{
+    stream.open(path, mode);
+}
+
+inline void open_ofstream_utf8(std::ofstream& stream, const char* path, std::ios_base::openmode mode = std::ios_base::out)
+{
+    stream.open(path, mode);
+}
+#endif
+
+inline float to_linear(float value, float gamma)
+{
+    const float inv255 = 1.0f / 255.0f;
+    float normalized = CLAMP(value * inv255, 0.0f, 1.0f);
+    return 255.0f * powf(normalized, gamma);
+}
+
+inline float to_gamma(float value, float gamma)
+{
+    const float inv255 = 1.0f / 255.0f;
+    float normalized = CLAMP(value * inv255, 0.0f, 1.0f);
+    return 255.0f * powf(normalized, gamma);
+}
+
+#endif /* COMMON_H */

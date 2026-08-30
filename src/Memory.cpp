@@ -20,8 +20,10 @@
 #include <iostream>
 #include <fstream>
 #include "Memory.h"
+#include "TraceLogger.h"
 #include "Processor.h"
 #include "Video.h"
+#include "common.h"
 
 Memory::Memory()
 {
@@ -34,7 +36,12 @@ Memory::Memory()
     InitPointer(m_pLCDRAMBank1);
     InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
+    InitPointer(m_pTraceLogger);
     InitPointer(m_pCurrentMemoryRule);
+    InitPointer(m_pDirectROMPages[0]);
+    InitPointer(m_pDirectROMPages[1]);
+    InitPointer(m_pBootromDMG);
+    InitPointer(m_pBootromGBC);
     m_bCGB = false;
     m_iCurrentWRAMBank = 1;
     m_iCurrentLCDRAMBank = 0;
@@ -44,6 +51,51 @@ Memory::Memory()
         m_HDMA[i] = 0;
     m_HDMASource = 0;
     m_HDMADestination = 0;
+    m_HDMATraceSource = 0;
+    m_HDMATraceDestination = 0;
+    m_HDMATraceLength = 0;
+    m_bBootromDMGEnabled = false;
+    m_bBootromGBCEnabled = false;
+    m_bBootromRegistryDisabled = false;
+    m_bBootromDMGLoaded = false;
+    m_bBootromGBCLoaded = false;
+    m_bCurrentRuleNeedsHighMemoryAccessNotifications = false;
+    m_bCurrentRuleMapsROMDirectly = false;
+}
+
+void Memory::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
+}
+
+void Memory::LogLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    GB_Trace_Entry e = {};
+    e.type = TRACE_LCD;
+    e.lcd.event = event;
+    e.lcd.address = source;
+    e.lcd.value = destination;
+    e.lcd.length = length;
+    e.lcd.line = m_pMap[0xFF44];
+    e.lcd.mode = (u8)m_pVideo->GetCurrentStatusMode();
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(event);
+    UNUSED(source);
+    UNUSED(destination);
+    UNUSED(length);
+#endif
+}
+
+void Memory::CheckBreakpoints(u16 address, bool write)
+{
+    if (address >= 0xFF00 && address <= 0xFF7F)
+        m_pProcessor->CheckMemoryBreakpoints(Processor::GB_BREAKPOINT_TYPE_IO, address - 0xFF00, !write);
+    else if (address >= 0x8000 && address <= 0x9FFF)
+        m_pProcessor->CheckMemoryBreakpoints(Processor::GB_BREAKPOINT_TYPE_VRAM, address - 0x8000, !write);
+    else
+        m_pProcessor->CheckMemoryBreakpoints(Processor::GB_BREAKPOINT_TYPE_ROMRAM, address, !write);
 }
 
 Memory::~Memory()
@@ -56,10 +108,12 @@ Memory::~Memory()
     InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pCurrentMemoryRule);
+    SafeDeleteArray(m_pBootromDMG);
+    SafeDeleteArray(m_pBootromGBC);
 
     if (IsValidPointer(m_pDisassembledROMMap))
     {
-        for (int i = 0; i < MAX_ROM_SIZE; i++)
+        for (int i = 0; i < MAX_ROM_DISASSEMBLY_SIZE; i++)
         {
             SafeDelete(m_pDisassembledROMMap[i]);
         }
@@ -91,49 +145,48 @@ void Memory::Init()
     m_pMap = new u8[65536];
     m_pWRAMBanks = new u8[0x8000];
     m_pLCDRAMBank1 = new u8[0x2000];
+    m_pBootromDMG = new u8[0x100];
+    m_pBootromGBC = new u8[0x900];
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
-    m_pDisassembledMap = new stDisassembleRecord*[65536];
-    for (int i = 0; i < 0x10000; i++)
+    m_pDisassembledMap = new GB_Disassembler_Record*[65536];
+    for (int i = 0; i < 65536; i++)
     {
         InitPointer(m_pDisassembledMap[i]);
     }
 
-    m_pDisassembledROMMap = new stDisassembleRecord*[MAX_ROM_SIZE];
-    for (int i = 0; i < MAX_ROM_SIZE; i++)
+    m_pDisassembledROMMap = new GB_Disassembler_Record*[MAX_ROM_DISASSEMBLY_SIZE];
+
+    for (int i = 0; i < MAX_ROM_DISASSEMBLY_SIZE; i++)
     {
         InitPointer(m_pDisassembledROMMap[i]);
     }
 #endif
-    m_Breakpoints.clear();
-    InitPointer(m_pRunToBreakpoint);
     Reset(false);
 }
 
-void Memory::Reset(bool bCGB)
+void Memory::Reset(bool bCGB, bool bSGB)
 {
     m_bCGB = bCGB;
     InitPointer(m_pCommonMemoryRule);
     InitPointer(m_pIORegistersMemoryRule);
     InitPointer(m_pCurrentMemoryRule);
+    InitPointer(m_pDirectROMPages[0]);
+    InitPointer(m_pDirectROMPages[1]);
+    m_bCurrentRuleMapsROMDirectly = false;
     m_iCurrentWRAMBank = 1;
     m_iCurrentLCDRAMBank = 0;
     m_bHDMAEnabled = false;
     m_iHDMABytes = 0;
+    m_HDMATraceSource = 0;
+    m_HDMATraceDestination = 0;
+    m_HDMATraceLength = 0;
+    m_bBootromRegistryDisabled = false;
 
-    if (IsValidPointer(m_pDisassembledROMMap))
-    {
-        for (int i = 0; i < MAX_ROM_SIZE; i++)
-        {
-            SafeDelete(m_pDisassembledROMMap[i]);
-        }
-    }
+    if (IsBootromEnabled())
+        ResetBootromDisassembledMemory();
 
     for (int i = 0; i < 65536; i++)
     {
-        if (IsValidPointer(m_pDisassembledMap))
-        {
-            SafeDelete(m_pDisassembledMap[i]);
-        }
         m_pMap[i] = 0x00;
 
         if ((i >= 0x8000) && (i < 0xA000))
@@ -179,15 +232,44 @@ void Memory::Reset(bool bCGB)
         }
         else if (i >= 0xFF00)
         {
-            if (m_bCGB)
-                m_pMap[i] = kInitialValuesForColorFFXX[i - 0xFF00];
-            else
-                m_pMap[i] = kInitialValuesForFFXX[i - 0xFF00];
+            int sys = m_bCGB ? 2 : (bSGB ? 1 : 0);
+            m_pMap[i] = kInitialValuesForFFXX[sys][i - 0xFF00];
         }
         else
         {
             m_pMap[i] = 0xFF;
         }
+    }
+
+    if (!m_bCGB && !IsBootromEnabled())
+    {
+        // Initialize VRAM with Nintendo logo tile data left by DMG boot ROM
+        for (int i = 0; i < 200; i++)
+        {
+            m_pMap[0x8010 + (i * 2)] = kInitialVRAMTileData[i];
+            m_pMap[0x8010 + (i * 2) + 1] = 0x00;
+        }
+
+        // Initialize tilemap
+        for (int i = 0; i < 44; i++)
+        {
+            m_pMap[0x9904 + i] = kInitialVRAMTilemap[i];
+        }
+    }
+
+    if (IsBootromEnabled())
+    {
+        m_pMap[0xFF40] = 0x00;  // LCDC: LCD off
+        m_pMap[0xFF41] = 0x00;  // STAT
+        m_pMap[0xFF42] = 0x00;  // SCY
+        m_pMap[0xFF43] = 0x00;  // SCX
+        m_pMap[0xFF44] = 0x00;  // LY
+        m_pMap[0xFF45] = 0x00;  // LYC
+        m_pMap[0xFF47] = 0x00;  // BGP
+        m_pMap[0xFF48] = 0x00;  // OBP0
+        m_pMap[0xFF49] = 0x00;  // OBP1
+        m_pMap[0xFF4A] = 0x00;  // WY
+        m_pMap[0xFF4B] = 0x00;  // WX
     }
 
     if (m_bCGB)
@@ -202,9 +284,6 @@ void Memory::Reset(bool bCGB)
         u8 hdma3 = m_HDMA[2];
         u8 hdma4 = m_HDMA[3];
 
-        if (hdma1 > 0x7f && hdma1 < 0xa0)
-            hdma1 = 0;
-
         m_HDMASource = (hdma1 << 8) | (hdma2 & 0xF0);
         m_HDMADestination = ((hdma3 & 0x1F) << 8) | (hdma4 & 0xF0);
         m_HDMADestination |= 0x8000;
@@ -214,6 +293,30 @@ void Memory::Reset(bool bCGB)
 void Memory::SetCurrentRule(MemoryRule* pRule)
 {
     m_pCurrentMemoryRule = pRule;
+    m_bCurrentRuleNeedsHighMemoryAccessNotifications = IsValidPointer(pRule) &&
+            pRule->NeedsHighMemoryAccessNotifications();
+    m_bCurrentRuleMapsROMDirectly = IsValidPointer(pRule) &&
+            pRule->MapsROMDirectly();
+    RefreshDirectROMPages();
+}
+
+void Memory::RefreshDirectROMPages()
+{
+    InitPointer(m_pDirectROMPages[0]);
+    InitPointer(m_pDirectROMPages[1]);
+
+    if (m_bCurrentRuleMapsROMDirectly)
+    {
+        m_pDirectROMPages[0] = m_pCurrentMemoryRule->GetRomBank0();
+        m_pDirectROMPages[1] = m_pCurrentMemoryRule->GetCurrentRomBank1();
+
+        if (!IsValidPointer(m_pDirectROMPages[0]) ||
+                !IsValidPointer(m_pDirectROMPages[1]))
+        {
+            InitPointer(m_pDirectROMPages[0]);
+            InitPointer(m_pDirectROMPages[1]);
+        }
+    }
 }
 
 void Memory::SetCommonRule(CommonMemoryRule* pRule)
@@ -252,7 +355,8 @@ void Memory::MemoryDump(const char* szFilePath)
 
     using namespace std;
 
-    ofstream myfile(szFilePath, ios::out | ios::trunc);
+    ofstream myfile;
+    open_ofstream_utf8(myfile, szFilePath, ios::out | ios::trunc);
 
     if (myfile.is_open())
     {
@@ -275,42 +379,58 @@ void Memory::MemoryDump(const char* szFilePath)
 
 void Memory::PerformDMA(u8 value)
 {
+    u16 address = value << 8;
+    u16 source = address;
+
+    if (address > 0xF100)
+        return;
+
+    TraceLCDDMAEvent(TRACE_LCD_OAM_DMA_START, source, 0xFE00, 0x00A0);
+
     if (m_bCGB)
     {
-        u16 address = value << 8;
-        if (address < 0xE000)
+        if (address >= 0xE000)
         {
-            if (address >= 0x8000 && address < 0xA000)
-            {
-                for (int i = 0; i < 0xA0; i++)
-                    Load(0xFE00 + i, ReadCGBLCDRAM(address + i, false));
-            }
-            else if (address >= 0xD000 && address < 0xE000)
-            {
-                for (int i = 0; i < 0xA0; i++)
-                    Load(0xFE00 + i, ReadCGBWRAM(address + i));
-            }
-            else
-            {
-                for (int i = 0; i < 0xA0; i++)
-                    Load(0xFE00 + i, Read(address + i));
-            }
+            for (int i = 0; i < 0xA0; i++)
+                Load(0xFE00 + i, 0xFF);
         }
-    }
-    else
-    {
-        u16 address = value << 8;
-        if (address >= 0x8000 && address < 0xE000)
+        else if (address >= 0x8000 && address < 0xA000)
+        {
+            for (int i = 0; i < 0xA0; i++)
+                Load(0xFE00 + i, ReadCGBLCDRAM(address + i, false));
+        }
+        else if (address >= 0xD000 && address < 0xE000)
+        {
+            for (int i = 0; i < 0xA0; i++)
+                Load(0xFE00 + i, ReadCGBWRAM(address + i));
+        }
+        else
         {
             for (int i = 0; i < 0xA0; i++)
                 Load(0xFE00 + i, Read(address + i));
         }
     }
+    else
+    {
+        if (address >= 0xE000)
+            address &= 0xDFFF;
+
+        for (int i = 0; i < 0xA0; i++)
+            Load(0xFE00 + i, Read(address + i));
+    }
+
+    TraceLCDDMAEvent(TRACE_LCD_OAM_DMA_END, source, 0xFE00, 0x00A0);
 }
 
 void Memory::SwitchCGBDMA(u8 value)
 {
     m_iHDMABytes = 16 + ((value & 0x7f) * 16);
+
+    if (!m_bHDMAEnabled && IsHDMASourceInvalid())
+    {
+        m_HDMA[4] = value | 0x80;
+        return;
+    }
 
     if (m_bHDMAEnabled)
     {
@@ -322,6 +442,8 @@ void Memory::SwitchCGBDMA(u8 value)
         {
             m_HDMA[4] = 0xFF;
             m_bHDMAEnabled = false;
+            TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_CANCEL, m_HDMASource & 0xFFF0,
+                (m_HDMADestination & 0x1FF0) | 0x8000, (u16)m_iHDMABytes);
         }
     }
     else
@@ -330,6 +452,11 @@ void Memory::SwitchCGBDMA(u8 value)
         {
             m_bHDMAEnabled = true;
             m_HDMA[4] = value & 0x7F;
+            m_HDMATraceSource = m_HDMASource & 0xFFF0;
+            m_HDMATraceDestination = (m_HDMADestination & 0x1FF0) | 0x8000;
+            m_HDMATraceLength = (u16)m_iHDMABytes;
+            TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_START, m_HDMATraceSource,
+                m_HDMATraceDestination, m_HDMATraceLength);
             if (m_pVideo->GetCurrentStatusMode() == 0)
             {
                 m_pProcessor->AddCycles(PerformHDMA());
@@ -337,7 +464,12 @@ void Memory::SwitchCGBDMA(u8 value)
         }
         else
         {
+            u16 source = m_HDMASource & 0xFFF0;
+            u16 destination = (m_HDMADestination & 0x1FF0) | 0x8000;
+            u16 length = (u16)m_iHDMABytes;
+            TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_START, source, destination, length);
             PerformGDMA(value);
+            TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_END, source, destination, length);
         }
     }
 }
@@ -347,24 +479,14 @@ unsigned int Memory::PerformHDMA()
     u16 source = m_HDMASource & 0xFFF0;
     u16 destination = (m_HDMADestination & 0x1FF0) | 0x8000;
 
-    if (source >= 0xD000 && source < 0xE000)
-    {
-        for (int i = 0; i < 0x10; i++)
-            WriteCGBLCDRAM(destination + i, ReadCGBWRAM(source + i));
-    }
-    else
-    {
-        for (int i = 0; i < 0x10; i++)
-            WriteCGBLCDRAM(destination + i, Read(source + i));
-    }
+    for (int i = 0; i < 0x10; i++)
+        WriteCGBLCDRAM(destination + i, Read(source + i));
 
     m_HDMADestination += 0x10;
     if (m_HDMADestination == 0xA000)
         m_HDMADestination = 0x8000;
 
     m_HDMASource += 0x10;
-    if (m_HDMASource == 0x8000)
-        m_HDMASource = 0xA000;
 
     m_HDMA[1] = m_HDMASource & 0xFF;
     m_HDMA[0] = m_HDMASource >> 8;
@@ -378,8 +500,12 @@ unsigned int Memory::PerformHDMA()
     if (m_HDMA[4] == 0xFF)
         m_bHDMAEnabled = false;
 
-    // return clock cycles used
-    return (m_pProcessor->CGBSpeed() ? 17 : 9) * 4;
+    TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_BLOCK, source, destination, 0x0010);
+    if (!m_bHDMAEnabled)
+        TraceLCDDMAEvent(TRACE_LCD_CGB_DMA_END, m_HDMATraceSource,
+            m_HDMATraceDestination, m_HDMATraceLength);
+
+    return (m_pProcessor->CGBSpeed() ? 17 : 9) * (m_pProcessor->CGBSpeed() ? 2 : 4);
 }
 
 void Memory::PerformGDMA(u8 value)
@@ -387,18 +513,14 @@ void Memory::PerformGDMA(u8 value)
     u16 source = m_HDMASource & 0xFFF0;
     u16 destination = (m_HDMADestination & 0x1FF0) | 0x8000;
 
-    if (source >= 0xD000 && source < 0xE000)
+    for (int i = 0; i < m_iHDMABytes; i++)
     {
-        for (int i = 0; i < m_iHDMABytes; i++)
-            WriteCGBLCDRAM(destination + i, ReadCGBWRAM(source + i));
-    }
-    else
-    {
-        for (int i = 0; i < m_iHDMABytes; i++)
-            WriteCGBLCDRAM(destination + i, Read(source + i));
+        u16 dmaSource = source + i;
+        u16 dmaDestination = ((destination + i) & 0x1FFF) | 0x8000;
+        WriteCGBLCDRAM(dmaDestination, Read(dmaSource));
     }
 
-    m_HDMADestination += m_iHDMABytes;
+    m_HDMADestination = ((m_HDMADestination + m_iHDMABytes) & 0x1FFF) | 0x8000;
     m_HDMASource += m_iHDMABytes;
 
     for (int i = 0; i < 5; i++)
@@ -411,12 +533,13 @@ void Memory::PerformGDMA(u8 value)
     else
         clock_cycles = 1 + 8 * ((value & 0x7f) + 1);
 
-    m_pProcessor->AddCycles(clock_cycles * 4);
+    m_pProcessor->AddCycles(clock_cycles * (m_pProcessor->CGBSpeed() ? 2 : 4));
 }
 
-bool Memory::IsHDMAEnabled() const
+bool Memory::IsHDMASourceInvalid() const
 {
-    return m_bHDMAEnabled;
+    u16 source = m_HDMASource & 0xFFF0;
+    return source >= 0x8000 && source < 0xA000;
 }
 
 void Memory::SetHDMARegister(int reg, u8 value)
@@ -426,8 +549,6 @@ void Memory::SetHDMARegister(int reg, u8 value)
         case 1:
         {
             // HDMA1
-            if (value > 0x7f && value < 0xa0)
-                value = 0;
             m_HDMASource = (value << 8) | (m_HDMASource & 0xF0);
             break;
         }
@@ -500,7 +621,9 @@ void Memory::LoadState(std::istream& stream)
     using namespace std;
 
     stream.read(reinterpret_cast<char*> (m_pMap), 65536);
-    stream.read(reinterpret_cast<char*> (&m_iCurrentWRAMBank), sizeof(m_iCurrentWRAMBank));
+    int currentWRAMBank = 0;
+    stream.read(reinterpret_cast<char*> (&currentWRAMBank), sizeof(currentWRAMBank));
+    SwitchCGBWRAM(static_cast<u8>(currentWRAMBank));
     stream.read(reinterpret_cast<char*> (&m_iCurrentLCDRAMBank), sizeof(m_iCurrentLCDRAMBank));
     stream.read(reinterpret_cast<char*> (m_pWRAMBanks), 0x8000);
     stream.read(reinterpret_cast<char*> (m_pLCDRAMBank1), 0x2000);
@@ -509,6 +632,19 @@ void Memory::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (m_HDMA), sizeof(m_HDMA));
     stream.read(reinterpret_cast<char*> (&m_HDMASource), sizeof(m_HDMASource));
     stream.read(reinterpret_cast<char*> (&m_HDMADestination), sizeof(m_HDMADestination));
+
+    if (m_bHDMAEnabled)
+    {
+        m_HDMATraceSource = m_HDMASource & 0xFFF0;
+        m_HDMATraceDestination = (m_HDMADestination & 0x1FF0) | 0x8000;
+        m_HDMATraceLength = (u16)m_iHDMABytes;
+    }
+    else
+    {
+        m_HDMATraceSource = 0;
+        m_HDMATraceDestination = 0;
+        m_HDMATraceLength = 0;
+    }
 }
 
 u8* Memory::GetROM0()
@@ -529,6 +665,16 @@ u8* Memory::GetVRAM()
         return m_pMap + 0x8000;
 }
 
+u8* Memory::GetVRAMBank0()
+{
+    return m_pMap + 0x8000;
+}
+
+u8* Memory::GetVRAMBank1()
+{
+    return m_pLCDRAMBank1;
+}
+
 u8* Memory::GetRAM()
 {
     return m_pCurrentMemoryRule->GetCurrentRamBank();
@@ -544,18 +690,260 @@ u8* Memory::GetWRAM1()
     return m_bCGB ? m_pWRAMBanks + (0x1000 * m_iCurrentWRAMBank) : m_pMap + 0xD000;
 }
 
-std::vector<Memory::stDisassembleRecord*>* Memory::GetBreakpoints()
+GB_Disassembler_Record* Memory::GetOrCreateDisassemblerRecord(u16 address)
 {
-    return &m_Breakpoints;
+    u32 physical_address = GetPhysicalAddress(address);
+    bool rom = (address < 0x8000);
+
+    GB_Disassembler_Record** map = rom ? m_pDisassembledROMMap : m_pDisassembledMap;
+    u32 offset = rom ? physical_address : (u32)address;
+
+    if (rom && offset >= MAX_ROM_DISASSEMBLY_SIZE)
+        return NULL;
+
+    GB_Disassembler_Record* record = map[offset];
+
+    if (!IsValidPointer(record))
+    {
+        record = new GB_Disassembler_Record();
+        record->address = physical_address;
+        record->bank = GetBank(address);
+        record->segment[0] = 0;
+        record->name[0] = 0;
+        record->bytes[0] = 0;
+        record->size = 0;
+        for (int i = 0; i < 4; i++)
+            record->opcodes[i] = 0;
+        record->jump = false;
+        record->jump_address = 0;
+        record->jump_bank = 0;
+        record->subroutine = false;
+        record->irq = 0;
+        record->has_operand_address = false;
+        record->operand_address = 0;
+        record->operand_is_zp = false;
+        record->operand_offset = 0;
+        record->operand_length = 0;
+        record->auto_symbol[0] = 0;
+        map[offset] = record;
+    }
+
+    return record;
 }
 
-Memory::stDisassembleRecord* Memory::GetRunToBreakpoint()
+void Memory::EnableBootromDMG(bool enable)
 {
-    return m_pRunToBreakpoint;
+    m_bBootromDMGEnabled = enable;
+
+    if (m_bBootromDMGEnabled)
+    {
+        Log("DMG Bootrom enabled");
+    }
+    else
+    {
+        Log("DMG Bootrom disabled");
+    }
 }
 
-void Memory::SetRunToBreakpoint(Memory::stDisassembleRecord* pBreakpoint)
+void Memory::EnableBootromGBC(bool enable)
 {
-    m_pRunToBreakpoint = pBreakpoint;
+    m_bBootromGBCEnabled = enable;
+
+    if (m_bBootromGBCEnabled)
+    {
+        Log("GBC Bootrom enabled");
+    }
+    else
+    {
+        Log("GBC Bootrom disabled");
+    }
 }
 
+void Memory::LoadBootromDMG(const char* szFilePath)
+{
+    Log("Loading DMG Bootrom %s...", szFilePath);
+
+    LoadBootroom(szFilePath, false);
+}
+
+void Memory::LoadBootromGBC(const char* szFilePath)
+{
+    Log("Loading GBC Bootrom %s...", szFilePath);
+
+    LoadBootroom(szFilePath, true);
+}
+
+bool Memory::IsBootromEnabled()
+{
+    return (m_bBootromDMGEnabled && m_bBootromDMGLoaded && !m_bCGB) || (m_bBootromGBCEnabled && m_bBootromGBCLoaded && m_bCGB);
+}
+
+void Memory::DisableBootromRegistry()
+{
+    if (!m_bBootromRegistryDisabled && IsBootromEnabled())
+    {
+        ResetBootromDisassembledMemory();
+    }
+
+    m_bBootromRegistryDisabled = true;
+}
+
+bool Memory::IsBootromRegistryEnabled()
+{
+    return !m_bBootromRegistryDisabled;
+}
+
+void Memory::ResetDisassemblerRecords()
+{
+    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+
+    if (IsValidPointer(m_pDisassembledROMMap))
+    {
+        for (int i = 0; i < MAX_ROM_DISASSEMBLY_SIZE; i++)
+        {
+            SafeDelete(m_pDisassembledROMMap[i]);
+        }
+    }
+    if (IsValidPointer(m_pDisassembledMap))
+    {
+        for (int i = 0; i < 65536; i++)
+        {
+            SafeDelete(m_pDisassembledMap[i]);
+        }
+    }
+
+    #endif
+}
+
+void Memory::InvalidateDisassemblerRecords(u32 start, u32 size)
+{
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
+    if (!IsValidPointer(m_pDisassembledROMMap) || start >= MAX_ROM_DISASSEMBLY_SIZE)
+        return;
+
+    u32 end = start + size;
+    if (end < start || end > MAX_ROM_DISASSEMBLY_SIZE)
+        end = MAX_ROM_DISASSEMBLY_SIZE;
+
+    for (u32 i = start; i < end; i++)
+        SafeDelete(m_pDisassembledROMMap[i]);
+#else
+    UNUSED(start);
+    UNUSED(size);
+#endif
+}
+
+void Memory::ResetBootromDisassembledMemory()
+{
+    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+
+    if (IsValidPointer(m_pDisassembledROMMap))
+    {
+        for (int i = 0; i < 0x0100; i++)
+        {
+            SafeDelete(m_pDisassembledROMMap[i]);
+        }
+    }
+    if (IsValidPointer(m_pDisassembledMap))
+    {
+        for (int i = 0; i < 0x0100; i++)
+        {
+            SafeDelete(m_pDisassembledMap[i]);
+        }
+    }
+
+    if (m_bCGB)
+    {
+        if (IsValidPointer(m_pDisassembledROMMap))
+        {
+            for (int i = 0x0200; i < 0x0900; i++)
+            {
+                SafeDelete(m_pDisassembledROMMap[i]);
+            }
+        }
+        if (IsValidPointer(m_pDisassembledMap))
+        {
+            for (int i = 0x0200; i < 0x0900; i++)
+            {
+                SafeDelete(m_pDisassembledMap[i]);
+            }
+        }
+    }
+
+    #endif
+}
+
+void Memory::LoadBootroom(const char* szFilePath, bool gbc)
+{
+    using namespace std;
+
+    int expectedSize = gbc ? 0x900 : 0x100;
+    UnloadBootrom(gbc);
+
+    ifstream file;
+    open_ifstream_utf8(file, szFilePath, ios::in | ios::binary | ios::ate);
+
+    if (file.is_open())
+    {
+        int size = static_cast<int> (file.tellg());
+
+        if (size == expectedSize)
+        {
+            u8 bootrom[0x900];
+            file.seekg(0, ios::beg);
+            if (!file.read(reinterpret_cast<char*>(bootrom), size))
+            {
+                Log("There was a problem reading the bootrom file %s", szFilePath);
+                return;
+            }
+            file.close();
+
+            LoadBootromFromBuffer(bootrom, size, gbc);
+
+            Debug("Bootrom %s loaded", szFilePath);
+        }
+        else
+        {
+            Log("Incompatible bootrom size (expected 0x%X): 0x%X", expectedSize, size);
+        }
+    }
+    else
+    {
+        Log("There was a problem opening the file %s", szFilePath);
+    }
+}
+
+bool Memory::LoadBootromFromBuffer(const u8* buffer, int size, bool gbc)
+{
+    UnloadBootrom(gbc);
+
+    int expectedSize = gbc ? 0x900 : 0x100;
+    if (!IsValidPointer(buffer) || (size != expectedSize))
+        return false;
+
+    u8* bootrom = gbc ? m_pBootromGBC : m_pBootromDMG;
+    memcpy(bootrom, buffer, size);
+
+    if (gbc)
+        m_bBootromGBCLoaded = true;
+    else
+        m_bBootromDMGLoaded = true;
+
+    return true;
+}
+
+void Memory::UnloadBootrom(bool gbc)
+{
+    if (gbc)
+        m_bBootromGBCLoaded = false;
+    else
+        m_bBootromDMGLoaded = false;
+}
+
+bool Memory::IsBootromLoaded(bool gbc)
+{
+    if (gbc)
+        return m_bBootromGBCLoaded;
+
+    return m_bBootromDMGLoaded;
+}

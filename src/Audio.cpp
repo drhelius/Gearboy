@@ -28,6 +28,14 @@ Audio::Audio()
     InitPointer(m_pApu);
     InitPointer(m_pBuffer);
     InitPointer(m_pSampleBuffer);
+    m_bMute = false;
+    m_MasterVolume = 1.0f;
+    m_bVgmRecordingEnabled = false;
+    for (int i = 0; i < 4; i++)
+    {
+        InitPointer(m_pDebugChannelBuffer[i]);
+        m_iDebugChannelSamples[i] = 0;
+    }
 }
 
 Audio::~Audio()
@@ -35,16 +43,21 @@ Audio::~Audio()
     SafeDelete(m_pApu);
     SafeDelete(m_pBuffer);
     SafeDeleteArray(m_pSampleBuffer);
+    for (int i = 0; i < 4; i++)
+        SafeDeleteArray(m_pDebugChannelBuffer[i]);
 }
 
 void Audio::Init()
 {
     m_pSampleBuffer = new blip_sample_t[AUDIO_BUFFER_SIZE];
 
+    for (int i = 0; i < 4; i++)
+        m_pDebugChannelBuffer[i] = new blip_sample_t[AUDIO_BUFFER_SIZE];
+
     m_pApu = new Gb_Apu();
     m_pBuffer = new Stereo_Buffer();
 
-    m_pBuffer->clock_rate(4194304);
+    m_pBuffer->clock_rate(GEARBOY_MASTER_CLOCK_RATE);
     m_pBuffer->set_sample_rate(m_SampleRate);
 
     //m_pApu->treble_eq(-15.0);
@@ -61,11 +74,15 @@ void Audio::Reset(bool bCGB)
     m_pApu->reset(mode);
     m_pBuffer->clear();
 
+    int sys = m_bCGB ? 2 : 0;
     for (int reg = 0xFF10; reg <= 0xFF3F; reg++)
     {
-        u8 value = m_bCGB ? kInitialValuesForColorFFXX[reg - 0xFF00] : kInitialValuesForFFXX[reg - 0xFF00];
+        u8 value = kInitialValuesForFFXX[sys][reg - 0xFF00];
         m_pApu->write_register(0, reg, value);
     }
+
+    m_pApu->write_register(0, 0xFF24, kInitialValuesForFFXX[sys][0x24]);
+    m_pApu->write_register(0, 0xFF25, kInitialValuesForFFXX[sys][0x25]);
 
     m_ElapsedCycles = 0;
 }
@@ -81,7 +98,24 @@ void Audio::SetSampleRate(int rate)
 
 void Audio::SetVolume(float volume)
 {
-    m_pApu->volume(volume);
+    SetMasterVolume(volume);
+}
+
+void Audio::Mute(bool mute)
+{
+    m_bMute = mute;
+    ApplyVolume();
+}
+
+void Audio::SetMasterVolume(float volume)
+{
+    m_MasterVolume = CLAMP(volume, 0.0f, 2.0f);
+    ApplyVolume();
+}
+
+void Audio::ApplyVolume()
+{
+    m_pApu->volume(m_bMute ? 0.0f : m_MasterVolume);
 }
 
 void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
@@ -101,6 +135,9 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
         }
     }
 
+    for (int i = 0; i < 4; i++)
+        m_pApu->read_debug_samples(m_pDebugChannelBuffer[i], i, AUDIO_BUFFER_SIZE, &m_iDebugChannelSamples[i]);
+
     m_ElapsedCycles = 0;
 }
 
@@ -115,9 +152,10 @@ void Audio::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_ElapsedCycles), sizeof(m_ElapsedCycles));
     stream.write(reinterpret_cast<const char*> (m_pSampleBuffer), sizeof(blip_sample_t) * AUDIO_BUFFER_SIZE);
     stream.write(reinterpret_cast<const char*> (&apu_state), sizeof(apu_state));
+    m_pBuffer->SaveState(stream);
 }
 
-void Audio::LoadState(std::istream& stream)
+void Audio::LoadState(std::istream& stream, int version)
 {
     using namespace std;
 
@@ -130,10 +168,58 @@ void Audio::LoadState(std::istream& stream)
     Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
     m_pApu->reset(mode);
     m_pApu->load_state(apu_state);
-    m_pBuffer->clear();
+
+    if (version >= 103)
+        m_pBuffer->LoadState(stream);
+    else
+        m_pBuffer->clear();
 }
 
-Gb_Apu* Audio::GetApu()
+bool Audio::StartVgmRecording(const char* file_path, int clock_rate, bool is_double_speed, const VgmMetadata& metadata)
 {
-    return m_pApu;
+    if (m_bVgmRecordingEnabled)
+        return false;
+
+    m_VgmRecorder.Start(file_path, clock_rate, is_double_speed, metadata);
+    m_bVgmRecordingEnabled = m_VgmRecorder.IsRecording();
+
+    // Write initial state of all audio registers to VGM
+    if (m_bVgmRecordingEnabled)
+    {
+        // Get APU state without impacting emulation
+        gb_apu_state_t apu_state;
+        m_pApu->save_state(&apu_state);
+
+        // First, ensure sound is enabled (NR52)
+        m_VgmRecorder.WriteGbDmg(0xFF26, 0x80);
+
+        // Write all audio control registers (FF10-FF26)
+        for (u16 addr = 0xFF10; addr <= 0xFF26; addr++)
+        {
+            u8 value = apu_state.regs[addr - 0xFF10];
+            m_VgmRecorder.WriteGbDmg(addr, value);
+        }
+        // Write wave RAM (FF30-FF3F)
+        for (u16 addr = 0xFF30; addr <= 0xFF3F; addr++)
+        {
+            u8 value = apu_state.regs[addr - 0xFF10];
+            m_VgmRecorder.WriteGbDmg(addr, value);
+        }
+    }
+
+    return m_bVgmRecordingEnabled;
+}
+
+void Audio::StopVgmRecording()
+{
+    if (m_bVgmRecordingEnabled)
+    {
+        m_VgmRecorder.Stop();
+        m_bVgmRecordingEnabled = false;
+    }
+}
+
+bool Audio::IsVgmRecording() const
+{
+    return m_bVgmRecordingEnabled;
 }

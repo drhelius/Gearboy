@@ -6,6 +6,7 @@
 
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
+#include <iosfwd>
 
 // Interface to one or more Blip_Buffers mapped to one or more channels
 // consisting of left, center, and right buffers.
@@ -113,6 +114,8 @@ public:
 		Tracked_Blip_Buffer();
 		void clear();
 		void end_frame( blip_time_t );
+		void SaveState( std::ostream& stream );
+		void LoadState( std::istream& stream );
 	private:
 		blip_long last_non_silence;
 		void remove_( long );
@@ -148,6 +151,8 @@ public:
 	void clear();
 	channel_t channel( int ) { return chan; }
 	void end_frame( blip_time_t );
+	void SaveState( std::ostream& stream );
+	void LoadState( std::istream& stream );
 
 	long samples_avail() const { return (bufs [0].samples_avail() - mixer.samples_read) * 2; }
 	long read_samples( blip_sample_t*, long );

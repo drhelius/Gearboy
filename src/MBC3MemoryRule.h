@@ -21,6 +21,7 @@
 #define	MBC3MEMORYRULE_H
 
 #include "MemoryRule.h"
+#include "Cartridge.h"
 
 struct RTC_Registers
 {
@@ -46,6 +47,7 @@ public:
     virtual ~MBC3MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
+    virtual bool MapsROMDirectly();
     virtual void Reset(bool bCGB);
     virtual void SaveRam(std::ostream &file);
     virtual bool LoadRam(std::istream &file, s32 fileSize);
@@ -61,22 +63,67 @@ public:
     virtual u8* GetRTCMemory();
     virtual void SaveState(std::ostream& stream);
     virtual void LoadState(std::istream& stream);
+    INLINE void Tick(unsigned int clockCycles);
 
 private:
+    void ResizeRAMBanks();
     void UpdateRTC();
+    NO_INLINE COLD void TickRTC();
+    INLINE bool IsPKJD() const;
+    INLINE bool IsPoke2in1() const;
+    int GetSafeRAMBankMask() const;
+    int NormalizeROMBank(int bank) const;
+    void SetPoke2in1ROMBank(u8 value);
+    void SetPoke2in1BaseBank(int bank);
+    u8 ReadPKJD(u16 address);
+    void WritePKJD(u16 address, u8 value);
+    u8 ReadPoke2in1RAM(u16 address);
+    void WritePoke2in1RAM(u16 address, u8 value);
 
 private:
     int m_iCurrentRAMBank;
+    int m_iCurrentROM0Bank;
     int m_iCurrentROMBank;
     bool m_bRamEnabled;
     bool m_bRTCEnabled;
     u8* m_pRAMBanks;
+    int m_iRAMBanksSize;
     s32 m_iRTCLatch;
     u8 m_RTCRegister;
     s32 m_RTCLastTimeCache;
+    int m_CurrentROM0Address;
     int m_CurrentROMAddress;
     int m_CurrentRAMAddress;
     RTC_Registers m_RTC;
+    u32 m_iRTCCycles;
+    bool m_bPKJDRAMSelected;
+    u8 m_PKJDRegisters[7];
+    int m_iPoke2in1BaseBank;
+    bool m_bPoke2in1Bank0Change;
+    bool m_bPoke2in1Locked;
 };
+
+INLINE bool MBC3MemoryRule::IsPKJD() const
+{
+    return m_pCartridge->GetType() == Cartridge::CartridgePKJD;
+}
+
+INLINE bool MBC3MemoryRule::IsPoke2in1() const
+{
+    return m_pCartridge->GetType() == Cartridge::CartridgePoke2in1;
+}
+
+INLINE void MBC3MemoryRule::Tick(unsigned int clockCycles)
+{
+    if (!m_pCartridge->IsRTCPresent())
+        return;
+    if (IsSetBit(m_RTC.Control, 6))
+        return;
+
+    m_iRTCCycles += clockCycles;
+
+    if (unlikely(m_iRTCCycles >= GEARBOY_MASTER_CLOCK_RATE))
+        TickRTC();
+}
 
 #endif	/* MBC3MEMORYRULE_H */

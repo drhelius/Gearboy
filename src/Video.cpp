@@ -20,6 +20,7 @@
 #include "Video.h"
 #include "Memory.h"
 #include "Processor.h"
+#include "TraceLogger.h"
 
 Video::Video(Memory* pMemory, Processor* pProcessor)
 {
@@ -30,17 +31,25 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     InitPointer(m_pColorFrameBuffer);
     InitPointer(m_pSpriteXCacheBuffer);
     InitPointer(m_pColorCacheBuffer);
+    InitPointer(m_pTraceLogger);
     m_iStatusMode = 0;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
+    m_iPendingVBlankInterruptCycles = 0;
     m_iStatusModeLYCounter = 0;
     m_iScreenEnableDelayCycles = 0;
     m_iStatusVBlankLine = 0;
     m_iWindowLine = 0;
+    m_bWindowYTrigger = false;
     m_iPixelCounter = 0;
     m_iTileCycleCounter = 0;
     m_bScreenEnabled = true;
     m_bCGB = false;
+    m_bSGBTransferMode = false;
+    m_bNoSpriteLimit = false;
+    InitPointer(m_pColorCorrectionLUT);
+    m_bColorCorrectionEnabled = false;
+    m_CGBWhiteColor = 0xFFFF;
     m_bScanLineTransfered = false;
     m_iHideFrames = 0;
     m_IRQ48Signal = 0;
@@ -62,6 +71,37 @@ void Video::Init()
     Reset(false);
 }
 
+void Video::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
+}
+
+void Video::LogTraceEvent(u8 event, u8 value)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    GB_Trace_Entry e = {};
+    e.type = TRACE_LCD;
+    e.lcd.event = event;
+    e.lcd.value = value;
+    e.lcd.line = (u16)m_iStatusModeLYCounter;
+    e.lcd.mode = (u8)m_iStatusMode;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(event);
+    UNUSED(value);
+#endif
+}
+
+void Video::SetSGBTransferMode(bool enabled)
+{
+    m_bSGBTransferMode = enabled;
+}
+
+void Video::SetNoSpriteLimit(bool noSpriteLimit)
+{
+    m_bNoSpriteLimit = noSpriteLimit;
+}
+
 void Video::Reset(bool bCGB)
 {
     for (int i = 0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
@@ -70,17 +110,24 @@ void Video::Reset(bool bCGB)
     for (int p = 0; p < 8; p++)
         for (int c = 0; c < 4; c++)
         {
-            m_CGBBackgroundPalettes[p][c][0] = m_CGBSpritePalettes[p][c][0] = 0x0000;
-            m_CGBBackgroundPalettes[p][c][1] = m_CGBSpritePalettes[p][c][1] = 0x0000;
+            // CGB boot ROM fades all BG palettes to white
+            m_CGBBackgroundPalettes[p][c][0] = bCGB ? 0x7FFF : 0x0000;
+            m_CGBBackgroundPalettes[p][c][1] = bCGB ? 0xFFFF : 0x0000;
+            m_CGBSpritePalettes[p][c][0] = 0x0000;
+            m_CGBSpritePalettes[p][c][1] = 0x0000;
         }
+
+    RebuildCGBRenderPalettes();
 
     m_iStatusMode = 1;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
+    m_iPendingVBlankInterruptCycles = 0;
     m_iStatusModeLYCounter = 144;
     m_iScreenEnableDelayCycles = 0;
     m_iStatusVBlankLine = 0;
     m_iWindowLine = 0;
+    m_bWindowYTrigger = false;
     m_iPixelCounter = 0;
     m_iTileCycleCounter = 0;
     m_bScreenEnabled = true;
@@ -90,241 +137,14 @@ void Video::Reset(bool bCGB)
     m_IRQ48Signal = 0;
 }
 
-bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Color_Format pixelFormat)
+void Video::ResetToBootromState()
 {
-    m_pColorFrameBuffer = pColorFrameBuffer;
-    m_pixelFormat = pixelFormat;
-
-    bool vblank = false;
-    m_iStatusModeCounter += clockCycles;
-
-    if (m_bScreenEnabled)
-    {
-        switch (m_iStatusMode)
-        {
-            // During H-BLANK
-            case 0:
-            {
-                if (m_iStatusModeCounter >= 204)
-                {
-                    m_iStatusModeCounter -= 204;
-                    m_iStatusMode = 2;
-
-                    m_iStatusModeLYCounter++;
-                    m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
-                    CompareLYToLYC();
-
-                    if (m_bCGB && m_pMemory->IsHDMAEnabled() && (!m_pProcessor->Halted() || m_pProcessor->InterruptIsAboutToRaise()))
-                    {
-                        unsigned int cycles = m_pMemory->PerformHDMA();
-                        m_iStatusModeCounter += cycles;
-                        clockCycles += cycles;
-                    }
-
-                    if (m_iStatusModeLYCounter == 144)
-                    {
-                        m_iStatusMode = 1;
-                        m_iStatusVBlankLine = 0;
-                        m_iStatusModeCounterAux = m_iStatusModeCounter;
-
-                        m_pProcessor->RequestInterrupt(Processor::VBlank_Interrupt);
-
-                        m_IRQ48Signal &= 0x09;
-                        u8 stat = m_pMemory->Retrieve(0xFF41);
-                        if (IsSetBit(stat, 4))
-                        {
-                            if (!IsSetBit(m_IRQ48Signal, 0) && !IsSetBit(m_IRQ48Signal, 3))
-                            {
-                                m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                            }
-                            m_IRQ48Signal = SetBit(m_IRQ48Signal, 1);
-                        }
-                        m_IRQ48Signal &= 0x0E;
-
-                        if (m_iHideFrames > 0)
-                            m_iHideFrames--;
-                        else
-                            vblank = true;
-
-                        m_iWindowLine = 0;
-                    }
-                    else
-                    {
-                        m_IRQ48Signal &= 0x09;
-                        u8 stat = m_pMemory->Retrieve(0xFF41);
-                        if (IsSetBit(stat, 5))
-                        {
-                            if (m_IRQ48Signal == 0)
-                            {
-                                m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                            }
-                            m_IRQ48Signal = SetBit(m_IRQ48Signal, 2);
-                        }
-                        m_IRQ48Signal &= 0x0E;
-                    }
-
-                    UpdateStatRegister();
-                }
-                break;
-            }
-            // During V-BLANK
-            case 1:
-            {
-                m_iStatusModeCounterAux += clockCycles;
-
-                if (m_iStatusModeCounterAux >= 456)
-                {
-                    m_iStatusModeCounterAux -= 456;
-                    m_iStatusVBlankLine++;
-
-                    if (m_iStatusVBlankLine <= 9)
-                    {
-                        m_iStatusModeLYCounter++;
-                        m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
-                        CompareLYToLYC();
-                    }
-                }
-
-                if ((m_iStatusModeCounter >= 4104) && (m_iStatusModeCounterAux >= 4) && (m_iStatusModeLYCounter == 153))
-                {
-                    m_iStatusModeLYCounter = 0;
-                    m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
-                    CompareLYToLYC();
-                }
-
-                if (m_iStatusModeCounter >= 4560)
-                {
-                    m_iStatusModeCounter -= 4560;
-                    m_iStatusMode = 2;
-                    UpdateStatRegister();
-                    m_IRQ48Signal &= 0x07;
-
-
-                    m_IRQ48Signal &= 0x0A;
-                    u8 stat = m_pMemory->Retrieve(0xFF41);
-                    if (IsSetBit(stat, 5))
-                    {
-                        if (m_IRQ48Signal == 0)
-                        {
-                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                        }
-                        m_IRQ48Signal = SetBit(m_IRQ48Signal, 2);
-                    }
-                    m_IRQ48Signal &= 0x0D;
-                }
-                break;
-            }
-            // During searching OAM RAM
-            case 2:
-            {
-                if (m_iStatusModeCounter >= 80)
-                {
-                    m_iStatusModeCounter -= 80;
-                    m_iStatusMode = 3;
-                    m_bScanLineTransfered = false;
-                    m_IRQ48Signal &= 0x08;
-                    UpdateStatRegister();
-                }
-                break;
-            }
-            // During transfering data to LCD driver
-            case 3:
-            {
-#ifndef PERFORMANCE
-                if (m_iPixelCounter < 160)
-                {
-                    m_iTileCycleCounter += clockCycles;
-                    u8 lcdc = m_pMemory->Retrieve(0xFF40);
-
-                    if (m_bScreenEnabled && IsSetBit(lcdc, 7))
-                    {
-                        while (m_iTileCycleCounter >= 3)
-                        {
-                            if (IsValidPointer(m_pColorFrameBuffer))
-                            {
-                                RenderBG(m_iStatusModeLYCounter, m_iPixelCounter);
-                            }
-                            m_iPixelCounter += 4;
-                            m_iTileCycleCounter -= 3;
-
-                            if (m_iPixelCounter >= 160)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-#endif
-
-                if (m_iStatusModeCounter >= 160 && !m_bScanLineTransfered)
-                {
-                    ScanLine(m_iStatusModeLYCounter);
-                    m_bScanLineTransfered = true;
-                }
-
-                if (m_iStatusModeCounter >= 172)
-                {
-                    m_iPixelCounter = 0;
-                    m_iStatusModeCounter -= 172;
-                    m_iStatusMode = 0;
-                    m_iTileCycleCounter = 0;
-                    UpdateStatRegister();
-
-                    m_IRQ48Signal &= 0x08;
-                    u8 stat = m_pMemory->Retrieve(0xFF41);
-                    if (IsSetBit(stat, 3))
-                    {
-                        if (!IsSetBit(m_IRQ48Signal, 3))
-                        {
-                            m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                        }
-                        m_IRQ48Signal = SetBit(m_IRQ48Signal, 0);
-                    }
-                }
-                break;
-            }
-        }
-    }
-    // Screen disabled
-    else
-    {
-        if (m_iScreenEnableDelayCycles > 0)
-        {
-            m_iScreenEnableDelayCycles -= clockCycles;
-
-            if (m_iScreenEnableDelayCycles <= 0)
-            {
-                m_iScreenEnableDelayCycles = 0;
-                m_bScreenEnabled = true;
-                m_iHideFrames = 3;
-                m_iStatusMode = 0;
-                m_iStatusModeCounter = 0;
-                m_iStatusModeCounterAux = 0;
-                m_iStatusModeLYCounter = 0;
-                m_iWindowLine = 0;
-                m_iStatusVBlankLine = 0;
-                m_iPixelCounter = 0;
-                m_iTileCycleCounter = 0;
-                m_pMemory->Load(0xFF44, m_iStatusModeLYCounter);
-                m_IRQ48Signal = 0;
-
-                u8 stat = m_pMemory->Retrieve(0xFF41);
-                if (IsSetBit(stat, 5))
-                {
-                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                    m_IRQ48Signal = SetBit(m_IRQ48Signal, 2);
-                }
-
-                CompareLYToLYC();
-            }
-        }
-        else if (m_iStatusModeCounter >= 70224)
-        {
-            m_iStatusModeCounter -= 70224;
-            vblank = true;
-        }
-    }
-    return vblank;
+    m_bScreenEnabled = false;
+    m_iStatusMode = 0;
+    m_iStatusModeCounter = 0;
+    m_iStatusModeCounterAux = 0;
+    m_iStatusModeLYCounter = 0;
+    m_iScreenEnableDelayCycles = 0;
 }
 
 void Video::EnableScreen()
@@ -337,6 +157,8 @@ void Video::EnableScreen()
 
 void Video::DisableScreen()
 {
+    bool disabled_in_vblank = m_bCGB && m_bScreenEnabled && (m_iStatusMode == 1);
+
     m_bScreenEnabled = false;
     m_pMemory->Load(0xFF44, 0x00);
     u8 stat = m_pMemory->Retrieve(0xFF41);
@@ -345,18 +167,62 @@ void Video::DisableScreen()
     m_iStatusMode = 0;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
+    m_iPendingVBlankInterruptCycles = 0;
     m_iStatusModeLYCounter = 0;
     m_IRQ48Signal = 0;
+    m_iHideFrames = disabled_in_vblank ? -1 : 0;
+
+    if (!disabled_in_vblank && IsValidPointer(m_pColorFrameBuffer))
+    {
+        if (m_bCGB)
+        {
+            for (int i = 0; i < GAMEBOY_WIDTH * GAMEBOY_HEIGHT; i++)
+                m_pColorFrameBuffer[i] = m_CGBWhiteColor;
+        }
+        else
+        {
+            if (!m_bSGBTransferMode)
+                memset(m_pFrameBuffer, 0, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
+            memset(m_pColorFrameBuffer, 0, GAMEBOY_WIDTH * GAMEBOY_HEIGHT * sizeof(u16));
+        }
+    }
 }
 
-bool Video::IsScreenEnabled() const
+void Video::SetColorCorrection(const u16* pColorCorrectionLUT, bool enabled)
 {
-    return m_bScreenEnabled;
+    m_pColorCorrectionLUT = pColorCorrectionLUT;
+    m_bColorCorrectionEnabled = enabled;
+    RebuildCGBRenderPalettes();
 }
 
-const u8* Video::GetFrameBuffer() const
+void Video::RebuildCGBRenderPalettes()
 {
-    return m_pFrameBuffer;
+    for (int palette = 0; palette < 8; palette++)
+    {
+        for (int color = 0; color < 4; color++)
+        {
+            UpdateCGBRenderPalette(true, palette, color);
+            UpdateCGBRenderPalette(false, palette, color);
+        }
+    }
+
+    m_CGBWhiteColor = (m_bColorCorrectionEnabled &&
+            IsValidPointer(m_pColorCorrectionLUT)) ?
+            m_pColorCorrectionLUT[0xFFFF] : 0xFFFF;
+}
+
+void Video::UpdateCGBRenderPalette(bool background, int palette, int color)
+{
+    u16 normal = background ? m_CGBBackgroundPalettes[palette][color][1] :
+            m_CGBSpritePalettes[palette][color][1];
+    u16 render = (m_bColorCorrectionEnabled &&
+            IsValidPointer(m_pColorCorrectionLUT)) ?
+            m_pColorCorrectionLUT[normal] : normal;
+
+    if (background)
+        m_CGBBackgroundRenderPalettes[palette][color] = render;
+    else
+        m_CGBSpriteRenderPalettes[palette][color] = render;
 }
 
 void Video::UpdatePaletteToSpecification(bool background, u8 value)
@@ -400,13 +266,15 @@ void Video::SetColorPalette(bool background, u8 value)
     {
         case GB_PIXEL_RGB565:
         {
-            u8 green_6bit = (*palette_color_gbc >> 4) & 0x3E;
+            u8 green_5bit = (*palette_color_gbc >> 5) & 0x1F;
+            u8 green_6bit = (green_5bit << 1) | (green_5bit >> 4);
             *palette_color_final = (red_5bit << 11) | (green_6bit << 5) | blue_5bit;
             break;
         }
         case GB_PIXEL_BGR565:
         {
-            u8 green_6bit = (*palette_color_gbc >> 4) & 0x3E;
+            u8 green_5bit = (*palette_color_gbc >> 5) & 0x1F;
+            u8 green_6bit = (green_5bit << 1) | (green_5bit >> 4);
             *palette_color_final = (blue_5bit << 11) | (green_6bit << 5) | red_5bit;
             break;
         }
@@ -424,23 +292,68 @@ void Video::SetColorPalette(bool background, u8 value)
         }
     }
 
+    UpdateCGBRenderPalette(background, pal, index);
+
 }
 
-int Video::GetCurrentStatusMode() const
+void Video::RefreshStatInterruptSignal(bool requestInterrupt)
 {
-    return m_iStatusMode;
+    u8 signal = 0;
+
+    if (m_bScreenEnabled)
+    {
+        u8 stat = m_pMemory->Retrieve(0xFF41);
+        if (IsSetBit(stat, 3) && (m_iStatusMode == 0))
+            signal = SetBit(signal, 0);
+        if (IsSetBit(stat, 4) && (m_iStatusMode == 1))
+            signal = SetBit(signal, 1);
+        if (IsSetBit(stat, 5) && (m_iStatusMode == 2))
+            signal = SetBit(signal, 2);
+        if (IsSetBit(stat, 6) && (m_pMemory->Retrieve(0xFF45) == m_iStatusModeLYCounter))
+            signal = SetBit(signal, 3);
+    }
+
+    if (requestInterrupt && (m_IRQ48Signal == 0) && (signal != 0))
+    {
+        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+        TraceEvent(TRACE_LCD_STAT_IRQ, signal);
+    }
+
+    m_IRQ48Signal = signal;
+}
+
+void Video::CheckWindowY()
+{
+    if (m_bWindowYTrigger)
+        return;
+
+    u8 lcdc = m_pMemory->Retrieve(0xFF40);
+    if (!IsSetBit(lcdc, 5))
+        return;
+
+    u8 wy = m_pMemory->Retrieve(0xFF4A);
+    if (wy == (u8)m_iStatusModeLYCounter)
+        m_bWindowYTrigger = true;
 }
 
 void Video::ResetWindowLine()
 {
-    u8 wy = m_pMemory->Retrieve(0xFF4A);
+    if ((m_iWindowLine == 0) && (m_iStatusModeLYCounter < 144))
+    {
+        u8 wy = m_pMemory->Retrieve(0xFF4A);
 
-    if ((m_iWindowLine == 0) && (m_iStatusModeLYCounter < 144) && (m_iStatusModeLYCounter > wy))
-        m_iWindowLine = 144;
+        if ((m_iStatusModeLYCounter == wy) && (m_iStatusMode == 3) && !m_bScanLineTransfered)
+            m_iWindowLine = -1;
+    }
+
+    CheckWindowY();
 }
 
 void Video::ScanLine(int line)
 {
+    if (m_iHideFrames > 0 && !m_bSGBTransferMode)
+        return;
+
     if (IsValidPointer(m_pColorFrameBuffer))
     {
         u8 lcdc = m_pMemory->Retrieve(0xFF40);
@@ -459,7 +372,7 @@ void Video::ScanLine(int line)
             if (m_bCGB)
             {
                 for (int x = 0; x < GAMEBOY_WIDTH; x++)
-                    m_pColorFrameBuffer[line_width + x] = 0x8000;
+                    m_pColorFrameBuffer[line_width + x] = m_CGBWhiteColor;
             }
             else
             {
@@ -482,9 +395,6 @@ void Video::RenderBG(int line, int pixel)
 #else
         int pixels_to_render = 4;
 #endif
-        int offset_x_init = pixel & 0x7;
-        int offset_x_end = offset_x_init + pixels_to_render;
-        int screen_tile = pixel >> 3;
         int tile_start_addr = IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
         int map_start_addr = IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
         u8 scroll_x = m_pMemory->Retrieve(0xFF43);
@@ -495,19 +405,24 @@ void Video::RenderBG(int line, int pixel)
         int tile_pixel_y_2 = tile_pixel_y << 1;
         int tile_pixel_y_flip_2 = (7 - tile_pixel_y) << 1;
         u8 palette = m_pMemory->Retrieve(0xFF47);
+        int screen_pixel_x = pixel;
+        int remaining = pixels_to_render;
 
-        for (int offset_x = offset_x_init; offset_x < offset_x_end; offset_x++)
+        while (remaining > 0)
         {
-            int screen_pixel_x = (screen_tile << 3) + offset_x;
             u8 map_pixel_x = screen_pixel_x + scroll_x;
             int map_tile_x = map_pixel_x >> 3;
             int map_tile_offset_x = map_pixel_x & 0x7;
+            int run = 8 - map_tile_offset_x;
+            if (run > remaining)
+                run = remaining;
+
             u16 map_tile_addr = map_start_addr + line_scrolled_32 + map_tile_x;
             int map_tile = 0;
 
             if (tile_start_addr == 0x8800)
             {
-                map_tile = static_cast<s8> (m_pMemory->Retrieve(map_tile_addr));
+                map_tile = (s8)m_pMemory->Retrieve(map_tile_addr);
                 map_tile += 128;
             }
             else
@@ -515,58 +430,88 @@ void Video::RenderBG(int line, int pixel)
                 map_tile = m_pMemory->Retrieve(map_tile_addr);
             }
 
-            u8 cgb_tile_attr = m_bCGB ? m_pMemory->ReadCGBLCDRAM(map_tile_addr, true) : 0;
-            u8 cgb_tile_pal = m_bCGB ? (cgb_tile_attr & 0x07) : 0;
-            bool cgb_tile_bank = m_bCGB ? IsSetBit(cgb_tile_attr, 3) : false;
-            bool cgb_tile_xflip = m_bCGB ? IsSetBit(cgb_tile_attr, 5) : false;
-            bool cgb_tile_yflip = m_bCGB ? IsSetBit(cgb_tile_attr, 6) : false;
             int map_tile_16 = map_tile << 4;
-            u8 byte1 = 0;
-            u8 byte2 = 0;
-            int final_pixely_2 = cgb_tile_yflip ? tile_pixel_y_flip_2 : tile_pixel_y_2;
-            int tile_address = tile_start_addr + map_tile_16 + final_pixely_2;
-
-            if (cgb_tile_bank)
-            {
-                byte1 = m_pMemory->ReadCGBLCDRAM(tile_address, true);
-                byte2 = m_pMemory->ReadCGBLCDRAM(tile_address + 1, true);
-            }
-            else
-            {
-                byte1 = m_pMemory->Retrieve(tile_address);
-                byte2 = m_pMemory->Retrieve(tile_address + 1);
-            }
-
-            int pixel_x_in_tile = map_tile_offset_x;
-
-            if (cgb_tile_xflip)
-            {
-                pixel_x_in_tile = 7 - pixel_x_in_tile;
-            }
-            int pixel_x_in_tile_bit = 0x1 << (7 - pixel_x_in_tile);
-            int pixel_data = (byte1 & pixel_x_in_tile_bit) ? 1 : 0;
-            pixel_data |= (byte2 & pixel_x_in_tile_bit) ? 2 : 0;
-
-            int index = line_width + screen_pixel_x;
-            m_pColorCacheBuffer[index] = pixel_data & 0x03;
 
             if (m_bCGB)
             {
-                bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7) && IsSetBit(lcdc, 0);
-                if (cgb_tile_priority && (pixel_data != 0))
-                    m_pColorCacheBuffer[index] = SetBit(m_pColorCacheBuffer[index], 2);
-                m_pColorFrameBuffer[index] = m_CGBBackgroundPalettes[cgb_tile_pal][pixel_data][1];
+                u8 cgb_tile_attr = m_pMemory->ReadCGBLCDRAM(map_tile_addr, true);
+                u8 cgb_tile_pal = cgb_tile_attr & 0x07;
+                bool cgb_tile_bank = IsSetBit(cgb_tile_attr, 3);
+                bool cgb_tile_xflip = IsSetBit(cgb_tile_attr, 5);
+                bool cgb_tile_yflip = IsSetBit(cgb_tile_attr, 6);
+                bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7) &&
+                        IsSetBit(lcdc, 0);
+                int final_pixely_2 = cgb_tile_yflip ?
+                        tile_pixel_y_flip_2 : tile_pixel_y_2;
+                int tile_address = tile_start_addr + map_tile_16 + final_pixely_2;
+                u8 byte1 = 0;
+                u8 byte2 = 0;
+
+                if (cgb_tile_bank)
+                {
+                    byte1 = m_pMemory->ReadCGBLCDRAM(tile_address, true);
+                    byte2 = m_pMemory->ReadCGBLCDRAM(tile_address + 1, true);
+                }
+                else
+                {
+                    byte1 = m_pMemory->Retrieve(tile_address);
+                    byte2 = m_pMemory->Retrieve(tile_address + 1);
+                }
+
+                int pixel_bit = cgb_tile_xflip ?
+                        (0x01 << map_tile_offset_x) :
+                        (0x80 >> map_tile_offset_x);
+
+                for (int i = 0; i < run; i++)
+                {
+                    int pixel_data = (byte1 & pixel_bit) ? 1 : 0;
+                    pixel_data |= (byte2 & pixel_bit) ? 2 : 0;
+
+                    int index = line_width + screen_pixel_x + i;
+                    m_pColorCacheBuffer[index] = pixel_data & 0x03;
+                    if (cgb_tile_priority && (pixel_data != 0))
+                        m_pColorCacheBuffer[index] =
+                                SetBit(m_pColorCacheBuffer[index], 2);
+                    m_pColorFrameBuffer[index] =
+                            m_CGBBackgroundRenderPalettes[cgb_tile_pal][pixel_data];
+
+                    pixel_bit = cgb_tile_xflip ?
+                            (pixel_bit << 1) : (pixel_bit >> 1);
+                }
             }
             else
             {
-                u8 color = (palette >> (pixel_data << 1)) & 0x03;
-                m_pColorFrameBuffer[index] = m_pFrameBuffer[index] = color;
+                int tile_address = tile_start_addr + map_tile_16 + tile_pixel_y_2;
+                u8 byte1 = m_pMemory->Retrieve(tile_address);
+                u8 byte2 = m_pMemory->Retrieve(tile_address + 1);
+                int pixel_bit = 0x80 >> map_tile_offset_x;
+
+                for (int i = 0; i < run; i++)
+                {
+                    int pixel_data = (byte1 & pixel_bit) ? 1 : 0;
+                    pixel_data |= (byte2 & pixel_bit) ? 2 : 0;
+
+                    int index = line_width + screen_pixel_x + i;
+                    m_pColorCacheBuffer[index] = pixel_data & 0x03;
+                    m_pFrameBuffer[index] =
+                            (palette >> (pixel_data << 1)) & 0x03;
+
+                    pixel_bit >>= 1;
+                }
             }
+
+            screen_pixel_x += run;
+            remaining -= run;
         }
     }
     else
     {
-        for (int x = 0; x < 4; x++)
+#ifdef PERFORMANCE
+        int pixels_to_clear = 160;
+#else
+        int pixels_to_clear = 4;
+#endif
+        for (int x = 0; x < pixels_to_clear; x++)
         {
             int position = line_width + pixel + x;
             m_pFrameBuffer[position] = 0;
@@ -580,8 +525,17 @@ void Video::RenderWindow(int line)
     if (m_iWindowLine > 143)
         return;
 
+    if (m_iWindowLine < 0)
+    {
+        m_iWindowLine = 0;
+        return;
+    }
+
     u8 lcdc = m_pMemory->Retrieve(0xFF40);
     if (!IsSetBit(lcdc, 5))
+        return;
+
+    if (!m_bWindowYTrigger)
         return;
 
     int wx = m_pMemory->Retrieve(0xFF4B) - 7;
@@ -601,8 +555,9 @@ void Video::RenderWindow(int line)
     int pixely_2_flip = (7 - pixely) << 1;
     int line_width = (line * GAMEBOY_WIDTH);
     u8 palette = m_pMemory->Retrieve(0xFF47);
+    int last_tile = (GAMEBOY_WIDTH - 1 - wx) >> 3;
 
-    for (int x = 0; x < 32; x++)
+    for (int x = 0; x <= last_tile; x++)
     {
         int tile = 0;
 
@@ -664,16 +619,110 @@ void Video::RenderWindow(int line)
                 bool cgb_tile_priority = IsSetBit(cgb_tile_attr, 7) && IsSetBit(lcdc, 0);
                 if (cgb_tile_priority && (pixel != 0))
                     m_pColorCacheBuffer[position] = SetBit(m_pColorCacheBuffer[position], 2);
-                 m_pColorFrameBuffer[position] = m_CGBBackgroundPalettes[cgb_tile_pal][pixel][1];
+                m_pColorFrameBuffer[position] =
+                        m_CGBBackgroundRenderPalettes[cgb_tile_pal][pixel];
             }
             else
             {
                 u8 color = (palette >> (pixel << 1)) & 0x03;
-                m_pColorFrameBuffer[position] = m_pFrameBuffer[position] = color;
+                m_pFrameBuffer[position] = color;
             }
         }
     }
     m_iWindowLine++;
+}
+
+INLINE void Video::RenderSprite(int line, int sprite, int sprite_height, int line_width)
+{
+    int sprite_4 = sprite << 2;
+    int sprite_x = m_pMemory->Retrieve(0xFE00 + sprite_4 + 1) - 8;
+
+    if ((sprite_x < -7) || (sprite_x >= GAMEBOY_WIDTH))
+        return;
+
+    int sprite_y = m_pMemory->Retrieve(0xFE00 + sprite_4) - 16;
+    int sprite_tile_16 = (m_pMemory->Retrieve(0xFE00 + sprite_4 + 2)
+            & ((sprite_height == 16) ? 0xFE : 0xFF)) << 4;
+    u8 sprite_flags = m_pMemory->Retrieve(0xFE00 + sprite_4 + 3);
+    int sprite_pallette = IsSetBit(sprite_flags, 4) ? 1 : 0;
+    u8 palette = m_pMemory->Retrieve(sprite_pallette ? 0xFF49 : 0xFF48);
+    bool xflip = IsSetBit(sprite_flags, 5);
+    bool yflip = IsSetBit(sprite_flags, 6);
+    bool aboveBG = (!IsSetBit(sprite_flags, 7));
+    bool cgb_tile_bank = IsSetBit(sprite_flags, 3);
+    int cgb_tile_pal = sprite_flags & 0x07;
+    int tiles = 0x8000;
+    int pixel_y = yflip ? ((sprite_height == 16) ? 15 : 7) - (line - sprite_y) : line - sprite_y;
+    u8 byte1 = 0;
+    u8 byte2 = 0;
+    int pixel_y_2 = 0;
+    int offset = 0;
+
+    if (sprite_height == 16 && (pixel_y >= 8))
+    {
+        pixel_y_2 = (pixel_y - 8) << 1;
+        offset = 16;
+    }
+    else
+        pixel_y_2 = pixel_y << 1;
+
+    int tile_address = tiles + sprite_tile_16 + pixel_y_2 + offset;
+
+    if (m_bCGB && cgb_tile_bank)
+    {
+        byte1 = m_pMemory->ReadCGBLCDRAM(tile_address, true);
+        byte2 = m_pMemory->ReadCGBLCDRAM(tile_address + 1, true);
+    }
+    else
+    {
+        byte1 = m_pMemory->Retrieve(tile_address);
+        byte2 = m_pMemory->Retrieve(tile_address + 1);
+    }
+
+    for (int pixelx = 0; pixelx < 8; pixelx++)
+    {
+        int pixel = (byte1 & (0x01 << (xflip ? pixelx : 7 - pixelx))) ? 1 : 0;
+        pixel |= (byte2 & (0x01 << (xflip ? pixelx : 7 - pixelx))) ? 2 : 0;
+
+        if (pixel == 0)
+            continue;
+
+        int bufferX = (sprite_x + pixelx);
+
+        if (bufferX < 0 || bufferX >= GAMEBOY_WIDTH)
+            continue;
+
+        int position = line_width + bufferX;
+        u8 color_cache = m_pColorCacheBuffer[position];
+
+        if (m_bCGB)
+        {
+            if (IsSetBit(color_cache, 2))
+                continue;
+        }
+        else
+        {
+            int sprite_x_cache = m_pSpriteXCacheBuffer[position];
+            if (IsSetBit(color_cache, 3) && (sprite_x_cache < sprite_x))
+                continue;
+        }
+
+        if (!aboveBG && (color_cache & 0x03))
+            continue;
+
+        m_pColorCacheBuffer[position] = SetBit(color_cache, 3);
+        m_pSpriteXCacheBuffer[position] = sprite_x;
+        if (m_bCGB)
+        {
+            m_pColorFrameBuffer[position] =
+                    m_CGBSpriteRenderPalettes[cgb_tile_pal][pixel];
+        }
+        else
+        {
+            u8 color = (palette >> (pixel << 1)) & 0x03;
+            m_pFrameBuffer[position] = color;
+        }
+    }
 }
 
 void Video::RenderSprites(int line)
@@ -686,8 +735,14 @@ void Video::RenderSprites(int line)
     int sprite_height = IsSetBit(lcdc, 2) ? 16 : 8;
     int line_width = (line * GAMEBOY_WIDTH);
 
-    bool visible_sprites[40];
-    int sprite_limit = 0;
+    if (unlikely(m_bNoSpriteLimit))
+    {
+        RenderSpritesNoLimit(line, sprite_height, line_width);
+        return;
+    }
+
+    u8 visible_sprites[10];
+    int visible_count = 0;
 
     for (int sprite = 0; sprite < 40; sprite++)
     {
@@ -695,109 +750,27 @@ void Video::RenderSprites(int line)
         int sprite_y = m_pMemory->Retrieve(0xFE00 + sprite_4) - 16;
 
         if ((sprite_y > line) || ((sprite_y + sprite_height) <= line))
-        {
-            visible_sprites[sprite] = false;
             continue;
-        }
 
-        sprite_limit++;
-        
-        visible_sprites[sprite] = sprite_limit <= 10;
+        visible_sprites[visible_count++] = (u8)sprite;
+        if (visible_count == 10)
+            break;
     }
 
+    for (int selected = visible_count - 1; selected >= 0; selected--)
+        RenderSprite(line, visible_sprites[selected], sprite_height, line_width);
+}
+
+void Video::RenderSpritesNoLimit(int line, int sprite_height, int line_width)
+{
     for (int sprite = 39; sprite >= 0; sprite--)
     {
-        if (!visible_sprites[sprite])
+        int sprite_y = m_pMemory->Retrieve(0xFE00 + (sprite << 2)) - 16;
+
+        if ((sprite_y > line) || ((sprite_y + sprite_height) <= line))
             continue;
 
-        int sprite_4 = sprite << 2;
-        int sprite_x = m_pMemory->Retrieve(0xFE00 + sprite_4 + 1) - 8;
-
-        if ((sprite_x < -7) || (sprite_x >= GAMEBOY_WIDTH))
-            continue;
-
-        int sprite_y = m_pMemory->Retrieve(0xFE00 + sprite_4) - 16;
-        int sprite_tile_16 = (m_pMemory->Retrieve(0xFE00 + sprite_4 + 2)
-                & ((sprite_height == 16) ? 0xFE : 0xFF)) << 4;
-        u8 sprite_flags = m_pMemory->Retrieve(0xFE00 + sprite_4 + 3);
-        int sprite_pallette = IsSetBit(sprite_flags, 4) ? 1 : 0;
-        u8 palette = m_pMemory->Retrieve(sprite_pallette ? 0xFF49 : 0xFF48);
-        bool xflip = IsSetBit(sprite_flags, 5);
-        bool yflip = IsSetBit(sprite_flags, 6);
-        bool aboveBG = (!IsSetBit(sprite_flags, 7));
-        bool cgb_tile_bank = IsSetBit(sprite_flags, 3);
-        int cgb_tile_pal = sprite_flags & 0x07;
-        int tiles = 0x8000;
-        int pixel_y = yflip ? ((sprite_height == 16) ? 15 : 7) - (line - sprite_y) : line - sprite_y;
-        u8 byte1 = 0;
-        u8 byte2 = 0;
-        int pixel_y_2 = 0;
-        int offset = 0;
-
-        if (sprite_height == 16 && (pixel_y >= 8))
-        {
-            pixel_y_2 = (pixel_y - 8) << 1;
-            offset = 16;
-        }
-        else
-            pixel_y_2 = pixel_y << 1;
-
-        int tile_address = tiles + sprite_tile_16 + pixel_y_2 + offset;
-
-        if (m_bCGB && cgb_tile_bank)
-        {
-            byte1 = m_pMemory->ReadCGBLCDRAM(tile_address, true);
-            byte2 = m_pMemory->ReadCGBLCDRAM(tile_address + 1, true);
-        }
-        else
-        {
-            byte1 = m_pMemory->Retrieve(tile_address);
-            byte2 = m_pMemory->Retrieve(tile_address + 1);
-        }
-
-        for (int pixelx = 0; pixelx < 8; pixelx++)
-        {
-            int pixel = (byte1 & (0x01 << (xflip ? pixelx : 7 - pixelx))) ? 1 : 0;
-            pixel |= (byte2 & (0x01 << (xflip ? pixelx : 7 - pixelx))) ? 2 : 0;
-
-            if (pixel == 0)
-                continue;
-
-            int bufferX = (sprite_x + pixelx);
-
-            if (bufferX < 0 || bufferX >= GAMEBOY_WIDTH)
-                continue;
-
-            int position = line_width + bufferX;
-            u8 color_cache = m_pColorCacheBuffer[position];
-
-            if (m_bCGB)
-            {
-                if (IsSetBit(color_cache, 2))
-                    continue;
-            }
-            else
-            {
-                int sprite_x_cache = m_pSpriteXCacheBuffer[position];
-                if (IsSetBit(color_cache, 3) && (sprite_x_cache < sprite_x))
-                    continue;
-            }
-
-            if (!aboveBG && (color_cache & 0x03))
-                continue;
-
-            m_pColorCacheBuffer[position] = SetBit(color_cache, 3);
-            m_pSpriteXCacheBuffer[position] = sprite_x;
-            if (m_bCGB)
-            {
-                m_pColorFrameBuffer[position] = m_CGBSpritePalettes[cgb_tile_pal][pixel][1];
-            }
-            else
-            {
-                u8 color = (palette >> (pixel << 1)) & 0x03;
-                m_pColorFrameBuffer[position] = m_pFrameBuffer[position] = color;
-            }
-        }
+        RenderSprite(line, sprite, sprite_height, line_width);
     }
 }
 
@@ -818,28 +791,15 @@ void Video::CompareLYToLYC()
         if (lyc == m_iStatusModeLYCounter)
         {
             stat = SetBit(stat, 2);
-            if (IsSetBit(stat, 6))
-            {
-                if (m_IRQ48Signal == 0)
-                {
-                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                }
-                m_IRQ48Signal = SetBit(m_IRQ48Signal, 3);
-            }
         }
         else
         {
             stat = UnsetBit(stat, 2);
-            m_IRQ48Signal = UnsetBit(m_IRQ48Signal, 3);
         }
 
         m_pMemory->Load(0xFF41, stat);
+        RefreshStatInterruptSignal(true);
     }
-}
-
-u8 Video::GetIRQ48Signal() const
-{
-    return m_IRQ48Signal;
 }
 
 void Video::SetIRQ48Signal(u8 signal)
@@ -869,9 +829,11 @@ void Video::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iWindowLine), sizeof(m_iWindowLine));
     stream.write(reinterpret_cast<const char*> (&m_iHideFrames), sizeof(m_iHideFrames));
     stream.write(reinterpret_cast<const char*> (&m_IRQ48Signal), sizeof(m_IRQ48Signal));
+    stream.write(reinterpret_cast<const char*> (&m_iPendingVBlankInterruptCycles), sizeof(m_iPendingVBlankInterruptCycles));
+    stream.write(reinterpret_cast<const char*> (&m_bWindowYTrigger), sizeof(m_bWindowYTrigger));
 }
 
-void Video::LoadState(std::istream& stream)
+void Video::LoadState(std::istream& stream, u32 version)
 {
     using namespace std;
 
@@ -893,6 +855,26 @@ void Video::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iWindowLine), sizeof(m_iWindowLine));
     stream.read(reinterpret_cast<char*> (&m_iHideFrames), sizeof(m_iHideFrames));
     stream.read(reinterpret_cast<char*> (&m_IRQ48Signal), sizeof(m_IRQ48Signal));
+
+    if (version >= 101)
+    {
+        stream.read(reinterpret_cast<char*> (&m_iPendingVBlankInterruptCycles), sizeof(m_iPendingVBlankInterruptCycles));
+    }
+    else
+    {
+        m_iPendingVBlankInterruptCycles = 0;
+    }
+
+    if (version >= 102)
+    {
+        stream.read(reinterpret_cast<char*> (&m_bWindowYTrigger), sizeof(m_bWindowYTrigger));
+    }
+    else
+    {
+        m_bWindowYTrigger = false;
+    }
+
+    RebuildCGBRenderPalettes();
 }
 
 PaletteMatrix Video::GetCGBBackgroundPalettes()

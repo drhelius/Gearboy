@@ -1,19 +1,31 @@
-include ../desktop-shared/Makefile.common
+include ../shared/makefiles/Makefile.sources
 
-DYLIB_PATH=/usr/local/opt/sdl2/lib
-SDL_DYLIB=libSDL2-2.0.0.dylib
+SOURCES_MM += macos.mm
+OBJECTS += $(SOURCES_MM:.mm=.o)
+LDFLAGS += -framework AppKit
+
+include ../shared/makefiles/Makefile.common
+
 APP_NAME=Gearboy
 
 bundle:
 	rm -rf $(APP_NAME).app
 	mkdir -p $(APP_NAME).app/Contents/{MacOS,Resources,Frameworks}
-	cp Info.plist $(APP_NAME).app/Contents/
-	cp $(DYLIB_PATH)/$(SDL_DYLIB) $(APP_NAME).app/Contents/Frameworks/
+	sed -e "s/@version@/$(GIT_VERSION)/g" Info.plist > $(APP_NAME).app/Contents/Info.plist
 	cp iconfile.icns $(APP_NAME).app/Contents/Resources/
-	cp $(EXE) $(APP_NAME).app/Contents/MacOS/
+	cp $(TARGET) $(APP_NAME).app/Contents/MacOS/
 	cp run.sh $(APP_NAME).app/Contents/MacOS/
-	cp gamecontrollerdb.txt $(APP_NAME).app/Contents/MacOS/
-	install_name_tool -change $(DYLIB_PATH)/$(SDL_DYLIB) @$(APP_NAME).app/Contents/MacOS/$(SDL_DYLIB) $(APP_NAME).app/Contents/MacOS/$(APP_NAME)
+	$(eval SDL3_DYLIB := $(shell otool -L $(TARGET) | grep libSDL3 | awk '{print $$1}'))
+	cp $(SDL3_DYLIB) $(APP_NAME).app/Contents/Frameworks/
+	chmod 755 $(APP_NAME).app/Contents/Frameworks/libSDL3.0.dylib
+	install_name_tool -change $(SDL3_DYLIB) @executable_path/../Frameworks/libSDL3.0.dylib $(APP_NAME).app/Contents/MacOS/$(TARGET)
+	mkdir -p $(APP_NAME).app/Contents/Resources/mcp
+	mkdir -p $(APP_NAME).app/Contents/Resources/shaders
+	cp ../shared/gamecontrollerdb.txt $(APP_NAME).app/Contents/Resources/
+	cp -r ../shared/desktop/mcp/resources $(APP_NAME).app/Contents/Resources/mcp/
+	cp -r ../shared/desktop/shaders/* $(APP_NAME).app/Contents/Resources/shaders/
 
-dist: clean all bundle
+dist: clean
+	+$(MAKE) all
+	+$(MAKE) bundle
 	@echo Success!!

@@ -131,6 +131,7 @@ void Processor::OPCode0x10()
 {
     // STOP
     PC.Increment();
+    ResetDIVCycles();
 
     if (m_bCGB)
     {
@@ -150,6 +151,8 @@ void Processor::OPCode0x10()
                 m_iSpeedMultiplier = 0;
                 m_pMemory->Load(0xFF4D, 0x00);
             }
+
+            m_iMachineCycle = 4 >> m_iSpeedMultiplier;
         }
     }
 }
@@ -863,12 +866,10 @@ void Processor::OPCode0x76()
         u8 if_reg = m_pMemory->Retrieve(0xFF0F);
         u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
 
-        m_bHalt = true;
-
-        if (!m_bCGB && !m_bIME && (if_reg & ie_reg & 0x1F))
-        {
+        if (!m_bIME && (if_reg & ie_reg & 0x1F))
             m_bSkipPCBug = true;
-        }
+        else
+            m_bHalt = true;
     }
 }
 
@@ -1319,6 +1320,9 @@ void Processor::OPCode0xC0()
     {
         StackPop(&PC);
         m_bBranchTaken = true;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        PopCallStack();
+#endif
     }
 }
 
@@ -1366,10 +1370,17 @@ void Processor::OPCode0xC4()
         PC.Increment();
         u8 h = m_pMemory->Read(PC.GetValue());
         PC.Increment();
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        u16 return_addr = PC.GetValue();
+        u16 dest = (h << 8) | l;
+#endif
         StackPush(&PC);
         PC.SetHigh(h);
         PC.SetLow(l);
         m_bBranchTaken = true;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        PushCallStack(return_addr - 3, dest, return_addr, m_pMemory->GetBank(dest));
+#endif
     }
     else
     {
@@ -1394,8 +1405,14 @@ void Processor::OPCode0xC6()
 void Processor::OPCode0xC7()
 {
     // RST 00H
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u16 pc = PC.GetValue();
+#endif
     StackPush(&PC);
     PC.SetValue(0x0000);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    PushCallStack(pc - 1, 0x0000, pc, 0);
+#endif
 }
 
 void Processor::OPCode0xC8()
@@ -1405,6 +1422,9 @@ void Processor::OPCode0xC8()
     {
         StackPop(&PC);
         m_bBranchTaken = true;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        PopCallStack();
+#endif
     }
 }
 
@@ -1412,6 +1432,9 @@ void Processor::OPCode0xC9()
 {
     // RET
     StackPop(&PC);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    PopCallStack();
+#endif
 }
 
 void Processor::OPCode0xCA()
@@ -1447,10 +1470,17 @@ void Processor::OPCode0xCC()
         PC.Increment();
         u8 h = m_pMemory->Read(PC.GetValue());
         PC.Increment();
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        u16 return_addr = PC.GetValue();
+        u16 dest = (h << 8) | l;
+#endif
         StackPush(&PC);
         PC.SetHigh(h);
         PC.SetLow(l);
         m_bBranchTaken = true;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        PushCallStack(return_addr - 3, dest, return_addr, m_pMemory->GetBank(dest));
+#endif
     }
     else
     {
@@ -1466,9 +1496,16 @@ void Processor::OPCode0xCD()
     PC.Increment();
     u8 h = m_pMemory->Read(PC.GetValue());
     PC.Increment();
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u16 return_addr = PC.GetValue();
+    u16 dest = (h << 8) | l;
+#endif
     StackPush(&PC);
     PC.SetHigh(h);
     PC.SetLow(l);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    PushCallStack(return_addr - 3, dest, return_addr, m_pMemory->GetBank(dest));
+#endif
 }
 
 void Processor::OPCode0xCE()
@@ -1481,8 +1518,14 @@ void Processor::OPCode0xCE()
 void Processor::OPCode0xCF()
 {
     // RST 08H
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u16 pc = PC.GetValue();
+#endif
     StackPush(&PC);
     PC.SetValue(0x0008);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    PushCallStack(pc - 1, 0x0008, pc, 0);
+#endif
 }
 
 void Processor::OPCode0xD0()
@@ -1492,6 +1535,9 @@ void Processor::OPCode0xD0()
     {
         StackPop(&PC);
         m_bBranchTaken = true;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        PopCallStack();
+#endif
     }
 }
 
@@ -1534,10 +1580,17 @@ void Processor::OPCode0xD4()
         PC.Increment();
         u8 h = m_pMemory->Read(PC.GetValue());
         PC.Increment();
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        u16 return_addr = PC.GetValue();
+        u16 dest = (h << 8) | l;
+#endif
         StackPush(&PC);
         PC.SetHigh(h);
         PC.SetLow(l);
         m_bBranchTaken = true;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        PushCallStack(return_addr - 3, dest, return_addr, m_pMemory->GetBank(dest));
+#endif
     }
     else
     {
@@ -1562,8 +1615,14 @@ void Processor::OPCode0xD6()
 void Processor::OPCode0xD7()
 {
     // RST 10H
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u16 pc = PC.GetValue();
+#endif
     StackPush(&PC);
     PC.SetValue(0x0010);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    PushCallStack(pc - 1, 0x0010, pc, 0);
+#endif
 }
 
 void Processor::OPCode0xD8()
@@ -1573,6 +1632,9 @@ void Processor::OPCode0xD8()
     {
         StackPop(&PC);
         m_bBranchTaken = true;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        PopCallStack();
+#endif
     }
 }
 
@@ -1581,6 +1643,9 @@ void Processor::OPCode0xD9()
     // RETI
     StackPop(&PC);
     m_bIME = true;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    PopCallStack();
+#endif
 }
 
 void Processor::OPCode0xDA()
@@ -1616,10 +1681,17 @@ void Processor::OPCode0xDC()
         PC.Increment();
         u8 h = m_pMemory->Read(PC.GetValue());
         PC.Increment();
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        u16 return_addr = PC.GetValue();
+        u16 dest = (h << 8) | l;
+#endif
         StackPush(&PC);
         PC.SetHigh(h);
         PC.SetLow(l);
         m_bBranchTaken = true;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+        PushCallStack(return_addr - 3, dest, return_addr, m_pMemory->GetBank(dest));
+#endif
     }
     else
     {
@@ -1643,8 +1715,14 @@ void Processor::OPCode0xDE()
 void Processor::OPCode0xDF()
 {
     // RST 18H
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u16 pc = PC.GetValue();
+#endif
     StackPush(&PC);
     PC.SetValue(0x0018);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    PushCallStack(pc - 1, 0x0018, pc, 0);
+#endif
 }
 
 void Processor::OPCode0xE0()
@@ -1692,14 +1770,20 @@ void Processor::OPCode0xE6()
 void Processor::OPCode0xE7()
 {
     // RST 20H
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u16 pc = PC.GetValue();
+#endif
     StackPush(&PC);
     PC.SetValue(0x0020);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    PushCallStack(pc - 1, 0x0020, pc, 0);
+#endif
 }
 
 void Processor::OPCode0xE8()
 {
     // ADD SP,n
-    OPCodes_ADD_SP(static_cast<u8> (m_pMemory->Read(PC.GetValue())));
+    OPCodes_ADD_SP(static_cast<s8>(m_pMemory->Read(PC.GetValue())));
     PC.Increment();
 }
 
@@ -1745,8 +1829,14 @@ void Processor::OPCode0xEE()
 void Processor::OPCode0xEF()
 {
     // RST 28H
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u16 pc = PC.GetValue();
+#endif
     StackPush(&PC);
-    PC.SetValue(0x28);
+    PC.SetValue(0x0028);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    PushCallStack(pc - 1, 0x0028, pc, 0);
+#endif
 }
 
 void Processor::OPCode0xF0()
@@ -1798,8 +1888,14 @@ void Processor::OPCode0xF6()
 void Processor::OPCode0xF7()
 {
     // RST 30H
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u16 pc = PC.GetValue();
+#endif
     StackPush(&PC);
     PC.SetValue(0x0030);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    PushCallStack(pc - 1, 0x0030, pc, 0);
+#endif
 }
 
 void Processor::OPCode0xF8()
@@ -1808,9 +1904,9 @@ void Processor::OPCode0xF8()
     s8 n = m_pMemory->Read(PC.GetValue());
     u16 result = SP.GetValue() + n;
     ClearAllFlags();
-    if (((SP.GetValue() ^ n ^ result) & 0x100) == 0x100)
+    if ((SP.GetValue() & 0xFF) + (n & 0xFF) > 0xFF)
         ToggleFlag(FLAG_CARRY);
-    if (((SP.GetValue() ^ n ^ result) & 0x10) == 0x10)
+    if ((SP.GetValue() & 0xF) + (n & 0xF) > 0xF)
         ToggleFlag(FLAG_HALF);
     HL.SetValue(result);
     PC.Increment();
@@ -1836,8 +1932,11 @@ void Processor::OPCode0xFA()
 void Processor::OPCode0xFB()
 {
     // EI
-    int ei_cycles = kOPCodeMachineCycles[0xFB] * AdjustedCycles(4);
-    m_iIMECycles = ei_cycles + 1;
+    if (!m_bIME && m_iIMECycles == 0)
+    {
+        int ei_cycles = kOPCodeMachineCycles[0xFB] * AdjustedCycles(4);
+        m_iIMECycles = ei_cycles + 1;
+    }
 }
 
 void Processor::OPCode0xFC()
@@ -1860,6 +1959,12 @@ void Processor::OPCode0xFE()
 void Processor::OPCode0xFF()
 {
     // RST 38H
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u16 pc = PC.GetValue();
+#endif
     StackPush(&PC);
     PC.SetValue(0x0038);
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    PushCallStack(pc - 1, 0x0038, pc, 0);
+#endif
 }

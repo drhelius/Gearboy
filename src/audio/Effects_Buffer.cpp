@@ -357,7 +357,7 @@ void Effects_Buffer::assign_buffers()
 		if ( i > 1 )
 			x += 2;
 		if ( x >= (int) chans.size() )
-			x -= (chans.size() - 2);
+			x -= (int)(chans.size() - 2);
 		chan_t& ch = chans [x];
 
 		int b = 0;

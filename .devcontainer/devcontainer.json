@@ -1,0 +1,53 @@
+{
+  "build": {
+        "dockerfile": "./Dockerfile",
+        "context": "."
+    },
+  "features": {
+      "ghcr.io/devcontainers/features/common-utils:2": {
+        "username": "codespace",
+        "userUid": "automatic",
+        "userGid": "automatic"
+      },
+      "ghcr.io/devcontainers/features/desktop-lite:1": {
+        "webPort": "6080"
+      }
+  },
+  "forwardPorts": [6080],
+  "portsAttributes": {
+    "6080": {
+      "label": "Desktop",
+      "onAutoForward": "openBrowserOnce",
+      "protocol": "http"
+    }
+  },
+  "containerEnv": {
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "SDL_VIDEO_X11_VISUALID": "0x04f",
+    "VNC_RESOLUTION": "1600x900x24",
+    "XDG_RUNTIME_DIR": "/tmp/xdg-runtime-codespace"
+  },
+  "postStartCommand": "mkdir -p /tmp/xdg-runtime-codespace && chmod 700 /tmp/xdg-runtime-codespace",
+  "remoteUser": "codespace",
+  "containerUser": "codespace",
+  "customizations": {
+        // Configure properties specific to VS Code.
+        "vscode": {
+            // Set *default* container specific settings.json values on container create.
+            "settings": {
+              "editor.wordWrap": "on",
+              "editor.renderWhitespace": "all",
+              "workbench.colorTheme": "Monokai"
+            },
+            // Add the IDs of extensions you want installed when the container is created.
+            "extensions": [
+              "GitHub.vscode-pull-request-github",
+              "github.vscode-github-actions",
+              "GitHub.copilot",
+              "GitHub.copilot-chat",
+              "ms-vscode.cpptools-extension-pack",
+              "ms-vscode.hexeditor"
+            ]
+        }
+    }
+}

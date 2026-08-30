@@ -18,34 +18,52 @@
  */
 
 #include <algorithm>
+#include <cassert>
 #include <ctype.h>
 #include "Processor.h"
+#include "TraceLogger.h"
 #include "opcode_timing.h"
 #include "opcode_names.h"
+#include "common.h"
 
 Processor::Processor(Memory* pMemory)
 {
     m_pMemory = pMemory;
     m_pMemory->SetProcessor(this);
-    InitOPCodeFunctors();
+    InitPointer(m_pTraceLogger);
+    InitOPCodeTable();
     m_bIME = false;
     m_bHalt = false;
     m_bCGBSpeed = false;
     m_iSpeedMultiplier = 0;
+    m_iMachineCycle = 4;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_iCurrentClockCycles = 0;
     m_iDIVCycles = 0;
     m_iTIMACycles = 0;
     m_iIMECycles = 0;
-    m_iSerialBit = 0;
-    m_iSerialCycles = 0;
+    m_iSerialDividerOffset = 0;
+    m_link_cable_state_callback = NULL;
+    m_link_cable_start_callback = NULL;
+    m_link_cable_poll_callback = NULL;
+    m_link_cable_sync_callback = NULL;
+    m_link_cable_user_data = NULL;
+    m_bLinkCableConnected = false;
+    ResetSerialRuntime();
     m_bCGB = false;
     m_iUnhaltCycles = 0;
     m_iInterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
-    m_bBreakpointHit = false;
+    m_breakpoints_enabled = false;
+    m_breakpoints_irq_enabled = false;
+    m_cpu_breakpoint_hit = false;
+    m_memory_breakpoint_hit = false;
+    m_run_to_breakpoint_hit = false;
+    m_run_to_breakpoint_requested = false;
+    m_disassembler_syntax = GB_Disassembler_Syntax_Gearboy;
+    m_debug_next_irq = 0;
 
     m_ProcessorState.AF = &AF;
     m_ProcessorState.BC = &BC;
@@ -61,205 +79,208 @@ Processor::~Processor()
 {
 }
 
+void Processor::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
+}
+
+void Processor::SetDisassemblerSyntax(GB_Disassembler_Syntax syntax)
+{
+    if (syntax < GB_Disassembler_Syntax_Gearboy || syntax >= GB_Disassembler_Syntax_Count)
+        syntax = GB_Disassembler_Syntax_Gearboy;
+
+    m_disassembler_syntax = syntax;
+}
+
+GB_Disassembler_Syntax Processor::GetDisassemblerSyntax() const
+{
+    return m_disassembler_syntax;
+}
+
 void Processor::Init()
 {
     Reset(false, false);
 }
 
-void Processor::Reset(bool bCGB, bool bGBA)
+void Processor::Reset(bool bCGB, bool bGBA, bool bSGB)
 {
     m_bCGB = bCGB;
     m_bIME = false;
     m_bHalt = false;
     m_bCGBSpeed = false;
     m_iSpeedMultiplier = 0;
+    m_iMachineCycle = 4;
     m_bBranchTaken = false;
     m_bSkipPCBug = false;
     m_iCurrentClockCycles = 0;
     m_iDIVCycles = 0;
     m_iTIMACycles = 0;
     m_iIMECycles = 0;
-    m_iSerialBit = 0;
-    m_iSerialCycles = 0;
+    ResetSerialRuntime();
     m_iUnhaltCycles = 0;
-    PC.SetValue(0x100);
-    SP.SetValue(0xFFFE);
-    if (m_bCGB)
-        AF.SetValue(0x11B0);
+
+    m_iSerialDividerOffset = 0;
+    if (!m_pMemory->IsBootromEnabled() && !m_bCGB && !bSGB)
+    {
+        // Internal divider phase left by the DMG/MGB boot ROM.
+        m_iSerialDividerOffset = 0xCC;
+    }
+
+    if(m_pMemory->IsBootromEnabled())
+    {
+        PC.SetValue(0);
+        SP.SetValue(0);
+        AF.SetValue(0);
+        BC.SetValue(0);
+        DE.SetValue(0);
+        HL.SetValue(0);
+    }
     else
-        AF.SetValue(0x01B0);
-    if (m_bCGB && bGBA)
-        BC.SetValue(0x0113);
-    else
-        BC.SetValue(0x0013);
-    DE.SetValue(0x00D8);
-    HL.SetValue(0x014D);
+    {
+        m_pMemory->DisableBootromRegistry();
+        PC.SetValue(0x100);
+        SP.SetValue(0xFFFE);
+
+        //                        AF      BC      DE      HL
+        static const u16 kInitRegs[4][4] = {
+            { 0x01B0, 0x0013, 0x00D8, 0x014D },  // DMG
+            { 0x0100, 0x0014, 0x0000, 0xC060 },  // SGB
+            { 0x1180, 0x0000, 0xFF56, 0x000D },  // CGB
+            { 0x1100, 0x0100, 0xFF56, 0x000D },  // CGB+GBA
+        };
+
+        int sys = m_bCGB ? (bGBA ? 3 : 2) : (bSGB ? 1 : 0);
+        AF.SetValue(kInitRegs[sys][0]);
+        BC.SetValue(kInitRegs[sys][1]);
+        DE.SetValue(kInitRegs[sys][2]);
+        HL.SetValue(kInitRegs[sys][3]);
+    }
+
     m_iInterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
     m_iReadCache = 0;
     m_GameSharkList.clear();
-    m_bBreakpointHit = false;
+    m_breakpoints_enabled = false;
+    m_breakpoints_irq_enabled = false;
+    m_cpu_breakpoint_hit = false;
+    m_memory_breakpoint_hit = false;
+    m_run_to_breakpoint_hit = false;
+    m_run_to_breakpoint_requested = false;
+    m_debug_next_irq = 0;
+    ClearDisassemblerCallStack();
 }
 
-u8 Processor::RunFor(u8 ticks)
+void Processor::LogTraceInstruction(u16 pc, bool halt_bug)
 {
-    u8 executed = 0;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    GB_Trace_Entry e = {};
+    e.type = TRACE_CPU;
+    e.cpu.pc = pc;
+    e.cpu.bank = m_pMemory->GetTraceBank(pc);
+    e.cpu.af = AF.GetValue();
+    e.cpu.bc = BC.GetValue();
+    e.cpu.de = DE.GetValue();
+    e.cpu.hl = HL.GetValue();
+    e.cpu.sp = SP.GetValue();
+    e.cpu.halt_bug = halt_bug ? 1 : 0;
 
-    while (executed < ticks)
+    e.cpu.opcodes[0] = m_pMemory->DebugRetrieve(pc);
+    u16 second_address = halt_bug ? pc : (u16)(pc + 1);
+    if (e.cpu.opcodes[0] == 0xCB)
     {
-        m_iCurrentClockCycles = 0;
-        m_bBreakpointHit = false;
+        e.cpu.opcodes[1] = m_pMemory->DebugRetrieve(second_address);
+        e.cpu.size = kOPCodeCBNames[e.cpu.opcodes[1]].size;
+    }
+    else
+        e.cpu.size = kOPCodeNames[e.cpu.opcodes[0]].size;
 
-        if (m_iAccurateOPCodeState == 0 && m_bHalt)
-        {
-            m_iCurrentClockCycles += AdjustedCycles(4);
+    if (e.cpu.size > sizeof(e.cpu.opcodes))
+        e.cpu.size = sizeof(e.cpu.opcodes);
 
-            if (m_iUnhaltCycles > 0)
-            {
-                m_iUnhaltCycles -= m_iCurrentClockCycles;
-
-                if (m_iUnhaltCycles <= 0)
-                {
-                    m_iUnhaltCycles = 0;
-                    m_bHalt = false;
-                }
-            }
-
-            if (m_bHalt && (InterruptPending() != None_Interrupt) && (m_iUnhaltCycles == 0))
-            {
-                m_iUnhaltCycles = AdjustedCycles(12);
-            }
-        }
-
-        bool interrupt_served = false;
-
-        if (!m_bHalt)
-        {
-            Interrupts interrupt = InterruptPending();
-
-            if (m_bIME && (interrupt != None_Interrupt) && (m_iAccurateOPCodeState == 0))
-            {
-                ServeInterrupt(interrupt);
-                interrupt_served = true;
-            }
-            else
-            {
-                u8 opcode = m_pMemory->Read(PC.GetValue());
-                PC.Increment();
-
-                if (m_bSkipPCBug)
-                {
-                    m_bSkipPCBug = false;
-                    PC.Decrement();
-                }
-
-                const u8* accurateOPcodes;
-                const u8* machineCycles;
-                OPCptr* opcodeTable;
-                bool isCB = (opcode == 0xCB);
-
-                if (isCB)
-                {
-                    accurateOPcodes = kOPCodeCBAccurate;
-                    machineCycles = kOPCodeCBMachineCycles;
-                    opcodeTable = m_OPCodesCB;
-
-                    opcode = m_pMemory->Read(PC.GetValue());
-                    PC.Increment();
-
-                    if (m_bSkipPCBug)
-                    {
-                        m_bSkipPCBug = false;
-                        PC.Decrement();
-                    }
-                }
-                else
-                {
-                    accurateOPcodes = kOPCodeAccurate;
-                    machineCycles = kOPCodeMachineCycles;
-                    opcodeTable = m_OPCodes;
-                }
-
-                if ((accurateOPcodes[opcode] != 0) && (m_iAccurateOPCodeState == 0))
-                {
-                    int left_cycles = (accurateOPcodes[opcode] < 3 ? 2 : 3);
-                    m_iCurrentClockCycles += (machineCycles[opcode] - left_cycles) * AdjustedCycles(4);
-                    m_iAccurateOPCodeState = 1;
-                    PC.Decrement();
-                    if (isCB)
-                        PC.Decrement();
-                }
-                else
-                {
-                    (this->*opcodeTable[opcode])();
-
-                    if (m_bBranchTaken)
-                    {
-                        m_bBranchTaken = false;
-                        m_iCurrentClockCycles += kOPCodeBranchMachineCycles[opcode] * AdjustedCycles(4);
-                    }
-                    else
-                    {
-                        switch (m_iAccurateOPCodeState)
-                        {
-                        case 0:
-                            m_iCurrentClockCycles += machineCycles[opcode] * AdjustedCycles(4);
-                            break;
-                        case 1:
-                            if (accurateOPcodes[opcode] == 3)
-                            {
-                                m_iCurrentClockCycles += 1 * AdjustedCycles(4);
-                                m_iAccurateOPCodeState = 2;
-                                PC.Decrement();
-                                if (isCB)
-                                    PC.Decrement();
-                            }
-                            else
-                            {
-                                m_iCurrentClockCycles += 2 * AdjustedCycles(4);
-                                m_iAccurateOPCodeState = 0;
-                            }
-                            break;
-                        case 2:
-                            m_iCurrentClockCycles += 2 * AdjustedCycles(4);
-                            m_iAccurateOPCodeState = 0;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            #ifndef GEARBOY_DISABLE_DISASSEMBLER
-            m_bBreakpointHit = Disassemble(PC.GetValue());
-            #endif
-        }
-
-        if (!interrupt_served && (m_iInterruptDelayCycles > 0))
-        {
-            m_iInterruptDelayCycles -= m_iCurrentClockCycles;
-        }
-
-        if (!interrupt_served && (m_iAccurateOPCodeState == 0) && (m_iIMECycles > 0))
-        {
-            m_iIMECycles -= m_iCurrentClockCycles;
-
-            if (m_iIMECycles <= 0)
-            {
-                m_iIMECycles = 0;
-                m_bIME = true;
-            }
-        }
-
-        executed += m_iCurrentClockCycles;
+    for (u8 i = 1; i < e.cpu.size; i++)
+    {
+        u16 address = halt_bug ? (u16)(pc + i - 1) : (u16)(pc + i);
+        e.cpu.opcodes[i] = m_pMemory->DebugRetrieve(address);
     }
 
-    return executed;
+    GB_Disassembler_Record* record = m_pMemory->GetDisassemblerRecord(pc, e.cpu.bank);
+    if (IsValidPointer(record))
+        strncpy_fit(e.cpu.name, record->name, sizeof(e.cpu.name));
+
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(pc);
+    UNUSED(halt_bug);
+#endif
+}
+
+void Processor::LogIRQEvent(u16 pc, u16 vector, u8 irq_type)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    GB_Trace_Entry e = {};
+    e.type = TRACE_CPU_IRQ;
+    e.irq.pc = pc;
+    e.irq.vector = vector;
+    e.irq.type = irq_type;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(pc);
+    UNUSED(vector);
+    UNUSED(irq_type);
+#endif
+}
+
+void Processor::LogTimerEvent(u8 event)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    GB_Trace_Entry e = {};
+    e.type = TRACE_TIMER;
+    e.timer.divider = GetDIVCounter();
+    e.timer.counter = m_pMemory->Retrieve(0xFF05);
+    e.timer.reload = m_pMemory->Retrieve(0xFF06);
+    e.timer.control = m_pMemory->Retrieve(0xFF07);
+    e.timer.value = e.timer.counter;
+    e.timer.event = event;
+    e.timer.enabled = (e.timer.control & 0x04) ? 1 : 0;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(event);
+#endif
+}
+
+void Processor::LogSerialEvent(u8 event, u64 link_cycle)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    GB_Trace_Entry e = {};
+    e.type = TRACE_SERIAL;
+    e.serial.link_cycle = link_cycle;
+    e.serial.request_cycle = m_iSerialRequestCycle;
+    e.serial.first_shift_cycle = m_iSerialNextShiftCycle;
+    e.serial.bit_cycles = m_iSerialBitCycles;
+    e.serial.transfer_id = m_iSerialTransferId;
+    e.serial.data = m_pMemory->Retrieve(0xFF01);
+    e.serial.control = m_pMemory->Retrieve(0xFF02);
+    e.serial.value = e.serial.data;
+    e.serial.event = event;
+    e.serial.internal_clock = m_bSerialInternalClock ? 1 : 0;
+    e.serial.fast_clock = (m_iSerialBitCycles > 0 && m_iSerialBitCycles <= 16) ? 1 : 0;
+    e.serial.cgb = m_bCGB ? 1 : 0;
+    e.serial.double_speed = m_bCGBSpeed ? 1 : 0;
+    e.serial.outgoing_byte = m_iSerialOutgoingByte;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(event);
+    UNUSED(link_cycle);
+#endif
 }
 
 void Processor::ServeInterrupt(Interrupts interrupt)
 {
     u8 if_reg = m_pMemory->Retrieve(0xFF0F);
     m_bIME = false;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u16 old_pc = PC.GetValue();
+#endif
     StackPush(&PC);
     m_iCurrentClockCycles += AdjustedCycles(20);
     
@@ -290,102 +311,411 @@ void Processor::ServeInterrupt(Interrupts interrupt)
         case None_Interrupt:
             break;
     }
-}
 
-void Processor::UpdateTimers(u8 ticks)
-{
-    m_iDIVCycles += ticks;
-
-    unsigned int div_cycles = AdjustedCycles(256);
-
-    while (m_iDIVCycles >= div_cycles)
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    if (interrupt != None_Interrupt)
     {
-        m_iDIVCycles -= div_cycles;
-        u8 div = m_pMemory->Retrieve(0xFF04);
-        div++;
-        m_pMemory->Load(0xFF04, div);
-    }
-
-    u8 tac = m_pMemory->Retrieve(0xFF07);
-
-    // if tima is running
-    if (tac & 0x04)
-    {
-        m_iTIMACycles += ticks;
-
-        unsigned int freq = 0;
-
-        switch (tac & 0x03)
+        int irq_type = 0;
+        switch (interrupt)
         {
-            case 0:
-                freq = AdjustedCycles(1024);
-                break;
-            case 1:
-                freq = AdjustedCycles(16);
-                break;
-            case 2:
-                freq = AdjustedCycles(64);
-                break;
-            case 3:
-                freq = AdjustedCycles(256);
-                break;
+            case VBlank_Interrupt:  irq_type = 1; break;
+            case LCDSTAT_Interrupt: irq_type = 2; break;
+            case Timer_Interrupt:   irq_type = 3; break;
+            case Serial_Interrupt:  irq_type = 4; break;
+            case Joypad_Interrupt:  irq_type = 5; break;
+            case None_Interrupt:    break;
         }
+        m_debug_next_irq = irq_type;
 
-        while (m_iTIMACycles >= freq)
+        // If the same interrupt vector is already on the stack, the previous
+        // interrupt cycle never unwound (game uses JP/SP-reset instead of RETI).
+        // Clear stale entries to prevent unbounded growth.
+        u16 irq_dest = PC.GetValue();
+        if (!m_disassembler_call_stack.empty())
         {
-            m_iTIMACycles -= freq;
-            u8 tima = m_pMemory->Retrieve(0xFF05);
-
-            if (tima == 0xFF)
+            std::stack<GB_CallStackEntry> temp;
+            bool found_same = false;
+            while (!m_disassembler_call_stack.empty())
             {
-                tima = m_pMemory->Retrieve(0xFF06);
-                RequestInterrupt(Timer_Interrupt);
+                if (m_disassembler_call_stack.top().dest == irq_dest)
+                {
+                    found_same = true;
+                    break;
+                }
+                temp.push(m_disassembler_call_stack.top());
+                m_disassembler_call_stack.pop();
             }
-            else
-                tima++;
-
-            m_pMemory->Load(0xFF05, tima);
+            if (found_same)
+            {
+                while (!m_disassembler_call_stack.empty())
+                    m_disassembler_call_stack.pop();
+            }
+            while (!temp.empty())
+            {
+                m_disassembler_call_stack.push(temp.top());
+                temp.pop();
+            }
         }
+
+        PushCallStack(old_pc, PC.GetValue(), old_pc, 0);
+
+        TraceIRQEvent(old_pc, PC.GetValue(), irq_type);
+    }
+#endif
+}
+
+void Processor::ResetSerialRuntime()
+{
+    m_iSerialBit = -1;
+    m_iSerialCycles = 0;
+    m_bSerialTransferActive = false;
+    m_bSerialWaitingExternal = false;
+    m_bSerialInternalClock = false;
+    m_bSerialControlWritePending = false;
+    m_bSerialDataWritePending = false;
+    m_bSerialRestorePending = false;
+    m_bSerialBytesValid = false;
+    m_iSerialPendingControl = 0;
+    m_iSerialPendingData = 0;
+    m_iSerialIncomingByte = 0xFF;
+    m_iSerialOutgoingByte = 0xFF;
+    m_iSerialBitCycles = 0;
+    m_iSerialTransferId = 0;
+    m_iSerialRequestCycle = 0;
+    m_iSerialNextShiftCycle = 0;
+    m_iLinkCableNextSyncCycle = 0;
+    m_iLinkCableSyncCycles = LINK_CABLE_IDLE_SYNC_CYCLES;
+}
+
+u8 Processor::NormalizeSerialControl(u8 value) const
+{
+    if (m_bCGB)
+        return (value & 0x83) | 0x7C;
+
+    return (value & 0x81) | 0x7E;
+}
+
+void Processor::NotifySerialDataWrite(u8 value)
+{
+    m_iSerialPendingData = value;
+    m_bSerialDataWritePending = true;
+}
+
+void Processor::NotifySerialControlWrite(u8 value)
+{
+    m_iSerialPendingControl = value;
+    m_bSerialControlWritePending = true;
+}
+
+void Processor::SetLinkCableCallbacks(GB_LinkCableStateCallback state_callback,
+    GB_LinkCableStartCallback start_callback,
+    GB_LinkCablePollCallback poll_callback,
+    GB_LinkCableSyncCallback sync_callback, void* user_data)
+{
+    m_link_cable_state_callback = state_callback;
+    m_link_cable_start_callback = start_callback;
+    m_link_cable_poll_callback = poll_callback;
+    m_link_cable_sync_callback = sync_callback;
+    m_link_cable_user_data = user_data;
+}
+
+void Processor::SetLinkCableConnected(bool connected, u64 current_cycle)
+{
+    if (connected == m_bLinkCableConnected)
+    {
+        if (connected)
+            PublishSerialState(current_cycle);
+        return;
+    }
+
+    m_bLinkCableConnected = connected;
+    m_iLinkCableNextSyncCycle = current_cycle;
+    m_iLinkCableSyncCycles = LINK_CABLE_IDLE_SYNC_CYCLES;
+
+    if (connected)
+        PublishSerialState(current_cycle);
+}
+
+bool Processor::IsLinkCableConnected() const
+{
+    return m_bLinkCableConnected;
+}
+
+void Processor::GetSerialState(SerialState& state) const
+{
+    state.bit_index = m_iSerialBit;
+    state.cycles = m_iSerialCycles;
+    state.transfer_active = m_bSerialTransferActive;
+    state.waiting_external = m_bSerialWaitingExternal;
+    state.internal_clock = m_bSerialInternalClock;
+    state.restore_pending = m_bSerialRestorePending;
+    state.bytes_valid = m_bSerialBytesValid;
+    state.incoming_byte = m_iSerialIncomingByte;
+    state.outgoing_byte = m_iSerialOutgoingByte;
+    state.bit_cycles = m_iSerialBitCycles;
+    state.transfer_id = m_iSerialTransferId;
+    state.request_cycle = m_iSerialRequestCycle;
+    state.next_shift_cycle = m_iSerialNextShiftCycle;
+}
+
+void Processor::PublishSerialState(u64 cycle)
+{
+    if (m_bLinkCableConnected && m_link_cable_state_callback)
+    {
+        m_link_cable_state_callback(cycle, m_pMemory->Retrieve(0xFF01), m_pMemory->Retrieve(0xFF02), m_link_cable_user_data);
     }
 }
 
-void Processor::UpdateSerial(u8 ticks)
+void Processor::ProcessSerialControlWrite(u64 current_cycle)
+{
+    u8 sc = m_iSerialPendingControl;
+
+    m_bSerialControlWritePending = false;
+    m_bSerialRestorePending = false;
+    m_bSerialTransferActive = false;
+    m_bSerialWaitingExternal = false;
+    m_bSerialInternalClock = false;
+    m_iSerialBit = -1;
+    m_iSerialCycles = 0;
+    m_iSerialBitCycles = 0;
+    m_iSerialNextShiftCycle = 0;
+
+    PublishSerialState(current_cycle);
+
+    if ((sc & 0x80) == 0)
+        return;
+
+    m_bSerialBytesValid = false;
+    m_iSerialBit = 0;
+
+    if ((sc & 0x01) == 0)
+    {
+        m_bSerialWaitingExternal = true;
+        return;
+    }
+
+    StartInternalSerialTransfer(current_cycle);
+}
+
+void Processor::StartInternalSerialTransfer(u64 current_cycle)
 {
     u8 sc = m_pMemory->Retrieve(0xFF02);
+    bool fast_cgb = m_bCGB && ((sc & 0x02) != 0);
 
-    if (IsSetBit(sc, 7) && IsSetBit(sc, 0))
+    m_bSerialTransferActive = true;
+    m_bSerialWaitingExternal = false;
+    m_bSerialInternalClock = true;
+    m_iSerialBit = 0;
+    m_iSerialCycles = 0;
+    m_iSerialIncomingByte = 0xFF;
+    m_iSerialOutgoingByte = m_pMemory->Retrieve(0xFF01);
+    m_iSerialBitCycles = (u32)(fast_cgb ? AdjustedCycles(16) : AdjustedCycles(512));
+    m_iSerialRequestCycle = current_cycle;
+    m_iSerialNextShiftCycle = current_cycle + GetFirstSerialShiftCycles(fast_cgb);
+    m_iSerialTransferId++;
+
+    if (m_bLinkCableConnected && m_link_cable_start_callback)
     {
-        m_iSerialCycles += ticks;
-
-        if (m_iSerialBit < 0)
-        {
-            m_iSerialBit = 0;
-            m_iSerialCycles = 0;
-            return;
-        }
-
-        int serial_cycles = AdjustedCycles(512);
-
-        if (m_iSerialCycles >= serial_cycles)
-        {
-            if (m_iSerialBit > 7)
-            {
-                m_pMemory->Load(0xFF02, sc & 0x7F);
-                RequestInterrupt(Serial_Interrupt);
-                m_iSerialBit = -1;
-
-                return;
-            }
-
-            u8 sb = m_pMemory->Retrieve(0xFF01);
-            sb <<= 1;
-            sb |= 0x01;
-            m_pMemory->Load(0xFF01, sb);
-
-            m_iSerialCycles -= serial_cycles;
-            m_iSerialBit++;
-        }
+        m_link_cable_start_callback(m_iSerialRequestCycle,
+            m_iSerialNextShiftCycle, m_iSerialBitCycles,
+            m_iSerialOutgoingByte, m_iSerialTransferId,
+            &m_iSerialIncomingByte, m_link_cable_user_data);
     }
+
+    TraceSerialEvent(TRACE_SERIAL_TRANSFER_START, current_cycle);
+}
+
+u32 Processor::GetFirstSerialShiftCycles(bool fast_cgb) const
+{
+    u32 divider = ((u32)m_pMemory->Retrieve(0xFF04) << 8) | (m_iDIVCycles << m_iSpeedMultiplier);
+    divider += m_iSerialDividerOffset;
+    u32 falling_edge_cycles = fast_cgb ? 8 : 256;
+    u32 phase = divider & (falling_edge_cycles - 1);
+    u32 first_shift_cycles = (falling_edge_cycles - phase) + falling_edge_cycles;
+
+    return first_shift_cycles >> m_iSpeedMultiplier;
+}
+
+void Processor::PollExternalSerialTransfer(u64 current_cycle)
+{
+    if (!m_bLinkCableConnected || !m_link_cable_poll_callback || !m_bSerialWaitingExternal || m_bSerialTransferActive)
+    {
+        return;
+    }
+
+    GB_LinkCableTransfer transfer = {};
+
+    if (!m_link_cable_poll_callback(current_cycle, &transfer, m_link_cable_user_data))
+    {
+        return;
+    }
+
+    u8 sc = m_pMemory->Retrieve(0xFF02);
+    if ((sc & 0x81) != 0x80 || transfer.bit_cycles == 0)
+        return;
+
+    m_iSerialIncomingByte = transfer.incoming_byte;
+    m_iSerialOutgoingByte = transfer.local_byte;
+    m_iSerialBitCycles = transfer.bit_cycles;
+    m_iSerialTransferId = transfer.transfer_id;
+    m_iSerialRequestCycle = transfer.request_cycle;
+    m_iSerialNextShiftCycle = transfer.first_shift_cycle;
+    m_iSerialBit = 0;
+    m_iSerialCycles = 0;
+    m_bSerialTransferActive = true;
+    m_bSerialWaitingExternal = false;
+    m_bSerialInternalClock = false;
+    m_bSerialBytesValid = false;
+    m_pMemory->Load(0xFF01, transfer.local_byte);
+    TraceSerialEvent(TRACE_SERIAL_TRANSFER_START, current_cycle);
+}
+
+void Processor::RestoreSerialTransfer(u64 current_cycle)
+{
+    m_bSerialRestorePending = false;
+
+    u8 sc = m_pMemory->Retrieve(0xFF02);
+
+    if ((sc & 0x80) == 0)
+    {
+        m_iSerialBit = -1;
+        m_iSerialCycles = 0;
+        return;
+    }
+
+    if ((sc & 0x01) == 0)
+    {
+        m_bSerialWaitingExternal = true;
+        m_bSerialTransferActive = false;
+        m_bSerialInternalClock = false;
+        m_iSerialBit = 0;
+        m_iSerialCycles = 0;
+        return;
+    }
+
+    bool fast_cgb = m_bCGB && ((sc & 0x02) != 0);
+    m_iSerialBitCycles = (u32)(fast_cgb ? AdjustedCycles(16) : AdjustedCycles(512));
+
+    if (m_iSerialBit < 0)
+        m_iSerialBit = 0;
+    else if (m_iSerialBit > 7)
+        m_iSerialBit = 7;
+
+    if (m_iSerialCycles < 0)
+        m_iSerialCycles = 0;
+    else if ((u32)m_iSerialCycles >= m_iSerialBitCycles)
+        m_iSerialCycles = (int)m_iSerialBitCycles - 1;
+
+    m_iSerialIncomingByte = 0xFF;
+    m_iSerialOutgoingByte = m_pMemory->Retrieve(0xFF01);
+    m_iSerialRequestCycle = current_cycle;
+    m_iSerialNextShiftCycle = current_cycle + (m_iSerialBitCycles - (u32)m_iSerialCycles);
+    m_bSerialTransferActive = true;
+    m_bSerialWaitingExternal = false;
+    m_bSerialInternalClock = true;
+    m_bSerialBytesValid = false;
+}
+
+void Processor::ShiftSerialBit(u64 edge_cycle)
+{
+    if (!m_bSerialTransferActive || m_iSerialBit < 0 || m_iSerialBit > 7)
+        return;
+
+    u8 incoming_bit = (m_iSerialIncomingByte >> (7 - m_iSerialBit)) & 0x01;
+    u8 sb = m_pMemory->Retrieve(0xFF01);
+    m_pMemory->Load(0xFF01, (u8)((sb << 1) | incoming_bit));
+    m_iSerialBit++;
+
+    if (m_iSerialBit == 8)
+    {
+        u8 sc = m_pMemory->Retrieve(0xFF02);
+        m_pMemory->Load(0xFF02, sc & 0x7F);
+        m_bSerialBytesValid = true;
+        TraceSerialEvent(TRACE_SERIAL_TRANSFER_END, edge_cycle);
+        RequestInterrupt(Serial_Interrupt);
+        TraceSerialEvent(TRACE_SERIAL_IRQ_REQUEST, edge_cycle);
+        PublishSerialState(edge_cycle);
+
+        m_bSerialTransferActive = false;
+        m_bSerialWaitingExternal = false;
+        m_bSerialInternalClock = false;
+        m_iSerialBit = -1;
+        m_iSerialCycles = 0;
+        m_iSerialBitCycles = 0;
+        m_iSerialNextShiftCycle = 0;
+    }
+}
+
+void Processor::UpdateSerialActive(u8 ticks, u64 current_cycle)
+{
+    UNUSED(ticks);
+
+    if (m_bSerialDataWritePending)
+    {
+        m_bSerialDataWritePending = false;
+        PublishSerialState(current_cycle);
+    }
+
+    if (m_bSerialControlWritePending)
+        ProcessSerialControlWrite(current_cycle);
+    else if (m_bSerialRestorePending)
+        RestoreSerialTransfer(current_cycle);
+
+    PollExternalSerialTransfer(current_cycle);
+
+    while (m_bSerialTransferActive && current_cycle >= m_iSerialNextShiftCycle)
+    {
+        u64 edge_cycle = m_iSerialNextShiftCycle;
+        ShiftSerialBit(edge_cycle);
+
+        if (m_bSerialTransferActive)
+            m_iSerialNextShiftCycle += m_iSerialBitCycles;
+    }
+
+    if (m_bSerialTransferActive && m_iSerialBitCycles != 0 && m_iSerialNextShiftCycle > current_cycle)
+    {
+        u64 remaining = m_iSerialNextShiftCycle - current_cycle;
+        if (remaining < m_iSerialBitCycles)
+            m_iSerialCycles = (int)(m_iSerialBitCycles - remaining);
+        else
+            m_iSerialCycles = 0;
+    }
+}
+
+u32 Processor::GetLinkCablePromiseCycles(u64 current_cycle) const
+{
+    u64 promise = LINK_CABLE_MAX_PROMISE_CYCLES;
+
+    if (m_bSerialTransferActive)
+    {
+        if (m_iSerialNextShiftCycle > current_cycle)
+            promise = MIN(promise, m_iSerialNextShiftCycle - current_cycle);
+        else
+            promise = 0;
+    }
+    else if (m_bSerialWaitingExternal)
+    {
+        promise = MIN(promise, (u64)LINK_CABLE_FAST_SYNC_CYCLES);
+    }
+
+    return (u32)promise;
+}
+
+u32 Processor::GetLinkCableSyncCycles(u64 current_cycle) const
+{
+    if (m_bSerialWaitingExternal)
+        return LINK_CABLE_FAST_SYNC_CYCLES;
+
+    if (m_bSerialTransferActive)
+    {
+        if (m_iSerialNextShiftCycle <= current_cycle)
+            return 1;
+
+        return (u32)MIN((u64)LINK_CABLE_IDLE_SYNC_CYCLES,
+            m_iSerialNextShiftCycle - current_cycle);
+    }
+
+    return LINK_CABLE_IDLE_SYNC_CYCLES;
 }
 
 void Processor::UpdateGameShark()
@@ -401,154 +731,668 @@ void Processor::UpdateGameShark()
     }
 }
 
-bool Processor::Disassemble(u16 address)
+void Processor::DisassembleNextOPCode()
 {
-    Memory::stDisassembleRecord** memoryMap = m_pMemory->GetDisassembledMemoryMap();
-    Memory::stDisassembleRecord** romMap = m_pMemory->GetDisassembledROMMemoryMap();
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
 
-    Memory::stDisassembleRecord** map = NULL;
+    CheckBreakpoints();
 
-    int offset = address;
-    int bank = 0;
-    bool rom = false;
+    u16 address = PC.GetValue();
+    GB_Disassembler_Record* record = m_pMemory->GetOrCreateDisassemblerRecord(address);
 
-    if ((address & 0xC000) == 0x0000)
+    assert(IsValidPointer(record));
+
+    int opcode_size = record->size;
+
+    bool changed = (opcode_size == 0);
+
+    if (!changed)
     {
-        bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank0Index();
-        offset = (0x4000 * bank) + address;
-        map = romMap;
-        rom = true;
+        int maxSize = std::min(opcode_size, 4);
+        for (int i = 0; i < maxSize; i++)
+        {
+            u8 mem_byte = m_pMemory->DebugRetrieve(address + i);
+            if (record->opcodes[i] != mem_byte)
+            {
+                changed = true;
+                break;
+            }
+        }
     }
-    else if ((address & 0xC000) == 0x4000)
+
+    if (!changed && record->size != 0)
     {
-        bank = m_pMemory->GetCurrentRule()->GetCurrentRomBank1Index();
-        offset = (0x4000 * bank) + (address & 0x3FFF);
-        map = romMap;
-        rom = true;
+        if (m_debug_next_irq > 0)
+        {
+            record->irq = m_debug_next_irq;
+            m_debug_next_irq = 0;
+        }
+        return;
+    }
+
+    PopulateDisassemblerRecord(record, address);
+#endif
+}
+
+void Processor::FormatDisassemblerDataBytes(char* text, size_t text_size, const u8* bytes, int size)
+{
+    const char* directive = (m_disassembler_syntax == GB_Disassembler_Syntax_WLADX) ? ".db" : "db";
+
+    int pos = snprintf(text, text_size, "{n}%s ", directive);
+    for (int i = 0; i < size && pos > 0 && pos < (int)text_size; i++)
+        pos += snprintf(text + pos, text_size - pos, "%s{o}$%02X", (i == 0) ? "" : ",", bytes[i]);
+}
+
+void Processor::SetDisassemblerOperandText(GB_Disassembler_Record* record, const char* text)
+{
+    if (!IsValidPointer(text) || (text[0] == 0))
+        return;
+
+    const char* match = record->name;
+    const char* last_match = NULL;
+    while ((match = strstr(match, text)) != NULL)
+    {
+        last_match = match;
+        match++;
+    }
+
+    if (IsValidPointer(last_match))
+    {
+        record->operand_offset = (int)(last_match - record->name);
+        record->operand_length = (int)strlen(text);
+    }
+}
+
+void Processor::SetDisassemblerOperand(GB_Disassembler_Record* record, u16 address, bool is_zp, const char* text)
+{
+    record->has_operand_address = true;
+    record->operand_address = address;
+    record->operand_is_zp = is_zp;
+    SetDisassemblerOperandText(record, text);
+}
+
+void Processor::PopulateDisassemblerRecord(GB_Disassembler_Record* record, u16 address)
+{
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
+
+    record->address = m_pMemory->GetPhysicalAddress(address);
+    record->bank = m_pMemory->GetBank(address);
+    record->name[0] = 0;
+    record->bytes[0] = 0;
+    record->segment[0] = 0;
+    record->size = 0;
+    record->jump = false;
+    record->jump_address = 0;
+    record->jump_bank = 0;
+    record->subroutine = false;
+    record->irq = 0;
+    record->has_operand_address = false;
+    record->operand_address = 0;
+    record->operand_is_zp = false;
+    record->operand_offset = 0;
+    record->operand_length = 0;
+
+    if (m_debug_next_irq > 0)
+    {
+        record->irq = m_debug_next_irq;
+        m_debug_next_irq = 0;
+    }
+
+    u8 opcode = m_pMemory->DebugRetrieve(address);
+    bool cb_prefix = (opcode == 0xCB);
+
+    stOPCodeInfo info;
+    if (cb_prefix)
+    {
+        u8 cb_opcode = m_pMemory->DebugRetrieve(address + 1);
+        info = kOPCodeCBNames[cb_opcode];
     }
     else
     {
-        map = memoryMap;
-        rom = false;
+        info = kOPCodeNames[opcode];
     }
 
-    if (!IsValidPointer(map[offset]))
+    record->size = info.size;
+
+    for (int i = 0; i < info.size && i < 4; i++)
+        record->opcodes[i] = m_pMemory->DebugRetrieve(address + i);
+
+    format_hex_bytes(record->opcodes,
+                     MIN(record->size, (int)sizeof(record->opcodes)),
+                     record->bytes, sizeof(record->bytes));
+
+    InvalidateOverlappingRecords(address, (u8)record->size);
+
+    int name_first = cb_prefix ? 1 : 0;
+    const char* format = info.name[m_disassembler_syntax];
+
+    switch (info.type)
     {
-        map[offset] = new Memory::stDisassembleRecord;
-
-        if (rom)
+        case GB_OPCode_Type_Implied:
+            strcpy(record->name, format);
+            break;
+        case GB_OPCode_Type_1b_Signed:
+            snprintf(record->name, sizeof(record->name), format, (s8)record->opcodes[name_first + 1]);
+            break;
+        case GB_OPCode_Type_1b:
+            snprintf(record->name, sizeof(record->name), format, record->opcodes[name_first + 1]);
+            break;
+        case GB_OPCode_Type_2b:
         {
-            map[offset]->address = offset & 0x3FFF;
-            map[offset]->bank = offset >> 14;
-        }
-        else
-        {
-            map[offset]->address = 0;
-            map[offset]->bank = 0;
-        }
-
-        map[offset]->name[0] = 0;
-        map[offset]->bytes[0] = 0;
-        map[offset]->size = 0;
-    }
-
-    if (map[offset]->size == 0)
-    {
-        map[offset]->bank = bank;
-        map[offset]->address = address;
-
-        u8 bytes[4];
-
-        for (int i = 0; i < 4; i++)
-            bytes[i] = m_pMemory->Read(address + i);
-
-        u8 opcode = bytes[0];
-        bool cb = false;
-
-        if (opcode == 0xCB)
-        {
-            cb = true;
-            opcode = bytes[1];
-        }
-
-        stOPCodeInfo info = cb ? kOPCodeCBNames[opcode] : kOPCodeNames[opcode];
-
-        map[offset]->size = info.size;
-
-        map[offset]->bytes[0] = 0;
-
-        for (int i = 0; i < 4; i++)
-        {
-            if (i < info.size)
+            u16 operand = (record->opcodes[name_first + 2] << 8) | record->opcodes[name_first + 1];
+            if (!cb_prefix && (opcode == 0xC3 || opcode == 0xCD ||
+                opcode == 0xC2 || opcode == 0xCA || opcode == 0xD2 || opcode == 0xDA ||
+                opcode == 0xC4 || opcode == 0xCC || opcode == 0xD4 || opcode == 0xDC))
             {
-                char value[8];
-                sprintf(value, "%02X", bytes[i]);
-                strcat(map[offset]->bytes, value);
+                record->jump = true;
+                record->jump_address = operand;
+                record->jump_bank = m_pMemory->GetBank(operand);
+            }
+            snprintf(record->name, sizeof(record->name), format, operand);
+            char operand_text[8];
+            snprintf(operand_text, sizeof(operand_text), "$%04X", operand);
+            SetDisassemblerOperand(record, operand, false, operand_text);
+            break;
+        }
+        case GB_OPCode_Type_Relative:
+        {
+            u16 jump_address = address + record->size + (s8)record->opcodes[name_first + 1];
+            record->has_operand_address = true;
+            record->operand_address = jump_address;
+            record->jump = true;
+            record->jump_address = jump_address;
+            record->jump_bank = m_pMemory->GetBank(jump_address);
+            if (m_disassembler_syntax == GB_Disassembler_Syntax_WLADX)
+            {
+                snprintf(record->name, sizeof(record->name), format, record->opcodes[name_first + 1]);
+                char operand_text[8];
+                snprintf(operand_text, sizeof(operand_text), "$%02X", record->opcodes[name_first + 1]);
+                SetDisassemblerOperandText(record, operand_text);
             }
             else
             {
-                strcat(map[offset]->bytes, "  ");
+                snprintf(record->name, sizeof(record->name), format, jump_address, (s8)record->opcodes[name_first + 1]);
+                char operand_text[8];
+                snprintf(operand_text, sizeof(operand_text), "$%04X", jump_address);
+                SetDisassemblerOperandText(record, operand_text);
             }
-
-            if (i < 3)
-                strcat(map[offset]->bytes, " ");
+            break;
         }
-
-        switch (info.type)
+        case GB_OPCode_Type_Data:
         {
-            case 0:
-                strcpy(map[offset]->name, info.name);
-                break;
-            case 1:
-                sprintf(map[offset]->name, info.name, bytes[1]);
-                break;
-            case 2:
-                sprintf(map[offset]->name, info.name, (bytes[2] << 8) | bytes[1]);
-                break;
-            case 3:
-                sprintf(map[offset]->name, info.name, (s8)bytes[1]);
-                break;
-            case 4:
-                sprintf(map[offset]->name, info.name, address + info.size + (s8)bytes[1], (s8)bytes[1]);
-                break;
-            case 5:
-                sprintf(map[offset]->name, info.name, bytes[1], kRegisterNames[bytes[1]]);
-                break;
-            default:
-                strcpy(map[offset]->name, "PARSE ERROR");
+            if (m_disassembler_syntax == GB_Disassembler_Syntax_Gearboy)
+                strcpy(record->name, format);
+            else
+                FormatDisassemblerDataBytes(record->name, sizeof(record->name), record->opcodes, record->size);
+            break;
+        }
+        default:
+            strcpy(record->name, "PARSE ERROR");
+    }
+
+    if (!cb_prefix)
+    {
+        // CALL nn (0xCD), CALL cc,nn (0xC4,0xCC,0xD4,0xDC)
+        if (opcode == 0xCD || opcode == 0xC4 || opcode == 0xCC || opcode == 0xD4 || opcode == 0xDC)
+        {
+            record->subroutine = true;
+        }
+        // RST xx (0xC7,0xCF,0xD7,0xDF,0xE7,0xEF,0xF7,0xFF)
+        if ((opcode & 0xC7) == 0xC7)
+        {
+            u16 rst_address = opcode & 0x38;
+            record->subroutine = true;
+            record->jump = true;
+            record->jump_address = rst_address;
+            record->jump_bank = m_pMemory->GetBank(rst_address);
+        }
+        // JP (HL) — opcode 0xE9
+        if (opcode == 0xE9)
+        {
+            record->subroutine = true;
+        }
+        // LDH instructions — operand address
+        if (opcode == 0xE0 || opcode == 0xF0)
+        {
+            char operand_text[16];
+            if (m_disassembler_syntax == GB_Disassembler_Syntax_WLADX)
+                snprintf(operand_text, sizeof(operand_text), "$%02X", record->opcodes[1]);
+            else
+                snprintf(operand_text, sizeof(operand_text), "$FF00+$%02X", record->opcodes[1]);
+            SetDisassemblerOperand(record, 0xFF00 + record->opcodes[1], false, operand_text);
         }
     }
 
-    Memory::stDisassembleRecord* runtobreakpoint = m_pMemory->GetRunToBreakpoint();
-    std::vector<Memory::stDisassembleRecord*>* breakpoints = m_pMemory->GetBreakpoints();
-
-    if (IsValidPointer(runtobreakpoint))
+    if (record->irq > 0 && record->irq < 6)
     {
-        if (runtobreakpoint == map[offset])
+        static const char* k_irq_auto_symbol_format[6] = {
+            "????_%02X_%04X", "VBLANK_%02X_%04X", "LCD_%02X_%04X",
+            "TIMER_%02X_%04X", "SERIAL_%02X_%04X", "JOYPAD_%02X_%04X"
+        };
+        snprintf(record->auto_symbol, 64, k_irq_auto_symbol_format[record->irq], record->bank, address);
+    }
+
+    if (record->jump)
+    {
+        GB_Disassembler_Record* target = m_pMemory->GetOrCreateDisassemblerRecord(record->jump_address);
+        if (IsValidPointer(target))
         {
-            m_pMemory->SetRunToBreakpoint(NULL);
-            return true;
+            if (record->subroutine)
+            {
+                snprintf(target->auto_symbol, 64, "SUB_%02X_%04X", record->jump_bank, record->jump_address);
+            }
+            else if (strncmp(target->auto_symbol, "SUB_", 4) != 0)
+            {
+                snprintf(target->auto_symbol, 64, "TAG_%02X_%04X", record->jump_bank, record->jump_address);
+            }
         }
-        else
-            return false;
+    }
+
+    // Segment detection
+    if (address < 0x0100 && m_pMemory->IsBootromEnabled())
+    {
+        strncpy_fit(record->segment, "BOOT ", sizeof(record->segment));
+    }
+    else if (address < 0x8000)
+    {
+        strncpy_fit(record->segment, "ROM  ", sizeof(record->segment));
     }
     else
     {
-        for (long unsigned int b = 0; b < breakpoints->size(); b++)
+        strncpy_fit(record->segment, "RAM  ", sizeof(record->segment));
+    }
+
+#else
+    UNUSED(record);
+    UNUSED(address);
+#endif
+}
+
+void Processor::InvalidateOverlappingRecords(u16 address, u8 opcode_size)
+{
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
+    for (int back = 1; back < 4; ++back)
+    {
+        int prev_start = (int)address - back;
+        if (prev_start < 0)
+            continue;
+
+        GB_Disassembler_Record* prev = m_pMemory->GetDisassemblerRecord((u16)prev_start);
+        if (!IsValidPointer(prev) || prev->size == 0)
+            continue;
+
+        int distance = address - prev_start;
+        if (prev->size > distance)
         {
-            if ((*breakpoints)[b] == map[offset])
+            prev->size = 0;
+            prev->name[0] = 0;
+            prev->bytes[0] = 0;
+        }
+    }
+
+    if (opcode_size > 1)
+    {
+        for (int fwd = 1; fwd < opcode_size; ++fwd)
+        {
+            u16 fwd_addr = address + fwd;
+            GB_Disassembler_Record* fwd_record = m_pMemory->GetDisassemblerRecord(fwd_addr);
+            if (!IsValidPointer(fwd_record) || fwd_record->size == 0)
+                continue;
+
+            fwd_record->size = 0;
+            fwd_record->name[0] = 0;
+            fwd_record->bytes[0] = 0;
+        }
+    }
+#else
+    UNUSED(address);
+    UNUSED(opcode_size);
+#endif
+}
+
+void Processor::DisassembleAhead(int count)
+{
+    DisassembleAhead(PC.GetValue(), count, 0);
+}
+
+void Processor::DisassembleAhead(u16 start_address, int count, int depth)
+{
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
+    if (depth > 3)
+        return;
+
+    u16 address = start_address;
+    int disassembled = 0;
+
+    while (disassembled < count && address < 0xFFFF)
+    {
+        GB_Disassembler_Record* record = m_pMemory->GetOrCreateDisassemblerRecord(address);
+
+        if (!IsValidPointer(record))
+            break;
+
+        int prev_size = record->size;
+        bool changed = (prev_size == 0);
+
+        if (!changed)
+        {
+            int maxSize = std::min(prev_size, 4);
+            for (int i = 0; i < maxSize; i++)
             {
-                return true;
+                u8 mem_byte = m_pMemory->DebugRetrieve(address + i);
+                if (record->opcodes[i] != mem_byte)
+                {
+                    changed = true;
+                    break;
+                }
             }
+        }
+
+        if (changed || record->size == 0)
+        {
+            int saved_irq = m_debug_next_irq;
+            m_debug_next_irq = 0;
+            PopulateDisassemblerRecord(record, address);
+            m_debug_next_irq = saved_irq;
+        }
+
+        if (record->jump)
+        {
+            u8 jump_bank = m_pMemory->GetBank(record->jump_address);
+            if (jump_bank != 0xFF)
+                DisassembleAhead(record->jump_address, count / 2, depth + 1);
+        }
+
+        if (record->size == 0)
+            break;
+
+        if ((u32)address + record->size > 0xFFFF)
+            break;
+
+        address += record->size;
+        disassembled++;
+
+        // Stop at unconditional control flow (end of block)
+        u8 first_byte = record->opcodes[0];
+        // RET=0xC9, JP nn=0xC3, JR=0x18, HALT=0x76, JP (HL)=0xE9, RETI=0xD9
+        if (first_byte == 0xC9 || first_byte == 0xC3 || first_byte == 0x18 || first_byte == 0x76 || first_byte == 0xE9 || first_byte == 0xD9)
+            break;
+    }
+#else
+    UNUSED(start_address);
+    UNUSED(count);
+    UNUSED(depth);
+#endif
+}
+
+void Processor::CheckBreakpoints()
+{
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
+
+    m_cpu_breakpoint_hit = (m_breakpoints_irq_enabled && m_debug_next_irq > 0);
+    m_run_to_breakpoint_hit = false;
+
+    if (m_run_to_breakpoint_requested)
+    {
+        if (PC.GetValue() == m_run_to_breakpoint.address1)
+        {
+            m_run_to_breakpoint_hit = true;
+            m_run_to_breakpoint_requested = false;
+            return;
+        }
+    }
+
+    if (!m_breakpoints_enabled)
+        return;
+
+    for (int i = 0; i < (int)m_breakpoints.size(); i++)
+    {
+        GB_Breakpoint* brk = &m_breakpoints[i];
+
+        if (!brk->enabled)
+            continue;
+        if (!brk->execute)
+            continue;
+        if (brk->type != GB_BREAKPOINT_TYPE_ROMRAM)
+            continue;
+
+        if (brk->range)
+        {
+            if (PC.GetValue() >= brk->address1 && PC.GetValue() <= brk->address2)
+            {
+                m_cpu_breakpoint_hit = true;
+                m_run_to_breakpoint_requested = false;
+                return;
+            }
+        }
+        else
+        {
+            if (PC.GetValue() == brk->address1)
+            {
+                m_cpu_breakpoint_hit = true;
+                m_run_to_breakpoint_requested = false;
+                return;
+            }
+        }
+    }
+
+#endif
+}
+
+bool Processor::BreakpointHit()
+{
+    return (m_cpu_breakpoint_hit || m_memory_breakpoint_hit);
+}
+
+bool Processor::MemoryBreakpointHit()
+{
+    return m_memory_breakpoint_hit;
+}
+
+bool Processor::RunToBreakpointHit()
+{
+    return m_run_to_breakpoint_hit;
+}
+
+bool Processor::Halted()
+{
+    return m_bHalt;
+}
+
+void Processor::EnableBreakpoints(bool enable, bool irqs)
+{
+    m_breakpoints_enabled = enable;
+    m_breakpoints_irq_enabled = irqs;
+}
+
+void Processor::ResetBreakpoints()
+{
+    m_breakpoints.clear();
+}
+
+bool Processor::AddBreakpoint(int type, char* text, bool read, bool write, bool execute)
+{
+    int input_len = (int)strlen(text);
+    GB_Breakpoint brk;
+    brk.enabled = true;
+    brk.type = type;
+    brk.address1 = 0;
+    brk.address2 = 0;
+    brk.range = false;
+    brk.read = read;
+    brk.write = write;
+    brk.execute = execute;
+
+    if (!read && !write && !execute)
+        return false;
+
+    if ((input_len == 9) && (text[4] == '-'))
+    {
+        if (parse_hex_string(text, 4, &brk.address1) &&
+            parse_hex_string(text + 5, 4, &brk.address2))
+        {
+            brk.range = true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else if ((input_len > 0) && (input_len <= 4))
+    {
+        if (!parse_hex_string(text, input_len, &brk.address1))
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    u16 max_address = 0xFFFF;
+    if (type == GB_BREAKPOINT_TYPE_VRAM)
+        max_address = 0x1FFF;
+    else if (type == GB_BREAKPOINT_TYPE_IO)
+        max_address = 0x007F;
+
+    if (brk.address1 > max_address)
+        return false;
+    if (brk.range && (brk.address2 > max_address))
+        return false;
+
+    bool found = false;
+
+    for (long unsigned int b = 0; b < m_breakpoints.size(); b++)
+    {
+        GB_Breakpoint* item = &m_breakpoints[b];
+
+        if (item->type != brk.type)
+            continue;
+
+        if (brk.range)
+        {
+            if (item->range && (item->address1 == brk.address1) && (item->address2 == brk.address2))
+            {
+                found = true;
+                break;
+            }
+        }
+        else
+        {
+            if (!item->range && (item->address1 == brk.address1))
+            {
+                found = true;
+                break;
+            }
+        }
+    }
+
+    if (!found)
+        m_breakpoints.push_back(brk);
+
+    return true;
+}
+
+bool Processor::AddBreakpoint(u16 address)
+{
+    char text[6];
+    snprintf(text, 6, "%04X", address);
+    return AddBreakpoint(GB_BREAKPOINT_TYPE_ROMRAM, text, false, false, true);
+}
+
+void Processor::AddRunToBreakpoint(u16 address)
+{
+    m_run_to_breakpoint.enabled = true;
+    m_run_to_breakpoint.type = GB_BREAKPOINT_TYPE_ROMRAM;
+    m_run_to_breakpoint.address1 = address;
+    m_run_to_breakpoint.address2 = 0;
+    m_run_to_breakpoint.range = false;
+    m_run_to_breakpoint.read = false;
+    m_run_to_breakpoint.write = false;
+    m_run_to_breakpoint.execute = true;
+    m_run_to_breakpoint_requested = true;
+}
+
+void Processor::RemoveBreakpoint(int type, u16 address)
+{
+    for (long unsigned int b = 0; b < m_breakpoints.size(); b++)
+    {
+        GB_Breakpoint* item = &m_breakpoints[b];
+
+        if (!item->range && (item->address1 == address) && (item->type == type))
+        {
+            m_breakpoints.erase(m_breakpoints.begin() + b);
+            break;
+        }
+    }
+}
+
+bool Processor::IsBreakpoint(int type, u16 address)
+{
+    for (long unsigned int b = 0; b < m_breakpoints.size(); b++)
+    {
+        GB_Breakpoint* item = &m_breakpoints[b];
+
+        if (!item->range && (item->address1 == address) && (item->type == type))
+        {
+            return true;
         }
     }
 
     return false;
 }
 
-bool Processor::BreakpointHit()
+void Processor::ClearDisassemblerCallStack()
 {
-    return m_bBreakpointHit;
+    while(!m_disassembler_call_stack.empty())
+        m_disassembler_call_stack.pop();
+}
+
+void Processor::CheckMemoryBreakpoints(int type, u16 address, bool read)
+{
+#ifndef GEARBOY_DISABLE_DISASSEMBLER
+
+    if (!m_breakpoints_enabled)
+        return;
+
+    for (int i = 0; i < (int)m_breakpoints.size(); i++)
+    {
+        GB_Breakpoint* brk = &m_breakpoints[i];
+
+        if (!brk->enabled)
+            continue;
+        if (brk->type != type)
+            continue;
+        if (read && !brk->read)
+            continue;
+        if (!read && !brk->write)
+            continue;
+
+        if (brk->range)
+        {
+            if (address >= brk->address1 && address <= brk->address2)
+            {
+                m_memory_breakpoint_hit = true;
+                m_run_to_breakpoint_requested = false;
+                return;
+            }
+        }
+        else
+        {
+            if (address == brk->address1)
+            {
+                m_memory_breakpoint_hit = true;
+                m_run_to_breakpoint_requested = false;
+                return;
+            }
+        }
+    }
+#else
+    UNUSED(type);
+    UNUSED(address);
+    UNUSED(read);
+#endif
 }
 
 void Processor::SaveState(std::ostream& stream)
@@ -626,8 +1470,21 @@ void Processor::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iInterruptDelayCycles), sizeof(m_iInterruptDelayCycles));
     stream.read(reinterpret_cast<char*> (&m_bCGBSpeed), sizeof(m_bCGBSpeed));
     stream.read(reinterpret_cast<char*> (&m_iSpeedMultiplier), sizeof(m_iSpeedMultiplier));
+    m_iMachineCycle = 4 >> m_iSpeedMultiplier;
     stream.read(reinterpret_cast<char*> (&m_iAccurateOPCodeState), sizeof(m_iAccurateOPCodeState));
     stream.read(reinterpret_cast<char*> (&m_iReadCache), sizeof(m_iReadCache));
+
+    int serial_bit = m_iSerialBit;
+    int serial_cycles = m_iSerialCycles;
+    ResetSerialRuntime();
+    m_bLinkCableConnected = false;
+
+    if ((m_pMemory->Retrieve(0xFF02) & 0x80) != 0)
+    {
+        m_iSerialBit = serial_bit;
+        m_iSerialCycles = serial_cycles;
+        m_bSerialRestorePending = true;
+    }
 }
 
 void Processor::SetGameSharkCheat(const char* szCheat)
@@ -658,550 +1515,550 @@ Processor::ProcessorState* Processor::GetState()
     return &m_ProcessorState;
 }
 
-void Processor::InitOPCodeFunctors()
+void Processor::InitOPCodeTable()
 {
-    m_OPCodes[0x00] = &Processor::OPCode0x00;
-    m_OPCodes[0x01] = &Processor::OPCode0x01;
-    m_OPCodes[0x02] = &Processor::OPCode0x02;
-    m_OPCodes[0x03] = &Processor::OPCode0x03;
-    m_OPCodes[0x04] = &Processor::OPCode0x04;
-    m_OPCodes[0x05] = &Processor::OPCode0x05;
-    m_OPCodes[0x06] = &Processor::OPCode0x06;
-    m_OPCodes[0x07] = &Processor::OPCode0x07;
-    m_OPCodes[0x08] = &Processor::OPCode0x08;
-    m_OPCodes[0x09] = &Processor::OPCode0x09;
-    m_OPCodes[0x0A] = &Processor::OPCode0x0A;
-    m_OPCodes[0x0B] = &Processor::OPCode0x0B;
-    m_OPCodes[0x0C] = &Processor::OPCode0x0C;
-    m_OPCodes[0x0D] = &Processor::OPCode0x0D;
-    m_OPCodes[0x0E] = &Processor::OPCode0x0E;
-    m_OPCodes[0x0F] = &Processor::OPCode0x0F;
+    m_OPCodes[0x00] = &Processor::OPCodeThunk<&Processor::OPCode0x00>;
+    m_OPCodes[0x01] = &Processor::OPCodeThunk<&Processor::OPCode0x01>;
+    m_OPCodes[0x02] = &Processor::OPCodeThunk<&Processor::OPCode0x02>;
+    m_OPCodes[0x03] = &Processor::OPCodeThunk<&Processor::OPCode0x03>;
+    m_OPCodes[0x04] = &Processor::OPCodeThunk<&Processor::OPCode0x04>;
+    m_OPCodes[0x05] = &Processor::OPCodeThunk<&Processor::OPCode0x05>;
+    m_OPCodes[0x06] = &Processor::OPCodeThunk<&Processor::OPCode0x06>;
+    m_OPCodes[0x07] = &Processor::OPCodeThunk<&Processor::OPCode0x07>;
+    m_OPCodes[0x08] = &Processor::OPCodeThunk<&Processor::OPCode0x08>;
+    m_OPCodes[0x09] = &Processor::OPCodeThunk<&Processor::OPCode0x09>;
+    m_OPCodes[0x0A] = &Processor::OPCodeThunk<&Processor::OPCode0x0A>;
+    m_OPCodes[0x0B] = &Processor::OPCodeThunk<&Processor::OPCode0x0B>;
+    m_OPCodes[0x0C] = &Processor::OPCodeThunk<&Processor::OPCode0x0C>;
+    m_OPCodes[0x0D] = &Processor::OPCodeThunk<&Processor::OPCode0x0D>;
+    m_OPCodes[0x0E] = &Processor::OPCodeThunk<&Processor::OPCode0x0E>;
+    m_OPCodes[0x0F] = &Processor::OPCodeThunk<&Processor::OPCode0x0F>;
 
-    m_OPCodes[0x10] = &Processor::OPCode0x10;
-    m_OPCodes[0x11] = &Processor::OPCode0x11;
-    m_OPCodes[0x12] = &Processor::OPCode0x12;
-    m_OPCodes[0x13] = &Processor::OPCode0x13;
-    m_OPCodes[0x14] = &Processor::OPCode0x14;
-    m_OPCodes[0x15] = &Processor::OPCode0x15;
-    m_OPCodes[0x16] = &Processor::OPCode0x16;
-    m_OPCodes[0x17] = &Processor::OPCode0x17;
-    m_OPCodes[0x18] = &Processor::OPCode0x18;
-    m_OPCodes[0x19] = &Processor::OPCode0x19;
-    m_OPCodes[0x1A] = &Processor::OPCode0x1A;
-    m_OPCodes[0x1B] = &Processor::OPCode0x1B;
-    m_OPCodes[0x1C] = &Processor::OPCode0x1C;
-    m_OPCodes[0x1D] = &Processor::OPCode0x1D;
-    m_OPCodes[0x1E] = &Processor::OPCode0x1E;
-    m_OPCodes[0x1F] = &Processor::OPCode0x1F;
+    m_OPCodes[0x10] = &Processor::OPCodeThunk<&Processor::OPCode0x10>;
+    m_OPCodes[0x11] = &Processor::OPCodeThunk<&Processor::OPCode0x11>;
+    m_OPCodes[0x12] = &Processor::OPCodeThunk<&Processor::OPCode0x12>;
+    m_OPCodes[0x13] = &Processor::OPCodeThunk<&Processor::OPCode0x13>;
+    m_OPCodes[0x14] = &Processor::OPCodeThunk<&Processor::OPCode0x14>;
+    m_OPCodes[0x15] = &Processor::OPCodeThunk<&Processor::OPCode0x15>;
+    m_OPCodes[0x16] = &Processor::OPCodeThunk<&Processor::OPCode0x16>;
+    m_OPCodes[0x17] = &Processor::OPCodeThunk<&Processor::OPCode0x17>;
+    m_OPCodes[0x18] = &Processor::OPCodeThunk<&Processor::OPCode0x18>;
+    m_OPCodes[0x19] = &Processor::OPCodeThunk<&Processor::OPCode0x19>;
+    m_OPCodes[0x1A] = &Processor::OPCodeThunk<&Processor::OPCode0x1A>;
+    m_OPCodes[0x1B] = &Processor::OPCodeThunk<&Processor::OPCode0x1B>;
+    m_OPCodes[0x1C] = &Processor::OPCodeThunk<&Processor::OPCode0x1C>;
+    m_OPCodes[0x1D] = &Processor::OPCodeThunk<&Processor::OPCode0x1D>;
+    m_OPCodes[0x1E] = &Processor::OPCodeThunk<&Processor::OPCode0x1E>;
+    m_OPCodes[0x1F] = &Processor::OPCodeThunk<&Processor::OPCode0x1F>;
 
-    m_OPCodes[0x20] = &Processor::OPCode0x20;
-    m_OPCodes[0x21] = &Processor::OPCode0x21;
-    m_OPCodes[0x22] = &Processor::OPCode0x22;
-    m_OPCodes[0x23] = &Processor::OPCode0x23;
-    m_OPCodes[0x24] = &Processor::OPCode0x24;
-    m_OPCodes[0x25] = &Processor::OPCode0x25;
-    m_OPCodes[0x26] = &Processor::OPCode0x26;
-    m_OPCodes[0x27] = &Processor::OPCode0x27;
-    m_OPCodes[0x28] = &Processor::OPCode0x28;
-    m_OPCodes[0x29] = &Processor::OPCode0x29;
-    m_OPCodes[0x2A] = &Processor::OPCode0x2A;
-    m_OPCodes[0x2B] = &Processor::OPCode0x2B;
-    m_OPCodes[0x2C] = &Processor::OPCode0x2C;
-    m_OPCodes[0x2D] = &Processor::OPCode0x2D;
-    m_OPCodes[0x2E] = &Processor::OPCode0x2E;
-    m_OPCodes[0x2F] = &Processor::OPCode0x2F;
+    m_OPCodes[0x20] = &Processor::OPCodeThunk<&Processor::OPCode0x20>;
+    m_OPCodes[0x21] = &Processor::OPCodeThunk<&Processor::OPCode0x21>;
+    m_OPCodes[0x22] = &Processor::OPCodeThunk<&Processor::OPCode0x22>;
+    m_OPCodes[0x23] = &Processor::OPCodeThunk<&Processor::OPCode0x23>;
+    m_OPCodes[0x24] = &Processor::OPCodeThunk<&Processor::OPCode0x24>;
+    m_OPCodes[0x25] = &Processor::OPCodeThunk<&Processor::OPCode0x25>;
+    m_OPCodes[0x26] = &Processor::OPCodeThunk<&Processor::OPCode0x26>;
+    m_OPCodes[0x27] = &Processor::OPCodeThunk<&Processor::OPCode0x27>;
+    m_OPCodes[0x28] = &Processor::OPCodeThunk<&Processor::OPCode0x28>;
+    m_OPCodes[0x29] = &Processor::OPCodeThunk<&Processor::OPCode0x29>;
+    m_OPCodes[0x2A] = &Processor::OPCodeThunk<&Processor::OPCode0x2A>;
+    m_OPCodes[0x2B] = &Processor::OPCodeThunk<&Processor::OPCode0x2B>;
+    m_OPCodes[0x2C] = &Processor::OPCodeThunk<&Processor::OPCode0x2C>;
+    m_OPCodes[0x2D] = &Processor::OPCodeThunk<&Processor::OPCode0x2D>;
+    m_OPCodes[0x2E] = &Processor::OPCodeThunk<&Processor::OPCode0x2E>;
+    m_OPCodes[0x2F] = &Processor::OPCodeThunk<&Processor::OPCode0x2F>;
 
-    m_OPCodes[0x30] = &Processor::OPCode0x30;
-    m_OPCodes[0x31] = &Processor::OPCode0x31;
-    m_OPCodes[0x32] = &Processor::OPCode0x32;
-    m_OPCodes[0x33] = &Processor::OPCode0x33;
-    m_OPCodes[0x34] = &Processor::OPCode0x34;
-    m_OPCodes[0x35] = &Processor::OPCode0x35;
-    m_OPCodes[0x36] = &Processor::OPCode0x36;
-    m_OPCodes[0x37] = &Processor::OPCode0x37;
-    m_OPCodes[0x38] = &Processor::OPCode0x38;
-    m_OPCodes[0x39] = &Processor::OPCode0x39;
-    m_OPCodes[0x3A] = &Processor::OPCode0x3A;
-    m_OPCodes[0x3B] = &Processor::OPCode0x3B;
-    m_OPCodes[0x3C] = &Processor::OPCode0x3C;
-    m_OPCodes[0x3D] = &Processor::OPCode0x3D;
-    m_OPCodes[0x3E] = &Processor::OPCode0x3E;
-    m_OPCodes[0x3F] = &Processor::OPCode0x3F;
+    m_OPCodes[0x30] = &Processor::OPCodeThunk<&Processor::OPCode0x30>;
+    m_OPCodes[0x31] = &Processor::OPCodeThunk<&Processor::OPCode0x31>;
+    m_OPCodes[0x32] = &Processor::OPCodeThunk<&Processor::OPCode0x32>;
+    m_OPCodes[0x33] = &Processor::OPCodeThunk<&Processor::OPCode0x33>;
+    m_OPCodes[0x34] = &Processor::OPCodeThunk<&Processor::OPCode0x34>;
+    m_OPCodes[0x35] = &Processor::OPCodeThunk<&Processor::OPCode0x35>;
+    m_OPCodes[0x36] = &Processor::OPCodeThunk<&Processor::OPCode0x36>;
+    m_OPCodes[0x37] = &Processor::OPCodeThunk<&Processor::OPCode0x37>;
+    m_OPCodes[0x38] = &Processor::OPCodeThunk<&Processor::OPCode0x38>;
+    m_OPCodes[0x39] = &Processor::OPCodeThunk<&Processor::OPCode0x39>;
+    m_OPCodes[0x3A] = &Processor::OPCodeThunk<&Processor::OPCode0x3A>;
+    m_OPCodes[0x3B] = &Processor::OPCodeThunk<&Processor::OPCode0x3B>;
+    m_OPCodes[0x3C] = &Processor::OPCodeThunk<&Processor::OPCode0x3C>;
+    m_OPCodes[0x3D] = &Processor::OPCodeThunk<&Processor::OPCode0x3D>;
+    m_OPCodes[0x3E] = &Processor::OPCodeThunk<&Processor::OPCode0x3E>;
+    m_OPCodes[0x3F] = &Processor::OPCodeThunk<&Processor::OPCode0x3F>;
 
-    m_OPCodes[0x40] = &Processor::OPCode0x40;
-    m_OPCodes[0x41] = &Processor::OPCode0x41;
-    m_OPCodes[0x42] = &Processor::OPCode0x42;
-    m_OPCodes[0x43] = &Processor::OPCode0x43;
-    m_OPCodes[0x44] = &Processor::OPCode0x44;
-    m_OPCodes[0x45] = &Processor::OPCode0x45;
-    m_OPCodes[0x46] = &Processor::OPCode0x46;
-    m_OPCodes[0x47] = &Processor::OPCode0x47;
-    m_OPCodes[0x48] = &Processor::OPCode0x48;
-    m_OPCodes[0x49] = &Processor::OPCode0x49;
-    m_OPCodes[0x4A] = &Processor::OPCode0x4A;
-    m_OPCodes[0x4B] = &Processor::OPCode0x4B;
-    m_OPCodes[0x4C] = &Processor::OPCode0x4C;
-    m_OPCodes[0x4D] = &Processor::OPCode0x4D;
-    m_OPCodes[0x4E] = &Processor::OPCode0x4E;
-    m_OPCodes[0x4F] = &Processor::OPCode0x4F;
+    m_OPCodes[0x40] = &Processor::OPCodeThunk<&Processor::OPCode0x40>;
+    m_OPCodes[0x41] = &Processor::OPCodeThunk<&Processor::OPCode0x41>;
+    m_OPCodes[0x42] = &Processor::OPCodeThunk<&Processor::OPCode0x42>;
+    m_OPCodes[0x43] = &Processor::OPCodeThunk<&Processor::OPCode0x43>;
+    m_OPCodes[0x44] = &Processor::OPCodeThunk<&Processor::OPCode0x44>;
+    m_OPCodes[0x45] = &Processor::OPCodeThunk<&Processor::OPCode0x45>;
+    m_OPCodes[0x46] = &Processor::OPCodeThunk<&Processor::OPCode0x46>;
+    m_OPCodes[0x47] = &Processor::OPCodeThunk<&Processor::OPCode0x47>;
+    m_OPCodes[0x48] = &Processor::OPCodeThunk<&Processor::OPCode0x48>;
+    m_OPCodes[0x49] = &Processor::OPCodeThunk<&Processor::OPCode0x49>;
+    m_OPCodes[0x4A] = &Processor::OPCodeThunk<&Processor::OPCode0x4A>;
+    m_OPCodes[0x4B] = &Processor::OPCodeThunk<&Processor::OPCode0x4B>;
+    m_OPCodes[0x4C] = &Processor::OPCodeThunk<&Processor::OPCode0x4C>;
+    m_OPCodes[0x4D] = &Processor::OPCodeThunk<&Processor::OPCode0x4D>;
+    m_OPCodes[0x4E] = &Processor::OPCodeThunk<&Processor::OPCode0x4E>;
+    m_OPCodes[0x4F] = &Processor::OPCodeThunk<&Processor::OPCode0x4F>;
 
-    m_OPCodes[0x50] = &Processor::OPCode0x50;
-    m_OPCodes[0x51] = &Processor::OPCode0x51;
-    m_OPCodes[0x52] = &Processor::OPCode0x52;
-    m_OPCodes[0x53] = &Processor::OPCode0x53;
-    m_OPCodes[0x54] = &Processor::OPCode0x54;
-    m_OPCodes[0x55] = &Processor::OPCode0x55;
-    m_OPCodes[0x56] = &Processor::OPCode0x56;
-    m_OPCodes[0x57] = &Processor::OPCode0x57;
-    m_OPCodes[0x58] = &Processor::OPCode0x58;
-    m_OPCodes[0x59] = &Processor::OPCode0x59;
-    m_OPCodes[0x5A] = &Processor::OPCode0x5A;
-    m_OPCodes[0x5B] = &Processor::OPCode0x5B;
-    m_OPCodes[0x5C] = &Processor::OPCode0x5C;
-    m_OPCodes[0x5D] = &Processor::OPCode0x5D;
-    m_OPCodes[0x5E] = &Processor::OPCode0x5E;
-    m_OPCodes[0x5F] = &Processor::OPCode0x5F;
+    m_OPCodes[0x50] = &Processor::OPCodeThunk<&Processor::OPCode0x50>;
+    m_OPCodes[0x51] = &Processor::OPCodeThunk<&Processor::OPCode0x51>;
+    m_OPCodes[0x52] = &Processor::OPCodeThunk<&Processor::OPCode0x52>;
+    m_OPCodes[0x53] = &Processor::OPCodeThunk<&Processor::OPCode0x53>;
+    m_OPCodes[0x54] = &Processor::OPCodeThunk<&Processor::OPCode0x54>;
+    m_OPCodes[0x55] = &Processor::OPCodeThunk<&Processor::OPCode0x55>;
+    m_OPCodes[0x56] = &Processor::OPCodeThunk<&Processor::OPCode0x56>;
+    m_OPCodes[0x57] = &Processor::OPCodeThunk<&Processor::OPCode0x57>;
+    m_OPCodes[0x58] = &Processor::OPCodeThunk<&Processor::OPCode0x58>;
+    m_OPCodes[0x59] = &Processor::OPCodeThunk<&Processor::OPCode0x59>;
+    m_OPCodes[0x5A] = &Processor::OPCodeThunk<&Processor::OPCode0x5A>;
+    m_OPCodes[0x5B] = &Processor::OPCodeThunk<&Processor::OPCode0x5B>;
+    m_OPCodes[0x5C] = &Processor::OPCodeThunk<&Processor::OPCode0x5C>;
+    m_OPCodes[0x5D] = &Processor::OPCodeThunk<&Processor::OPCode0x5D>;
+    m_OPCodes[0x5E] = &Processor::OPCodeThunk<&Processor::OPCode0x5E>;
+    m_OPCodes[0x5F] = &Processor::OPCodeThunk<&Processor::OPCode0x5F>;
 
-    m_OPCodes[0x60] = &Processor::OPCode0x60;
-    m_OPCodes[0x61] = &Processor::OPCode0x61;
-    m_OPCodes[0x62] = &Processor::OPCode0x62;
-    m_OPCodes[0x63] = &Processor::OPCode0x63;
-    m_OPCodes[0x64] = &Processor::OPCode0x64;
-    m_OPCodes[0x65] = &Processor::OPCode0x65;
-    m_OPCodes[0x66] = &Processor::OPCode0x66;
-    m_OPCodes[0x67] = &Processor::OPCode0x67;
-    m_OPCodes[0x68] = &Processor::OPCode0x68;
-    m_OPCodes[0x69] = &Processor::OPCode0x69;
-    m_OPCodes[0x6A] = &Processor::OPCode0x6A;
-    m_OPCodes[0x6B] = &Processor::OPCode0x6B;
-    m_OPCodes[0x6C] = &Processor::OPCode0x6C;
-    m_OPCodes[0x6D] = &Processor::OPCode0x6D;
-    m_OPCodes[0x6E] = &Processor::OPCode0x6E;
-    m_OPCodes[0x6F] = &Processor::OPCode0x6F;
+    m_OPCodes[0x60] = &Processor::OPCodeThunk<&Processor::OPCode0x60>;
+    m_OPCodes[0x61] = &Processor::OPCodeThunk<&Processor::OPCode0x61>;
+    m_OPCodes[0x62] = &Processor::OPCodeThunk<&Processor::OPCode0x62>;
+    m_OPCodes[0x63] = &Processor::OPCodeThunk<&Processor::OPCode0x63>;
+    m_OPCodes[0x64] = &Processor::OPCodeThunk<&Processor::OPCode0x64>;
+    m_OPCodes[0x65] = &Processor::OPCodeThunk<&Processor::OPCode0x65>;
+    m_OPCodes[0x66] = &Processor::OPCodeThunk<&Processor::OPCode0x66>;
+    m_OPCodes[0x67] = &Processor::OPCodeThunk<&Processor::OPCode0x67>;
+    m_OPCodes[0x68] = &Processor::OPCodeThunk<&Processor::OPCode0x68>;
+    m_OPCodes[0x69] = &Processor::OPCodeThunk<&Processor::OPCode0x69>;
+    m_OPCodes[0x6A] = &Processor::OPCodeThunk<&Processor::OPCode0x6A>;
+    m_OPCodes[0x6B] = &Processor::OPCodeThunk<&Processor::OPCode0x6B>;
+    m_OPCodes[0x6C] = &Processor::OPCodeThunk<&Processor::OPCode0x6C>;
+    m_OPCodes[0x6D] = &Processor::OPCodeThunk<&Processor::OPCode0x6D>;
+    m_OPCodes[0x6E] = &Processor::OPCodeThunk<&Processor::OPCode0x6E>;
+    m_OPCodes[0x6F] = &Processor::OPCodeThunk<&Processor::OPCode0x6F>;
 
-    m_OPCodes[0x70] = &Processor::OPCode0x70;
-    m_OPCodes[0x71] = &Processor::OPCode0x71;
-    m_OPCodes[0x72] = &Processor::OPCode0x72;
-    m_OPCodes[0x73] = &Processor::OPCode0x73;
-    m_OPCodes[0x74] = &Processor::OPCode0x74;
-    m_OPCodes[0x75] = &Processor::OPCode0x75;
-    m_OPCodes[0x76] = &Processor::OPCode0x76;
-    m_OPCodes[0x77] = &Processor::OPCode0x77;
-    m_OPCodes[0x78] = &Processor::OPCode0x78;
-    m_OPCodes[0x79] = &Processor::OPCode0x79;
-    m_OPCodes[0x7A] = &Processor::OPCode0x7A;
-    m_OPCodes[0x7B] = &Processor::OPCode0x7B;
-    m_OPCodes[0x7C] = &Processor::OPCode0x7C;
-    m_OPCodes[0x7D] = &Processor::OPCode0x7D;
-    m_OPCodes[0x7E] = &Processor::OPCode0x7E;
-    m_OPCodes[0x7F] = &Processor::OPCode0x7F;
+    m_OPCodes[0x70] = &Processor::OPCodeThunk<&Processor::OPCode0x70>;
+    m_OPCodes[0x71] = &Processor::OPCodeThunk<&Processor::OPCode0x71>;
+    m_OPCodes[0x72] = &Processor::OPCodeThunk<&Processor::OPCode0x72>;
+    m_OPCodes[0x73] = &Processor::OPCodeThunk<&Processor::OPCode0x73>;
+    m_OPCodes[0x74] = &Processor::OPCodeThunk<&Processor::OPCode0x74>;
+    m_OPCodes[0x75] = &Processor::OPCodeThunk<&Processor::OPCode0x75>;
+    m_OPCodes[0x76] = &Processor::OPCodeThunk<&Processor::OPCode0x76>;
+    m_OPCodes[0x77] = &Processor::OPCodeThunk<&Processor::OPCode0x77>;
+    m_OPCodes[0x78] = &Processor::OPCodeThunk<&Processor::OPCode0x78>;
+    m_OPCodes[0x79] = &Processor::OPCodeThunk<&Processor::OPCode0x79>;
+    m_OPCodes[0x7A] = &Processor::OPCodeThunk<&Processor::OPCode0x7A>;
+    m_OPCodes[0x7B] = &Processor::OPCodeThunk<&Processor::OPCode0x7B>;
+    m_OPCodes[0x7C] = &Processor::OPCodeThunk<&Processor::OPCode0x7C>;
+    m_OPCodes[0x7D] = &Processor::OPCodeThunk<&Processor::OPCode0x7D>;
+    m_OPCodes[0x7E] = &Processor::OPCodeThunk<&Processor::OPCode0x7E>;
+    m_OPCodes[0x7F] = &Processor::OPCodeThunk<&Processor::OPCode0x7F>;
 
-    m_OPCodes[0x80] = &Processor::OPCode0x80;
-    m_OPCodes[0x81] = &Processor::OPCode0x81;
-    m_OPCodes[0x82] = &Processor::OPCode0x82;
-    m_OPCodes[0x83] = &Processor::OPCode0x83;
-    m_OPCodes[0x84] = &Processor::OPCode0x84;
-    m_OPCodes[0x85] = &Processor::OPCode0x85;
-    m_OPCodes[0x86] = &Processor::OPCode0x86;
-    m_OPCodes[0x87] = &Processor::OPCode0x87;
-    m_OPCodes[0x88] = &Processor::OPCode0x88;
-    m_OPCodes[0x89] = &Processor::OPCode0x89;
-    m_OPCodes[0x8A] = &Processor::OPCode0x8A;
-    m_OPCodes[0x8B] = &Processor::OPCode0x8B;
-    m_OPCodes[0x8C] = &Processor::OPCode0x8C;
-    m_OPCodes[0x8D] = &Processor::OPCode0x8D;
-    m_OPCodes[0x8E] = &Processor::OPCode0x8E;
-    m_OPCodes[0x8F] = &Processor::OPCode0x8F;
+    m_OPCodes[0x80] = &Processor::OPCodeThunk<&Processor::OPCode0x80>;
+    m_OPCodes[0x81] = &Processor::OPCodeThunk<&Processor::OPCode0x81>;
+    m_OPCodes[0x82] = &Processor::OPCodeThunk<&Processor::OPCode0x82>;
+    m_OPCodes[0x83] = &Processor::OPCodeThunk<&Processor::OPCode0x83>;
+    m_OPCodes[0x84] = &Processor::OPCodeThunk<&Processor::OPCode0x84>;
+    m_OPCodes[0x85] = &Processor::OPCodeThunk<&Processor::OPCode0x85>;
+    m_OPCodes[0x86] = &Processor::OPCodeThunk<&Processor::OPCode0x86>;
+    m_OPCodes[0x87] = &Processor::OPCodeThunk<&Processor::OPCode0x87>;
+    m_OPCodes[0x88] = &Processor::OPCodeThunk<&Processor::OPCode0x88>;
+    m_OPCodes[0x89] = &Processor::OPCodeThunk<&Processor::OPCode0x89>;
+    m_OPCodes[0x8A] = &Processor::OPCodeThunk<&Processor::OPCode0x8A>;
+    m_OPCodes[0x8B] = &Processor::OPCodeThunk<&Processor::OPCode0x8B>;
+    m_OPCodes[0x8C] = &Processor::OPCodeThunk<&Processor::OPCode0x8C>;
+    m_OPCodes[0x8D] = &Processor::OPCodeThunk<&Processor::OPCode0x8D>;
+    m_OPCodes[0x8E] = &Processor::OPCodeThunk<&Processor::OPCode0x8E>;
+    m_OPCodes[0x8F] = &Processor::OPCodeThunk<&Processor::OPCode0x8F>;
 
-    m_OPCodes[0x90] = &Processor::OPCode0x90;
-    m_OPCodes[0x91] = &Processor::OPCode0x91;
-    m_OPCodes[0x92] = &Processor::OPCode0x92;
-    m_OPCodes[0x93] = &Processor::OPCode0x93;
-    m_OPCodes[0x94] = &Processor::OPCode0x94;
-    m_OPCodes[0x95] = &Processor::OPCode0x95;
-    m_OPCodes[0x96] = &Processor::OPCode0x96;
-    m_OPCodes[0x97] = &Processor::OPCode0x97;
-    m_OPCodes[0x98] = &Processor::OPCode0x98;
-    m_OPCodes[0x99] = &Processor::OPCode0x99;
-    m_OPCodes[0x9A] = &Processor::OPCode0x9A;
-    m_OPCodes[0x9B] = &Processor::OPCode0x9B;
-    m_OPCodes[0x9C] = &Processor::OPCode0x9C;
-    m_OPCodes[0x9D] = &Processor::OPCode0x9D;
-    m_OPCodes[0x9E] = &Processor::OPCode0x9E;
-    m_OPCodes[0x9F] = &Processor::OPCode0x9F;
+    m_OPCodes[0x90] = &Processor::OPCodeThunk<&Processor::OPCode0x90>;
+    m_OPCodes[0x91] = &Processor::OPCodeThunk<&Processor::OPCode0x91>;
+    m_OPCodes[0x92] = &Processor::OPCodeThunk<&Processor::OPCode0x92>;
+    m_OPCodes[0x93] = &Processor::OPCodeThunk<&Processor::OPCode0x93>;
+    m_OPCodes[0x94] = &Processor::OPCodeThunk<&Processor::OPCode0x94>;
+    m_OPCodes[0x95] = &Processor::OPCodeThunk<&Processor::OPCode0x95>;
+    m_OPCodes[0x96] = &Processor::OPCodeThunk<&Processor::OPCode0x96>;
+    m_OPCodes[0x97] = &Processor::OPCodeThunk<&Processor::OPCode0x97>;
+    m_OPCodes[0x98] = &Processor::OPCodeThunk<&Processor::OPCode0x98>;
+    m_OPCodes[0x99] = &Processor::OPCodeThunk<&Processor::OPCode0x99>;
+    m_OPCodes[0x9A] = &Processor::OPCodeThunk<&Processor::OPCode0x9A>;
+    m_OPCodes[0x9B] = &Processor::OPCodeThunk<&Processor::OPCode0x9B>;
+    m_OPCodes[0x9C] = &Processor::OPCodeThunk<&Processor::OPCode0x9C>;
+    m_OPCodes[0x9D] = &Processor::OPCodeThunk<&Processor::OPCode0x9D>;
+    m_OPCodes[0x9E] = &Processor::OPCodeThunk<&Processor::OPCode0x9E>;
+    m_OPCodes[0x9F] = &Processor::OPCodeThunk<&Processor::OPCode0x9F>;
 
-    m_OPCodes[0xA0] = &Processor::OPCode0xA0;
-    m_OPCodes[0xA1] = &Processor::OPCode0xA1;
-    m_OPCodes[0xA2] = &Processor::OPCode0xA2;
-    m_OPCodes[0xA3] = &Processor::OPCode0xA3;
-    m_OPCodes[0xA4] = &Processor::OPCode0xA4;
-    m_OPCodes[0xA5] = &Processor::OPCode0xA5;
-    m_OPCodes[0xA6] = &Processor::OPCode0xA6;
-    m_OPCodes[0xA7] = &Processor::OPCode0xA7;
-    m_OPCodes[0xA8] = &Processor::OPCode0xA8;
-    m_OPCodes[0xA9] = &Processor::OPCode0xA9;
-    m_OPCodes[0xAA] = &Processor::OPCode0xAA;
-    m_OPCodes[0xAB] = &Processor::OPCode0xAB;
-    m_OPCodes[0xAC] = &Processor::OPCode0xAC;
-    m_OPCodes[0xAD] = &Processor::OPCode0xAD;
-    m_OPCodes[0xAE] = &Processor::OPCode0xAE;
-    m_OPCodes[0xAF] = &Processor::OPCode0xAF;
+    m_OPCodes[0xA0] = &Processor::OPCodeThunk<&Processor::OPCode0xA0>;
+    m_OPCodes[0xA1] = &Processor::OPCodeThunk<&Processor::OPCode0xA1>;
+    m_OPCodes[0xA2] = &Processor::OPCodeThunk<&Processor::OPCode0xA2>;
+    m_OPCodes[0xA3] = &Processor::OPCodeThunk<&Processor::OPCode0xA3>;
+    m_OPCodes[0xA4] = &Processor::OPCodeThunk<&Processor::OPCode0xA4>;
+    m_OPCodes[0xA5] = &Processor::OPCodeThunk<&Processor::OPCode0xA5>;
+    m_OPCodes[0xA6] = &Processor::OPCodeThunk<&Processor::OPCode0xA6>;
+    m_OPCodes[0xA7] = &Processor::OPCodeThunk<&Processor::OPCode0xA7>;
+    m_OPCodes[0xA8] = &Processor::OPCodeThunk<&Processor::OPCode0xA8>;
+    m_OPCodes[0xA9] = &Processor::OPCodeThunk<&Processor::OPCode0xA9>;
+    m_OPCodes[0xAA] = &Processor::OPCodeThunk<&Processor::OPCode0xAA>;
+    m_OPCodes[0xAB] = &Processor::OPCodeThunk<&Processor::OPCode0xAB>;
+    m_OPCodes[0xAC] = &Processor::OPCodeThunk<&Processor::OPCode0xAC>;
+    m_OPCodes[0xAD] = &Processor::OPCodeThunk<&Processor::OPCode0xAD>;
+    m_OPCodes[0xAE] = &Processor::OPCodeThunk<&Processor::OPCode0xAE>;
+    m_OPCodes[0xAF] = &Processor::OPCodeThunk<&Processor::OPCode0xAF>;
 
-    m_OPCodes[0xB0] = &Processor::OPCode0xB0;
-    m_OPCodes[0xB1] = &Processor::OPCode0xB1;
-    m_OPCodes[0xB2] = &Processor::OPCode0xB2;
-    m_OPCodes[0xB3] = &Processor::OPCode0xB3;
-    m_OPCodes[0xB4] = &Processor::OPCode0xB4;
-    m_OPCodes[0xB5] = &Processor::OPCode0xB5;
-    m_OPCodes[0xB6] = &Processor::OPCode0xB6;
-    m_OPCodes[0xB7] = &Processor::OPCode0xB7;
-    m_OPCodes[0xB8] = &Processor::OPCode0xB8;
-    m_OPCodes[0xB9] = &Processor::OPCode0xB9;
-    m_OPCodes[0xBA] = &Processor::OPCode0xBA;
-    m_OPCodes[0xBB] = &Processor::OPCode0xBB;
-    m_OPCodes[0xBC] = &Processor::OPCode0xBC;
-    m_OPCodes[0xBD] = &Processor::OPCode0xBD;
-    m_OPCodes[0xBE] = &Processor::OPCode0xBE;
-    m_OPCodes[0xBF] = &Processor::OPCode0xBF;
+    m_OPCodes[0xB0] = &Processor::OPCodeThunk<&Processor::OPCode0xB0>;
+    m_OPCodes[0xB1] = &Processor::OPCodeThunk<&Processor::OPCode0xB1>;
+    m_OPCodes[0xB2] = &Processor::OPCodeThunk<&Processor::OPCode0xB2>;
+    m_OPCodes[0xB3] = &Processor::OPCodeThunk<&Processor::OPCode0xB3>;
+    m_OPCodes[0xB4] = &Processor::OPCodeThunk<&Processor::OPCode0xB4>;
+    m_OPCodes[0xB5] = &Processor::OPCodeThunk<&Processor::OPCode0xB5>;
+    m_OPCodes[0xB6] = &Processor::OPCodeThunk<&Processor::OPCode0xB6>;
+    m_OPCodes[0xB7] = &Processor::OPCodeThunk<&Processor::OPCode0xB7>;
+    m_OPCodes[0xB8] = &Processor::OPCodeThunk<&Processor::OPCode0xB8>;
+    m_OPCodes[0xB9] = &Processor::OPCodeThunk<&Processor::OPCode0xB9>;
+    m_OPCodes[0xBA] = &Processor::OPCodeThunk<&Processor::OPCode0xBA>;
+    m_OPCodes[0xBB] = &Processor::OPCodeThunk<&Processor::OPCode0xBB>;
+    m_OPCodes[0xBC] = &Processor::OPCodeThunk<&Processor::OPCode0xBC>;
+    m_OPCodes[0xBD] = &Processor::OPCodeThunk<&Processor::OPCode0xBD>;
+    m_OPCodes[0xBE] = &Processor::OPCodeThunk<&Processor::OPCode0xBE>;
+    m_OPCodes[0xBF] = &Processor::OPCodeThunk<&Processor::OPCode0xBF>;
 
-    m_OPCodes[0xC0] = &Processor::OPCode0xC0;
-    m_OPCodes[0xC1] = &Processor::OPCode0xC1;
-    m_OPCodes[0xC2] = &Processor::OPCode0xC2;
-    m_OPCodes[0xC3] = &Processor::OPCode0xC3;
-    m_OPCodes[0xC4] = &Processor::OPCode0xC4;
-    m_OPCodes[0xC5] = &Processor::OPCode0xC5;
-    m_OPCodes[0xC6] = &Processor::OPCode0xC6;
-    m_OPCodes[0xC7] = &Processor::OPCode0xC7;
-    m_OPCodes[0xC8] = &Processor::OPCode0xC8;
-    m_OPCodes[0xC9] = &Processor::OPCode0xC9;
-    m_OPCodes[0xCA] = &Processor::OPCode0xCA;
-    m_OPCodes[0xCB] = &Processor::OPCode0xCB;
-    m_OPCodes[0xCC] = &Processor::OPCode0xCC;
-    m_OPCodes[0xCD] = &Processor::OPCode0xCD;
-    m_OPCodes[0xCE] = &Processor::OPCode0xCE;
-    m_OPCodes[0xCF] = &Processor::OPCode0xCF;
+    m_OPCodes[0xC0] = &Processor::OPCodeThunk<&Processor::OPCode0xC0>;
+    m_OPCodes[0xC1] = &Processor::OPCodeThunk<&Processor::OPCode0xC1>;
+    m_OPCodes[0xC2] = &Processor::OPCodeThunk<&Processor::OPCode0xC2>;
+    m_OPCodes[0xC3] = &Processor::OPCodeThunk<&Processor::OPCode0xC3>;
+    m_OPCodes[0xC4] = &Processor::OPCodeThunk<&Processor::OPCode0xC4>;
+    m_OPCodes[0xC5] = &Processor::OPCodeThunk<&Processor::OPCode0xC5>;
+    m_OPCodes[0xC6] = &Processor::OPCodeThunk<&Processor::OPCode0xC6>;
+    m_OPCodes[0xC7] = &Processor::OPCodeThunk<&Processor::OPCode0xC7>;
+    m_OPCodes[0xC8] = &Processor::OPCodeThunk<&Processor::OPCode0xC8>;
+    m_OPCodes[0xC9] = &Processor::OPCodeThunk<&Processor::OPCode0xC9>;
+    m_OPCodes[0xCA] = &Processor::OPCodeThunk<&Processor::OPCode0xCA>;
+    m_OPCodes[0xCB] = &Processor::OPCodeThunk<&Processor::OPCode0xCB>;
+    m_OPCodes[0xCC] = &Processor::OPCodeThunk<&Processor::OPCode0xCC>;
+    m_OPCodes[0xCD] = &Processor::OPCodeThunk<&Processor::OPCode0xCD>;
+    m_OPCodes[0xCE] = &Processor::OPCodeThunk<&Processor::OPCode0xCE>;
+    m_OPCodes[0xCF] = &Processor::OPCodeThunk<&Processor::OPCode0xCF>;
 
-    m_OPCodes[0xD0] = &Processor::OPCode0xD0;
-    m_OPCodes[0xD1] = &Processor::OPCode0xD1;
-    m_OPCodes[0xD2] = &Processor::OPCode0xD2;
-    m_OPCodes[0xD3] = &Processor::OPCode0xD3;
-    m_OPCodes[0xD4] = &Processor::OPCode0xD4;
-    m_OPCodes[0xD5] = &Processor::OPCode0xD5;
-    m_OPCodes[0xD6] = &Processor::OPCode0xD6;
-    m_OPCodes[0xD7] = &Processor::OPCode0xD7;
-    m_OPCodes[0xD8] = &Processor::OPCode0xD8;
-    m_OPCodes[0xD9] = &Processor::OPCode0xD9;
-    m_OPCodes[0xDA] = &Processor::OPCode0xDA;
-    m_OPCodes[0xDB] = &Processor::OPCode0xDB;
-    m_OPCodes[0xDC] = &Processor::OPCode0xDC;
-    m_OPCodes[0xDD] = &Processor::OPCode0xDD;
-    m_OPCodes[0xDE] = &Processor::OPCode0xDE;
-    m_OPCodes[0xDF] = &Processor::OPCode0xDF;
+    m_OPCodes[0xD0] = &Processor::OPCodeThunk<&Processor::OPCode0xD0>;
+    m_OPCodes[0xD1] = &Processor::OPCodeThunk<&Processor::OPCode0xD1>;
+    m_OPCodes[0xD2] = &Processor::OPCodeThunk<&Processor::OPCode0xD2>;
+    m_OPCodes[0xD3] = &Processor::OPCodeThunk<&Processor::OPCode0xD3>;
+    m_OPCodes[0xD4] = &Processor::OPCodeThunk<&Processor::OPCode0xD4>;
+    m_OPCodes[0xD5] = &Processor::OPCodeThunk<&Processor::OPCode0xD5>;
+    m_OPCodes[0xD6] = &Processor::OPCodeThunk<&Processor::OPCode0xD6>;
+    m_OPCodes[0xD7] = &Processor::OPCodeThunk<&Processor::OPCode0xD7>;
+    m_OPCodes[0xD8] = &Processor::OPCodeThunk<&Processor::OPCode0xD8>;
+    m_OPCodes[0xD9] = &Processor::OPCodeThunk<&Processor::OPCode0xD9>;
+    m_OPCodes[0xDA] = &Processor::OPCodeThunk<&Processor::OPCode0xDA>;
+    m_OPCodes[0xDB] = &Processor::OPCodeThunk<&Processor::OPCode0xDB>;
+    m_OPCodes[0xDC] = &Processor::OPCodeThunk<&Processor::OPCode0xDC>;
+    m_OPCodes[0xDD] = &Processor::OPCodeThunk<&Processor::OPCode0xDD>;
+    m_OPCodes[0xDE] = &Processor::OPCodeThunk<&Processor::OPCode0xDE>;
+    m_OPCodes[0xDF] = &Processor::OPCodeThunk<&Processor::OPCode0xDF>;
 
-    m_OPCodes[0xE0] = &Processor::OPCode0xE0;
-    m_OPCodes[0xE1] = &Processor::OPCode0xE1;
-    m_OPCodes[0xE2] = &Processor::OPCode0xE2;
-    m_OPCodes[0xE3] = &Processor::OPCode0xE3;
-    m_OPCodes[0xE4] = &Processor::OPCode0xE4;
-    m_OPCodes[0xE5] = &Processor::OPCode0xE5;
-    m_OPCodes[0xE6] = &Processor::OPCode0xE6;
-    m_OPCodes[0xE7] = &Processor::OPCode0xE7;
-    m_OPCodes[0xE8] = &Processor::OPCode0xE8;
-    m_OPCodes[0xE9] = &Processor::OPCode0xE9;
-    m_OPCodes[0xEA] = &Processor::OPCode0xEA;
-    m_OPCodes[0xEB] = &Processor::OPCode0xEB;
-    m_OPCodes[0xEC] = &Processor::OPCode0xEC;
-    m_OPCodes[0xED] = &Processor::OPCode0xED;
-    m_OPCodes[0xEE] = &Processor::OPCode0xEE;
-    m_OPCodes[0xEF] = &Processor::OPCode0xEF;
+    m_OPCodes[0xE0] = &Processor::OPCodeThunk<&Processor::OPCode0xE0>;
+    m_OPCodes[0xE1] = &Processor::OPCodeThunk<&Processor::OPCode0xE1>;
+    m_OPCodes[0xE2] = &Processor::OPCodeThunk<&Processor::OPCode0xE2>;
+    m_OPCodes[0xE3] = &Processor::OPCodeThunk<&Processor::OPCode0xE3>;
+    m_OPCodes[0xE4] = &Processor::OPCodeThunk<&Processor::OPCode0xE4>;
+    m_OPCodes[0xE5] = &Processor::OPCodeThunk<&Processor::OPCode0xE5>;
+    m_OPCodes[0xE6] = &Processor::OPCodeThunk<&Processor::OPCode0xE6>;
+    m_OPCodes[0xE7] = &Processor::OPCodeThunk<&Processor::OPCode0xE7>;
+    m_OPCodes[0xE8] = &Processor::OPCodeThunk<&Processor::OPCode0xE8>;
+    m_OPCodes[0xE9] = &Processor::OPCodeThunk<&Processor::OPCode0xE9>;
+    m_OPCodes[0xEA] = &Processor::OPCodeThunk<&Processor::OPCode0xEA>;
+    m_OPCodes[0xEB] = &Processor::OPCodeThunk<&Processor::OPCode0xEB>;
+    m_OPCodes[0xEC] = &Processor::OPCodeThunk<&Processor::OPCode0xEC>;
+    m_OPCodes[0xED] = &Processor::OPCodeThunk<&Processor::OPCode0xED>;
+    m_OPCodes[0xEE] = &Processor::OPCodeThunk<&Processor::OPCode0xEE>;
+    m_OPCodes[0xEF] = &Processor::OPCodeThunk<&Processor::OPCode0xEF>;
 
-    m_OPCodes[0xF0] = &Processor::OPCode0xF0;
-    m_OPCodes[0xF1] = &Processor::OPCode0xF1;
-    m_OPCodes[0xF2] = &Processor::OPCode0xF2;
-    m_OPCodes[0xF3] = &Processor::OPCode0xF3;
-    m_OPCodes[0xF4] = &Processor::OPCode0xF4;
-    m_OPCodes[0xF5] = &Processor::OPCode0xF5;
-    m_OPCodes[0xF6] = &Processor::OPCode0xF6;
-    m_OPCodes[0xF7] = &Processor::OPCode0xF7;
-    m_OPCodes[0xF8] = &Processor::OPCode0xF8;
-    m_OPCodes[0xF9] = &Processor::OPCode0xF9;
-    m_OPCodes[0xFA] = &Processor::OPCode0xFA;
-    m_OPCodes[0xFB] = &Processor::OPCode0xFB;
-    m_OPCodes[0xFC] = &Processor::OPCode0xFC;
-    m_OPCodes[0xFD] = &Processor::OPCode0xFD;
-    m_OPCodes[0xFE] = &Processor::OPCode0xFE;
-    m_OPCodes[0xFF] = &Processor::OPCode0xFF;
+    m_OPCodes[0xF0] = &Processor::OPCodeThunk<&Processor::OPCode0xF0>;
+    m_OPCodes[0xF1] = &Processor::OPCodeThunk<&Processor::OPCode0xF1>;
+    m_OPCodes[0xF2] = &Processor::OPCodeThunk<&Processor::OPCode0xF2>;
+    m_OPCodes[0xF3] = &Processor::OPCodeThunk<&Processor::OPCode0xF3>;
+    m_OPCodes[0xF4] = &Processor::OPCodeThunk<&Processor::OPCode0xF4>;
+    m_OPCodes[0xF5] = &Processor::OPCodeThunk<&Processor::OPCode0xF5>;
+    m_OPCodes[0xF6] = &Processor::OPCodeThunk<&Processor::OPCode0xF6>;
+    m_OPCodes[0xF7] = &Processor::OPCodeThunk<&Processor::OPCode0xF7>;
+    m_OPCodes[0xF8] = &Processor::OPCodeThunk<&Processor::OPCode0xF8>;
+    m_OPCodes[0xF9] = &Processor::OPCodeThunk<&Processor::OPCode0xF9>;
+    m_OPCodes[0xFA] = &Processor::OPCodeThunk<&Processor::OPCode0xFA>;
+    m_OPCodes[0xFB] = &Processor::OPCodeThunk<&Processor::OPCode0xFB>;
+    m_OPCodes[0xFC] = &Processor::OPCodeThunk<&Processor::OPCode0xFC>;
+    m_OPCodes[0xFD] = &Processor::OPCodeThunk<&Processor::OPCode0xFD>;
+    m_OPCodes[0xFE] = &Processor::OPCodeThunk<&Processor::OPCode0xFE>;
+    m_OPCodes[0xFF] = &Processor::OPCodeThunk<&Processor::OPCode0xFF>;
 
 
-    m_OPCodesCB[0x00] = &Processor::OPCodeCB0x00;
-    m_OPCodesCB[0x01] = &Processor::OPCodeCB0x01;
-    m_OPCodesCB[0x02] = &Processor::OPCodeCB0x02;
-    m_OPCodesCB[0x03] = &Processor::OPCodeCB0x03;
-    m_OPCodesCB[0x04] = &Processor::OPCodeCB0x04;
-    m_OPCodesCB[0x05] = &Processor::OPCodeCB0x05;
-    m_OPCodesCB[0x06] = &Processor::OPCodeCB0x06;
-    m_OPCodesCB[0x07] = &Processor::OPCodeCB0x07;
-    m_OPCodesCB[0x08] = &Processor::OPCodeCB0x08;
-    m_OPCodesCB[0x09] = &Processor::OPCodeCB0x09;
-    m_OPCodesCB[0x0A] = &Processor::OPCodeCB0x0A;
-    m_OPCodesCB[0x0B] = &Processor::OPCodeCB0x0B;
-    m_OPCodesCB[0x0C] = &Processor::OPCodeCB0x0C;
-    m_OPCodesCB[0x0D] = &Processor::OPCodeCB0x0D;
-    m_OPCodesCB[0x0E] = &Processor::OPCodeCB0x0E;
-    m_OPCodesCB[0x0F] = &Processor::OPCodeCB0x0F;
+    m_OPCodesCB[0x00] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x00>;
+    m_OPCodesCB[0x01] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x01>;
+    m_OPCodesCB[0x02] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x02>;
+    m_OPCodesCB[0x03] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x03>;
+    m_OPCodesCB[0x04] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x04>;
+    m_OPCodesCB[0x05] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x05>;
+    m_OPCodesCB[0x06] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x06>;
+    m_OPCodesCB[0x07] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x07>;
+    m_OPCodesCB[0x08] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x08>;
+    m_OPCodesCB[0x09] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x09>;
+    m_OPCodesCB[0x0A] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x0A>;
+    m_OPCodesCB[0x0B] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x0B>;
+    m_OPCodesCB[0x0C] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x0C>;
+    m_OPCodesCB[0x0D] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x0D>;
+    m_OPCodesCB[0x0E] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x0E>;
+    m_OPCodesCB[0x0F] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x0F>;
 
-    m_OPCodesCB[0x10] = &Processor::OPCodeCB0x10;
-    m_OPCodesCB[0x11] = &Processor::OPCodeCB0x11;
-    m_OPCodesCB[0x12] = &Processor::OPCodeCB0x12;
-    m_OPCodesCB[0x13] = &Processor::OPCodeCB0x13;
-    m_OPCodesCB[0x14] = &Processor::OPCodeCB0x14;
-    m_OPCodesCB[0x15] = &Processor::OPCodeCB0x15;
-    m_OPCodesCB[0x16] = &Processor::OPCodeCB0x16;
-    m_OPCodesCB[0x17] = &Processor::OPCodeCB0x17;
-    m_OPCodesCB[0x18] = &Processor::OPCodeCB0x18;
-    m_OPCodesCB[0x19] = &Processor::OPCodeCB0x19;
-    m_OPCodesCB[0x1A] = &Processor::OPCodeCB0x1A;
-    m_OPCodesCB[0x1B] = &Processor::OPCodeCB0x1B;
-    m_OPCodesCB[0x1C] = &Processor::OPCodeCB0x1C;
-    m_OPCodesCB[0x1D] = &Processor::OPCodeCB0x1D;
-    m_OPCodesCB[0x1E] = &Processor::OPCodeCB0x1E;
-    m_OPCodesCB[0x1F] = &Processor::OPCodeCB0x1F;
+    m_OPCodesCB[0x10] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x10>;
+    m_OPCodesCB[0x11] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x11>;
+    m_OPCodesCB[0x12] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x12>;
+    m_OPCodesCB[0x13] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x13>;
+    m_OPCodesCB[0x14] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x14>;
+    m_OPCodesCB[0x15] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x15>;
+    m_OPCodesCB[0x16] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x16>;
+    m_OPCodesCB[0x17] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x17>;
+    m_OPCodesCB[0x18] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x18>;
+    m_OPCodesCB[0x19] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x19>;
+    m_OPCodesCB[0x1A] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x1A>;
+    m_OPCodesCB[0x1B] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x1B>;
+    m_OPCodesCB[0x1C] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x1C>;
+    m_OPCodesCB[0x1D] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x1D>;
+    m_OPCodesCB[0x1E] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x1E>;
+    m_OPCodesCB[0x1F] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x1F>;
 
-    m_OPCodesCB[0x20] = &Processor::OPCodeCB0x20;
-    m_OPCodesCB[0x21] = &Processor::OPCodeCB0x21;
-    m_OPCodesCB[0x22] = &Processor::OPCodeCB0x22;
-    m_OPCodesCB[0x23] = &Processor::OPCodeCB0x23;
-    m_OPCodesCB[0x24] = &Processor::OPCodeCB0x24;
-    m_OPCodesCB[0x25] = &Processor::OPCodeCB0x25;
-    m_OPCodesCB[0x26] = &Processor::OPCodeCB0x26;
-    m_OPCodesCB[0x27] = &Processor::OPCodeCB0x27;
-    m_OPCodesCB[0x28] = &Processor::OPCodeCB0x28;
-    m_OPCodesCB[0x29] = &Processor::OPCodeCB0x29;
-    m_OPCodesCB[0x2A] = &Processor::OPCodeCB0x2A;
-    m_OPCodesCB[0x2B] = &Processor::OPCodeCB0x2B;
-    m_OPCodesCB[0x2C] = &Processor::OPCodeCB0x2C;
-    m_OPCodesCB[0x2D] = &Processor::OPCodeCB0x2D;
-    m_OPCodesCB[0x2E] = &Processor::OPCodeCB0x2E;
-    m_OPCodesCB[0x2F] = &Processor::OPCodeCB0x2F;
+    m_OPCodesCB[0x20] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x20>;
+    m_OPCodesCB[0x21] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x21>;
+    m_OPCodesCB[0x22] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x22>;
+    m_OPCodesCB[0x23] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x23>;
+    m_OPCodesCB[0x24] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x24>;
+    m_OPCodesCB[0x25] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x25>;
+    m_OPCodesCB[0x26] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x26>;
+    m_OPCodesCB[0x27] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x27>;
+    m_OPCodesCB[0x28] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x28>;
+    m_OPCodesCB[0x29] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x29>;
+    m_OPCodesCB[0x2A] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x2A>;
+    m_OPCodesCB[0x2B] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x2B>;
+    m_OPCodesCB[0x2C] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x2C>;
+    m_OPCodesCB[0x2D] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x2D>;
+    m_OPCodesCB[0x2E] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x2E>;
+    m_OPCodesCB[0x2F] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x2F>;
 
-    m_OPCodesCB[0x30] = &Processor::OPCodeCB0x30;
-    m_OPCodesCB[0x31] = &Processor::OPCodeCB0x31;
-    m_OPCodesCB[0x32] = &Processor::OPCodeCB0x32;
-    m_OPCodesCB[0x33] = &Processor::OPCodeCB0x33;
-    m_OPCodesCB[0x34] = &Processor::OPCodeCB0x34;
-    m_OPCodesCB[0x35] = &Processor::OPCodeCB0x35;
-    m_OPCodesCB[0x36] = &Processor::OPCodeCB0x36;
-    m_OPCodesCB[0x37] = &Processor::OPCodeCB0x37;
-    m_OPCodesCB[0x38] = &Processor::OPCodeCB0x38;
-    m_OPCodesCB[0x39] = &Processor::OPCodeCB0x39;
-    m_OPCodesCB[0x3A] = &Processor::OPCodeCB0x3A;
-    m_OPCodesCB[0x3B] = &Processor::OPCodeCB0x3B;
-    m_OPCodesCB[0x3C] = &Processor::OPCodeCB0x3C;
-    m_OPCodesCB[0x3D] = &Processor::OPCodeCB0x3D;
-    m_OPCodesCB[0x3E] = &Processor::OPCodeCB0x3E;
-    m_OPCodesCB[0x3F] = &Processor::OPCodeCB0x3F;
+    m_OPCodesCB[0x30] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x30>;
+    m_OPCodesCB[0x31] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x31>;
+    m_OPCodesCB[0x32] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x32>;
+    m_OPCodesCB[0x33] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x33>;
+    m_OPCodesCB[0x34] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x34>;
+    m_OPCodesCB[0x35] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x35>;
+    m_OPCodesCB[0x36] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x36>;
+    m_OPCodesCB[0x37] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x37>;
+    m_OPCodesCB[0x38] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x38>;
+    m_OPCodesCB[0x39] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x39>;
+    m_OPCodesCB[0x3A] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x3A>;
+    m_OPCodesCB[0x3B] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x3B>;
+    m_OPCodesCB[0x3C] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x3C>;
+    m_OPCodesCB[0x3D] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x3D>;
+    m_OPCodesCB[0x3E] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x3E>;
+    m_OPCodesCB[0x3F] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x3F>;
 
-    m_OPCodesCB[0x40] = &Processor::OPCodeCB0x40;
-    m_OPCodesCB[0x41] = &Processor::OPCodeCB0x41;
-    m_OPCodesCB[0x42] = &Processor::OPCodeCB0x42;
-    m_OPCodesCB[0x43] = &Processor::OPCodeCB0x43;
-    m_OPCodesCB[0x44] = &Processor::OPCodeCB0x44;
-    m_OPCodesCB[0x45] = &Processor::OPCodeCB0x45;
-    m_OPCodesCB[0x46] = &Processor::OPCodeCB0x46;
-    m_OPCodesCB[0x47] = &Processor::OPCodeCB0x47;
-    m_OPCodesCB[0x48] = &Processor::OPCodeCB0x48;
-    m_OPCodesCB[0x49] = &Processor::OPCodeCB0x49;
-    m_OPCodesCB[0x4A] = &Processor::OPCodeCB0x4A;
-    m_OPCodesCB[0x4B] = &Processor::OPCodeCB0x4B;
-    m_OPCodesCB[0x4C] = &Processor::OPCodeCB0x4C;
-    m_OPCodesCB[0x4D] = &Processor::OPCodeCB0x4D;
-    m_OPCodesCB[0x4E] = &Processor::OPCodeCB0x4E;
-    m_OPCodesCB[0x4F] = &Processor::OPCodeCB0x4F;
+    m_OPCodesCB[0x40] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x40>;
+    m_OPCodesCB[0x41] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x41>;
+    m_OPCodesCB[0x42] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x42>;
+    m_OPCodesCB[0x43] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x43>;
+    m_OPCodesCB[0x44] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x44>;
+    m_OPCodesCB[0x45] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x45>;
+    m_OPCodesCB[0x46] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x46>;
+    m_OPCodesCB[0x47] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x47>;
+    m_OPCodesCB[0x48] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x48>;
+    m_OPCodesCB[0x49] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x49>;
+    m_OPCodesCB[0x4A] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x4A>;
+    m_OPCodesCB[0x4B] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x4B>;
+    m_OPCodesCB[0x4C] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x4C>;
+    m_OPCodesCB[0x4D] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x4D>;
+    m_OPCodesCB[0x4E] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x4E>;
+    m_OPCodesCB[0x4F] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x4F>;
 
-    m_OPCodesCB[0x50] = &Processor::OPCodeCB0x50;
-    m_OPCodesCB[0x51] = &Processor::OPCodeCB0x51;
-    m_OPCodesCB[0x52] = &Processor::OPCodeCB0x52;
-    m_OPCodesCB[0x53] = &Processor::OPCodeCB0x53;
-    m_OPCodesCB[0x54] = &Processor::OPCodeCB0x54;
-    m_OPCodesCB[0x55] = &Processor::OPCodeCB0x55;
-    m_OPCodesCB[0x56] = &Processor::OPCodeCB0x56;
-    m_OPCodesCB[0x57] = &Processor::OPCodeCB0x57;
-    m_OPCodesCB[0x58] = &Processor::OPCodeCB0x58;
-    m_OPCodesCB[0x59] = &Processor::OPCodeCB0x59;
-    m_OPCodesCB[0x5A] = &Processor::OPCodeCB0x5A;
-    m_OPCodesCB[0x5B] = &Processor::OPCodeCB0x5B;
-    m_OPCodesCB[0x5C] = &Processor::OPCodeCB0x5C;
-    m_OPCodesCB[0x5D] = &Processor::OPCodeCB0x5D;
-    m_OPCodesCB[0x5E] = &Processor::OPCodeCB0x5E;
-    m_OPCodesCB[0x5F] = &Processor::OPCodeCB0x5F;
+    m_OPCodesCB[0x50] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x50>;
+    m_OPCodesCB[0x51] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x51>;
+    m_OPCodesCB[0x52] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x52>;
+    m_OPCodesCB[0x53] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x53>;
+    m_OPCodesCB[0x54] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x54>;
+    m_OPCodesCB[0x55] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x55>;
+    m_OPCodesCB[0x56] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x56>;
+    m_OPCodesCB[0x57] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x57>;
+    m_OPCodesCB[0x58] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x58>;
+    m_OPCodesCB[0x59] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x59>;
+    m_OPCodesCB[0x5A] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x5A>;
+    m_OPCodesCB[0x5B] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x5B>;
+    m_OPCodesCB[0x5C] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x5C>;
+    m_OPCodesCB[0x5D] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x5D>;
+    m_OPCodesCB[0x5E] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x5E>;
+    m_OPCodesCB[0x5F] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x5F>;
 
-    m_OPCodesCB[0x60] = &Processor::OPCodeCB0x60;
-    m_OPCodesCB[0x61] = &Processor::OPCodeCB0x61;
-    m_OPCodesCB[0x62] = &Processor::OPCodeCB0x62;
-    m_OPCodesCB[0x63] = &Processor::OPCodeCB0x63;
-    m_OPCodesCB[0x64] = &Processor::OPCodeCB0x64;
-    m_OPCodesCB[0x65] = &Processor::OPCodeCB0x65;
-    m_OPCodesCB[0x66] = &Processor::OPCodeCB0x66;
-    m_OPCodesCB[0x67] = &Processor::OPCodeCB0x67;
-    m_OPCodesCB[0x68] = &Processor::OPCodeCB0x68;
-    m_OPCodesCB[0x69] = &Processor::OPCodeCB0x69;
-    m_OPCodesCB[0x6A] = &Processor::OPCodeCB0x6A;
-    m_OPCodesCB[0x6B] = &Processor::OPCodeCB0x6B;
-    m_OPCodesCB[0x6C] = &Processor::OPCodeCB0x6C;
-    m_OPCodesCB[0x6D] = &Processor::OPCodeCB0x6D;
-    m_OPCodesCB[0x6E] = &Processor::OPCodeCB0x6E;
-    m_OPCodesCB[0x6F] = &Processor::OPCodeCB0x6F;
+    m_OPCodesCB[0x60] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x60>;
+    m_OPCodesCB[0x61] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x61>;
+    m_OPCodesCB[0x62] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x62>;
+    m_OPCodesCB[0x63] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x63>;
+    m_OPCodesCB[0x64] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x64>;
+    m_OPCodesCB[0x65] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x65>;
+    m_OPCodesCB[0x66] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x66>;
+    m_OPCodesCB[0x67] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x67>;
+    m_OPCodesCB[0x68] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x68>;
+    m_OPCodesCB[0x69] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x69>;
+    m_OPCodesCB[0x6A] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x6A>;
+    m_OPCodesCB[0x6B] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x6B>;
+    m_OPCodesCB[0x6C] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x6C>;
+    m_OPCodesCB[0x6D] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x6D>;
+    m_OPCodesCB[0x6E] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x6E>;
+    m_OPCodesCB[0x6F] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x6F>;
 
-    m_OPCodesCB[0x70] = &Processor::OPCodeCB0x70;
-    m_OPCodesCB[0x71] = &Processor::OPCodeCB0x71;
-    m_OPCodesCB[0x72] = &Processor::OPCodeCB0x72;
-    m_OPCodesCB[0x73] = &Processor::OPCodeCB0x73;
-    m_OPCodesCB[0x74] = &Processor::OPCodeCB0x74;
-    m_OPCodesCB[0x75] = &Processor::OPCodeCB0x75;
-    m_OPCodesCB[0x76] = &Processor::OPCodeCB0x76;
-    m_OPCodesCB[0x77] = &Processor::OPCodeCB0x77;
-    m_OPCodesCB[0x78] = &Processor::OPCodeCB0x78;
-    m_OPCodesCB[0x79] = &Processor::OPCodeCB0x79;
-    m_OPCodesCB[0x7A] = &Processor::OPCodeCB0x7A;
-    m_OPCodesCB[0x7B] = &Processor::OPCodeCB0x7B;
-    m_OPCodesCB[0x7C] = &Processor::OPCodeCB0x7C;
-    m_OPCodesCB[0x7D] = &Processor::OPCodeCB0x7D;
-    m_OPCodesCB[0x7E] = &Processor::OPCodeCB0x7E;
-    m_OPCodesCB[0x7F] = &Processor::OPCodeCB0x7F;
+    m_OPCodesCB[0x70] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x70>;
+    m_OPCodesCB[0x71] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x71>;
+    m_OPCodesCB[0x72] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x72>;
+    m_OPCodesCB[0x73] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x73>;
+    m_OPCodesCB[0x74] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x74>;
+    m_OPCodesCB[0x75] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x75>;
+    m_OPCodesCB[0x76] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x76>;
+    m_OPCodesCB[0x77] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x77>;
+    m_OPCodesCB[0x78] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x78>;
+    m_OPCodesCB[0x79] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x79>;
+    m_OPCodesCB[0x7A] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x7A>;
+    m_OPCodesCB[0x7B] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x7B>;
+    m_OPCodesCB[0x7C] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x7C>;
+    m_OPCodesCB[0x7D] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x7D>;
+    m_OPCodesCB[0x7E] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x7E>;
+    m_OPCodesCB[0x7F] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x7F>;
 
-    m_OPCodesCB[0x80] = &Processor::OPCodeCB0x80;
-    m_OPCodesCB[0x81] = &Processor::OPCodeCB0x81;
-    m_OPCodesCB[0x82] = &Processor::OPCodeCB0x82;
-    m_OPCodesCB[0x83] = &Processor::OPCodeCB0x83;
-    m_OPCodesCB[0x84] = &Processor::OPCodeCB0x84;
-    m_OPCodesCB[0x85] = &Processor::OPCodeCB0x85;
-    m_OPCodesCB[0x86] = &Processor::OPCodeCB0x86;
-    m_OPCodesCB[0x87] = &Processor::OPCodeCB0x87;
-    m_OPCodesCB[0x88] = &Processor::OPCodeCB0x88;
-    m_OPCodesCB[0x89] = &Processor::OPCodeCB0x89;
-    m_OPCodesCB[0x8A] = &Processor::OPCodeCB0x8A;
-    m_OPCodesCB[0x8B] = &Processor::OPCodeCB0x8B;
-    m_OPCodesCB[0x8C] = &Processor::OPCodeCB0x8C;
-    m_OPCodesCB[0x8D] = &Processor::OPCodeCB0x8D;
-    m_OPCodesCB[0x8E] = &Processor::OPCodeCB0x8E;
-    m_OPCodesCB[0x8F] = &Processor::OPCodeCB0x8F;
+    m_OPCodesCB[0x80] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x80>;
+    m_OPCodesCB[0x81] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x81>;
+    m_OPCodesCB[0x82] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x82>;
+    m_OPCodesCB[0x83] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x83>;
+    m_OPCodesCB[0x84] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x84>;
+    m_OPCodesCB[0x85] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x85>;
+    m_OPCodesCB[0x86] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x86>;
+    m_OPCodesCB[0x87] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x87>;
+    m_OPCodesCB[0x88] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x88>;
+    m_OPCodesCB[0x89] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x89>;
+    m_OPCodesCB[0x8A] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x8A>;
+    m_OPCodesCB[0x8B] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x8B>;
+    m_OPCodesCB[0x8C] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x8C>;
+    m_OPCodesCB[0x8D] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x8D>;
+    m_OPCodesCB[0x8E] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x8E>;
+    m_OPCodesCB[0x8F] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x8F>;
 
-    m_OPCodesCB[0x90] = &Processor::OPCodeCB0x90;
-    m_OPCodesCB[0x91] = &Processor::OPCodeCB0x91;
-    m_OPCodesCB[0x92] = &Processor::OPCodeCB0x92;
-    m_OPCodesCB[0x93] = &Processor::OPCodeCB0x93;
-    m_OPCodesCB[0x94] = &Processor::OPCodeCB0x94;
-    m_OPCodesCB[0x95] = &Processor::OPCodeCB0x95;
-    m_OPCodesCB[0x96] = &Processor::OPCodeCB0x96;
-    m_OPCodesCB[0x97] = &Processor::OPCodeCB0x97;
-    m_OPCodesCB[0x98] = &Processor::OPCodeCB0x98;
-    m_OPCodesCB[0x99] = &Processor::OPCodeCB0x99;
-    m_OPCodesCB[0x9A] = &Processor::OPCodeCB0x9A;
-    m_OPCodesCB[0x9B] = &Processor::OPCodeCB0x9B;
-    m_OPCodesCB[0x9C] = &Processor::OPCodeCB0x9C;
-    m_OPCodesCB[0x9D] = &Processor::OPCodeCB0x9D;
-    m_OPCodesCB[0x9E] = &Processor::OPCodeCB0x9E;
-    m_OPCodesCB[0x9F] = &Processor::OPCodeCB0x9F;
+    m_OPCodesCB[0x90] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x90>;
+    m_OPCodesCB[0x91] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x91>;
+    m_OPCodesCB[0x92] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x92>;
+    m_OPCodesCB[0x93] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x93>;
+    m_OPCodesCB[0x94] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x94>;
+    m_OPCodesCB[0x95] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x95>;
+    m_OPCodesCB[0x96] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x96>;
+    m_OPCodesCB[0x97] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x97>;
+    m_OPCodesCB[0x98] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x98>;
+    m_OPCodesCB[0x99] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x99>;
+    m_OPCodesCB[0x9A] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x9A>;
+    m_OPCodesCB[0x9B] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x9B>;
+    m_OPCodesCB[0x9C] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x9C>;
+    m_OPCodesCB[0x9D] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x9D>;
+    m_OPCodesCB[0x9E] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x9E>;
+    m_OPCodesCB[0x9F] = &Processor::OPCodeThunk<&Processor::OPCodeCB0x9F>;
 
-    m_OPCodesCB[0xA0] = &Processor::OPCodeCB0xA0;
-    m_OPCodesCB[0xA1] = &Processor::OPCodeCB0xA1;
-    m_OPCodesCB[0xA2] = &Processor::OPCodeCB0xA2;
-    m_OPCodesCB[0xA3] = &Processor::OPCodeCB0xA3;
-    m_OPCodesCB[0xA4] = &Processor::OPCodeCB0xA4;
-    m_OPCodesCB[0xA5] = &Processor::OPCodeCB0xA5;
-    m_OPCodesCB[0xA6] = &Processor::OPCodeCB0xA6;
-    m_OPCodesCB[0xA7] = &Processor::OPCodeCB0xA7;
-    m_OPCodesCB[0xA8] = &Processor::OPCodeCB0xA8;
-    m_OPCodesCB[0xA9] = &Processor::OPCodeCB0xA9;
-    m_OPCodesCB[0xAA] = &Processor::OPCodeCB0xAA;
-    m_OPCodesCB[0xAB] = &Processor::OPCodeCB0xAB;
-    m_OPCodesCB[0xAC] = &Processor::OPCodeCB0xAC;
-    m_OPCodesCB[0xAD] = &Processor::OPCodeCB0xAD;
-    m_OPCodesCB[0xAE] = &Processor::OPCodeCB0xAE;
-    m_OPCodesCB[0xAF] = &Processor::OPCodeCB0xAF;
+    m_OPCodesCB[0xA0] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xA0>;
+    m_OPCodesCB[0xA1] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xA1>;
+    m_OPCodesCB[0xA2] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xA2>;
+    m_OPCodesCB[0xA3] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xA3>;
+    m_OPCodesCB[0xA4] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xA4>;
+    m_OPCodesCB[0xA5] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xA5>;
+    m_OPCodesCB[0xA6] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xA6>;
+    m_OPCodesCB[0xA7] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xA7>;
+    m_OPCodesCB[0xA8] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xA8>;
+    m_OPCodesCB[0xA9] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xA9>;
+    m_OPCodesCB[0xAA] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xAA>;
+    m_OPCodesCB[0xAB] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xAB>;
+    m_OPCodesCB[0xAC] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xAC>;
+    m_OPCodesCB[0xAD] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xAD>;
+    m_OPCodesCB[0xAE] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xAE>;
+    m_OPCodesCB[0xAF] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xAF>;
 
-    m_OPCodesCB[0xB0] = &Processor::OPCodeCB0xB0;
-    m_OPCodesCB[0xB1] = &Processor::OPCodeCB0xB1;
-    m_OPCodesCB[0xB2] = &Processor::OPCodeCB0xB2;
-    m_OPCodesCB[0xB3] = &Processor::OPCodeCB0xB3;
-    m_OPCodesCB[0xB4] = &Processor::OPCodeCB0xB4;
-    m_OPCodesCB[0xB5] = &Processor::OPCodeCB0xB5;
-    m_OPCodesCB[0xB6] = &Processor::OPCodeCB0xB6;
-    m_OPCodesCB[0xB7] = &Processor::OPCodeCB0xB7;
-    m_OPCodesCB[0xB8] = &Processor::OPCodeCB0xB8;
-    m_OPCodesCB[0xB9] = &Processor::OPCodeCB0xB9;
-    m_OPCodesCB[0xBA] = &Processor::OPCodeCB0xBA;
-    m_OPCodesCB[0xBB] = &Processor::OPCodeCB0xBB;
-    m_OPCodesCB[0xBC] = &Processor::OPCodeCB0xBC;
-    m_OPCodesCB[0xBD] = &Processor::OPCodeCB0xBD;
-    m_OPCodesCB[0xBE] = &Processor::OPCodeCB0xBE;
-    m_OPCodesCB[0xBF] = &Processor::OPCodeCB0xBF;
+    m_OPCodesCB[0xB0] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xB0>;
+    m_OPCodesCB[0xB1] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xB1>;
+    m_OPCodesCB[0xB2] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xB2>;
+    m_OPCodesCB[0xB3] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xB3>;
+    m_OPCodesCB[0xB4] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xB4>;
+    m_OPCodesCB[0xB5] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xB5>;
+    m_OPCodesCB[0xB6] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xB6>;
+    m_OPCodesCB[0xB7] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xB7>;
+    m_OPCodesCB[0xB8] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xB8>;
+    m_OPCodesCB[0xB9] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xB9>;
+    m_OPCodesCB[0xBA] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xBA>;
+    m_OPCodesCB[0xBB] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xBB>;
+    m_OPCodesCB[0xBC] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xBC>;
+    m_OPCodesCB[0xBD] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xBD>;
+    m_OPCodesCB[0xBE] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xBE>;
+    m_OPCodesCB[0xBF] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xBF>;
 
-    m_OPCodesCB[0xC0] = &Processor::OPCodeCB0xC0;
-    m_OPCodesCB[0xC1] = &Processor::OPCodeCB0xC1;
-    m_OPCodesCB[0xC2] = &Processor::OPCodeCB0xC2;
-    m_OPCodesCB[0xC3] = &Processor::OPCodeCB0xC3;
-    m_OPCodesCB[0xC4] = &Processor::OPCodeCB0xC4;
-    m_OPCodesCB[0xC5] = &Processor::OPCodeCB0xC5;
-    m_OPCodesCB[0xC6] = &Processor::OPCodeCB0xC6;
-    m_OPCodesCB[0xC7] = &Processor::OPCodeCB0xC7;
-    m_OPCodesCB[0xC8] = &Processor::OPCodeCB0xC8;
-    m_OPCodesCB[0xC9] = &Processor::OPCodeCB0xC9;
-    m_OPCodesCB[0xCA] = &Processor::OPCodeCB0xCA;
-    m_OPCodesCB[0xCB] = &Processor::OPCodeCB0xCB;
-    m_OPCodesCB[0xCC] = &Processor::OPCodeCB0xCC;
-    m_OPCodesCB[0xCD] = &Processor::OPCodeCB0xCD;
-    m_OPCodesCB[0xCE] = &Processor::OPCodeCB0xCE;
-    m_OPCodesCB[0xCF] = &Processor::OPCodeCB0xCF;
+    m_OPCodesCB[0xC0] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xC0>;
+    m_OPCodesCB[0xC1] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xC1>;
+    m_OPCodesCB[0xC2] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xC2>;
+    m_OPCodesCB[0xC3] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xC3>;
+    m_OPCodesCB[0xC4] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xC4>;
+    m_OPCodesCB[0xC5] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xC5>;
+    m_OPCodesCB[0xC6] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xC6>;
+    m_OPCodesCB[0xC7] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xC7>;
+    m_OPCodesCB[0xC8] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xC8>;
+    m_OPCodesCB[0xC9] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xC9>;
+    m_OPCodesCB[0xCA] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xCA>;
+    m_OPCodesCB[0xCB] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xCB>;
+    m_OPCodesCB[0xCC] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xCC>;
+    m_OPCodesCB[0xCD] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xCD>;
+    m_OPCodesCB[0xCE] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xCE>;
+    m_OPCodesCB[0xCF] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xCF>;
 
-    m_OPCodesCB[0xD0] = &Processor::OPCodeCB0xD0;
-    m_OPCodesCB[0xD1] = &Processor::OPCodeCB0xD1;
-    m_OPCodesCB[0xD2] = &Processor::OPCodeCB0xD2;
-    m_OPCodesCB[0xD3] = &Processor::OPCodeCB0xD3;
-    m_OPCodesCB[0xD4] = &Processor::OPCodeCB0xD4;
-    m_OPCodesCB[0xD5] = &Processor::OPCodeCB0xD5;
-    m_OPCodesCB[0xD6] = &Processor::OPCodeCB0xD6;
-    m_OPCodesCB[0xD7] = &Processor::OPCodeCB0xD7;
-    m_OPCodesCB[0xD8] = &Processor::OPCodeCB0xD8;
-    m_OPCodesCB[0xD9] = &Processor::OPCodeCB0xD9;
-    m_OPCodesCB[0xDA] = &Processor::OPCodeCB0xDA;
-    m_OPCodesCB[0xDB] = &Processor::OPCodeCB0xDB;
-    m_OPCodesCB[0xDC] = &Processor::OPCodeCB0xDC;
-    m_OPCodesCB[0xDD] = &Processor::OPCodeCB0xDD;
-    m_OPCodesCB[0xDE] = &Processor::OPCodeCB0xDE;
-    m_OPCodesCB[0xDF] = &Processor::OPCodeCB0xDF;
+    m_OPCodesCB[0xD0] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xD0>;
+    m_OPCodesCB[0xD1] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xD1>;
+    m_OPCodesCB[0xD2] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xD2>;
+    m_OPCodesCB[0xD3] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xD3>;
+    m_OPCodesCB[0xD4] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xD4>;
+    m_OPCodesCB[0xD5] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xD5>;
+    m_OPCodesCB[0xD6] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xD6>;
+    m_OPCodesCB[0xD7] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xD7>;
+    m_OPCodesCB[0xD8] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xD8>;
+    m_OPCodesCB[0xD9] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xD9>;
+    m_OPCodesCB[0xDA] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xDA>;
+    m_OPCodesCB[0xDB] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xDB>;
+    m_OPCodesCB[0xDC] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xDC>;
+    m_OPCodesCB[0xDD] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xDD>;
+    m_OPCodesCB[0xDE] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xDE>;
+    m_OPCodesCB[0xDF] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xDF>;
 
-    m_OPCodesCB[0xE0] = &Processor::OPCodeCB0xE0;
-    m_OPCodesCB[0xE1] = &Processor::OPCodeCB0xE1;
-    m_OPCodesCB[0xE2] = &Processor::OPCodeCB0xE2;
-    m_OPCodesCB[0xE3] = &Processor::OPCodeCB0xE3;
-    m_OPCodesCB[0xE4] = &Processor::OPCodeCB0xE4;
-    m_OPCodesCB[0xE5] = &Processor::OPCodeCB0xE5;
-    m_OPCodesCB[0xE6] = &Processor::OPCodeCB0xE6;
-    m_OPCodesCB[0xE7] = &Processor::OPCodeCB0xE7;
-    m_OPCodesCB[0xE8] = &Processor::OPCodeCB0xE8;
-    m_OPCodesCB[0xE9] = &Processor::OPCodeCB0xE9;
-    m_OPCodesCB[0xEA] = &Processor::OPCodeCB0xEA;
-    m_OPCodesCB[0xEB] = &Processor::OPCodeCB0xEB;
-    m_OPCodesCB[0xEC] = &Processor::OPCodeCB0xEC;
-    m_OPCodesCB[0xED] = &Processor::OPCodeCB0xED;
-    m_OPCodesCB[0xEE] = &Processor::OPCodeCB0xEE;
-    m_OPCodesCB[0xEF] = &Processor::OPCodeCB0xEF;
+    m_OPCodesCB[0xE0] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xE0>;
+    m_OPCodesCB[0xE1] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xE1>;
+    m_OPCodesCB[0xE2] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xE2>;
+    m_OPCodesCB[0xE3] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xE3>;
+    m_OPCodesCB[0xE4] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xE4>;
+    m_OPCodesCB[0xE5] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xE5>;
+    m_OPCodesCB[0xE6] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xE6>;
+    m_OPCodesCB[0xE7] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xE7>;
+    m_OPCodesCB[0xE8] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xE8>;
+    m_OPCodesCB[0xE9] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xE9>;
+    m_OPCodesCB[0xEA] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xEA>;
+    m_OPCodesCB[0xEB] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xEB>;
+    m_OPCodesCB[0xEC] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xEC>;
+    m_OPCodesCB[0xED] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xED>;
+    m_OPCodesCB[0xEE] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xEE>;
+    m_OPCodesCB[0xEF] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xEF>;
 
-    m_OPCodesCB[0xF0] = &Processor::OPCodeCB0xF0;
-    m_OPCodesCB[0xF1] = &Processor::OPCodeCB0xF1;
-    m_OPCodesCB[0xF2] = &Processor::OPCodeCB0xF2;
-    m_OPCodesCB[0xF3] = &Processor::OPCodeCB0xF3;
-    m_OPCodesCB[0xF4] = &Processor::OPCodeCB0xF4;
-    m_OPCodesCB[0xF5] = &Processor::OPCodeCB0xF5;
-    m_OPCodesCB[0xF6] = &Processor::OPCodeCB0xF6;
-    m_OPCodesCB[0xF7] = &Processor::OPCodeCB0xF7;
-    m_OPCodesCB[0xF8] = &Processor::OPCodeCB0xF8;
-    m_OPCodesCB[0xF9] = &Processor::OPCodeCB0xF9;
-    m_OPCodesCB[0xFA] = &Processor::OPCodeCB0xFA;
-    m_OPCodesCB[0xFB] = &Processor::OPCodeCB0xFB;
-    m_OPCodesCB[0xFC] = &Processor::OPCodeCB0xFC;
-    m_OPCodesCB[0xFD] = &Processor::OPCodeCB0xFD;
-    m_OPCodesCB[0xFE] = &Processor::OPCodeCB0xFE;
-    m_OPCodesCB[0xFF] = &Processor::OPCodeCB0xFF;
+    m_OPCodesCB[0xF0] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xF0>;
+    m_OPCodesCB[0xF1] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xF1>;
+    m_OPCodesCB[0xF2] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xF2>;
+    m_OPCodesCB[0xF3] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xF3>;
+    m_OPCodesCB[0xF4] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xF4>;
+    m_OPCodesCB[0xF5] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xF5>;
+    m_OPCodesCB[0xF6] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xF6>;
+    m_OPCodesCB[0xF7] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xF7>;
+    m_OPCodesCB[0xF8] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xF8>;
+    m_OPCodesCB[0xF9] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xF9>;
+    m_OPCodesCB[0xFA] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xFA>;
+    m_OPCodesCB[0xFB] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xFB>;
+    m_OPCodesCB[0xFC] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xFC>;
+    m_OPCodesCB[0xFD] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xFD>;
+    m_OPCodesCB[0xFE] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xFE>;
+    m_OPCodesCB[0xFF] = &Processor::OPCodeThunk<&Processor::OPCodeCB0xFF>;
 }

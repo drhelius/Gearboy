@@ -1,0 +1,303 @@
+/*
+ * Gearboy - Nintendo Game Boy Emulator
+ * Copyright (C) 2012  Ignacio Sanchez
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
+ */
+
+#ifndef MCP_SERVER_H
+#define MCP_SERVER_H
+
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
+#include <atomic>
+#include <vector>
+#include <string>
+#include <map>
+#include <algorithm>
+#include "json.hpp"
+#include "mcp_transport.h"
+#include "mcp_debug_adapter.h"
+#include "mcp_tool_registry.h"
+
+using json = nlohmann::json;
+
+#define MCP_MAX_PENDING_COMMANDS 64
+
+enum McpErrorCode
+{
+    MCP_ERROR_PARSE = -32700,
+    MCP_ERROR_INVALID_REQUEST = -32600,
+    MCP_ERROR_METHOD_NOT_FOUND = -32601,
+    MCP_ERROR_INVALID_PARAMS = -32602,
+    MCP_ERROR_INTERNAL = -32603,
+    MCP_ERROR_RESOURCE_NOT_FOUND = -32002
+};
+
+struct ResourceInfo
+{
+    std::string uri;
+    std::string title;
+    std::string description;
+    std::string mimeType;
+    std::string category;
+    std::string filePath;
+};
+
+struct DebugCommand
+{
+    json requestId;
+    std::string toolName;
+    json arguments;
+};
+
+struct DebugResponse
+{
+    json requestId;
+    bool isError = false;
+    bool isToolError = false;
+    int errorCode = 0;
+    std::string errorMessage;
+    json result;
+};
+
+class CommandQueue
+{
+public:
+    CommandQueue()
+    {
+        m_pending = 0;
+    }
+
+    bool Push(DebugCommand* cmd)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_pending >= MCP_MAX_PENDING_COMMANDS)
+            return false;
+
+        m_queue.push(cmd);
+        m_pending++;
+        return true;
+    }
+
+    DebugCommand* Pop()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_queue.empty())
+            return NULL;
+        DebugCommand* cmd = m_queue.front();
+        m_queue.pop();
+        return cmd;
+    }
+
+    DebugCommand* Pop(const char* tool_name)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        DebugCommand* match = NULL;
+        size_t count = m_queue.size();
+
+        for (size_t i = 0; i < count; i++)
+        {
+            DebugCommand* cmd = m_queue.front();
+            m_queue.pop();
+
+            std::string normalized_name = cmd->toolName;
+            std::replace(normalized_name.begin(), normalized_name.end(), '.', '_');
+
+            if (!match && normalized_name == tool_name)
+                match = cmd;
+            else
+                m_queue.push(cmd);
+        }
+
+        return match;
+    }
+
+    void Complete()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_pending > 0)
+            m_pending--;
+    }
+
+    void Clear()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        while (!m_queue.empty())
+        {
+            SafeDelete(m_queue.front());
+            m_queue.pop();
+        }
+        m_pending = 0;
+    }
+
+private:
+    std::queue<DebugCommand*> m_queue;
+    std::mutex m_mutex;
+    size_t m_pending;
+};
+
+class ResponseQueue
+{
+public:
+    void Push(DebugResponse* resp)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_queue.push(resp);
+        m_cv.notify_one();
+    }
+
+    DebugResponse* WaitAndPop()
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_cv.wait(lock, [this] { return !m_queue.empty() || !m_running; });
+
+        if (m_queue.empty())
+            return NULL;
+
+        DebugResponse* resp = m_queue.front();
+        m_queue.pop();
+        return resp;
+    }
+
+    void Stop()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_running = false;
+        while (!m_queue.empty())
+        {
+            SafeDelete(m_queue.front());
+            m_queue.pop();
+        }
+        m_cv.notify_all();
+    }
+
+    void Reset()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        while (!m_queue.empty())
+        {
+            SafeDelete(m_queue.front());
+            m_queue.pop();
+        }
+        m_running = true;
+    }
+
+private:
+    std::queue<DebugResponse*> m_queue;
+    std::mutex m_mutex;
+    std::condition_variable m_cv;
+    bool m_running = true;
+};
+
+class McpServer
+{
+public:
+    McpServer(McpTransportInterface* transport,
+              DebugAdapter& debugAdapter,
+              CommandQueue& commandQueue,
+              ResponseQueue& responseQueue)
+        : m_debugAdapter(debugAdapter),
+          m_commandQueue(commandQueue),
+          m_responseQueue(responseQueue)
+    {
+        m_transport = transport;
+        m_running = false;
+        m_initialized = false;
+    }
+
+    ~McpServer()
+    {
+        Stop();
+        SafeDelete(m_transport);
+    }
+
+    void Start()
+    {
+        if (m_running.load())
+            return;
+
+        LoadResources();
+        m_initialized = false;
+        m_running.store(true);
+        m_readerThread = std::thread(&McpServer::ReaderLoop, this);
+        m_thread = std::thread(&McpServer::Run, this);
+    }
+
+    void Stop()
+    {
+        std::lock_guard<std::mutex> lock(m_stopMutex);
+        m_running.store(false);
+        m_transport->close();
+        m_responseQueue.Stop();
+
+        if (m_readerThread.joinable())
+            m_readerThread.join();
+        if (m_thread.joinable())
+            m_thread.join();
+    }
+
+    bool IsRunning() const
+    {
+        return m_running.load();
+    }
+
+    json ExecuteCommand(const std::string& toolName, const json& arguments);
+
+    void ReaderLoop();
+
+private:
+    void Run();
+    void HandleLine(const std::string& line);
+    void HandleInitialize(const json& request);
+    void HandleToolsList(const json& request);
+    void HandleToolsCall(const json& request);
+    void HandleResourcesList(const json& request);
+    void HandleResourceTemplatesList(const json& request);
+    void HandleResourcesRead(const json& request);
+
+    json BuildToolList();
+    void EnsureToolRegistry();
+    void AddRouterTools(json& tools);
+    json HandleRouterListCategories();
+    json HandleRouterGetCategoryTools(const json& arguments);
+    json HandleRouterGetToolInfo(const json& arguments);
+    json HandleRouterSearchTools(const json& arguments);
+    void SendToolResult(const json& id, const json& result);
+
+    void LoadResources();
+    void LoadResourcesFromCategory(const std::string& category, const std::string& tocPath);
+    bool ReadFileContents(const std::string& filePath, std::string& content);
+
+    void SendResponse(const json& response);
+    void SendError(const json& id, int code, const std::string& message, const json& data = json::object());
+
+    McpTransportInterface* m_transport;
+    DebugAdapter& m_debugAdapter;
+    CommandQueue& m_commandQueue;
+    ResponseQueue& m_responseQueue;
+    std::thread m_thread;
+    std::thread m_readerThread;
+    std::mutex m_stopMutex;
+    std::atomic<bool> m_running;
+    bool m_initialized;
+    McpToolRegistry m_toolRegistry;
+    std::vector<ResourceInfo> m_resources;
+    std::map<std::string, ResourceInfo> m_resourceMap;
+};
+
+#endif /* MCP_SERVER_H */

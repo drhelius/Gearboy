@@ -34,10 +34,14 @@ public:
     void Tick(unsigned int clockCycles);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
+    bool IsKeyPressed(Gameboy_Keys key) const;
+    void KeyPressed(Gameboy_Keys key, int player);
+    void KeyReleased(Gameboy_Keys key, int player);
+    void SetCurrentPlayer(int player);
     void Write(u8 value);
     u8 Read();
     void SaveState(std::ostream& stream);
-    void LoadState(std::istream& stream);
+    void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
 
 private:
     void Update();
@@ -45,30 +49,30 @@ private:
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
-    u8 m_JoypadState;
+    u8 m_JoypadState[4];
     u8 m_P1;
     int m_iInputCycles;
+    int m_iCurrentPlayer;
 };
 
-inline void Input::Tick(unsigned int clockCycles)
+INLINE void Input::Tick(unsigned int clockCycles)
 {
     m_iInputCycles += clockCycles;
 
-    // Joypad Poll Speed (64 Hz)
-    if (m_iInputCycles >= 65536)
+    if (m_iInputCycles >= 10000)
     {
-        m_iInputCycles -= 65536;
+        m_iInputCycles -= 10000;
         Update();
     }
 }
 
-inline void Input::Write(u8 value)
+INLINE void Input::Write(u8 value)
 {
     m_P1 = (m_P1 & 0xCF) | (value & 0x30);
     Update();
 }
 
-inline u8 Input::Read()
+INLINE u8 Input::Read()
 {
     return m_P1;
 }

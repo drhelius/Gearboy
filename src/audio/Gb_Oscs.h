@@ -39,6 +39,10 @@ public:
 	Good_Synth const* good_synth;
 	Med_Synth  const* med_synth;
 
+	Blip_Buffer*    debug_buf;      // debug output buffer (NULL if disabled)
+	int             debug_last_amp; // last amplitude written to debug buffer
+	bool            muted;          // channel mute for debug
+
 	int         delay;      // clocks until frequency timer expires
 	int         length_ctr; // length counter
 	unsigned    phase;      // waveform phase (or equivalent)
@@ -76,6 +80,7 @@ class Gb_Square : public Gb_Env {
 public:
 	bool write_register( int frame_phase, int reg, int old_data, int data );
 	void run( blip_time_t, blip_time_t );
+	int current_sample() const;
 
 	void reset()
 	{
@@ -120,6 +125,7 @@ public:
 
 	void run( blip_time_t, blip_time_t );
 	void write_register( int frame_phase, int reg, int old_data, int data );
+	int current_sample() const;
 
 	void reset()
 	{
@@ -141,6 +147,7 @@ public:
 
 	void write_register( int frame_phase, int reg, int old_data, int data );
 	void run( blip_time_t, blip_time_t );
+	int current_sample() const;
 
 	// Reads/writes wave RAM
 	int read( unsigned addr ) const;

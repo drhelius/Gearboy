@@ -1,4 +1,5 @@
-SOURCES_C   :=
+SOURCES_C   := $(DEPS_DIR)/miniz/miniz.c \
+
 SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/GearboyCore.cpp \
                $(SOURCE_DIR)/Memory.cpp \
@@ -15,9 +16,24 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/MBC2MemoryRule.cpp \
                $(SOURCE_DIR)/MBC3MemoryRule.cpp \
                $(SOURCE_DIR)/MBC5MemoryRule.cpp \
+               $(SOURCE_DIR)/MBC6MemoryRule.cpp \
                $(SOURCE_DIR)/MultiMBC1MemoryRule.cpp \
+               $(SOURCE_DIR)/HuC1MemoryRule.cpp \
+               $(SOURCE_DIR)/HuC3MemoryRule.cpp \
+               $(SOURCE_DIR)/MMM01MemoryRule.cpp \
+               $(SOURCE_DIR)/CameraMemoryRule.cpp \
+               $(SOURCE_DIR)/MBC7MemoryRule.cpp \
+               $(SOURCE_DIR)/TAMA5MemoryRule.cpp \
+               $(SOURCE_DIR)/WisdomTreeMemoryRule.cpp \
+               $(SOURCE_DIR)/M161MemoryRule.cpp \
+               $(SOURCE_DIR)/SachenMMC1MemoryRule.cpp \
+               $(SOURCE_DIR)/SachenMMC2MemoryRule.cpp \
+               $(SOURCE_DIR)/FlashcartMemoryRule.cpp \
                $(SOURCE_DIR)/opcodes.cpp \
                $(SOURCE_DIR)/opcodes_cb.cpp \
+               $(SOURCE_DIR)/VgmRecorder.cpp \
+               $(SOURCE_DIR)/TraceLogger.cpp \
+               $(SOURCE_DIR)/SGB.cpp \
                $(SOURCE_DIR)/audio/Blip_Buffer.cpp \
                $(SOURCE_DIR)/audio/Effects_Buffer.cpp \
                $(SOURCE_DIR)/audio/Gb_Apu.cpp \

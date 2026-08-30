@@ -2,9 +2,11 @@
 *.DS_Store
 *.dylib
 *.app/
+platforms/macos/mcp
 
 # Visual Studio files
-.vscode/
+.vscode/mcp.json
+.mcp.json
 .vs/
 ipch/
 [Oo]bj
@@ -32,7 +34,7 @@ ipch/
 *.ilk
 *.log
 *.zip
-*[Dd]ebug*/
+[Dd]ebug/
 *.sbr
 *.app
 Thumbs.db
@@ -54,6 +56,7 @@ desktop.ini
 *.sav
 *.tmp
 *.state*
+docs/
 
 # Qt Ignores
 moc_*.cpp
@@ -72,13 +75,7 @@ xcuserdata/
 *.xccheckout
 
 #binaries
-platforms/linux/**/gearboy
-platforms/macos/**/gearboy
-platforms/raspberry*/**/gearboy
-
-#metadata
-platforms/ios/tools/*.dat
-platforms/ios/tools/*.json
+platforms/**/gearboy
 
 #Switch
 *.a

@@ -38,17 +38,31 @@ MBC5MemoryRule::~MBC5MemoryRule()
     SafeDeleteArray(m_pRAMBanks);
 }
 
+bool MBC5MemoryRule::MapsROMDirectly()
+{
+    return true;
+}
+
 void MBC5MemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
     m_iCurrentRAMBank = 0;
     m_iCurrentROMBank = 1;
-    m_iCurrentROMBankHi = 0;
+    m_RomBankLow = 1;
+    m_RomBankHigh = 0;
     m_bRamEnabled = false;
+    m_iRumbleStrength = 0;
     for (int i = 0; i < 0x20000; i++)
         m_pRAMBanks[i] = 0xFF;
     m_CurrentROMAddress = 0x4000;
     m_CurrentRAMAddress = 0;
+}
+
+void MBC5MemoryRule::UpdateBanks()
+{
+    m_iCurrentROMBank = m_RomBankLow | (m_RomBankHigh << 8);
+    m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+    m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
 }
 
 u8 MBC5MemoryRule::PerformRead(u16 address)
@@ -69,7 +83,7 @@ u8 MBC5MemoryRule::PerformRead(u16 address)
             }
             else
             {
-                Log("--> ** Attempting to read from disabled ram %X", address);
+                Debug("--> ** Attempting to read from disabled ram %X", address);
                 return 0xFF;
             }
         }
@@ -89,12 +103,17 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
             if (m_pCartridge->GetRAMSize() > 0)
             {
                 bool previous = m_bRamEnabled;
-                m_bRamEnabled = ((value & 0x0F) == 0x0A);
+                m_bRamEnabled = (value == 0x0A);
 
                 if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
                 {
                     (*m_pRamChangedCallback)();
                 }
+            }
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                    m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0, true);
             }
             break;
         }
@@ -102,27 +121,41 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
         {
             if (address < 0x3000)
             {
-                m_iCurrentROMBank = value | (m_iCurrentROMBankHi << 8);
+                m_RomBankLow = value;
             }
             else
             {
-                m_iCurrentROMBankHi = value & 0x01;
-                m_iCurrentROMBank = (m_iCurrentROMBank & 0xFF) | (m_iCurrentROMBankHi << 8);
+                m_RomBankHigh = value & 0x01;
             }
-            m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
-            m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+            UpdateBanks();
+            if (IsTraceMapperEventEnabled(TRACE_MAPPER_ROM))
+            {
+                LogTraceMapperEvent(address, value, TRACE_MAPPER_ROM,
+                    (m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0) |
+                    (m_iRumbleStrength ? TRACE_MAPPER_FLAG_RUMBLE : 0), true);
+            }
             break;
         }
         case 0x4000:
         {
-            m_iCurrentRAMBank = value & 0x0F;
+            if (m_pCartridge->IsRumblePresent())
+            {
+                if (!!(value & 0x08) != !!m_iRumbleStrength)
+                    m_iRumbleStrength = m_iRumbleStrength ? 0 : 3;
+                m_iCurrentRAMBank = value & 0x07;
+            }
+            else
+            {
+                m_iCurrentRAMBank = value & 0x0F;
+            }
             m_iCurrentRAMBank &= (m_pCartridge->GetRAMBankCount() - 1);
             m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
+            TraceMapperEvent(address, value);
             break;
         }
         case 0x6000:
         {
-            Log("--> ** Attempting to write on invalid address %X %X", address, value);
+            Debug("--> ** Attempting to write on invalid address %X %X", address, value);
             break;
         }
         case 0xA000:
@@ -133,7 +166,7 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
             }
             else
             {
-                Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
+                Debug("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
             }
             break;
         }
@@ -147,8 +180,8 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
 
 void MBC5MemoryRule::SaveRam(std::ostream & file)
 {
-    Log("MBC5MemoryRule save RAM...");
-    Log("MBC5MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
+    Debug("MBC5MemoryRule save RAM...");
+    Debug("MBC5MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
 
     s32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
 
@@ -158,13 +191,13 @@ void MBC5MemoryRule::SaveRam(std::ostream & file)
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
 
-    Log("MBC5MemoryRule save RAM done");
+    Debug("MBC5MemoryRule save RAM done");
 }
 
 bool MBC5MemoryRule::LoadRam(std::istream & file, s32 fileSize)
 {
-    Log("MBC5MemoryRule load RAM...");
-    Log("MBC5MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
+    Debug("MBC5MemoryRule load RAM...");
+    Debug("MBC5MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
 
     s32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
 
@@ -181,7 +214,7 @@ bool MBC5MemoryRule::LoadRam(std::istream & file, s32 fileSize)
         m_pRAMBanks[i] = ram_byte;
     }
 
-    Log("MBC5MemoryRule load RAM done");
+    Debug("MBC5MemoryRule load RAM done");
 
     return true;
 }
@@ -233,7 +266,7 @@ void MBC5MemoryRule::SaveState(std::ostream& stream)
 
     stream.write(reinterpret_cast<const char*> (&m_iCurrentRAMBank), sizeof(m_iCurrentRAMBank));
     stream.write(reinterpret_cast<const char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
-    stream.write(reinterpret_cast<const char*> (&m_iCurrentROMBankHi), sizeof(m_iCurrentROMBankHi));
+    stream.write(reinterpret_cast<const char*> (&m_RomBankHigh), sizeof(m_RomBankHigh));
     stream.write(reinterpret_cast<const char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
     stream.write(reinterpret_cast<const char*> (m_pRAMBanks), 0x20000);
     stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
@@ -246,9 +279,25 @@ void MBC5MemoryRule::LoadState(std::istream& stream)
 
     stream.read(reinterpret_cast<char*> (&m_iCurrentRAMBank), sizeof(m_iCurrentRAMBank));
     stream.read(reinterpret_cast<char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
-    stream.read(reinterpret_cast<char*> (&m_iCurrentROMBankHi), sizeof(m_iCurrentROMBankHi));
+    stream.read(reinterpret_cast<char*> (&m_RomBankHigh), sizeof(m_RomBankHigh));
     stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
     stream.read(reinterpret_cast<char*> (m_pRAMBanks), 0x20000);
     stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
     stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
+    m_RomBankLow = m_iCurrentROMBank & 0xFF;
+    UpdateBanks();
+
+    int ramBankCount = m_pCartridge->GetRAMBankCount();
+    if (ramBankCount > 0)
+    {
+        m_iCurrentRAMBank &= m_pCartridge->IsRumblePresent() ? 0x07 : 0x0F;
+        m_iCurrentRAMBank &= (ramBankCount - 1);
+        m_CurrentRAMAddress = m_iCurrentRAMBank * 0x2000;
+    }
+    else
+    {
+        m_iCurrentRAMBank = 0;
+        m_CurrentRAMAddress = 0;
+        m_bRamEnabled = false;
+    }
 }

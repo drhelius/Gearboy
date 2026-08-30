@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+    <mime-type type="application/x-gameboy-rom">
+        <comment>Game Boy ROM</comment>
+        <glob pattern="*.gb"/>
+        <glob pattern="*.sgb"/>
+    </mime-type>
+    <mime-type type="application/x-gameboy-color-rom">
+        <comment>Game Boy Color ROM</comment>
+        <glob pattern="*.gbc"/>
+        <glob pattern="*.cgb"/>
+    </mime-type>
+</mime-info>

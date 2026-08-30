@@ -21,10 +21,14 @@
 #define	PROCESSOR_H
 
 #include <list>
+#include <vector>
+#include <stack>
 #include "definitions.h"
 #include "SixteenBitRegister.h"
+#include "link_cable.h"
 
 class Memory;
+class TraceLogger;
 
 class Processor
 {
@@ -39,6 +43,45 @@ public:
         Joypad_Interrupt = 0x10
     };
 
+    enum GB_Breakpoint_Type
+    {
+        GB_BREAKPOINT_TYPE_ROMRAM = 0,
+        GB_BREAKPOINT_TYPE_VRAM,
+        GB_BREAKPOINT_TYPE_IO,
+        GB_BREAKPOINT_TYPE_COUNT
+    };
+
+    // Compatibility aliases for shared GUI code
+    static const int GS_BREAKPOINT_TYPE_ROMRAM = GB_BREAKPOINT_TYPE_ROMRAM;
+    static const int GS_BREAKPOINT_TYPE_VRAM = GB_BREAKPOINT_TYPE_VRAM;
+    static const int GS_BREAKPOINT_TYPE_VDP_REGISTER = GB_BREAKPOINT_TYPE_IO;
+    static const int GS_BREAKPOINT_TYPE_CRAM = GB_BREAKPOINT_TYPE_IO;
+    static const int GS_BREAKPOINT_TYPE_COUNT = GB_BREAKPOINT_TYPE_COUNT;
+
+    struct GB_Breakpoint
+    {
+        bool enabled;
+        int type;
+        u16 address1;
+        u16 address2;
+        bool read;
+        bool write;
+        bool execute;
+        bool range;
+    };
+
+    typedef GB_Breakpoint GS_Breakpoint;
+
+    struct GB_CallStackEntry
+    {
+        u16 src;
+        u16 dest;
+        u16 back;
+        u8 bank;
+    };
+
+    typedef GB_CallStackEntry GS_CallStackEntry;
+
     struct ProcessorState
     {        
         SixteenBitRegister* AF;
@@ -51,16 +94,34 @@ public:
         bool* Halt;
     };
 
+    struct SerialState
+    {
+        int bit_index;
+        int cycles;
+        bool transfer_active;
+        bool waiting_external;
+        bool internal_clock;
+        bool restore_pending;
+        bool bytes_valid;
+        u8 incoming_byte;
+        u8 outgoing_byte;
+        u32 bit_cycles;
+        u32 transfer_id;
+        u64 request_cycle;
+        u64 next_shift_cycle;
+    };
+
 public:
     Processor(Memory* pMemory);
     ~Processor();
     void Init();
-    void Reset(bool bCGB, bool bGBA);
-    u8 RunFor(u8 ticks);
+    void Reset(bool bCGB, bool bGBA, bool bSGB = false);
+    INLINE u8 RunFor(u8 ticks);
     void RequestInterrupt(Interrupts interrupt);
     void ResetTIMACycles();
     void ResetDIVCycles();
-    bool Halted() const;
+    u16 GetDIVCounter() const;
+    void IncrementTIMA();
     bool DuringOpCode() const;
     bool CGBSpeed() const;
     void AddCycles(unsigned int cycles);
@@ -70,16 +131,57 @@ public:
     void SetGameSharkCheat(const char* szCheat);
     void ClearGameSharkCheats();
     ProcessorState* GetState();
-    bool Disassemble(u16 address);
+    void SetDisassemblerSyntax(GB_Disassembler_Syntax syntax);
+    GB_Disassembler_Syntax GetDisassemblerSyntax() const;
+    NO_INLINE void DisassembleNextOPCode();
+    NO_INLINE void PopulateDisassemblerRecord(GB_Disassembler_Record* record, u16 address);
+    void InvalidateOverlappingRecords(u16 address, u8 opcode_size);
+    void DisassembleAhead(int count);
+    void DisassembleAhead(u16 start_address, int count, int depth);
+    void EnableBreakpoints(bool enable, bool irqs);
+    INLINE bool MemoryBreakpointsEnabled() const;
     bool BreakpointHit();
-    void UpdateTimers(u8 ticks);
-    void UpdateSerial(u8 ticks);
+    bool MemoryBreakpointHit();
+    bool RunToBreakpointHit();
+    void ResetBreakpoints();
+    bool AddBreakpoint(int type, char* text, bool read, bool write, bool execute);
+    bool AddBreakpoint(u16 address);
+    void AddRunToBreakpoint(u16 address);
+    void RemoveBreakpoint(int type, u16 address);
+    bool IsBreakpoint(int type, u16 address);
+    std::vector<GB_Breakpoint>* GetBreakpoints();
+    void ClearDisassemblerCallStack();
+    std::stack<GB_CallStackEntry>* GetDisassemblerCallStack();
+    void CheckMemoryBreakpoints(int type, u16 address, bool read);
+    bool Halted();
+    void SetTraceLogger(TraceLogger* pTraceLogger);
+    u8 NormalizeSerialControl(u8 value) const;
+    void NotifySerialDataWrite(u8 value);
+    void NotifySerialControlWrite(u8 value);
+    void SetLinkCableCallbacks(GB_LinkCableStateCallback state_callback, GB_LinkCableStartCallback start_callback,
+        GB_LinkCablePollCallback poll_callback, GB_LinkCableSyncCallback sync_callback, void* user_data);
+    void SetLinkCableConnected(bool connected, u64 current_cycle);
+    bool IsLinkCableConnected() const;
+    void GetSerialState(SerialState& state) const;
+    u32 GetLinkCablePromiseCycles(u64 current_cycle) const;
+    INLINE void UpdateTimers(u8 ticks);
+    INLINE void UpdateSerial(u8 ticks, u64 current_cycle);
+    INLINE void SynchronizeLinkCable(u64 current_cycle);
 
 private:
-    typedef void (Processor::*OPCptr) (void);
+    typedef void (Processor::*OPCmemberptr) (void);
+    typedef void (*OPCptr) (Processor*);
+
+    template<OPCmemberptr Opcode>
+    static void OPCodeThunk(Processor* cpu)
+    {
+        (cpu->*Opcode)();
+    }
+
     OPCptr m_OPCodes[256];
     OPCptr m_OPCodesCB[256];
     Memory* m_pMemory;
+    TraceLogger* m_pTraceLogger;
     SixteenBitRegister AF;
     SixteenBitRegister BC;
     SixteenBitRegister DE;
@@ -95,15 +197,50 @@ private:
     unsigned int m_iTIMACycles;
     int m_iSerialBit;
     int m_iSerialCycles;
+    bool m_bSerialTransferActive;
+    bool m_bSerialWaitingExternal;
+    bool m_bSerialInternalClock;
+    bool m_bSerialControlWritePending;
+    bool m_bSerialDataWritePending;
+    bool m_bSerialRestorePending;
+    bool m_bSerialBytesValid;
+    u8 m_iSerialPendingControl;
+    u8 m_iSerialPendingData;
+    u8 m_iSerialIncomingByte;
+    u8 m_iSerialOutgoingByte;
+    u8 m_iSerialDividerOffset;
+    u32 m_iSerialBitCycles;
+    u32 m_iSerialTransferId;
+    u64 m_iSerialRequestCycle;
+    u64 m_iSerialNextShiftCycle;
+    GB_LinkCableStateCallback m_link_cable_state_callback;
+    GB_LinkCableStartCallback m_link_cable_start_callback;
+    GB_LinkCablePollCallback m_link_cable_poll_callback;
+    GB_LinkCableSyncCallback m_link_cable_sync_callback;
+    void* m_link_cable_user_data;
+    bool m_bLinkCableConnected;
+    u64 m_iLinkCableNextSyncCycle;
+    u32 m_iLinkCableSyncCycles;
     int m_iIMECycles;
     int m_iUnhaltCycles;
     bool m_bCGB;
     int m_iInterruptDelayCycles;
     bool m_bCGBSpeed;
     int m_iSpeedMultiplier;
+    unsigned int m_iMachineCycle;
     int m_iAccurateOPCodeState;
     u8 m_iReadCache;
-    bool m_bBreakpointHit;
+    bool m_breakpoints_enabled;
+    bool m_breakpoints_irq_enabled;
+    bool m_cpu_breakpoint_hit;
+    bool m_memory_breakpoint_hit;
+    bool m_run_to_breakpoint_hit;
+    std::vector<GB_Breakpoint> m_breakpoints;
+    GB_Breakpoint m_run_to_breakpoint;
+    bool m_run_to_breakpoint_requested;
+    std::stack<GB_CallStackEntry> m_disassembler_call_stack;
+    GB_Disassembler_Syntax m_disassembler_syntax;
+    s32 m_debug_next_irq;
 
     struct GameSharkCode
     {        
@@ -116,8 +253,32 @@ private:
     ProcessorState m_ProcessorState;
 
 private:
+    void CheckBreakpoints();
+    void PushCallStack(u16 src, u16 dest, u16 back, u8 bank);
+    void PopCallStack();
+    void FormatDisassemblerDataBytes(char* text, size_t text_size, const u8* bytes, int size);
+    void SetDisassemblerOperandText(GB_Disassembler_Record* record, const char* text);
+    void SetDisassemblerOperand(GB_Disassembler_Record* record, u16 address, bool is_zp, const char* text);
     Processor::Interrupts InterruptPending();
     void ServeInterrupt(Interrupts interrupt);
+    INLINE void TraceInstruction(u16 pc, bool halt_bug);
+    INLINE void TraceIRQEvent(u16 pc, u16 vector, u8 irq_type);
+    NO_INLINE void LogTraceInstruction(u16 pc, bool halt_bug);
+    NO_INLINE void LogIRQEvent(u16 pc, u16 vector, u8 irq_type);
+    INLINE void TraceTimerEvent(u8 event);
+    INLINE void TraceSerialEvent(u8 event, u64 link_cycle);
+    NO_INLINE void LogTimerEvent(u8 event);
+    NO_INLINE void LogSerialEvent(u8 event, u64 link_cycle);
+    NO_INLINE void UpdateSerialActive(u8 ticks, u64 current_cycle);
+    void ResetSerialRuntime();
+    void ProcessSerialControlWrite(u64 current_cycle);
+    void StartInternalSerialTransfer(u64 current_cycle);
+    u32 GetFirstSerialShiftCycles(bool fast_cgb) const;
+    void PollExternalSerialTransfer(u64 current_cycle);
+    void RestoreSerialTransfer(u64 current_cycle);
+    void ShiftSerialBit(u64 edge_cycle);
+    void PublishSerialState(u64 cycle);
+    u32 GetLinkCableSyncCycles(u64 current_cycle) const;
     void UpdateGameShark();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);
@@ -129,7 +290,7 @@ private:
     void StackPush(SixteenBitRegister* reg);
     void StackPop(SixteenBitRegister* reg);
     int AdjustedCycles(int cycles);
-    void InvalidOPCode();
+    NO_INLINE COLD void InvalidOPCode();
     void OPCodes_LD(u8* reg1, u8 reg2);
     void OPCodes_LD(u8* reg, u16 address);
     void OPCodes_LD(u16 address, u8 reg);
@@ -169,7 +330,7 @@ private:
     void OPCodes_SET_HL(int bit);
     void OPCodes_RES(u8* reg, int bit);
     void OPCodes_RES_HL(int bit);
-    void InitOPCodeFunctors();
+    void InitOPCodeTable();
     void OPCode0x00();
     void OPCode0x01();
     void OPCode0x02();
@@ -381,7 +542,7 @@ private:
     void OPCode0xD0();
     void OPCode0xD1();
     void OPCode0xD2();
-    void OPCode0xD3();
+    NO_INLINE COLD void OPCode0xD3();
     void OPCode0xD4();
     void OPCode0xD5();
     void OPCode0xD6();
@@ -389,32 +550,32 @@ private:
     void OPCode0xD8();
     void OPCode0xD9();
     void OPCode0xDA();
-    void OPCode0xDB();
+    NO_INLINE COLD void OPCode0xDB();
     void OPCode0xDC();
-    void OPCode0xDD();
+    NO_INLINE COLD void OPCode0xDD();
     void OPCode0xDE();
     void OPCode0xDF();
     void OPCode0xE0();
     void OPCode0xE1();
     void OPCode0xE2();
-    void OPCode0xE3();
-    void OPCode0xE4();
+    NO_INLINE COLD void OPCode0xE3();
+    NO_INLINE COLD void OPCode0xE4();
     void OPCode0xE5();
     void OPCode0xE6();
     void OPCode0xE7();
     void OPCode0xE8();
     void OPCode0xE9();
     void OPCode0xEA();
-    void OPCode0xEB();
-    void OPCode0xEC();
-    void OPCode0xED();
+    NO_INLINE COLD void OPCode0xEB();
+    NO_INLINE COLD void OPCode0xEC();
+    NO_INLINE COLD void OPCode0xED();
     void OPCode0xEE();
     void OPCode0xEF();
     void OPCode0xF0();
     void OPCode0xF1();
     void OPCode0xF2();
     void OPCode0xF3();
-    void OPCode0xF4();
+    NO_INLINE COLD void OPCode0xF4();
     void OPCode0xF5();
     void OPCode0xF6();
     void OPCode0xF7();
@@ -422,8 +583,8 @@ private:
     void OPCode0xF9();
     void OPCode0xFA();
     void OPCode0xFB();
-    void OPCode0xFC();
-    void OPCode0xFD();
+    NO_INLINE COLD void OPCode0xFC();
+    NO_INLINE COLD void OPCode0xFD();
     void OPCode0xFE();
     void OPCode0xFF();
     void OPCodeCB0x00();

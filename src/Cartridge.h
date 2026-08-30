@@ -21,7 +21,9 @@
 #define	CARTRIDGE_H
 
 #include <list>
+#include <ctime>
 #include "definitions.h"
+#include "log.h"
 
 class Cartridge
 {
@@ -34,6 +36,20 @@ public:
         CartridgeMBC3,
         CartridgeMBC5,
         CartridgeMBC1Multi,
+        CartridgeHuC1,
+        CartridgeHuC3,
+        CartridgeMMM01,
+        CartridgeCamera,
+        CartridgeMBC7,
+        CartridgeTAMA5,
+        CartridgeWisdomTree,
+        CartridgeM161,
+        CartridgeSachenMMC1,
+        CartridgeSachenMMC2,
+        CartridgePKJD,
+        CartridgeBungEMS,
+        CartridgePoke2in1,
+        CartridgeMBC6,
         CartridgeNotSupported
     };
 
@@ -50,34 +66,47 @@ public:
     void Reset();
     bool IsValidROM() const;
     bool IsLoadedROM() const;
-    CartridgeTypes GetType() const;
-    int GetRAMSize() const;
+    INLINE CartridgeTypes GetType() const;
+    INLINE int GetRAMSize() const;
     int GetROMSize() const;
-    int GetROMBankCount() const;
-    int GetRAMBankCount() const;
+    INLINE int GetROMBankCount() const;
+    INLINE int GetRAMBankCount() const;
     const char* GetName() const;
     const char* GetFilePath() const;
     const char* GetFileName() const;
+    const char* GetFileDirectory() const;
     int GetTotalSize() const;
+    bool HasRam() const;
     bool HasBattery() const;
-    u8* GetTheROM() const;
-    bool LoadFromFile(const char* path);
+    INLINE u8* GetTheROM() const;
+    bool LoadFromFile(const char* path, bool softpatching = false);
     bool LoadFromBuffer(const u8* buffer, int size);
+    bool IsSoftpatchApplied() const;
+    const char* GetSoftpatchPath() const;
     int GetVersion() const;
     bool IsSGB() const;
     bool IsCGB() const;
     void UpdateCurrentRTC();
     time_t GetCurrentRTC();
-    bool IsRTCPresent() const;
+    INLINE bool IsRTCPresent() const;
     bool IsRumblePresent() const;
+    bool IsMBC30() const;
     void SetGameGenieCheat(const char* szCheat);
     void ClearGameGenieCheats();
 
 private:
-    unsigned int Pow2Ceil(unsigned int n);
     bool GatherMetadata();
-    bool LoadFromZipFile(const u8* buffer, int size);
+    bool LoadFromZipFile(const u8* buffer, int size, bool softpatching);
+    bool LoadFromBufferWithSoftpatch(const u8* buffer, int size, bool softpatching);
     void CheckCartridgeType(int type);
+    bool IsM161Cartridge(u32 full_crc, u32 header_crc) const;
+    bool IsKnownMMM01Cartridge(u32 full_crc) const;
+    bool IsPKJDCartridge(u32 header_crc) const;
+    bool IsBungEMSCartridge(u32 full_crc) const;
+    bool IsPoke2in1Cartridge(u32 full_crc) const;
+    bool IsSachenMMC1Cartridge(u32 full_crc) const;
+    bool IsSachenMMC2Cartridge(u32 header_crc) const;
+    bool IsWisdomTreeCartridge(int type) const;
 
 private:
     u8* m_pTheROM;
@@ -95,11 +124,45 @@ private:
     bool m_bBattery;
     char m_szFilePath[512];
     char m_szFileName[512];
+    char m_szFileDirectory[512];
     bool m_bRTCPresent;
     bool m_bRumblePresent;
+    bool m_bMBC30;
     int m_iRAMBankCount;
     int m_iROMBankCount;
+    bool m_softpatch_applied;
+    char m_softpatch_path[4096];
     std::list<GameGenieCode> m_GameGenieList;
 };
+
+INLINE Cartridge::CartridgeTypes Cartridge::GetType() const
+{
+    return m_Type;
+}
+
+INLINE int Cartridge::GetRAMSize() const
+{
+    return m_iRAMSize;
+}
+
+INLINE int Cartridge::GetROMBankCount() const
+{
+    return m_iROMBankCount;
+}
+
+INLINE int Cartridge::GetRAMBankCount() const
+{
+    return m_iRAMBankCount;
+}
+
+INLINE u8* Cartridge::GetTheROM() const
+{
+    return m_pTheROM;
+}
+
+INLINE bool Cartridge::IsRTCPresent() const
+{
+    return m_bRTCPresent;
+}
 
 #endif	/* CARTRIDGE_H */

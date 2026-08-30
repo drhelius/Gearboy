@@ -27,6 +27,8 @@ class Processor;
 class Input;
 class Audio;
 class Memory;
+class TraceLogger;
+class SGB;
 
 class IORegistersMemoryRule
 {
@@ -36,6 +38,22 @@ public:
     u8 PerformRead(u16 address);
     void PerformWrite(u16 address, u8 value);
     void Reset(bool bCGB);
+    void SetTraceLogger(TraceLogger* pTraceLogger);
+    void SetSGB(SGB* pSGB);
+
+private:
+    INLINE void TraceInputEvent(u8 event, u8 value, u8 result = 0);
+    INLINE void TraceTimerEvent(u8 event, u8 value);
+    INLINE void TraceSerialEvent(u8 event, u16 address, u8 value);
+    INLINE void TraceLCDRegister(u16 address, u8 raw);
+    INLINE void TraceLCDInterrupt(u8 event, u8 source);
+    INLINE void TraceAPURegister(u16 address, u8 raw);
+    NO_INLINE void LogTraceInputEvent(u8 event, u8 value, u8 result);
+    NO_INLINE void LogTraceTimerEvent(u8 event, u8 value);
+    NO_INLINE void LogTraceSerialEvent(u8 event, u16 address, u8 value);
+    NO_INLINE void LogTraceLCDRegister(u16 address, u8 raw);
+    NO_INLINE void LogTraceLCDInterrupt(u8 event, u8 source);
+    NO_INLINE void LogTraceAPURegister(u8 event, u16 address, u8 raw);
 
 private:
     Processor* m_pProcessor;
@@ -43,6 +61,8 @@ private:
     Video* m_pVideo;
     Input* m_pInput;
     Audio* m_pAudio;
+    SGB* m_pSGB;
+    TraceLogger* m_pTraceLogger;
     bool m_bCGB;
 };
 
@@ -51,6 +71,95 @@ private:
 #include "Input.h"
 #include "Audio.h"
 #include "Memory.h"
+#include "TraceLogger.h"
+#include "SGB.h"
+
+INLINE void IORegistersMemoryRule::TraceInputEvent(u8 event, u8 value, u8 result)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    if (m_pTraceLogger->IsEventEnabled(TRACE_INPUT, event))
+        LogTraceInputEvent(event, value, result);
+#else
+    UNUSED(event);
+    UNUSED(value);
+    UNUSED(result);
+#endif
+}
+
+INLINE void IORegistersMemoryRule::TraceTimerEvent(u8 event, u8 value)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    if (m_pTraceLogger->IsEventEnabled(TRACE_TIMER, event))
+        LogTraceTimerEvent(event, value);
+#else
+    UNUSED(event);
+    UNUSED(value);
+#endif
+}
+
+INLINE void IORegistersMemoryRule::TraceSerialEvent(u8 event, u16 address, u8 value)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    if (m_pTraceLogger->IsEventEnabled(TRACE_SERIAL, event))
+        LogTraceSerialEvent(event, address, value);
+#else
+    UNUSED(event);
+    UNUSED(address);
+    UNUSED(value);
+#endif
+}
+
+INLINE void IORegistersMemoryRule::TraceLCDRegister(u16 address, u8 raw)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    if (m_pTraceLogger->IsEventEnabled(TRACE_LCD, TRACE_LCD_REG_WRITE))
+        LogTraceLCDRegister(address, raw);
+#else
+    UNUSED(address);
+    UNUSED(raw);
+#endif
+}
+
+INLINE void IORegistersMemoryRule::TraceLCDInterrupt(u8 event, u8 source)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    if (m_pTraceLogger->IsEventEnabled(TRACE_LCD, event))
+        LogTraceLCDInterrupt(event, source);
+#else
+    UNUSED(event);
+    UNUSED(source);
+#endif
+}
+
+INLINE void IORegistersMemoryRule::TraceAPURegister(u16 address, u8 raw)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    if (!m_pTraceLogger->IsEnabled(TRACE_APU))
+        return;
+
+    u8 event;
+    if (address >= 0xFF10 && address <= 0xFF14)
+        event = TRACE_APU_PULSE1_WRITE;
+    else if (address >= 0xFF16 && address <= 0xFF19)
+        event = TRACE_APU_PULSE2_WRITE;
+    else if (address >= 0xFF1A && address <= 0xFF1E)
+        event = TRACE_APU_WAVE_WRITE;
+    else if (address >= 0xFF20 && address <= 0xFF23)
+        event = TRACE_APU_NOISE_WRITE;
+    else if (address >= 0xFF24 && address <= 0xFF26)
+        event = TRACE_APU_GLOBAL_WRITE;
+    else if (address >= 0xFF30 && address <= 0xFF3F)
+        event = TRACE_APU_WAVE_RAM_WRITE;
+    else
+        return;
+
+    if (m_pTraceLogger->IsEventEnabled(TRACE_APU, event))
+        LogTraceAPURegister(event, address, raw);
+#else
+    UNUSED(address);
+    UNUSED(raw);
+#endif
+}
 
 inline u8 IORegistersMemoryRule::PerformRead(u16 address)
 {
@@ -59,7 +168,18 @@ inline u8 IORegistersMemoryRule::PerformRead(u16 address)
         case 0xFF00:
         {
             // P1
-            return m_pInput->Read();
+            u8 p1 = m_pInput->Read();
+            u8 result = p1;
+            if (IsValidPointer(m_pSGB) && m_pSGB->GetPlayerCount() > 1)
+            {
+                if ((p1 & 0x30) == 0x30)
+                {
+                    int player = m_pSGB->GetCurrentPlayer();
+                    result = (p1 & 0xF0) | (0x0F - player);
+                }
+            }
+            TraceInputEvent(TRACE_INPUT_READ, p1, result);
+            return result;
         }
         case 0xFF03:
         {
@@ -188,13 +308,13 @@ inline u8 IORegistersMemoryRule::PerformRead(u16 address)
         case 0xFF6A:
         {
             // BCPS, OCPS
-            return (m_bCGB ? (m_pMemory->Retrieve(address) | 0x40) : 0xC0);
+            return (m_bCGB ? (m_pMemory->Retrieve(address) | 0x40) : 0xFF);
         }
         case 0xFF69:
         case 0xFF6B:
         {
             // BCPD, OCPD
-            return (m_bCGB ? m_pMemory->Retrieve(address) : 0xFF);
+            return (m_bCGB ? (m_pVideo->CGBPaletteAccessBlocked() ? 0xFF : m_pMemory->Retrieve(address)) : 0xFF);
         }
         case 0xFF70:
         {
@@ -204,12 +324,12 @@ inline u8 IORegistersMemoryRule::PerformRead(u16 address)
         case 0xFF76:
         {
             // UNDOCUMENTED
-            return (m_bCGB ? 0x00 : 0xFF);
+            return (m_bCGB ? m_pAudio->ReadPCM12() : 0xFF);
         }
         case 0xFF77:
         {
             // UNDOCUMENTED
-            return (m_bCGB ? 0x0 : 0xFF);
+            return (m_bCGB ? m_pAudio->ReadPCM34() : 0xFF);
         }
     }
 
@@ -223,13 +343,67 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         case 0xFF00:
         {
             // P1
+            if (IsValidPointer(m_pSGB))
+            {
+                u8 oldP1 = m_pInput->Read();
+                if ((oldP1 & 0x30) != (value & 0x30))
+                {
+                    m_pSGB->WriteJOYP(value);
+                    m_pInput->SetCurrentPlayer(m_pSGB->GetCurrentPlayer());
+                }
+            }
             m_pInput->Write(value);
+            TraceInputEvent(TRACE_INPUT_WRITE, value);
+            break;
+        }
+        case 0xFF01:
+        {
+            // SB
+            m_pMemory->Load(address, value);
+            m_pProcessor->NotifySerialDataWrite(value);
+            TraceSerialEvent(TRACE_SERIAL_REG_WRITE, address, value);
+            break;
+        }
+        case 0xFF02:
+        {
+            // SC
+            u8 normalized = m_pProcessor->NormalizeSerialControl(value);
+            m_pMemory->Load(address, normalized);
+            m_pProcessor->NotifySerialControlWrite(normalized);
+            TraceSerialEvent(TRACE_SERIAL_REG_WRITE, address, value);
             break;
         }
         case 0xFF04:
         {
             // DIV
+            u8 tac = m_pMemory->Retrieve(0xFF07);
+
+            if (tac & 0x04)
+            {
+                u16 bit = kTACTriggerBits[tac & 0x03];
+
+                if (m_pProcessor->GetDIVCounter() & bit)
+                {
+                    m_pProcessor->IncrementTIMA();
+                }
+            }
+
             m_pProcessor->ResetDIVCycles();
+            TraceTimerEvent(TRACE_TIMER_DIV_WRITE, value);
+            break;
+        }
+        case 0xFF05:
+        {
+            // TIMA
+            m_pMemory->Load(address, value);
+            TraceTimerEvent(TRACE_TIMER_TIMA_WRITE, value);
+            break;
+        }
+        case 0xFF06:
+        {
+            // TMA
+            m_pMemory->Load(address, value);
+            TraceTimerEvent(TRACE_TIMER_TMA_WRITE, value);
             break;
         }
         case 0xFF07:
@@ -237,11 +411,29 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             // TAC
             value &= 0x07;
             u8 current_tac = m_pMemory->Retrieve(0xFF07);
+
+            if (current_tac & 0x04)
+            {
+                u16 old_bit = kTACTriggerBits[current_tac & 0x03];
+                bool old_bit_set = (m_pProcessor->GetDIVCounter() & old_bit) != 0;
+
+                if (old_bit_set)
+                {
+                    bool will_stay_high = (value & 0x04) &&
+                        ((m_pProcessor->GetDIVCounter() & kTACTriggerBits[value & 0x03]) != 0);
+                    if (!will_stay_high)
+                    {
+                        m_pProcessor->IncrementTIMA();
+                    }
+                }
+            }
+
             if ((current_tac & 0x03) != (value & 0x03))
             {
                 m_pProcessor->ResetTIMACycles();
             }
             m_pMemory->Load(address, value);
+            TraceTimerEvent(TRACE_TIMER_TAC_WRITE, value);
             break;
         }
         case 0xFF0F:
@@ -301,6 +493,7 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         {
             // SOUND REGISTERS
             m_pAudio->WriteAudioRegister(address, value);
+            TraceAPURegister(address, value);
             break;
         }
         case 0xFF40:
@@ -311,10 +504,13 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             m_pMemory->Load(address, new_lcdc);
             if (!IsSetBit(current_lcdc, 5) && IsSetBit(new_lcdc, 5))
                 m_pVideo->ResetWindowLine();
+            else
+                m_pVideo->CheckWindowY();
             if (IsSetBit(new_lcdc, 7))
                 m_pVideo->EnableScreen();
             else
                 m_pVideo->DisableScreen();
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF41:
@@ -326,47 +522,45 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             u8 lcdc = m_pMemory->Retrieve(0xFF40);
             u8 signal = m_pVideo->GetIRQ48Signal();
             int mode = m_pVideo->GetCurrentStatusMode();
-            signal &= ((new_stat >> 3) & 0x0F);
-            m_pVideo->SetIRQ48Signal(signal);
+
+            if (!m_bCGB && IsSetBit(lcdc, 7) && signal == 0)
+            {
+                u8 ly = m_pMemory->Retrieve(0xFF44);
+                u8 lyc = m_pMemory->Retrieve(0xFF45);
+                if (mode != 3 || ly == lyc)
+                {
+                    m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
+                    signal = 0x0F;
+                    TraceLCDInterrupt(TRACE_LCD_STAT_IRQ, signal);
+                }
+            }
 
             if (IsSetBit(lcdc, 7))
             {
-                if (IsSetBit(new_stat, 3) && (mode == 0))
-                {
-                    if (signal == 0)
-                    {
-                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                    }
-                    signal = SetBit(signal, 0);
-                }
-                if (IsSetBit(new_stat, 4) && (mode == 1))
-                {
-                    if (signal == 0)
-                    {
-                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                    }
-                    signal = SetBit(signal, 1);
-                }
-                if (IsSetBit(new_stat, 5) && (mode == 2))
-                {
-                    if (signal == 0)
-                    {
-                        m_pProcessor->RequestInterrupt(Processor::LCDSTAT_Interrupt);
-                    }
-                    //signal = SetBit(signal, 2);
-                }
                 m_pVideo->CompareLYToLYC();
             }
+            else
+            {
+                m_pVideo->SetIRQ48Signal(0);
+            }
+            TraceLCDRegister(address, value);
+            break;
+        }
+        case 0xFF42:
+        case 0xFF43:
+        case 0xFF47:
+        case 0xFF48:
+        case 0xFF49:
+        case 0xFF4B:
+        {
+            // SCY, SCX, BGP, OBP0, OBP1, WX
+            m_pMemory->Load(address, value);
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF44:
         {
             // LY
-            u8 current_ly = m_pMemory->Retrieve(0xFF44);
-            if (IsSetBit(current_ly, 7) && !IsSetBit(value, 7))
-            {
-                m_pVideo->DisableScreen();
-            }
             break;
         }
         case 0xFF45:
@@ -382,12 +576,22 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                     m_pVideo->CompareLYToLYC();
                 }
             }
+            TraceLCDRegister(address, value);
+            break;
+        }
+        case 0xFF4A:
+        {
+            // WY
+            m_pMemory->Load(address, value);
+            m_pVideo->CheckWindowY();
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF46:
         {
             // DMA
             m_pMemory->Load(address, value);
+            TraceLCDRegister(address, value);
             m_pMemory->PerformDMA(value);
             break;
         }
@@ -406,12 +610,23 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
         case 0xFF4F:
         {
             // VBK
+            u8 raw = value;
             if (m_bCGB)
             {
                 value &= 0x01;
                 m_pMemory->SwitchCGBLCDRAM(value);
             }
             m_pMemory->Load(address, value);
+            TraceLCDRegister(address, raw);
+            break;
+        }
+        case 0xFF50:
+        {
+            // BOOT
+            if ((value & 0x01) > 0)
+            {
+                m_pMemory->DisableBootromRegistry();
+            }
             break;
         }
         case 0xFF51:
@@ -421,6 +636,7 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                 m_pMemory->SetHDMARegister(1, value);
             else
                 m_pMemory->Load(address, value);
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF52:
@@ -430,6 +646,7 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                 m_pMemory->SetHDMARegister(2, value);
             else
                 m_pMemory->Load(address, value);
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF53:
@@ -439,6 +656,7 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                 m_pMemory->SetHDMARegister(3, value);
             else
                 m_pMemory->Load(address, value);
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF54:
@@ -448,6 +666,7 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                 m_pMemory->SetHDMARegister(4, value);
             else
                 m_pMemory->Load(address, value);
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF55:
@@ -457,6 +676,7 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
                 m_pMemory->SwitchCGBDMA(value);
             else
                 m_pMemory->Load(address, value);
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF68:
@@ -465,14 +685,36 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             m_pMemory->Load(address, value);
             if (m_bCGB)
                 m_pVideo->UpdatePaletteToSpecification(true, value);
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF69:
         {
             // BCPD
-            m_pMemory->Load(address, value);
             if (m_bCGB)
-                m_pVideo->SetColorPalette(true, value);
+            {
+                if (m_pVideo->CGBPaletteAccessBlocked())
+                {
+                    u8 bcps = m_pMemory->Retrieve(0xFF68);
+                    if (IsSetBit(bcps, 7))
+                    {
+                        u8 address = (bcps + 1) & 0x3F;
+                        bcps = (bcps & 0x80) | address;
+                        m_pMemory->Load(0xFF68, bcps);
+                        m_pVideo->UpdatePaletteToSpecification(true, bcps);
+                    }
+                }
+                else
+                {
+                    m_pMemory->Load(address, value);
+                    m_pVideo->SetColorPalette(true, value);
+                }
+            }
+            else
+            {
+                m_pMemory->Load(address, value);
+            }
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF6A:
@@ -481,14 +723,36 @@ inline void IORegistersMemoryRule::PerformWrite(u16 address, u8 value)
             m_pMemory->Load(address, value);
             if (m_bCGB)
                 m_pVideo->UpdatePaletteToSpecification(false, value);
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF6B:
         {
             // OCPD
-            m_pMemory->Load(address, value);
             if (m_bCGB)
-                m_pVideo->SetColorPalette(false, value);
+            {
+                if (m_pVideo->CGBPaletteAccessBlocked())
+                {
+                    u8 ocps = m_pMemory->Retrieve(0xFF6A);
+                    if (IsSetBit(ocps, 7))
+                    {
+                        u8 address = (ocps + 1) & 0x3F;
+                        ocps = (ocps & 0x80) | address;
+                        m_pMemory->Load(0xFF6A, ocps);
+                        m_pVideo->UpdatePaletteToSpecification(false, ocps);
+                    }
+                }
+                else
+                {
+                    m_pMemory->Load(address, value);
+                    m_pVideo->SetColorPalette(false, value);
+                }
+            }
+            else
+            {
+                m_pMemory->Load(address, value);
+            }
+            TraceLCDRegister(address, value);
             break;
         }
         case 0xFF6C:

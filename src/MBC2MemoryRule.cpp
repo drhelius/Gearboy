@@ -36,6 +36,11 @@ MBC2MemoryRule::~MBC2MemoryRule()
 {
 }
 
+bool MBC2MemoryRule::MapsROMDirectly()
+{
+    return true;
+}
+
 void MBC2MemoryRule::Reset(bool bCGB)
 {
     m_bCGB = bCGB;
@@ -56,20 +61,13 @@ u8 MBC2MemoryRule::PerformRead(u16 address)
         }
         case 0xA000:
         {
-            if (address < 0xA200)
-            {
-                if (m_bRamEnabled)
-                    return m_pMemory->Retrieve(address);
-                else
-                {
-                    Log("--> ** Attempting to read from disabled ram %X", address);
-                    return 0xFF;
-                }
-            }
+            u16 ramAddr = 0xA000 + ((address - 0xA000) & 0x1FF);
+            if (m_bRamEnabled)
+                return m_pMemory->Retrieve(ramAddr) | 0xF0;
             else
             {
-                Log("--> ** Attempting to read from ivalid RAM %X", address);
-                return 0x00;
+                Debug("--> ** Attempting to read from disabled ram %X", address);
+                return 0xFF;
             }
         }
         default:
@@ -84,9 +82,21 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
     switch (address & 0xE000)
     {
         case 0x0000:
+        case 0x2000:
         {
-            if (!(address & 0x0100))
+            if (address & 0x0100)
             {
+                // ROM bank select (bit 8 set)
+                m_iCurrentROMBank = value & 0x0F;
+                if (m_iCurrentROMBank == 0)
+                    m_iCurrentROMBank = 1;
+                m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+                m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
+                TraceMapperEvent(address, value);
+            }
+            else
+            {
+                // RAM enable (bit 8 clear)
                 bool previous = m_bRamEnabled;
                 m_bRamEnabled = ((value & 0x0F) == 0x0A);
 
@@ -94,51 +104,30 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
                 {
                     (*m_pRamChangedCallback)();
                 }
-            }
-            else
-            {
-                Log("--> ** Attempting to write on invalid register %X %X", address, value);
-            }
-            break;
-        }
-        case 0x2000:
-        {
-            if (address & 0x0100)
-            {
-                m_iCurrentROMBank = value & 0x0F;
-                if (m_iCurrentROMBank == 0)
-                    m_iCurrentROMBank = 1;
-                m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
-                m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
-            }
-            else
-            {
-                Log("--> ** Attempting to write on invalid register %X %X", address, value);
+                if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
+                {
+                    LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
+                        m_bRamEnabled ? TRACE_MAPPER_FLAG_RAM_ENABLED : 0, true);
+                }
             }
             break;
         }
         case 0x4000:
         case 0x6000:
         {
-            Log("--> ** Attempting to write on invalid address %X %X", address, value);
+            Debug("--> ** Attempting to write on invalid address %X %X", address, value);
             break;
         }
         case 0xA000:
         {
-            if (address < 0xA200)
+            u16 ramAddr = 0xA000 + ((address - 0xA000) & 0x1FF);
+            if (m_bRamEnabled)
             {
-                if (m_bRamEnabled)
-                {
-                    m_pMemory->Load(address, value & 0x0F);
-                }
-                else
-                {
-                    Log("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
-                }
+                m_pMemory->Load(ramAddr, value & 0x0F);
             }
             else
             {
-                Log("--> ** Attempting to write on invalid RAM %X %X", address, value);
+                Debug("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
             }
             break;
         }
@@ -152,7 +141,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
 
 void MBC2MemoryRule::SaveRam(std::ostream & file)
 {
-    Log("MBC2MemoryRule save RAM...");
+    Debug("MBC2MemoryRule save RAM...");
 
     for (int i = 0xA000; i < 0xA200; i++)
     {
@@ -160,12 +149,12 @@ void MBC2MemoryRule::SaveRam(std::ostream & file)
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
 
-    Log("MBC2MemoryRule save RAM done");
+    Debug("MBC2MemoryRule save RAM done");
 }
 
 bool MBC2MemoryRule::LoadRam(std::istream & file, s32 fileSize)
 {
-    Log("MBC2MemoryRule load RAM...");
+    Debug("MBC2MemoryRule load RAM...");
 
     if ((fileSize > 0) && (fileSize != 512))
     {
@@ -180,7 +169,7 @@ bool MBC2MemoryRule::LoadRam(std::istream & file, s32 fileSize)
         m_pMemory->Load(i, ram_byte);
     }
 
-    Log("MBC2MemoryRule load RAM done");
+    Debug("MBC2MemoryRule load RAM done");
 
     return true;
 }
@@ -242,4 +231,10 @@ void MBC2MemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
     stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
     stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
+
+    m_iCurrentROMBank &= 0x0F;
+    if (m_iCurrentROMBank == 0)
+        m_iCurrentROMBank = 1;
+    m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
+    m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
 }

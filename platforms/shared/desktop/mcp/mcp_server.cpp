@@ -1,0 +1,3031 @@
+/*
+ * Gearboy - Nintendo Game Boy Emulator
+ * Copyright (C) 2012  Ignacio Sanchez
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
+ */
+
+#include "mcp_server.h"
+#include "../utils.h"
+#include "../emu.h"
+#include <sstream>
+#include <iomanip>
+#include <fstream>
+#include "log.h"
+
+bool g_mcp_router_enabled = false;
+
+static void add_trace_event_filter(u32* flags, u32* event_filters,
+    GB_Trace_Type type, u32 filter)
+{
+    *flags |= 1U << type;
+    event_filters[type] |= filter;
+}
+
+void McpServer::ReaderLoop()
+{
+    while (m_running.load())
+    {
+        std::string line;
+        if (m_transport->recv(line))
+        {
+            if (!line.empty())
+            {
+                HandleLine(line);
+            }
+        }
+        else
+        {
+            m_running.store(false);
+            m_responseQueue.Stop();
+            break;
+        }
+    }
+}
+
+void McpServer::Run()
+{
+    while (m_running.load())
+    {
+        DebugResponse* resp = m_responseQueue.WaitAndPop();
+        if (resp == NULL)
+            break;
+
+        if (resp->isError)
+        {
+            SendError(resp->requestId, resp->errorCode, resp->errorMessage);
+        }
+        else
+        {
+            json mcpResult;
+            mcpResult["content"] = json::array();
+
+            if (resp->result.contains("__mcp_image") && resp->result["__mcp_image"] == true)
+            {
+                mcpResult["content"].push_back({
+                    {"type", "image"},
+                    {"data", resp->result["data"]},
+                    {"mimeType", resp->result["mimeType"]}
+                });
+            }
+            else
+            {
+                std::ostringstream result_ss;
+                result_ss << resp->result.dump(2, ' ', false, json::error_handler_t::replace);
+
+                mcpResult["content"].push_back({
+                    {"type", "text"},
+                    {"text", result_ss.str()}
+                });
+            }
+
+            json response;
+            response["jsonrpc"] = "2.0";
+            response["id"] = resp->requestId;
+            mcpResult["isError"] = resp->isToolError;
+            response["result"] = mcpResult;
+
+            SendResponse(response);
+        }
+
+        SafeDelete(resp);
+        m_commandQueue.Complete();
+    }
+}
+
+void McpServer::HandleLine(const std::string& line)
+{
+    json request;
+
+    if (!json::accept(line))
+    {
+        if (!m_transport->validate_protocol_version(""))
+            return;
+        SendError(json(), MCP_ERROR_PARSE, "Parse error: Invalid JSON");
+        return;
+    }
+
+    request = json::parse(line);
+
+    if (!request.is_object())
+    {
+        if (!m_transport->validate_protocol_version(""))
+            return;
+        SendError(json(), MCP_ERROR_INVALID_REQUEST, "Invalid Request: expected an object");
+        return;
+    }
+
+    std::string method;
+    if (request.contains("method") && request["method"].is_string())
+        method = request["method"];
+
+    if (!m_transport->validate_protocol_version(method))
+        return;
+
+    bool is_notification = !request.contains("id");
+
+    const auto reject_or_send_error = [this, is_notification](const json& id, int code, const std::string& message)
+    {
+        if (is_notification)
+            m_transport->reject_notification();
+        else
+            SendError(id, code, message);
+    };
+
+    if (request.contains("id") && !request["id"].is_string() &&
+        !request["id"].is_number_integer() && !request["id"].is_number_unsigned())
+    {
+        reject_or_send_error(json(), MCP_ERROR_INVALID_REQUEST, "Invalid Request: id must be a string or integer");
+        return;
+    }
+
+    json request_id = request.contains("id") ? request["id"] : json();
+
+    if (!request.contains("jsonrpc") || request["jsonrpc"] != "2.0")
+    {
+        reject_or_send_error(json(), MCP_ERROR_INVALID_REQUEST, "Invalid Request: missing or invalid jsonrpc version");
+        return;
+    }
+
+    if (!request.contains("method") || !request["method"].is_string())
+    {
+        reject_or_send_error(json(), MCP_ERROR_INVALID_REQUEST, "Invalid Request: missing method");
+        return;
+    }
+
+    method = request["method"];
+
+    if (request.contains("params") && !request["params"].is_object())
+    {
+        reject_or_send_error(request_id, MCP_ERROR_INVALID_PARAMS, "Invalid params: expected an object");
+        return;
+    }
+
+    if (method == "initialize" && is_notification)
+    {
+        reject_or_send_error(json(), MCP_ERROR_INVALID_REQUEST, "Initialize must be a request");
+        return;
+    }
+
+    if (!m_initialized && method != "initialize" && method != "ping")
+    {
+        reject_or_send_error(request_id, MCP_ERROR_INVALID_REQUEST, "Server not initialized");
+        return;
+    }
+
+    if (is_notification)
+    {
+        m_transport->acknowledge_notification();
+        return;
+    }
+
+    if (method == "initialize")
+    {
+        HandleInitialize(request);
+    }
+    else if (method == "ping")
+    {
+        json response;
+        response["jsonrpc"] = "2.0";
+        response["id"] = request_id;
+        response["result"] = json::object();
+        SendResponse(response);
+    }
+    else if (method == "tools/list")
+    {
+        HandleToolsList(request);
+    }
+    else if (method == "tools/call")
+    {
+        HandleToolsCall(request);
+    }
+    else if (method == "resources/list")
+    {
+        HandleResourcesList(request);
+    }
+    else if (method == "resources/templates/list")
+    {
+        HandleResourceTemplatesList(request);
+    }
+    else if (method == "resources/read")
+    {
+        HandleResourcesRead(request);
+    }
+    else
+    {
+        SendError(request_id, MCP_ERROR_METHOD_NOT_FOUND, "Method not found: " + method);
+    }
+}
+
+static bool ValidateInitializeParams(const json& params, std::string& error)
+{
+    if (!params.contains("protocolVersion"))
+    {
+        error = "Missing required parameter 'protocolVersion'";
+        return false;
+    }
+    if (!params["protocolVersion"].is_string())
+    {
+        error = "Parameter 'protocolVersion' must be a string";
+        return false;
+    }
+
+    if (!params.contains("capabilities"))
+    {
+        error = "Missing required parameter 'capabilities'";
+        return false;
+    }
+    if (!params["capabilities"].is_object())
+    {
+        error = "Parameter 'capabilities' must be an object";
+        return false;
+    }
+
+    if (!params.contains("clientInfo"))
+    {
+        error = "Missing required parameter 'clientInfo'";
+        return false;
+    }
+    if (!params["clientInfo"].is_object())
+    {
+        error = "Parameter 'clientInfo' must be an object";
+        return false;
+    }
+
+    const json& client_info = params["clientInfo"];
+    if (!client_info.contains("name"))
+    {
+        error = "Missing required parameter 'clientInfo.name'";
+        return false;
+    }
+    if (!client_info["name"].is_string())
+    {
+        error = "Parameter 'clientInfo.name' must be a string";
+        return false;
+    }
+    if (!client_info.contains("version"))
+    {
+        error = "Missing required parameter 'clientInfo.version'";
+        return false;
+    }
+    if (!client_info["version"].is_string())
+    {
+        error = "Parameter 'clientInfo.version' must be a string";
+        return false;
+    }
+
+    return true;
+}
+
+void McpServer::HandleInitialize(const json& request)
+{
+    const json& id = request["id"];
+
+    if (!request.contains("params"))
+    {
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: missing params");
+        return;
+    }
+
+    std::string validation_error;
+    if (!ValidateInitializeParams(request["params"], validation_error))
+    {
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: " + validation_error);
+        return;
+    }
+
+    std::string protocolVersion = MCP_PROTOCOL_VERSION;
+
+    json response;
+    response["jsonrpc"] = "2.0";
+    response["id"] = id;
+    response["result"] = {
+        {"protocolVersion", protocolVersion},
+        {"capabilities", {
+            {"tools", json::object()},
+            {"resources", json::object()}
+        }},
+        {"serverInfo", {
+            {"name", "gearboy-mcp-server"},
+            {"title", GEARBOY_TITLE " MCP Server"},
+            {"description", "Debug/control " GEARBOY_TITLE " Game Boy/Game Boy Color: execution, breakpoints, memory, SM83 CPU, LCD/PPU, APU, SGB, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
+            {"version", GEARBOY_VERSION}
+        }}
+    };
+
+    response["result"]["instructions"] =
+        "Use this server for Game Boy, Game Boy Color, and Super Game Boy game debugging, reverse "
+        "engineering, memory inspection, SM83 tracing, breakpoints, LCD/PPU, APU, sprites, save states, "
+        "rewind, input, and screenshots.";
+
+    if (g_mcp_router_enabled)
+    {
+        response["result"]["instructions"] =
+            response["result"]["instructions"].get<std::string>() +
+            " The tool router is enabled. Common tools are directly callable. Advanced tools are routed: "
+            "call search_tools to find a tool, call get_tool_info to obtain its exact input schema, then "
+            "call execute_tool with the returned tool name and arguments. Never call a routed tool directly.";
+    }
+
+    m_initialized = true;
+    m_transport->set_protocol_version(protocolVersion);
+    SendResponse(response);
+}
+
+json McpServer::BuildToolList()
+{
+    json tools = json::array();
+
+    // Execution control tools
+    tools.push_back({
+        {"name", "debug_pause"},
+        {"title", "Debug Pause"},
+        {"description", "Pause execution at current instruction; enter debugger."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "debug_continue"},
+        {"title", "Debug Continue"},
+        {"description", "Resume emulator execution from pause or breakpoint."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "debug_step_into"},
+        {"title", "Debug Step Into"},
+        {"description", "Step next SM83 CPU instruction; enter CALL subroutines."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "debug_step_over"},
+        {"title", "Debug Step Over"},
+        {"description", "Step next SM83 CPU instruction; skip CALL subroutines."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "debug_step_out"},
+        {"title", "Debug Step Out"},
+        {"description", "Run until RET returns from current subroutine."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "debug_step_frame"},
+        {"title", "Debug Step Frame"},
+        {"description", "Run one or more video frames to VBlank. Default mode is async; use mode sync to wait until all requested frames complete."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"frames", {
+                    {"type", "integer"},
+                    {"description", "Number of frames to step. Default 1."},
+                    {"minimum", 1},
+                    {"maximum", 1000}
+                }},
+                {"mode", {
+                    {"type", "string"},
+                    {"description", "async returns after scheduling; sync waits until all requested frames complete. Default async."},
+                    {"enum", json::array({"async", "sync"})}
+                }}
+            }},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "debug_reset"},
+        {"title", "Debug Reset"},
+        {"description", "Reset the emulated Game Boy/Game Boy Color system."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "debug_get_status"},
+        {"title", "Debug Get Status"},
+        {"description", "Read debugger state: paused, breakpoint hit, current PC."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    // Breakpoint tools
+    tools.push_back({
+        {"name", "set_breakpoint"},
+        {"title", "Set Breakpoint"},
+        {"description", "Add breakpoint at ROM/RAM, VRAM, or IO address; defaults: rom_ram execute, vram/io read+write."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"address", {
+                    {"type", "string"},
+                    {"description", "Hex address; ranges: rom_ram 0000-FFFF, vram 0000-1FFF, io 0000-007F."}
+                }},
+                {"memory_area", {
+                    {"type", "string"},
+                    {"description", "Memory area: rom_ram default, vram offset, io offset (0x00 joypad)."},
+                    {"enum", json::array({"rom_ram", "vram", "io"})}
+                }},
+                {"read", {
+                    {"type", "boolean"},
+                    {"description", "Read access breakpoint; default true for vram/io, false for rom_ram; stops after access."}
+                }},
+                {"write", {
+                    {"type", "boolean"},
+                    {"description", "Write access breakpoint; default true for vram/io, false for rom_ram; stops after access."}
+                }},
+                {"execute", {
+                    {"type", "boolean"},
+                    {"description", "Execution breakpoint; default true for rom_ram, ignored for vram/io."}
+                }}
+            }},
+            {"required", json::array({"address"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "set_breakpoint_range"},
+        {"title", "Set Breakpoint Range"},
+        {"description", "Add breakpoint over address range; defaults: rom_ram execute, vram/io read+write."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"start_address", {
+                    {"type", "string"},
+                    {"description", "Start hex address; ranges: rom_ram 0000-FFFF, vram 0000-1FFF, io 0000-007F."}
+                }},
+                {"end_address", {
+                    {"type", "string"},
+                    {"description", "End hex address inclusive; must be >= start_address."}
+                }},
+                {"memory_area", {
+                    {"type", "string"},
+                    {"description", "Memory area: rom_ram default, vram offset, io offset."},
+                    {"enum", json::array({"rom_ram", "vram", "io"})}
+                }},
+                {"read", {
+                    {"type", "boolean"},
+                    {"description", "Read access breakpoint; default true for vram/io, false for rom_ram."}
+                }},
+                {"write", {
+                    {"type", "boolean"},
+                    {"description", "Write access breakpoint; default true for vram/io, false for rom_ram."}
+                }},
+                {"execute", {
+                    {"type", "boolean"},
+                    {"description", "Execution breakpoint; default true for rom_ram, ignored for vram/io."}
+                }}
+            }},
+            {"required", json::array({"start_address", "end_address"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "remove_breakpoint"},
+        {"title", "Remove Breakpoint"},
+        {"description", "Remove matching single/range breakpoint by address, end_address, and memory area."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"address", {
+                    {"type", "string"},
+                    {"description", "Hex address; for ranges, start address."}
+                }},
+                {"end_address", {
+                    {"type", "string"},
+                    {"description", "Range end hex address; only for range breakpoints."}
+                }},
+                {"memory_area", {
+                    {"type", "string"},
+                    {"description", "Memory area: rom_ram default, vram, or io."},
+                    {"enum", json::array({"rom_ram", "vram", "io"})}
+                }}
+            }},
+            {"required", json::array({"address"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "list_breakpoints"},
+        {"title", "List Breakpoints"},
+        {"description", "List all execution/read/write breakpoints."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "toggle_irq_breakpoints"},
+        {"title", "Toggle IRQ Breakpoints"},
+        {"description", "Enable/disable IRQ breakpoints for VBlank, LCD STAT, Timer, Serial, Joypad interrupts."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"enabled", {
+                    {"type", "boolean"},
+                    {"description", "true breaks on IRQ, false disables."}
+                }}
+            }},
+            {"required", json::array({"enabled"})}
+        }}
+    });
+
+    // Memory tools
+    tools.push_back({
+        {"name", "list_memory_areas"},
+        {"title", "List Memory Areas"},
+        {"description", "List memory areas: ROM0/ROM1, VRAM/VRAM0/VRAM1, WRAM, OAM, IO, HIRAM; returns area IDs, sizes, 0-based offsets."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "read_memory"},
+        {"title", "Read Memory"},
+        {"description", "Read bytes from memory area by physical 0-based offset."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }},
+                {"offset", {
+                    {"type", "string"},
+                    {"description", "0-based hex offset in area, e.g. '0100'."}
+                }},
+                {"size", {
+                    {"type", "integer"},
+                    {"description", "Number of bytes to read."}
+                }}
+            }},
+            {"required", json::array({"area", "offset", "size"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "write_memory"},
+        {"title", "Write Memory"},
+        {"description", "Write raw bytes to memory area by offset; bypasses IO handlers and side effects."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }},
+                {"offset", {
+                    {"type", "string"},
+                    {"description", "0-based hex offset in area, e.g. '0100'."}
+                }},
+                {"bytes", {
+                    {"type", "string"},
+                    {"description", "Hex bytes, spaces optional, e.g. 'A9 00 85 10'."}
+                }}
+            }},
+            {"required", json::array({"area", "offset", "bytes"})}
+        }}
+    });
+
+    // Register tools
+    tools.push_back({
+        {"name", "write_cpu_register"},
+        {"title", "Write CPU Register"},
+        {"description", "Write SM83 CPU register AF/BC/DE/HL/SP/PC or 8-bit subregister."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"name", {
+                    {"type", "string"},
+                    {"description", "Register: AF, BC, DE, HL, SP, PC, A, F, B, C, D, E, H, or L."}
+                }},
+                {"value", {
+                    {"type", "string"},
+                    {"description", "Hex value."}
+                }}
+            }},
+            {"required", json::array({"name", "value"})}
+        }}
+    });
+
+    // Disassembly tool
+    tools.push_back({
+        {"name", "get_disassembly"},
+        {"title", "Get Disassembly"},
+        {"description", "Read recorded SM83 disassembly for logical range: bank, segment, mnemonic, bytes. Records exist after execution; max practical range 0x2000."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"start_address", {
+                    {"type", "string"},
+                    {"description", "Start logical address hex: 'E177', '0xE177', or '$E177'."}
+                }},
+                {"end_address", {
+                    {"type", "string"},
+                    {"description", "End logical address hex; must be >= start_address."}
+                }},
+                {"bank", {
+                    {"type", "string"},
+                    {"description", "Optional ROM bank 00-FF; read records from that bank instead of current map."}
+                }},
+                {"resolve_symbols", {
+                    {"type", "boolean"},
+                    {"description", "Resolve addresses to symbols when available. Default false."}
+                }},
+                {"detailed", {
+                    {"type", "boolean"},
+                    {"description", "Include opcode bytes, jump targets, IRQ metadata. Default false compact output."}
+                }}
+            }},
+            {"required", json::array({"start_address", "end_address"})}
+        }}
+    });
+
+    // Media info tool
+    tools.push_back({
+        {"name", "get_media_info"},
+        {"title", "Get Media Info"},
+        {"description", "Read loaded ROM info: path, title, MBC, ROM/RAM size, CGB/SGB, battery."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "list_recent_media"},
+        {"title", "List Recent Media"},
+        {"description", "List recent ROMs with file_path values for load_media."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    // Chip status tools
+    tools.push_back({
+        {"name", "get_cpu_status"},
+        {"title", "Get CPU Status"},
+        {"description", "Read SM83 CPU state: AF/BC/DE/HL/SP/PC, Z/N/H/C flags, IME, HALT, CGB speed, physical PC, bank."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_lcd_registers"},
+        {"title", "Get LCD Registers"},
+        {"description", "Read LCD/PPU registers: LCDC, STAT, scroll/window, LY/LYC, DMA, palettes, CGB KEY1/VBK/HDMA/BCP/OCP/SVBK."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_lcd_status"},
+        {"title", "Get LCD Status"},
+        {"description", "Read LCD/PPU status: mode 0-3, enabled, LY/LYC, CGB mode, STAT/VBlank interrupts."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_apu_status"},
+        {"title", "Get APU Status"},
+        {"description", "Read APU audio state: square1/sweep, square2, wave, noise, volume, frequency, envelope, duty, wave RAM, panning."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_serial_status"},
+        {"title", "Get Serial / Link Cable Status"},
+        {"description", "Read Game Boy SB/SC serial engine, IRQ, timing, and local link-cable transport diagnostics."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "reset_link_cable_metrics"},
+        {"title", "Reset Link Cable Metrics"},
+        {"description", "Reset local link-cable transport, synchronization, wait, and recovery counters."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_screenshot"},
+        {"title", "Get Screenshot"},
+        {"description", "Capture current screen/frame/video output as PNG screenshot image."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    // Media and state management tools
+    tools.push_back({
+        {"name", "load_media"},
+        {"title", "Load Media"},
+        {"description", "Load ROM media (.gb .dmg .gbc .cgb .sgb .zip); reset emulator and auto-load symbols. Debugger state may be lost unless saved debugger settings are enabled."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", true}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"file_path", {
+                    {"type", "string"},
+                    {"description", "Absolute ROM file path."}
+                }}
+            }},
+            {"required", json::array({"file_path"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "load_symbols"},
+        {"title", "Load Symbols"},
+        {"description", "Load .sym debug symbols (BANK:ADDRESS LABEL); append to symbol table."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", true}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"file_path", {
+                    {"type", "string"},
+                    {"description", "Absolute symbol file path."}
+                }}
+            }},
+            {"required", json::array({"file_path"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "list_save_state_slots"},
+        {"title", "List Save State Slots"},
+        {"description", "List save-state slots: slot, ROM name, timestamp, screenshot flag."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", true}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "select_save_state_slot"},
+        {"title", "Select Save State Slot"},
+        {"description", "Select active save-state slot 1-5 for save_state/load_state."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"slot", {
+                    {"type", "integer"},
+                    {"description", "Slot number 1-5."},
+                    {"minimum", 1},
+                    {"maximum", 5}
+                }}
+            }},
+            {"required", json::array({"slot"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "save_state"},
+        {"title", "Save State"},
+        {"description", "Save emulator state to active save-state slot."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", true}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "load_state"},
+        {"title", "Load State"},
+        {"description", "Load emulator state from active save-state slot."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", true}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "save_state_file"},
+        {"title", "Save State File"},
+        {"description", "Save emulator state to an explicit file path."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", true}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"file_path", {
+                    {"type", "string"},
+                    {"description", "Absolute destination file path."}
+                }}
+            }},
+            {"required", json::array({"file_path"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "load_state_file"},
+        {"title", "Load State File"},
+        {"description", "Load emulator state from an explicit file path."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", true}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"file_path", {
+                    {"type", "string"},
+                    {"description", "Absolute save-state file path."}
+                }}
+            }},
+            {"required", json::array({"file_path"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "set_fast_forward_speed"},
+        {"title", "Set Fast Forward Speed"},
+        {"description", "Set fast-forward speed index: 0=1.5x, 1=2x, 2=2.5x, 3=3x, 4=unlimited."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"speed", {
+                    {"type", "integer"},
+                    {"description", "Speed index 0-4."},
+                    {"minimum", 0},
+                    {"maximum", 4}
+                }}
+            }},
+            {"required", json::array({"speed"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "toggle_fast_forward"},
+        {"title", "Toggle Fast Forward"},
+        {"description", "Enable/disable fast-forward mode at configured speed."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"enabled", {
+                    {"type", "boolean"},
+                    {"description", "true enables fast forward; false disables."}
+                }}
+            }},
+            {"required", json::array({"enabled"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_rewind_status"},
+        {"title", "Get Rewind Status"},
+        {"description", "Read rewind buffer: enabled, snapshot count, capacity, buffered seconds."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "rewind_seek"},
+        {"title", "Seek Rewind Buffer"},
+        {"description", "Load rewind snapshot by number; emulator must be paused."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"snapshot", {
+                    {"type", "integer"},
+                    {"description", "Snapshot number: 1 oldest, snapshot_count newest."},
+                    {"minimum", 1}
+                }}
+            }},
+            {"required", json::array({"snapshot"})}
+        }}
+    });
+
+    // Controller input tools
+    tools.push_back({
+        {"name", "controller_button"},
+        {"title", "Controller Button"},
+        {"description", "Press/release/tap Game Boy input: up/down/left/right/a/b/start/select."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"player", {
+                    {"type", "integer"},
+                    {"description", "Player number; always 1 for Game Boy."},
+                    {"minimum", 1},
+                    {"maximum", 1}
+                }},
+                {"button", {
+                    {"type", "string"},
+                    {"description", "Button: up, down, left, right, a, b, start, select."},
+                    {"enum", json::array({"up", "down", "left", "right", "a", "b", "start", "select"})}
+                }},
+                {"action", {
+                    {"type", "string"},
+                    {"description", "Action; press_and_release auto-releases after several frames."},
+                    {"enum", json::array({"press", "release", "press_and_release"})}
+                }}
+            }},
+            {"required", json::array({"player", "button", "action"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "controller_macro"},
+        {"title", "Controller Macro"},
+        {"description", "Run a frame-based controller macro. Commands are tap, press, release, and wait; player defaults to 1."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"player", {
+                    {"type", "integer"},
+                    {"description", "Default player number; always 1 for Game Boy."},
+                    {"minimum", 1},
+                    {"maximum", 1}
+                }},
+                {"commands", {
+                    {"type", "array"},
+                    {"description", "Ordered macro commands, e.g. [{\"tap\":\"start\"},{\"wait\":30},{\"press\":\"right\"},{\"wait\":60},{\"release\":\"right\"}]."},
+                    {"minItems", 1},
+                    {"items", {
+                        {"type", "object"},
+                        {"properties", {
+                            {"tap", {
+                                {"type", "string"},
+                                {"description", "Tap button for one frame."},
+                                {"enum", json::array({"up", "down", "left", "right", "a", "b", "start", "select"})}
+                            }},
+                            {"press", {
+                                {"type", "string"},
+                                {"description", "Press and hold button."},
+                                {"enum", json::array({"up", "down", "left", "right", "a", "b", "start", "select"})}
+                            }},
+                            {"release", {
+                                {"type", "string"},
+                                {"description", "Release button."},
+                                {"enum", json::array({"up", "down", "left", "right", "a", "b", "start", "select"})}
+                            }},
+                            {"wait", {
+                                {"type", "integer"},
+                                {"description", "Frames to wait."},
+                                {"minimum", 1},
+                                {"maximum", 1000}
+                            }},
+                            {"player", {
+                                {"type", "integer"},
+                                {"description", "Player override for this command; always 1 for Game Boy."},
+                                {"minimum", 1},
+                                {"maximum", 1}
+                            }}
+                        }},
+                        {"additionalProperties", false}
+                    }}
+                }}
+            }},
+            {"required", json::array({"commands"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_input_state"},
+        {"title", "Get Input State"},
+        {"description", "Get effective pressed buttons and pending tap releases."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "list_sprites"},
+        {"title", "List Sprites"},
+        {"description", "List 40 OAM sprites: position, tile, attributes, CGB palette/bank."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_sprite_image"},
+        {"title", "Get Sprite Image"},
+        {"description", "Capture one OAM sprite as PNG image."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"sprite_index", {
+                    {"type", "integer"},
+                    {"description", "Sprite index 0-39."}
+                }}
+            }},
+            {"required", json::array({"sprite_index"})}
+        }}
+    });
+
+    // Disassembler tools
+    tools.push_back({
+        {"name", "debug_run_to_cursor"},
+        {"title", "Debug Run To Cursor"},
+        {"description", "Continue execution until logical address."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"address", {
+                    {"type", "string"},
+                    {"description", "Logical hex address, e.g. 'E177'."}
+                }}
+            }},
+            {"required", json::array({"address"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "add_disassembler_bookmark"},
+        {"title", "Add Disassembler Bookmark"},
+        {"description", "Add disassembler bookmark at logical address."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"address", {
+                    {"type", "string"},
+                    {"description", "Logical hex address, e.g. 'E177'."}
+                }},
+                {"name", {
+                    {"type", "string"},
+                    {"description", "Bookmark name; optional, auto-generated if omitted."}
+                }}
+            }},
+            {"required", json::array({"address"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "remove_disassembler_bookmark"},
+        {"title", "Remove Disassembler Bookmark"},
+        {"description", "Remove disassembler bookmark at logical address."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"address", {
+                    {"type", "string"},
+                    {"description", "Logical hex address, e.g. 'E177'."}
+                }}
+            }},
+            {"required", json::array({"address"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "add_symbol"},
+        {"title", "Add Symbol"},
+        {"description", "Add disassembler symbol/label at bank:logical address."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"bank", {
+                    {"type", "string"},
+                    {"description", "Bank hex byte, e.g. '00'."}
+                }},
+                {"address", {
+                    {"type", "string"},
+                    {"description", "Logical hex address, e.g. 'E177'."}
+                }},
+                {"name", {
+                    {"type", "string"},
+                    {"description", "Symbol/label name."}
+                }}
+            }},
+            {"required", json::array({"bank", "address", "name"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "remove_symbol"},
+        {"title", "Remove Symbol"},
+        {"description", "Remove disassembler symbol/label at bank:logical address."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"bank", {
+                    {"type", "string"},
+                    {"description", "Bank hex byte, e.g. '00'."}
+                }},
+                {"address", {
+                    {"type", "string"},
+                    {"description", "Logical hex address, e.g. 'E177'."}
+                }}
+            }},
+            {"required", json::array({"bank", "address"})}
+        }}
+    });
+
+    // Memory editor tools
+    tools.push_back({
+        {"name", "select_memory_range"},
+        {"title", "Select Memory Range"},
+        {"description", "Select memory editor range by area and 0-based offsets."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }},
+                {"start_address", {
+                    {"type", "string"},
+                    {"description", "Start 0-based hex offset, e.g. '0100'."}
+                }},
+                {"end_address", {
+                    {"type", "string"},
+                    {"description", "End 0-based hex offset, e.g. '01FF'."}
+                }}
+            }},
+            {"required", json::array({"area", "start_address", "end_address"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "set_memory_selection_value"},
+        {"title", "Set Memory Selection Value"},
+        {"description", "Fill current memory selection with byte value; use select_memory_range first."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }},
+                {"value", {
+                    {"type", "string"},
+                    {"description", "Byte hex value, e.g. 'FF' or '00'."}
+                }}
+            }},
+            {"required", json::array({"area", "value"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "add_memory_bookmark"},
+        {"title", "Add Memory Bookmark"},
+        {"description", "Add memory bookmark at area offset."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }},
+                {"address", {
+                    {"type", "string"},
+                    {"description", "0-based hex offset in physical memory area."}
+                }},
+                {"name", {
+                    {"type", "string"},
+                    {"description", "Bookmark name; optional."}
+                }}
+            }},
+            {"required", json::array({"area", "address"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "remove_memory_bookmark"},
+        {"title", "Remove Memory Bookmark"},
+        {"description", "Remove memory bookmark at area offset."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }},
+                {"address", {
+                    {"type", "string"},
+                    {"description", "0-based hex offset in physical memory area."}
+                }}
+            }},
+            {"required", json::array({"area", "address"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "add_memory_watch"},
+        {"title", "Add Memory Watch"},
+        {"description", "Add memory watch at area offset with optional notes and bit size."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }},
+                {"address", {
+                    {"type", "string"},
+                    {"description", "0-based hex offset in physical memory area."}
+                }},
+                {"notes", {
+                    {"type", "string"},
+                    {"description", "Watch notes; optional."}
+                }},
+                {"size", {
+                    {"type", "integer"},
+                    {"description", "Watch bit size: 8, 16, 24, or 32; default 8."},
+                    {"enum", {8, 16, 24, 32}}
+                }}
+            }},
+            {"required", json::array({"area", "address"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "remove_memory_watch"},
+        {"title", "Remove Memory Watch"},
+        {"description", "Remove memory watch at area offset."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }},
+                {"address", {
+                    {"type", "string"},
+                    {"description", "0-based hex offset in physical memory area."}
+                }}
+            }},
+            {"required", json::array({"area", "address"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "list_disassembler_bookmarks"},
+        {"title", "List Disassembler Bookmarks"},
+        {"description", "List disassembler bookmarks."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "list_symbols"},
+        {"title", "List Symbols"},
+        {"description", "List disassembler symbols/labels."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "lookup_symbol_by_name"},
+        {"title", "Lookup Symbol by Name"},
+        {"description", "Find exact symbol name; return all matches."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"name", {
+                    {"type", "string"},
+                    {"description", "Exact symbol name."}
+                }}
+            }},
+            {"required", json::array({"name"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "lookup_symbol_at_address"},
+        {"title", "Lookup Symbol at Address"},
+        {"description", "Find symbol at bank/address."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"bank", {
+                    {"type", "string"},
+                    {"description", "Hex bank, 00-FF."}
+                }},
+                {"address", {
+                    {"type", "string"},
+                    {"description", "Hex address, 0000-FFFF."}
+                }}
+            }},
+            {"required", json::array({"bank", "address"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_call_stack"},
+        {"title", "Get Call Stack"},
+        {"description", "List current call stack/subroutine hierarchy."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "list_memory_bookmarks"},
+        {"title", "List Memory Bookmarks"},
+        {"description", "List bookmarks for memory area."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }}
+            }},
+            {"required", json::array({"area"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "list_memory_watches"},
+        {"title", "List Memory Watches"},
+        {"description", "List watches for memory area."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }}
+            }},
+            {"required", json::array({"area"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_memory_selection"},
+        {"title", "Get Memory Selection"},
+        {"description", "Read current memory selection range for area."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }}
+            }},
+            {"required", json::array({"area"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "memory_search_capture"},
+        {"title", "Memory Search Capture"},
+        {"description", "Snapshot memory area for later value-change search."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }}
+            }},
+            {"required", json::array({"area"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "memory_search"},
+        {"title", "Memory Search"},
+        {"description", "Search memory values by comparison against snapshot, constant value, or address."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas"}
+                }},
+                {"operator", {
+                    {"type", "string"},
+                    {"description", "Comparison operator: <, >, ==, !=, <=, >=."},
+                    {"enum", json::array({"<", ">", "==", "!=", "<=", ">="})}
+                }},
+                {"compare_type", {
+                    {"type", "string"},
+                    {"description", "Compare against previous snapshot, constant value, or value at address."},
+                    {"enum", json::array({"previous", "value", "address"})}
+                }},
+                {"compare_value", {
+                    {"type", "integer"},
+                    {"description", "Search value or address used for compare_type value/address."}
+                }},
+                {"data_type", {
+                    {"type", "string"},
+                    {"description", "Value type: unsigned default, signed, or hex."},
+                    {"enum", json::array({"unsigned", "signed", "hex"})}
+                }}
+            }},
+            {"required", json::array({"area", "operator", "compare_type"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "memory_find_bytes"},
+        {"title", "Find Byte Sequence in Memory"},
+        {"description", "Find consecutive hex byte sequence in memory; return addresses."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory area ID from list_memory_areas."}
+                }},
+                {"hex_bytes", {
+                    {"type", "string"},
+                    {"description", "Hex byte pairs to find, e.g. '04E5FF32' (spaces optional)"}
+                }}
+            }},
+            {"required", json::array({"area", "hex_bytes"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_trace_log"},
+        {"title", "Get Trace Log"},
+        {"description", "Read trace log entries: CPU instructions and hardware events."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"start", {
+                    {"type", "integer"},
+                    {"description", "Absolute trace sequence, or a negative value to read that many entries from the retained tail (omit for latest 100)"}
+                }},
+                {"count", {
+                    {"type", "integer"},
+                    {"description", "Entries to return (default 100, max 1000)"},
+                    {"minimum", 1},
+                    {"maximum", 1000}
+                }}
+            }},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "set_trace_log"},
+        {"title", "Set Trace Logger"},
+        {"description", "Enable/disable trace logging to memory or disk; configure capacity, file limit, output directory, and event filters."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"enabled", {
+                    {"type", "boolean"},
+                    {"description", "true starts logging, false stops; preserves entries."}
+                }},
+                {"output", {
+                    {"type", "string"},
+                    {"description", "Trace destination. Defaults to memory when starting a stopped logger."},
+                    {"enum", json::array({"memory", "disk"})}
+                }},
+                {"memory_size", {
+                    {"type", "string"},
+                    {"description", "Maximum entries retained in memory mode."},
+                    {"enum", json::array({"100K", "500K", "1M", "2M", "5M"})}
+                }},
+                {"disk_size", {
+                    {"type", "string"},
+                    {"description", "Maximum disk trace file size."},
+                    {"enum", json::array({"10MB", "50MB", "100MB", "250MB", "500MB", "1GB", "unbounded"})}
+                }},
+                {"output_path", {
+                    {"type", "string"},
+                    {"description", "Directory for the automatically named disk trace file."}
+                }},
+                {"filters", {
+                    {"type", "array"},
+                    {"description", "Exact event streams to record. Defaults to CPU instructions and interrupts."},
+                    {"items", {
+                        {"type", "string"},
+                        {"enum", json::array({
+                            "cpu.instructions", "cpu.interrupts",
+                            "lcd.registers", "lcd.interrupts", "lcd.dma",
+                            "input.reads", "input.writes",
+                            "timer.interrupts", "timer.registers",
+                            "apu.global", "apu.pulse1", "apu.pulse2", "apu.wave", "apu.noise", "apu.wave_ram",
+                            "serial.registers", "serial.transfers", "serial.interrupts",
+                            "mapper.rom", "mapper.ram_rtc", "mapper.control"
+                        })}
+                    }},
+                    {"minItems", 1},
+                    {"uniqueItems", true}
+                }}
+            }},
+            {"required", json::array({"enabled"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_sgb_status"},
+        {"title", "Get SGB Status"},
+        {"description", "Read Super Game Boy state: active, mask, multiplayer, last command, transfer, border animation, palettes, attribute map."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    for (json::iterator it = tools.begin(); it != tools.end(); ++it)
+    {
+        if (it->contains("inputSchema") && (*it)["inputSchema"].is_object() &&
+            !(*it)["inputSchema"].contains("additionalProperties"))
+        {
+            (*it)["inputSchema"]["additionalProperties"] = false;
+        }
+    }
+
+    return tools;
+}
+
+void McpServer::HandleToolsList(const json& request)
+{
+    const json& id = request["id"];
+
+    json tools = BuildToolList();
+
+    m_toolRegistry.SetTools(tools);
+
+    if (g_mcp_router_enabled)
+    {
+        json visibleTools = m_toolRegistry.GetDirectTools();
+        AddRouterTools(visibleTools);
+        tools = visibleTools;
+    }
+
+    json response;
+    response["jsonrpc"] = "2.0";
+    response["id"] = id;
+    response["result"] = {
+        {"tools", tools}
+    };
+
+    SendResponse(response);
+}
+
+void McpServer::EnsureToolRegistry()
+{
+    if (!m_toolRegistry.IsEmpty())
+        return;
+
+    m_toolRegistry.SetTools(BuildToolList());
+}
+
+
+void McpServer::AddRouterTools(json& tools)
+{
+    tools.push_back({
+        {"name", "list_tool_categories"},
+        {"title", "List Tool Categories"},
+        {"description", "List routed MCP tool categories with descriptions and tool counts. Use this first to discover advanced emulator/debugger tools."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_category_tools"},
+        {"title", "Get Category Tools"},
+        {"description", "List routed tools in a category with compact descriptions. Use category names returned by list_tool_categories, then call get_tool_info for one tool's input schema."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"category", {{"type", "string"}}}
+            }},
+            {"required", json::array({"category"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_tool_info"},
+        {"title", "Get Tool Info"},
+        {"description", "Return one MCP tool's title, description, category, direct/routed status, and real input schema. Use this after search_tools or get_category_tools before execute_tool."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"name", {{"type", "string"}}}
+            }},
+            {"required", json::array({"name"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "search_tools"},
+        {"title", "Search Tools"},
+        {"description", "Search direct and routed MCP tools by keyword, category, title, description, and aliases. Use this when you know what you want to do but not the tool name."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"query", {{"type", "string"}}}
+            }},
+            {"required", json::array({"query"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "execute_tool"},
+        {"title", "Execute Routed Tool"},
+        {"description", "Execute a routed MCP tool by name. First use search_tools or get_category_tools to discover the tool, then call get_tool_info to obtain its exact input schema."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", true}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"name", {{"type", "string"}}},
+                {"arguments", {
+                    {"type", "object"},
+                    {"additionalProperties", true}
+                }}
+            }},
+            {"required", json::array({"name"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+}
+
+json McpServer::HandleRouterListCategories()
+{
+    EnsureToolRegistry();
+
+    json stats = m_toolRegistry.GetStats();
+    stats["categories"] = m_toolRegistry.GetCategories();
+
+    return stats;
+}
+
+json McpServer::HandleRouterGetCategoryTools(const json& arguments)
+{
+    EnsureToolRegistry();
+
+    std::string category = arguments.value("category", "");
+
+    if (!m_toolRegistry.HasCategory(category))
+    {
+        return {
+            {"error", "Unknown category"},
+            {"category", category},
+            {"available_categories", m_toolRegistry.GetCategoryNames()}
+        };
+    }
+
+    return {
+        {"category", category},
+        {"title", m_toolRegistry.GetCategoryTitle(category)},
+        {"description", m_toolRegistry.GetCategoryDescription(category)},
+        {"tool_count", m_toolRegistry.GetCategoryToolCount(category)},
+        {"tools", m_toolRegistry.GetToolsInCategory(category)}
+    };
+}
+
+json McpServer::HandleRouterSearchTools(const json& arguments)
+{
+    EnsureToolRegistry();
+
+    std::string query = arguments.value("query", "");
+    json tools = m_toolRegistry.SearchTools(query);
+
+    return {
+        {"query", query},
+        {"count", tools.size()},
+        {"limit", m_toolRegistry.GetSearchToolLimit()},
+        {"matches", tools}
+    };
+}
+
+json McpServer::HandleRouterGetToolInfo(const json& arguments)
+{
+    EnsureToolRegistry();
+
+    std::string tool_name = arguments.value("name", "");
+    json tool = m_toolRegistry.GetToolInfo(tool_name);
+
+    if (tool.empty())
+    {
+        return {
+            {"error", "Unknown tool"},
+            {"name", tool_name},
+            {"hint", "Use search_tools or get_category_tools to discover available tool names."}
+        };
+    }
+
+    return tool;
+}
+
+void McpServer::SendToolResult(const json& id, const json& result)
+{
+    json response;
+    response["jsonrpc"] = "2.0";
+    response["id"] = id;
+    response["result"] = {
+        {"content", json::array({
+            {
+                {"type", "text"},
+                {"text", result.dump(2, ' ', false, json::error_handler_t::replace)}
+            }
+        })}
+    };
+    response["result"]["isError"] = result.contains("error");
+
+    SendResponse(response);
+}
+
+void McpServer::HandleToolsCall(const json& request)
+{
+    const json& id = request["id"];
+
+    if (!request.contains("params") || !request["params"].contains("name") || !request["params"]["name"].is_string())
+    {
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: missing tool name");
+        return;
+    }
+
+    std::string toolName = request["params"]["name"];
+    if (request["params"].contains("arguments") && !request["params"]["arguments"].is_object())
+    {
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: arguments must be an object");
+        return;
+    }
+
+    json arguments = request["params"].contains("arguments") ? request["params"]["arguments"] : json::object();
+
+    EnsureToolRegistry();
+
+    if (g_mcp_router_enabled && m_toolRegistry.IsRouterTool(toolName, "list_tool_categories"))
+    {
+        if (!arguments.empty())
+        {
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: list_tool_categories takes no arguments");
+            return;
+        }
+        SendToolResult(id, HandleRouterListCategories());
+        return;
+    }
+
+    if (g_mcp_router_enabled && m_toolRegistry.IsRouterTool(toolName, "get_category_tools"))
+    {
+        if (arguments.size() != 1 || !arguments.contains("category") || !arguments["category"].is_string())
+        {
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: category must be a string");
+            return;
+        }
+        SendToolResult(id, HandleRouterGetCategoryTools(arguments));
+        return;
+    }
+
+    if (g_mcp_router_enabled && m_toolRegistry.IsRouterTool(toolName, "get_tool_info"))
+    {
+        if (arguments.size() != 1 || !arguments.contains("name") || !arguments["name"].is_string())
+        {
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: name must be a string");
+            return;
+        }
+        SendToolResult(id, HandleRouterGetToolInfo(arguments));
+        return;
+    }
+
+    if (g_mcp_router_enabled && m_toolRegistry.IsRouterTool(toolName, "search_tools"))
+    {
+        if (arguments.size() != 1 || !arguments.contains("query") || !arguments["query"].is_string())
+        {
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: query must be a string");
+            return;
+        }
+        SendToolResult(id, HandleRouterSearchTools(arguments));
+        return;
+    }
+
+    if (g_mcp_router_enabled && m_toolRegistry.IsRouterTool(toolName, "execute_tool"))
+    {
+        if (arguments.size() > 2 || !arguments.contains("name") || !arguments["name"].is_string() ||
+            (arguments.size() == 2 && !arguments.contains("arguments")))
+        {
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: execute_tool accepts only name and arguments");
+            return;
+        }
+
+        toolName = arguments["name"].get<std::string>();
+
+        if (!m_toolRegistry.HasTool(toolName))
+        {
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: unknown routed tool '" + toolName + "'");
+            return;
+        }
+
+        if (arguments.contains("arguments") && !arguments["arguments"].is_object())
+        {
+            SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: routed arguments must be an object");
+            return;
+        }
+
+        if (arguments.contains("arguments"))
+            arguments = arguments["arguments"];
+        else
+            arguments = json::object();
+    }
+
+    std::string validation_error;
+    if (!m_toolRegistry.ValidateArguments(toolName, arguments, validation_error))
+    {
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: " + validation_error);
+        return;
+    }
+
+    DebugCommand* cmd = new DebugCommand();
+    cmd->requestId = id;
+    cmd->toolName = toolName;
+    cmd->arguments = arguments;
+    if (!m_commandQueue.Push(cmd))
+    {
+        SafeDelete(cmd);
+        SendError(id, MCP_ERROR_INTERNAL, "Server busy");
+    }
+}
+
+static int GetBreakpointTypeFromString(const std::string& memory_area)
+{
+    if (memory_area == "rom_ram") return Processor::GB_BREAKPOINT_TYPE_ROMRAM;
+    if (memory_area == "vram") return Processor::GB_BREAKPOINT_TYPE_VRAM;
+    if (memory_area == "io") return Processor::GB_BREAKPOINT_TYPE_IO;
+    return Processor::GB_BREAKPOINT_TYPE_ROMRAM; // default
+}
+
+json McpServer::ExecuteCommand(const std::string& toolName, const json& arguments)
+{
+    // Normalize tool name: VS Code converts underscores to dots
+    std::string normalizedTool = toolName;
+    size_t pos = 0;
+    while ((pos = normalizedTool.find('.', pos)) != std::string::npos) {
+        normalizedTool[pos] = '_';
+        pos++;
+    }
+
+    // Execution control
+    if (normalizedTool == "debug_pause")
+    {
+        m_debugAdapter.Pause();
+        return {{"success", true}};
+    }
+    else if (normalizedTool == "debug_continue")
+    {
+        m_debugAdapter.Resume();
+        return {{"success", true}};
+    }
+    else if (normalizedTool == "debug_step_into")
+    {
+        m_debugAdapter.StepInto();
+        return {{"success", true}};
+    }
+    else if (normalizedTool == "debug_step_over")
+    {
+        m_debugAdapter.StepOver();
+        return {{"success", true}};
+    }
+    else if (normalizedTool == "debug_step_out")
+    {
+        m_debugAdapter.StepOut();
+        return {{"success", true}};
+    }
+    else if (normalizedTool == "debug_step_frame")
+    {
+        int frames = arguments.value("frames", 1);
+
+        if (frames < 1 || frames > 1000)
+            return {{"error", "Invalid frames value (must be 1-1000)"}};
+
+        m_debugAdapter.StepFrame(frames);
+        return {{"success", true}, {"mode", "async"}, {"pending", true}, {"frames", frames}};
+    }
+    else if (normalizedTool == "debug_reset")
+    {
+        m_debugAdapter.Reset();
+        return {{"success", true}};
+    }
+    else if (normalizedTool == "debug_get_status")
+    {
+        return m_debugAdapter.GetDebugStatus();
+    }
+    // Breakpoints
+    else if (normalizedTool == "set_breakpoint")
+    {
+        std::string addrStr = arguments["address"];
+        u16 address;
+        if (!parse_hex_with_prefix(addrStr, &address))
+            return {{"error", "Invalid address format"}};
+
+        std::string memory_area = arguments.value("memory_area", "rom_ram");
+        int breakpoint_type = GetBreakpointTypeFromString(memory_area);
+
+        bool is_data_area = (breakpoint_type != 0);
+        bool read = arguments.value("read", is_data_area);
+        bool write = arguments.value("write", is_data_area);
+        bool execute = arguments.value("execute", !is_data_area);
+
+        if (is_data_area)
+            execute = false;
+
+        if (!read && !write && !execute)
+            return {{"error", "At least one of read, write, or execute must be true"}};
+
+        u16 max_address = 0xFFFF;
+        if (breakpoint_type == Processor::GB_BREAKPOINT_TYPE_VRAM)
+            max_address = 0x1FFF;
+        else if (breakpoint_type == Processor::GB_BREAKPOINT_TYPE_IO)
+            max_address = 0x007F;
+
+        if (address > max_address)
+        {
+            char msg[128];
+            snprintf(msg, sizeof(msg), "Address 0x%04X out of range for %s (max: 0x%04X)", address, memory_area.c_str(), max_address);
+            return {{"error", msg}};
+        }
+
+        m_debugAdapter.SetBreakpoint(address, breakpoint_type, read, write, execute);
+        return {{"success", true}, {"address", addrStr}, {"memory_area", memory_area}};
+    }
+    else if (normalizedTool == "set_breakpoint_range")
+    {
+        std::string startAddrStr = arguments["start_address"];
+        std::string endAddrStr = arguments["end_address"];
+        u16 start_address, end_address;
+
+        if (!parse_hex_with_prefix(startAddrStr, &start_address))
+            return {{"error", "Invalid start_address format"}};
+        if (!parse_hex_with_prefix(endAddrStr, &end_address))
+            return {{"error", "Invalid end_address format"}};
+        if (start_address > end_address)
+            return {{"error", "start_address must be <= end_address"}};
+
+        std::string memory_area = arguments.value("memory_area", "rom_ram");
+        int breakpoint_type = GetBreakpointTypeFromString(memory_area);
+
+        bool is_data_area = (breakpoint_type != 0);
+        bool read = arguments.value("read", is_data_area);
+        bool write = arguments.value("write", is_data_area);
+        bool execute = arguments.value("execute", !is_data_area);
+
+        if (is_data_area)
+            execute = false;
+
+        if (!read && !write && !execute)
+            return {{"error", "At least one of read, write, or execute must be true"}};
+
+        u16 max_address = 0xFFFF;
+        if (breakpoint_type == Processor::GB_BREAKPOINT_TYPE_VRAM)
+            max_address = 0x1FFF;
+        else if (breakpoint_type == Processor::GB_BREAKPOINT_TYPE_IO)
+            max_address = 0x007F;
+
+        if (start_address > max_address || end_address > max_address)
+        {
+            char msg[128];
+            snprintf(msg, sizeof(msg), "Address out of range for %s (max: 0x%04X)", memory_area.c_str(), max_address);
+            return {{"error", msg}};
+        }
+
+        m_debugAdapter.SetBreakpointRange(start_address, end_address, breakpoint_type,
+                                         read, write, execute);
+        return {{"success", true}, {"start_address", startAddrStr}, {"end_address", endAddrStr}, {"memory_area", memory_area}};
+    }
+    else if (normalizedTool == "remove_breakpoint")
+    {
+        std::string addrStr = arguments["address"];
+        u16 address;
+        if (!parse_hex_with_prefix(addrStr, &address))
+            return {{"error", "Invalid address format"}};
+
+        std::string memory_area = arguments.value("memory_area", "rom_ram");
+        int breakpoint_type = GetBreakpointTypeFromString(memory_area);
+
+        u16 end_address = 0;
+        if (arguments.contains("end_address"))
+        {
+            std::string endAddrStr = arguments["end_address"];
+            if (!parse_hex_with_prefix(endAddrStr, &end_address))
+                return {{"error", "Invalid end_address format"}};
+        }
+
+        m_debugAdapter.ClearBreakpointByAddress(address, breakpoint_type, end_address);
+        return {{"success", true}, {"address", addrStr}, {"memory_area", memory_area}};
+    }
+    else if (normalizedTool == "list_breakpoints")
+    {
+        std::vector<BreakpointInfo> breakpoints = m_debugAdapter.ListBreakpoints();
+        json bpArray = json::array();
+        for (const BreakpointInfo& bp : breakpoints)
+        {
+            json bpObj;
+            bpObj["enabled"] = bp.enabled;
+            bpObj["type"] = bp.type_name;
+
+            std::ostringstream addr_ss;
+            addr_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << bp.address1;
+            bpObj["address"] = addr_ss.str();
+
+            if (bp.range)
+            {
+                std::ostringstream addr2_ss;
+                addr2_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << bp.address2;
+                bpObj["address2"] = addr2_ss.str();
+            }
+
+            bpObj["read"] = bp.read;
+            bpObj["write"] = bp.write;
+            bpObj["execute"] = bp.execute;
+            bpArray.push_back(bpObj);
+        }
+        return {{"breakpoints", bpArray}, {"irq_breakpoints_enabled", (bool)emu_debug_irq_breakpoints}};
+    }
+    else if (normalizedTool == "toggle_irq_breakpoints")
+    {
+        bool enabled = arguments["enabled"];
+        emu_debug_irq_breakpoints = enabled;
+        return {{"success", true}, {"irq_breakpoints_enabled", enabled}};
+    }
+    // Memory
+    else if (normalizedTool == "list_memory_areas")
+    {
+        std::vector<MemoryAreaInfo> areas = m_debugAdapter.ListMemoryAreas();
+        json areaArray = json::array();
+        for (const MemoryAreaInfo& area : areas)
+        {
+            json areaObj;
+            areaObj["id"] = area.id;
+            areaObj["name"] = area.name;
+            areaObj["size"] = area.size;
+            areaObj["read_only"] = area.read_only;
+            areaArray.push_back(areaObj);
+        }
+        return {{"areas", areaArray}};
+    }
+    else if (normalizedTool == "read_memory")
+    {
+        int area = arguments["area"];
+        std::string offsetStr = arguments["offset"];
+        u32 offset;
+        if (!parse_hex_with_prefix(offsetStr, &offset))
+            return {{"error", "Invalid offset format"}};
+
+        size_t size = arguments["size"];
+        std::vector<u8> data = m_debugAdapter.ReadMemoryArea(area, offset, size);
+
+        std::ostringstream hex_ss;
+        for (size_t i = 0; i < data.size(); i++)
+        {
+            hex_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)data[i];
+            if (i < data.size() - 1)
+                hex_ss << " ";
+        }
+
+        return {{"area", area}, {"offset", offsetStr}, {"data", hex_ss.str()}};
+    }
+    else if (normalizedTool == "write_memory")
+    {
+        if (!arguments.contains("area") || !arguments["area"].is_number_integer())
+            return {{"error", "area is required"}};
+        if (!arguments.contains("offset") || !arguments["offset"].is_string())
+            return {{"error", "offset is required"}};
+        if (!arguments.contains("bytes") || !arguments["bytes"].is_string())
+            return {{"error", "bytes is required"}};
+
+        int area = arguments["area"].get<int>();
+        std::string offsetStr = arguments["offset"].get<std::string>();
+        u32 offset;
+        if (!parse_hex_with_prefix(offsetStr, &offset))
+            return {{"error", "Invalid offset format"}};
+
+        std::string bytesStr = arguments["bytes"].get<std::string>();
+        std::vector<u8> data;
+
+        std::istringstream iss(bytesStr);
+        std::string byteStr;
+        while (iss >> byteStr)
+        {
+            u8 byte;
+            if (!parse_hex_with_prefix(byteStr, &byte))
+                return {{"error", "Invalid byte format"}};
+            data.push_back(byte);
+        }
+
+        if (!m_debugAdapter.WriteMemoryArea(area, offset, data))
+            return {{"error", "Memory area is invalid or read-only"}};
+        return {{"success", true}, {"area", area}, {"offset", offsetStr}, {"bytes_written", data.size()}};
+    }
+    // Registers
+    else if (normalizedTool == "write_cpu_register")
+    {
+        std::string name = arguments["name"];
+        std::string valueStr = arguments["value"];
+        u32 value;
+        if (!parse_hex_with_prefix(valueStr, &value))
+            return {{"error", "Invalid value format"}};
+
+        m_debugAdapter.SetRegister(name, value);
+        return {{"success", true}, {"register", name}, {"value", valueStr}};
+    }
+    // Disassembly
+    else if (normalizedTool == "get_disassembly")
+    {
+        if (!arguments.contains("start_address"))
+            return {{"error", "start_address is required"}};
+        if (!arguments.contains("end_address"))
+            return {{"error", "end_address is required"}};
+
+        std::string startAddrStr = arguments["start_address"];
+        std::string endAddrStr = arguments["end_address"];
+        u16 start_address, end_address;
+
+        if (!parse_hex_with_prefix(startAddrStr, &start_address))
+            return {{"error", "Invalid start_address format"}};
+        if (!parse_hex_with_prefix(endAddrStr, &end_address))
+            return {{"error", "Invalid end_address format"}};
+        if (start_address > end_address)
+            return {{"error", "start_address must be <= end_address"}};
+
+        u32 range_size = (u32)end_address - (u32)start_address + 1;
+        if (range_size > 0x2000)
+            return {{"error", "Address range too large. Maximum range is 0x2000 (8KB). Use smaller ranges for disassembly."}};
+
+        // Optional bank parameter (-1 means use current mapper mappings)
+        int bank = -1;
+        if (arguments.contains("bank"))
+        {
+            std::string bankStr = arguments["bank"];
+            u8 bank_value;
+            if (!parse_hex_with_prefix(bankStr, &bank_value))
+                return {{"error", "Invalid bank format (must be 00-FF in hex)"}};
+            bank = bank_value;
+        }
+
+        bool resolve_symbols = false;
+        if (arguments.contains("resolve_symbols") && arguments["resolve_symbols"].is_boolean())
+            resolve_symbols = arguments["resolve_symbols"].get<bool>();
+
+        bool detailed = false;
+        if (arguments.contains("detailed") && arguments["detailed"].is_boolean())
+            detailed = arguments["detailed"].get<bool>();
+
+        std::vector<DisasmLine> lines = m_debugAdapter.GetDisassembly(start_address, end_address, bank, resolve_symbols);
+
+        json result;
+
+        if (detailed)
+        {
+            json instructions = json::array();
+
+            for (const DisasmLine& line : lines)
+            {
+                json instr;
+                std::ostringstream addr_ss, bank_ss, jump_ss;
+
+                addr_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << line.address;
+                bank_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)line.bank;
+
+                instr["address"] = addr_ss.str();
+                instr["bank"] = bank_ss.str();
+                instr["segment"] = line.segment;
+                instr["instruction"] = line.name;
+                instr["bytes"] = line.bytes;
+                instr["size"] = line.size;
+
+                if (line.jump)
+                {
+                    jump_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << line.jump_address;
+                    instr["jump_target"] = jump_ss.str();
+                    instr["is_subroutine"] = line.subroutine;
+                }
+
+                if (line.irq > 0)
+                {
+                    instr["irq"] = line.irq;
+                }
+
+                instructions.push_back(instr);
+            }
+
+            result["instructions"] = instructions;
+        }
+        else
+        {
+            json instructions = json::array();
+
+            for (const DisasmLine& line : lines)
+            {
+                std::ostringstream ss;
+                ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)line.bank;
+                ss << ":" << std::setw(4) << line.address;
+                ss << "  " << line.name;
+                instructions.push_back(ss.str());
+            }
+
+            result["instructions"] = instructions;
+        }
+
+        result["count"] = lines.size();
+        result["start_address"] = startAddrStr;
+        result["end_address"] = endAddrStr;
+        if (bank >= 0)
+        {
+            std::ostringstream bank_ss;
+            bank_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << bank;
+            result["bank"] = bank_ss.str();
+        }
+
+        if (lines.empty())
+        {
+            result["note"] = "No disassembly records found. You may have asked for code that has not been executed yet. Code is only disassembled as it is executed.";
+        }
+
+        return result;
+    }
+    // Media info
+    else if (normalizedTool == "get_media_info")
+    {
+        return m_debugAdapter.GetMediaInfo();
+    }
+    else if (normalizedTool == "list_recent_media")
+    {
+        return m_debugAdapter.ListRecentMedia();
+    }
+    // Chip status
+    else if (normalizedTool == "get_cpu_status")
+    {
+        return m_debugAdapter.GetCPUStatus();
+    }
+    else if (normalizedTool == "get_lcd_registers")
+    {
+        return m_debugAdapter.GetLCDRegisters();
+    }
+    else if (normalizedTool == "get_lcd_status")
+    {
+        return m_debugAdapter.GetLCDStatus();
+    }
+    else if (normalizedTool == "get_apu_status")
+    {
+        return m_debugAdapter.GetAPUStatus();
+    }
+    else if (normalizedTool == "get_serial_status")
+    {
+        return m_debugAdapter.GetSerialStatus();
+    }
+    else if (normalizedTool == "reset_link_cable_metrics")
+    {
+        return m_debugAdapter.ResetLinkCableMetrics();
+    }
+    else if (normalizedTool == "get_screenshot")
+    {
+        return m_debugAdapter.GetScreenshot();
+    }
+    // Media and state management
+    else if (normalizedTool == "load_media")
+    {
+        return {{"error", "load_media must be handled by the MCP manager"}};
+    }
+    else if (normalizedTool == "load_symbols")
+    {
+        std::string file_path = arguments["file_path"];
+        return m_debugAdapter.LoadSymbols(file_path);
+    }
+    else if (normalizedTool == "list_save_state_slots")
+    {
+        return m_debugAdapter.ListSaveStateSlots();
+    }
+    else if (normalizedTool == "select_save_state_slot")
+    {
+        int slot = arguments["slot"];
+        return m_debugAdapter.SelectSaveStateSlot(slot);
+    }
+    else if (normalizedTool == "save_state")
+    {
+        return m_debugAdapter.SaveState();
+    }
+    else if (normalizedTool == "load_state")
+    {
+        return m_debugAdapter.LoadState();
+    }
+    else if (normalizedTool == "save_state_file")
+    {
+        if (!arguments.contains("file_path") || !arguments["file_path"].is_string())
+            return {{"error", "File path is required"}};
+
+        std::string file_path = arguments["file_path"];
+        return m_debugAdapter.SaveStateFile(file_path);
+    }
+    else if (normalizedTool == "load_state_file")
+    {
+        if (!arguments.contains("file_path") || !arguments["file_path"].is_string())
+            return {{"error", "File path is required"}};
+
+        std::string file_path = arguments["file_path"];
+        return m_debugAdapter.LoadStateFile(file_path);
+    }
+    else if (normalizedTool == "set_fast_forward_speed")
+    {
+        int speed = arguments["speed"];
+        return m_debugAdapter.SetFastForwardSpeed(speed);
+    }
+    else if (normalizedTool == "toggle_fast_forward")
+    {
+        bool enabled = arguments["enabled"];
+        return m_debugAdapter.ToggleFastForward(enabled);
+    }
+    else if (normalizedTool == "get_rewind_status")
+    {
+        return m_debugAdapter.GetRewindStatus();
+    }
+    else if (normalizedTool == "rewind_seek")
+    {
+        int snapshot = arguments["snapshot"];
+        return m_debugAdapter.RewindSeek(snapshot);
+    }
+    else if (normalizedTool == "controller_button")
+    {
+        int player = arguments["player"];
+        std::string button = arguments["button"];
+        std::string action = arguments["action"];
+        return m_debugAdapter.ControllerButton(player, button, action);
+    }
+    else if (normalizedTool == "get_input_state")
+    {
+        return m_debugAdapter.GetInputState();
+    }
+    else if (normalizedTool == "controller_macro")
+    {
+        return {{"error", "controller_macro must be handled by the MCP manager"}};
+    }
+    else if (normalizedTool == "list_sprites")
+    {
+        return m_debugAdapter.ListSprites();
+    }
+    else if (normalizedTool == "get_sprite_image")
+    {
+        int sprite_index = arguments.value("sprite_index", 0);
+        return m_debugAdapter.GetSpriteImage(sprite_index);
+    }
+    // Disassembler operations
+    else if (normalizedTool == "debug_run_to_cursor")
+    {
+        std::string addrStr = arguments["address"];
+        u16 address;
+        if (!parse_hex_with_prefix(addrStr, &address))
+            return {{"error", "Invalid address format"}};
+        return m_debugAdapter.RunToAddress(address);
+    }
+    else if (normalizedTool == "add_disassembler_bookmark")
+    {
+        std::string addrStr = arguments["address"];
+        u16 address;
+        if (!parse_hex_with_prefix(addrStr, &address))
+            return {{"error", "Invalid address format"}};
+        std::string name = arguments.value("name", "");
+        return m_debugAdapter.AddDisassemblerBookmark(address, name);
+    }
+    else if (normalizedTool == "remove_disassembler_bookmark")
+    {
+        std::string addrStr = arguments["address"];
+        u16 address;
+        if (!parse_hex_with_prefix(addrStr, &address))
+            return {{"error", "Invalid address format"}};
+        return m_debugAdapter.RemoveDisassemblerBookmark(address);
+    }
+    else if (normalizedTool == "add_symbol")
+    {
+        std::string bankStr = arguments["bank"];
+        std::string addrStr = arguments["address"];
+        std::string name = arguments["name"];
+        u8 bank;
+        u16 address;
+        if (!parse_hex_with_prefix(bankStr, &bank))
+            return {{"error", "Invalid bank format"}};
+        if (!parse_hex_with_prefix(addrStr, &address))
+            return {{"error", "Invalid address format"}};
+        return m_debugAdapter.AddSymbol(bank, address, name);
+    }
+    else if (normalizedTool == "remove_symbol")
+    {
+        std::string bankStr = arguments["bank"];
+        std::string addrStr = arguments["address"];
+        u8 bank;
+        u16 address;
+        if (!parse_hex_with_prefix(bankStr, &bank))
+            return {{"error", "Invalid bank format"}};
+        if (!parse_hex_with_prefix(addrStr, &address))
+            return {{"error", "Invalid address format"}};
+        return m_debugAdapter.RemoveSymbol(bank, address);
+    }
+    // Memory editor operations
+    else if (normalizedTool == "select_memory_range")
+    {
+        int editor = arguments["area"];
+        std::string startStr = arguments["start_address"];
+        std::string endStr = arguments["end_address"];
+        u32 start_address, end_address;
+        if (!parse_hex_with_prefix(startStr, &start_address))
+            return {{"error", "Invalid start_address format"}};
+        if (!parse_hex_with_prefix(endStr, &end_address))
+            return {{"error", "Invalid end_address format"}};
+        return m_debugAdapter.SelectMemoryRange(editor, start_address, end_address);
+    }
+    else if (normalizedTool == "set_memory_selection_value")
+    {
+        int editor = arguments["area"];
+        std::string valueStr = arguments["value"];
+        u8 value;
+        if (!parse_hex_with_prefix(valueStr, &value))
+            return {{"error", "Invalid value format"}};
+        return m_debugAdapter.SetMemorySelectionValue(editor, value);
+    }
+    else if (normalizedTool == "add_memory_bookmark")
+    {
+        int editor = arguments["area"];
+        std::string addrStr = arguments["address"];
+        std::string name = arguments.value("name", "");
+        u32 address;
+        if (!parse_hex_with_prefix(addrStr, &address))
+            return {{"error", "Invalid address format"}};
+        return m_debugAdapter.AddMemoryBookmark(editor, address, name);
+    }
+    else if (normalizedTool == "remove_memory_bookmark")
+    {
+        int editor = arguments["area"];
+        std::string addrStr = arguments["address"];
+        u32 address;
+        if (!parse_hex_with_prefix(addrStr, &address))
+            return {{"error", "Invalid address format"}};
+        return m_debugAdapter.RemoveMemoryBookmark(editor, address);
+    }
+    else if (normalizedTool == "add_memory_watch")
+    {
+        int editor = arguments["area"];
+        std::string addrStr = arguments["address"];
+        std::string notes = arguments.value("notes", "");
+        int size = arguments.value("size", 8);
+        u32 address;
+        if (!parse_hex_with_prefix(addrStr, &address))
+            return {{"error", "Invalid address format"}};
+        return m_debugAdapter.AddMemoryWatch(editor, address, notes, size);
+    }
+    else if (normalizedTool == "remove_memory_watch")
+    {
+        int editor = arguments["area"];
+        std::string addrStr = arguments["address"];
+        u32 address;
+        if (!parse_hex_with_prefix(addrStr, &address))
+            return {{"error", "Invalid address format"}};
+        return m_debugAdapter.RemoveMemoryWatch(editor, address);
+    }
+    else if (normalizedTool == "list_disassembler_bookmarks")
+    {
+        return m_debugAdapter.ListDisassemblerBookmarks();
+    }
+    else if (normalizedTool == "list_symbols")
+    {
+        return m_debugAdapter.ListSymbols();
+    }
+    else if (normalizedTool == "lookup_symbol_by_name")
+    {
+        return m_debugAdapter.LookupSymbolByName(arguments["name"]);
+    }
+    else if (normalizedTool == "lookup_symbol_at_address")
+    {
+        std::string bank_str = arguments["bank"];
+        std::string address_str = arguments["address"];
+        u8 bank;
+        u16 address;
+        if (!parse_hex_with_prefix(bank_str, &bank))
+            return {{"error", "Invalid bank format"}};
+        if (!parse_hex_with_prefix(address_str, &address))
+            return {{"error", "Invalid address format"}};
+        return m_debugAdapter.LookupSymbolAtAddress(bank, address);
+    }
+    else if (normalizedTool == "get_call_stack")
+    {
+        return m_debugAdapter.ListCallStack();
+    }
+    else if (normalizedTool == "list_memory_bookmarks")
+    {
+        int area = arguments["area"];
+        return m_debugAdapter.ListMemoryBookmarks(area);
+    }
+    else if (normalizedTool == "list_memory_watches")
+    {
+        int area = arguments["area"];
+        return m_debugAdapter.ListMemoryWatches(area);
+    }
+    else if (normalizedTool == "get_memory_selection")
+    {
+        int area = arguments["area"];
+        return m_debugAdapter.GetMemorySelection(area);
+    }
+    else if (normalizedTool == "memory_search_capture")
+    {
+        int area = arguments["area"];
+        return m_debugAdapter.MemorySearchCapture(area);
+    }
+    else if (normalizedTool == "memory_search")
+    {
+        int area = arguments["area"];
+        std::string op = arguments["operator"];
+        std::string compare_type = arguments["compare_type"];
+        int compare_value = arguments.value("compare_value", 0);
+        std::string data_type = arguments.value("data_type", "unsigned");
+        return m_debugAdapter.MemorySearch(area, op, compare_type, compare_value, data_type);
+    }
+    else if (normalizedTool == "memory_find_bytes")
+    {
+        if (!arguments.contains("area") || !arguments["area"].is_number_integer())
+            return {{"error", "area is required"}};
+        if (!arguments.contains("hex_bytes") || !arguments["hex_bytes"].is_string())
+            return {{"error", "hex_bytes is required"}};
+
+        int area = arguments["area"].get<int>();
+        std::string hex_bytes = arguments["hex_bytes"].get<std::string>();
+        return m_debugAdapter.MemoryFindBytes(area, hex_bytes);
+    }
+    else if (normalizedTool == "get_trace_log")
+    {
+        s64 start = arguments.value("start", (s64)-100);
+        int count = arguments.value("count", 100);
+        return m_debugAdapter.GetTraceLog(start, count);
+    }
+    else if (normalizedTool == "set_trace_log")
+    {
+        bool enabled = arguments["enabled"];
+        u32 flags = TRACE_FLAG_CPU | TRACE_FLAG_CPU_IRQ;
+        u32 event_filters[TRACE_TYPE_COUNT] = {};
+        event_filters[TRACE_LCD] = TRACE_LCD_FILTER_ALL;
+        event_filters[TRACE_INPUT] = TRACE_INPUT_FILTER_ALL;
+        event_filters[TRACE_TIMER] = TRACE_TIMER_FILTER_ALL;
+        event_filters[TRACE_APU] = TRACE_APU_FILTER_ALL;
+        event_filters[TRACE_SERIAL] = TRACE_SERIAL_FILTER_ALL;
+        event_filters[TRACE_MAPPER] = TRACE_MAPPER_FILTER_ALL;
+        if (enabled)
+        {
+            if (arguments.contains("filters"))
+            {
+                flags = 0;
+                for (int i = 0; i < TRACE_TYPE_COUNT; i++)
+                    event_filters[i] = 0;
+                const json& filters = arguments["filters"];
+                for (json::const_iterator it = filters.begin(); it != filters.end(); ++it)
+                {
+                    std::string filter = it->get<std::string>();
+                    if (filter == "cpu.instructions") flags |= TRACE_FLAG_CPU;
+                    else if (filter == "cpu.interrupts") flags |= TRACE_FLAG_CPU_IRQ;
+                    else if (filter == "lcd.registers")
+                        add_trace_event_filter(&flags, event_filters, TRACE_LCD, TRACE_LCD_FILTER_REGISTERS);
+                    else if (filter == "lcd.interrupts")
+                        add_trace_event_filter(&flags, event_filters, TRACE_LCD, TRACE_LCD_FILTER_INTERRUPTS);
+                    else if (filter == "lcd.dma")
+                        add_trace_event_filter(&flags, event_filters, TRACE_LCD, TRACE_LCD_FILTER_DMA);
+                    else if (filter == "input.reads")
+                        add_trace_event_filter(&flags, event_filters, TRACE_INPUT, TRACE_INPUT_FILTER_READS);
+                    else if (filter == "input.writes")
+                        add_trace_event_filter(&flags, event_filters, TRACE_INPUT, TRACE_INPUT_FILTER_WRITES);
+                    else if (filter == "timer.interrupts")
+                        add_trace_event_filter(&flags, event_filters, TRACE_TIMER, TRACE_TIMER_FILTER_INTERRUPTS);
+                    else if (filter == "timer.registers")
+                        add_trace_event_filter(&flags, event_filters, TRACE_TIMER, TRACE_TIMER_FILTER_REGISTERS);
+                    else if (filter == "apu.global")
+                        add_trace_event_filter(&flags, event_filters, TRACE_APU, TRACE_APU_FILTER_GLOBAL);
+                    else if (filter == "apu.pulse1")
+                        add_trace_event_filter(&flags, event_filters, TRACE_APU, TRACE_APU_FILTER_PULSE1);
+                    else if (filter == "apu.pulse2")
+                        add_trace_event_filter(&flags, event_filters, TRACE_APU, TRACE_APU_FILTER_PULSE2);
+                    else if (filter == "apu.wave")
+                        add_trace_event_filter(&flags, event_filters, TRACE_APU, TRACE_APU_FILTER_WAVE);
+                    else if (filter == "apu.noise")
+                        add_trace_event_filter(&flags, event_filters, TRACE_APU, TRACE_APU_FILTER_NOISE);
+                    else if (filter == "apu.wave_ram")
+                        add_trace_event_filter(&flags, event_filters, TRACE_APU, TRACE_APU_FILTER_WAVE_RAM);
+                    else if (filter == "serial.registers")
+                        add_trace_event_filter(&flags, event_filters, TRACE_SERIAL, TRACE_SERIAL_FILTER_REGISTERS);
+                    else if (filter == "serial.transfers")
+                        add_trace_event_filter(&flags, event_filters, TRACE_SERIAL, TRACE_SERIAL_FILTER_TRANSFERS);
+                    else if (filter == "serial.interrupts")
+                        add_trace_event_filter(&flags, event_filters, TRACE_SERIAL, TRACE_SERIAL_FILTER_INTERRUPTS);
+                    else if (filter == "mapper.rom")
+                        add_trace_event_filter(&flags, event_filters, TRACE_MAPPER, TRACE_MAPPER_FILTER_ROM);
+                    else if (filter == "mapper.ram_rtc")
+                        add_trace_event_filter(&flags, event_filters, TRACE_MAPPER, TRACE_MAPPER_FILTER_RAM_RTC);
+                    else if (filter == "mapper.control")
+                        add_trace_event_filter(&flags, event_filters, TRACE_MAPPER, TRACE_MAPPER_FILTER_CONTROL);
+                    else return {{"error", "Unknown trace filter: " + filter}};
+                }
+
+                if (flags == 0)
+                    return {{"error", "At least one trace filter is required"}};
+            }
+        }
+        std::string output = arguments.value("output", "");
+        std::string memory_size = arguments.value("memory_size", "");
+        std::string disk_size = arguments.value("disk_size", "");
+        std::string output_path = arguments.value("output_path", "");
+        return m_debugAdapter.SetTraceLog(enabled, flags, output, memory_size,
+                                          disk_size, output_path, event_filters);
+    }
+    else if (normalizedTool == "get_sgb_status")
+    {
+        return m_debugAdapter.GetSGBStatus();
+    }
+    else
+    {
+        return {{"error", "Unknown tool: " + toolName}};
+    }
+}
+
+void McpServer::SendResponse(const json& response)
+{
+    std::string line = response.dump(-1, ' ', false, json::error_handler_t::replace);
+    m_transport->send(line);
+}
+
+void McpServer::SendError(const json& id, int code, const std::string& message, const json& data)
+{
+    json error;
+    error["jsonrpc"] = "2.0";
+    error["id"] = id;
+    error["error"] = {
+        {"code", code},
+        {"message", message}
+    };
+
+    if (!data.empty() && !data.is_null())
+    {
+        error["error"]["data"] = data;
+    }
+
+    Log("[MCP] Sending error: %s", error.dump().c_str());
+
+    SendResponse(error);
+}
+
+void McpServer::LoadResources()
+{
+    char exe_path[1024];
+    get_executable_path(exe_path, sizeof(exe_path));
+
+    if (exe_path[0] == '\0')
+        return;
+
+    std::string base_path = exe_path;
+    std::string resourcesPath = base_path + "/mcp/resources";
+
+    LoadResourcesFromCategory("hardware", resourcesPath + "/hardware/toc.json");
+}
+
+static bool IsValidResourceName(const std::string& name)
+{
+    if (name.empty() || name == "." || name == "..")
+        return false;
+
+    for (size_t i = 0; i < name.size(); i++)
+    {
+        unsigned char character = (unsigned char)name[i];
+        if (character < 0x20 || character == 0x7F || character == '/' || character == '\\')
+            return false;
+    }
+
+    return true;
+}
+
+void McpServer::LoadResourcesFromCategory(const std::string& category, const std::string& tocPath)
+{
+    std::ifstream file(tocPath);
+    if (!file.is_open())
+    {
+        Log("[MCP] Warning: Resources TOC file not found: %s", tocPath.c_str());
+        return;
+    }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string content = buffer.str();
+    bool read_error = file.bad();
+    file.close();
+
+    if (read_error)
+    {
+        Log("[MCP] Warning: Failed to read resources TOC file: %s", tocPath.c_str());
+        return;
+    }
+
+    if (!json::accept(content))
+    {
+        Log("[MCP] Warning: Invalid JSON in resources TOC file: %s", tocPath.c_str());
+        return;
+    }
+
+    json toc = json::parse(content);
+    
+    if (!toc.contains("toc") || !toc["toc"].is_array())
+    {
+        Log("[MCP] Warning: Invalid TOC format in resources TOC file: %s", tocPath.c_str());
+        return;
+    }
+
+    std::string tocDir = tocPath.substr(0, tocPath.find_last_of("/\\"));
+
+    for (size_t i = 0; i < toc["toc"].size(); i++)
+    {
+        const json& item = toc["toc"][i];
+        if (!item.is_object() || !item.contains("uri") || !item["uri"].is_string() ||
+            !item.contains("title") || !item["title"].is_string() ||
+            (item.contains("description") && !item["description"].is_string()) ||
+            (item.contains("mimeType") && !item["mimeType"].is_string()))
+        {
+            Log("[MCP] Warning: Invalid resource entry %d in TOC file: %s", (int)i, tocPath.c_str());
+            continue;
+        }
+
+        std::string name = item["uri"].get<std::string>();
+        if (!IsValidResourceName(name))
+        {
+            Log("[MCP] Warning: Invalid resource name in TOC file: %s", tocPath.c_str());
+            continue;
+        }
+
+        ResourceInfo resource;
+        resource.uri = "gearboy://" + category + "/" + name;
+        resource.title = item["title"].get<std::string>();
+        resource.description = item.contains("description") ? item["description"].get<std::string>() : "";
+        resource.mimeType = item.contains("mimeType") ? item["mimeType"].get<std::string>() : "text/plain";
+        resource.category = category;
+        resource.filePath = tocDir + "/" + name + ".md";
+
+        if (m_resourceMap.find(resource.uri) != m_resourceMap.end())
+        {
+            Log("[MCP] Warning: Duplicate resource URI in TOC file: %s", resource.uri.c_str());
+            continue;
+        }
+
+        m_resources.push_back(resource);
+        m_resourceMap[resource.uri] = resource;
+    }
+}
+
+bool McpServer::ReadFileContents(const std::string& filePath, std::string& content)
+{
+    content.clear();
+    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+    if (!file.is_open())
+    {
+        Log("[MCP] Warning: Failed to open resource file: %s", filePath.c_str());
+        return false;
+    }
+
+    std::streamoff file_size = file.tellg();
+    if (file_size < 0)
+    {
+        Log("[MCP] Warning: Failed to read resource file: %s", filePath.c_str());
+        return false;
+    }
+
+    content.resize((size_t)file_size);
+    file.seekg(0, std::ios::beg);
+    if (!file || (!content.empty() && !file.read(&content[0], (std::streamsize)content.size())))
+    {
+        Log("[MCP] Warning: Failed to read resource file: %s", filePath.c_str());
+        content.clear();
+        return false;
+    }
+
+    return true;
+}
+
+void McpServer::HandleResourcesList(const json& request)
+{
+    const json& id = request["id"];
+
+    json resources = json::array();
+
+    for (const ResourceInfo& resource : m_resources)
+    {
+        json resourceJson;
+        resourceJson["uri"] = resource.uri;
+        resourceJson["name"] = resource.title;
+        resourceJson["title"] = resource.title;
+        resourceJson["description"] = resource.description;
+        resourceJson["mimeType"] = resource.mimeType;
+
+        resources.push_back(resourceJson);
+    }
+
+    json response;
+    response["jsonrpc"] = "2.0";
+    response["id"] = id;
+    response["result"] = {
+        {"resources", resources}
+    };
+
+    SendResponse(response);
+}
+
+void McpServer::HandleResourceTemplatesList(const json& request)
+{
+    json response;
+    response["jsonrpc"] = "2.0";
+    response["id"] = request["id"];
+    response["result"] = {
+        {"resourceTemplates", json::array()}
+    };
+
+    SendResponse(response);
+}
+
+void McpServer::HandleResourcesRead(const json& request)
+{
+    const json& id = request["id"];
+
+    if (!request.contains("params") || !request["params"].contains("uri") || !request["params"]["uri"].is_string())
+    {
+        SendError(id, MCP_ERROR_INVALID_PARAMS, "Invalid params: uri must be a string");
+        return;
+    }
+
+    std::string uri = request["params"]["uri"];
+
+    std::map<std::string, ResourceInfo>::const_iterator it = m_resourceMap.find(uri);
+    if (it == m_resourceMap.end())
+    {
+        SendError(id, MCP_ERROR_RESOURCE_NOT_FOUND, "Resource not found", {{"uri", uri}});
+        return;
+    }
+
+    const ResourceInfo& resource = it->second;
+    std::string content;
+
+    if (!ReadFileContents(resource.filePath, content))
+    {
+        SendError(id, MCP_ERROR_INTERNAL, "Failed to read resource", {{"uri", uri}});
+        return;
+    }
+
+    json response;
+    response["jsonrpc"] = "2.0";
+    response["id"] = id;
+    response["result"] = {
+        {"contents", json::array({
+            {
+                {"uri", resource.uri},
+                {"mimeType", resource.mimeType},
+                {"text", content}
+            }
+        })}
+    };
+
+    SendResponse(response);
+}

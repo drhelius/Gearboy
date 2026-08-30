@@ -1,1 +1,3 @@
-include ../desktop-shared/Makefile.common
+include ../shared/makefiles/Makefile.sources
+
+include ../shared/makefiles/Makefile.common

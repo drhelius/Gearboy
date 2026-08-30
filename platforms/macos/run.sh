@@ -1,3 +1,3 @@
 #!/bin/bash
 cd "${0%/*}"
-./gearboy
+exec ./gearboy "$@"

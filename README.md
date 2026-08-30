@@ -1,56 +1,185 @@
 # Gearboy
 
-[![Gearboy CI](https://github.com/drhelius/Gearboy/workflows/Gearboy%20CI/badge.svg)](https://github.com/drhelius/Gearboy/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/drhelius/Gearboy/gearboy.yml)](https://github.com/drhelius/Gearboy/actions/workflows/gearboy.yml)
+[![GitHub Releases)](https://img.shields.io/github/v/tag/drhelius/Gearboy?label=version)](https://github.com/drhelius/Gearboy/releases)
+[![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/commits/master)
+[![GitHub contributors](https://img.shields.io/github/contributors/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/graphs/contributors)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/drhelius)](https://github.com/sponsors/drhelius)
+[![License](https://img.shields.io/github/license/drhelius/Gearboy)](https://github.com/drhelius/Gearboy/blob/master/LICENSE)
+[![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)](https://x.com/drhelius)
 
-Gearboy is a cross-platform Game Boy / GameBoy Color emulator written in C++ that runs on Windows, macOS, Linux, BSD, iOS, Raspberry Pi and RetroArch.
+Gearboy is an accurate, cross-platform Game Boy / Game Boy Color / Super Game Boy emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch, with an embedded MCP server for AI debugging and development. 
 
-This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md).
+This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md). If you find it useful, please consider [sponsoring](https://github.com/sponsors/drhelius).
 
-Please, consider [sponsoring](https://github.com/sponsors/drhelius) and following me on [Twitter](https://twitter.com/drhelius) for updates.
+Don't hesitate to report bugs or ask for new features by [opening an issue](https://github.com/drhelius/Gearboy/issues).
 
-----------
+<img src="http://www.geardome.com/files/gearboy/gearboy_debug_05.png">
 
 ## Downloads
 
-- **Windows**: [Gearboy-3.3.0-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.3.0/Gearboy-3.3.0-Windows.zip)
-  + NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
-- **macOS**:
-  + `brew install --cask gearboy`
-  + Or install manually: [Gearboy-3.3.0-macOS.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.3.0/Gearboy-3.3.0-macOS.zip)
-- **Linux**: [Gearboy-3.3.0-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-3.3.0/Gearboy-3.3.0-Linux.tar.xz)
-  + NOTE: You may need to install `libsdl2` and `libglew`
-- **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
-- **RetroArch**: [Libretro core documentation](https://libretro.readthedocs.io/en/latest/library/gearboy/).
-- **Raspberry Pi**: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2, 3 and 4.
+<table>
+  <thead>
+    <tr>
+      <th>Platform</th>
+      <th>Architecture</th>
+      <th>Download Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2"><strong>Windows</strong></td>
+      <td>Desktop x64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.8.14/Gearboy-3.8.14-desktop-windows-x64.zip">Gearboy-3.8.14-desktop-windows-x64.zip</a></td>
+    </tr>
+    <tr>
+      <td>Desktop ARM64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.8.14/Gearboy-3.8.14-desktop-windows-arm64.zip">Gearboy-3.8.14-desktop-windows-arm64.zip</a></td>
+    </tr>
+    <tr>
+      <td rowspan="3"><strong>macOS</strong></td>
+      <td>Homebrew</td>
+      <td><code>brew install --cask drhelius/geardome/gearboy</code></td>
+    </tr>
+    <tr>
+      <td>Desktop Apple Silicon</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.8.14/Gearboy-3.8.14-desktop-macos-arm64.zip">Gearboy-3.8.14-desktop-macos-arm64.zip</a></td>
+    </tr>
+    <tr>
+      <td>Desktop Intel</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.8.14/Gearboy-3.8.14-desktop-macos-intel.zip">Gearboy-3.8.14-desktop-macos-intel.zip</a></td>
+    </tr>
+    <tr>
+      <td rowspan="5"><strong>Linux</strong></td>
+      <td>Ubuntu PPA</td>
+      <td><a href="https://github.com/drhelius/ppa-geardome">drhelius/ppa-geardome</a></td>
+    </tr>
+    <tr>
+      <td>Fedora RPM</td>
+      <td><a href="https://github.com/drhelius/rpm-geardome">drhelius/rpm-geardome</a></td>
+    </tr>
+    <tr>
+      <td>Desktop Ubuntu 24.04 x64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.8.14/Gearboy-3.8.14-desktop-ubuntu24.04-x64.zip">Gearboy-3.8.14-desktop-ubuntu24.04-x64.zip</a></td>
+    </tr>
+    <tr>
+      <td>Desktop Ubuntu 22.04 x64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.8.14/Gearboy-3.8.14-desktop-ubuntu22.04-x64.zip">Gearboy-3.8.14-desktop-ubuntu22.04-x64.zip</a></td>
+    </tr>
+    <tr>
+      <td>Desktop Ubuntu 24.04 ARM64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.8.14/Gearboy-3.8.14-desktop-ubuntu24.04-arm64.zip">Gearboy-3.8.14-desktop-ubuntu24.04-arm64.zip</a></td>
+    </tr>
+    <tr>
+      <td><strong>MCPB</strong></td>
+      <td>All platforms</td>
+      <td><a href="MCP_README.md">MCP Readme</a></td>
+    </tr>
+    <tr>
+      <td><strong>RetroArch</strong></td>
+      <td>All platforms</td>
+      <td><a href="https://docs.libretro.com/library/gearboy/">Libretro core documentation</a></td>
+    </tr>
+    <tr>
+      <td><strong>Dev Builds</strong></td>
+      <td>All platforms</td>
+      <td><a href="https://github.com/drhelius/Gearboy/actions/workflows/gearboy.yml">GitHub Actions</a></td>
+    </tr>
+  </tbody>
+</table>
+
+**Notes:**
+- **Windows**: May need [Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572) and [OpenGL Compatibility Pack](https://apps.microsoft.com/detail/9nqpsl29bfff)
+- **Homebrew**: If Homebrew asks you to trust the third-party tap, run `brew trust --tap drhelius/geardome`
+- **Linux**: May need `libsdl3`
 
 ## Features
 
-- Accurate CPU emulation, passes cpu_instrs.gb from blargg's tests.
-- Accurate instruction and memory timing, passes instr_timing.gb and mem_timing.gb from blargg's tests.
-- Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3 + RTC, MBC5, HuC-1 and MBC1M (multicart).
-- Accurate LCD controller emulation with correct timings and priorities including mid-scanline effects.
+- Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3, MBC5, MBC6, MBC7, HuC-1, HuC-3, MMM01, Pocket Camera, TAMA5, MBC1M, Wisdom Tree, M161, Sachen MMC1, Sachen MMC2 and PKJD.
 - Game Boy Color support.
+- Super Game Boy support.
+- Local two-instance Game Boy link cable support on desktop platforms.
 - LCD screen ghosting effect as seen in the original Game Boy.
-- LCD dot matrix effect.
-- Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Gb_Snd_Emu).
-- Save battery powered RAM cartridges to file.
-- Save states.
-- Compressed rom support (ZIP).
+- LCD dot matrix effects. 
+- Battery powered RAM save support.
+- Save states with preview and rewind support.
+- Run-ahead support to reduce input latency.
+- Compressed ROM support (ZIP).
+- Bootrom (BIOS) support.
 - *Game Genie* and *GameShark* cheat support.
-- Supported platforms (standalone): Windows, Linux, BSD, macOS, Raspberry Pi and iOS.
-- Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch Emscripten, Classic Mini systemts (NES, SNES, C64 ...) and QNX.
-- Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
-- Windows and Linux *Portable Mode* by creating a file named `portable.ini` in the same directory as the application binary.
+- VGM recorder.
+- Supported platforms (standalone): Windows, Linux, BSD and macOS.
+- Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, webOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
+- Full debugger with just-in-time disassembler, CPU breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, automatic labels, memory editor, trace logger, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
+- MCP server for AI-assisted debugging with GitHub Copilot, Claude, Codex and similar, exposing tools for execution control, memory inspection, hardware status, rewind and more.
+- Windows, Linux and macOS *Portable Mode*.
+- [Programmable Shader Chain](platforms/shared/desktop/shaders/README.md).
+- ROM loading from the command line by adding the ROM path as an argument.
+- ROM loading using drag & drop.
+- Support for modern game controllers through [gamecontrollerdb.txt](https://github.com/mdqinc/SDL_GameControllerDB) file located in the same directory as the application binary.
 
-<img src="http://www.geardome.com/files/gearboy/gearboy_debug_01.png" width="880" height="455">
+## Tips
+
+### Basic Usage
+- **Boot ROM**: Gearboy can run with or without a Boot ROM. You can optionally load a Boot ROM and enable it.
+- **Mouse Cursor**: Automatically hides when hovering over the main output window or when Main Menu is disabled.
+- **Portable Mode**: Run with `--portable`, or create an empty file named `portable.ini` in the same directory as the application binary. On macOS, place the file next to the `.app` bundle.
+- **Link Cable**:
+Open `Link Cable` menu in two desktop instances, select the same session, and connect both, or start each process with `--link-cable-join N`. Independent instances should use separate application copies or `--portable` data directories so configuration, saves, and single-instance handling do not conflict.
+
+### Debugging Features
+- **Docking Windows**: In debug mode, you can dock windows together by pressing SHIFT and dragging a window onto another.
+- **Multi-viewport**: In Windows or macOS, you can enable "multi-viewport" in the debug menu. You must restart the emulator for the change to take effect. Once enabled, you can drag debugger windows outside the main window.
+- **Single Instance**: You can enable "Single Instance" in the `Emulator` menu. When enabled, opening a ROM while another instance is running will send the ROM to the running instance instead of starting a new one.
+- **Debug Symbols**: The emulator automatically tries to load a symbol file when loading a ROM (.sym, .noi). For example, for `path_to_rom_file.gb` it tries to load `path_to_rom_file.sym`. You can also load a symbol file using the GUI or the CLI. It supports RGBDS, GBDK-2020, WLA-DX, no$gmb, SDCC/NoICE (.noi), EQU and generic file formats.
+
+### Command Line Usage
+```
+gearboy [options] [rom_file] [symbol_file]
+
+Arguments:
+  [rom_file]                  ROM file: accepts ROMs (.gb, .dmg, .gbc, .cgb, .sgb) or ZIP (.zip)
+  [symbol_file]               Optional symbol file for debugging
+
+Options:
+  -f, --fullscreen            Start in fullscreen mode
+  -w, --windowed              Start in windowed mode with menu visible
+      --mcp-stdio             Auto-start MCP server with stdio transport
+      --mcp-http              Auto-start MCP server with HTTP transport
+      --mcp-router            Enable compact MCP tool routing
+      --mcp-http-address A    HTTP bind address (default: 127.0.0.1)
+      --mcp-http-port N       HTTP port for MCP server (default: 7777)
+      --link-cable-join N     Join local link cable session 1-255
+      --headless              Run without GUI (requires MCP or link cable)
+      --portable              Store configuration and user data beside the application
+  -v, --version               Display version information
+  -h, --help                  Display this help message
+```
+
+### MCP Server
+
+Gearboy includes a [Model Context Protocol](https://modelcontextprotocol.io/introduction) (MCP) server that enables AI-assisted debugging through AI agents like GitHub Copilot, Claude, Codex and similar. The server provides tools for execution control, memory inspection, breakpoints, disassembly, hardware status, and more. STDIO and HTTP transports are supported, with STDIO preferred.
+
+For complete setup instructions and tool documentation, see [MCP_README.md](MCP_README.md).
+
+### Agent Skills
+
+Gearboy provides [Agent Skills](https://agentskills.io/) that teach AI assistants how to effectively use the emulator for specific tasks:
+
+- **[gearboy-debugging](skills/gearboy-debugging/SKILL.md)** — Game debugging, code tracing, breakpoint management, hardware inspection, and reverse engineering.
+- **[gearboy-romhacking](skills/gearboy-romhacking/SKILL.md)** — Cheat creation, memory searching, ROM data modification, text translation, and game patching.
+
+Install with `npx skills add drhelius/gearboy`. See the [skills README](skills/README.md) for details.
 
 ## Build Instructions
 
 ### Windows
 
-- Install Microsoft Visual Studio Community 2019 or later.
+- Install Microsoft Visual Studio Community 2026 or later.
+- Download the latest SDL3 VC development libraries from [SDL3 Releases](https://github.com/libsdl-org/SDL/releases) (the file named `SDL3-devel-x.y.z-VC.zip`).
+- Extract the archive and rename the resulting folder (e.g. `SDL3-x.y.z`) to `SDL3`.
+- Place the `SDL3` folder inside `platforms/windows/dependencies/` so that the include path is `platforms/windows/dependencies/SDL3/include/SDL3/`.
 - Open the Gearboy Visual Studio solution `platforms/windows/Gearboy.sln` and build.
-- You may want to use the `platforms/windows/Makefile` to build the application using MinGW.
 
 ### macOS
 
@@ -58,17 +187,35 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Run these commands to generate a Mac *app* bundle:
 
 ``` shell
-brew install sdl2
+brew install sdl3
 cd platforms/macos
 make dist
 ```
 
 ### Linux
 
-- Ubuntu / Debian:
+- Ubuntu / Debian / Raspberry Pi (Raspbian):
+
+If you are using Ubuntu 25.04 or later, you can install SDL3 directly. Use the following commands to build:
 
 ``` shell
-sudo apt-get install build-essential libsdl2-dev libglew-dev
+sudo apt install build-essential libsdl3-dev
+cd platforms/linux
+make
+```
+
+For older Ubuntu versions (22.04, 24.04), you need to build SDL3 from source first. Use the following commands to build both SDL3 and Gearboy:
+
+``` shell
+sudo apt install build-essential cmake git curl jq pkg-config \
+  libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev \
+  libxi-dev libxss-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
+  libdrm-dev libgbm-dev libgl1-mesa-dev libegl1-mesa-dev libdbus-1-dev libudev-dev libxtst-dev
+SDL3_TAG=$(curl -s https://api.github.com/repos/libsdl-org/SDL/releases/latest | jq -r '.tag_name')
+git clone --depth 1 --branch "$SDL3_TAG" https://github.com/libsdl-org/SDL.git /tmp/SDL3
+cmake -S /tmp/SDL3 -B /tmp/SDL3/build -DCMAKE_INSTALL_PREFIX=/usr -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
+cmake --build /tmp/SDL3/build -j$(nproc)
+sudo cmake --install /tmp/SDL3/build
 cd platforms/linux
 make
 ```
@@ -76,33 +223,51 @@ make
 - Fedora:
 
 ``` shell
-sudo dnf install @development-tools gcc-c++ SDL2-devel glew-devel
+sudo dnf install @development-tools gcc-c++ SDL3-devel
+cd platforms/linux
+make
+```
+
+- Arch Linux:
+
+``` shell
+sudo pacman -S base-devel sdl3
 cd platforms/linux
 make
 ```
 
 ### BSD
 
+- FreeBSD:
+
+``` shell
+su root -c "pkg install -y git gmake pkgconf sdl3"
+cd platforms/bsd
+USE_CLANG=1 gmake
+```
+
 - NetBSD:
 
 ``` shell
-su root -c "pkgin install gmake pkgconf SDL2 glew"
+su root -c "pkgin install gmake pkgconf SDL3"
 cd platforms/bsd
 gmake
 ```
 
-### iOS
+- OpenBSD
 
-- Install latest Xcode for macOS.
-- Build the project `platforms/ios/Gearboy.xcodeproj`.
-- Run it on real hardware using your iOS developer certificate. Make sure it builds on *Release* for better performance.
+``` shell
+doas pkg_add gmake sdl3
+cd platforms/bsd
+LDFLAGS=-L/usr/X11R6/lib/ USE_CLANG=1 gmake
+```
 
 ### Libretro
 
-- Ubuntu / Debian:
+- Ubuntu / Debian / Raspberry Pi (Raspbian):
 
 ``` shell
-sudo apt-get install build-essential
+sudo apt install build-essential
 cd platforms/libretro
 make
 ```
@@ -115,44 +280,6 @@ cd platforms/libretro
 make
 ```
 
-### Raspberry Pi 4 - Raspbian (Desktop)
-
-``` shell
-sudo apt install build-essential libsdl2-dev libglew-dev
-cd platforms/raspberrypi4
-make
-```
-
-### Raspberry Pi 2 & 3 - Raspbian (CLI)
-
-- Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
-
-``` shell
-sudo apt-get update
-sudo apt-get upgrade
-sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg-dev libtiff5-dev libwebp-dev automake
-cd ~
-wget https://www.libsdl.org/release/SDL2-2.0.12.tar.gz
-tar zxvf SDL2-2.0.12.tar.gz
-cd SDL2-2.0.12 && mkdir build && cd build
-../configure --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl --host=armv7l-raspberry-linux-gnueabihf
-make -j 4
-sudo make install
-```
-
-- Install libconfig library dependencies for development: `sudo apt-get install libconfig++-dev`
-- Use `make -j 4` in the `platforms/raspberrypi3/x64/` folder to build the project.
-- Use `export SDL_AUDIODRIVER=ALSA` before running the emulator for the best performance.
-- Gearboy generates a `gearboy.cfg` configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
-
-## Accuracy Tests
-
-Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/GBAccuracyTests.html).
-
-Tests from [blargg's test roms](https://github.com/retrio/gb-test-roms):
-
-![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_001.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_002.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_003.png)![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_032.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_033.png)![mem_timing.gb](http://www.geardome.com/files/gearboy/gearboy_memtiming2.png)
-
 ## Screenshots
 
 ![Screenshot](http://www.geardome.com/files/gearboy/gearboy_004.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_006.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_008.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_022.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_013.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_023.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_015.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_029.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_011.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_024.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_017.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_016.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_034.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_026.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_018.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_025.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_021.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_027.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_019.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_020.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_031.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_028.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_007.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_009.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_010.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_005.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_012.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_014.png)
@@ -161,7 +288,7 @@ Tests from [blargg's test roms](https://github.com/retrio/gb-test-roms):
 
 Thank you to all the people who have already contributed to Gearboy!
 
-[![Contributors](https://contrib.rocks/image?repo=drhelius/gearboy)]("https://github.com/drhelius/gearboy/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=drhelius/gearboy)](https://github.com/drhelius/gearboy/graphs/contributors)
 
 ## License
 
