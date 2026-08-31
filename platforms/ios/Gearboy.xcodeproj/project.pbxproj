@@ -3,110 +3,67 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2B3AF72025AE5C7900576A38 /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AF71F25AE5C7900576A38 /* DataStore.swift */; };
-		2B3AF72325AE5C8800576A38 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AF72225AE5C8800576A38 /* GameStore.swift */; };
-		2B3AF72925AE5CE700576A38 /* CRC32.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AF72825AE5CE700576A38 /* CRC32.swift */; };
-		2B3AF72D25AE5E8700576A38 /* PathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AF72C25AE5E8700576A38 /* PathUtils.swift */; };
-		2BE8F40625ACBF6F00E6FE62 /* gbdb.json in Resources */ = {isa = PBXBuildFile; fileRef = 2BE8F40525ACBF6F00E6FE62 /* gbdb.json */; };
-		2BE8F40925ACC3D000E6FE62 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE8F40825ACC3D000E6FE62 /* Game.swift */; };
-		680A3B4F242D332E00630335 /* RomListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680A3B4E242D332E00630335 /* RomListViewController.swift */; };
-		680A3B51242D389200630335 /* RomListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680A3B50242D389200630335 /* RomListCell.swift */; };
-		6840AA6A248B00F300BBED58 /* TabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6840AA69248B00F300BBED58 /* TabBarController.swift */; };
-		684CD660242BCF60004090E5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684CD65F242BCF60004090E5 /* AppDelegate.swift */; };
-		684CD662242BCF60004090E5 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684CD661242BCF60004090E5 /* SceneDelegate.swift */; };
-		684CD667242BCF60004090E5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 684CD665242BCF60004090E5 /* Main.storyboard */; };
-		684CD669242BCF61004090E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 684CD668242BCF61004090E5 /* Assets.xcassets */; };
-		684CD66C242BCF61004090E5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 684CD66A242BCF61004090E5 /* LaunchScreen.storyboard */; };
-		684CD67B242C0119004090E5 /* Rom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684CD67A242C0119004090E5 /* Rom.swift */; };
-		68DC4A02247FFE5100579B91 /* RomListCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 68DC4A01247FFE5100579B91 /* RomListCell.xib */; };
-		68E6C2E124829FC000F79593 /* RomController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E6C2E024829FC000F79593 /* RomController.swift */; };
-		68E6C2EC2482AD0800F79593 /* RomDetail.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 68E6C2EE2482AD0800F79593 /* RomDetail.storyboard */; };
-		68E6C2F02482F62100F79593 /* TabBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E6C2EF2482F62100F79593 /* TabBarItem.swift */; };
-		68FAA50C242E8E7E0061EF86 /* RomDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FAA50B242E8E7E0061EF86 /* RomDetailViewController.swift */; };
-		68FBC9FE2437A6A100002F7C /* SplitViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FBC9FD2437A6A100002F7C /* SplitViewDelegate.swift */; };
-		B58C0E6225B7714F00AF3468 /* StoresUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58C0E6125B7714F00AF3468 /* StoresUtil.swift */; };
-		B58C0E6525B7715400AF3468 /* Localized.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58C0E6425B7715400AF3468 /* Localized.swift */; };
-		B58C0E7B25B7727B00AF3468 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B58C0E7D25B7727B00AF3468 /* Localizable.strings */; };
-		B5FDD38825B742A30099BA60 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = B5FDD38725B742A30099BA60 /* SDWebImage */; };
-		B5FDD39125B75D7D0099BA60 /* RomExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FDD39025B75D7D0099BA60 /* RomExtension.swift */; };
-		B5FDD39525B762EB0099BA60 /* BoxArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FDD39425B762EB0099BA60 /* BoxArt.swift */; };
+		A20000000000000000000002 /* AVFAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* AVFAudio.framework */; };
+		A20000000000000000000005 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* CoreMotion.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		2B3AF71F25AE5C7900576A38 /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
-		2B3AF72225AE5C8800576A38 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
-		2B3AF72825AE5CE700576A38 /* CRC32.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRC32.swift; sourceTree = "<group>"; };
-		2B3AF72C25AE5E8700576A38 /* PathUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathUtils.swift; sourceTree = "<group>"; };
-		2BE8F40525ACBF6F00E6FE62 /* gbdb.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = gbdb.json; sourceTree = "<group>"; };
-		2BE8F40825ACC3D000E6FE62 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
-		680A3B4E242D332E00630335 /* RomListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomListViewController.swift; sourceTree = "<group>"; };
-		680A3B50242D389200630335 /* RomListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomListCell.swift; sourceTree = "<group>"; };
-		6840AA69248B00F300BBED58 /* TabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
 		684CD65C242BCF60004090E5 /* Gearboy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gearboy.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		684CD65F242BCF60004090E5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		684CD661242BCF60004090E5 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		684CD666242BCF60004090E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		684CD668242BCF61004090E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		684CD66D242BCF61004090E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		684CD67A242C0119004090E5 /* Rom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rom.swift; sourceTree = "<group>"; };
-		68B706542483FE420047D7E8 /* Gearboy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gearboy.entitlements; sourceTree = "<group>"; };
-		68DC4A01247FFE5100579B91 /* RomListCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RomListCell.xib; sourceTree = "<group>"; };
-		68E6C2E024829FC000F79593 /* RomController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomController.swift; sourceTree = "<group>"; };
-		68E6C2ED2482AD0800F79593 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/RomDetail.storyboard; sourceTree = "<group>"; };
-		68E6C2EF2482F62100F79593 /* TabBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarItem.swift; sourceTree = "<group>"; };
-		68FAA50B242E8E7E0061EF86 /* RomDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomDetailViewController.swift; sourceTree = "<group>"; };
-		68FBC9FD2437A6A100002F7C /* SplitViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplitViewDelegate.swift; sourceTree = "<group>"; };
-		B58C0E6125B7714F00AF3468 /* StoresUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoresUtil.swift; sourceTree = "<group>"; };
-		B58C0E6425B7715400AF3468 /* Localized.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Localized.swift; sourceTree = "<group>"; };
-		B58C0E7C25B7727B00AF3468 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		B58C0E7F25B7728A00AF3468 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
-		B58C0E8125B772D000AF3468 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		B5FDD39025B75D7D0099BA60 /* RomExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomExtension.swift; sourceTree = "<group>"; };
-		B5FDD39425B762EB0099BA60 /* BoxArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxArt.swift; sourceTree = "<group>"; };
-		EF40A35A46209F3A32E65009 /* LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
+		A10000000000000000000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A10000000000000000000004 /* Gearboy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gearboy.entitlements; sourceTree = "<group>"; };
+		A10000000000000000000006 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
+		A20000000000000000000001 /* AVFAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFAudio.framework; path = System/Library/Frameworks/AVFAudio.framework; sourceTree = SDKROOT; };
+		A20000000000000000000004 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		A30000000000000000000001 /* ThumbnailKeys.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ThumbnailKeys.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		A10000000000000000000001 /* Gearboy */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Gearboy;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000002 /* Core */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = Core;
+			path = ../../src;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000008 /* Miniz */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = Miniz;
+			path = ../shared/dependencies/miniz;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		684CD659242BCF60004090E5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5FDD38825B742A30099BA60 /* SDWebImage in Frameworks */,
+				A20000000000000000000002 /* AVFAudio.framework in Frameworks */,
+				A20000000000000000000005 /* CoreMotion.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		2B3AF73125AE5F6E00576A38 /* UI */ = {
-			isa = PBXGroup;
-			children = (
-				684CD66A242BCF61004090E5 /* LaunchScreen.storyboard */,
-				684CD665242BCF60004090E5 /* Main.storyboard */,
-				68E6C2EE2482AD0800F79593 /* RomDetail.storyboard */,
-				68DC4A01247FFE5100579B91 /* RomListCell.xib */,
-			);
-			path = UI;
-			sourceTree = "<group>";
-		};
-		2EA4CDEC410C08EF7350C51C /* LICENSE */ = {
-			isa = PBXGroup;
-			children = (
-				EF40A35A46209F3A32E65009 /* LICENSE.txt */,
-			);
-			path = LICENSE;
-			sourceTree = "<group>";
-		};
 		684CD653242BCF60004090E5 = {
 			isa = PBXGroup;
 			children = (
-				684CD65E242BCF60004090E5 /* Gearboy */,
+				A10000000000000000000001 /* Gearboy */,
+				A10000000000000000000002 /* Core */,
+				A10000000000000000000008 /* Miniz */,
+				A10000000000000000000005 /* Support */,
+				A10000000000000000000007 /* LICENSE */,
+				A20000000000000000000003 /* Frameworks */,
 				684CD65D242BCF60004090E5 /* Products */,
-				2EA4CDEC410C08EF7350C51C /* LICENSE */,
 			);
 			sourceTree = "<group>";
 		};
@@ -118,52 +75,31 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		684CD65E242BCF60004090E5 /* Gearboy */ = {
+		A10000000000000000000005 /* Support */ = {
 			isa = PBXGroup;
 			children = (
-				B5FDD38F25B75D730099BA60 /* Utils */,
-				684CD674242BFD43004090E5 /* Resources */,
-				2B3AF73125AE5F6E00576A38 /* UI */,
-				684CD65F242BCF60004090E5 /* AppDelegate.swift */,
-				2B3AF72825AE5CE700576A38 /* CRC32.swift */,
-				2B3AF71F25AE5C7900576A38 /* DataStore.swift */,
-				2BE8F40825ACC3D000E6FE62 /* Game.swift */,
-				2B3AF72225AE5C8800576A38 /* GameStore.swift */,
-				2B3AF72C25AE5E8700576A38 /* PathUtils.swift */,
-				684CD67A242C0119004090E5 /* Rom.swift */,
-				68E6C2E024829FC000F79593 /* RomController.swift */,
-				68FAA50B242E8E7E0061EF86 /* RomDetailViewController.swift */,
-				680A3B50242D389200630335 /* RomListCell.swift */,
-				680A3B4E242D332E00630335 /* RomListViewController.swift */,
-				684CD661242BCF60004090E5 /* SceneDelegate.swift */,
-				68FBC9FD2437A6A100002F7C /* SplitViewDelegate.swift */,
-				6840AA69248B00F300BBED58 /* TabBarController.swift */,
-				68E6C2EF2482F62100F79593 /* TabBarItem.swift */,
+				A10000000000000000000003 /* Info.plist */,
+				A10000000000000000000004 /* Gearboy.entitlements */,
+				A30000000000000000000001 /* ThumbnailKeys.xcconfig */,
 			);
-			path = Gearboy;
+			path = Support;
 			sourceTree = "<group>";
 		};
-		684CD674242BFD43004090E5 /* Resources */ = {
+		A10000000000000000000007 /* LICENSE */ = {
 			isa = PBXGroup;
 			children = (
-				684CD668242BCF61004090E5 /* Assets.xcassets */,
-				2BE8F40525ACBF6F00E6FE62 /* gbdb.json */,
-				68B706542483FE420047D7E8 /* Gearboy.entitlements */,
-				684CD66D242BCF61004090E5 /* Info.plist */,
-				B58C0E7D25B7727B00AF3468 /* Localizable.strings */,
+				A10000000000000000000006 /* LICENSE.txt */,
 			);
-			path = Resources;
+			path = LICENSE;
 			sourceTree = "<group>";
 		};
-		B5FDD38F25B75D730099BA60 /* Utils */ = {
+		A20000000000000000000003 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				B58C0E6425B7715400AF3468 /* Localized.swift */,
-				B58C0E6125B7714F00AF3468 /* StoresUtil.swift */,
-				B5FDD39025B75D7D0099BA60 /* RomExtension.swift */,
-				B5FDD39425B762EB0099BA60 /* BoxArt.swift */,
+				A20000000000000000000001 /* AVFAudio.framework */,
+				A20000000000000000000004 /* CoreMotion.framework */,
 			);
-			path = Utils;
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -181,11 +117,15 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				A10000000000000000000001 /* Gearboy */,
+				A10000000000000000000002 /* Core */,
+				A10000000000000000000008 /* Miniz */,
+			);
 			name = Gearboy;
 			packageProductDependencies = (
-				B5FDD38725B742A30099BA60 /* SDWebImage */,
 			);
-			productName = Recipes;
+			productName = Gearboy;
 			productReference = 684CD65C242BCF60004090E5 /* Gearboy.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -195,28 +135,31 @@
 		684CD654242BCF60004090E5 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1200;
-				LastUpgradeCheck = 1200;
-				ORGANIZATIONNAME = Apple;
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2660;
+				ORGANIZATIONNAME = Gearboy;
 				TargetAttributes = {
 					684CD65B242BCF60004090E5 = {
-						CreatedOnToolsVersion = 12.0;
+						CreatedOnToolsVersion = 26.0;
 					};
 				};
 			};
 			buildConfigurationList = 684CD657242BCF60004090E5 /* Build configuration list for PBXProject "Gearboy" */;
-			compatibilityVersion = "Xcode 12.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				de,
 				es,
+				fr,
+				ja,
+				"zh-Hans",
 			);
 			mainGroup = 684CD653242BCF60004090E5;
-			packageReferences = (
-				B5FDD38625B742A30099BA60 /* XCRemoteSwiftPackageReference "SDWebImage" */,
-			);
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
 			productRefGroup = 684CD65D242BCF60004090E5 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -231,13 +174,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2BE8F40625ACBF6F00E6FE62 /* gbdb.json in Resources */,
-				684CD66C242BCF61004090E5 /* LaunchScreen.storyboard in Resources */,
-				684CD669242BCF61004090E5 /* Assets.xcassets in Resources */,
-				B58C0E7B25B7727B00AF3468 /* Localizable.strings in Resources */,
-				68E6C2EC2482AD0800F79593 /* RomDetail.storyboard in Resources */,
-				684CD667242BCF60004090E5 /* Main.storyboard in Resources */,
-				68DC4A02247FFE5100579B91 /* RomListCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -248,75 +184,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2B3AF72025AE5C7900576A38 /* DataStore.swift in Sources */,
-				684CD660242BCF60004090E5 /* AppDelegate.swift in Sources */,
-				6840AA6A248B00F300BBED58 /* TabBarController.swift in Sources */,
-				2B3AF72D25AE5E8700576A38 /* PathUtils.swift in Sources */,
-				680A3B4F242D332E00630335 /* RomListViewController.swift in Sources */,
-				68E6C2E124829FC000F79593 /* RomController.swift in Sources */,
-				B5FDD39125B75D7D0099BA60 /* RomExtension.swift in Sources */,
-				2B3AF72325AE5C8800576A38 /* GameStore.swift in Sources */,
-				68FAA50C242E8E7E0061EF86 /* RomDetailViewController.swift in Sources */,
-				68E6C2F02482F62100F79593 /* TabBarItem.swift in Sources */,
-				B58C0E6525B7715400AF3468 /* Localized.swift in Sources */,
-				684CD662242BCF60004090E5 /* SceneDelegate.swift in Sources */,
-				2BE8F40925ACC3D000E6FE62 /* Game.swift in Sources */,
-				68FBC9FE2437A6A100002F7C /* SplitViewDelegate.swift in Sources */,
-				B58C0E6225B7714F00AF3468 /* StoresUtil.swift in Sources */,
-				2B3AF72925AE5CE700576A38 /* CRC32.swift in Sources */,
-				684CD67B242C0119004090E5 /* Rom.swift in Sources */,
-				680A3B51242D389200630335 /* RomListCell.swift in Sources */,
-				B5FDD39525B762EB0099BA60 /* BoxArt.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		684CD665242BCF60004090E5 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				684CD666242BCF60004090E5 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-		684CD66A242BCF61004090E5 /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				B58C0E8125B772D000AF3468 /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
-		68E6C2EE2482AD0800F79593 /* RomDetail.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				68E6C2ED2482AD0800F79593 /* Base */,
-			);
-			name = RomDetail.storyboard;
-			sourceTree = "<group>";
-		};
-		B58C0E7D25B7727B00AF3468 /* Localizable.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				B58C0E7C25B7727B00AF3468 /* en */,
-				B58C0E7F25B7728A00AF3468 /* es */,
-			);
-			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		684CD66E242BCF61004090E5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -345,10 +227,14 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = V3F66RFMSJ;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -361,13 +247,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -376,10 +261,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -408,9 +294,13 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = V3F66RFMSJ;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -418,62 +308,111 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
 		684CD671242BCF61004090E5 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A30000000000000000000001 /* ThumbnailKeys.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Gearboy/Resources/Gearboy.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Support/Gearboy.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 35;
-				DEVELOPMENT_TEAM = V3F66RFMSJ;
-				INFOPLIST_FILE = "$(SRCROOT)/Gearboy/Resources/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					"*.a",
+					"*.d",
+					"*.o",
+				);
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"GEARBOY_DISABLE_DISASSEMBLER=1",
+					"EMULATOR_BUILD=\\\"3.8.14\\\"",
+				);
+				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../src",
+					"$(SRCROOT)/../../src/audio",
+					"$(SRCROOT)/../shared/dependencies/miniz",
+				);
+				INFOPLIST_FILE = Support/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.3.0;
+				MARKETING_VERSION = 3.8.14;
 				PRODUCT_BUNDLE_IDENTIFIER = me.ignaciosanchez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Gearboy/Gearboy-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				WARNING_CFLAGS = (
+					"$(inherited)",
+					"-Wno-comma",
+					"-Wno-enum-float-conversion",
+					"-Wno-unused-function",
+				);
 			};
 			name = Debug;
 		};
 		684CD672242BCF61004090E5 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A30000000000000000000001 /* ThumbnailKeys.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Gearboy/Resources/Gearboy.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Support/Gearboy.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 35;
-				DEVELOPMENT_TEAM = V3F66RFMSJ;
-				INFOPLIST_FILE = "$(SRCROOT)/Gearboy/Resources/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
+				DEAD_CODE_STRIPPING = YES;
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					"*.a",
+					"*.d",
+					"*.o",
+				);
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"GEARBOY_DISABLE_DISASSEMBLER=1",
+					"EMULATOR_BUILD=\\\"3.8.14\\\"",
+				);
+				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../src",
+					"$(SRCROOT)/../../src/audio",
+					"$(SRCROOT)/../shared/dependencies/miniz",
+				);
+				INFOPLIST_FILE = Support/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.3.0;
+				MARKETING_VERSION = 3.8.14;
 				PRODUCT_BUNDLE_IDENTIFIER = me.ignaciosanchez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Gearboy/Gearboy-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				WARNING_CFLAGS = (
+					"$(inherited)",
+					"-Wno-comma",
+					"-Wno-enum-float-conversion",
+					"-Wno-unused-function",
+				);
 			};
 			name = Release;
 		};
@@ -499,25 +438,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		B5FDD38625B742A30099BA60 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SDWebImage/SDWebImage";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.10.2;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		B5FDD38725B742A30099BA60 /* SDWebImage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B5FDD38625B742A30099BA60 /* XCRemoteSwiftPackageReference "SDWebImage" */;
-			productName = SDWebImage;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 684CD654242BCF60004090E5 /* Project object */;
 }

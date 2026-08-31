@@ -12,8 +12,10 @@ struct Rom: Hashable, Codable {
     let title: String
     let file: String
     var isFavorite: Bool = false
-    var usedOn: Date? = Date()
-    var urlImages: [URL] { BoxArt.allCases.compactMap { $0.urlWithName(title) } }
+    var usedOn: Date? = nil
+    var thumbnailURL: URL {
+        return AppConfiguration.thumbnailBaseURL.appendingPathComponent(crc.lowercased() + ".jpg")
+    }
     
     init(crc: String, title: String, file: String) {
         self.crc = crc

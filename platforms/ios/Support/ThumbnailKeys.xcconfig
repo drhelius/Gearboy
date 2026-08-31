@@ -1,0 +1,2 @@
+GEAR_THUMBNAIL_KEY = disabled
+#include? "ThumbnailKeys.local.xcconfig"

@@ -8,8 +8,17 @@ Abstract:
 import Foundation
 
 // SINGLETONS !!
-let gameStore = GameStore(games: load(PathUtils.gamedbFileName, bundle: true) ?? [Game]())
-let dataStore = DataStore(roms: load(PathUtils.dbFileName, bundle: false) ?? [Rom]())
+let dataStore: DataStore = {
+    let file = PathUtils.getDBDir.appendingPathComponent(PathUtils.dbFileName)
+    let fileExists = FileManager.default.fileExists(atPath: file.path)
+    let store = DataStore(roms: load(PathUtils.dbFileName, bundle: false) ?? [Rom]())
+
+    if !fileExists {
+        store.updateAll()
+    }
+
+    return store
+}()
 
 
 
@@ -21,6 +30,7 @@ func load<T: Decodable>(_ filename: String, bundle: Bool) -> T? {
         file = Bundle.main.url(forResource: filename, withExtension: nil)!
     } else {
         file = PathUtils.getDBDir.appendingPathComponent(filename)
+        guard FileManager.default.fileExists(atPath: file.path) else { return nil }
     }
     
     let data: Data
@@ -41,9 +51,6 @@ func load<T: Decodable>(_ filename: String, bundle: Bool) -> T? {
         fatalError("Couldn't parse \(filename) as \(T.self):\n\(error)")
     }
 }
-
-
-
 
 
 

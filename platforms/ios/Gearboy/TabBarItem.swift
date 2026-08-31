@@ -7,7 +7,7 @@ A set of tab bar items.
 
 import UIKit
 
-enum TabBarItem: Int, CaseIterable {
+enum TabBarItem: Int {
     case all, favorites, recents, settings
     
     var title: String {

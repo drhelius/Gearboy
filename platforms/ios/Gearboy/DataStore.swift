@@ -1,6 +1,6 @@
 //
 //  DataStore.swift
-//  Gearboy
+//  Gear iOS
 //
 //  Created by Ignacio Sánchez Ginés on 12/1/21.
 //  Copyright © 2021 Apple. All rights reserved.
@@ -9,12 +9,55 @@
 import Foundation
 
 class DataStore: ObservableObject {
+    private static let recentsMigrationKey = "migration.recents.v1"
+    private static let archiveCRCMigrationKey = "migration.archive-crc.v1"
+
     @Published var allRoms: [Rom]
     
     var runningUpdate = false
 
     init(roms: [Rom]) {
         self.allRoms = roms
+        var changed = false
+
+        if !UserDefaults.standard.bool(forKey: Self.recentsMigrationKey) {
+            for index in allRoms.indices {
+                allRoms[index].usedOn = nil
+            }
+
+            UserDefaults.standard.set(true, forKey: Self.recentsMigrationKey)
+            changed = true
+        }
+
+        if !UserDefaults.standard.bool(forKey: Self.archiveCRCMigrationKey) {
+            for index in allRoms.indices
+            where (allRoms[index].file as NSString).pathExtension.lowercased() == "zip" {
+                let url = PathUtils.getDataDir.appendingPathComponent(allRoms[index].file)
+                guard let crc = Self.crc(for: url), crc != allRoms[index].crc else { continue }
+
+                var migratedRom = Rom(crc: crc, title: allRoms[index].title, file: allRoms[index].file)
+                migratedRom.isFavorite = allRoms[index].isFavorite
+                migratedRom.usedOn = allRoms[index].usedOn
+                allRoms[index] = migratedRom
+            }
+
+            UserDefaults.standard.set(true, forKey: Self.archiveCRCMigrationKey)
+            changed = true
+        }
+
+        if changed {
+            save()
+        }
+    }
+
+    private static func crc(for url: URL) -> String? {
+        if url.pathExtension.lowercased() == "zip" {
+            return AppConfiguration.romCRC(inArchiveAt: url)
+        }
+
+        guard let romData = FileManager.default.contents(atPath: url.path) else { return nil }
+        let checksum = CRC32.checksum(bytes: romData)
+        return String(format: "%08X", checksum)
     }
     
     func addFromURL(_ url: URL) {
@@ -43,11 +86,8 @@ class DataStore: ObservableObject {
     
     func addWithFileName(_ fileName: String) {
         let romURL = PathUtils.getDataDir.appendingPathComponent(fileName)
-        guard let romData = FileManager.default.contents(atPath: romURL.path) else { return }
-        
-        let checksum = CRC32.checksum(bytes: romData)
-        let crc = String(format:"%08X", checksum)
-        let title = gameStore.titleWithCRC(crc)
+        guard let crc = Self.crc(for: romURL) else { return }
+        let title = (fileName as NSString).deletingPathExtension
         
         allRoms.append(Rom(crc: crc, title: title, file: fileName))
         save()
@@ -55,8 +95,19 @@ class DataStore: ObservableObject {
     
     func delete(_ rom: Rom) -> Bool {
         guard let index = (allRoms.firstIndex { $0.crc == rom.crc }) else { return false }
-        
+
+        let romURL = PathUtils.getDataDir.appendingPathComponent(rom.file)
+        do {
+            if FileManager.default.fileExists(atPath: romURL.path) {
+                try FileManager.default.removeItem(at: romURL)
+            }
+        } catch {
+            debugPrint("Cannot delete \(rom.file): \(error)")
+            return false
+        }
+
         allRoms.remove(at: index)
+        save()
         return true
     }
     
@@ -72,42 +123,41 @@ class DataStore: ObservableObject {
     }
     
     func updateAll() {
-        
-        if !runningUpdate {
-            DispatchQueue.global(qos: .background).async { [weak self] in
-                
-                self?.runningUpdate = true;
-                
-                let romsDirectory = PathUtils.getDataDir
-                
-                self?.allRoms.forEach { rom in
-                    
-                    let romFile = rom.file
-                    let romFileURL = romsDirectory.appendingPathComponent(romFile)
-                    
-                    debugPrint("DB: \(rom.file)")
-                    
-                    if !FileManager.default.fileExists(atPath: romFileURL.path) {
-                        _ = self?.delete(rom)
-                    }
-                }
-                
-                do {
-                    let directoryContents = try FileManager.default.contentsOfDirectory(at: romsDirectory, includingPropertiesForKeys: nil)
+        guard !runningUpdate else { return }
+        runningUpdate = true
 
-                    let romFiles = directoryContents.filter{ RomExtension(rawValue: $0.pathExtension.lowercased()) != nil }
-                    
-                    romFiles.forEach { file in
-                        debugPrint("File: \(file)")
-                        
-                        guard dataStore.rom(with: file.lastPathComponent) == nil else { return }
-                        self?.addFromURL(file)
-                    }
-                } catch {
-                    debugPrint(error)
+        let romsDirectory = PathUtils.getDataDir
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let romFiles: [URL]
+
+            do {
+                let directoryContents = try FileManager.default.contentsOfDirectory(
+                    at: romsDirectory,
+                    includingPropertiesForKeys: nil
+                )
+                romFiles = directoryContents.filter {
+                    RomExtension(rawValue: $0.pathExtension.lowercased()) != nil
                 }
-                
-                self?.runningUpdate = false;
+            } catch {
+                debugPrint(error)
+                romFiles = []
+            }
+
+            DispatchQueue.main.async {
+                guard let self else { return }
+
+                self.allRoms.removeAll {
+                    !FileManager.default.fileExists(
+                        atPath: romsDirectory.appendingPathComponent($0.file).path
+                    )
+                }
+
+                for file in romFiles where self.rom(with: file.lastPathComponent) == nil {
+                    self.addWithFileName(file.lastPathComponent)
+                }
+
+                self.save()
+                self.runningUpdate = false
             }
         }
     }
@@ -127,7 +177,7 @@ class DataStore: ObservableObject {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
             
-            try encoder.encode(allRoms).write(to: file)
+            try encoder.encode(allRoms).write(to: file, options: .atomic)
             
         } catch {
             fatalError("Couldn't save \(file):\n\(error)")

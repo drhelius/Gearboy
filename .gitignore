@@ -75,7 +75,22 @@ xcuserdata/
 *.xccheckout
 
 #binaries
-platforms/**/gearboy
+platforms/linux/**/gearboy
+platforms/macos/**/gearboy
+platforms/raspberry*/**/gearboy
+
+#metadata
+platforms/ios/tools/*.dat
+platforms/ios/tools/*.json
+platforms/ios/Support/ThumbnailKeys.local.xcconfig
+
+#ROMs
+*.gb
+*.gbc
+*.cgb
+*.sgb
+*.rom
+*.dmg
 
 #Switch
 *.a
