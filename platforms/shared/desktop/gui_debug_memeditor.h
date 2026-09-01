@@ -83,6 +83,7 @@ public:
     void OpenWatchWindow();
     void OpenSearchWindow();
     void OpenFindBytes();
+    void OpenFindText();
     void AddWatch();
     void PrepareAddWatch(int address, const char* notes);
     bool AddWatchDirect(int address, const char* notes, int size);
@@ -129,6 +130,8 @@ private:
     void DrawSearchValue(int value, ImVec4 color);
     void FindBytesNext(int start_offset);
     bool ParseHexByteString(const char* str, uint8_t* out, int* out_len, int max_len);
+    bool ParseFindPattern(uint8_t* out, int* out_len, int max_len);
+    bool FindByteMatches(uint8_t value, uint8_t pattern);
     bool NormalizeSelectionAddress(int address, int* offset);
     bool CanWatchRangeFit(int address, int size);
     bool CanSearchAddressFit(int address);
@@ -181,7 +184,10 @@ private:
     std::vector<Search> m_search_results;
     bool m_search_auto;
     bool m_find_bytes_window;
+    bool m_find_text;
+    bool m_find_text_case_sensitive;
     char m_find_bytes_buffer[1025];
+    char m_find_text_buffer[513];
     int m_find_bytes_last_address;
     int m_find_bytes_pattern_len;
     std::vector<int> m_find_bytes_results;

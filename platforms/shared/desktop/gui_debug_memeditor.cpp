@@ -64,7 +64,10 @@ MemEditor::MemEditor()
     InitPointer(m_search_data);
     m_search_auto = false;
     m_find_bytes_window = false;
+    m_find_text = false;
+    m_find_text_case_sensitive = true;
     m_find_bytes_buffer[0] = 0;
+    m_find_text_buffer[0] = 0;
     m_find_bytes_last_address = -1;
     m_find_bytes_pattern_len = 0;
 }
@@ -1928,6 +1931,27 @@ void MemEditor::OpenSearchWindow()
 
 void MemEditor::OpenFindBytes()
 {
+    if (m_find_text)
+    {
+        m_find_bytes_results.clear();
+        m_find_bytes_last_address = -1;
+        m_find_bytes_pattern_len = 0;
+    }
+
+    m_find_text = false;
+    m_find_bytes_window = true;
+}
+
+void MemEditor::OpenFindText()
+{
+    if (!m_find_text)
+    {
+        m_find_bytes_results.clear();
+        m_find_bytes_last_address = -1;
+        m_find_bytes_pattern_len = 0;
+    }
+
+    m_find_text = true;
     m_find_bytes_window = true;
 }
 
@@ -1963,12 +1987,45 @@ bool MemEditor::ParseHexByteString(const char* str, uint8_t* out, int* out_len, 
     return (len > 0);
 }
 
+bool MemEditor::ParseFindPattern(uint8_t* out, int* out_len, int max_len)
+{
+    if (!m_find_text)
+        return ParseHexByteString(m_find_bytes_buffer, out, out_len, max_len);
+
+    *out_len = 0;
+    int len = (int)strlen(m_find_text_buffer);
+
+    if (len <= 0 || len > max_len)
+        return false;
+
+    memcpy(out, m_find_text_buffer, len);
+    *out_len = len;
+
+    return true;
+}
+
+bool MemEditor::FindByteMatches(uint8_t value, uint8_t pattern)
+{
+    if (value == pattern)
+        return true;
+
+    if (!m_find_text || m_find_text_case_sensitive)
+        return false;
+
+    if (value >= 'A' && value <= 'Z')
+        value = (uint8_t)(value + ('a' - 'A'));
+    if (pattern >= 'A' && pattern <= 'Z')
+        pattern = (uint8_t)(pattern + ('a' - 'A'));
+
+    return value == pattern;
+}
+
 void MemEditor::FindBytesNext(int start_offset)
 {
     uint8_t pattern[512];
     int pattern_len = 0;
 
-    if (!ParseHexByteString(m_find_bytes_buffer, pattern, &pattern_len, 512))
+    if (!ParseFindPattern(pattern, &pattern_len, 512))
         return;
 
     if (pattern_len == 0 || !IsValidPointer(m_mem_data) || m_mem_size <= 0)
@@ -1986,7 +2043,7 @@ void MemEditor::FindBytesNext(int start_offset)
         bool match = true;
         for (int j = 0; j < pattern_len; j++)
         {
-            if (m_mem_data[offset + j] != pattern[j])
+            if (!FindByteMatches(m_mem_data[offset + j], pattern[j]))
             {
                 match = false;
                 break;
@@ -2018,17 +2075,38 @@ void MemEditor::FindBytesWindow()
 
     ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
     char window_title[64];
-    snprintf(window_title, 64, "%s Find Bytes", m_title);
+    snprintf(window_title, 64, m_find_text ? "%s Find Text" : "%s Find Bytes", m_title);
     ImGui::Begin(window_title, &m_find_bytes_window);
 
-    ImGui::Text("Hex Bytes:");
+    ImGui::Text(m_find_text ? "Text:" : "Hex Bytes:");
 
     ImGui::PushItemWidth(-1);
-    ImGui::InputTextMultiline("##find_bytes_input", m_find_bytes_buffer, IM_ARRAYSIZE(m_find_bytes_buffer),
-        ImVec2(-1, ImGui::GetTextLineHeight() * 4),
-        ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+    bool input_changed = false;
 
-    ImGui::TextColored(mid_gray, "e.g. 04 E5 FF 32 (spaces optional)");
+    if (m_find_text)
+    {
+        input_changed = ImGui::InputTextMultiline("##find_text_input", m_find_text_buffer,
+            IM_ARRAYSIZE(m_find_text_buffer), ImVec2(-1, ImGui::GetTextLineHeight() * 4));
+    }
+    else
+    {
+        input_changed = ImGui::InputTextMultiline("##find_bytes_input", m_find_bytes_buffer,
+            IM_ARRAYSIZE(m_find_bytes_buffer), ImVec2(-1, ImGui::GetTextLineHeight() * 4),
+            ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+    }
+
+    if (m_find_text && ImGui::Checkbox("Case Sensitive", &m_find_text_case_sensitive))
+        input_changed = true;
+
+    if (input_changed)
+    {
+        m_find_bytes_results.clear();
+        m_find_bytes_last_address = -1;
+        m_find_bytes_pattern_len = 0;
+    }
+
+    if (!m_find_text)
+        ImGui::TextColored(mid_gray, "e.g. 04 E5 FF 32 (spaces optional)");
 
     ImGui::NewLine();
 
@@ -2101,7 +2179,7 @@ void MemEditor::CalculateFindBytesResults()
     uint8_t pattern[512];
     int pattern_len = 0;
 
-    if (!ParseHexByteString(m_find_bytes_buffer, pattern, &pattern_len, 512))
+    if (!ParseFindPattern(pattern, &pattern_len, 512))
         return;
 
     m_find_bytes_pattern_len = pattern_len;
@@ -2113,7 +2191,7 @@ void MemEditor::CalculateFindBytesResults()
         bool match = true;
         for (int j = 0; j < pattern_len; j++)
         {
-            if (m_mem_data[offset + j] != pattern[j])
+            if (!FindByteMatches(m_mem_data[offset + j], pattern[j]))
             {
                 match = false;
                 break;
