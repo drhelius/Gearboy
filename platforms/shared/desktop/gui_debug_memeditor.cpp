@@ -153,8 +153,8 @@ void MemEditor::Draw(bool ascii, bool preview, bool options, bool cursors)
         if (ImGui::BeginTable("##header", byte_column_count, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoKeepColumnsVisible))
         {
             char addr_spaces[32];
-            int addr_padding = m_hex_addr_digits - 2;
-            snprintf(addr_spaces, 32, "ADDR %*s", addr_padding, "");
+            int addr_width = m_hex_addr_digits + 3;
+            snprintf(addr_spaces, 32, "%*s", addr_width, "");
             ImGui::TableSetupColumn(addr_spaces);
             ImGui::TableSetupColumn("");
 
@@ -223,7 +223,7 @@ void MemEditor::Draw(bool ascii, bool preview, bool options, bool cursors)
                     ImGui::TableNextColumn();
                     char single_addr[32];
                     snprintf(single_addr, 32, "%s:  ", m_hex_addr_format);
-                    ImGui::Text(single_addr, address + m_mem_base_addr);
+                    ImGui::TextColored(cyan, single_addr, address + m_mem_base_addr);
                     ImGui::TableNextColumn();
 
                     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(2.75f, 0.0f));
