@@ -1987,29 +1987,29 @@ bool MemEditor::ParseHexByteString(const char* str, uint8_t* out, int* out_len, 
     return (len > 0);
 }
 
-bool MemEditor::ParseFindPattern(uint8_t* out, int* out_len, int max_len)
+bool MemEditor::ParseFindPattern(const char* value, bool text, uint8_t* out, int* out_len, int max_len)
 {
-    if (!m_find_text)
-        return ParseHexByteString(m_find_bytes_buffer, out, out_len, max_len);
+    if (!text)
+        return ParseHexByteString(value, out, out_len, max_len);
 
     *out_len = 0;
-    int len = (int)strlen(m_find_text_buffer);
+    int len = (int)strlen(value);
 
     if (len <= 0 || len > max_len)
         return false;
 
-    memcpy(out, m_find_text_buffer, len);
+    memcpy(out, value, len);
     *out_len = len;
 
     return true;
 }
 
-bool MemEditor::FindByteMatches(uint8_t value, uint8_t pattern)
+bool MemEditor::FindByteMatches(uint8_t value, uint8_t pattern, bool text, bool case_sensitive)
 {
     if (value == pattern)
         return true;
 
-    if (!m_find_text || m_find_text_case_sensitive)
+    if (!text || case_sensitive)
         return false;
 
     if (value >= 'A' && value <= 'Z')
@@ -2024,8 +2024,9 @@ void MemEditor::FindBytesNext(int start_offset)
 {
     uint8_t pattern[512];
     int pattern_len = 0;
+    const char* value = m_find_text ? m_find_text_buffer : m_find_bytes_buffer;
 
-    if (!ParseFindPattern(pattern, &pattern_len, 512))
+    if (!ParseFindPattern(value, m_find_text, pattern, &pattern_len, 512))
         return;
 
     if (pattern_len == 0 || !IsValidPointer(m_mem_data) || m_mem_size <= 0)
@@ -2043,7 +2044,8 @@ void MemEditor::FindBytesNext(int start_offset)
         bool match = true;
         for (int j = 0; j < pattern_len; j++)
         {
-            if (!FindByteMatches(m_mem_data[offset + j], pattern[j]))
+            if (!FindByteMatches(m_mem_data[offset + j], pattern[j], m_find_text,
+                    m_find_text_case_sensitive))
             {
                 match = false;
                 break;
@@ -2178,8 +2180,9 @@ void MemEditor::CalculateFindBytesResults()
 
     uint8_t pattern[512];
     int pattern_len = 0;
+    const char* value = m_find_text ? m_find_text_buffer : m_find_bytes_buffer;
 
-    if (!ParseFindPattern(pattern, &pattern_len, 512))
+    if (!ParseFindPattern(value, m_find_text, pattern, &pattern_len, 512))
         return;
 
     m_find_bytes_pattern_len = pattern_len;
@@ -2191,7 +2194,8 @@ void MemEditor::CalculateFindBytesResults()
         bool match = true;
         for (int j = 0; j < pattern_len; j++)
         {
-            if (!FindByteMatches(m_mem_data[offset + j], pattern[j]))
+            if (!FindByteMatches(m_mem_data[offset + j], pattern[j], m_find_text,
+                    m_find_text_case_sensitive))
             {
                 match = false;
                 break;
@@ -2205,13 +2209,13 @@ void MemEditor::CalculateFindBytesResults()
     }
 }
 
-int MemEditor::FindBytesSequence(const char* hex_str, int* out_addresses, int max_results)
+int MemEditor::FindSequence(const char* value, bool text, bool case_sensitive, int* out_addresses, int max_results)
 {
     uint8_t pattern[512];
     int pattern_len = 0;
 
-    if (!ParseHexByteString(hex_str, pattern, &pattern_len, 512))
-        return 0;
+    if (!ParseFindPattern(value, text, pattern, &pattern_len, 512))
+        return -1;
 
     if (pattern_len == 0 || !IsValidPointer(m_mem_data) || m_mem_size <= 0)
         return 0;
@@ -2224,7 +2228,7 @@ int MemEditor::FindBytesSequence(const char* hex_str, int* out_addresses, int ma
         bool match = true;
         for (int j = 0; j < pattern_len; j++)
         {
-            if (m_mem_data[offset + j] != pattern[j])
+            if (!FindByteMatches(m_mem_data[offset + j], pattern[j], text, case_sensitive))
             {
                 match = false;
                 break;

@@ -234,7 +234,7 @@ static const char* const kMcpMemoryTools[] =
     "list_memory_areas", "read_memory", "write_memory", "select_memory_range",
     "set_memory_selection_value", "get_memory_selection", "add_memory_bookmark",
     "remove_memory_bookmark", "list_memory_bookmarks", "add_memory_watch", "remove_memory_watch",
-    "list_memory_watches", "memory_search_capture", "memory_search", "memory_find_bytes"
+    "list_memory_watches", "memory_search_capture", "memory_search", "memory_find"
 };
 
 static const char* const kMcpCpuTools[] =

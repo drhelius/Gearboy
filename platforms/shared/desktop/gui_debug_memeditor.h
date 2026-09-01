@@ -106,7 +106,7 @@ public:
     void SearchCapture();
     int PerformSearch(int op, int compare_type, int compare_value, int data_type);
     std::vector<Search>* GetSearchResults();
-    int FindBytesSequence(const char* hex_str, int* out_addresses, int max_results);
+    int FindSequence(const char* value, bool text, bool case_sensitive, int* out_addresses, int max_results);
 
 private:
     bool IsColumnSeparator(int current_column, int column_count);
@@ -130,8 +130,8 @@ private:
     void DrawSearchValue(int value, ImVec4 color);
     void FindBytesNext(int start_offset);
     bool ParseHexByteString(const char* str, uint8_t* out, int* out_len, int max_len);
-    bool ParseFindPattern(uint8_t* out, int* out_len, int max_len);
-    bool FindByteMatches(uint8_t value, uint8_t pattern);
+    bool ParseFindPattern(const char* value, bool text, uint8_t* out, int* out_len, int max_len);
+    bool FindByteMatches(uint8_t value, uint8_t pattern, bool text, bool case_sensitive);
     bool NormalizeSelectionAddress(int address, int* offset);
     bool CanWatchRangeFit(int address, int size);
     bool CanSearchAddressFit(int address);

@@ -768,10 +768,10 @@ int gui_debug_memory_search(int editor, int op, int compare_type, int compare_va
     return count;
 }
 
-int gui_debug_memory_find_bytes(int editor, const char* hex_str, int* out_addresses, int max_results)
+int gui_debug_memory_find(int editor, const char* value, bool text, bool case_sensitive, int* out_addresses, int max_results)
 {
     if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
         return 0;
 
-    return mem_edit[editor].FindBytesSequence(hex_str, out_addresses, max_results);
+    return mem_edit[editor].FindSequence(value, text, case_sensitive, out_addresses, max_results);
 }

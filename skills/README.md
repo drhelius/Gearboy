@@ -66,7 +66,7 @@ This downloads and configures the skills for use with your AI agent. See the [sk
 - Save state management for safe experimentation
 - Fast forwarding to reach specific game states
 
-**Key MCP tools used**: `memory_search_capture`, `memory_search`, `memory_find_bytes`, `read_memory`, `write_memory`, `set_breakpoint` (write type), `add_memory_watch`, `add_memory_bookmark`, `save_state`, `load_state`, `toggle_fast_forward`, `get_screenshot`, `list_sprites`, `get_sprite_image`, `controller_button`
+**Key MCP tools used**: `memory_search_capture`, `memory_search`, `memory_find`, `read_memory`, `write_memory`, `set_breakpoint` (write type), `add_memory_watch`, `add_memory_bookmark`, `save_state`, `load_state`, `toggle_fast_forward`, `get_screenshot`, `list_sprites`, `get_sprite_image`, `controller_button`
 
 **Example prompts**:
 - "Find the lives counter and give me infinite lives"

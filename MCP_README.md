@@ -363,7 +363,7 @@ The server exposes tools organized in the following categories:
 - `list_memory_watches` - List all watches in memory area
 - `memory_search_capture` - Capture memory snapshot for search comparison
 - `memory_search` - Search memory with operators (<, >, ==, !=, <=, >=), compare types (previous, value, address), and data types (hex, signed, unsigned)
-- `memory_find_bytes` - Find byte sequences in memory
+- `memory_find` - Find hex byte sequences (`hex_bytes`) or text (`text`, optional `case_sensitive`) in memory
 
 ### Disassembly & Debugging
 - `get_disassembly` - Get SM83 disassembly for specified address range

@@ -77,7 +77,7 @@ EXTERN int gui_debug_memory_get_watches(int editor, void** watches_ptr);
 EXTERN void gui_debug_memory_get_selection(int editor, int* start, int* end);
 EXTERN void gui_debug_memory_search_capture(int editor);
 EXTERN int gui_debug_memory_search(int editor, int op, int compare_type, int compare_value, int data_type, void** results_ptr);
-EXTERN int gui_debug_memory_find_bytes(int editor, const char* hex_str, int* out_addresses, int max_results);
+EXTERN int gui_debug_memory_find(int editor, const char* value, bool text, bool case_sensitive, int* out_addresses, int max_results);
 EXTERN void gui_debug_memory_save_settings(std::ostream& stream);
 EXTERN bool gui_debug_memory_load_settings(std::istream& stream);
 
