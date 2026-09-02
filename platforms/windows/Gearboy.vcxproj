@@ -263,6 +263,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Gearboy.rc" />
+    <ResourceCompile Include="version.rc">
+      <PreprocessorDefinitions>EMULATOR_BUILD="$(EmulatorBuild)";EMULATOR_VERSION=$(EmulatorVersionResource);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -270,6 +273,10 @@
     <ProjectGuid>{92D9838A-C6AB-348D-8565-F9E813C3C467}</ProjectGuid>
     <RootNamespace>Gearboy</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <EmulatorBuild Condition="'$(EmulatorBuild)' == ''">undefined</EmulatorBuild>
+    <EmulatorVersion>$([System.Text.RegularExpressions.Regex]::Match('$(EmulatorBuild)', '^[0-9]+\.[0-9]+\.[0-9]+').Value)</EmulatorVersion>
+    <EmulatorVersion Condition="'$(EmulatorVersion)' == ''">0.0.0</EmulatorVersion>
+    <EmulatorVersionResource>$([System.String]::Copy('$(EmulatorVersion)').Replace('.', ',')),0</EmulatorVersionResource>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">

@@ -675,5 +675,6 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Gearboy.rc" />
+    <ResourceCompile Include="version.rc" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,43 @@
+#include <winver.h>
+
+#ifndef EMULATOR_BUILD
+#define EMULATOR_BUILD "undefined"
+#endif
+
+#ifndef EMULATOR_VERSION
+#define EMULATOR_VERSION 0,0,0,0
+#endif
+
+#define EMULATOR_BUILD_STRING EMULATOR_BUILD "\0"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION EMULATOR_VERSION
+ PRODUCTVERSION EMULATOR_VERSION
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+ FILEFLAGS VS_FF_DEBUG
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "FileDescription", "Game Boy / Game Boy Color Emulator\0"
+            VALUE "FileVersion", EMULATOR_BUILD_STRING
+            VALUE "InternalName", "Gearboy\0"
+            VALUE "LegalCopyright", "Copyright (C) 2012-2026 Nacho Sanchez\0"
+            VALUE "OriginalFilename", "Gearboy.exe\0"
+            VALUE "ProductName", "Gearboy\0"
+            VALUE "ProductVersion", EMULATOR_BUILD_STRING
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1252
+    END
+END
