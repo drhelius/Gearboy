@@ -13,6 +13,7 @@ BuildRequires:  make
 BuildRequires:  pkgconf-pkg-config
 BuildRequires:  mesa-libGL-devel
 BuildRequires:  SDL3-devel
+BuildRequires:  libatomic
 
 Requires:       mesa-libGL
 Requires:       SDL3
