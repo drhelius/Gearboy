@@ -29,6 +29,7 @@
 #include "application.h"
 #include "display.h"
 #include "gamepad.h"
+#include "sound_queue.h"
 #include "emu.h"
 #include "rewind.h"
 #include "gui_debug_sgb.h"
@@ -1212,12 +1213,12 @@ static void menu_audio(void)
             ImGui::PopItemWidth();
             if (ImGui::IsItemHovered())
             {
-                float latency_ms = (config_audio.buffer_count * GB_AUDIO_QUEUE_SIZE) / (float)(GB_AUDIO_SAMPLE_RATE * 2) * 1000.0f;
                 ImGui::BeginTooltip();
-                ImGui::Text("Lower values reduce audio latency.");
+                ImGui::Text("Audio latency: %.0f ms", sound_queue_get_target_latency_ms());
+                ImGui::Text("\nLower values reduce audio latency.");
                 ImGui::Text("Higher values prevent audio underruns.");
                 ImGui::Text("Enabling VSync may force higher buffer counts.");
-                ImGui::Text("Current audio latency: %.0f ms", latency_ms);
+
                 ImGui::EndTooltip();
             }
             ImGui::EndMenu();

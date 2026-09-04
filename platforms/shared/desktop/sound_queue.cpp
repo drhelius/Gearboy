@@ -27,6 +27,7 @@
 
 static SDL_AudioStream* sound_queue_stream;
 static bool sound_queue_sound_open;
+static bool sound_queue_playing;
 static int sound_queue_max_queued_bytes;
 static int sound_queue_buffer_size;
 static int sound_queue_bytes_per_second;
@@ -37,6 +38,9 @@ void sound_queue_init(void)
 {
     InitPointer(sound_queue_stream);
     sound_queue_sound_open = false;
+    sound_queue_playing = false;
+
+    SDL_SetHintWithPriority(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "512", SDL_HINT_DEFAULT);
 
     int audio_drivers_count = SDL_GetNumAudioDrivers();
 
@@ -113,7 +117,7 @@ bool sound_queue_start(int sample_rate, int channel_count, int buffer_size, int 
 
     Log("Sound Queue: Started [%s] - frequency: %d format: 0x%04X channels: %d", SDL_GetAudioDeviceName(selected_device), spec.freq, spec.format, spec.channels);
 
-    SDL_ResumeAudioStreamDevice(sound_queue_stream);
+    sound_queue_playing = false;
     sound_queue_sound_open = true;
 
     return true;
@@ -124,6 +128,7 @@ void sound_queue_stop(void)
     if (sound_queue_sound_open)
     {
         sound_queue_sound_open = false;
+        sound_queue_playing = false;
         if (sound_queue_stream)
         {
             SDL_PauseAudioStreamDevice(sound_queue_stream);
@@ -140,6 +145,14 @@ int sound_queue_get_sample_count(void)
     if (!sound_queue_stream)
         return 0;
     return SDL_GetAudioStreamQueued(sound_queue_stream) / (int)sizeof(s16);
+}
+
+float sound_queue_get_target_latency_ms(void)
+{
+    if (sound_queue_bytes_per_second <= 0)
+        return 0.0f;
+
+    return (sound_queue_max_queued_bytes * 1000.0f) / sound_queue_bytes_per_second;
 }
 
 bool sound_queue_is_open(void)
@@ -165,7 +178,7 @@ void sound_queue_write(s16* samples, int count, bool sync)
         SOUND_QUEUE_DEBUG("Sound Queue: Underrun detected, queue was empty");
     }
 
-    if (sync)
+    if (sound_queue_playing && sync)
     {
         int room = sound_queue_max_queued_bytes - queued;
         if (room < bytes)
@@ -177,7 +190,7 @@ void sound_queue_write(s16* samples, int count, bool sync)
                 SDL_Delay(wait_ms);
         }
     }
-    else
+    else if (sound_queue_playing)
     {
         if (queued >= sound_queue_max_queued_bytes)
         {
@@ -186,7 +199,28 @@ void sound_queue_write(s16* samples, int count, bool sync)
         }
     }
 
-    SDL_PutAudioStreamData(sound_queue_stream, samples, bytes);
+    if (!SDL_PutAudioStreamData(sound_queue_stream, samples, bytes))
+    {
+        Log("Sound Queue: Unable to queue audio: %s", SDL_GetError());
+        return;
+    }
+
+    if (!sound_queue_playing)
+    {
+        int queued_after = queued + bytes;
+
+        if ((queued_after + bytes) > sound_queue_max_queued_bytes)
+        {
+            if (!SDL_ResumeAudioStreamDevice(sound_queue_stream))
+            {
+                SDL_ERROR("SDL_ResumeAudioStreamDevice");
+                sound_queue_stop();
+                return;
+            }
+
+            sound_queue_playing = true;
+        }
+    }
 }
 
 static bool is_running_in_wsl(void)

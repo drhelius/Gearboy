@@ -43,6 +43,7 @@ static bool pending_gl_context_recreate = false;
 
 static bool display_is_vrr_enabled(void);
 static bool display_fixed_vsync_supported(void);
+static double display_get_pacing_frame_rate(void);
 static bool display_update_content_frame_rate(void);
 static void display_reset_vsync_accumulator(void);
 static void display_set_swap_interval(bool enabled);
@@ -117,7 +118,7 @@ bool display_should_run_emu_frame(void)
         if (!display_fixed_vsync_supported() || content_frame_rate + 0.000001 >= monitor_refresh_rate)
             return true;
 
-        vsync_frame_accumulator += content_frame_rate;
+        vsync_frame_accumulator += display_get_pacing_frame_rate();
 
         if (vsync_frame_accumulator + 0.000001 >= monitor_refresh_rate)
         {
@@ -303,6 +304,23 @@ static bool display_fixed_vsync_supported(void)
         fixed_vsync_fallback_logged = false;
 
     return supported;
+}
+
+static double display_get_pacing_frame_rate(void)
+{
+    int interval = (int)((monitor_refresh_rate / content_frame_rate) + 0.5);
+
+    if (interval > 0)
+    {
+        double divided_frame_rate = monitor_refresh_rate / interval;
+
+        if ((divided_frame_rate >= content_frame_rate) && (divided_frame_rate < content_frame_rate + 0.5))
+        {
+            return divided_frame_rate;
+        }
+    }
+
+    return content_frame_rate;
 }
 
 static bool display_update_content_frame_rate(void)
