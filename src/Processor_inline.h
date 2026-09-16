@@ -209,11 +209,6 @@ inline int Processor::AdjustedCycles(int cycles)
     return cycles >> m_iSpeedMultiplier;
 }
 
-NO_INLINE COLD inline void Processor::InvalidOPCode()
-{
-    Debug("--> ** INVALID OP Code");
-}
-
 inline void Processor::OPCodes_LD(u8* reg1, u8 reg2)
 {
     *reg1 = reg2;

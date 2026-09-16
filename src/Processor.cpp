@@ -102,6 +102,11 @@ void Processor::Init()
     Reset(false, false);
 }
 
+NO_INLINE COLD void Processor::InvalidOPCode()
+{
+    Debug("--> ** INVALID OP Code");
+}
+
 void Processor::Reset(bool bCGB, bool bGBA, bool bSGB)
 {
     m_bCGB = bCGB;
