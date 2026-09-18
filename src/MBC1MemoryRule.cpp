@@ -204,7 +204,7 @@ void MBC1MemoryRule::SaveRam(std::ostream &file)
     Debug("MBC1MemoryRule save RAM...");
     Debug("MBC1MemoryRule saving %d banks...", m_pCartridge->GetRAMBankCount());
 
-    u32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
+    u32 ramSize = m_iRamBytesSize;
 
     for (u32 i = 0; i < ramSize; i++)
     {
@@ -220,9 +220,11 @@ bool MBC1MemoryRule::LoadRam(std::istream &file, s32 fileSize)
     Debug("MBC1MemoryRule load RAM...");
     Debug("MBC1MemoryRule loading %d banks...", m_pCartridge->GetRAMBankCount());
 
-    s32 ramSize = m_pCartridge->GetRAMBankCount() * 0x2000;
+    s32 ramSize = m_iRamBytesSize;
 
-    if ((fileSize > 0) && (fileSize != ramSize))
+    bool legacySize = (ramSize == 0x800) && (fileSize == 0x2000);
+
+    if ((fileSize > 0) && (fileSize != ramSize) && !legacySize)
     {
         Log("MBC1MemoryRule incorrect size. Expected: %d Found: %d", ramSize, fileSize);
         return false;
@@ -249,7 +251,7 @@ bool MBC1MemoryRule::LoadRam(std::istream &file, s32 fileSize)
 
 size_t MBC1MemoryRule::GetRamSize()
 {
-    return m_pCartridge->GetRAMBankCount() * 0x2000;
+    return m_iRamBytesSize;
 }
 
 u8* MBC1MemoryRule::GetRamBanks()
