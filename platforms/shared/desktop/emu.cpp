@@ -1147,7 +1147,7 @@ int emu_get_sprite_png(int sprite_index, unsigned char** out_buffer)
     if (sprite_index < 0 || sprite_index > 39)
         return 0;
 
-    update_debug();
+    update_debug_oam_buffers();
 
     Memory* memory = gearboy->GetMemory();
     u8 lcdc = memory->Retrieve(0xFF40);
@@ -1158,6 +1158,8 @@ int emu_get_sprite_png(int sprite_index, unsigned char** out_buffer)
 
     if (!buffer)
         return 0;
+
+    generate_24bit_buffer(buffer, debug_oam_buffers_565[sprite_index], 8 * 16);
 
     int len = 0;
     *out_buffer = stbi_write_png_to_mem((const unsigned char*)buffer, 8 * 3, 8, height, 3, &len);
