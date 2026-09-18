@@ -632,17 +632,22 @@ static const char* get_configurated_dir(int option, const char* path)
     }
 }
 
-void emu_save_state_slot(int index)
+bool emu_save_state_slot(int index)
 {
     if (!emu_is_empty())
     {
         const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
-        gearboy->SaveState(dir, index, true);
-        update_savestates_data();
+        if (gearboy->SaveState(dir, index, true))
+        {
+            update_savestates_data();
+            return true;
+        }
     }
+
+    return false;
 }
 
-void emu_load_state_slot(int index)
+bool emu_load_state_slot(int index)
 {
     if (!emu_is_empty())
     {
@@ -652,8 +657,11 @@ void emu_load_state_slot(int index)
         {
             events_sync_input();
             rewind_reset();
+            return true;
         }
     }
+
+    return false;
 }
 
 void emu_save_state_file(const char* file_path)

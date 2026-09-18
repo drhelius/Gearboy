@@ -1597,7 +1597,12 @@ json DebugAdapter::SaveState()
     }
 
     int slot = config_emulator.save_slot + 1;
-    emu_save_state_slot(slot);
+    if (!emu_save_state_slot(slot))
+    {
+        result["error"] = "Failed to save state slot";
+        Log("[MCP] SaveState failed: Slot %d", slot);
+        return result;
+    }
 
     result["success"] = true;
     result["slot"] = slot;
@@ -1628,7 +1633,12 @@ json DebugAdapter::LoadState()
         return result;
     }
 
-    emu_load_state_slot(slot);
+    if (!emu_load_state_slot(slot))
+    {
+        result["error"] = "Failed to load state slot";
+        Log("[MCP] LoadState failed: Slot %d", slot);
+        return result;
+    }
 
     result["success"] = true;
     result["slot"] = slot;
