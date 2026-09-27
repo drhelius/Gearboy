@@ -341,7 +341,7 @@ static void menu_gearboy(void)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Load Default Settings"))
+        if (ImGui::MenuItem("Load Default Settings", NULL, false, !gui_is_rom_loading() && !emu_is_rom_loading()))
         {
             open_load_defaults = true;
         }
@@ -1027,38 +1027,6 @@ static void menu_input(void)
     {
         gui_in_use = true;
 
-        if (ImGui::BeginMenu("Barcode Boy", !emu_is_rom_loading()))
-        {
-            static const char* mode_names[] = { "Auto", "Disabled", "Enabled" };
-
-            for (int i = 0; i < 3; i++)
-            {
-                if (ImGui::MenuItem(mode_names[i], NULL, config_emulator.barcode_boy_mode == i))
-                    emu_set_barcode_boy_mode(i);
-            }
-
-            ImGui::Separator();
-
-            GB_BarcodeBoyStatus status = emu_is_empty() ?
-                GB_BarcodeBoyStatus_Disabled : emu_get_core()->GetBarcodeBoyStatus();
-
-            static const char* status_labels[] =
-            {
-                "Reader not attached", "Waiting for game", "Ready to scan", "Barcode queued", "Sending barcode"
-            };
-
-            ImGui::TextDisabled("%s",
-                emu_link_cable_is_active() ? "Unavailable while Link Cable is active" : status_labels[status]);
-
-            if (ImGui::MenuItem("Scan Barcode...", NULL, false,
-                !emu_is_empty() && status != GB_BarcodeBoyStatus_Disabled && status != GB_BarcodeBoyStatus_Sending))
-                open_barcode = true;
-
-            ImGui::EndMenu();
-        }
-
-        ImGui::Separator();
-
         if (ImGui::BeginMenu("Keyboard Configuration"))
         {
             keyboard_configuration_item("Left:", &config_input.key_left, 0);
@@ -1186,6 +1154,41 @@ static void menu_input(void)
                     ImGui::SetTooltip("When enabled, the mouse will be captured inside\nthe emulator window to control tilt freely.\nPress %s to release the mouse.", config_hotkeys[config_HotkeyIndex_CaptureMouse].str);
                 }
             }
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::BeginMenu("Barcode Boy", !emu_is_rom_loading()))
+        {
+            int mode = config_emulator.barcode_boy_mode;
+            ImGui::PushItemWidth(100.0f);
+
+            if (ImGui::Combo("##barcode_mode", &mode, "Auto\0Disabled\0Enabled\0\0"))
+                emu_set_barcode_boy_mode(mode);
+
+            ImGui::PopItemWidth();
+            ImGui::Separator();
+
+            GB_BarcodeBoyStatus status = emu_is_empty() ? GB_BarcodeBoyStatus_Disabled : emu_get_core()->GetBarcodeBoyStatus();
+
+            static const char* status_labels[] =
+            {
+                "Reader not attached", "Waiting for game", "Ready to scan", "Barcode queued", "Sending barcode"
+            };
+
+            ImVec4 status_color = red;
+            
+            if (status == GB_BarcodeBoyStatus_Ready)
+                status_color = green;
+            else if (status == GB_BarcodeBoyStatus_Handshake)
+                status_color = yellow;
+
+            ImGui::TextColored(status_color, "%s", emu_link_cable_is_active() ? "Unavailable while Link Cable is active" : status_labels[status]);
+
+            if (ImGui::MenuItem("Scan Barcode...", NULL, false, !emu_is_empty() && status != GB_BarcodeBoyStatus_Disabled && status != GB_BarcodeBoyStatus_Sending))
+                open_barcode = true;
+
             ImGui::EndMenu();
         }
 
