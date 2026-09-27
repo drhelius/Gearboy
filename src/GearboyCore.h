@@ -22,6 +22,7 @@
 
 #include "definitions.h"
 #include "Cartridge.h"
+#include "BarcodeBoy.h"
 #include "link_cable.h"
 #include "Memory.h"
 #include "Processor.h"
@@ -139,6 +140,10 @@ public:
     bool IsLinkCableConnected() const;
     void SynchronizeLinkCable();
     void SetAccelerometer(double x, double y);
+    void SetBarcodeBoyMode(GB_BarcodeBoyMode mode);
+    bool IsBarcodeBoyEnabled() const;
+    GB_BarcodeBoyStatus GetBarcodeBoyStatus() const;
+    GB_BarcodeBoyResult ScanBarcode(const char* barcode);
 
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;
@@ -149,6 +154,7 @@ private:
     void InitMemoryRules();
     bool AddMemoryRules(Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported);
     void Reset(bool bCGB, bool bGBA);
+    void ApplySerialDevice(bool link_connected);
     bool SaveState(std::ostream& stream, size_t& size, bool screenshot);
     bool LoadState(std::istream& stream);
     bool LoadStateLegacy(std::istream& stream, size_t size);
@@ -200,6 +206,9 @@ private:
     TraceLogger* m_trace_logger;
     u64 m_master_clock_cycles;
     u64 m_link_cable_cycles;
+    BarcodeBoy* m_pBarcodeBoy;
+    GB_BarcodeBoyMode m_BarcodeBoyMode;
+    GB_LinkCableCallbacks m_LinkCableCallbacks;
 };
 
 INLINE bool GearboyCore::RunCycle(u16* frame_buffer, unsigned int& clocks, u8 ticks)

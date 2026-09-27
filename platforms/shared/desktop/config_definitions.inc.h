@@ -173,6 +173,7 @@ static inline void process(config_Operation operation)
     // Services
     CONFIG_INT("Emulator", "MCPTCPPort", config_emulator.mcp_tcp_port, 7777);
     CONFIG_STRING_NOT_EMPTY("Emulator", "MCPHTTPAddress", config_emulator.mcp_http_address, "127.0.0.1");
+    CONFIG_INT_RANGE("Emulator", "BarcodeBoy", config_emulator.barcode_boy_mode, 0, 0, 2);
     CONFIG_INT_RANGE("Emulator", "LinkCableSession", config_emulator.link_cable_session, 1, 1, 255);
 #if defined(_WIN32)
     CONFIG_INT_RANGE("Emulator", "LinkCableStallUs", config_emulator.link_cable_stall_us, 5000, 1000, 10000);

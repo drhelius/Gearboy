@@ -44,6 +44,7 @@ static bool open_ram = false;
 static bool save_ram = false;
 static bool open_state = false;
 static bool save_state = false;
+static bool open_barcode = false;
 static bool open_about = false;
 static bool open_load_defaults = false;
 static bool save_screenshot = false;
@@ -132,6 +133,7 @@ void gui_main_menu(void)
     save_ram = false;
     open_state = false;
     save_state = false;
+    open_barcode = false;
     open_about = false;
     open_load_defaults = false;
     save_screenshot = false;
@@ -1025,6 +1027,38 @@ static void menu_input(void)
     {
         gui_in_use = true;
 
+        if (ImGui::BeginMenu("Barcode Boy", !emu_is_rom_loading()))
+        {
+            static const char* mode_names[] = { "Auto", "Disabled", "Enabled" };
+
+            for (int i = 0; i < 3; i++)
+            {
+                if (ImGui::MenuItem(mode_names[i], NULL, config_emulator.barcode_boy_mode == i))
+                    emu_set_barcode_boy_mode(i);
+            }
+
+            ImGui::Separator();
+
+            GB_BarcodeBoyStatus status = emu_is_empty() ?
+                GB_BarcodeBoyStatus_Disabled : emu_get_core()->GetBarcodeBoyStatus();
+
+            static const char* status_labels[] =
+            {
+                "Reader not attached", "Waiting for game", "Ready to scan", "Barcode queued", "Sending barcode"
+            };
+
+            ImGui::TextDisabled("%s",
+                emu_link_cable_is_active() ? "Unavailable while Link Cable is active" : status_labels[status]);
+
+            if (ImGui::MenuItem("Scan Barcode...", NULL, false,
+                !emu_is_empty() && status != GB_BarcodeBoyStatus_Disabled && status != GB_BarcodeBoyStatus_Sending))
+                open_barcode = true;
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
         if (ImGui::BeginMenu("Keyboard Configuration"))
         {
             keyboard_configuration_item("Left:", &config_input.key_left, 0);
@@ -1691,6 +1725,10 @@ static void file_dialogs(void)
         ImGui::OpenPopup("Load Default Settings");
     }
 
+    if (open_barcode)
+        ImGui::OpenPopup("Scan Barcode");
+
+    gui_popup_modal_barcode();
     gui_popup_modal_about();
     gui_popup_modal_load_defaults();
 }

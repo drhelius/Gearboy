@@ -80,7 +80,7 @@ private:
         unsigned index;
     };
 
-    static void StateCallback(u64 cycle, u8 sb, u8 sc, void* data);
+    static void StateCallback(u64 cycle, u8 sb, u8 sc, GB_SerialEvent, void* data);
     static void StartCallback(u64 cycle, u64 first_shift, u32 bit_cycles, u8 outgoing, u32 transfer_id, u8* incoming, void* data);
     static bool PollCallback(u64 cycle, GB_LinkCableTransfer* transfer, void* data);
     u64 Cycle(unsigned index);

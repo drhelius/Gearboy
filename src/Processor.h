@@ -27,6 +27,8 @@
 #include "SixteenBitRegister.h"
 #include "link_cable.h"
 
+
+
 class Memory;
 class TraceLogger;
 
@@ -111,6 +113,8 @@ public:
         u64 next_shift_cycle;
     };
 
+    static const int k_serial_state_size = 35;
+
 public:
     Processor(Memory* pMemory);
     ~Processor();
@@ -162,6 +166,10 @@ public:
         GB_LinkCablePollCallback poll_callback, GB_LinkCableSyncCallback sync_callback, void* user_data);
     void SetLinkCableConnected(bool connected, u64 current_cycle);
     bool IsLinkCableConnected() const;
+    void SetSerialConnected(bool connected, bool link_connected, u64 current_cycle);
+    void ResetSerialDevice();
+    void SaveSerialState(std::ostream& stream);
+    bool LoadSerialState(std::istream& stream, bool apply_state = true);
     void GetSerialState(SerialState& state) const;
     void SetLinkCableIncomingByte(u32 transfer_id, u8 incoming_byte);
     void SaveLinkCableState(std::ostream& stream);
@@ -222,6 +230,7 @@ private:
     GB_LinkCableSyncCallback m_link_cable_sync_callback;
     void* m_link_cable_user_data;
     bool m_bLinkCableConnected;
+    bool m_bSerialConnected;
     u64 m_iLinkCableNextSyncCycle;
     u32 m_iLinkCableSyncCycles;
     int m_iIMECycles;
@@ -280,7 +289,7 @@ private:
     void PollExternalSerialTransfer(u64 current_cycle);
     void RestoreSerialTransfer(u64 current_cycle);
     void ShiftSerialBit(u64 edge_cycle);
-    void PublishSerialState(u64 cycle);
+    void PublishSerialState(u64 cycle, GB_SerialEvent event = GB_SerialEvent_State);
     u32 GetLinkCableSyncCycles(u64 current_cycle) const;
     void UpdateGameShark();
     void ClearAllFlags();

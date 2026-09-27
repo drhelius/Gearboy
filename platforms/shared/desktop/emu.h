@@ -137,6 +137,8 @@ EXTERN int emu_mcp_get_transport_mode(void);
 EXTERN const char* emu_mcp_get_http_address(void);
 EXTERN int emu_mcp_get_http_port(void);
 EXTERN void emu_mcp_pump_commands(void);
+EXTERN void emu_set_barcode_boy_mode(int mode);
+EXTERN GB_BarcodeBoyResult emu_scan_barcode(const char* barcode);
 EXTERN bool emu_link_cable_connect(int session);
 EXTERN void emu_link_cable_stop(void);
 EXTERN void emu_link_cable_pump(void);

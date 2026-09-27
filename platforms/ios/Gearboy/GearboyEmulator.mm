@@ -203,6 +203,7 @@ static Cartridge::CartridgeTypes MapperForOption(NSInteger option)
     {
         m_core = new GearboyCore();
         m_core->Init(GB_PIXEL_RGB565);
+        m_core->SetBarcodeBoyMode(GB_BarcodeBoyMode_Disabled);
         m_core->SetSoundSampleRate(GB_AUDIO_SAMPLE_RATE);
 
         m_frameBuffer = new u16[SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT]();

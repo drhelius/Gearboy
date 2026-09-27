@@ -33,6 +33,7 @@
 #include "keyboard.h"
 #include "imgui.h"
 #include "implot.h"
+#include "../barcode_boy_codes.h"
 
 static char build_info[4096] = "";
 static int info_pos = 0;
@@ -144,6 +145,100 @@ void gui_popup_modal_hotkey()
             gui_dialog_in_use = false;
             ImGui::CloseCurrentPopup();
         }
+        ImGui::EndPopup();
+    }
+}
+
+static int barcode_character_filter(ImGuiInputTextCallbackData* data)
+{
+    return data->EventChar >= '0' && data->EventChar <= '9' ? 0 : 1;
+}
+
+void gui_popup_modal_barcode(void)
+{
+    if (ImGui::BeginPopupModal("Scan Barcode", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        gui_dialog_in_use = true;
+
+        static char barcode[64] = "";
+        static int selected_preset = -1;
+        static const char* error_message = NULL;
+
+        if (ImGui::IsWindowAppearing())
+            error_message = NULL;
+
+        ImGui::TextUnformatted("Choose a card or enter a 13-digit barcode.");
+        ImGui::SetNextItemWidth(390.0f);
+
+        if (ImGui::BeginCombo("Card", selected_preset < 0 ? "Custom" : kBarcodeBoyCodes[selected_preset].name))
+        {
+            if (ImGui::Selectable("Custom", selected_preset < 0))
+                selected_preset = -1;
+
+            for (int i = 0; kBarcodeBoyCodes[i].name; i++)
+            {
+                if (ImGui::Selectable(kBarcodeBoyCodes[i].name, selected_preset == i))
+                {
+                    selected_preset = i;
+                    strcpy(barcode, kBarcodeBoyCodes[i].barcode);
+                    error_message = NULL;
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        ImGui::SetNextItemWidth(220.0f);
+        bool enter_pressed = ImGui::InputText("Barcode", barcode, sizeof(barcode),
+            ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCharFilter, barcode_character_filter);
+
+        if (ImGui::IsItemEdited())
+        {
+            selected_preset = -1;
+            error_message = NULL;
+        }
+
+        bool valid_barcode = strlen(barcode) == 13;
+
+        if (barcode[0] && !valid_barcode)
+            ImGui::TextDisabled("Enter exactly 13 digits (%d entered).", (int)strlen(barcode));
+
+        if (error_message)
+            ImGui::TextUnformatted(error_message);
+
+        ImGui::BeginDisabled(!valid_barcode);
+        bool scan_pressed = ImGui::Button("Scan", ImVec2(120, 0));
+        ImGui::EndDisabled();
+
+        if (valid_barcode && (scan_pressed || enter_pressed))
+        {
+            GB_BarcodeBoyResult result = emu_scan_barcode(barcode);
+
+            if (result == GB_BarcodeBoyResult_Accepted)
+            {
+                char message[64];
+                snprintf(message, sizeof(message), "Barcode queued: %s", barcode);
+                gui_set_status_message(message, 3000);
+
+                gui_dialog_in_use = false;
+                ImGui::CloseCurrentPopup();
+            }
+            else if (result == GB_BarcodeBoyResult_Busy)
+                error_message = "The reader is still sending the previous barcode.";
+            else if (result == GB_BarcodeBoyResult_Unavailable)
+                error_message = "Barcode Boy is not attached.";
+            else
+                error_message = "Enter exactly 13 decimal digits.";
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+        {
+            gui_dialog_in_use = false;
+            ImGui::CloseCurrentPopup();
+        }
+
         ImGui::EndPopup();
     }
 }

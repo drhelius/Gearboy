@@ -75,7 +75,7 @@ u64 LibretroLink::Cycle(unsigned index)
     return m_instances[index].core->GetLinkCableCycle() - m_runtime.origin[index];
 }
 
-void LibretroLink::StateCallback(u64 cycle, u8 sb, u8 sc, void* data)
+void LibretroLink::StateCallback(u64 cycle, u8 sb, u8 sc, GB_SerialEvent, void* data)
 {
     Endpoint* endpoint = static_cast<Endpoint*>(data);
     Runtime& runtime = endpoint->link->m_runtime;

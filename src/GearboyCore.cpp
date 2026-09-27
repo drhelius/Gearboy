@@ -96,10 +96,14 @@ GearboyCore::GearboyCore()
     m_pSaveStateFrameBuffer = NULL;
     m_master_clock_cycles = 0;
     m_link_cable_cycles = 0;
+    m_pBarcodeBoy = NULL;
+    m_BarcodeBoyMode = GB_BarcodeBoyMode_Auto;
+    memset(&m_LinkCableCallbacks, 0, sizeof(m_LinkCableCallbacks));
 }
 
 GearboyCore::~GearboyCore()
 {
+    SafeDelete(m_pBarcodeBoy);
     SafeDelete(m_pMBC6MemoryRule);
     SafeDelete(m_pMBC5MemoryRule);
     SafeDelete(m_pMBC3MemoryRule);
@@ -372,17 +376,80 @@ u64 GearboyCore::GetLinkCableCycle() const
 void GearboyCore::SetLinkCableCallbacks(GB_LinkCableStateCallback state_callback, GB_LinkCableStartCallback start_callback,
     GB_LinkCablePollCallback poll_callback, GB_LinkCableSyncCallback sync_callback, void* user_data)
 {
-    m_pProcessor->SetLinkCableCallbacks(state_callback, start_callback, poll_callback, sync_callback, user_data);
+    m_LinkCableCallbacks.state = state_callback;
+    m_LinkCableCallbacks.start = start_callback;
+    m_LinkCableCallbacks.poll = poll_callback;
+    m_LinkCableCallbacks.sync = sync_callback;
+    m_LinkCableCallbacks.user_data = user_data;
+
+    if (!m_pBarcodeBoy)
+        m_pProcessor->SetLinkCableCallbacks(state_callback, start_callback, poll_callback, sync_callback, user_data);
 }
 
 void GearboyCore::SetLinkCableConnected(bool connected)
 {
-    m_pProcessor->SetLinkCableConnected(connected, m_link_cable_cycles);
+    ApplySerialDevice(connected);
 }
 
 bool GearboyCore::IsLinkCableConnected() const
 {
     return m_pProcessor->IsLinkCableConnected();
+}
+
+void GearboyCore::SetBarcodeBoyMode(GB_BarcodeBoyMode mode)
+{
+    if (mode < GB_BarcodeBoyMode_Auto || mode > GB_BarcodeBoyMode_Enabled)
+        mode = GB_BarcodeBoyMode_Auto;
+
+    m_BarcodeBoyMode = mode;
+    ApplySerialDevice(m_pProcessor->IsLinkCableConnected());
+}
+
+bool GearboyCore::IsBarcodeBoyEnabled() const
+{
+    return m_pBarcodeBoy != NULL;
+}
+
+GB_BarcodeBoyStatus GearboyCore::GetBarcodeBoyStatus() const
+{
+    return m_pBarcodeBoy ? m_pBarcodeBoy->GetStatus() : GB_BarcodeBoyStatus_Disabled;
+}
+
+GB_BarcodeBoyResult GearboyCore::ScanBarcode(const char* barcode)
+{
+    if (!m_pBarcodeBoy || !m_pCartridge->IsLoadedROM())
+        return GB_BarcodeBoyResult_Unavailable;
+
+    return m_pBarcodeBoy->ScanBarcode(barcode);
+}
+
+void GearboyCore::ApplySerialDevice(bool link_connected)
+{
+    bool barcode_enabled = !link_connected && m_pCartridge->IsLoadedROM() &&
+        (m_BarcodeBoyMode == GB_BarcodeBoyMode_Enabled ||
+        (m_BarcodeBoyMode == GB_BarcodeBoyMode_Auto && m_pCartridge->IsBarcodeBoySupported()));
+
+    if (barcode_enabled != IsBarcodeBoyEnabled())
+    {
+        m_pProcessor->ResetSerialDevice();
+        SafeDelete(m_pBarcodeBoy);
+
+        if (barcode_enabled)
+            m_pBarcodeBoy = new BarcodeBoy();
+    }
+
+    if (barcode_enabled)
+    {
+        m_pProcessor->SetLinkCableCallbacks(BarcodeBoy::StateCallback, BarcodeBoy::StartCallback,
+            BarcodeBoy::PollCallback, NULL, m_pBarcodeBoy);
+        m_pProcessor->SetSerialConnected(true, false, m_link_cable_cycles);
+    }
+    else
+    {
+        m_pProcessor->SetLinkCableCallbacks(m_LinkCableCallbacks.state, m_LinkCableCallbacks.start,
+            m_LinkCableCallbacks.poll, m_LinkCableCallbacks.sync, m_LinkCableCallbacks.user_data);
+        m_pProcessor->SetSerialConnected(link_connected, link_connected, m_link_cable_cycles);
+    }
 }
 
 void GearboyCore::SynchronizeLinkCable()
@@ -848,6 +915,9 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size, bool screenshot)
         u8 sgb_marker = m_bSGB ? 1 : 0;
         stream.write(reinterpret_cast<const char*>(&sgb_marker), sizeof(sgb_marker));
 
+        u8 barcode_marker = m_pBarcodeBoy ? 1 : 0;
+        stream.write((const char*)&barcode_marker, sizeof(barcode_marker));
+
         m_pMemory->SaveState(stream);
         m_pProcessor->SaveState(stream);
         m_pVideo->SaveState(stream);
@@ -857,6 +927,13 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size, bool screenshot)
 
         if (m_bSGB)
             m_pSGB->SaveState(stream);
+
+        if (m_pBarcodeBoy)
+        {
+            m_pBarcodeBoy->SaveState(stream);
+            stream.write((const char*)&m_link_cable_cycles, sizeof(m_link_cable_cycles));
+            m_pProcessor->SaveSerialState(stream);
+        }
 
 #if defined(__LIBRETRO__)
         GB_SaveState_Header_Libretro header;
@@ -1017,9 +1094,9 @@ bool GearboyCore::LoadState(std::istream& stream)
     stream.seekg(0, ios::beg);
 
     GB_SaveState_Header_Libretro header = {};
-#if !defined(__LIBRETRO__)
     bool is_desktop_savestate = false;
-#endif
+    bool state_has_barcode = false;
+    size_t barcode_state_offset = 0;
 
     // Try desktop header first (larger, contains all info)
     GB_SaveState_Header desktop_header;
@@ -1032,9 +1109,7 @@ bool GearboyCore::LoadState(std::istream& stream)
         {
             header.magic = desktop_header.magic;
             header.version = desktop_header.version;
-#if !defined(__LIBRETRO__)
             is_desktop_savestate = true;
-#endif
             Debug("Loading desktop save state");
         }
     }
@@ -1101,6 +1176,55 @@ bool GearboyCore::LoadState(std::istream& stream)
         }
     }
 
+    if (header.version >= 105)
+    {
+        u8 barcode_marker = 0;
+        stream.read((char*)&barcode_marker, sizeof(barcode_marker));
+
+        if (!stream.good() || barcode_marker > 1)
+            return false;
+
+        state_has_barcode = barcode_marker != 0;
+    }
+
+    if (state_has_barcode)
+    {
+        streampos core_state_offset = stream.tellg();
+        size_t trailer_size = is_desktop_savestate ? sizeof(desktop_header) : sizeof(header);
+
+        if (is_desktop_savestate)
+        {
+            if (desktop_header.screenshot_size > size - trailer_size)
+                return false;
+
+            trailer_size += desktop_header.screenshot_size;
+        }
+
+        const size_t barcode_state_size = BarcodeBoy::k_state_size + sizeof(m_link_cable_cycles) +
+            Processor::k_serial_state_size;
+
+        if (!m_pBarcodeBoy || size < trailer_size + barcode_state_size)
+        {
+            Log("Barcode Boy state requires an attached reader and complete peripheral data");
+            return false;
+        }
+
+        barcode_state_offset = size - trailer_size - barcode_state_size;
+        stream.seekg(barcode_state_offset, ios::beg);
+
+        BarcodeBoy barcode_boy;
+
+        if (!barcode_boy.LoadState(stream))
+            return false;
+
+        stream.seekg(sizeof(m_link_cable_cycles), ios::cur);
+
+        if (!m_pProcessor->LoadSerialState(stream, false))
+            return false;
+
+        stream.seekg(core_state_offset);
+    }
+
     m_pMemory->LoadState(stream);
     m_pProcessor->LoadState(stream);
     m_pVideo->LoadState(stream, header.version);
@@ -1111,6 +1235,22 @@ bool GearboyCore::LoadState(std::istream& stream)
 
     if (header.version >= 102 && m_bSGB)
         m_pSGB->LoadState(stream);
+
+    if (state_has_barcode)
+    {
+        if ((size_t)stream.tellg() != barcode_state_offset || !m_pBarcodeBoy->LoadState(stream))
+            return false;
+
+        stream.read((char*)&m_link_cable_cycles, sizeof(m_link_cable_cycles));
+
+        if (!m_pProcessor->LoadSerialState(stream))
+            return false;
+    }
+    else if (m_pBarcodeBoy)
+        m_pBarcodeBoy->Reset();
+
+    if (m_pBarcodeBoy)
+        ApplySerialDevice(false);
 
     return true;
 }
@@ -1163,6 +1303,12 @@ bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
     m_pAudio->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pMemory->GetCurrentRule()->LoadState(stream);
     m_pMemory->RefreshDirectROMPages();
+
+    if (m_pBarcodeBoy)
+    {
+        m_pBarcodeBoy->Reset();
+        ApplySerialDevice(false);
+    }
 
     return true;
 }
@@ -1716,8 +1862,10 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pSGB->Reset();
     m_pIORegistersMemoryRule->SetSGB(m_bSGB ? m_pSGB : NULL);
 
-    if (m_pProcessor->IsLinkCableConnected())
-        m_pProcessor->SetLinkCableConnected(true, m_link_cable_cycles);
+    if (m_pBarcodeBoy)
+        m_pBarcodeBoy->Reset();
+
+    ApplySerialDevice(m_pProcessor->IsLinkCableConnected());
 
     if (m_bSGB)
         Log("Reset: Super Game Boy mode enabled");

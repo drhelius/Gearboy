@@ -2,6 +2,7 @@ SOURCES_C   := $(DEPS_DIR)/miniz/miniz.c \
 
 SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(CORE_DIR)/libretro_link.cpp \
+               $(CORE_DIR)/libretro_barcode.cpp \
                $(SOURCE_DIR)/GearboyCore.cpp \
                $(SOURCE_DIR)/Memory.cpp \
                $(SOURCE_DIR)/Processor.cpp \
@@ -9,6 +10,7 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/Audio.cpp \
                $(SOURCE_DIR)/Input.cpp \
                $(SOURCE_DIR)/Cartridge.cpp \
+               $(SOURCE_DIR)/BarcodeBoy.cpp \
                $(SOURCE_DIR)/MemoryRule.cpp \
                $(SOURCE_DIR)/CommonMemoryRule.cpp \
                $(SOURCE_DIR)/IORegistersMemoryRule.cpp \

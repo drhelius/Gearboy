@@ -92,7 +92,7 @@ static void update_debug_tile_buffers(void);
 static void update_debug_oam_buffers(void);
 static void reset_rewind_timing(void);
 static int get_rewind_pop_budget(void);
-static void link_cable_state_callback(u64 cycle, u8 sb, u8 sc, void* user_data);
+static void link_cable_state_callback(u64 cycle, u8 sb, u8 sc, GB_SerialEvent, void* user_data);
 static void link_cable_start_callback(u64 request_cycle, u64 first_shift_cycle, u32 bit_cycles,
     u8 outgoing_byte, u32 transfer_id, u8* incoming_byte, void* user_data);
 static bool link_cable_poll_callback(u64 current_cycle, GB_LinkCableTransfer* transfer, void* user_data);
@@ -105,6 +105,7 @@ bool emu_init(void)
     init_debug();
     gearboy = new GearboyCore();
     gearboy->Init();
+    gearboy->SetBarcodeBoyMode((GB_BarcodeBoyMode)config_emulator.barcode_boy_mode);
 
     link_cable_manager = new LinkCableManager();
     link_cable_manager->SetNormalBarrierStallUs((u32)config_emulator.link_cable_stall_us);
@@ -194,6 +195,7 @@ void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
     emu_audio_reset();
     save_ram();
     gearboy->SetSGBEnabled(config_emulator.sgb);
+    gearboy->SetBarcodeBoyMode((GB_BarcodeBoyMode)config_emulator.barcode_boy_mode);
     gearboy->LoadROM(file_path, force_dmg, mbc, force_gba, config_emulator.softpatching);
     load_ram();
     rewind_reset();
@@ -203,6 +205,7 @@ void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
 static void load_rom_thread_func(void)
 {
     gearboy->SetSGBEnabled(config_emulator.sgb);
+    gearboy->SetBarcodeBoyMode((GB_BarcodeBoyMode)config_emulator.barcode_boy_mode);
     loading_result = gearboy->LoadROM(loading_file_path, loading_force_dmg, loading_mbc,
         loading_force_gba, loading_softpatching);
     loading_state.store(Loading_State_Finished);
@@ -688,6 +691,15 @@ void update_savestates_data(void)
 {
     emu_savestates_generation++;
 
+    for (int i = 0; i < 5; i++)
+    {
+        emu_savestates[i].rom_name[0] = 0;
+        SafeDeleteArray(emu_savestates_screenshots[i].data);
+        emu_savestates_screenshots[i].width = 0;
+        emu_savestates_screenshots[i].height = 0;
+        emu_savestates_screenshots[i].size = 0;
+    }
+
     if (emu_is_empty())
         return;
 
@@ -695,12 +707,6 @@ void update_savestates_data(void)
 
     for (int i = 0; i < 5; i++)
     {
-        emu_savestates[i].rom_name[0] = 0;
-        SafeDeleteArray(emu_savestates_screenshots[i].data);
-        emu_savestates_screenshots[i].size = 0;
-        emu_savestates_screenshots[i].width = 0;
-        emu_savestates_screenshots[i].height = 0;
-
         if (!gearboy->GetSaveStateHeader(i + 1, dir, &emu_savestates[i]))
             continue;
 
@@ -1211,6 +1217,25 @@ void emu_mcp_pump_commands(void)
         mcp_manager->PumpCommands(gearboy);
 }
 
+void emu_set_barcode_boy_mode(int mode)
+{
+    if (loading_state.load() != Loading_State_None)
+        return;
+
+    config_emulator.barcode_boy_mode = CLAMP(mode, 0, 2);
+
+    bool barcode_was_enabled = gearboy->IsBarcodeBoyEnabled();
+    gearboy->SetBarcodeBoyMode((GB_BarcodeBoyMode)config_emulator.barcode_boy_mode);
+
+    if (barcode_was_enabled != gearboy->IsBarcodeBoyEnabled())
+        rewind_reset();
+}
+
+GB_BarcodeBoyResult emu_scan_barcode(const char* barcode)
+{
+    return emu_is_empty() ? GB_BarcodeBoyResult_Unavailable : gearboy->ScanBarcode(barcode);
+}
+
 bool emu_link_cable_connect(int session)
 {
     if (!link_cable_manager)
@@ -1285,7 +1310,7 @@ void emu_link_cable_set_normal_barrier_stall_us(u32 stall_us)
         link_cable_manager->SetNormalBarrierStallUs(stall_us);
 }
 
-static void link_cable_state_callback(u64 cycle, u8 sb, u8 sc, void* user_data)
+static void link_cable_state_callback(u64 cycle, u8 sb, u8 sc, GB_SerialEvent, void* user_data)
 {
     LinkCableManager* manager = (LinkCableManager*)user_data;
 

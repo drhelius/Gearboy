@@ -17,24 +17,22 @@
  *
  */
 
-#ifndef GUI_POPUPS_H
-#define GUI_POPUPS_H
+#ifndef LIBRETRO_BARCODE_H
+#define LIBRETRO_BARCODE_H
 
-#ifdef GUI_POPUPS_IMPORT
-    #define EXTERN
-#else
-    #define EXTERN extern
-#endif
+#include "libretro.h"
+#include "../../src/BarcodeBoy.h"
 
-EXTERN void gui_popup_modal_keyboard();
-EXTERN void gui_popup_modal_gamepad(int pad);
-EXTERN void gui_popup_modal_hotkey();
-EXTERN void gui_popup_modal_barcode(void);
-EXTERN void gui_popup_modal_about(void);
-EXTERN void gui_popup_modal_load_defaults(void);
-EXTERN void gui_show_info(void);
-EXTERN void gui_show_fps(void);
+class GearboyCore;
 
-#undef GUI_POPUPS_IMPORT
-#undef EXTERN
-#endif /* GUI_POPUPS_H */
+void libretro_barcode_init(retro_environment_t environment_callback, retro_core_option_v2_definition* options);
+void libretro_barcode_check_variables();
+GB_BarcodeBoyMode libretro_barcode_get_mode();
+bool libretro_barcode_load(GearboyCore* core);
+void libretro_barcode_unload();
+void libretro_barcode_update_input(u16 buttons);
+size_t libretro_barcode_get_state_size();
+bool libretro_barcode_save_state(void* data, size_t size);
+bool libretro_barcode_load_state(const void* data, size_t size);
+
+#endif /* LIBRETRO_BARCODE_H */

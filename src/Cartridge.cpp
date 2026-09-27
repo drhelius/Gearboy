@@ -22,6 +22,7 @@
 #include <ctype.h>
 #include <algorithm>
 #include "Cartridge.h"
+#include "game_db.h"
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "miniz.h"
 #undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
@@ -32,6 +33,8 @@ Cartridge::Cartridge()
 {
     InitPointer(m_pTheROM);
     m_iTotalSize = 0;
+    m_iCRC = 0;
+    m_iFeatures = 0;
     m_szName[0] = 0;
     m_iROMSize = 0;
     m_iRAMSize = 0;
@@ -69,6 +72,8 @@ void Cartridge::Reset()
 {
     SafeDeleteArray(m_pTheROM);
     m_iTotalSize = 0;
+    m_iCRC = 0;
+    m_iFeatures = 0;
     m_szName[0] = 0;
     m_iROMSize = 0;
     m_iRAMSize = 0;
@@ -345,7 +350,13 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
         memset(m_pTheROM, 0xFF, allocatedSize);
         memcpy(m_pTheROM, buffer, m_iTotalSize);
         m_bLoaded = true;
-        return GatherMetadata();
+
+        m_iCRC = 0;
+
+        if (m_iTotalSize >= 0x150)
+            m_iCRC = (u32)mz_crc32(MZ_CRC32_INIT, m_pTheROM, m_iTotalSize);
+
+        return GatherMetadata(m_iCRC);
     }
     else
         return false;
@@ -591,7 +602,17 @@ void Cartridge::ClearGameGenieCheats()
     m_GameGenieList.clear();
 }
 
-bool Cartridge::GatherMetadata()
+u32 Cartridge::GetCRC() const
+{
+    return m_iCRC;
+}
+
+bool Cartridge::IsBarcodeBoySupported() const
+{
+    return (m_iFeatures & GB_DB_FEATURE_BARCODE_BOY) != 0;
+}
+
+bool Cartridge::GatherMetadata(u32 crc)
 {
     char name[12] = {0};
     name[11] = 0;
@@ -615,79 +636,59 @@ bool Cartridge::GatherMetadata()
     m_iRAMSize = m_pTheROM[0x149];
     m_iVersion = m_pTheROM[0x14C];
 
-    u32 full_crc = 0;
-    u32 header_crc = 0;
-    if (m_iTotalSize >= 0x150)
-    {
-        full_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM, m_iTotalSize));
-        header_crc = static_cast<u32>(mz_crc32(MZ_CRC32_INIT, m_pTheROM + 0x100, 0x50));
-    }
+    m_Type = CartridgeNotSupported;
 
-    if (IsM161Cartridge(full_crc, header_crc))
-    {
-        m_Type = CartridgeM161;
-        m_bSGB = false;
-        m_bBattery = false;
-        m_bRTCPresent = false;
-        m_bRumblePresent = false;
-    }
-    else if (IsKnownMMM01Cartridge(full_crc))
-    {
-        m_Type = CartridgeMMM01;
-        m_bSGB = false;
-        m_bBattery = false;
-        m_bRTCPresent = false;
-        m_bRumblePresent = false;
-    }
-    else if (IsSachenMMC1Cartridge(full_crc))
-    {
+    if (IsSachenMMC1Cartridge())
         m_Type = CartridgeSachenMMC1;
-        m_bSGB = false;
-        m_bBattery = false;
-        m_bRTCPresent = false;
-        m_bRumblePresent = false;
-    }
-    else if (IsSachenMMC2Cartridge(header_crc))
-    {
+    else if (IsSachenMMC2Cartridge())
         m_Type = CartridgeSachenMMC2;
-        m_bSGB = false;
-        m_bBattery = false;
-        m_bRTCPresent = false;
-        m_bRumblePresent = false;
-    }
-    else if (IsBungEMSCartridge(full_crc))
-    {
-        if (type != 0xBE)
-            CheckCartridgeType(type);
+    else if (IsBungEMSCartridge())
         m_Type = CartridgeBungEMS;
-        m_bRTCPresent = false;
-        m_bRumblePresent = false;
-    }
-    else if (IsPoke2in1Cartridge(full_crc))
-    {
-        CheckCartridgeType(type);
-        m_Type = CartridgePoke2in1;
-        m_bSGB = false;
-        m_bRTCPresent = false;
-        m_bRumblePresent = false;
-    }
-    else if (IsPKJDCartridge(header_crc))
-    {
-        CheckCartridgeType(type);
-        m_Type = CartridgePKJD;
-        m_bRTCPresent = false;
-        m_bRumblePresent = false;
-    }
     else if (IsWisdomTreeCartridge(type))
-    {
         m_Type = CartridgeWisdomTree;
-        m_bBattery = false;
-        m_bRTCPresent = false;
-        m_bRumblePresent = false;
-    }
-    else
+
+    GetInfoFromDB(crc);
+
+    switch (m_Type)
     {
-        CheckCartridgeType(type);
+        case CartridgeM161:
+        case CartridgeMMM01:
+        case CartridgeSachenMMC1:
+        case CartridgeSachenMMC2:
+            m_bSGB = false;
+            m_bBattery = false;
+            m_bRTCPresent = false;
+            m_bRumblePresent = false;
+            break;
+        case CartridgeBungEMS:
+            if (type != 0xBE)
+                CheckCartridgeType(type);
+
+            m_Type = CartridgeBungEMS;
+            m_bRTCPresent = false;
+            m_bRumblePresent = false;
+            break;
+        case CartridgePoke2in1:
+            CheckCartridgeType(type);
+            m_Type = CartridgePoke2in1;
+            m_bSGB = false;
+            m_bRTCPresent = false;
+            m_bRumblePresent = false;
+            break;
+        case CartridgePKJD:
+            CheckCartridgeType(type);
+            m_Type = CartridgePKJD;
+            m_bRTCPresent = false;
+            m_bRumblePresent = false;
+            break;
+        case CartridgeWisdomTree:
+            m_bBattery = false;
+            m_bRTCPresent = false;
+            m_bRumblePresent = false;
+            break;
+        default:
+            CheckCartridgeType(type);
+            break;
     }
 
     if ((m_Type == CartridgeWisdomTree) || (m_Type == CartridgeM161) ||
@@ -751,7 +752,8 @@ bool Cartridge::GatherMetadata()
         }
     }
 
-    if (m_Type == Cartridge::CartridgeMMM01 && m_iTotalSize > 0x8000 && !IsKnownMMM01Cartridge(full_crc))
+    if (m_Type == Cartridge::CartridgeMMM01 && m_iTotalSize > 0x8000 &&
+        !(m_iFeatures & GB_DB_FEATURE_MMM01_MENU_AT_END))
     {
         u8* temp = new u8[0x8000];
         memcpy(temp, m_pTheROM, 0x8000);
@@ -866,53 +868,85 @@ bool Cartridge::GatherMetadata()
     return (m_Type != CartridgeNotSupported);
 }
 
-bool Cartridge::IsM161Cartridge(u32 full_crc, u32 header_crc) const
+void Cartridge::GetInfoFromDB(u32 crc)
 {
+    m_iFeatures = GB_DB_FEATURE_NONE;
+
     if (m_iTotalSize < 0x150)
-        return false;
+        return;
 
-    return (full_crc == 0x0C38A775) || (header_crc == 0xA61F3EE1);
-}
+    u32 header_crc = (u32)mz_crc32(MZ_CRC32_INIT, m_pTheROM + 0x100, 0x50);
+    int mapper = GB_DB_DEFAULT_MAPPER;
+    bool found = false;
 
-bool Cartridge::IsKnownMMM01Cartridge(u32 full_crc) const
-{
-    if (m_iTotalSize < 0x150)
-        return false;
-
-    switch (full_crc)
+    for (int i = 0; kGameDatabase[i].title != NULL; i++)
     {
-        case 0x5BFC3EF5: // Mani 4 in 1 - Bubble Bobble / Elevator Action / Chase H.Q. / Sagaia
-        case 0xC373AC09: // Mani 4 in 1 - Gambaruger / Raijin-Oh / Zoids / Esparks
-        case 0xCB48B6D0: // Mani 4 in 1 - R-Type II / Saigo no Nindou / Yancha Maru / Shisenshou
-        case 0x950773EE: // Mani 4 in 1 - Adventure Island II / GB Genjin / Bomber Boy / Milon
-            return true;
-        default:
-            return false;
+        u32 rom_crc = (kGameDatabase[i].crc_type == GB_DB_CRC_HEADER) ? header_crc : crc;
+
+        if (kGameDatabase[i].crc != rom_crc)
+            continue;
+
+        found = true;
+        Log("ROM found in database: %s. CRC: %08X", kGameDatabase[i].title, rom_crc);
+
+        m_iFeatures |= kGameDatabase[i].features;
+
+        if ((kGameDatabase[i].mapper == GB_DB_SACHEN_MMC2_MAPPER) &&
+            (m_pTheROM[0x147] != 0x97) && (m_pTheROM[0x147] != 0x99))
+            continue;
+
+        if (mapper == GB_DB_DEFAULT_MAPPER)
+            mapper = kGameDatabase[i].mapper;
     }
-}
 
-bool Cartridge::IsPKJDCartridge(u32 header_crc) const
-{
-    if (m_iTotalSize < 0x150)
-        return false;
-
-    return header_crc == 0x30F8F86C; // Pokemon Jade Version (Telefang Speed bootleg)
-}
-
-bool Cartridge::IsBungEMSCartridge(u32 full_crc) const
-{
-    if (m_iTotalSize < 0x150)
-        return false;
-
-    switch (full_crc)
+    switch (mapper)
     {
-        case 0x2ED509D9: // Green Beret
-        case 0xF004440C: // Cube Raider
-        case 0xFDC1483A: // Bugs Bunny - Crazy Castle 3
-            return true;
-        default:
+        case GB_DB_M161_MAPPER:
+            m_Type = CartridgeM161;
+            break;
+        case GB_DB_MMM01_MAPPER:
+            m_Type = CartridgeMMM01;
+            break;
+        case GB_DB_SACHEN_MMC1_MAPPER:
+            m_Type = CartridgeSachenMMC1;
+            break;
+        case GB_DB_SACHEN_MMC2_MAPPER:
+            if (m_Type != CartridgeSachenMMC1)
+                m_Type = CartridgeSachenMMC2;
+
+            break;
+        case GB_DB_BUNG_EMS_MAPPER:
+            if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2))
+                m_Type = CartridgeBungEMS;
+
+            break;
+        case GB_DB_POKE2IN1_MAPPER:
+            if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2) && (m_Type != CartridgeBungEMS))
+                m_Type = CartridgePoke2in1;
+
+            break;
+        case GB_DB_PKJD_MAPPER:
+            if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2) && (m_Type != CartridgeBungEMS))
+                m_Type = CartridgePKJD;
+
             break;
     }
+
+    if (m_iFeatures & GB_DB_FEATURE_BARCODE_BOY)
+    {
+        Log("Cartridge with Barcode Boy support");
+    }
+
+    if (!found)
+    {
+        Log("ROM not found in database. CRC: %08X", crc);
+    }
+}
+
+bool Cartridge::IsBungEMSCartridge() const
+{
+    if (m_iTotalSize < 0x150)
+        return false;
 
     static const u8 ems_menu[8] = { 'E', 'M', 'S', 'M', 'E', 'N', 'U', 0x00 };
     static const u8 gb16m[6] = { 'G', 'B', '1', '6', 'M', 0x00 };
@@ -923,70 +957,21 @@ bool Cartridge::IsBungEMSCartridge(u32 full_crc) const
     if (memcmp(m_pTheROM + 0x134, gb16m, sizeof(gb16m)) == 0)
         return true;
 
-    return (m_pTheROM[0x147] == 0xBE) ||
-            ((m_pTheROM[0x147] == 0x1B) && (m_pTheROM[0x14A] == 0xE1));
+    return (m_pTheROM[0x147] == 0xBE) || ((m_pTheROM[0x147] == 0x1B) && (m_pTheROM[0x14A] == 0xE1));
 }
 
-bool Cartridge::IsPoke2in1Cartridge(u32 full_crc) const
+bool Cartridge::IsSachenMMC1Cartridge() const
 {
     if (m_iTotalSize < 0x150)
         return false;
 
-    return full_crc == 0xABB17913; // Pokemon Red-Blue 2-in-1 (Unl) [S]
+    return (m_pTheROM[0x104] == 0xCE) && (m_pTheROM[0x114] == 0x66) && (m_pTheROM[0x144] == 0xED);
 }
 
-bool Cartridge::IsSachenMMC1Cartridge(u32 full_crc) const
+bool Cartridge::IsSachenMMC2Cartridge() const
 {
-    if (m_iTotalSize < 0x150)
+    if (m_iTotalSize < 0x1C5)
         return false;
 
-    switch (full_crc)
-    {
-        case 0x82F06E93: // 4 in 1 (Europe) (4B-001, Sachen-Commin)
-        case 0x5E438DB8: // 4 in 1 (Europe) (4B-002, Sachen)
-        case 0xC294AA21: // 4 in 1 (Taiwan) (4B-003, Sachen-Commin)
-        case 0xC69A19F6: // 4 in 1 (Europe) (4B-004, Sachen-Commin)
-        case 0xF4310EB3: // 4 in 1 (Europe) (4B-005, Sachen-Commin)
-        case 0x95398DA5: // 4 in 1 (Europe) (4B-006, Sachen)
-        case 0x62D9350E: // 4 in 1 (Europe) (4B-007, Sachen)
-        case 0x740E9BC8: // 4 in 1 (Europe) (4B-008, Sachen)
-        case 0x114E1F1E: // 4 in 1 (Europe) (4B-009, Sachen)
-            return true;
-        default:
-            break;
-    }
-
-    return (m_pTheROM[0x104] == 0xCE) && (m_pTheROM[0x114] == 0x66) &&
-            (m_pTheROM[0x144] == 0xED);
-}
-
-bool Cartridge::IsSachenMMC2Cartridge(u32 header_crc) const
-{
-    if (m_iTotalSize < 0x150)
-        return false;
-
-    if (m_iTotalSize >= 0x1C5)
-    {
-        if ((m_pTheROM[0x184] == 0xCE) && (m_pTheROM[0x194] == 0x66) &&
-                (m_pTheROM[0x1C4] == 0xED))
-            return true;
-    }
-
-    if ((m_pTheROM[0x147] != 0x97) && (m_pTheROM[0x147] != 0x99))
-        return false;
-
-    switch (header_crc)
-    {
-        case 0x0AF7C09A: // ATV Racing & Karate Joe
-        case 0x1F4954E4: // Full Time Soccer / Full Time Soccer & Hang Time Basketball
-        case 0x2C26C119: // Karate Joe
-        case 0x3AFBB401: // Painter
-        case 0x40A83DEC: // ATV Racing
-        case 0x6C1CFF79: // Hang Time Basketball
-        case 0xDA964D17: // Race Time / Pocket Smash Out & Race Time
-        case 0xFFC6A7BD: // Pocket Smash Out
-            return true;
-        default:
-            return false;
-    }
+    return (m_pTheROM[0x184] == 0xCE) && (m_pTheROM[0x194] == 0x66) && (m_pTheROM[0x1C4] == 0xED);
 }

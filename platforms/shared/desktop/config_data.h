@@ -89,6 +89,7 @@ struct config_Emulator
     bool allow_screensaver;
     int mcp_tcp_port;
     std::string mcp_http_address;
+    int barcode_boy_mode;
     int link_cable_session;
     int link_cable_stall_us;
     int tilt_source;

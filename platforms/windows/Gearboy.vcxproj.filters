@@ -142,6 +142,9 @@
     <ClCompile Include="..\..\src\Cartridge.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\BarcodeBoy.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\CommonMemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -277,6 +280,9 @@
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\backers.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\barcode_boy_codes.h">
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\config.h">
@@ -445,6 +451,12 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Cartridge.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\BarcodeBoy.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game_db.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\common.h">
