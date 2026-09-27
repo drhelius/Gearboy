@@ -63,7 +63,8 @@ enum gui_ShortCutEvent
     gui_ShortcutDebugCopy,
     gui_ShortcutDebugPaste,
     gui_ShortcutDebugSelectAll,
-    gui_ShortcutShowMainMenu
+    gui_ShortcutShowMainMenu,
+    gui_ShortcutScanBarcode
 };
 
 struct gui_HotkeyMapping
@@ -73,7 +74,7 @@ struct gui_HotkeyMapping
     bool allow_repeat;
 };
 
-#define GUI_HOTKEY_MAP_COUNT 26
+#define GUI_HOTKEY_MAP_COUNT 27
 
 const gui_HotkeyMapping gui_hotkey_map[GUI_HOTKEY_MAP_COUNT] = {
     {gui_ShortcutOpenROM, config_HotkeyIndex_OpenROM, false},
@@ -93,6 +94,7 @@ const gui_HotkeyMapping gui_hotkey_map[GUI_HOTKEY_MAP_COUNT] = {
     {gui_ShortcutFullscreen, config_HotkeyIndex_Fullscreen, false},
     {gui_ShortcutCaptureMouse, config_HotkeyIndex_CaptureMouse, false},
     {gui_ShortcutShowMainMenu, config_HotkeyIndex_ShowMainMenu, false},
+    {gui_ShortcutScanBarcode, config_HotkeyIndex_ScanBarcode, false},
     {gui_ShortcutDebugStepInto, config_HotkeyIndex_DebugStepInto, true},
     {gui_ShortcutDebugStepOver, config_HotkeyIndex_DebugStepOver, true},
     {gui_ShortcutDebugStepOut, config_HotkeyIndex_DebugStepOut, true},
@@ -119,6 +121,7 @@ EXTERN int* gui_configured_button;
 EXTERN config_Hotkey* gui_configured_hotkey;
 EXTERN bool gui_dialog_in_use;
 EXTERN bool gui_shortcut_open_rom;
+EXTERN bool gui_shortcut_scan_barcode;
 
 
 EXTERN bool gui_init(void);

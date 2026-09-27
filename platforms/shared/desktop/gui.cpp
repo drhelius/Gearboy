@@ -296,6 +296,9 @@ void gui_shortcut(gui_ShortCutEvent event)
     case gui_ShortcutShowMainMenu:
         config_emulator.always_show_menu = !config_emulator.always_show_menu;
         break;
+    case gui_ShortcutScanBarcode:
+        gui_shortcut_scan_barcode = true;
+        break;
     default:
         break;
     }

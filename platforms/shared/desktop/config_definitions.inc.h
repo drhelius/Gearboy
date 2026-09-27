@@ -332,6 +332,7 @@ static inline void process(config_Operation operation)
     CONFIG_HOTKEY("SelectSlot4", config_hotkeys[config_HotkeyIndex_SelectSlot4], SDL_SCANCODE_4, SDL_KMOD_CTRL);
     CONFIG_HOTKEY("SelectSlot5", config_hotkeys[config_HotkeyIndex_SelectSlot5], SDL_SCANCODE_5, SDL_KMOD_CTRL);
     CONFIG_HOTKEY("Mute", config_hotkeys[config_HotkeyIndex_Mute], SDL_SCANCODE_U, SDL_KMOD_CTRL);
+    CONFIG_HOTKEY("ScanBarcode", config_hotkeys[config_HotkeyIndex_ScanBarcode], SDL_SCANCODE_B, SDL_KMOD_CTRL);
 }
 
 //**************************************
