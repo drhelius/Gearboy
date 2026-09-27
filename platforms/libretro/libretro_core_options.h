@@ -181,6 +181,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "Bung/EMS",        NULL },
             { "Poke 2-in-1",     NULL },
             { "MBC 6",           NULL },
+            { "Rocket Games",    NULL },
             { NULL, NULL },
         },
         "Auto"

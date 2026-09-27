@@ -50,6 +50,7 @@ enum MapperOption: Int, CaseIterable {
     case bungEMS
     case poke2in1
     case mbc6
+    case rocket
 
     var title: String {
         switch self {
@@ -95,6 +96,8 @@ enum MapperOption: Int, CaseIterable {
             return "Poke 2-in-1"
         case .mbc6:
             return "MBC 6"
+        case .rocket:
+            return "Rocket Games"
         }
     }
 }

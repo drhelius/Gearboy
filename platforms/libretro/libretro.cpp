@@ -780,6 +780,8 @@ static void check_variables(void)
             mapper = Cartridge::CartridgeBungEMS;
         else if (strcmp(var.value, "Poke 2-in-1") == 0)
             mapper = Cartridge::CartridgePoke2in1;
+        else if (strcmp(var.value, "Rocket Games") == 0)
+            mapper = Cartridge::CartridgeRocket;
         else
             mapper = Cartridge::CartridgeNotSupported;
     }

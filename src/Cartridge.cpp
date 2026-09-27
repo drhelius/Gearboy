@@ -655,6 +655,7 @@ bool Cartridge::GatherMetadata(u32 crc)
         case CartridgeMMM01:
         case CartridgeSachenMMC1:
         case CartridgeSachenMMC2:
+        case CartridgeRocket:
             m_bSGB = false;
             m_bBattery = false;
             m_bRTCPresent = false;
@@ -733,6 +734,11 @@ bool Cartridge::GatherMetadata(u32 crc)
     u32 romBankCount = pow_2_ceil(m_iTotalSize / 0x4000);
     m_iROMBankCount = MAX(romBankCount, 2U);
 
+    if (m_Type == CartridgeRocket)
+    {
+        m_iRAMSize = MIN(m_iRAMSize, 2);
+        m_iRAMBankCount = (m_iRAMSize > 0) ? 1 : 0;
+    }
 
     if (m_Type == Cartridge::CartridgeMBC1)
     {
@@ -806,6 +812,9 @@ bool Cartridge::GatherMetadata(u32 crc)
             break;
         case Cartridge::CartridgeSachenMMC2:
             Log("Sachen MMC2 found");
+            break;
+        case Cartridge::CartridgeRocket:
+            Log("Rocket Games found");
             break;
         case Cartridge::CartridgePKJD:
             Log("PKJD found");
@@ -891,7 +900,7 @@ void Cartridge::GetInfoFromDB(u32 crc)
 
         m_iFeatures |= kGameDatabase[i].features;
 
-        if ((kGameDatabase[i].mapper == GB_DB_SACHEN_MMC2_MAPPER) &&
+        if ((kGameDatabase[i].mapper == GB_DB_ROCKET_MAPPER) &&
             (m_pTheROM[0x147] != 0x97) && (m_pTheROM[0x147] != 0x99))
             continue;
 
@@ -918,6 +927,11 @@ void Cartridge::GetInfoFromDB(u32 crc)
         case GB_DB_BUNG_EMS_MAPPER:
             if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2))
                 m_Type = CartridgeBungEMS;
+
+            break;
+        case GB_DB_ROCKET_MAPPER:
+            if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2))
+                m_Type = CartridgeRocket;
 
             break;
         case GB_DB_POKE2IN1_MAPPER:

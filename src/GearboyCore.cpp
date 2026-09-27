@@ -45,6 +45,7 @@
 #include "M161MemoryRule.h"
 #include "SachenMMC1MemoryRule.h"
 #include "SachenMMC2MemoryRule.h"
+#include "RocketMemoryRule.h"
 #include "FlashcartMemoryRule.h"
 #include "TraceLogger.h"
 #include "SGB.h"
@@ -79,6 +80,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pM161MemoryRule);
     InitPointer(m_pSachenMMC1MemoryRule);
     InitPointer(m_pSachenMMC2MemoryRule);
+    InitPointer(m_pRocketMemoryRule);
     InitPointer(m_pFlashcartMemoryRule);
     InitPointer(m_pRamChangedCallback);
     InitPointer(m_trace_logger);
@@ -120,6 +122,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pM161MemoryRule);
     SafeDelete(m_pSachenMMC1MemoryRule);
     SafeDelete(m_pSachenMMC2MemoryRule);
+    SafeDelete(m_pRocketMemoryRule);
     SafeDelete(m_pFlashcartMemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
@@ -1144,6 +1147,12 @@ bool GearboyCore::LoadState(std::istream& stream)
         return false;
     }
 
+    if (m_pMemory->GetCurrentRule() == m_pRocketMemoryRule && header.version < 106)
+    {
+        Log("Rocket Games save states from unsupported mapper versions cannot be loaded");
+        return false;
+    }
+
 #if !defined(__LIBRETRO__)
     if (is_desktop_savestate)
     {
@@ -1258,6 +1267,12 @@ bool GearboyCore::LoadState(std::istream& stream)
 bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
 {
     using namespace std;
+
+    if (m_pMemory->GetCurrentRule() == m_pRocketMemoryRule)
+    {
+        Log("Legacy Rocket Games save states cannot be loaded");
+        return false;
+    }
 
     if (m_pMemory->GetCurrentRule() == m_pMBC6MemoryRule)
     {
@@ -1690,6 +1705,8 @@ void GearboyCore::InitMemoryRules()
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pSachenMMC2MemoryRule = new SachenMMC2MemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pRocketMemoryRule = new RocketMemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pFlashcartMemoryRule = new FlashcartMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 
@@ -1715,6 +1732,7 @@ void GearboyCore::InitMemoryRules()
     m_pM161MemoryRule->SetTraceLogger(m_trace_logger);
     m_pSachenMMC1MemoryRule->SetTraceLogger(m_trace_logger);
     m_pSachenMMC2MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pRocketMemoryRule->SetTraceLogger(m_trace_logger);
     m_pFlashcartMemoryRule->SetTraceLogger(m_trace_logger);
 }
 
@@ -1784,6 +1802,9 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
             break;
         case Cartridge::CartridgeSachenMMC2:
             m_pMemory->SetCurrentRule(m_pSachenMMC2MemoryRule);
+            break;
+        case Cartridge::CartridgeRocket:
+            m_pMemory->SetCurrentRule(m_pRocketMemoryRule);
             break;
         case Cartridge::CartridgeBungEMS:
             m_pMemory->SetCurrentRule(m_pFlashcartMemoryRule);
@@ -1856,6 +1877,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pM161MemoryRule->Reset(m_bCGB);
     m_pSachenMMC1MemoryRule->Reset(m_bCGB);
     m_pSachenMMC2MemoryRule->Reset(m_bCGB);
+    m_pRocketMemoryRule->Reset(m_bCGB);
     m_pFlashcartMemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
