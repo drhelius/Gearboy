@@ -47,6 +47,7 @@
 #include "SachenMMC2MemoryRule.h"
 #include "RocketMemoryRule.h"
 #include "FlashcartMemoryRule.h"
+#include "BHGOSMemoryRule.h"
 #include "TraceLogger.h"
 #include "SGB.h"
 #include "common.h"
@@ -82,6 +83,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pSachenMMC2MemoryRule);
     InitPointer(m_pRocketMemoryRule);
     InitPointer(m_pFlashcartMemoryRule);
+    InitPointer(m_pBHGOSMemoryRule);
     InitPointer(m_pRamChangedCallback);
     InitPointer(m_trace_logger);
     m_bCGB = false;
@@ -124,6 +126,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pSachenMMC2MemoryRule);
     SafeDelete(m_pRocketMemoryRule);
     SafeDelete(m_pFlashcartMemoryRule);
+    SafeDelete(m_pBHGOSMemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
     SafeDelete(m_pCommonMemoryRule);
@@ -1153,6 +1156,12 @@ bool GearboyCore::LoadState(std::istream& stream)
         return false;
     }
 
+    if (m_pMemory->GetCurrentRule() == m_pBHGOSMemoryRule && header.version < 107)
+    {
+        Log("BHGOS save states from unsupported mapper versions cannot be loaded");
+        return false;
+    }
+
 #if !defined(__LIBRETRO__)
     if (is_desktop_savestate)
     {
@@ -1267,6 +1276,12 @@ bool GearboyCore::LoadState(std::istream& stream)
 bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
 {
     using namespace std;
+
+    if (m_pMemory->GetCurrentRule() == m_pBHGOSMemoryRule)
+    {
+        Log("Legacy BHGOS save states cannot be loaded");
+        return false;
+    }
 
     if (m_pMemory->GetCurrentRule() == m_pRocketMemoryRule)
     {
@@ -1709,6 +1724,8 @@ void GearboyCore::InitMemoryRules()
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pFlashcartMemoryRule = new FlashcartMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pBHGOSMemoryRule = new BHGOSMemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetIORule(m_pIORegistersMemoryRule);
@@ -1734,6 +1751,7 @@ void GearboyCore::InitMemoryRules()
     m_pSachenMMC2MemoryRule->SetTraceLogger(m_trace_logger);
     m_pRocketMemoryRule->SetTraceLogger(m_trace_logger);
     m_pFlashcartMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pBHGOSMemoryRule->SetTraceLogger(m_trace_logger);
 }
 
 bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
@@ -1809,6 +1827,9 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
         case Cartridge::CartridgeBungEMS:
             m_pMemory->SetCurrentRule(m_pFlashcartMemoryRule);
             break;
+        case Cartridge::CartridgeBHGOS:
+            m_pMemory->SetCurrentRule(m_pBHGOSMemoryRule);
+            break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
             break;
@@ -1879,6 +1900,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pSachenMMC2MemoryRule->Reset(m_bCGB);
     m_pRocketMemoryRule->Reset(m_bCGB);
     m_pFlashcartMemoryRule->Reset(m_bCGB);
+    m_pBHGOSMemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
     m_pSGB->Reset();

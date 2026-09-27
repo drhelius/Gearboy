@@ -1437,6 +1437,8 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "Poke 2-in-1";
         case Cartridge::CartridgeRocket:
             return "Rocket Games";
+        case Cartridge::CartridgeBHGOS:
+            return "BHGOS";
         case Cartridge::CartridgeNotSupported:
             return "Not Supported";
         default:

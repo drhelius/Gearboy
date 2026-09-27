@@ -57,6 +57,7 @@ class SachenMMC1MemoryRule;
 class SachenMMC2MemoryRule;
 class RocketMemoryRule;
 class FlashcartMemoryRule;
+class BHGOSMemoryRule;
 class MemoryRule;
 class TraceLogger;
 class SGB;
@@ -190,6 +191,7 @@ private:
     SachenMMC2MemoryRule* m_pSachenMMC2MemoryRule;
     RocketMemoryRule* m_pRocketMemoryRule;
     FlashcartMemoryRule* m_pFlashcartMemoryRule;
+    BHGOSMemoryRule* m_pBHGOSMemoryRule;
     bool m_bCGB;
     bool m_bGBA;
     bool m_bSGB;

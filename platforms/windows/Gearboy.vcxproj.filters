@@ -217,6 +217,9 @@
     <ClCompile Include="..\..\src\FlashcartMemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\BHGOSMemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\opcodes.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -550,6 +553,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\FlashcartMemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\BHGOSMemoryRule.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\opcode_names.h">

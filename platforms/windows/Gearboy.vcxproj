@@ -52,6 +52,7 @@
     <ClCompile Include="..\..\src\SachenMMC2MemoryRule.cpp" />
     <ClCompile Include="..\..\src\RocketMemoryRule.cpp" />
     <ClCompile Include="..\..\src\FlashcartMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\BHGOSMemoryRule.cpp" />
     <ClCompile Include="..\..\src\opcodes.cpp" />
     <ClCompile Include="..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\src\Processor.cpp" />
@@ -177,6 +178,7 @@
     <ClInclude Include="..\..\src\SachenMMC2MemoryRule.h" />
     <ClInclude Include="..\..\src\RocketMemoryRule.h" />
     <ClInclude Include="..\..\src\FlashcartMemoryRule.h" />
+    <ClInclude Include="..\..\src\BHGOSMemoryRule.h" />
     <ClInclude Include="..\..\src\opcode_names.h" />
     <ClInclude Include="..\..\src\opcode_timing.h" />
     <ClInclude Include="..\..\src\Processor.h" />

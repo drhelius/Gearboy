@@ -669,6 +669,13 @@ bool Cartridge::GatherMetadata(u32 crc)
             m_bRTCPresent = false;
             m_bRumblePresent = false;
             break;
+        case CartridgeBHGOS:
+            m_bBattery = true;
+            m_bSGB = false;
+            m_bRTCPresent = false;
+            m_bRumblePresent = false;
+            m_iRAMSize = 0x03;
+            break;
         case CartridgePoke2in1:
             CheckCartridgeType(type);
             m_Type = CartridgePoke2in1;
@@ -822,6 +829,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeBungEMS:
             Log("Bung/EMS found");
             break;
+        case Cartridge::CartridgeBHGOS:
+            Log("BHGOS found");
+            break;
         case Cartridge::CartridgePoke2in1:
             Log("Pokemon 2-in-1 found");
             break;
@@ -933,6 +943,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
             if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2))
                 m_Type = CartridgeRocket;
 
+            break;
+        case GB_DB_BHGOS_MAPPER:
+            m_Type = CartridgeBHGOS;
             break;
         case GB_DB_POKE2IN1_MAPPER:
             if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2) && (m_Type != CartridgeBungEMS))

@@ -150,6 +150,8 @@ static Cartridge::CartridgeTypes MapperForOption(NSInteger option)
             return Cartridge::CartridgeMBC6;
         case 21:
             return Cartridge::CartridgeRocket;
+        case 22:
+            return Cartridge::CartridgeBHGOS;
         default:
             return Cartridge::CartridgeNotSupported;
     }
