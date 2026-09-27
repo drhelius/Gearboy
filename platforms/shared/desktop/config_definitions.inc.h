@@ -290,7 +290,7 @@ static inline void process(config_Operation operation)
     // Gamepad
     CONFIG_BOOL("Input", "AllowUpDown", config_input.allow_up_down, false);
     CONFIG_BOOL("Input", "Gamepad", config_input.gamepad, true);
-    CONFIG_INT("Input", "GamepadDirectional", config_input.gamepad_directional, 0);
+    CONFIG_INT_RANGE("Input", "GamepadDirectional", config_input.gamepad_directional, 0, 0, 2);
     CONFIG_BOOL("Input", "GamepadInvertX", config_input.gamepad_invert_x_axis, false);
     CONFIG_BOOL("Input", "GamepadInvertY", config_input.gamepad_invert_y_axis, false);
     CONFIG_INT("Input", "GamepadA", config_input.gamepad_a, SDL_GAMEPAD_BUTTON_EAST);

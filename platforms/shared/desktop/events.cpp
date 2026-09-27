@@ -293,7 +293,8 @@ static Uint16 input_build_state(int controller)
             ret |= Select_Key;
 
         // Use D-Pad (forced when analog tilt is active)
-        if (config_input.gamepad_directional == 0 || config_emulator.tilt_source == 3)
+        if (config_input.gamepad_directional == 0 || config_input.gamepad_directional == 2 ||
+            config_emulator.tilt_source == 3)
         {
             if (SDL_GetGamepadButton(sdl_controller, SDL_GAMEPAD_BUTTON_DPAD_LEFT))
                 ret |= Left_Key;
@@ -305,7 +306,8 @@ static Uint16 input_build_state(int controller)
                 ret |= Down_Key;
         }
         // Use analog sticks
-        else
+        if ((config_input.gamepad_directional == 1 || config_input.gamepad_directional == 2) &&
+            config_emulator.tilt_source != 3)
         {
             const int STICK_DEAD_ZONE = 8000;
             const int rawx = SDL_GetGamepadAxis(sdl_controller, (SDL_GamepadAxis)config_input.gamepad_x_axis);
