@@ -499,7 +499,12 @@ bool emu_is_empty(void)
     return !gearboy->GetCartridge()->IsLoadedROM();
 }
 
-void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba)
+void emu_save_persistent_data(void)
+{
+    save_ram();
+}
+
+void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba, bool save_persistent_data)
 {
     gui_debug_trace_logger_reset();
     emu_debug_command = Debug_Command_None;
@@ -509,7 +514,8 @@ void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba)
     reset_buffers();
     reset_rewind_timing();
     emu_audio_reset();
-    save_ram();
+    if (save_persistent_data)
+        emu_save_persistent_data();
     gearboy->SetSGBEnabled(config_emulator.sgb);
     gearboy->ResetROM(force_dmg, mbc, force_gba);
     load_ram();

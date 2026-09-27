@@ -52,6 +52,7 @@ EXTERN int application_sdl_version_patch;
 EXTERN bool application_show_menu;
 
 EXTERN int application_init(const ApplicationParams& params);
+EXTERN void application_apply_settings(void);
 EXTERN void application_destroy(void);
 EXTERN void application_mainloop(void);
 EXTERN void application_trigger_quit(void);

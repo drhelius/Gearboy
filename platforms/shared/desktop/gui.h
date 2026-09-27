@@ -122,6 +122,7 @@ EXTERN bool gui_shortcut_open_rom;
 
 
 EXTERN bool gui_init(void);
+EXTERN void gui_apply_settings(void);
 EXTERN void gui_destroy(void);
 EXTERN void gui_render(void);
 EXTERN void gui_shortcut(gui_ShortCutEvent event);
