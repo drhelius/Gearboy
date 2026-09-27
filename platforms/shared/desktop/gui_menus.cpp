@@ -1538,7 +1538,7 @@ static void menu_debug(void)
             ImGui::EndMenu();
         }
 
-        ImGui::MenuItem("Show PSG", "", &config_debug.show_psg);
+        ImGui::MenuItem("Show PSG", "", &config_debug.show_psg, config_debug.debug);
         ImGui::MenuItem("Show IO Map", "", &config_debug.show_io, config_debug.debug);
         ImGui::MenuItem("Show Link Cable", "", &config_debug.show_link_cable,
             config_debug.debug);
