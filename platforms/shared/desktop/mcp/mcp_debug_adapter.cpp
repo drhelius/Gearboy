@@ -539,7 +539,8 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
         {
             info.name = "RAM";
             MemoryRule* rule = memory->GetCurrentRule();
-            if (IsValidPointer(rule) && (m_core->GetCartridge()->HasRam() || rule->GetMapperType() == Cartridge::CartridgeMBC6))
+            if (IsValidPointer(rule) && (m_core->GetCartridge()->HasRam() ||
+                    rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng))
             {
                 size_t ram_size = rule->GetRamSize();
                 if (ram_size > 0x2000)
@@ -729,7 +730,7 @@ json DebugAdapter::GetMediaInfo()
         "MBC5", "MBC1 Multi", "HuC1", "HuC3",
         "MMM01", "Camera", "MBC7", "TAMA5",
         "Wisdom Tree", "M161", "Sachen MMC1",
-        "Sachen MMC2", "PKJD", "Bung/EMS", "Poke 2-in-1", "MBC6", "Rocket Games", "BHGOS", "Not Supported"
+        "Sachen MMC2", "PKJD", "Bung/EMS", "Poke 2-in-1", "MBC6", "Rocket Games", "BHGOS", "Li Cheng", "Not Supported"
     };
     int type_idx = (int)type;
     if (type_idx >= 0 && type_idx < (int)(sizeof(type_names) / sizeof(type_names[0])))

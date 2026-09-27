@@ -646,6 +646,8 @@ bool Cartridge::GatherMetadata(u32 crc)
         m_Type = CartridgeBungEMS;
     else if (IsWisdomTreeCartridge(type))
         m_Type = CartridgeWisdomTree;
+    else if (IsLiChengCartridge())
+        m_Type = CartridgeLiCheng;
 
     GetInfoFromDB(crc);
 
@@ -682,6 +684,12 @@ bool Cartridge::GatherMetadata(u32 crc)
             m_bSGB = false;
             m_bRTCPresent = false;
             m_bRumblePresent = false;
+            break;
+        case CartridgeLiCheng:
+            m_bBattery = true;
+            m_bRTCPresent = false;
+            m_bRumblePresent = false;
+            m_iRAMSize = 0x03;
             break;
         case CartridgePKJD:
             CheckCartridgeType(type);
@@ -832,6 +840,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeBHGOS:
             Log("BHGOS found");
             break;
+        case Cartridge::CartridgeLiCheng:
+            Log("Li Cheng found");
+            break;
         case Cartridge::CartridgePoke2in1:
             Log("Pokemon 2-in-1 found");
             break;
@@ -947,6 +958,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
         case GB_DB_BHGOS_MAPPER:
             m_Type = CartridgeBHGOS;
             break;
+        case GB_DB_LICHENG_MAPPER:
+            m_Type = CartridgeLiCheng;
+            break;
         case GB_DB_POKE2IN1_MAPPER:
             if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2) && (m_Type != CartridgeBungEMS))
                 m_Type = CartridgePoke2in1;
@@ -1001,4 +1015,17 @@ bool Cartridge::IsSachenMMC2Cartridge() const
         return false;
 
     return (m_pTheROM[0x184] == 0xCE) && (m_pTheROM[0x194] == 0x66) && (m_pTheROM[0x1C4] == 0xED);
+}
+
+bool Cartridge::IsLiChengCartridge() const
+{
+    if (m_iTotalSize < 0x1B4)
+        return false;
+
+    // Li Cheng cartridges store their Niutoude boot logo at $0184.
+    int checksum = 0;
+    for (int i = 0x184; i < 0x1B4; i++)
+        checksum += m_pTheROM[i];
+
+    return checksum == 4876;
 }

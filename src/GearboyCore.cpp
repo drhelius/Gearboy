@@ -48,6 +48,7 @@
 #include "RocketMemoryRule.h"
 #include "FlashcartMemoryRule.h"
 #include "BHGOSMemoryRule.h"
+#include "LiChengMemoryRule.h"
 #include "TraceLogger.h"
 #include "SGB.h"
 #include "common.h"
@@ -84,6 +85,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pRocketMemoryRule);
     InitPointer(m_pFlashcartMemoryRule);
     InitPointer(m_pBHGOSMemoryRule);
+    InitPointer(m_pLiChengMemoryRule);
     InitPointer(m_pRamChangedCallback);
     InitPointer(m_trace_logger);
     m_bCGB = false;
@@ -127,6 +129,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pRocketMemoryRule);
     SafeDelete(m_pFlashcartMemoryRule);
     SafeDelete(m_pBHGOSMemoryRule);
+    SafeDelete(m_pLiChengMemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
     SafeDelete(m_pCommonMemoryRule);
@@ -639,7 +642,8 @@ void GearboyCore::SaveRam()
 void GearboyCore::SaveRam(const char* szPath, bool fullPath)
 {
     MemoryRule* rule = m_pMemory->GetCurrentRule();
-    bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6);
+    bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) &&
+            (rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng));
 
     if (m_pCartridge->IsLoadedROM() && persistent && IsValidPointer(rule))
     {
@@ -688,7 +692,8 @@ void GearboyCore::LoadRam()
 void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 {
     MemoryRule* rule = m_pMemory->GetCurrentRule();
-    bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeMBC6);
+    bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) &&
+            (rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng));
 
     if (m_pCartridge->IsLoadedROM() && persistent && IsValidPointer(rule))
     {
@@ -1162,6 +1167,12 @@ bool GearboyCore::LoadState(std::istream& stream)
         return false;
     }
 
+    if (m_pMemory->GetCurrentRule() == m_pLiChengMemoryRule && header.version < 108)
+    {
+        Log("Li Cheng save states from unsupported mapper versions cannot be loaded");
+        return false;
+    }
+
 #if !defined(__LIBRETRO__)
     if (is_desktop_savestate)
     {
@@ -1276,6 +1287,12 @@ bool GearboyCore::LoadState(std::istream& stream)
 bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
 {
     using namespace std;
+
+    if (m_pMemory->GetCurrentRule() == m_pLiChengMemoryRule)
+    {
+        Log("Legacy Li Cheng save states cannot be loaded");
+        return false;
+    }
 
     if (m_pMemory->GetCurrentRule() == m_pBHGOSMemoryRule)
     {
@@ -1726,6 +1743,8 @@ void GearboyCore::InitMemoryRules()
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pBHGOSMemoryRule = new BHGOSMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pLiChengMemoryRule = new LiChengMemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetIORule(m_pIORegistersMemoryRule);
@@ -1752,6 +1771,7 @@ void GearboyCore::InitMemoryRules()
     m_pRocketMemoryRule->SetTraceLogger(m_trace_logger);
     m_pFlashcartMemoryRule->SetTraceLogger(m_trace_logger);
     m_pBHGOSMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pLiChengMemoryRule->SetTraceLogger(m_trace_logger);
 }
 
 bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
@@ -1830,6 +1850,9 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
         case Cartridge::CartridgeBHGOS:
             m_pMemory->SetCurrentRule(m_pBHGOSMemoryRule);
             break;
+        case Cartridge::CartridgeLiCheng:
+            m_pMemory->SetCurrentRule(m_pLiChengMemoryRule);
+            break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
             break;
@@ -1901,6 +1924,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pRocketMemoryRule->Reset(m_bCGB);
     m_pFlashcartMemoryRule->Reset(m_bCGB);
     m_pBHGOSMemoryRule->Reset(m_bCGB);
+    m_pLiChengMemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
     m_pSGB->Reset();

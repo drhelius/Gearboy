@@ -52,6 +52,7 @@ public:
         CartridgeMBC6,
         CartridgeRocket,
         CartridgeBHGOS,
+        CartridgeLiCheng,
         CartridgeNotSupported
     };
 
@@ -108,6 +109,7 @@ private:
     bool IsSachenMMC1Cartridge() const;
     bool IsSachenMMC2Cartridge() const;
     bool IsWisdomTreeCartridge(int type) const;
+    bool IsLiChengCartridge() const;
 
 private:
     u8* m_pTheROM;

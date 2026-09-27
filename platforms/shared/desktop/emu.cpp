@@ -1439,6 +1439,8 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "Rocket Games";
         case Cartridge::CartridgeBHGOS:
             return "BHGOS";
+        case Cartridge::CartridgeLiCheng:
+            return "Li Cheng";
         case Cartridge::CartridgeNotSupported:
             return "Not Supported";
         default:

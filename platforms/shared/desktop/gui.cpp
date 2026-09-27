@@ -422,6 +422,7 @@ Cartridge::CartridgeTypes gui_get_mbc(int index)
         case 20: return Cartridge::CartridgeMBC6;
         case 21: return Cartridge::CartridgeRocket;
         case 22: return Cartridge::CartridgeBHGOS;
+        case 23: return Cartridge::CartridgeLiCheng;
         default: return Cartridge::CartridgeNotSupported;
     }
 }

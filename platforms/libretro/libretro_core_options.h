@@ -183,6 +183,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "MBC 6",           NULL },
             { "Rocket Games",    NULL },
             { "BHGOS",           NULL },
+            { "Li Cheng",        NULL },
             { NULL, NULL },
         },
         "Auto"
