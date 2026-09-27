@@ -104,7 +104,7 @@ struct FakeTransport
     u32 promise_cycles;
 };
 
-static void FakeState(u64, u8, u8, void* user_data)
+static void FakeState(u64, u8, u8, GB_SerialEvent, void* user_data)
 {
     FakeTransport* transport = (FakeTransport*)user_data;
     transport->state_calls++;
@@ -578,7 +578,7 @@ struct PairTransport
     GB_LinkCableTransfer transfer;
 };
 
-static void PairState(u64, u8, u8, void*)
+static void PairState(u64, u8, u8, GB_SerialEvent, void*)
 {
 }
 

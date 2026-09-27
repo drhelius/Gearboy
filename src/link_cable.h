@@ -37,10 +37,26 @@ struct GB_LinkCableTransfer
     u8 local_byte;
 };
 
-typedef void (*GB_LinkCableStateCallback)(u64 cycle, u8 sb, u8 sc,void* user_data);
-typedef void (*GB_LinkCableStartCallback)(u64 request_cycle, u64 first_shift_cycle,
-    u32 bit_cycles, u8 outgoing_byte, u32 transfer_id, u8* incoming_byte, void* user_data);
+enum GB_SerialEvent
+{
+    GB_SerialEvent_State,
+    GB_SerialEvent_ControlWrite,
+    GB_SerialEvent_Complete
+};
+
+typedef void (*GB_LinkCableStateCallback)(u64 cycle, u8 sb, u8 sc, GB_SerialEvent event, void* user_data);
+typedef void (*GB_LinkCableStartCallback)(u64 request_cycle, u64 first_shift_cycle, u32 bit_cycles,
+    u8 outgoing_byte, u32 transfer_id, u8* incoming_byte, void* user_data);
 typedef bool (*GB_LinkCablePollCallback)(u64 current_cycle, GB_LinkCableTransfer* transfer, void* user_data);
 typedef void (*GB_LinkCableSyncCallback)(u64 cycle, u32 promise_cycles, void* user_data);
+
+struct GB_LinkCableCallbacks
+{
+    GB_LinkCableStateCallback state;
+    GB_LinkCableStartCallback start;
+    GB_LinkCablePollCallback poll;
+    GB_LinkCableSyncCallback sync;
+    void* user_data;
+};
 
 #endif /* LINK_CABLE_H */

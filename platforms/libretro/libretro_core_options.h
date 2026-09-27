@@ -35,6 +35,31 @@ extern "C" {
  ********************************
  */
 
+#define BARCODE_DIGIT_OPTION(number) \
+    { \
+        "gearboy_barcode_digit_" #number, \
+        "Barcode Boy Custom Digit " #number, \
+        NULL, \
+        "Digit " #number " of the custom 13-digit barcode, from left to right. " \
+        "Select Custom, set all digits, then press Scan Barcode (RetroPad R).", \
+        NULL, \
+        "barcode", \
+        { \
+            { "0", NULL }, \
+            { "1", NULL }, \
+            { "2", NULL }, \
+            { "3", NULL }, \
+            { "4", NULL }, \
+            { "5", NULL }, \
+            { "6", NULL }, \
+            { "7", NULL }, \
+            { "8", NULL }, \
+            { "9", NULL }, \
+            { NULL, NULL } \
+        }, \
+        "0" \
+    }
+
 struct retro_core_option_v2_category option_cats_us[] = {
     {
         "system",
@@ -56,10 +81,59 @@ struct retro_core_option_v2_category option_cats_us[] = {
         "Game Link Cable",
         "Configure two linked Game Boy systems, screen layout and audio output."
     },
+    {
+        "barcode",
+        "Barcode Boy",
+        "Choose a card or enter 13 custom digits, then press Scan Barcode (RetroPad R)."
+    },
     { NULL, NULL, NULL },
 };
 
 struct retro_core_option_v2_definition option_defs_us[] = {
+
+    {
+        "gearboy_barcode_boy",
+        "Barcode Boy Mode (restart)",
+        NULL,
+        "Auto attaches Barcode Boy to games recognized by ROM CRC. Enabled supports unrecognized or patched ROMs. "
+        "Game Link mode reserves the serial port and disables Barcode Boy.",
+        NULL,
+        "barcode",
+        {
+            { "Auto",     NULL },
+            { "Disabled", NULL },
+            { "Enabled",  NULL },
+            { NULL, NULL }
+        },
+        "Auto"
+    },
+    {
+        "gearboy_barcode",
+        "Barcode Boy Card",
+        NULL,
+        "Choose a documented card, or Custom to enter 13 digits. Resume the game and press Scan Barcode (RetroPad R) "
+        "to scan. Changing this option does not scan automatically.",
+        NULL,
+        "barcode",
+        {
+            { "Custom", NULL },
+            { NULL, NULL }
+        },
+        "Custom"
+    },
+    BARCODE_DIGIT_OPTION(1),
+    BARCODE_DIGIT_OPTION(2),
+    BARCODE_DIGIT_OPTION(3),
+    BARCODE_DIGIT_OPTION(4),
+    BARCODE_DIGIT_OPTION(5),
+    BARCODE_DIGIT_OPTION(6),
+    BARCODE_DIGIT_OPTION(7),
+    BARCODE_DIGIT_OPTION(8),
+    BARCODE_DIGIT_OPTION(9),
+    BARCODE_DIGIT_OPTION(10),
+    BARCODE_DIGIT_OPTION(11),
+    BARCODE_DIGIT_OPTION(12),
+    BARCODE_DIGIT_OPTION(13),
 
     /* System */
 
@@ -492,8 +566,10 @@ struct retro_core_option_v2_definition option_defs_us[] = {
         "Screen 1"
     },
 
-    { NULL, NULL, NULL, NULL, NULL, NULL, {{0}}, NULL },
+    { NULL, NULL, NULL, NULL, NULL, NULL, {{NULL, NULL}}, NULL },
 };
+
+#undef BARCODE_DIGIT_OPTION
 
 struct retro_core_options_v2 options_us = {
     option_cats_us,

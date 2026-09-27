@@ -20,15 +20,54 @@
 #define GUI_ACTIONS_IMPORT
 #include "gui_actions.h"
 #include "gui.h"
+#include "gui_debug.h"
+#include "gui_debug_memory.h"
 #include "gui_debug_trace_logger.h"
+#include "gui_menus.h"
 #include "config.h"
 #include "emu.h"
+#include "ogl_renderer.h"
 #include "rewind.h"
 #include "events.h"
 #include "gearboy.h"
 #include "application.h"
 #include "display.h"
 #include "utils.h"
+
+void gui_action_load_defaults(void)
+{
+    if (gui_is_rom_loading() || emu_is_rom_loading())
+        return;
+
+    if (!gui_debug_trace_logger_stop())
+        return;
+
+    emu_stop_vgm_recording();
+    emu_link_cable_stop();
+    emu_save_persistent_data();
+
+    GearboyCore* core = emu_get_core();
+    core->GetMemory()->UnloadBootrom(false);
+    core->GetMemory()->UnloadBootrom(true);
+
+    config_load_defaults();
+    gui_apply_settings();
+    gui_init_menus();
+
+    emu_resume();
+    emu_reset(config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba, false);
+
+    gui_debug_memory_reset();
+
+    gui_debug_memory_apply_settings();
+    gui_debug_trace_logger_init();
+    update_savestates_data();
+    events_sync_input();
+    ogl_renderer_unload_shader_preset();
+    application_apply_settings();
+
+    config_write();
+}
 
 void gui_action_reset(void)
 {

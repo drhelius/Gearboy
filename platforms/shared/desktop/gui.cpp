@@ -103,37 +103,43 @@ bool gui_init(void)
         gui_default_fonts[i] = io.Fonts->AddFontDefault(&font_cfg);
     }
 
-    gui_default_font = gui_default_fonts[config_debug.font_size];
-
-    set_style();
-
-    emu_audio_mute(!config_audio.enable);
-    emu_audio_set_master_volume(config_audio.master_volume);
-
-    strncpy_fit(gui_dmg_bootrom_path, config_emulator.dmg_bootrom_path.c_str(), sizeof(gui_dmg_bootrom_path));
-    strncpy_fit(gui_gbc_bootrom_path, config_emulator.gbc_bootrom_path.c_str(), sizeof(gui_gbc_bootrom_path));
+    gui_apply_settings();
 
     if (strlen(gui_dmg_bootrom_path) > 0)
         emu_load_bootrom_dmg(gui_dmg_bootrom_path);
     if (strlen(gui_gbc_bootrom_path) > 0)
         emu_load_bootrom_gbc(gui_gbc_bootrom_path);
 
-    emu_enable_bootrom_dmg(config_emulator.dmg_bootrom);
-    emu_enable_bootrom_gbc(config_emulator.gbc_bootrom);
-    emu_color_correction(config_video.color_correction);
-    emu_video_no_sprite_limit(config_video.sprite_limit);
-    emu_set_disassembler_syntax(config_debug.dis_syntax);
-
-    strncpy_fit(gui_savefiles_path, config_emulator.savefiles_path.c_str(), sizeof(gui_savefiles_path));
-    strncpy_fit(gui_savestates_path, config_emulator.savestates_path.c_str(), sizeof(gui_savestates_path));
-    strncpy_fit(gui_screenshots_path, config_emulator.screenshots_path.c_str(), sizeof(gui_screenshots_path));
-    strncpy_fit(gui_mcp_http_address, config_emulator.mcp_http_address.c_str(), sizeof(gui_mcp_http_address));
-
     gui_debug_init();
     gui_cheats_init();
     gui_init_menus();
 
     return true;
+}
+
+void gui_apply_settings(void)
+{
+    gui_default_font = gui_default_fonts[config_debug.font_size];
+    set_style();
+
+    emu_audio_sync = config_audio.sync;
+    emu_audio_mute(!config_audio.enable);
+    emu_audio_set_master_volume(config_audio.master_volume);
+
+    emu_enable_bootrom_dmg(config_emulator.dmg_bootrom);
+    emu_enable_bootrom_gbc(config_emulator.gbc_bootrom);
+    emu_color_correction(config_video.color_correction);
+    emu_video_no_sprite_limit(config_video.sprite_limit);
+    emu_set_disassembler_syntax(config_debug.dis_syntax);
+    emu_set_barcode_boy_mode(config_emulator.barcode_boy_mode);
+    emu_link_cable_set_normal_barrier_stall_us((u32)config_emulator.link_cable_stall_us);
+
+    strncpy_fit(gui_savefiles_path, config_emulator.savefiles_path.c_str(), sizeof(gui_savefiles_path));
+    strncpy_fit(gui_savestates_path, config_emulator.savestates_path.c_str(), sizeof(gui_savestates_path));
+    strncpy_fit(gui_screenshots_path, config_emulator.screenshots_path.c_str(), sizeof(gui_screenshots_path));
+    strncpy_fit(gui_dmg_bootrom_path, config_emulator.dmg_bootrom_path.c_str(), sizeof(gui_dmg_bootrom_path));
+    strncpy_fit(gui_gbc_bootrom_path, config_emulator.gbc_bootrom_path.c_str(), sizeof(gui_gbc_bootrom_path));
+    strncpy_fit(gui_mcp_http_address, config_emulator.mcp_http_address.c_str(), sizeof(gui_mcp_http_address));
 }
 
 void gui_destroy(void)
@@ -289,6 +295,9 @@ void gui_shortcut(gui_ShortCutEvent event)
         break;
     case gui_ShortcutShowMainMenu:
         config_emulator.always_show_menu = !config_emulator.always_show_menu;
+        break;
+    case gui_ShortcutScanBarcode:
+        gui_shortcut_scan_barcode = true;
         break;
     default:
         break;

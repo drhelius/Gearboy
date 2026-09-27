@@ -76,6 +76,8 @@ public:
     const char* GetFileName() const;
     const char* GetFileDirectory() const;
     int GetTotalSize() const;
+    u32 GetCRC() const;
+    bool IsBarcodeBoySupported() const;
     bool HasRam() const;
     bool HasBattery() const;
     INLINE u8* GetTheROM() const;
@@ -95,17 +97,14 @@ public:
     void ClearGameGenieCheats();
 
 private:
-    bool GatherMetadata();
+    bool GatherMetadata(u32 crc);
+    void GetInfoFromDB(u32 crc);
     bool LoadFromZipFile(const u8* buffer, int size, bool softpatching);
     bool LoadFromBufferWithSoftpatch(const u8* buffer, int size, bool softpatching);
     void CheckCartridgeType(int type);
-    bool IsM161Cartridge(u32 full_crc, u32 header_crc) const;
-    bool IsKnownMMM01Cartridge(u32 full_crc) const;
-    bool IsPKJDCartridge(u32 header_crc) const;
-    bool IsBungEMSCartridge(u32 full_crc) const;
-    bool IsPoke2in1Cartridge(u32 full_crc) const;
-    bool IsSachenMMC1Cartridge(u32 full_crc) const;
-    bool IsSachenMMC2Cartridge(u32 header_crc) const;
+    bool IsBungEMSCartridge() const;
+    bool IsSachenMMC1Cartridge() const;
+    bool IsSachenMMC2Cartridge() const;
     bool IsWisdomTreeCartridge(int type) const;
 
 private:
@@ -133,6 +132,8 @@ private:
     bool m_softpatch_applied;
     char m_softpatch_path[4096];
     std::list<GameGenieCode> m_GameGenieList;
+    u32 m_iCRC;
+    int m_iFeatures;
 };
 
 INLINE Cartridge::CartridgeTypes Cartridge::GetType() const

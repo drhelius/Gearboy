@@ -187,15 +187,18 @@ else ifneq (,$(findstring ios,$(platform)))
 		CC = cc -arch armv7 -isysroot $(IOSSDK)
 		CXX = c++ -arch armv7 -isysroot $(IOSSDK)
 	endif
-	ifeq ($(platform),$(filter $(platform),ios9 ios-arm64))
-		MINVERSION = -miphoneos-version-min=8.0
+	ifeq ($(platform),ios-arm64)
+		IOS_MIN_VERSION ?= 15.0
+	else ifeq ($(platform),ios9)
+		IOS_MIN_VERSION ?= 8.0
 	else
-		MINVERSION = -miphoneos-version-min=5.0
+		IOS_MIN_VERSION ?= 5.0
 	endif
-		PLATFORM_DEFINES := $(MINVERSION)
-		CFLAGS += $(MINVERSION)
-		CXXFLAGS += $(MINVERSION)
-		LDFLAGS += $(MINVERSION)
+	MINVERSION = -miphoneos-version-min=$(IOS_MIN_VERSION)
+	PLATFORM_DEFINES := $(MINVERSION)
+	CFLAGS += $(MINVERSION)
+	CXXFLAGS += $(MINVERSION)
+	LDFLAGS += $(MINVERSION)
 # tvOS
 else ifeq ($(platform), tvos-arm64)
 	TARGET := $(TARGET_NAME)_libretro_tvos.dylib
@@ -207,7 +210,8 @@ else ifeq ($(platform), tvos-arm64)
 
 	CC = cc -arch arm64 -isysroot $(IOSSDK)
 	CXX = c++ -arch arm64 -isysroot $(IOSSDK)
-	MINVERSION = -mappletvos-version-min=11.0
+	TVOS_MIN_VERSION ?= 15.0
+	MINVERSION = -mappletvos-version-min=$(TVOS_MIN_VERSION)
 	PLATFORM_DEFINES := $(MINVERSION)
 	CFLAGS += $(MINVERSION)
 	CXXFLAGS += $(MINVERSION)
@@ -343,8 +347,10 @@ else
 	BUILD_CONFIG = Release
 	CXXFLAGS += -O3 -DNDEBUG
 	ifeq ($(LTO), 1)
-		CXXFLAGS += -flto
-		LDFLAGS += -O3 -flto
+		LTO_FLAGS := $(shell $(CXX) -x c++ -flto=auto -c /dev/null -o /dev/null >/dev/null 2>&1 \
+			&& echo -flto=auto || echo -flto)
+		CXXFLAGS += $(LTO_FLAGS)
+		LDFLAGS += -O3 $(LTO_FLAGS)
 	endif
 endif
 

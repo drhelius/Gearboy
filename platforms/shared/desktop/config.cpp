@@ -120,7 +120,6 @@ void config_load_defaults(void)
     Log("Loading default settings");
 
     on_config_defaults();
-    config_write();
 }
 
 void config_push_recent_media(const std::string& path)

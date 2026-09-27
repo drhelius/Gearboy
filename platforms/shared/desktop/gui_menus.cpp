@@ -44,6 +44,7 @@ static bool open_ram = false;
 static bool save_ram = false;
 static bool open_state = false;
 static bool save_state = false;
+static bool open_barcode = false;
 static bool open_about = false;
 static bool open_load_defaults = false;
 static bool save_screenshot = false;
@@ -76,6 +77,7 @@ static void menu_debug(void);
 static void menu_about(void);
 static void draw_background_color_menu(const char* label, int theme);
 static void draw_service_status(void);
+static bool can_scan_barcode(void);
 static void file_dialogs(void);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key, int player);
 static void gamepad_configuration_item(const char* text, int* button, int player);
@@ -111,6 +113,7 @@ static void update_palette(void)
 void gui_init_menus(void)
 {
     gui_shortcut_open_rom = false;
+    gui_shortcut_scan_barcode = false;
     shader_preset_count = shader_preset_scan_bundled(shader_presets, SHADER_PRESET_MAX_DISCOVERED);
 
     for (int p = 0; p < config_max_custom_palettes; p++)
@@ -132,6 +135,7 @@ void gui_main_menu(void)
     save_ram = false;
     open_state = false;
     save_state = false;
+    open_barcode = false;
     open_about = false;
     open_load_defaults = false;
     save_screenshot = false;
@@ -339,7 +343,7 @@ static void menu_gearboy(void)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Load Default Settings"))
+        if (ImGui::MenuItem("Load Default Settings", NULL, false, !gui_is_rom_loading() && !emu_is_rom_loading()))
         {
             open_load_defaults = true;
         }
@@ -615,6 +619,7 @@ static void menu_emulator(void)
             hotkey_configuration_item("Fullscreen:", &config_hotkeys[config_HotkeyIndex_Fullscreen]);
             hotkey_configuration_item("Show Main Menu:", &config_hotkeys[config_HotkeyIndex_ShowMainMenu]);
             hotkey_configuration_item("Capture Mouse:", &config_hotkeys[config_HotkeyIndex_CaptureMouse]);
+            hotkey_configuration_item("Scan Barcode:", &config_hotkeys[config_HotkeyIndex_ScanBarcode]);
 
             gui_popup_modal_hotkey();
 
@@ -1094,6 +1099,7 @@ static void menu_input(void)
                 gamepad_configuration_item("Fullscreen:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Fullscreen], 0);
                 gamepad_configuration_item("Capture Mouse:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_CaptureMouse], 0);
                 gamepad_configuration_item("Show Main Menu:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_ShowMainMenu], 0);
+                gamepad_configuration_item("Scan Barcode:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_ScanBarcode], 0);
 
                 gui_popup_modal_gamepad(0);
 
@@ -1152,6 +1158,42 @@ static void menu_input(void)
                     ImGui::SetTooltip("When enabled, the mouse will be captured inside\nthe emulator window to control tilt freely.\nPress %s to release the mouse.", config_hotkeys[config_HotkeyIndex_CaptureMouse].str);
                 }
             }
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::BeginMenu("Barcode Boy", !emu_is_rom_loading()))
+        {
+            int mode = config_emulator.barcode_boy_mode;
+            ImGui::PushItemWidth(100.0f);
+
+            if (ImGui::Combo("##barcode_mode", &mode, "Auto\0Disabled\0Enabled\0\0"))
+                emu_set_barcode_boy_mode(mode);
+
+            ImGui::PopItemWidth();
+            ImGui::Separator();
+
+            GB_BarcodeBoyStatus status = emu_is_empty() ? GB_BarcodeBoyStatus_Disabled : emu_get_core()->GetBarcodeBoyStatus();
+
+            static const char* status_labels[] =
+            {
+                "Reader not attached", "Waiting for game", "Ready to scan", "Barcode queued", "Sending barcode"
+            };
+
+            ImVec4 status_color = red;
+            
+            if (status == GB_BarcodeBoyStatus_Ready)
+                status_color = green;
+            else if (status == GB_BarcodeBoyStatus_Handshake)
+                status_color = yellow;
+
+            ImGui::TextColored(status_color, "%s", emu_link_cable_is_active() ? "Unavailable while Link Cable is active" : status_labels[status]);
+
+            if (ImGui::MenuItem("Scan Barcode...", config_hotkeys[config_HotkeyIndex_ScanBarcode].str,
+                false, can_scan_barcode()))
+                open_barcode = true;
+
             ImGui::EndMenu();
         }
 
@@ -1496,7 +1538,7 @@ static void menu_debug(void)
             ImGui::EndMenu();
         }
 
-        ImGui::MenuItem("Show PSG", "", &config_debug.show_psg);
+        ImGui::MenuItem("Show PSG", "", &config_debug.show_psg, config_debug.debug);
         ImGui::MenuItem("Show IO Map", "", &config_debug.show_io, config_debug.debug);
         ImGui::MenuItem("Show Link Cable", "", &config_debug.show_link_cable,
             config_debug.debug);
@@ -1644,6 +1686,16 @@ static void draw_service_status(void)
     }
 }
 
+static bool can_scan_barcode(void)
+{
+    if (emu_is_empty() || gui_is_rom_loading() || emu_is_rom_loading())
+        return false;
+
+    GB_BarcodeBoyStatus status = emu_get_core()->GetBarcodeBoyStatus();
+
+    return status != GB_BarcodeBoyStatus_Disabled && status != GB_BarcodeBoyStatus_Sending;
+}
+
 static void file_dialogs(void)
 {
     gui_file_dialog_process_results();
@@ -1691,6 +1743,15 @@ static void file_dialogs(void)
         ImGui::OpenPopup("Load Default Settings");
     }
 
+    if (open_barcode || gui_shortcut_scan_barcode)
+    {
+        gui_shortcut_scan_barcode = false;
+
+        if (can_scan_barcode())
+            ImGui::OpenPopup("Scan Barcode");
+    }
+
+    gui_popup_modal_barcode();
     gui_popup_modal_about();
     gui_popup_modal_load_defaults();
 }

@@ -99,6 +99,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - Game Boy Color support.
 - Super Game Boy support.
 - Local two-instance Game Boy link cable support on desktop platforms and libretro core.
+- Barcode Boy
 - LCD screen ghosting effect as seen in the original Game Boy.
 - LCD dot matrix effects. 
 - Battery powered RAM save support.

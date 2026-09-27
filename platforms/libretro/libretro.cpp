@@ -34,6 +34,7 @@
 #include "../../src/gearboy.h"
 #include "libretro_core_options.h"
 #include "libretro_link.h"
+#include "libretro_barcode.h"
 
 #define GB_VIDEO_WIDTH 160
 #define GB_VIDEO_HEIGHT 144
@@ -107,6 +108,7 @@ static int link_screen = 0;
 static int link_audio = 0;
 static bool link_subsystem = false;
 static bool game_loaded = false;
+static bool barcode_enabled = false;
 static Cartridge::CartridgeTypes mapper = Cartridge::CartridgeNotSupported;
 static const retro_vfs_interface* vfs_interface = NULL;
 static std::vector<std::string> libretro_cheats;
@@ -315,6 +317,7 @@ void retro_set_environment(retro_environment_t cb)
 
     cb(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void*)subsystems);
 
+    libretro_barcode_init(environ_cb, option_defs_us);
     libretro_set_core_options(environ_cb, &categories_supported);
 }
 
@@ -427,6 +430,9 @@ static void update_input(GearboyCore* target, unsigned port)
                 ib |= input_state_cb(port, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
         }
     }
+
+    if (barcode_enabled && port == 0)
+        libretro_barcode_update_input((u16)ib);
 
     bool raw_up = (ib & (1 << RETRO_DEVICE_ID_JOYPAD_UP)) != 0;
     bool raw_down = (ib & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)) != 0;
@@ -642,6 +648,8 @@ static void update_sensors(void)
 
 static void check_variables(void)
 {
+    libretro_barcode_check_variables();
+
     struct retro_variable var = {0};
 
     var.key = "gearboy_link_enable";
@@ -1102,6 +1110,7 @@ static bool load_game(const struct retro_game_info* info, const struct retro_gam
         load_bootroms(core);
 
         core->SetSGBEnabled(instance_count == 1 && sgb_enabled);
+        core->SetBarcodeBoyMode(instance_count == 1 ? libretro_barcode_get_mode() : GB_BarcodeBoyMode_Disabled);
 
         if (!load_rom(core, roms[i]))
         {
@@ -1110,6 +1119,8 @@ static bool load_game(const struct retro_game_info* info, const struct retro_gam
             return false;
         }
     }
+
+    barcode_enabled = libretro_barcode_load(instance_count == 1 ? instances[0].core : NULL);
 
     struct retro_input_descriptor desc[] = {
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left" },
@@ -1128,6 +1139,7 @@ static bool load_game(const struct retro_game_info* info, const struct retro_gam
         { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Select" },
         { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      "B" },
         { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      "A" },
+        { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R, barcode_enabled ? "Scan Barcode" : NULL },
         { 0 },
     };
 
@@ -1288,6 +1300,9 @@ static bool load_rom(GearboyCore* target, const struct retro_game_info* info)
 
 void retro_unload_game(void)
 {
+    libretro_barcode_unload();
+    barcode_enabled = false;
+
     if (game_loaded && link_cable && !link_subsystem)
         link_cable->PersistentMemory(true, vfs_interface);
 
@@ -1328,6 +1343,9 @@ size_t retro_serialize_size(void)
     if (link_cable)
         return link_cable->StateSize();
 
+    if (barcode_enabled)
+        return libretro_barcode_get_state_size();
+
     size_t size = 0;
     instances[0].core->SaveState(NULL, size);
     return size;
@@ -1338,6 +1356,9 @@ bool retro_serialize(void *data, size_t size)
     if (!game_loaded)
         return false;
 
+    if (barcode_enabled)
+        return libretro_barcode_save_state(data, size);
+
     return link_cable ? link_cable->SaveState(data, size) : instances[0].core->SaveState(reinterpret_cast<u8*>(data), size);
 }
 
@@ -1345,6 +1366,9 @@ bool retro_unserialize(const void *data, size_t size)
 {
     if (!game_loaded)
         return false;
+
+    if (barcode_enabled)
+        return libretro_barcode_load_state(data, size);
 
     return link_cable ? link_cable->LoadState(data, size) : instances[0].core->LoadState(reinterpret_cast<const u8*>(data), size);
 }
