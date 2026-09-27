@@ -21,12 +21,12 @@ jobs:
     name: Linux
     strategy:
       matrix:
-        os: [ubuntu-24.04, ubuntu-22.04, ubuntu-24.04-arm]
+        os: [ubuntu-24.04, ubuntu-26.04, ubuntu-24.04-arm]
         include:
         - os: ubuntu-24.04
           artifact_name: ubuntu24.04-x64
-        - os: ubuntu-22.04
-          artifact_name: ubuntu22.04-x64
+        - os: ubuntu-26.04
+          artifact_name: ubuntu26.04-x64
         - os: ubuntu-24.04-arm
           artifact_name: ubuntu24.04-arm64
     runs-on: ${{ matrix.os }}
@@ -40,7 +40,11 @@ jobs:
         fetch-depth: 0
     - name: Update OS
       run: sudo apt-get update -qq
-    - name: Install dependencies
+    - name: Install Ubuntu SDL3 dependencies
+      if: matrix.os == 'ubuntu-26.04'
+      run: sudo apt-get install -y build-essential pkg-config libsdl3-dev libgl-dev
+    - name: Install SDL3 build dependencies
+      if: matrix.os != 'ubuntu-26.04'
       run: |
         sudo apt-get install -y build-essential cmake \
         libasound2-dev libpulse-dev libpipewire-0.3-dev libjack-dev \
@@ -50,6 +54,7 @@ jobs:
         libxi-dev libxss-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
         libdrm-dev libgbm-dev libgl1-mesa-dev libegl1-mesa-dev libdbus-1-dev libudev-dev libxtst-dev
     - name: Build and install SDL3
+      if: matrix.os != 'ubuntu-26.04'
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
