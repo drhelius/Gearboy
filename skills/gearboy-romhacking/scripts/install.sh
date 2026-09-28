@@ -144,7 +144,7 @@ install_linux() {
     local suffix
     case "$arch" in
         x86_64) suffix="x64" ;;
-        aarch64) suffix="arm64"; ubuntu_ver="24.04" ;;
+        aarch64) suffix="arm64" ;;
         *)
             echo "Unsupported architecture: $arch. Download manually from: https://github.com/$REPO/releases/latest"
             exit 1

@@ -50,7 +50,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
       <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.8.15/Gearboy-3.8.15-desktop-macos-intel.zip">Gearboy-3.8.15-desktop-macos-intel.zip</a></td>
     </tr>
     <tr>
-      <td rowspan="5"><strong>Linux</strong></td>
+      <td rowspan="6"><strong>Linux</strong></td>
       <td>Ubuntu PPA</td>
       <td><a href="https://github.com/drhelius/ppa-geardome">drhelius/ppa-geardome</a></td>
     </tr>
@@ -61,6 +61,10 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
     <tr>
       <td>Desktop Ubuntu 26.04 x64</td>
       <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.8.15/Gearboy-3.8.15-desktop-ubuntu26.04-x64.zip">Gearboy-3.8.15-desktop-ubuntu26.04-x64.zip</a></td>
+    </tr>
+    <tr>
+      <td>Desktop Ubuntu 26.04 ARM64</td>
+      <td><a href="https://github.com/drhelius/Gearboy/releases/download/3.8.15/Gearboy-3.8.15-desktop-ubuntu26.04-arm64.zip">Gearboy-3.8.15-desktop-ubuntu26.04-arm64.zip</a></td>
     </tr>
     <tr>
       <td>Desktop Ubuntu 24.04 x64</td>
