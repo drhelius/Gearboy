@@ -153,7 +153,7 @@ void DebugAdapter::StepFrame(int frames)
 
 void DebugAdapter::Reset()
 {
-    emu_reset(false, Cartridge::CartridgeNotSupported, false);
+    emu_reset(config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);
 }
 
 json DebugAdapter::GetDebugStatus()
@@ -744,6 +744,14 @@ json DebugAdapter::GetMediaInfo()
         info["cartridge_type"] = type_names[type_idx];
     else
         info["cartridge_type"] = "Unknown";
+
+    type_idx = (int)m_core->GetMapperType();
+    if (!cart->IsLoadedROM())
+        info["active_mapper"] = json();
+    else if (type_idx >= 0 && type_idx < (int)(sizeof(type_names) / sizeof(type_names[0])))
+        info["active_mapper"] = type_names[type_idx];
+    else
+        info["active_mapper"] = "Unknown";
 
     if (m_core->IsCGB())
         info["system"] = m_core->IsGBA() ? "Game Boy Color (GBA mode)" : "Game Boy Color";

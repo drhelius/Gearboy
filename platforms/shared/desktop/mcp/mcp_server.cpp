@@ -708,7 +708,7 @@ json McpServer::BuildToolList()
     tools.push_back({
         {"name", "get_media_info"},
         {"title", "Get Media Info"},
-        {"description", "Read loaded ROM info: path, title, MBC, ROM/RAM size, CGB/SGB, battery."},
+        {"description", "Read loaded ROM info: path, title, detected cartridge type, active mapper, ROM/RAM size, CGB/SGB, battery."},
         {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
         {"inputSchema", {
             {"type", "object"},

@@ -101,6 +101,7 @@ GearboyCore::GearboyCore()
     m_bSGB = false;
     m_bPaused = false;
     m_bForceDMG = false;
+    m_MapperType = Cartridge::CartridgeNotSupported;
     m_bSGBEnabled = true;
     m_bSGBBorder = true;
     InitPointer(m_pSGBFrameBuffer);
@@ -357,6 +358,11 @@ Memory* GearboyCore::GetMemory()
 Cartridge* GearboyCore::GetCartridge()
 {
     return m_pCartridge;
+}
+
+Cartridge::CartridgeTypes GearboyCore::GetMapperType()
+{
+    return m_MapperType;
 }
 
 Processor* GearboyCore::GetProcessor()
@@ -1953,6 +1959,8 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
         default:
             notSupported = true;
     }
+
+    m_MapperType = notSupported ? Cartridge::CartridgeNotSupported : type;
 
     if (!notSupported)
     {

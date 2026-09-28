@@ -219,6 +219,7 @@ void emu_load_rom_async(const char* file_path, bool force_dmg, Cartridge::Cartri
     gui_debug_trace_logger_reset();
 
     emu_debug_command = Debug_Command_None;
+    emu_debug_step_frames_pending = 0;
     reset_buffers();
     save_ram();
 
@@ -354,7 +355,10 @@ void emu_update(void)
         }
 
         if (breakpoint_hit)
+        {
             emu_debug_command = Debug_Command_None;
+            emu_debug_step_frames_pending = 0;
+        }
 
         if (emu_debug_command == Debug_Command_StepFrame && emu_debug_step_frames_pending > 0)
         {
@@ -780,6 +784,7 @@ void emu_video_no_sprite_limit(bool enabled)
 
 void emu_debug_step_over(void)
 {
+    emu_debug_step_frames_pending = 0;
     Processor* processor = emu_get_core()->GetProcessor();
     Processor::ProcessorState* proc_state = processor->GetState();
     Memory* memory = emu_get_core()->GetMemory();
@@ -808,6 +813,7 @@ void emu_debug_step_into(void)
 
 void emu_debug_step_out(void)
 {
+    emu_debug_step_frames_pending = 0;
     Processor* processor = emu_get_core()->GetProcessor();
     std::stack<Processor::GB_CallStackEntry>* call_stack = processor->GetDisassemblerCallStack();
 
@@ -845,9 +851,9 @@ void emu_debug_step_frames(int frames)
 void emu_debug_break(void)
 {
     gearboy->Pause(false);
+    emu_debug_step_frames_pending = 0;
     if (emu_debug_command == Debug_Command_Continue || emu_debug_command == Debug_Command_StepFrame)
     {
-        emu_debug_step_frames_pending = 0;
         emu_debug_command = Debug_Command_Step;
     }
 }
@@ -855,6 +861,7 @@ void emu_debug_break(void)
 void emu_debug_continue(void)
 {
     gearboy->Pause(false);
+    emu_debug_step_frames_pending = 0;
     emu_debug_command = Debug_Command_Continue;
 }
 
@@ -1460,6 +1467,7 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
 
 static void debug_step_instruction(void)
 {
+    emu_debug_step_frames_pending = 0;
     emu_debug_command = Debug_Command_Step;
     gearboy->Pause(false);
 }

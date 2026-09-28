@@ -133,6 +133,7 @@ public:
     void SetSGBBorder(bool enabled);
     Memory* GetMemory();
     Cartridge* GetCartridge();
+    Cartridge::CartridgeTypes GetMapperType();
     Processor* GetProcessor();
     Audio* GetAudio();
     Video* GetVideo();
@@ -174,6 +175,7 @@ private:
     Audio* m_pAudio;
     Input* m_pInput;
     Cartridge* m_pCartridge;
+    Cartridge::CartridgeTypes m_MapperType;
     SGB* m_pSGB;
     CommonMemoryRule* m_pCommonMemoryRule;
     IORegistersMemoryRule* m_pIORegistersMemoryRule;
