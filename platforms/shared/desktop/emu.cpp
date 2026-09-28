@@ -1445,6 +1445,8 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "NT newer";
         case Cartridge::CartridgeGGB81:
             return "GGB81";
+        case Cartridge::CartridgeHitek:
+            return "Hitek";
         case Cartridge::CartridgeNotSupported:
             return "Not Supported";
         default:

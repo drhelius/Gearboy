@@ -693,6 +693,7 @@ bool Cartridge::GatherMetadata(u32 crc)
         case CartridgeLiCheng:
         case CartridgeNTNew:
         case CartridgeGGB81:
+        case CartridgeHitek:
             m_bBattery = true;
             m_bRTCPresent = false;
             m_bRumblePresent = false;
@@ -856,6 +857,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeGGB81:
             Log("GGB81 found");
             break;
+        case Cartridge::CartridgeHitek:
+            Log("Hitek found");
+            break;
         case Cartridge::CartridgePoke2in1:
             Log("Pokemon 2-in-1 found");
             break;
@@ -979,6 +983,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
             break;
         case GB_DB_GGB81_MAPPER:
             m_Type = CartridgeGGB81;
+            break;
+        case GB_DB_HITEK_MAPPER:
+            m_Type = CartridgeHitek;
             break;
         case GB_DB_POKE2IN1_MAPPER:
             if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2) && (m_Type != CartridgeBungEMS))

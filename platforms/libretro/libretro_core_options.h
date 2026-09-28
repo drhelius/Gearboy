@@ -186,6 +186,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "Li Cheng",        NULL },
             { "NT newer",        NULL },
             { "GGB81",           NULL },
+            { "Hitek",           NULL },
             { NULL, NULL },
         },
         "Auto"

@@ -790,6 +790,8 @@ static void check_variables(void)
             mapper = Cartridge::CartridgeNTNew;
         else if (strcmp(var.value, "GGB81") == 0)
             mapper = Cartridge::CartridgeGGB81;
+        else if (strcmp(var.value, "Hitek") == 0)
+            mapper = Cartridge::CartridgeHitek;
         else
             mapper = Cartridge::CartridgeNotSupported;
     }

@@ -55,6 +55,7 @@ public:
         CartridgeLiCheng,
         CartridgeNTNew,
         CartridgeGGB81,
+        CartridgeHitek,
         CartridgeNotSupported
     };
 

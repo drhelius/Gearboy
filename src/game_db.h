@@ -35,6 +35,7 @@
 #define GB_DB_LICHENG_MAPPER 10
 #define GB_DB_NTNEW_MAPPER 11
 #define GB_DB_GGB81_MAPPER 12
+#define GB_DB_HITEK_MAPPER 13
 
 #define GB_DB_FEATURE_NONE 0x00
 #define GB_DB_FEATURE_BARCODE_BOY 0x01
@@ -141,6 +142,11 @@ const GB_GameDBEntry kGameDatabase[] =
       "Mu Chang Wu Yu GB 6 (DSHGGB-81)" },
     { 0x9507E5D3, GB_DB_CRC_FULL, GB_DB_GGB81_MAPPER, GB_DB_FEATURE_NONE,
       "Shu Ma Bao Long - Kou Dai Ban (DSHGGB-81)" },
+
+    { 0xA4AD3678, GB_DB_CRC_FULL, GB_DB_HITEK_MAPPER, GB_DB_FEATURE_NONE,
+      "Shuihu Zhuan Zhi Qunmo Fengyun Lu" },
+    { 0x188B06F8, GB_DB_CRC_FULL, GB_DB_HITEK_MAPPER, GB_DB_FEATURE_NONE,
+      "Terrifying 911" },
 
     { 0xABB17913, GB_DB_CRC_FULL, GB_DB_POKE2IN1_MAPPER, GB_DB_FEATURE_NONE, "Pokemon Red-Blue 2-in-1 (Unl) [S]" },
 
