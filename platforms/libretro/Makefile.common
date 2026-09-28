@@ -35,6 +35,7 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/FlashcartMemoryRule.cpp \
                $(SOURCE_DIR)/BHGOSMemoryRule.cpp \
                $(SOURCE_DIR)/LiChengMemoryRule.cpp \
+               $(SOURCE_DIR)/NTNewMemoryRule.cpp \
                $(SOURCE_DIR)/opcodes.cpp \
                $(SOURCE_DIR)/opcodes_cb.cpp \
                $(SOURCE_DIR)/VgmRecorder.cpp \

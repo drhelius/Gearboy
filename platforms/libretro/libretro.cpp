@@ -786,6 +786,8 @@ static void check_variables(void)
             mapper = Cartridge::CartridgeBHGOS;
         else if (strcmp(var.value, "Li Cheng") == 0)
             mapper = Cartridge::CartridgeLiCheng;
+        else if (strcmp(var.value, "NT newer") == 0)
+            mapper = Cartridge::CartridgeNTNew;
         else
             mapper = Cartridge::CartridgeNotSupported;
     }

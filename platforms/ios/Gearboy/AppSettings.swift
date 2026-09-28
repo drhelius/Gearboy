@@ -53,6 +53,7 @@ enum MapperOption: Int, CaseIterable {
     case rocket
     case bhgos
     case liCheng
+    case ntNew
 
     var title: String {
         switch self {
@@ -104,6 +105,8 @@ enum MapperOption: Int, CaseIterable {
             return "BHGOS"
         case .liCheng:
             return "Li Cheng"
+        case .ntNew:
+            return "NT newer"
         }
     }
 }

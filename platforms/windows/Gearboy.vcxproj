@@ -54,6 +54,7 @@
     <ClCompile Include="..\..\src\FlashcartMemoryRule.cpp" />
     <ClCompile Include="..\..\src\BHGOSMemoryRule.cpp" />
     <ClCompile Include="..\..\src\LiChengMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\NTNewMemoryRule.cpp" />
     <ClCompile Include="..\..\src\opcodes.cpp" />
     <ClCompile Include="..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\src\Processor.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="..\..\src\FlashcartMemoryRule.h" />
     <ClInclude Include="..\..\src\BHGOSMemoryRule.h" />
     <ClInclude Include="..\..\src\LiChengMemoryRule.h" />
+    <ClInclude Include="..\..\src\NTNewMemoryRule.h" />
     <ClInclude Include="..\..\src\opcode_names.h" />
     <ClInclude Include="..\..\src\opcode_timing.h" />
     <ClInclude Include="..\..\src\Processor.h" />

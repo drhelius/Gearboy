@@ -33,6 +33,7 @@
 #define GB_DB_ROCKET_MAPPER 8
 #define GB_DB_BHGOS_MAPPER 9
 #define GB_DB_LICHENG_MAPPER 10
+#define GB_DB_NTNEW_MAPPER 11
 
 #define GB_DB_FEATURE_NONE 0x00
 #define GB_DB_FEATURE_BARCODE_BOY 0x01
@@ -108,6 +109,27 @@ const GB_GameDBEntry kGameDatabase[] =
       "Yingxiong Tianxia (CBA079)" },
     { 0x23F291B3, GB_DB_CRC_FULL, GB_DB_LICHENG_MAPPER, GB_DB_FEATURE_NONE,
       "Taikong Baobei (CBA083)" },
+
+    { 0x97280455, GB_DB_CRC_FULL, GB_DB_NTNEW_MAPPER, GB_DB_FEATURE_NONE,
+      "Capcom vs SNK - Millennium Fight 2001" },
+    { 0xA90061E9, GB_DB_CRC_FULL, GB_DB_NTNEW_MAPPER, GB_DB_FEATURE_NONE,
+      "Digimon 02 4" },
+    { 0xA43AB22B, GB_DB_CRC_FULL, GB_DB_NTNEW_MAPPER, GB_DB_FEATURE_NONE,
+      "Digimon 2" },
+    { 0x6791B106, GB_DB_CRC_FULL, GB_DB_NTNEW_MAPPER, GB_DB_FEATURE_NONE,
+      "Digimon Pocket" },
+    { 0xD0FECE32, GB_DB_CRC_FULL, GB_DB_NTNEW_MAPPER, GB_DB_FEATURE_NONE,
+      "Harry Potter 3" },
+    { 0x6E447A33, GB_DB_CRC_FULL, GB_DB_NTNEW_MAPPER, GB_DB_FEATURE_NONE,
+      "Pokemon - Mewtwo Strikes Back" },
+    { 0x1B5BEF4B, GB_DB_CRC_FULL, GB_DB_NTNEW_MAPPER, GB_DB_FEATURE_NONE,
+      "Pokemon Diamond (Special Pikachu Edition)" },
+    { 0xE9488E13, GB_DB_CRC_FULL, GB_DB_NTNEW_MAPPER, GB_DB_FEATURE_NONE,
+      "Pokemon Jade Version (Special Pikachu Edition)" },
+    { 0x2EE18AB2, GB_DB_CRC_FULL, GB_DB_NTNEW_MAPPER, GB_DB_FEATURE_NONE,
+      "Shuma Baolong 02 4" },
+    { 0x1A6FE765, GB_DB_CRC_FULL, GB_DB_NTNEW_MAPPER, GB_DB_FEATURE_NONE,
+      "Street Fighter Zero 4 / Jieba Tianwang 4" },
 
     { 0xABB17913, GB_DB_CRC_FULL, GB_DB_POKE2IN1_MAPPER, GB_DB_FEATURE_NONE, "Pokemon Red-Blue 2-in-1 (Unl) [S]" },
 

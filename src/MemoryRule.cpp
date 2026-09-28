@@ -67,6 +67,12 @@ void MemoryRule::LogTraceMapperEvent(u16 address, u8 value, u8 event, u8 flags, 
         e.mapper.rom_bank1 = GetCurrentRomBankIndex(0x6000);
         e.mapper.ram_bank = (s16)((GetCurrentRamBankIndex(0xA000) << 8) | GetCurrentRamBankIndex(0xB000));
     }
+    else if (mapper == Cartridge::CartridgeNTNew)
+    {
+        e.mapper.rom_bank0 = GetCurrentRomBankIndex(0x4000);
+        e.mapper.rom_bank1 = GetCurrentRomBankIndex(0x6000);
+        e.mapper.ram_bank = (s16)GetCurrentRamBankIndex();
+    }
     else
     {
         e.mapper.rom_bank0 = (u16)GetCurrentRomBank0Index();

@@ -96,7 +96,7 @@ static const char* get_mapper_name(u8 mapper)
     static const char* k_names[] = {
         "ROM", "MBC1", "MBC2", "MBC3", "MBC5", "MBC1M", "HuC1", "HuC3",
         "MMM01", "CAMERA", "MBC7", "TAMA5", "WISDOM", "M161", "SACHEN1",
-        "SACHEN2", "PKJD", "BUNG", "POKE2", "MBC6", "ROCKET", "BHGOS", "LICHENG", "UNKNOWN"
+        "SACHEN2", "PKJD", "BUNG", "POKE2", "MBC6", "ROCKET", "BHGOS", "LICHENG", "NTNEW", "UNKNOWN"
     };
     if (mapper < (sizeof(k_names) / sizeof(k_names[0])) - 1)
         return k_names[mapper];
@@ -699,6 +699,21 @@ void trace_logger_format_entry(const GB_Trace_Entry& entry,
                         entry.mapper.rom_bank1 & 0x7F,
                         ((u16)entry.mapper.ram_bank >> 8) & 0xFF,
                         (u16)entry.mapper.ram_bank & 0xFF, state);
+                break;
+            }
+
+            if (entry.mapper.mapper == Cartridge::CartridgeNTNew)
+            {
+                const char* event_name = "CONTROL";
+                if (entry.mapper.event == TRACE_MAPPER_ROM)
+                    event_name = "ROM";
+                else if (entry.mapper.event == TRACE_MAPPER_RAM_RTC)
+                    event_name = "RAM";
+
+                snprintf(buf, buf_size,
+                        "  [MAP]  NTNEW %s WRITE Addr:$%04X Data:$%02X ROMA:$%03X ROMB:$%03X RAM:$%02X%s",
+                        event_name, entry.mapper.address, entry.mapper.value,
+                        entry.mapper.rom_bank0, entry.mapper.rom_bank1, (u16)entry.mapper.ram_bank, state);
                 break;
             }
 

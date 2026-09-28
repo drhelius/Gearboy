@@ -53,6 +53,7 @@ public:
         CartridgeRocket,
         CartridgeBHGOS,
         CartridgeLiCheng,
+        CartridgeNTNew,
         CartridgeNotSupported
     };
 

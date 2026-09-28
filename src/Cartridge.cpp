@@ -686,6 +686,7 @@ bool Cartridge::GatherMetadata(u32 crc)
             m_bRumblePresent = false;
             break;
         case CartridgeLiCheng:
+        case CartridgeNTNew:
             m_bBattery = true;
             m_bRTCPresent = false;
             m_bRumblePresent = false;
@@ -843,6 +844,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeLiCheng:
             Log("Li Cheng found");
             break;
+        case Cartridge::CartridgeNTNew:
+            Log("NT newer found");
+            break;
         case Cartridge::CartridgePoke2in1:
             Log("Pokemon 2-in-1 found");
             break;
@@ -960,6 +964,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
             break;
         case GB_DB_LICHENG_MAPPER:
             m_Type = CartridgeLiCheng;
+            break;
+        case GB_DB_NTNEW_MAPPER:
+            m_Type = CartridgeNTNew;
             break;
         case GB_DB_POKE2IN1_MAPPER:
             if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2) && (m_Type != CartridgeBungEMS))
