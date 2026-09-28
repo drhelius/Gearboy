@@ -115,7 +115,10 @@ install_linux() {
         local ver_id
         ver_id=$(grep VERSION_ID /etc/os-release | cut -d'"' -f2 2>/dev/null || echo "")
         case "$ver_id" in
-            22.04) codename="jammy";  ubuntu_ver="22.04" ;;
+            22.04)
+                echo "Ubuntu 24.04 or 26.04 is required." >&2
+                exit 1
+                ;;
             24.04) codename="noble";  ubuntu_ver="24.04" ;;
             26.04) codename="resolute"; ubuntu_ver="26.04" ;;
         esac
@@ -141,7 +144,7 @@ install_linux() {
     local suffix
     case "$arch" in
         x86_64) suffix="x64" ;;
-        aarch64) suffix="arm64" ;;
+        aarch64) suffix="arm64"; ubuntu_ver="24.04" ;;
         *)
             echo "Unsupported architecture: $arch. Download manually from: https://github.com/$REPO/releases/latest"
             exit 1
