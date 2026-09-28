@@ -1443,6 +1443,8 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "Li Cheng";
         case Cartridge::CartridgeNTNew:
             return "NT newer";
+        case Cartridge::CartridgeGGB81:
+            return "GGB81";
         case Cartridge::CartridgeNotSupported:
             return "Not Supported";
         default:

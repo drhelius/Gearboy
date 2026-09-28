@@ -185,6 +185,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "BHGOS",           NULL },
             { "Li Cheng",        NULL },
             { "NT newer",        NULL },
+            { "GGB81",           NULL },
             { NULL, NULL },
         },
         "Auto"

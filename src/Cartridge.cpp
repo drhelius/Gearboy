@@ -612,6 +612,11 @@ bool Cartridge::IsBarcodeBoySupported() const
     return (m_iFeatures & GB_DB_FEATURE_BARCODE_BOY) != 0;
 }
 
+bool Cartridge::IsBootLogoSwapDisabled() const
+{
+    return (m_iFeatures & GB_DB_FEATURE_NO_BOOT_LOGO_SWAP) != 0;
+}
+
 bool Cartridge::GatherMetadata(u32 crc)
 {
     char name[12] = {0};
@@ -687,6 +692,7 @@ bool Cartridge::GatherMetadata(u32 crc)
             break;
         case CartridgeLiCheng:
         case CartridgeNTNew:
+        case CartridgeGGB81:
             m_bBattery = true;
             m_bRTCPresent = false;
             m_bRumblePresent = false;
@@ -847,6 +853,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeNTNew:
             Log("NT newer found");
             break;
+        case Cartridge::CartridgeGGB81:
+            Log("GGB81 found");
+            break;
         case Cartridge::CartridgePoke2in1:
             Log("Pokemon 2-in-1 found");
             break;
@@ -967,6 +976,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
             break;
         case GB_DB_NTNEW_MAPPER:
             m_Type = CartridgeNTNew;
+            break;
+        case GB_DB_GGB81_MAPPER:
+            m_Type = CartridgeGGB81;
             break;
         case GB_DB_POKE2IN1_MAPPER:
             if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2) && (m_Type != CartridgeBungEMS))

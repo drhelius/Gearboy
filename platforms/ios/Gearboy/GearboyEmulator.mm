@@ -156,6 +156,8 @@ static Cartridge::CartridgeTypes MapperForOption(NSInteger option)
             return Cartridge::CartridgeLiCheng;
         case 24:
             return Cartridge::CartridgeNTNew;
+        case 25:
+            return Cartridge::CartridgeGGB81;
         default:
             return Cartridge::CartridgeNotSupported;
     }

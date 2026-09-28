@@ -17,20 +17,29 @@
  *
  */
 
-#ifndef LICHENGMEMORYRULE_H
-#define LICHENGMEMORYRULE_H
+#ifndef GGB81MEMORYRULE_H
+#define GGB81MEMORYRULE_H
 
 #include "MBC5LogoMemoryRule.h"
 
-class LiChengMemoryRule : public MBC5LogoMemoryRule
+class GGB81MemoryRule : public MBC5LogoMemoryRule
 {
 public:
-    LiChengMemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
-    virtual ~LiChengMemoryRule();
+    GGB81MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    virtual ~GGB81MemoryRule();
+    virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
     virtual u8 GetMapperType();
+    virtual void Reset(bool bCGB);
     virtual size_t GetRamSize();
+    virtual u8* GetCurrentRomBank1();
+    virtual void SaveState(std::ostream& stream);
+    virtual void LoadState(std::istream& stream);
+
+private:
+    u8 m_DataSwapMode;
+    u8 m_DataSwap[8][256];
+    u8 m_ROMView[0x4000];
 };
 
-#endif /* LICHENGMEMORYRULE_H */
+#endif /* GGB81MEMORYRULE_H */

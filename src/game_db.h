@@ -34,10 +34,12 @@
 #define GB_DB_BHGOS_MAPPER 9
 #define GB_DB_LICHENG_MAPPER 10
 #define GB_DB_NTNEW_MAPPER 11
+#define GB_DB_GGB81_MAPPER 12
 
 #define GB_DB_FEATURE_NONE 0x00
 #define GB_DB_FEATURE_BARCODE_BOY 0x01
 #define GB_DB_FEATURE_MMM01_MENU_AT_END 0x02
+#define GB_DB_FEATURE_NO_BOOT_LOGO_SWAP 0x04
 
 enum GB_GameDBCRCType
 {
@@ -130,6 +132,15 @@ const GB_GameDBEntry kGameDatabase[] =
       "Shuma Baolong 02 4" },
     { 0x1A6FE765, GB_DB_CRC_FULL, GB_DB_NTNEW_MAPPER, GB_DB_FEATURE_NONE,
       "Street Fighter Zero 4 / Jieba Tianwang 4" },
+
+    { 0xBE4C1D83, GB_DB_CRC_FULL, GB_DB_GGB81_MAPPER, GB_DB_FEATURE_NO_BOOT_LOGO_SWAP,
+      "Digimon Sapphire (BC-R1616T3P)" },
+    { 0x7AA7EEA5, GB_DB_CRC_FULL, GB_DB_GGB81_MAPPER, GB_DB_FEATURE_NONE,
+      "Mo Jie Chuan Shuo (DSHGGB-81)" },
+    { 0x416E6EFA, GB_DB_CRC_FULL, GB_DB_GGB81_MAPPER, GB_DB_FEATURE_NONE,
+      "Mu Chang Wu Yu GB 6 (DSHGGB-81)" },
+    { 0x9507E5D3, GB_DB_CRC_FULL, GB_DB_GGB81_MAPPER, GB_DB_FEATURE_NONE,
+      "Shu Ma Bao Long - Kou Dai Ban (DSHGGB-81)" },
 
     { 0xABB17913, GB_DB_CRC_FULL, GB_DB_POKE2IN1_MAPPER, GB_DB_FEATURE_NONE, "Pokemon Red-Blue 2-in-1 (Unl) [S]" },
 

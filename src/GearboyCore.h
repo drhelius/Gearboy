@@ -60,6 +60,7 @@ class FlashcartMemoryRule;
 class BHGOSMemoryRule;
 class LiChengMemoryRule;
 class NTNewMemoryRule;
+class GGB81MemoryRule;
 class MemoryRule;
 class TraceLogger;
 class SGB;
@@ -196,6 +197,7 @@ private:
     BHGOSMemoryRule* m_pBHGOSMemoryRule;
     LiChengMemoryRule* m_pLiChengMemoryRule;
     NTNewMemoryRule* m_pNTNewMemoryRule;
+    GGB81MemoryRule* m_pGGB81MemoryRule;
     bool m_bCGB;
     bool m_bGBA;
     bool m_bSGB;

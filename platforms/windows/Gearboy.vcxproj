@@ -36,6 +36,7 @@
     <ClCompile Include="..\..\src\MBC2MemoryRule.cpp" />
     <ClCompile Include="..\..\src\MBC3MemoryRule.cpp" />
     <ClCompile Include="..\..\src\MBC5MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\MBC5LogoMemoryRule.cpp" />
     <ClCompile Include="..\..\src\MBC6MemoryRule.cpp" />
     <ClCompile Include="..\..\src\Memory.cpp" />
     <ClCompile Include="..\..\src\MemoryRule.cpp" />
@@ -55,6 +56,7 @@
     <ClCompile Include="..\..\src\BHGOSMemoryRule.cpp" />
     <ClCompile Include="..\..\src\LiChengMemoryRule.cpp" />
     <ClCompile Include="..\..\src\NTNewMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\GGB81MemoryRule.cpp" />
     <ClCompile Include="..\..\src\opcodes.cpp" />
     <ClCompile Include="..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\src\Processor.cpp" />
@@ -163,6 +165,7 @@
     <ClInclude Include="..\..\src\MBC2MemoryRule.h" />
     <ClInclude Include="..\..\src\MBC3MemoryRule.h" />
     <ClInclude Include="..\..\src\MBC5MemoryRule.h" />
+    <ClInclude Include="..\..\src\MBC5LogoMemoryRule.h" />
     <ClInclude Include="..\..\src\MBC6MemoryRule.h" />
     <ClInclude Include="..\..\src\Memory.h" />
     <ClInclude Include="..\..\src\MemoryRule.h" />
@@ -183,6 +186,7 @@
     <ClInclude Include="..\..\src\BHGOSMemoryRule.h" />
     <ClInclude Include="..\..\src\LiChengMemoryRule.h" />
     <ClInclude Include="..\..\src\NTNewMemoryRule.h" />
+    <ClInclude Include="..\..\src\GGB81MemoryRule.h" />
     <ClInclude Include="..\..\src\opcode_names.h" />
     <ClInclude Include="..\..\src\opcode_timing.h" />
     <ClInclude Include="..\..\src\Processor.h" />

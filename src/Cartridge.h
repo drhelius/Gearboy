@@ -54,6 +54,7 @@ public:
         CartridgeBHGOS,
         CartridgeLiCheng,
         CartridgeNTNew,
+        CartridgeGGB81,
         CartridgeNotSupported
     };
 
@@ -82,6 +83,7 @@ public:
     int GetTotalSize() const;
     u32 GetCRC() const;
     bool IsBarcodeBoySupported() const;
+    bool IsBootLogoSwapDisabled() const;
     bool HasRam() const;
     bool HasBattery() const;
     INLINE u8* GetTheROM() const;

@@ -50,6 +50,7 @@
 #include "BHGOSMemoryRule.h"
 #include "LiChengMemoryRule.h"
 #include "NTNewMemoryRule.h"
+#include "GGB81MemoryRule.h"
 #include "TraceLogger.h"
 #include "SGB.h"
 #include "common.h"
@@ -88,6 +89,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pBHGOSMemoryRule);
     InitPointer(m_pLiChengMemoryRule);
     InitPointer(m_pNTNewMemoryRule);
+    InitPointer(m_pGGB81MemoryRule);
     InitPointer(m_pRamChangedCallback);
     InitPointer(m_trace_logger);
     m_bCGB = false;
@@ -133,6 +135,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pBHGOSMemoryRule);
     SafeDelete(m_pLiChengMemoryRule);
     SafeDelete(m_pNTNewMemoryRule);
+    SafeDelete(m_pGGB81MemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
     SafeDelete(m_pCommonMemoryRule);
@@ -647,7 +650,7 @@ void GearboyCore::SaveRam(const char* szPath, bool fullPath)
     MemoryRule* rule = m_pMemory->GetCurrentRule();
     bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) &&
             (rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng ||
-             rule->GetMapperType() == Cartridge::CartridgeNTNew));
+             rule->GetMapperType() == Cartridge::CartridgeNTNew || rule->GetMapperType() == Cartridge::CartridgeGGB81));
 
     if (m_pCartridge->IsLoadedROM() && persistent && IsValidPointer(rule))
     {
@@ -698,7 +701,7 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
     MemoryRule* rule = m_pMemory->GetCurrentRule();
     bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) &&
             (rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng ||
-             rule->GetMapperType() == Cartridge::CartridgeNTNew));
+             rule->GetMapperType() == Cartridge::CartridgeNTNew || rule->GetMapperType() == Cartridge::CartridgeGGB81));
 
     if (m_pCartridge->IsLoadedROM() && persistent && IsValidPointer(rule))
     {
@@ -1184,6 +1187,12 @@ bool GearboyCore::LoadState(std::istream& stream)
         return false;
     }
 
+    if (m_pMemory->GetCurrentRule() == m_pGGB81MemoryRule && header.version < 110)
+    {
+        Log("GGB81 save states from unsupported mapper versions cannot be loaded");
+        return false;
+    }
+
 #if !defined(__LIBRETRO__)
     if (is_desktop_savestate)
     {
@@ -1308,6 +1317,12 @@ bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
     if (m_pMemory->GetCurrentRule() == m_pNTNewMemoryRule)
     {
         Log("Legacy NT newer save states cannot be loaded");
+        return false;
+    }
+
+    if (m_pMemory->GetCurrentRule() == m_pGGB81MemoryRule)
+    {
+        Log("Legacy GGB81 save states cannot be loaded");
         return false;
     }
 
@@ -1764,6 +1779,8 @@ void GearboyCore::InitMemoryRules()
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pNTNewMemoryRule = new NTNewMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pGGB81MemoryRule = new GGB81MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetIORule(m_pIORegistersMemoryRule);
@@ -1792,6 +1809,7 @@ void GearboyCore::InitMemoryRules()
     m_pBHGOSMemoryRule->SetTraceLogger(m_trace_logger);
     m_pLiChengMemoryRule->SetTraceLogger(m_trace_logger);
     m_pNTNewMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pGGB81MemoryRule->SetTraceLogger(m_trace_logger);
 }
 
 bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
@@ -1876,6 +1894,9 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
         case Cartridge::CartridgeNTNew:
             m_pMemory->SetCurrentRule(m_pNTNewMemoryRule);
             break;
+        case Cartridge::CartridgeGGB81:
+            m_pMemory->SetCurrentRule(m_pGGB81MemoryRule);
+            break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
             break;
@@ -1949,6 +1970,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pBHGOSMemoryRule->Reset(m_bCGB);
     m_pLiChengMemoryRule->Reset(m_bCGB);
     m_pNTNewMemoryRule->Reset(m_bCGB);
+    m_pGGB81MemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
     m_pSGB->Reset();

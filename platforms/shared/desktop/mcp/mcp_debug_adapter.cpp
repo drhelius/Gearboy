@@ -529,7 +529,8 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
             info.data = memory->GetROM1();
             info.size = 0x4000;
             info.read_only = memory->GetCurrentRule()->GetMapperType() == Cartridge::CartridgeMBC6 ||
-                    memory->GetCurrentRule()->GetMapperType() == Cartridge::CartridgeNTNew;
+                    memory->GetCurrentRule()->GetMapperType() == Cartridge::CartridgeNTNew ||
+                    memory->GetCurrentRule()->GetMapperType() == Cartridge::CartridgeGGB81;
             break;
         case MEMORY_EDITOR_VRAM:
             info.name = "VRAM";
@@ -542,7 +543,7 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
             MemoryRule* rule = memory->GetCurrentRule();
             if (IsValidPointer(rule) && (m_core->GetCartridge()->HasRam() ||
                     rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng ||
-                    rule->GetMapperType() == Cartridge::CartridgeNTNew))
+                    rule->GetMapperType() == Cartridge::CartridgeNTNew || rule->GetMapperType() == Cartridge::CartridgeGGB81))
             {
                 size_t ram_size = rule->GetRamSize();
                 if (ram_size > 0x2000)
@@ -732,7 +733,7 @@ json DebugAdapter::GetMediaInfo()
         "MBC5", "MBC1 Multi", "HuC1", "HuC3",
         "MMM01", "Camera", "MBC7", "TAMA5",
         "Wisdom Tree", "M161", "Sachen MMC1",
-        "Sachen MMC2", "PKJD", "Bung/EMS", "Poke 2-in-1", "MBC6", "Rocket Games", "BHGOS", "Li Cheng", "NT newer", "Not Supported"
+        "Sachen MMC2", "PKJD", "Bung/EMS", "Poke 2-in-1", "MBC6", "Rocket Games", "BHGOS", "Li Cheng", "NT newer", "GGB81", "Not Supported"
     };
     int type_idx = (int)type;
     if (type_idx >= 0 && type_idx < (int)(sizeof(type_names) / sizeof(type_names[0])))

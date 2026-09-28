@@ -169,6 +169,9 @@
     <ClCompile Include="..\..\src\MBC5MemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\MBC5LogoMemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\MBC6MemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -224,6 +227,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\NTNewMemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GGB81MemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\opcodes.cpp">
@@ -510,6 +516,9 @@
     <ClInclude Include="..\..\src\MBC5MemoryRule.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\MBC5LogoMemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\MBC6MemoryRule.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -568,6 +577,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\NTNewMemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GGB81MemoryRule.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\opcode_names.h">
