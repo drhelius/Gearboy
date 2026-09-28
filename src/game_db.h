@@ -38,6 +38,8 @@
 #define GB_DB_HITEK_MAPPER 13
 #define GB_DB_VF001_MAPPER 14
 #define GB_DB_SINTAX_MAPPER 15
+#define GB_DB_NTOLD1_MAPPER 16
+#define GB_DB_NTOLD2_MAPPER 17
 
 #define GB_DB_FEATURE_NONE 0x00
 #define GB_DB_FEATURE_BARCODE_BOY 0x01
@@ -279,6 +281,27 @@ const GB_GameDBEntry kGameDatabase[] =
       "Zhi Huan Wang - Shou Bu Qu" },
     { 0xD311EFCC, GB_DB_CRC_FULL, GB_DB_SINTAX_MAPPER, GB_DB_FEATURE_NONE,
       "Zhi Zhu Xia III - Dian Ying Ban" },
+
+    { 0xC47392AB, GB_DB_CRC_FULL, GB_DB_NTOLD1_MAPPER, GB_DB_FEATURE_NONE,
+      "True Color 25 in 1 (NT-9920)" },
+    { 0xABEBCB28, GB_DB_CRC_FULL, GB_DB_NTOLD1_MAPPER, GB_DB_FEATURE_NONE,
+      "Rockman 8 (Multicart Rip)" },
+    { 0x1E45FC45, GB_DB_CRC_FULL, GB_DB_NTOLD2_MAPPER, GB_DB_FEATURE_NONE,
+      "23 in 1 (CR2011)" },
+    { 0x78C0E5BC, GB_DB_CRC_FULL, GB_DB_NTOLD2_MAPPER, GB_DB_FEATURE_NONE,
+      "29 in 1 (CR2020 / CY2061)" },
+    { 0xDC03FB00, GB_DB_CRC_FULL, GB_DB_NTOLD2_MAPPER, GB_DB_FEATURE_NONE,
+      "Caise Gedou 24 in 1 (CY2060)" },
+    { 0x043A17B3, GB_DB_CRC_FULL, GB_DB_NTOLD2_MAPPER, GB_DB_FEATURE_NONE,
+      "Rockman X4 (Megaman X4)" },
+    { 0xC5D8B776, GB_DB_CRC_FULL, GB_DB_NTOLD2_MAPPER, GB_DB_FEATURE_NONE,
+      "Sonic Adventure 8" },
+    { 0xD44C9806, GB_DB_CRC_FULL, GB_DB_NTOLD2_MAPPER, GB_DB_FEATURE_NONE,
+      "Super Donkey Kong 5" },
+    { 0x33093C28, GB_DB_CRC_FULL, GB_DB_NTOLD2_MAPPER, GB_DB_FEATURE_NONE,
+      "Super Donkey Kong 5 (Alt)" },
+    { 0x5E4266A7, GB_DB_CRC_FULL, GB_DB_NTOLD2_MAPPER, GB_DB_FEATURE_NONE,
+      "Super Mario Special 3 (Multicart Rip)" },
 
     { 0xABB17913, GB_DB_CRC_FULL, GB_DB_POKE2IN1_MAPPER, GB_DB_FEATURE_NONE, "Pokemon Red-Blue 2-in-1 (Unl) [S]" },
 

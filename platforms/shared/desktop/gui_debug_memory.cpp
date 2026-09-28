@@ -83,7 +83,9 @@ void gui_debug_memory_reset(void)
     bool sintax = IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeSintax;
     bool vf001 = IsValidPointer(rule) && (rule->GetMapperType() == Cartridge::CartridgeVF001 || rule->GetMapperType() == Cartridge::CartridgeVF001A);
     bool has_ram = core->GetCartridge()->HasRam() || mbc6 ||
-            ntnew || ggb81 || hitek || sintax || (IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeLiCheng);
+            ntnew || ggb81 || hitek || sintax || (IsValidPointer(rule) &&
+            (rule->GetMapperType() == Cartridge::CartridgeLiCheng ||
+             ((rule->GetMapperType() == Cartridge::CartridgeNTOld1 || rule->GetMapperType() == Cartridge::CartridgeNTOld2) && rule->GetRamSize() > 0)));
 
     mem_edit[MEMORY_EDITOR_ROM0].Reset("ROM0", memory->GetROM0(), 0x4000, 0, 1, vf001);
     mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000, 1, mbc6 || ntnew || ggb81 || hitek || sintax);
@@ -171,7 +173,8 @@ void gui_debug_window_memory(void)
 
         if (core->GetCartridge()->HasRam() || rule->GetMapperType() == Cartridge::CartridgeMBC6 ||
                 rule->GetMapperType() == Cartridge::CartridgeLiCheng || rule->GetMapperType() == Cartridge::CartridgeNTNew ||
-                rule->GetMapperType() == Cartridge::CartridgeGGB81 || rule->GetMapperType() == Cartridge::CartridgeHitek || rule->GetMapperType() == Cartridge::CartridgeSintax)
+                rule->GetMapperType() == Cartridge::CartridgeGGB81 || rule->GetMapperType() == Cartridge::CartridgeHitek || rule->GetMapperType() == Cartridge::CartridgeSintax ||
+             ((rule->GetMapperType() == Cartridge::CartridgeNTOld1 || rule->GetMapperType() == Cartridge::CartridgeNTOld2) && rule->GetRamSize() > 0))
         {
             ImGui::SameLine();
             if (rule->GetMapperType() == Cartridge::CartridgeMBC6)
@@ -216,7 +219,8 @@ static void draw_tabs(void)
     bool has_ram = core->GetCartridge()->HasRam() || (IsValidPointer(rule) &&
             (rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng ||
              rule->GetMapperType() == Cartridge::CartridgeNTNew || rule->GetMapperType() == Cartridge::CartridgeGGB81 ||
-             rule->GetMapperType() == Cartridge::CartridgeHitek || rule->GetMapperType() == Cartridge::CartridgeSintax));
+             rule->GetMapperType() == Cartridge::CartridgeHitek || rule->GetMapperType() == Cartridge::CartridgeSintax ||
+             ((rule->GetMapperType() == Cartridge::CartridgeNTOld1 || rule->GetMapperType() == Cartridge::CartridgeNTOld2) && rule->GetRamSize() > 0)));
 
     for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
     {
@@ -257,7 +261,8 @@ static void reset_ram_editor(GearboyCore* core, Memory* memory, MemoryRule* rule
     if (rule != NULL && (core->GetCartridge()->HasRam() ||
             rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng ||
             rule->GetMapperType() == Cartridge::CartridgeNTNew || rule->GetMapperType() == Cartridge::CartridgeGGB81 ||
-            rule->GetMapperType() == Cartridge::CartridgeHitek || rule->GetMapperType() == Cartridge::CartridgeSintax))
+            rule->GetMapperType() == Cartridge::CartridgeHitek || rule->GetMapperType() == Cartridge::CartridgeSintax ||
+             ((rule->GetMapperType() == Cartridge::CartridgeNTOld1 || rule->GetMapperType() == Cartridge::CartridgeNTOld2) && rule->GetRamSize() > 0)))
     {
         ram_size = rule->GetRamSize();
         if (ram_size > 0x2000)
@@ -311,7 +316,9 @@ static void refresh_memory_banks(void)
         current_rom2_bank = rom2_bank;
     }
 
-    bool has_ram = core->GetCartridge()->HasRam() || mbc6 || ntnew || ggb81 || hitek || sintax || rule->GetMapperType() == Cartridge::CartridgeLiCheng;
+    bool has_ram = core->GetCartridge()->HasRam() || mbc6 || ntnew || ggb81 || hitek || sintax ||
+            rule->GetMapperType() == Cartridge::CartridgeLiCheng ||
+            ((rule->GetMapperType() == Cartridge::CartridgeNTOld1 || rule->GetMapperType() == Cartridge::CartridgeNTOld2) && rule->GetRamSize() > 0);
     int ram_bank = has_ram ? rule->GetCurrentRamBankIndex(0xA000) : 0;
     int ram2_bank = has_ram ? rule->GetCurrentRamBankIndex(0xB000) : 0;
     if (ram_bank != current_ram_bank || ram2_bank != current_ram2_bank)

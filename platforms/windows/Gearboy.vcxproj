@@ -60,6 +60,7 @@
     <ClCompile Include="..\..\src\HitekMemoryRule.cpp" />
     <ClCompile Include="..\..\src\VF001MemoryRule.cpp" />
     <ClCompile Include="..\..\src\SintaxMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\NTOldMemoryRule.cpp" />
     <ClCompile Include="..\..\src\opcodes.cpp" />
     <ClCompile Include="..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\src\Processor.cpp" />
@@ -193,6 +194,7 @@
     <ClInclude Include="..\..\src\HitekMemoryRule.h" />
     <ClInclude Include="..\..\src\VF001MemoryRule.h" />
     <ClInclude Include="..\..\src\SintaxMemoryRule.h" />
+    <ClInclude Include="..\..\src\NTOldMemoryRule.h" />
     <ClInclude Include="..\..\src\opcode_names.h" />
     <ClInclude Include="..\..\src\opcode_timing.h" />
     <ClInclude Include="..\..\src\Processor.h" />

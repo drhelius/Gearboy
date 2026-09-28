@@ -190,6 +190,8 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "VF001",           NULL },
             { "VF001 (SL)",      NULL },
             { "Sintax",          NULL },
+            { "NT old 1",        NULL },
+            { "NT old 2",        NULL },
             { NULL, NULL },
         },
         "Auto"

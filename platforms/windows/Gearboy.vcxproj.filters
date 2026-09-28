@@ -241,6 +241,9 @@
     <ClCompile Include="..\..\src\SintaxMemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\NTOldMemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\opcodes.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -598,6 +601,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\SintaxMemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\NTOldMemoryRule.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\opcode_names.h">

@@ -1460,6 +1460,10 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "VF001 (SL)";
         case Cartridge::CartridgeSintax:
             return "Sintax";
+        case Cartridge::CartridgeNTOld1:
+            return "NT old 1";
+        case Cartridge::CartridgeNTOld2:
+            return "NT old 2";
         case Cartridge::CartridgeNotSupported:
             return "Not Supported";
         default:

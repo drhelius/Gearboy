@@ -59,6 +59,8 @@ enum MapperOption: Int, CaseIterable {
     case vf001
     case vf001A
     case sintax
+    case ntOld1
+    case ntOld2
 
     var title: String {
         switch self {
@@ -122,6 +124,10 @@ enum MapperOption: Int, CaseIterable {
             return "VF001 (SL)"
         case .sintax:
             return "Sintax"
+        case .ntOld1:
+            return "NT old 1"
+        case .ntOld2:
+            return "NT old 2"
         }
     }
 }

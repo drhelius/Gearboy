@@ -700,6 +700,13 @@ bool Cartridge::GatherMetadata(u32 crc)
             m_bRumblePresent = false;
             m_iRAMSize = 0x03;
             break;
+        case CartridgeNTOld1:
+        case CartridgeNTOld2:
+            m_bBattery = (m_iTotalSize > 0x80000) || (m_iRAMSize > 0);
+            m_bRTCPresent = false;
+            m_bRumblePresent = m_Type == CartridgeNTOld2;
+            m_iRAMSize = m_bBattery ? 0x02 : 0;
+            break;
         case CartridgeVF001:
         case CartridgeVF001A:
             m_bBattery = m_iRAMSize > 0;
@@ -871,6 +878,12 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeSintax:
             Log("Sintax found");
             break;
+        case Cartridge::CartridgeNTOld1:
+            Log("NT old 1 found");
+            break;
+        case Cartridge::CartridgeNTOld2:
+            Log("NT old 2 found");
+            break;
         case Cartridge::CartridgeVF001:
         case Cartridge::CartridgeVF001A:
             Log("VF001 found");
@@ -1007,6 +1020,12 @@ void Cartridge::GetInfoFromDB(u32 crc)
             break;
         case GB_DB_SINTAX_MAPPER:
             m_Type = CartridgeSintax;
+            break;
+        case GB_DB_NTOLD1_MAPPER:
+            m_Type = CartridgeNTOld1;
+            break;
+        case GB_DB_NTOLD2_MAPPER:
+            m_Type = CartridgeNTOld2;
             break;
         case GB_DB_POKE2IN1_MAPPER:
             if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2) && (m_Type != CartridgeBungEMS))

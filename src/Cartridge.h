@@ -59,6 +59,8 @@ public:
         CartridgeVF001,
         CartridgeVF001A,
         CartridgeSintax,
+        CartridgeNTOld1,
+        CartridgeNTOld2,
         CartridgeNotSupported
     };
 
