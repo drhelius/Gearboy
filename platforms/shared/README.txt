@@ -14,7 +14,7 @@ Created by Nacho Sánchez. Follow me on X: https://x.com/drhelius
 -----------------------------------------------------
 Features:
     - Game Boy, Game Boy Color and Super Game Boy support.
-    - Broad cartridge support, including ROM, RAM, MBC, HuC, MMM01, Pocket Camera, TAMA5, multicarts and other specialized mappers.
+    - Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3, MBC5, MBC6, MBC7, HuC-1, HuC-3, MMM01, Pocket Camera, TAMA5, MBC1M, Wisdom Tree, M161, Sachen MMC1, Sachen MMC2, PKJD, Bung/EMS, Poke 2-in-1, Rocket Games, BHGOS, Li Cheng, NT newer, GGB81, Hitek, VF001, VF001 (SL), Sintax, NT old 1 and NT old 2.
     - LCD ghosting and dot-matrix effects.
     - Battery-backed RAM saves, save states with preview and rewind, and run-ahead.
     - ZIP ROM loading, boot ROM support, Game Genie and GameShark cheats, and VGM recording.
@@ -25,6 +25,7 @@ Features:
 -----------------------------------------------------
 Licensing:
     - Gearboy code: Copyright 2012-2026 Nacho Sanchez, GPL-3+.
+    - Rocket Games, Li Cheng, NT newer, GGB81, Hitek, VF001, VF001 (SL), Sintax, NT old 1 and NT old 2 mappers use information from hhugboy's source code. The referenced mapper files are released under CC0-1.0. The hhugboy project is licensed under GPL-2+. https://github.com/tzlion/hhugboy
     - Dear ImGui and ImPlot: Copyright 2014-2025 Omar Cornut and contributors, MIT.
     - nlohmann/json: Copyright 2013-2025 Niels Lohmann, MIT.
     - mINI: Copyright 2018 Danijel Durakovic, MIT.

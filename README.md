@@ -95,7 +95,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 
 ## Features
 
-- Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3, MBC5, MBC6, MBC7, HuC-1, HuC-3, MMM01, Pocket Camera, TAMA5, MBC1M, Wisdom Tree, M161, Sachen MMC1, Sachen MMC2 and PKJD.
+- Supported cartridges: ROM, ROM + RAM, MBC1, MBC2, MBC3, MBC5, MBC6, MBC7, HuC-1, HuC-3, MMM01, Pocket Camera, TAMA5, MBC1M, Wisdom Tree, M161, Sachen MMC1, Sachen MMC2, PKJD, Bung/EMS, Poke 2-in-1, Rocket Games, BHGOS, Li Cheng, NT newer, GGB81, Hitek, VF001, VF001 (SL), Sintax, NT old 1 and NT old 2.
 - Game Boy Color support.
 - Super Game Boy support.
 - Local two-instance Game Boy link cable support on desktop platforms and libretro core.
