@@ -131,10 +131,11 @@ public:
     void AddCycles(unsigned int cycles);
     bool InterruptIsAboutToRaise();
     void SaveState(std::ostream& stream);
-    void LoadState(std::istream& stream);
+    void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
     void SetGameSharkCheat(const char* szCheat);
     void ClearGameSharkCheats();
     ProcessorState* GetState();
+    void SetPC(u16 value);
     void SetDisassemblerSyntax(GB_Disassembler_Syntax syntax);
     GB_Disassembler_Syntax GetDisassemblerSyntax() const;
     NO_INLINE void DisassembleNextOPCode();
@@ -241,6 +242,7 @@ private:
     int m_iSpeedMultiplier;
     unsigned int m_iMachineCycle;
     int m_iAccurateOPCodeState;
+    u16 m_OpcodeCache;
     u8 m_iReadCache;
     bool m_breakpoints_enabled;
     bool m_breakpoints_irq_enabled;

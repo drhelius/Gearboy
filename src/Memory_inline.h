@@ -222,7 +222,7 @@ inline u8 Memory::DebugRetrieve(u16 address)
             }
         }
         if (IsValidPointer(m_pCurrentMemoryRule))
-            return m_pCurrentMemoryRule->PerformRead(address);
+            return m_pCurrentMemoryRule->DebugRead(address);
     }
     return m_pMap[address];
 }

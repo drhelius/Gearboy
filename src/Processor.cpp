@@ -56,6 +56,7 @@ Processor::Processor(Memory* pMemory)
     m_iUnhaltCycles = 0;
     m_iInterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
+    m_OpcodeCache = 0xFFFF;
     m_iReadCache = 0;
     m_breakpoints_enabled = false;
     m_breakpoints_irq_enabled = false;
@@ -164,6 +165,7 @@ void Processor::Reset(bool bCGB, bool bGBA, bool bSGB)
 
     m_iInterruptDelayCycles = 0;
     m_iAccurateOPCodeState = 0;
+    m_OpcodeCache = 0xFFFF;
     m_iReadCache = 0;
     m_GameSharkList.clear();
     m_breakpoints_enabled = false;
@@ -1476,9 +1478,10 @@ void Processor::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iSpeedMultiplier), sizeof(m_iSpeedMultiplier));
     stream.write(reinterpret_cast<const char*> (&m_iAccurateOPCodeState), sizeof(m_iAccurateOPCodeState));
     stream.write(reinterpret_cast<const char*> (&m_iReadCache), sizeof(m_iReadCache));
+    stream.write(reinterpret_cast<const char*> (&m_OpcodeCache), sizeof(m_OpcodeCache));
 }
 
-void Processor::LoadState(std::istream& stream)
+void Processor::LoadState(std::istream& stream, u32 version)
 {
     using namespace std;
 
@@ -1520,6 +1523,9 @@ void Processor::LoadState(std::istream& stream)
     m_iMachineCycle = 4 >> m_iSpeedMultiplier;
     stream.read(reinterpret_cast<char*> (&m_iAccurateOPCodeState), sizeof(m_iAccurateOPCodeState));
     stream.read(reinterpret_cast<char*> (&m_iReadCache), sizeof(m_iReadCache));
+    m_OpcodeCache = 0xFFFF;
+    if (version >= 112)
+        stream.read(reinterpret_cast<char*> (&m_OpcodeCache), sizeof(m_OpcodeCache));
 
     int serial_bit = m_iSerialBit;
     int serial_cycles = m_iSerialCycles;
@@ -1681,6 +1687,14 @@ void Processor::LoadLinkCableState(std::istream& stream)
     stream.read(reinterpret_cast<char*>(&m_iLinkCableSyncCycles), sizeof(m_iLinkCableSyncCycles));
 
     m_bSerialConnected = m_bLinkCableConnected;
+}
+
+void Processor::SetPC(u16 value)
+{
+    PC.SetValue(value);
+    m_iAccurateOPCodeState = 0;
+    m_OpcodeCache = 0xFFFF;
+    m_bSkipPCBug = false;
 }
 
 Processor::ProcessorState* Processor::GetState()

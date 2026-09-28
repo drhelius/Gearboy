@@ -28,6 +28,7 @@ public:
     MBC5LogoMemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
     virtual ~MBC5LogoMemoryRule();
     virtual u8 PerformRead(u16 address);
+    virtual u8 DebugRead(u16 address);
     virtual bool MapsROMDirectly();
     virtual bool NeedsHighMemoryAccessNotifications();
     virtual void NotifyHighMemoryWrite(u16 address, u8 value);

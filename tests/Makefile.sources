@@ -38,6 +38,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/NTNewMemoryRule.cpp \
     $(SRC_DIR)/GGB81MemoryRule.cpp \
     $(SRC_DIR)/HitekMemoryRule.cpp \
+    $(SRC_DIR)/VF001MemoryRule.cpp \
     $(SRC_DIR)/opcodes.cpp \
     $(SRC_DIR)/opcodes_cb.cpp \
     $(SRC_DIR)/Processor.cpp \

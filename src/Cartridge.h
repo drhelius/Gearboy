@@ -56,6 +56,8 @@ public:
         CartridgeNTNew,
         CartridgeGGB81,
         CartridgeHitek,
+        CartridgeVF001,
+        CartridgeVF001A,
         CartridgeNotSupported
     };
 

@@ -106,7 +106,7 @@ static void SM83WriteCallback16(u16 reg_id, u16 value, void* user_data)
     switch (reg_id)
     {
         case SM83RegId_SP: proc_state->SP->SetValue(value); break;
-        case SM83RegId_PC: proc_state->PC->SetValue(value); break;
+        case SM83RegId_PC: core->GetProcessor()->SetPC(value); break;
     }
 }
 

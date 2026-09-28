@@ -307,7 +307,7 @@ void DebugAdapter::SetRegister(const std::string& name, u32 value)
     else if (name == "SP")
         state->SP->SetValue((u16)value);
     else if (name == "PC")
-        state->PC->SetValue((u16)value);
+        cpu->SetPC((u16)value);
     else if (name == "A")
         state->AF->SetHigh((u8)value);
     else if (name == "F")
@@ -523,6 +523,8 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
             info.name = "ROM0";
             info.data = memory->GetROM0();
             info.size = 0x4000;
+            info.read_only = memory->GetCurrentRule()->GetMapperType() == Cartridge::CartridgeVF001 ||
+                    memory->GetCurrentRule()->GetMapperType() == Cartridge::CartridgeVF001A;
             break;
         case MEMORY_EDITOR_ROM1:
             info.name = "ROM1";
@@ -735,7 +737,7 @@ json DebugAdapter::GetMediaInfo()
         "MBC5", "MBC1 Multi", "HuC1", "HuC3",
         "MMM01", "Camera", "MBC7", "TAMA5",
         "Wisdom Tree", "M161", "Sachen MMC1",
-        "Sachen MMC2", "PKJD", "Bung/EMS", "Poke 2-in-1", "MBC6", "Rocket Games", "BHGOS", "Li Cheng", "NT newer", "GGB81", "Hitek", "Not Supported"
+        "Sachen MMC2", "PKJD", "Bung/EMS", "Poke 2-in-1", "MBC6", "Rocket Games", "BHGOS", "Li Cheng", "NT newer", "GGB81", "Hitek", "VF001", "VF001 (SL)", "Not Supported"
     };
     int type_idx = (int)type;
     if (type_idx >= 0 && type_idx < (int)(sizeof(type_names) / sizeof(type_names[0])))

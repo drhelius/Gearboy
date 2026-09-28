@@ -1447,6 +1447,10 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "GGB81";
         case Cartridge::CartridgeHitek:
             return "Hitek";
+        case Cartridge::CartridgeVF001:
+            return "VF001";
+        case Cartridge::CartridgeVF001A:
+            return "VF001 (SL)";
         case Cartridge::CartridgeNotSupported:
             return "Not Supported";
         default:

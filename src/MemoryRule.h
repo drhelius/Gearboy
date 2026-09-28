@@ -40,6 +40,7 @@ public:
     void SetTraceLogger(TraceLogger* pTraceLogger);
     virtual ~MemoryRule();
     virtual u8 PerformRead(u16 address) = 0;
+    virtual u8 DebugRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value) = 0;
     virtual bool MapsROMDirectly();
     virtual u8 GetMapperType();

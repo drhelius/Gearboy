@@ -58,6 +58,7 @@
     <ClCompile Include="..\..\src\NTNewMemoryRule.cpp" />
     <ClCompile Include="..\..\src\GGB81MemoryRule.cpp" />
     <ClCompile Include="..\..\src\HitekMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\VF001MemoryRule.cpp" />
     <ClCompile Include="..\..\src\opcodes.cpp" />
     <ClCompile Include="..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\src\Processor.cpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="..\..\src\NTNewMemoryRule.h" />
     <ClInclude Include="..\..\src\GGB81MemoryRule.h" />
     <ClInclude Include="..\..\src\HitekMemoryRule.h" />
+    <ClInclude Include="..\..\src\VF001MemoryRule.h" />
     <ClInclude Include="..\..\src\opcode_names.h" />
     <ClInclude Include="..\..\src\opcode_timing.h" />
     <ClInclude Include="..\..\src\Processor.h" />

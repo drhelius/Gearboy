@@ -43,6 +43,11 @@ bool MemoryRule::MapsROMDirectly()
     return false;
 }
 
+u8 MemoryRule::DebugRead(u16 address)
+{
+    return PerformRead(address);
+}
+
 u8 MemoryRule::GetMapperType()
 {
     return (u8)m_pCartridge->GetType();

@@ -52,6 +52,7 @@
 #include "NTNewMemoryRule.h"
 #include "GGB81MemoryRule.h"
 #include "HitekMemoryRule.h"
+#include "VF001MemoryRule.h"
 #include "TraceLogger.h"
 #include "SGB.h"
 #include "common.h"
@@ -92,6 +93,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pNTNewMemoryRule);
     InitPointer(m_pGGB81MemoryRule);
     InitPointer(m_pHitekMemoryRule);
+    InitPointer(m_pVF001MemoryRule);
     InitPointer(m_pRamChangedCallback);
     InitPointer(m_trace_logger);
     m_bCGB = false;
@@ -139,6 +141,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pNTNewMemoryRule);
     SafeDelete(m_pGGB81MemoryRule);
     SafeDelete(m_pHitekMemoryRule);
+    SafeDelete(m_pVF001MemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
     SafeDelete(m_pCommonMemoryRule);
@@ -654,7 +657,9 @@ void GearboyCore::SaveRam(const char* szPath, bool fullPath)
     bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) &&
             (rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng ||
              rule->GetMapperType() == Cartridge::CartridgeNTNew || rule->GetMapperType() == Cartridge::CartridgeGGB81 ||
-             rule->GetMapperType() == Cartridge::CartridgeHitek));
+             rule->GetMapperType() == Cartridge::CartridgeHitek ||
+             ((rule->GetMapperType() == Cartridge::CartridgeVF001 || rule->GetMapperType() == Cartridge::CartridgeVF001A) &&
+              rule->GetRamSize() > 0)));
 
     if (m_pCartridge->IsLoadedROM() && persistent && IsValidPointer(rule))
     {
@@ -706,7 +711,9 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
     bool persistent = m_pCartridge->HasBattery() || (IsValidPointer(rule) &&
             (rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng ||
              rule->GetMapperType() == Cartridge::CartridgeNTNew || rule->GetMapperType() == Cartridge::CartridgeGGB81 ||
-             rule->GetMapperType() == Cartridge::CartridgeHitek));
+             rule->GetMapperType() == Cartridge::CartridgeHitek ||
+             ((rule->GetMapperType() == Cartridge::CartridgeVF001 || rule->GetMapperType() == Cartridge::CartridgeVF001A) &&
+              rule->GetRamSize() > 0)));
 
     if (m_pCartridge->IsLoadedROM() && persistent && IsValidPointer(rule))
     {
@@ -1204,6 +1211,12 @@ bool GearboyCore::LoadState(std::istream& stream)
         return false;
     }
 
+    if (m_pMemory->GetCurrentRule() == m_pVF001MemoryRule && header.version < 112)
+    {
+        Log("VF001 save states from unsupported mapper versions cannot be loaded");
+        return false;
+    }
+
 #if !defined(__LIBRETRO__)
     if (is_desktop_savestate)
     {
@@ -1286,7 +1299,7 @@ bool GearboyCore::LoadState(std::istream& stream)
     }
 
     m_pMemory->LoadState(stream);
-    m_pProcessor->LoadState(stream);
+    m_pProcessor->LoadState(stream, header.version);
     m_pVideo->LoadState(stream, header.version);
     m_pInput->LoadState(stream, header.version);
     m_pAudio->LoadState(stream, header.version);
@@ -1343,6 +1356,12 @@ bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
         return false;
     }
 
+    if (m_pMemory->GetCurrentRule() == m_pVF001MemoryRule)
+    {
+        Log("Legacy VF001 save states cannot be loaded");
+        return false;
+    }
+
     if (m_pMemory->GetCurrentRule() == m_pBHGOSMemoryRule)
     {
         Log("Legacy BHGOS save states cannot be loaded");
@@ -1393,7 +1412,7 @@ bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
     Log("Loading legacy save state (%d bytes)...", static_cast<int>(size));
 
     m_pMemory->LoadState(stream);
-    m_pProcessor->LoadState(stream);
+    m_pProcessor->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pVideo->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pInput->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pAudio->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
@@ -1800,6 +1819,8 @@ void GearboyCore::InitMemoryRules()
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
     m_pHitekMemoryRule = new HitekMemoryRule(m_pProcessor, m_pMemory,
             m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pVF001MemoryRule = new VF001MemoryRule(m_pProcessor, m_pMemory,
+            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetIORule(m_pIORegistersMemoryRule);
@@ -1830,6 +1851,7 @@ void GearboyCore::InitMemoryRules()
     m_pNTNewMemoryRule->SetTraceLogger(m_trace_logger);
     m_pGGB81MemoryRule->SetTraceLogger(m_trace_logger);
     m_pHitekMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pVF001MemoryRule->SetTraceLogger(m_trace_logger);
 }
 
 bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
@@ -1920,6 +1942,11 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
         case Cartridge::CartridgeHitek:
             m_pMemory->SetCurrentRule(m_pHitekMemoryRule);
             break;
+        case Cartridge::CartridgeVF001:
+        case Cartridge::CartridgeVF001A:
+            m_pVF001MemoryRule->SetInitialValue(type == Cartridge::CartridgeVF001A ? 0x10 : 0);
+            m_pMemory->SetCurrentRule(m_pVF001MemoryRule);
+            break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
             break;
@@ -1995,6 +2022,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pNTNewMemoryRule->Reset(m_bCGB);
     m_pGGB81MemoryRule->Reset(m_bCGB);
     m_pHitekMemoryRule->Reset(m_bCGB);
+    m_pVF001MemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
     m_pSGB->Reset();

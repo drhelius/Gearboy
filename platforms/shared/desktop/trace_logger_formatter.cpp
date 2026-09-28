@@ -96,7 +96,7 @@ static const char* get_mapper_name(u8 mapper)
     static const char* k_names[] = {
         "ROM", "MBC1", "MBC2", "MBC3", "MBC5", "MBC1M", "HuC1", "HuC3",
         "MMM01", "CAMERA", "MBC7", "TAMA5", "WISDOM", "M161", "SACHEN1",
-        "SACHEN2", "PKJD", "BUNG", "POKE2", "MBC6", "ROCKET", "BHGOS", "LICHENG", "NTNEW", "GGB81", "HITEK", "UNKNOWN"
+        "SACHEN2", "PKJD", "BUNG", "POKE2", "MBC6", "ROCKET", "BHGOS", "LICHENG", "NTNEW", "GGB81", "HITEK", "VF001", "VF001A", "UNKNOWN"
     };
     if (mapper < (sizeof(k_names) / sizeof(k_names[0])) - 1)
         return k_names[mapper];

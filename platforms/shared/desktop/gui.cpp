@@ -426,6 +426,8 @@ Cartridge::CartridgeTypes gui_get_mbc(int index)
         case 24: return Cartridge::CartridgeNTNew;
         case 25: return Cartridge::CartridgeGGB81;
         case 26: return Cartridge::CartridgeHitek;
+        case 27: return Cartridge::CartridgeVF001;
+        case 28: return Cartridge::CartridgeVF001A;
         default: return Cartridge::CartridgeNotSupported;
     }
 }

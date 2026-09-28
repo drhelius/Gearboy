@@ -36,6 +36,7 @@
 #define GB_DB_NTNEW_MAPPER 11
 #define GB_DB_GGB81_MAPPER 12
 #define GB_DB_HITEK_MAPPER 13
+#define GB_DB_VF001_MAPPER 14
 
 #define GB_DB_FEATURE_NONE 0x00
 #define GB_DB_FEATURE_BARCODE_BOY 0x01
@@ -147,6 +148,13 @@ const GB_GameDBEntry kGameDatabase[] =
       "Shuihu Zhuan Zhi Qunmo Fengyun Lu" },
     { 0x188B06F8, GB_DB_CRC_FULL, GB_DB_HITEK_MAPPER, GB_DB_FEATURE_NONE,
       "Terrifying 911" },
+
+    { 0xAFD7A0CC, GB_DB_CRC_FULL, GB_DB_VF001_MAPPER, GB_DB_FEATURE_NONE,
+      "Chao Ji Ge Dou 2001 Alpha" },
+    { 0x1B1C6F68, GB_DB_CRC_FULL, GB_DB_VF001_MAPPER, GB_DB_FEATURE_NONE,
+      "Ge Dou Jian Shen - Soul Falchion" },
+    { 0xE1668B49, GB_DB_CRC_FULL, GB_DB_VF001_MAPPER, GB_DB_FEATURE_NONE,
+      "Nv Wang Ge Dou 2000" },
 
     { 0xABB17913, GB_DB_CRC_FULL, GB_DB_POKE2IN1_MAPPER, GB_DB_FEATURE_NONE, "Pokemon Red-Blue 2-in-1 (Unl) [S]" },
 

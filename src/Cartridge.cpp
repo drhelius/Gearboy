@@ -699,6 +699,13 @@ bool Cartridge::GatherMetadata(u32 crc)
             m_bRumblePresent = false;
             m_iRAMSize = 0x03;
             break;
+        case CartridgeVF001:
+        case CartridgeVF001A:
+            m_bBattery = m_iRAMSize > 0;
+            m_bRTCPresent = false;
+            m_bRumblePresent = false;
+            m_iRAMSize = m_bBattery ? 0x02 : 0;
+            break;
         case CartridgePKJD:
             CheckCartridgeType(type);
             m_Type = CartridgePKJD;
@@ -860,6 +867,10 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeHitek:
             Log("Hitek found");
             break;
+        case Cartridge::CartridgeVF001:
+        case Cartridge::CartridgeVF001A:
+            Log("VF001 found");
+            break;
         case Cartridge::CartridgePoke2in1:
             Log("Pokemon 2-in-1 found");
             break;
@@ -986,6 +997,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
             break;
         case GB_DB_HITEK_MAPPER:
             m_Type = CartridgeHitek;
+            break;
+        case GB_DB_VF001_MAPPER:
+            m_Type = CartridgeVF001;
             break;
         case GB_DB_POKE2IN1_MAPPER:
             if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2) && (m_Type != CartridgeBungEMS))

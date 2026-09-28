@@ -62,6 +62,7 @@ class LiChengMemoryRule;
 class NTNewMemoryRule;
 class GGB81MemoryRule;
 class HitekMemoryRule;
+class VF001MemoryRule;
 class MemoryRule;
 class TraceLogger;
 class SGB;
@@ -200,6 +201,7 @@ private:
     NTNewMemoryRule* m_pNTNewMemoryRule;
     GGB81MemoryRule* m_pGGB81MemoryRule;
     HitekMemoryRule* m_pHitekMemoryRule;
+    VF001MemoryRule* m_pVF001MemoryRule;
     bool m_bCGB;
     bool m_bGBA;
     bool m_bSGB;

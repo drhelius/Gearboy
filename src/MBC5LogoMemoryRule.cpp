@@ -78,6 +78,16 @@ bool MBC5LogoMemoryRule::NeedsHighMemoryAccessNotifications()
     return true;
 }
 
+u8 MBC5LogoMemoryRule::DebugRead(u16 address)
+{
+    LogoMode mode = m_LogoMode;
+    u8 count = m_LogoCount;
+    u8 value = PerformRead(address);
+    m_LogoMode = mode;
+    m_LogoCount = count;
+    return value;
+}
+
 void MBC5LogoMemoryRule::NotifyHighMemoryWrite(u16 address, u8 value)
 {
     UNUSED(value);

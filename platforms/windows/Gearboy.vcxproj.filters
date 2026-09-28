@@ -235,6 +235,9 @@
     <ClCompile Include="..\..\src\HitekMemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\VF001MemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\opcodes.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -586,6 +589,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\HitekMemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\VF001MemoryRule.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\opcode_names.h">

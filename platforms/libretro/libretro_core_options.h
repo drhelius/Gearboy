@@ -187,6 +187,8 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "NT newer",        NULL },
             { "GGB81",           NULL },
             { "Hitek",           NULL },
+            { "VF001",           NULL },
+            { "VF001 (SL)",      NULL },
             { NULL, NULL },
         },
         "Auto"

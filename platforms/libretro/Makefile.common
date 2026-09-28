@@ -39,6 +39,7 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/NTNewMemoryRule.cpp \
                $(SOURCE_DIR)/GGB81MemoryRule.cpp \
                $(SOURCE_DIR)/HitekMemoryRule.cpp \
+               $(SOURCE_DIR)/VF001MemoryRule.cpp \
                $(SOURCE_DIR)/opcodes.cpp \
                $(SOURCE_DIR)/opcodes_cb.cpp \
                $(SOURCE_DIR)/VgmRecorder.cpp \

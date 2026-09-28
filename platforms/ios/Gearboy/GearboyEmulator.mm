@@ -160,6 +160,10 @@ static Cartridge::CartridgeTypes MapperForOption(NSInteger option)
             return Cartridge::CartridgeGGB81;
         case 26:
             return Cartridge::CartridgeHitek;
+        case 27:
+            return Cartridge::CartridgeVF001;
+        case 28:
+            return Cartridge::CartridgeVF001A;
         default:
             return Cartridge::CartridgeNotSupported;
     }

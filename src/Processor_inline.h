@@ -825,7 +825,11 @@ INLINE u8 Processor::RunFor(u8 ticks)
                     TraceInstruction(PC.GetValue(), m_bSkipPCBug);
 #endif
 
-                u8 opcode = m_pMemory->Read(PC.GetValue());
+                // Timing steps resume the fetched instruction without another cartridge read.
+                bool fetch = (m_iAccurateOPCodeState == 0) || (m_OpcodeCache == 0xFFFF);
+                u8 opcode = fetch ? m_pMemory->Read(PC.GetValue()) : (u8)m_OpcodeCache;
+                if (fetch)
+                    m_OpcodeCache = opcode;
                 PC.Increment();
 
                 if (m_bSkipPCBug)
@@ -845,7 +849,9 @@ INLINE u8 Processor::RunFor(u8 ticks)
                     machineCycles = kOPCodeCBMachineCycles;
                     opcodeTable = m_OPCodesCB;
 
-                    opcode = m_pMemory->Read(PC.GetValue());
+                    opcode = fetch ? m_pMemory->Read(PC.GetValue()) : (u8)(m_OpcodeCache >> 8);
+                    if (fetch)
+                        m_OpcodeCache |= opcode << 8;
                     PC.Increment();
 
                     if (m_bSkipPCBug)
