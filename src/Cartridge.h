@@ -58,6 +58,7 @@ public:
         CartridgeHitek,
         CartridgeVF001,
         CartridgeVF001A,
+        CartridgeSintax,
         CartridgeNotSupported
     };
 

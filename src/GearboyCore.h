@@ -63,6 +63,7 @@ class NTNewMemoryRule;
 class GGB81MemoryRule;
 class HitekMemoryRule;
 class VF001MemoryRule;
+class SintaxMemoryRule;
 class MemoryRule;
 class TraceLogger;
 class SGB;
@@ -204,6 +205,7 @@ private:
     GGB81MemoryRule* m_pGGB81MemoryRule;
     HitekMemoryRule* m_pHitekMemoryRule;
     VF001MemoryRule* m_pVF001MemoryRule;
+    SintaxMemoryRule* m_pSintaxMemoryRule;
     bool m_bCGB;
     bool m_bGBA;
     bool m_bSGB;

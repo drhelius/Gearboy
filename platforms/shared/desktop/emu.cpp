@@ -1458,6 +1458,8 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "VF001";
         case Cartridge::CartridgeVF001A:
             return "VF001 (SL)";
+        case Cartridge::CartridgeSintax:
+            return "Sintax";
         case Cartridge::CartridgeNotSupported:
             return "Not Supported";
         default:

@@ -164,6 +164,8 @@ static Cartridge::CartridgeTypes MapperForOption(NSInteger option)
             return Cartridge::CartridgeVF001;
         case 28:
             return Cartridge::CartridgeVF001A;
+        case 29:
+            return Cartridge::CartridgeSintax;
         default:
             return Cartridge::CartridgeNotSupported;
     }

@@ -189,6 +189,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "Hitek",           NULL },
             { "VF001",           NULL },
             { "VF001 (SL)",      NULL },
+            { "Sintax",          NULL },
             { NULL, NULL },
         },
         "Auto"

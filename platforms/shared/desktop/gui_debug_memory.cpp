@@ -80,12 +80,13 @@ void gui_debug_memory_reset(void)
     bool ntnew = IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeNTNew;
     bool ggb81 = IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeGGB81;
     bool hitek = IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeHitek;
+    bool sintax = IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeSintax;
     bool vf001 = IsValidPointer(rule) && (rule->GetMapperType() == Cartridge::CartridgeVF001 || rule->GetMapperType() == Cartridge::CartridgeVF001A);
     bool has_ram = core->GetCartridge()->HasRam() || mbc6 ||
-            ntnew || ggb81 || hitek || (IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeLiCheng);
+            ntnew || ggb81 || hitek || sintax || (IsValidPointer(rule) && rule->GetMapperType() == Cartridge::CartridgeLiCheng);
 
     mem_edit[MEMORY_EDITOR_ROM0].Reset("ROM0", memory->GetROM0(), 0x4000, 0, 1, vf001);
-    mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000, 1, mbc6 || ntnew || ggb81 || hitek);
+    mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000, 1, mbc6 || ntnew || ggb81 || hitek || sintax);
     mem_edit[MEMORY_EDITOR_VRAM].Reset("VRAM", memory->GetVRAM(), 0x2000, 0x8000);
 
     reset_ram_editor(core, memory, rule);
@@ -170,7 +171,7 @@ void gui_debug_window_memory(void)
 
         if (core->GetCartridge()->HasRam() || rule->GetMapperType() == Cartridge::CartridgeMBC6 ||
                 rule->GetMapperType() == Cartridge::CartridgeLiCheng || rule->GetMapperType() == Cartridge::CartridgeNTNew ||
-                rule->GetMapperType() == Cartridge::CartridgeGGB81 || rule->GetMapperType() == Cartridge::CartridgeHitek)
+                rule->GetMapperType() == Cartridge::CartridgeGGB81 || rule->GetMapperType() == Cartridge::CartridgeHitek || rule->GetMapperType() == Cartridge::CartridgeSintax)
         {
             ImGui::SameLine();
             if (rule->GetMapperType() == Cartridge::CartridgeMBC6)
@@ -215,7 +216,7 @@ static void draw_tabs(void)
     bool has_ram = core->GetCartridge()->HasRam() || (IsValidPointer(rule) &&
             (rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng ||
              rule->GetMapperType() == Cartridge::CartridgeNTNew || rule->GetMapperType() == Cartridge::CartridgeGGB81 ||
-             rule->GetMapperType() == Cartridge::CartridgeHitek));
+             rule->GetMapperType() == Cartridge::CartridgeHitek || rule->GetMapperType() == Cartridge::CartridgeSintax));
 
     for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
     {
@@ -256,7 +257,7 @@ static void reset_ram_editor(GearboyCore* core, Memory* memory, MemoryRule* rule
     if (rule != NULL && (core->GetCartridge()->HasRam() ||
             rule->GetMapperType() == Cartridge::CartridgeMBC6 || rule->GetMapperType() == Cartridge::CartridgeLiCheng ||
             rule->GetMapperType() == Cartridge::CartridgeNTNew || rule->GetMapperType() == Cartridge::CartridgeGGB81 ||
-            rule->GetMapperType() == Cartridge::CartridgeHitek))
+            rule->GetMapperType() == Cartridge::CartridgeHitek || rule->GetMapperType() == Cartridge::CartridgeSintax))
     {
         ram_size = rule->GetRamSize();
         if (ram_size > 0x2000)
@@ -292,7 +293,8 @@ static void refresh_memory_banks(void)
     bool ntnew = rule->GetMapperType() == Cartridge::CartridgeNTNew;
     bool ggb81 = rule->GetMapperType() == Cartridge::CartridgeGGB81;
     bool hitek = rule->GetMapperType() == Cartridge::CartridgeHitek;
-    if (mbc6 || ntnew || ggb81 || hitek)
+    bool sintax = rule->GetMapperType() == Cartridge::CartridgeSintax;
+    if (mbc6 || ntnew || ggb81 || hitek || sintax)
         memory->GetROM1();
 
     if (mbc6)
@@ -304,12 +306,12 @@ static void refresh_memory_banks(void)
     int rom2_bank = rule->GetCurrentRomBankIndex(0x6000);
     if (rom1_bank != current_rom1_bank || rom2_bank != current_rom2_bank)
     {
-        mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000, 1, mbc6 || ntnew || ggb81 || hitek);
+        mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetROM1(), 0x4000, 0x4000, 1, mbc6 || ntnew || ggb81 || hitek || sintax);
         current_rom1_bank = rom1_bank;
         current_rom2_bank = rom2_bank;
     }
 
-    bool has_ram = core->GetCartridge()->HasRam() || mbc6 || ntnew || ggb81 || hitek || rule->GetMapperType() == Cartridge::CartridgeLiCheng;
+    bool has_ram = core->GetCartridge()->HasRam() || mbc6 || ntnew || ggb81 || hitek || sintax || rule->GetMapperType() == Cartridge::CartridgeLiCheng;
     int ram_bank = has_ram ? rule->GetCurrentRamBankIndex(0xA000) : 0;
     int ram2_bank = has_ram ? rule->GetCurrentRamBankIndex(0xB000) : 0;
     if (ram_bank != current_ram_bank || ram2_bank != current_ram2_bank)

@@ -796,6 +796,8 @@ static void check_variables(void)
             mapper = Cartridge::CartridgeVF001;
         else if (strcmp(var.value, "VF001 (SL)") == 0)
             mapper = Cartridge::CartridgeVF001A;
+        else if (strcmp(var.value, "Sintax") == 0)
+            mapper = Cartridge::CartridgeSintax;
         else
             mapper = Cartridge::CartridgeNotSupported;
     }

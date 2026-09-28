@@ -694,6 +694,7 @@ bool Cartridge::GatherMetadata(u32 crc)
         case CartridgeNTNew:
         case CartridgeGGB81:
         case CartridgeHitek:
+        case CartridgeSintax:
             m_bBattery = true;
             m_bRTCPresent = false;
             m_bRumblePresent = false;
@@ -867,6 +868,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeHitek:
             Log("Hitek found");
             break;
+        case Cartridge::CartridgeSintax:
+            Log("Sintax found");
+            break;
         case Cartridge::CartridgeVF001:
         case Cartridge::CartridgeVF001A:
             Log("VF001 found");
@@ -1000,6 +1004,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
             break;
         case GB_DB_VF001_MAPPER:
             m_Type = CartridgeVF001;
+            break;
+        case GB_DB_SINTAX_MAPPER:
+            m_Type = CartridgeSintax;
             break;
         case GB_DB_POKE2IN1_MAPPER:
             if ((m_Type != CartridgeSachenMMC1) && (m_Type != CartridgeSachenMMC2) && (m_Type != CartridgeBungEMS))
