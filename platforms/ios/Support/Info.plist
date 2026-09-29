@@ -35,8 +35,6 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>GearThumbnailKey</key>
-	<string>$(GEAR_THUMBNAIL_KEY)</string>
 	<key>GCSupportedGameControllers</key>
 	<array>
 		<dict>
@@ -50,6 +48,8 @@
 	</array>
 	<key>GCSupportsControllerUserInteraction</key>
 	<true/>
+	<key>GearThumbnailKey</key>
+	<string>$(GEAR_THUMBNAIL_KEY)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationCategoryType</key>

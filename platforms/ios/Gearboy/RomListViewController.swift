@@ -96,7 +96,7 @@ extension RomListViewController: UICollectionViewDelegate {
         guard visibleRoms.indices.contains(indexPath.item) else { return nil }
         let rom = visibleRoms[indexPath.item]
 
-        return UIContextMenuConfiguration(identifier: rom.crc as NSString, previewProvider: nil) { [weak self] _ in
+        return UIContextMenuConfiguration(identifier: rom.crc as NSString, previewProvider: nil) { [weak self, weak collectionView] _ in
             guard let self else { return UIMenu() }
 
             let favoriteTitle = rom.isFavorite

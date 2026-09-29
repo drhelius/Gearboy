@@ -349,7 +349,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.8.14;
-				PRODUCT_BUNDLE_IDENTIFIER = me.ignaciosanchez;
+				PRODUCT_BUNDLE_IDENTIFIER = com.drhelius.emus.gearboy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -399,7 +399,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.8.14;
-				PRODUCT_BUNDLE_IDENTIFIER = me.ignaciosanchez;
+				PRODUCT_BUNDLE_IDENTIFIER = com.drhelius.emus.gearboy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
