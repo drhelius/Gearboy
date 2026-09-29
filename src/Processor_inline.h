@@ -747,6 +747,9 @@ inline std::stack<Processor::GB_CallStackEntry>* Processor::GetDisassemblerCallS
 inline void Processor::PushCallStack(u16 src, u16 dest, u16 back, u8 bank)
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    if (m_debug_speculative_execution)
+        return;
+
     GB_CallStackEntry entry;
     entry.src = src;
     entry.dest = dest;
@@ -765,7 +768,7 @@ inline void Processor::PushCallStack(u16 src, u16 dest, u16 back, u8 bank)
 inline void Processor::PopCallStack()
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    if (!m_disassembler_call_stack.empty())
+    if (!m_debug_speculative_execution && !m_disassembler_call_stack.empty())
         m_disassembler_call_stack.pop();
 #endif
 }
@@ -780,9 +783,12 @@ INLINE u8 Processor::RunFor(u8 ticks)
     {
         m_iCurrentClockCycles = 0;
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-        m_cpu_breakpoint_hit = false;
-        m_memory_breakpoint_hit = false;
-        m_run_to_breakpoint_hit = false;
+        if (!m_debug_speculative_execution)
+        {
+            m_cpu_breakpoint_hit = false;
+            m_memory_breakpoint_hit = false;
+            m_run_to_breakpoint_hit = false;
+        }
 #endif
 
         if (m_iAccurateOPCodeState == 0 && m_bHalt)

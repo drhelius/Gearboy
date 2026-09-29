@@ -668,6 +668,7 @@ bool emu_load_state_slot(int index)
         const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
         if (gearboy->LoadState(dir, index, false))
         {
+            emu_debug_state_restored();
             events_sync_input();
             rewind_reset();
             return true;
@@ -691,6 +692,7 @@ void emu_load_state_file(const char* file_path)
         emu_link_cable_stop();
         if (gearboy->LoadState(file_path, -1, false))
         {
+            emu_debug_state_restored();
             events_sync_input();
             rewind_reset();
         }
@@ -780,6 +782,14 @@ void emu_color_correction(bool correction)
 void emu_video_no_sprite_limit(bool enabled)
 {
     gearboy->GetVideo()->SetNoSpriteLimit(enabled);
+}
+
+void emu_debug_state_restored(void)
+{
+    emu_get_core()->GetProcessor()->ResetDebuggerExecutionState();
+    emu_debug_command = Debug_Command_None;
+    emu_debug_step_frames_pending = 0;
+    emu_debug_pc_changed = true;
 }
 
 void emu_debug_step_over(void)

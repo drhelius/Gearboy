@@ -64,6 +64,7 @@ Processor::Processor(Memory* pMemory)
     m_memory_breakpoint_hit = false;
     m_run_to_breakpoint_hit = false;
     m_run_to_breakpoint_requested = false;
+    m_debug_speculative_execution = false;
     m_disassembler_syntax = GB_Disassembler_Syntax_Gearboy;
     m_debug_next_irq = 0;
 
@@ -174,6 +175,7 @@ void Processor::Reset(bool bCGB, bool bGBA, bool bSGB)
     m_memory_breakpoint_hit = false;
     m_run_to_breakpoint_hit = false;
     m_run_to_breakpoint_requested = false;
+    m_debug_speculative_execution = false;
     m_debug_next_irq = 0;
     ClearDisassemblerCallStack();
 }
@@ -321,7 +323,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
     }
 
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
-    if (interrupt != None_Interrupt)
+    if (interrupt != None_Interrupt && !m_debug_speculative_execution)
     {
         int irq_type = 0;
         switch (interrupt)
@@ -760,6 +762,9 @@ void Processor::UpdateGameShark()
 void Processor::DisassembleNextOPCode()
 {
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
+
+    if (m_debug_speculative_execution)
+        return;
 
     CheckBreakpoints();
 
@@ -1369,6 +1374,21 @@ bool Processor::IsBreakpoint(int type, u16 address)
     return false;
 }
 
+void Processor::ResetDebuggerExecutionState()
+{
+    ClearDisassemblerCallStack();
+    m_run_to_breakpoint_requested = false;
+    m_cpu_breakpoint_hit = false;
+    m_memory_breakpoint_hit = false;
+    m_run_to_breakpoint_hit = false;
+    m_debug_next_irq = 0;
+}
+
+void Processor::SetDebuggerSpeculativeExecution(bool speculative)
+{
+    m_debug_speculative_execution = speculative;
+}
+
 void Processor::ClearDisassemblerCallStack()
 {
     while(!m_disassembler_call_stack.empty())
@@ -1379,7 +1399,7 @@ void Processor::CheckMemoryBreakpoints(int type, u16 address, bool read)
 {
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
 
-    if (!m_breakpoints_enabled)
+    if (m_debug_speculative_execution || !m_breakpoints_enabled)
         return;
 
     for (int i = 0; i < (int)m_breakpoints.size(); i++)

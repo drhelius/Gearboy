@@ -106,6 +106,7 @@ EXTERN double emu_get_frame_rate(void);
 EXTERN GearboyCore* emu_get_core(void);
 EXTERN void emu_color_correction(bool correction);
 EXTERN void emu_video_no_sprite_limit(bool enabled);
+EXTERN void emu_debug_state_restored(void);
 EXTERN void emu_debug_step_over(void);
 EXTERN void emu_debug_step_into(void);
 EXTERN void emu_debug_step_out(void);

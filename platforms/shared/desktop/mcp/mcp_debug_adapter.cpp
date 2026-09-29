@@ -1722,6 +1722,7 @@ json DebugAdapter::LoadStateFile(const std::string& file_path)
         return result;
     }
 
+    emu_debug_state_restored();
     events_sync_input();
     rewind_reset();
 
