@@ -4,7 +4,7 @@ updates:
     directory: /
     schedule:
       interval: cron
-      cronjob: "0 9 1,15 * *"
+      cronjob: "0 9 1 */2 *"
     exclude-paths:
       - ".github/workflows/*.lock.yml"
       - ".github/workflows/agentics-maintenance.yml"
@@ -12,9 +12,9 @@ updates:
     directory: /.devcontainer
     schedule:
       interval: cron
-      cronjob: "0 9 1,15 * *"
+      cronjob: "0 9 1 */2 *"
   - package-ecosystem: devcontainers
     directory: /.devcontainer
     schedule:
       interval: cron
-      cronjob: "0 9 1,15 * *"
+      cronjob: "0 9 1 */2 *"
