@@ -14,7 +14,7 @@ updates:
       interval: cron
       cronjob: "0 9 1 */2 *"
   - package-ecosystem: devcontainers
-    directory: /.devcontainer
+    directory: /
     schedule:
       interval: cron
       cronjob: "0 9 1 */2 *"
