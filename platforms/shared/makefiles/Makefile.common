@@ -53,6 +53,7 @@ ifeq ($(DEBUG), 1)
     CPPFLAGS += -DDEBUG -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls
 else
     BUILD_CONFIG = Release
+    CXXFLAGS += -fno-rtti
     CPPFLAGS += -DNDEBUG -O3 -flto=auto
     LDFLAGS += -O3 -flto=auto
 endif

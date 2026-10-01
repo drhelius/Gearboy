@@ -69,21 +69,20 @@ ifneq (,$(findstring unix,$(platform)))
 	LIBRETRO_INSTALL_DIR := libretro
 # Raspberry Pi
 ifneq (,$(findstring rpi,$(platform)))
-	CFLAGS += -fomit-frame-pointer -ffast-math
+	PLATFORM_FLAGS += -fomit-frame-pointer -ffast-math
 	ifneq (,$(findstring rpi1,$(platform)))
-		CFLAGS += -marm -march=armv6j -mfpu=vfp -mfloat-abi=hard
+		PLATFORM_FLAGS += -marm -march=armv6j -mfpu=vfp -mfloat-abi=hard
 	else ifneq (,$(findstring rpi2,$(platform)))
-		CFLAGS += -marm -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
+		PLATFORM_FLAGS += -marm -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
 	else ifneq (,$(findstring rpi3,$(platform)))
 		ifneq (,$(findstring rpi3_64,$(platform)))
-			CFLAGS += -mcpu=cortex-a53 -mtune=cortex-a53
+			PLATFORM_FLAGS += -mcpu=cortex-a53 -mtune=cortex-a53
 		else
-			CFLAGS += -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
+			PLATFORM_FLAGS += -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
 		endif
 	else ifneq (,$(findstring rpi4_64,$(platform)))
-		CFLAGS += -march=armv8-a+crc+simd -mtune=cortex-a72
+		PLATFORM_FLAGS += -march=armv8-a+crc+simd -mtune=cortex-a72
 	endif
-	CXXFLAGS := $(CXXFLAGS) $(CFLAGS)
 endif
 # (armv7 a7, hard point, neon based) ### 
 # NESC, SNESC, C64 mini 
@@ -91,7 +90,7 @@ else ifeq ($(platform), classic_armv7_a7)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
 	SHARED := -shared -Wl,--version-script=link.T -Wl,--no-undefined
-	CFLAGS += -flto=4 -fwhole-program -fuse-linker-plugin \
+	PLATFORM_FLAGS += -flto=4 -fwhole-program -fuse-linker-plugin \
 	-fdata-sections -ffunction-sections \
 	-fno-stack-protector -fno-ident -fomit-frame-pointer \
 	-falign-functions=1 -falign-jumps=1 -falign-loops=1 \
@@ -104,31 +103,29 @@ else ifeq ($(platform), classic_armv7_a7)
 	BUILTIN_GPU = neon
 	USE_DYNAREC = 1
 	ifeq ($(shell echo `$(CC) -dumpversion` "< 4.9" | bc -l), 1)
-		CFLAGS += -march=armv7-a
+		PLATFORM_FLAGS += -march=armv7-a
 	else
-		CFLAGS += -march=armv7ve
+		PLATFORM_FLAGS += -march=armv7ve
 		# If gcc is 5.0 or later
 		ifeq ($(shell echo `$(CC) -dumpversion` ">= 5" | bc -l), 1)
 			LDFLAGS += -static-libgcc -static-libstdc++
 		endif
 	endif
-	CXXFLAGS := $(CXXFLAGS) $(CFLAGS)
-	CPPFLAGS := $(CPPFLAGS) $(CFLAGS)
-	ASFLAGS := $(ASFLAGS) $(CFLAGS)
+	ASFLAGS := $(ASFLAGS) $(PLATFORM_FLAGS)
 # Nintendo Switch (libtransistor)
 else ifeq ($(platform), switch)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	include $(LIBTRANSISTOR_HOME)/libtransistor.mk
-	CXXFLAGS += -DMINIZ_NO_TIME -Wall
+	PLATFORM_FLAGS += -DMINIZ_NO_TIME -Wall
 	STATIC_LINKING=1
 # Nintendo Switch (libnx)
 else ifeq ($(platform), libnx)
 	include $(DEVKITPRO)/libnx/switch_rules
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	DEFINES := -D__SWITCH__ -DHAVE_LIBNX
-	CFLAGS := $(DEFINES) -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -specs=$(LIBNX)/switch.specs
-	CFLAGS += -march=armv8-a -mtune=cortex-a57 -mtp=soft -mcpu=cortex-a57+crc+fp+simd -ffast-math
-	CXXFLAGS := $(ASFLAGS) $(CFLAGS) -DMINIZ_NO_TIME -Wall
+	PLATFORM_FLAGS += $(DEFINES) -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -specs=$(LIBNX)/switch.specs
+	PLATFORM_FLAGS += -march=armv8-a -mtune=cortex-a57 -mtp=soft -mcpu=cortex-a57+crc+fp+simd -ffast-math
+	PLATFORM_FLAGS := $(ASFLAGS) $(PLATFORM_FLAGS) -DMINIZ_NO_TIME -Wall
 	STATIC_LINKING=1
 # Nintendo Game Cube / Wii / WiiU
 else ifneq (,$(filter $(platform), ngc wii wiiu))
@@ -136,15 +133,15 @@ else ifneq (,$(filter $(platform), ngc wii wiiu))
 	CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
 	CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
 	AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
-	CXXFLAGS += -DMINIZ_NO_TIME -DGEKKO -mcpu=750 -meabi -mhard-float -D__ppc__ -DMSB_FIRST -I$(DEVKITPRO)/libogc/include
-	CXXFLAGS += -ffunction-sections -fdata-sections
+	PLATFORM_FLAGS += -DMINIZ_NO_TIME -DGEKKO -mcpu=750 -meabi -mhard-float -D__ppc__ -DMSB_FIRST -I$(DEVKITPRO)/libogc/include
+	PLATFORM_FLAGS += -ffunction-sections -fdata-sections
 	STATIC_LINKING = 1
 	ifneq (,$(findstring wiiu,$(platform)))
-		CXXFLAGS += -D__wiiu__ -D__wut__ -DWIIU -DHW_RVL
+		PLATFORM_FLAGS += -D__wiiu__ -D__wut__ -DWIIU -DHW_RVL
 	else ifneq (,$(findstring wii,$(platform)))
-		CXXFLAGS += -DHW_RVL -mrvl
+		PLATFORM_FLAGS += -DHW_RVL -mrvl
 	else ifneq (,$(findstring ngc,$(platform)))
-		CXXFLAGS += -DHW_DOL -mrvl
+		PLATFORM_FLAGS += -DHW_DOL -mrvl
 	endif
 # PS3
 else ifneq (,$(filter $(platform), ps3 psl1ght))
@@ -152,7 +149,7 @@ else ifneq (,$(filter $(platform), ps3 psl1ght))
 	CC = $(PS3DEV)/ppu/bin/ppu-$(COMMONLV)gcc$(EXE_EXT)
 	CXX = $(PS3DEV)/ppu/bin/ppu-$(COMMONLV)g++$(EXE_EXT)
 	AR = $(PS3DEV)/ppu/bin/ppu-$(COMMONLV)ar$(EXE_EXT)
-	CXXFLAGS += -DMINIZ_NO_TIME -DMINIZ_NO_STDIO -Wall -D__ppc__ -DMSB_FIRST
+	PLATFORM_FLAGS += -DMINIZ_NO_TIME -DMINIZ_NO_STDIO -Wall -D__ppc__ -DMSB_FIRST
 	STATIC_LINKING = 1
 # OSX
 else ifneq (,$(findstring osx,$(platform)))
@@ -162,14 +159,11 @@ else ifneq (,$(findstring osx,$(platform)))
 
 	ifeq ($(CROSS_COMPILE),1)
 		TARGET_RULE   = -target $(LIBRETRO_APPLE_PLATFORM) -isysroot $(LIBRETRO_APPLE_ISYSROOT)
-		CFLAGS   += $(TARGET_RULE)
-		CPPFLAGS += $(TARGET_RULE)
-		CXXFLAGS += $(TARGET_RULE)
+		PLATFORM_FLAGS += $(TARGET_RULE)
 		LDFLAGS  += $(TARGET_RULE)
 	endif
 
-	CFLAGS  += $(ARCHFLAGS)
-	CXXFLAGS  += $(ARCHFLAGS)
+	PLATFORM_FLAGS += $(ARCHFLAGS)
 	LDFLAGS += $(ARCHFLAGS)
 # iOS
 else ifneq (,$(findstring ios,$(platform)))
@@ -196,8 +190,7 @@ else ifneq (,$(findstring ios,$(platform)))
 	endif
 	MINVERSION = -miphoneos-version-min=$(IOS_MIN_VERSION)
 	PLATFORM_DEFINES := $(MINVERSION)
-	CFLAGS += $(MINVERSION)
-	CXXFLAGS += $(MINVERSION)
+	PLATFORM_FLAGS += $(MINVERSION)
 	LDFLAGS += $(MINVERSION)
 # tvOS
 else ifeq ($(platform), tvos-arm64)
@@ -213,8 +206,7 @@ else ifeq ($(platform), tvos-arm64)
 	TVOS_MIN_VERSION ?= 15.0
 	MINVERSION = -mappletvos-version-min=$(TVOS_MIN_VERSION)
 	PLATFORM_DEFINES := $(MINVERSION)
-	CFLAGS += $(MINVERSION)
-	CXXFLAGS += $(MINVERSION)
+	PLATFORM_FLAGS += $(MINVERSION)
 	LDFLAGS += $(MINVERSION)
 # QNX
 else ifeq ($(platform), qnx)
@@ -224,13 +216,12 @@ else ifeq ($(platform), qnx)
 	CC = qcc -Vgcc_ntoarmv7le
 	CXX = QCC -Vgcc_ntoarmv7le_cpp
 	AR = QCC -Vgcc_ntoarmv7le
-	CXXFLAGS += -D__BLACKBERRY_QNX__ -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp
+	PLATFORM_FLAGS += -D__BLACKBERRY_QNX__ -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp
 # emscripten
 else ifeq ($(platform), emscripten)
 	TARGET := $(TARGET_NAME)_libretro_emscripten.bc
 	STATIC_LINKING = 1
-	CFLAGS += -D_POSIX_C_SOURCE=200809L
-	CXXFLAGS := $(CXXFLAGS) $(CFLAGS)
+	PLATFORM_FLAGS += -D_POSIX_C_SOURCE=200809L
 # RS90
 else ifeq ($(platform), rs90)
 	TARGET := $(TARGET_NAME)_libretro.so
@@ -240,8 +231,7 @@ else ifeq ($(platform), rs90)
 	fpic := -fPIC
 	SHARED := -shared -Wl,-version-script=$(CORE_DIR)/link.T
 	PLATFORM_DEFINES := -DCC_RESAMPLER -DCC_RESAMPLER_NO_HIGHPASS
-	CFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32
-	CXXFLAGS := $(CXXFLAGS) $(CFLAGS)
+	PLATFORM_FLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32
 # GCW0
 else ifeq ($(platform), gcw0)
 	TARGET := $(TARGET_NAME)_libretro.so
@@ -251,8 +241,7 @@ else ifeq ($(platform), gcw0)
 	fpic := -fPIC
 	SHARED := -shared -Wl,-version-script=$(CORE_DIR)/link.T
 	PLATFORM_DEFINES := -DCC_RESAMPLER -DCC_RESAMPLER_NO_HIGHPASS
-	CFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
-	CXXFLAGS := $(CXXFLAGS) $(CFLAGS)
+	PLATFORM_FLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
 
 # RETROFW
 else ifeq ($(platform), retrofw)
@@ -264,9 +253,8 @@ else ifeq ($(platform), retrofw)
 	SHARED := -shared -Wl,-version-script=$(CORE_DIR)/link.T
 	PLATFORM_DEFINES := -DCC_RESAMPLER -DCC_RESAMPLER_NO_HIGHPASS
 	LDFLAGS += -flto -mplt
-	CFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32 -mhard-float
-	CFLAGS += -flto -DPERFORMANCE
-	CXXFLAGS := $(CXXFLAGS) $(CFLAGS)
+	PLATFORM_FLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32 -mhard-float
+	PLATFORM_FLAGS += -flto -DPERFORMANCE
 
 # SF2000
 else ifeq ($(platform), sf2000)
@@ -275,10 +263,9 @@ else ifeq ($(platform), sf2000)
 	CC = $(MIPS)gcc
 	CXX = $(MIPS)g++
 	AR = $(MIPS)ar
-	CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
-	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections 
-	CFLAGS += -DSF2000 -DMINIZ_NO_TIME
-	CXXFLAGS := $(CFLAGS)
+	PLATFORM_FLAGS += -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
+	PLATFORM_FLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
+	PLATFORM_FLAGS += -DSF2000 -DMINIZ_NO_TIME
 	STATIC_LINKING = 1
 # MIYOO
 else ifeq ($(platform), miyoo)
@@ -289,15 +276,14 @@ else ifeq ($(platform), miyoo)
 	fpic := -fPIC
 	SHARED := -shared -Wl,-version-script=$(CORE_DIR)/link.T
 	PLATFORM_DEFINES := -DCC_RESAMPLER -DCC_RESAMPLER_NO_HIGHPASS
-	CFLAGS += -fomit-frame-pointer -ffast-math -march=armv5te -mtune=arm926ej-s
-	CXXFLAGS := $(CXXFLAGS) $(CFLAGS)
+	PLATFORM_FLAGS += -fomit-frame-pointer -ffast-math -march=armv5te -mtune=arm926ej-s
 # PS2
 else ifeq ($(platform), ps2)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	CC = mips64r5900el-ps2-elf-gcc
 	CXX = mips64r5900el-ps2-elf-g++
 	AR = mips64r5900el-ps2-elf-gcc-ar
-	CXXFLAGS += -Wall -DMINIZ_NO_TIME -D_EE -G0 -ffast-math -fsingle-precision-constant -flto -march=r5900 -DPS2
+	PLATFORM_FLAGS += -Wall -DMINIZ_NO_TIME -D_EE -G0 -ffast-math -fsingle-precision-constant -flto -march=r5900 -DPS2
 	STATIC_LINKING = 1
 # PSP
 else ifeq ($(platform), psp1)
@@ -305,7 +291,7 @@ else ifeq ($(platform), psp1)
 	CC = psp-gcc
 	CXX = psp-g++
 	AR = psp-ar
-	CXXFLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant -DPSP -G0
+	PLATFORM_FLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant -DPSP -G0
 	STATIC_LINKING = 1
 # Vita
 else ifeq ($(platform), vita)
@@ -313,7 +299,7 @@ else ifeq ($(platform), vita)
 	CC = arm-vita-eabi-gcc
 	CXX = arm-vita-eabi-g++
 	AR = arm-vita-eabi-ar
-	CXXFLAGS += -Wl,-q -Wall -DMINIZ_NO_TIME -mword-relocations -fno-optimize-sibling-calls
+	PLATFORM_FLAGS += -Wl,-q -Wall -DMINIZ_NO_TIME -mword-relocations -fno-optimize-sibling-calls
 	STATIC_LINKING = 1
 # CTR(3DS)
 else ifeq ($(platform), ctr)
@@ -322,10 +308,9 @@ else ifeq ($(platform), ctr)
 	CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
 	AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -DARM11 -D_3DS -DCC_RESAMPLER -DCC_RESAMPLER_NO_HIGHPASS
-	CFLAGS += -march=armv6k -mtune=mpcore -mfloat-abi=hard
-	CFLAGS += -Wall -mword-relocations
-	CFLAGS += -fomit-frame-pointer -ffast-math
-	CXXFLAGS := $(CXXFLAGS) $(CFLAGS)
+	PLATFORM_FLAGS += -march=armv6k -mtune=mpcore -mfloat-abi=hard
+	PLATFORM_FLAGS += -Wall -mword-relocations
+	PLATFORM_FLAGS += -fomit-frame-pointer -ffast-math
 	STATIC_LINKING = 1
 else
 	CC ?= gcc
@@ -336,19 +321,26 @@ endif
 
 LDFLAGS += $(LIBM)
 
+# Platform options apply to both languages; keep CFLAGS and CXXFLAGS independent.
+CFLAGS += $(PLATFORM_FLAGS)
+CXXFLAGS += $(PLATFORM_FLAGS)
+
 DEFAULT_LTO_PLATFORMS := unix% osx% ios% tvos% win%
 LTO ?= $(if $(filter $(DEFAULT_LTO_PLATFORMS),$(platform)),1,0)
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	BUILD_CONFIG = Debug
+	CFLAGS += -O0 -DDEBUG -g
 	CXXFLAGS += -O0 -DDEBUG -g
 else
 	BUILD_CONFIG = Release
-	CXXFLAGS += -O3 -DNDEBUG
+	CFLAGS += -O3 -DNDEBUG
+	CXXFLAGS += -O3 -DNDEBUG -fno-rtti
 	ifeq ($(LTO), 1)
 		LTO_FLAGS := $(shell $(CXX) -x c++ -flto=auto -c /dev/null -o /dev/null >/dev/null 2>&1 \
 			&& echo -flto=auto || echo -flto)
+		CFLAGS += $(LTO_FLAGS)
 		CXXFLAGS += $(LTO_FLAGS)
 		LDFLAGS += -O3 $(LTO_FLAGS)
 	endif
@@ -357,7 +349,7 @@ endif
 PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
 GIT_VERSION ?= $(shell git -c safe.directory="$(PROJECT_ROOT)" describe --abbrev=7 --dirty --always --tags || echo unknown)
 ifneq ($(GIT_VERSION), unknown)
-	CXXFLAGS += -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
+	CPPFLAGS += -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
 endif
 
 include Makefile.common
@@ -370,7 +362,7 @@ INCLUDES += -I$(DEPS_DIR)/miniz
 CFLAGS   += -DGEARBOY_DISABLE_DISASSEMBLER -DGEARBOY_DISABLE_VGMRECORDER -Wall -fno-exceptions -D__LIBRETRO__ $(INCLUDES) $(fpic)
 CXXFLAGS += -DGEARBOY_DISABLE_DISASSEMBLER -DGEARBOY_DISABLE_VGMRECORDER -Wall -fno-exceptions -D__LIBRETRO__ $(INCLUDES) $(fpic)
 
-$(DEPS_DIR)/%.o: CXXFLAGS += -w
+$(DEPS_DIR)/%.o: CPPFLAGS += -w
 
 all: $(TARGET)
 	@echo Build complete: $(TARGET_NAME) $(BUILD_CONFIG) - $(GIT_VERSION) - $(platform)
@@ -383,10 +375,10 @@ else
 endif
 
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -std=c++11 -c -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++11 -c -o $@ $<
 
 %.o: %.c
-	$(CC) $(CXXFLAGS) -std=gnu99 -c -o $@ $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -std=gnu99 -c -o $@ $<
 
 clean:
 	rm -f $(OBJECTS) $(TARGET)

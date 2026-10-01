@@ -7,6 +7,7 @@ LTO ?= 1
 ifneq ($(APP_OPTIM),debug)
 ifneq ($(NDK_DEBUG),1)
 APP_CFLAGS += -O3
+APP_CPPFLAGS += -fno-rtti -fno-exceptions
 ifeq ($(LTO),1)
 APP_CFLAGS += -flto=thin
 APP_LDFLAGS += -O3 -flto=thin
