@@ -150,7 +150,6 @@ void Audio::SaveState(std::ostream& stream)
     m_pApu->save_state(&apu_state);
 
     stream.write(reinterpret_cast<const char*> (&m_ElapsedCycles), sizeof(m_ElapsedCycles));
-    stream.write(reinterpret_cast<const char*> (m_pSampleBuffer), sizeof(blip_sample_t) * AUDIO_BUFFER_SIZE);
     stream.write(reinterpret_cast<const char*> (&apu_state), sizeof(apu_state));
     m_pBuffer->SaveState(stream);
 }
@@ -162,7 +161,10 @@ void Audio::LoadState(std::istream& stream, int version)
     gb_apu_state_t apu_state;
 
     stream.read(reinterpret_cast<char*> (&m_ElapsedCycles), sizeof(m_ElapsedCycles));
-    stream.read(reinterpret_cast<char*> (m_pSampleBuffer), sizeof(blip_sample_t) * AUDIO_BUFFER_SIZE);
+
+    if (version < 115)
+        stream.read(reinterpret_cast<char*> (m_pSampleBuffer), sizeof(blip_sample_t) * AUDIO_BUFFER_SIZE);
+
     stream.read(reinterpret_cast<char*> (&apu_state), sizeof(apu_state));
 
     Gb_Apu::mode_t mode = m_bCGB ? Gb_Apu::mode_cgb : Gb_Apu::mode_dmg;
