@@ -442,7 +442,7 @@ void MBC7MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_bEEPROMWriteEnabled), sizeof(m_bEEPROMWriteEnabled));
 }
 
-void MBC7MemoryRule::LoadState(std::istream& stream)
+void MBC7MemoryRule::LoadState(std::istream& stream, u32)
 {
     using namespace std;
 

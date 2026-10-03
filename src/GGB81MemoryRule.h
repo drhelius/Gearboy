@@ -34,7 +34,7 @@ public:
     virtual size_t GetRamSize();
     virtual u8* GetCurrentRomBank1();
     virtual void SaveState(std::ostream& stream);
-    virtual void LoadState(std::istream& stream);
+    virtual void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
 
 private:
     u8 m_DataSwapMode;

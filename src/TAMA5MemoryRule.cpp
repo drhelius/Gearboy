@@ -635,7 +635,7 @@ void TAMA5MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_RTC), sizeof(m_RTC));
 }
 
-void TAMA5MemoryRule::LoadState(std::istream& stream)
+void TAMA5MemoryRule::LoadState(std::istream& stream, u32)
 {
     using namespace std;
 

@@ -777,7 +777,7 @@ void MBC6MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(m_pPersistentMemory), kPersistentSize);
 }
 
-void MBC6MemoryRule::LoadState(std::istream& stream)
+void MBC6MemoryRule::LoadState(std::istream& stream, u32)
 {
     stream.read(reinterpret_cast<char*>(&m_iCurrentRAMBankA), sizeof(m_iCurrentRAMBankA));
     stream.read(reinterpret_cast<char*>(&m_iCurrentRAMBankB), sizeof(m_iCurrentRAMBankB));

@@ -106,9 +106,9 @@ void MBC5LogoMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_LogoCount), sizeof(m_LogoCount));
 }
 
-void MBC5LogoMemoryRule::LoadState(std::istream& stream)
+void MBC5LogoMemoryRule::LoadState(std::istream& stream, u32 version)
 {
-    MBC5MemoryRule::LoadState(stream);
+    MBC5MemoryRule::LoadState(stream, version);
     stream.read(reinterpret_cast<char*>(&m_LogoMode), sizeof(m_LogoMode));
     stream.read(reinterpret_cast<char*>(&m_LogoCount), sizeof(m_LogoCount));
 }

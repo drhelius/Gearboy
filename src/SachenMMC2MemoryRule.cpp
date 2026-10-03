@@ -392,9 +392,12 @@ void SachenMMC2MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
     stream.write(reinterpret_cast<const char*> (&m_CurrentROM0Address), sizeof(m_CurrentROM0Address));
     stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
+
+    if (m_iRAMBanksSize > 0)
+        stream.write(reinterpret_cast<const char*> (m_pRAMBanks), m_iRAMBanksSize);
 }
 
-void SachenMMC2MemoryRule::LoadState(std::istream& stream)
+void SachenMMC2MemoryRule::LoadState(std::istream& stream, u32 version)
 {
     using namespace std;
 
@@ -411,6 +414,10 @@ void SachenMMC2MemoryRule::LoadState(std::istream& stream)
     m_bAlternateWiring = DetectAlternateWiring();
     m_OuterBankOffset = m_bAlternateWiring ? (m_iCurrentROM0Bank & 0x10) : 0;
     ResizeRAMBanks();
+
+    if (version >= 116 && m_iRAMBanksSize > 0)
+        stream.read(reinterpret_cast<char*> (m_pRAMBanks), m_iRAMBanksSize);
+
     m_iCurrentROM0Bank = NormalizeROMBank(m_iCurrentROM0Bank);
     m_iCurrentROMBank = NormalizeROMBank(m_iCurrentROMBank);
     m_CurrentROM0Address = m_iCurrentROM0Bank * 0x4000;

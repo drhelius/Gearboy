@@ -146,7 +146,7 @@ void M161MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_bLocked), sizeof(m_bLocked));
 }
 
-void M161MemoryRule::LoadState(std::istream& stream)
+void M161MemoryRule::LoadState(std::istream& stream, u32)
 {
     using namespace std;
 

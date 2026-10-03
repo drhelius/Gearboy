@@ -34,7 +34,7 @@ public:
     virtual void NotifyHighMemoryWrite(u16 address, u8 value);
     virtual void Reset(bool bCGB);
     virtual void SaveState(std::ostream& stream);
-    virtual void LoadState(std::istream& stream);
+    virtual void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
 
 private:
     enum LogoMode

@@ -203,7 +203,7 @@ void RocketMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_OuterBank), sizeof(m_OuterBank));
 }
 
-void RocketMemoryRule::LoadState(std::istream& stream)
+void RocketMemoryRule::LoadState(std::istream& stream, u32)
 {
     stream.read(reinterpret_cast<char*>(&m_LockMode), sizeof(m_LockMode));
     stream.read(reinterpret_cast<char*>(&m_UnlockCount), sizeof(m_UnlockCount));

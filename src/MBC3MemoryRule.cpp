@@ -770,9 +770,11 @@ void MBC3MemoryRule::SaveState(std::ostream& stream)
         stream.write(reinterpret_cast<const char*> (&m_bPoke2in1Bank0Change), sizeof(m_bPoke2in1Bank0Change));
         stream.write(reinterpret_cast<const char*> (&m_bPoke2in1Locked), sizeof(m_bPoke2in1Locked));
     }
+
+    stream.write(reinterpret_cast<const char*> (&m_iRTCCycles), sizeof(m_iRTCCycles));
 }
 
-void MBC3MemoryRule::LoadState(std::istream& stream)
+void MBC3MemoryRule::LoadState(std::istream& stream, u32 version)
 {
     using namespace std;
 
@@ -806,6 +808,10 @@ void MBC3MemoryRule::LoadState(std::istream& stream)
         m_CurrentROM0Address = m_iCurrentROM0Bank * 0x4000;
         m_iPoke2in1BaseBank = NormalizeROMBank(m_iPoke2in1BaseBank);
     }
+
+    m_iRTCCycles = 0;
+    if (version >= 116)
+        stream.read(reinterpret_cast<char*> (&m_iRTCCycles), sizeof(m_iRTCCycles));
 
     if (!IsPoke2in1() && !m_pCartridge->IsMBC30())
         m_iCurrentROMBank &= 0x7F;

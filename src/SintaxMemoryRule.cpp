@@ -161,9 +161,9 @@ void SintaxMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(m_Xor), sizeof(m_Xor));
 }
 
-void SintaxMemoryRule::LoadState(std::istream& stream)
+void SintaxMemoryRule::LoadState(std::istream& stream, u32 version)
 {
-    MBC5LogoMemoryRule::LoadState(stream);
+    MBC5LogoMemoryRule::LoadState(stream, version);
     stream.read(reinterpret_cast<char*>(&m_BankSwapMode), sizeof(m_BankSwapMode));
     stream.read(reinterpret_cast<char*>(&m_BankSelect), sizeof(m_BankSelect));
     stream.read(reinterpret_cast<char*>(&m_RomBank), sizeof(m_RomBank));

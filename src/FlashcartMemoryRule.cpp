@@ -318,7 +318,7 @@ void FlashcartMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
 }
 
-void FlashcartMemoryRule::LoadState(std::istream& stream)
+void FlashcartMemoryRule::LoadState(std::istream& stream, u32)
 {
     using namespace std;
 

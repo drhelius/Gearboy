@@ -193,9 +193,9 @@ void VF001MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_ReplacementBank), sizeof(m_ReplacementBank));
 }
 
-void VF001MemoryRule::LoadState(std::istream& stream)
+void VF001MemoryRule::LoadState(std::istream& stream, u32 version)
 {
-    MBC5LogoMemoryRule::LoadState(stream);
+    MBC5LogoMemoryRule::LoadState(stream, version);
     stream.read(reinterpret_cast<char*>(&m_bConfigMode), sizeof(m_bConfigMode));
     stream.read(reinterpret_cast<char*>(&m_InitialValue), sizeof(m_InitialValue));
     stream.read(reinterpret_cast<char*>(&m_RunningValue), sizeof(m_RunningValue));

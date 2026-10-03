@@ -224,7 +224,7 @@ void MBC2MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
 }
 
-void MBC2MemoryRule::LoadState(std::istream& stream)
+void MBC2MemoryRule::LoadState(std::istream& stream, u32)
 {
     using namespace std;
 

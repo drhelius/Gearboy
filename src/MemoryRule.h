@@ -66,7 +66,7 @@ public:
     virtual u32 GetPhysicalROMAddress(u16 address, u16 bank);
     virtual u8* GetRTCMemory();
     virtual void SaveState(std::ostream& stream);
-    virtual void LoadState(std::istream& stream);
+    virtual void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
 
 protected:
     INLINE void TraceMapperEvent(u16 address, u8 value, u8 event = 0xFF);

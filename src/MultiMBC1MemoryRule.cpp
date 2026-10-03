@@ -274,7 +274,7 @@ void MultiMBC1MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_pRAMBanks), 0x2000);
 }
 
-void MultiMBC1MemoryRule::LoadState(std::istream& stream)
+void MultiMBC1MemoryRule::LoadState(std::istream& stream, u32)
 {
     using namespace std;
 

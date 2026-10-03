@@ -187,7 +187,7 @@ void BHGOSMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(m_RAM), sizeof(m_RAM));
 }
 
-void BHGOSMemoryRule::LoadState(std::istream& stream)
+void BHGOSMemoryRule::LoadState(std::istream& stream, u32)
 {
     stream.read(reinterpret_cast<char*>(&m_ROMBank), sizeof(m_ROMBank));
     stream.read(reinterpret_cast<char*>(&m_ROMBase), sizeof(m_ROMBase));

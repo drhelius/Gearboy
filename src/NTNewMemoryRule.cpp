@@ -146,9 +146,9 @@ void NTNewMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_iCurrentROMBankB), sizeof(m_iCurrentROMBankB));
 }
 
-void NTNewMemoryRule::LoadState(std::istream& stream)
+void NTNewMemoryRule::LoadState(std::istream& stream, u32 version)
 {
-    MBC5MemoryRule::LoadState(stream);
+    MBC5MemoryRule::LoadState(stream, version);
     stream.read(reinterpret_cast<char*>(&m_bSplitMode), sizeof(m_bSplitMode));
     stream.read(reinterpret_cast<char*>(&m_ROMBank), sizeof(m_ROMBank));
     stream.read(reinterpret_cast<char*>(&m_iCurrentROMBankA), sizeof(m_iCurrentROMBankA));

@@ -55,7 +55,7 @@ public:
     virtual int GetCurrentRomBank1Index();
     virtual u8* GetRTCMemory();
     virtual void SaveState(std::ostream& stream);
-    virtual void LoadState(std::istream& stream);
+    virtual void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
 
 private:
     void UpdateRTC();

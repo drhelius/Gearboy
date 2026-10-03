@@ -276,7 +276,7 @@ void CameraMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
 }
 
-void CameraMemoryRule::LoadState(std::istream& stream)
+void CameraMemoryRule::LoadState(std::istream& stream, u32)
 {
     using namespace std;
 

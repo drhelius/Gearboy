@@ -139,7 +139,7 @@ void WisdomTreeMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
 }
 
-void WisdomTreeMemoryRule::LoadState(std::istream& stream)
+void WisdomTreeMemoryRule::LoadState(std::istream& stream, u32)
 {
     using namespace std;
 

@@ -356,14 +356,12 @@ bool LibretroLink::ReadState(const u8* data, size_t size)
         offset += (size_t)stream.tellg();
     }
 
-    return true;
+    return offset == size;
 }
 
 bool LibretroLink::LoadState(const void* data, size_t size)
 {
-    size_t required = StateSize();
-
-    if (!data || !required || size < required)
+    if (!data || size < sizeof(LinkStateHeader))
         return false;
 
     LinkStateHeader header;
@@ -373,28 +371,58 @@ bool LibretroLink::LoadState(const void* data, size_t size)
         return false;
 
     const u8* bytes = static_cast<const u8*>(data);
+    size_t required = sizeof(header) + sizeof(m_runtime) + 2 * frame_size;
 
-    if (header.checksum != StateChecksum(bytes + sizeof(header), required - sizeof(header)))
+    if (size < required)
         return false;
 
     for (unsigned i = 0; i < 2; i++)
     {
-        size_t core_size = 0;
-        m_instances[i].core->SaveState(NULL, core_size);
-
-        if (header.core_size[i] != core_size || header.rom_hash[i] != m_rom_hash[i] ||
+        if (header.core_size[i] < sizeof(GB_SaveState_Header_Libretro) || header.core_size[i] > size - required ||
+            header.rom_hash[i] != m_rom_hash[i] ||
             header.cgb_mode[i] != (m_instances[i].core->IsCGB() ? 1u : 0u) ||
             header.mapper[i] != (u32)m_instances[i].core->GetMemory()->GetCurrentRule()->GetMapperType())
             return false;
+
+        required += header.core_size[i];
+        GB_SaveState_Header_Libretro core_header;
+        memcpy(&core_header, bytes + required - sizeof(core_header), sizeof(core_header));
+
+        if (core_header.magic != GB_SAVESTATE_MAGIC ||
+            core_header.version < GB_SAVESTATE_MIN_VERSION || core_header.version > GB_SAVESTATE_VERSION)
+            return false;
+
+        if (core_header.version == GB_SAVESTATE_VERSION)
+        {
+            size_t core_size = 0;
+            if (!m_instances[i].core->SaveState(NULL, core_size) || header.core_size[i] != core_size)
+                return false;
+        }
+
+        std::ostringstream stream;
+        m_instances[i].core->SaveLinkCableState(stream);
+        size_t link_size = stream.str().size();
+
+        if (!stream.good() || link_size > size - required)
+            return false;
+
+        required += link_size;
     }
 
-    u8* backup = new u8[required];
+    if (header.checksum != StateChecksum(bytes + sizeof(header), required - sizeof(header)))
+        return false;
 
-    bool saved = SaveState(backup, required);
+    size_t backup_size = StateSize();
+    if (!backup_size)
+        return false;
+
+    u8* backup = new u8[backup_size];
+
+    bool saved = SaveState(backup, backup_size);
     bool loaded = saved && ReadState(bytes, required);
 
     if (saved && !loaded)
-        ReadState(backup, required);
+        ReadState(backup, backup_size);
 
     delete[] backup;
     return loaded;

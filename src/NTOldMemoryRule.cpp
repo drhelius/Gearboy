@@ -260,7 +260,7 @@ void NTOldMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(m_RAM), sizeof(m_RAM));
 }
 
-void NTOldMemoryRule::LoadState(std::istream& stream)
+void NTOldMemoryRule::LoadState(std::istream& stream, u32)
 {
     stream.read(reinterpret_cast<char*>(&m_bSwapMode), sizeof(m_bSwapMode));
     stream.read(reinterpret_cast<char*>(&m_bConfigLocked), sizeof(m_bConfigLocked));

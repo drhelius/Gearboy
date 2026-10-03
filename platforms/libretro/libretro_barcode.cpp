@@ -224,12 +224,28 @@ bool libretro_barcode_load_state(const void* data, size_t size)
         return true;
     }
 
-    size_t required_size = libretro_barcode_get_state_size();
-
-    if (!required_size || size < required_size || state[4] > 1 || state[5] || state[6] || state[7])
+    if (state[4] > 1 || state[5] || state[6] || state[7])
         return false;
 
-    if (!barcode_core->LoadState(state + barcode_state_header_size, required_size - barcode_state_header_size))
+    const u8* core_state = state + barcode_state_header_size;
+    size_t core_size = size - barcode_state_header_size;
+
+    while (core_size >= sizeof(GB_SaveState_Header_Libretro))
+    {
+        GB_SaveState_Header_Libretro header;
+        memcpy(&header, core_state + core_size - sizeof(header), sizeof(header));
+
+        if (header.magic == GB_SAVESTATE_MAGIC &&
+            header.version >= GB_SAVESTATE_MIN_VERSION && header.version <= GB_SAVESTATE_VERSION)
+            break;
+
+        if (core_state[core_size - 1] != 0)
+            return false;
+
+        core_size--;
+    }
+
+    if (core_size < sizeof(GB_SaveState_Header_Libretro) || !barcode_core->LoadState(core_state, core_size))
         return false;
 
     scan_button_pressed = state[4] != 0;

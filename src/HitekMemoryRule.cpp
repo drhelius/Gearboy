@@ -150,9 +150,9 @@ void HitekMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));
 }
 
-void HitekMemoryRule::LoadState(std::istream& stream)
+void HitekMemoryRule::LoadState(std::istream& stream, u32 version)
 {
-    MBC5LogoMemoryRule::LoadState(stream);
+    MBC5LogoMemoryRule::LoadState(stream, version);
     stream.read(reinterpret_cast<char*>(&m_DataSwapMode), sizeof(m_DataSwapMode));
     stream.read(reinterpret_cast<char*>(&m_BankSwapMode), sizeof(m_BankSwapMode));
     stream.read(reinterpret_cast<char*>(&m_iCurrentROMBank), sizeof(m_iCurrentROMBank));

@@ -224,7 +224,7 @@ void MemoryRule::SaveState(std::ostream&)
     Debug("MemoryRule::SaveState not implemented");
 }
 
-void MemoryRule::LoadState(std::istream&)
+void MemoryRule::LoadState(std::istream&, u32)
 {
     Debug("MemoryRule::LoadState not implemented");
 }

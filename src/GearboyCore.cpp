@@ -963,6 +963,9 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size, bool screenshot)
         u8 barcode_marker = m_pBarcodeBoy ? 1 : 0;
         stream.write((const char*)&barcode_marker, sizeof(barcode_marker));
 
+        u32 rom_crc = m_pCartridge->GetCRC();
+        stream.write(reinterpret_cast<const char*>(&rom_crc), sizeof(rom_crc));
+
         m_pMemory->SaveState(stream);
         m_pProcessor->SaveState(stream);
         m_pVideo->SaveState(stream);
@@ -995,7 +998,7 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size, bool screenshot)
         header.timestamp = (s64)time(NULL);
         strncpy(header.rom_name, m_pCartridge->GetFileName(), sizeof(header.rom_name) - 1);
         header.rom_name[sizeof(header.rom_name) - 1] = 0;
-        header.rom_crc = 0;
+        header.rom_crc = rom_crc;
         strncpy(header.emu_build, GEARBOY_VERSION, sizeof(header.emu_build) - 1);
         header.emu_build[sizeof(header.emu_build) - 1] = 0;
 
@@ -1286,6 +1289,18 @@ bool GearboyCore::LoadState(std::istream& stream)
         state_has_barcode = barcode_marker != 0;
     }
 
+    if (header.version >= 116)
+    {
+        u32 rom_crc = 0;
+        stream.read(reinterpret_cast<char*>(&rom_crc), sizeof(rom_crc));
+
+        if (!stream.good() || rom_crc != m_pCartridge->GetCRC())
+        {
+            Log("Save state ROM CRC mismatch");
+            return false;
+        }
+    }
+
     if (state_has_barcode)
     {
         streampos core_state_offset = stream.tellg();
@@ -1329,11 +1344,14 @@ bool GearboyCore::LoadState(std::istream& stream)
     m_pVideo->LoadState(stream, header.version);
     m_pInput->LoadState(stream, header.version);
     m_pAudio->LoadState(stream, header.version);
-    m_pMemory->GetCurrentRule()->LoadState(stream);
+    m_pMemory->GetCurrentRule()->LoadState(stream, header.version);
     m_pMemory->RefreshDirectROMPages();
 
     if (header.version >= 102 && m_bSGB)
+    {
         m_pSGB->LoadState(stream);
+        m_pInput->SetCurrentPlayer(m_pSGB->GetCurrentPlayer());
+    }
 
     if (state_has_barcode)
     {
@@ -1454,7 +1472,7 @@ bool GearboyCore::LoadStateLegacy(std::istream& stream, size_t size)
     m_pVideo->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pInput->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pAudio->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
-    m_pMemory->GetCurrentRule()->LoadState(stream);
+    m_pMemory->GetCurrentRule()->LoadState(stream, GB_SAVESTATE_LEGACY_VERSION);
     m_pMemory->RefreshDirectROMPages();
 
     if (m_pBarcodeBoy)

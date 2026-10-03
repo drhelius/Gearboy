@@ -36,7 +36,7 @@ public:
     virtual u8* GetRomBank0();
     virtual u16 GetCurrentRomBankIndex(u16 address);
     virtual void SaveState(std::ostream& stream);
-    virtual void LoadState(std::istream& stream);
+    virtual void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
     void SetInitialValue(u8 value);
 
 private:

@@ -427,7 +427,7 @@ void HuC3MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_RTCReadValue), sizeof(m_RTCReadValue));
 }
 
-void HuC3MemoryRule::LoadState(std::istream& stream)
+void HuC3MemoryRule::LoadState(std::istream& stream, u32)
 {
     using namespace std;
 

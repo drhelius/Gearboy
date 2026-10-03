@@ -48,7 +48,7 @@ public:
     virtual u32 GetPhysicalROMAddress(u16 address);
     virtual u32 GetPhysicalROMAddress(u16 address, u16 bank);
     virtual void SaveState(std::ostream& stream);
-    virtual void LoadState(std::istream& stream);
+    virtual void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
 
     void InitializePersistentMemory();
 

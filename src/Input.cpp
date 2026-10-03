@@ -127,6 +127,8 @@ void Input::LoadState(std::istream& stream, u32 version)
 {
     using namespace std;
 
+    m_iCurrentPlayer = 0;
+
     if (version < 102)
     {
         u8 legacy_joypad = 0xFF;

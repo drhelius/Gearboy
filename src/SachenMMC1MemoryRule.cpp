@@ -295,7 +295,7 @@ void SachenMMC1MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
 }
 
-void SachenMMC1MemoryRule::LoadState(std::istream& stream)
+void SachenMMC1MemoryRule::LoadState(std::istream& stream, u32)
 {
     using namespace std;
 
