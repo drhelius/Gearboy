@@ -395,8 +395,8 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, ImGui_Impl
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
     if (render_state->UseBindSampler)
     {
-        render_state->CurrentSampler = bd->TexSamplers[0];
-        glBindSampler(0, render_state->CurrentSampler); // We use combined texture/sampler state. Applications using GL 3.3 and GL ES 3.0 may set that otherwise.
+        render_state->CurrentSampler = 0;
+        glBindSampler(0, render_state->CurrentSampler); // Keep per-texture filtering set with glTexParameter() unless a draw callback selects a sampler.
     }
 #endif
 
