@@ -35,10 +35,11 @@
 
 enum ProfilerColumn
 {
-    ProfilerColumn_Bank = 0,
+    ProfilerColumn_Function = 0,
     ProfilerColumn_Address,
-    ProfilerColumn_Function,
+    ProfilerColumn_Bank,
     ProfilerColumn_Calls,
+    ProfilerColumn_CallsPerFrame,
     ProfilerColumn_Inclusive,
     ProfilerColumn_InclusivePercent,
     ProfilerColumn_Exclusive,
@@ -50,10 +51,11 @@ enum ProfilerColumn
 };
 
 static const char* const k_profiler_column_tooltips[ProfilerColumn_Count] = {
-    "ROM bank of the function entry",
-    "Function entry address",
     "Symbol name (green: manual, yellow: automatic)",
+    "Function entry address",
+    "ROM bank of the function entry",
     "Times the function was called",
+    "Average calls per frame",
     "Cycles in the function and everything it calls, excluding interrupts",
     "Inclusive cycles as a percentage of all profiled cycles",
     "Cycles in the function's own code only",
@@ -77,7 +79,7 @@ static bool profiler_dirty = true;
 static double profiler_refresh_time = 0.0;
 static u32 profiler_function_count = 0;
 static char profiler_filter[64] = "";
-static int profiler_sort_column = ProfilerColumn_Exclusive;
+static int profiler_sort_column = ProfilerColumn_Inclusive;
 static bool profiler_sort_ascending = false;
 static std::vector<ProfilerRow> profiler_rows;
 static const GB_Profiler_Function* profiler_sort_functions = NULL;
@@ -92,13 +94,14 @@ static bool row_sort_compare(const ProfilerRow& a, const ProfilerRow& b);
 static void draw_right_aligned(const ImVec4& color, const char* text);
 static void draw_number(u64 value);
 static void draw_percent(u64 value, u64 total);
+static void draw_calls_per_frame(u32 calls, u64 total);
 static void draw_empty(void);
 
 void gui_debug_window_profiler(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(180, 140), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(869, 412), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(947, 383), ImGuiCond_FirstUseEver);
 
     profiler_visible = ImGui::Begin("Profiler", &config_debug.show_profiler);
 
@@ -166,17 +169,18 @@ static void draw_profiler(Profiler* profiler)
     if (ImGui::BeginTable("profiler_table", ProfilerColumn_Count, flags))
     {
         ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("Bank", ImGuiTableColumnFlags_WidthFixed, 44.0f);
-        ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_WidthFixed, 66.0f);
         ImGui::TableSetupColumn("Function", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoHide, 2.0f);
-        ImGui::TableSetupColumn("Calls", number_flags, 47.0f);
-        ImGui::TableSetupColumn("Incl. Cycles", number_flags, 88.0f);
-        ImGui::TableSetupColumn("Incl. %", number_flags, 54.0f);
-        ImGui::TableSetupColumn("Excl. Cycles", number_flags | ImGuiTableColumnFlags_DefaultSort, 90.0f);
+        ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_WidthFixed, 66.0f);
+        ImGui::TableSetupColumn("Bank", ImGuiTableColumnFlags_WidthFixed, 45.0f);
+        ImGui::TableSetupColumn("Calls", number_flags, 45.0f);
+        ImGui::TableSetupColumn("Calls/Frame", number_flags, 91.0f);
+        ImGui::TableSetupColumn("Incl. Cycles", number_flags | ImGuiTableColumnFlags_DefaultSort, 87.0f);
+        ImGui::TableSetupColumn("Incl. %", number_flags, 55.0f);
+        ImGui::TableSetupColumn("Excl. Cycles", number_flags, 90.0f);
         ImGui::TableSetupColumn("Excl. %", number_flags, 58.0f);
         ImGui::TableSetupColumn("Avg", number_flags, 53.0f);
         ImGui::TableSetupColumn("Min", number_flags, 51.0f);
-        ImGui::TableSetupColumn("Max", number_flags, 51.0f);
+        ImGui::TableSetupColumn("Max", number_flags, 52.0f);
 
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
         for (int column = 0; column < ProfilerColumn_Count; column++)
@@ -232,18 +236,6 @@ static void draw_profiler(Profiler* profiler)
                 ImGui::TableNextRow();
 
                 ImGui::TableNextColumn();
-                if (pseudo)
-                    ImGui::TextColored(gray, " --");
-                else
-                    ImGui::TextColored(violet, " %02X", function.bank);
-
-                ImGui::TableNextColumn();
-                if (pseudo)
-                    ImGui::TextColored(gray, " ----");
-                else
-                    ImGui::TextColored(cyan, " %04X", function.address);
-
-                ImGui::TableNextColumn();
                 char selectable_id[32];
                 snprintf(selectable_id, sizeof(selectable_id), "##prof%d", (int)row.index);
                 if (ImGui::Selectable(selectable_id, false, ImGuiSelectableFlags_SpanAllColumns) && !pseudo)
@@ -274,10 +266,28 @@ static void draw_profiler(Profiler* profiler)
                     ImGui::TextColored(gray, "-");
 
                 ImGui::TableNextColumn();
+                if (pseudo)
+                    ImGui::TextColored(gray, " ----");
+                else
+                    ImGui::TextColored(cyan, " %04X", function.address);
+
+                ImGui::TableNextColumn();
+                if (pseudo)
+                    ImGui::TextColored(gray, " --");
+                else
+                    ImGui::TextColored(violet, " %02X", function.bank);
+
+                ImGui::TableNextColumn();
                 if (root)
                     draw_empty();
                 else
                     draw_number(function.calls);
+
+                ImGui::TableNextColumn();
+                if (root || (total == 0))
+                    draw_empty();
+                else
+                    draw_calls_per_frame(function.calls, total);
 
                 ImGui::TableNextColumn();
                 if (root)
@@ -406,6 +416,7 @@ static u64 get_sort_value(const GB_Profiler_Function& function, int column)
         case ProfilerColumn_Address:
             return function.address;
         case ProfilerColumn_Calls:
+        case ProfilerColumn_CallsPerFrame:
             return function.calls;
         case ProfilerColumn_Inclusive:
         case ProfilerColumn_InclusivePercent:
@@ -467,6 +478,14 @@ static void draw_percent(u64 value, u64 total)
     char text[16];
     double percent = (total > 0) ? ((double)value * 100.0) / (double)total : 0.0;
     snprintf(text, sizeof(text), "%.2f%%", percent);
+    draw_right_aligned(white, text);
+}
+
+static void draw_calls_per_frame(u32 calls, u64 total)
+{
+    char text[32];
+    double frames = (double)total / (double)GAMEBOY_CLOCKS_PER_FRAME;
+    snprintf(text, sizeof(text), "%.2f", (double)calls / frames);
     draw_right_aligned(white, text);
 }
 
