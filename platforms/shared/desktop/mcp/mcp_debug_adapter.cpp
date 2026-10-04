@@ -3019,6 +3019,8 @@ json DebugAdapter::SetTraceLog(bool enabled, u32 flags, const std::string& outpu
         if ((lcd & TRACE_LCD_FILTER_REGISTERS) == TRACE_LCD_FILTER_REGISTERS) event_filter_list.push_back("lcd.registers");
         if ((lcd & TRACE_LCD_FILTER_INTERRUPTS) == TRACE_LCD_FILTER_INTERRUPTS) event_filter_list.push_back("lcd.interrupts");
         if ((lcd & TRACE_LCD_FILTER_DMA) == TRACE_LCD_FILTER_DMA) event_filter_list.push_back("lcd.dma");
+        if ((lcd & TRACE_LCD_FILTER_SPRITE_BUDGET) != 0) event_filter_list.push_back("lcd.sprite_budget");
+        if ((lcd & TRACE_LCD_FILTER_SPRITE_LIMIT) != 0) event_filter_list.push_back("lcd.sprite_limit");
         if ((input & TRACE_INPUT_FILTER_READS) != 0) event_filter_list.push_back("input.reads");
         if ((input & TRACE_INPUT_FILTER_WRITES) != 0) event_filter_list.push_back("input.writes");
         if ((timer & TRACE_TIMER_FILTER_INTERRUPTS) != 0) event_filter_list.push_back("timer.interrupts");

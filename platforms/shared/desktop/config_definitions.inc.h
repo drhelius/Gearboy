@@ -69,7 +69,7 @@ static inline void process(config_Operation operation)
     CONFIG_BOOL("Debug", "TraceApu", config_debug.trace_apu, false);
     CONFIG_BOOL("Debug", "TraceSerial", config_debug.trace_serial, false);
     CONFIG_BOOL("Debug", "TraceMapper", config_debug.trace_mapper, false);
-    CONFIG_INT_RANGE("Debug", "TraceLcdEvents", config_debug.trace_lcd_events, TRACE_LCD_FILTER_ALL, 0, TRACE_LCD_FILTER_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceLcdEvents", config_debug.trace_lcd_events, TRACE_LCD_FILTER_DEFAULT, 0, TRACE_LCD_FILTER_ALL);
     CONFIG_INT_RANGE("Debug", "TraceInputEvents", config_debug.trace_input_events, TRACE_INPUT_FILTER_ALL, 0, TRACE_INPUT_FILTER_ALL);
     CONFIG_INT_RANGE("Debug", "TraceTimerEvents", config_debug.trace_timer_events, TRACE_TIMER_FILTER_ALL, 0, TRACE_TIMER_FILTER_ALL);
     CONFIG_INT_RANGE("Debug", "TraceApuEvents", config_debug.trace_apu_events, TRACE_APU_FILTER_ALL, 0, TRACE_APU_FILTER_ALL);

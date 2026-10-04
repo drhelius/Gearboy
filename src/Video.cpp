@@ -92,6 +92,54 @@ void Video::LogTraceEvent(u8 event, u8 value)
 #endif
 }
 
+void Video::LogSpriteBudget(int line, int sprite_height)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    bool trace_budget = m_pTraceLogger->IsEventEnabled(TRACE_LCD, TRACE_LCD_SPRITE_BUDGET);
+    bool trace_limit = m_pTraceLogger->IsEventEnabled(TRACE_LCD, TRACE_LCD_SPRITE_LIMIT);
+
+    if (!trace_budget && !trace_limit)
+        return;
+
+    int requested = 0;
+
+    for (int sprite = 0; sprite < 40; sprite++)
+    {
+        int sprite_y = m_pMemory->Retrieve(0xFE00 + (sprite << 2)) - 16;
+
+        if ((sprite_y <= line) && ((sprite_y + sprite_height) > line))
+            requested++;
+    }
+
+    bool limit = requested > 10;
+
+    if (!trace_budget && !limit)
+        return;
+
+    GB_Trace_Entry e = {};
+    e.type = TRACE_LCD;
+    e.lcd.line = (u16)line;
+    e.lcd.mode = (u8)m_iStatusMode;
+    e.lcd.value = (u16)requested;
+    e.lcd.value2 = (u16)(m_bNoSpriteLimit ? requested : MIN(requested, 10));
+
+    if (trace_budget)
+    {
+        e.lcd.event = TRACE_LCD_SPRITE_BUDGET;
+        m_pTraceLogger->TraceLog(e);
+    }
+
+    if (trace_limit && limit)
+    {
+        e.lcd.event = TRACE_LCD_SPRITE_LIMIT;
+        m_pTraceLogger->TraceLog(e);
+    }
+#else
+    UNUSED(line);
+    UNUSED(sprite_height);
+#endif
+}
+
 void Video::SetSGBTransferMode(bool enabled)
 {
     m_bSGBTransferMode = enabled;
@@ -734,6 +782,8 @@ void Video::RenderSprites(int line)
 
     int sprite_height = IsSetBit(lcdc, 2) ? 16 : 8;
     int line_width = (line * GAMEBOY_WIDTH);
+
+    TraceSpriteBudget(line, sprite_height);
 
     if (unlikely(m_bNoSpriteLimit))
     {

@@ -74,6 +74,8 @@ private:
     void UpdateStatRegister();
     INLINE void TraceEvent(u8 event, u8 value);
     NO_INLINE void LogTraceEvent(u8 event, u8 value);
+    INLINE void TraceSpriteBudget(int line, int spriteHeight);
+    NO_INLINE void LogSpriteBudget(int line, int spriteHeight);
 
 private:
     Memory* m_pMemory;
@@ -115,6 +117,12 @@ INLINE void Video::TraceEvent(u8 event, u8 value)
 {
     if (m_pTraceLogger->IsEventEnabled(TRACE_LCD, event))
         LogTraceEvent(event, value);
+}
+
+INLINE void Video::TraceSpriteBudget(int line, int spriteHeight)
+{
+    if (m_pTraceLogger->IsEnabled(TRACE_LCD))
+        LogSpriteBudget(line, spriteHeight);
 }
 
 INLINE bool Video::IsScreenEnabled() const

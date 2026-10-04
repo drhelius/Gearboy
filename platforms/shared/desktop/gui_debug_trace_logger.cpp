@@ -584,6 +584,12 @@ static void trace_logger_menu(void)
             trace_logger_menu_event_filter("Register Writes", &config_debug.trace_lcd_events, TRACE_LCD_FILTER_REGISTERS);
             trace_logger_menu_event_filter("Interrupts", &config_debug.trace_lcd_events, TRACE_LCD_FILTER_INTERRUPTS);
             trace_logger_menu_event_filter("DMA", &config_debug.trace_lcd_events, TRACE_LCD_FILTER_DMA);
+            if (ImGui::BeginMenu("Sprite Budget"))
+            {
+                trace_logger_menu_event_filter("Every Line", &config_debug.trace_lcd_events, TRACE_LCD_FILTER_SPRITE_BUDGET);
+                trace_logger_menu_event_filter("Limit Hits", &config_debug.trace_lcd_events, TRACE_LCD_FILTER_SPRITE_LIMIT);
+                ImGui::EndMenu();
+            }
             ImGui::EndDisabled();
             ImGui::EndMenu();
         }

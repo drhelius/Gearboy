@@ -502,6 +502,21 @@ void trace_logger_format_entry(const GB_Trace_Entry& entry,
                              entry.lcd.line, get_lcd_mode_name(entry.lcd.mode), entry.lcd.mode);
                     break;
                 }
+                case TRACE_LCD_SPRITE_BUDGET:
+                case TRACE_LCD_SPRITE_LIMIT:
+                {
+                    int dropped = MAX(0, (int)entry.lcd.value - (int)entry.lcd.value2);
+                    if (entry.lcd.event == TRACE_LCD_SPRITE_LIMIT)
+                        snprintf(buf, buf_size, "  [LCD]  SPRITES LIMIT HIT LY:$%02X Count:%u/10 Dropped:%d",
+                                 entry.lcd.line, entry.lcd.value, dropped);
+                    else if (entry.lcd.value > 10)
+                        snprintf(buf, buf_size, "  [LCD]  SPRITES LY:$%02X Count:%u/10 LIMIT HIT Dropped:%d",
+                                 entry.lcd.line, entry.lcd.value, dropped);
+                    else
+                        snprintf(buf, buf_size, "  [LCD]  SPRITES LY:$%02X Count:%u/10",
+                                 entry.lcd.line, entry.lcd.value);
+                    break;
+                }
                 default:
                     snprintf(buf, buf_size, "  [LCD]  UNKNOWN EVENT($%02X)", entry.lcd.event);
                     break;
