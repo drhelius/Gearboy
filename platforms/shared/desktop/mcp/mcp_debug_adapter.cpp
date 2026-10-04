@@ -34,6 +34,7 @@
 #include "../config.h"
 #include "../events.h"
 #include "../rewind.h"
+#include "../video_recorder.h"
 #include <cstring>
 #include <cctype>
 #include <cmath>
@@ -1394,6 +1395,96 @@ json DebugAdapter::GetScreenshot()
     result["mimeType"] = "image/png";
     result["width"] = runtime.screen_width;
     result["height"] = runtime.screen_height;
+
+    return result;
+}
+
+static const char* const k_video_recording_ratios[] = { "screen", "square", "4:3", "16:9", "16:10" };
+static const char* const k_video_recording_qualities[] = { "low", "medium", "high", "lossless" };
+static const int k_video_recording_ratio_count = sizeof(k_video_recording_ratios) / sizeof(k_video_recording_ratios[0]);
+static const int k_video_recording_quality_count = sizeof(k_video_recording_qualities) / sizeof(k_video_recording_qualities[0]);
+
+static int find_video_recording_option(const std::string& value, const char* const* options, int count)
+{
+    for (int i = 0; i < count; i++)
+    {
+        if (value == options[i])
+            return i;
+    }
+    return -1;
+}
+
+json DebugAdapter::StartVideoRecording(const std::string& file_path, int scale, const std::string& aspect_ratio, const std::string& quality)
+{
+    json result;
+
+    if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
+    {
+        result["error"] = "No media loaded";
+        Log("[MCP] StartVideoRecording failed: No media loaded");
+        return result;
+    }
+
+    if (emu_is_video_recording())
+    {
+        result["error"] = "Video recording is already active";
+        return result;
+    }
+
+    int ratio = aspect_ratio.empty() ? config_video.recording_ratio : find_video_recording_option(aspect_ratio, k_video_recording_ratios, k_video_recording_ratio_count);
+    int quality_index = quality.empty() ? config_video.recording_quality : find_video_recording_option(quality, k_video_recording_qualities, k_video_recording_quality_count);
+
+    if ((scale != 0) && ((scale < 1) || (scale > 20)))
+    {
+        result["error"] = "Invalid scale";
+        return result;
+    }
+
+    if ((ratio < 0) || (quality_index < 0))
+    {
+        result["error"] = "Invalid aspect ratio or quality";
+        return result;
+    }
+
+    if (scale != 0)
+        config_video.recording_scale = scale;
+    config_video.recording_ratio = ratio;
+    config_video.recording_quality = quality_index;
+
+    if (!gui_action_start_video_recording(file_path.empty() ? NULL : file_path.c_str()))
+    {
+        result["error"] = "Failed to start video recording";
+        Log("[MCP] StartVideoRecording failed: %s", file_path.c_str());
+        return result;
+    }
+
+    result["success"] = true;
+    result["file_path"] = video_recorder_get_file_path();
+    result["scale"] = config_video.recording_scale;
+    result["aspect_ratio"] = k_video_recording_ratios[config_video.recording_ratio];
+    result["quality"] = k_video_recording_qualities[config_video.recording_quality];
+
+    return result;
+}
+
+json DebugAdapter::StopVideoRecording()
+{
+    json result;
+
+    if (!emu_is_video_recording())
+    {
+        result["error"] = "Video recording is not active";
+        return result;
+    }
+
+    std::string file_path = video_recorder_get_file_path();
+    u32 frames = video_recorder_get_frame_count();
+
+    gui_action_stop_video_recording();
+
+    result["success"] = true;
+    result["file_path"] = file_path;
+    result["frames"] = frames;
 
     return result;
 }

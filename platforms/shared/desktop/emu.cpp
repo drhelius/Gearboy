@@ -20,6 +20,7 @@
 #include "emu.h"
 
 #include <string.h>
+#include <math.h>
 #include <thread>
 #include <atomic>
 #include "gearboy.h"
@@ -27,6 +28,7 @@
 #include "config.h"
 #include "rewind.h"
 #include "runahead.h"
+#include "video_recorder.h"
 #include "events.h"
 #include "gui_debug_trace_logger.h"
 #include "mcp/mcp_manager.h"
@@ -90,6 +92,7 @@ static void debug_step_instruction(void);
 static void update_debug_background_buffer(void);
 static void update_debug_tile_buffers(void);
 static void update_debug_oam_buffers(void);
+static void get_video_recording_size(const GB_RuntimeInfo& runtime, int* width, int* height);
 static void reset_rewind_timing(void);
 static int get_rewind_pop_budget(void);
 static void link_cable_state_callback(u64 cycle, u8 sb, u8 sc, GB_SerialEvent, void* user_data);
@@ -159,6 +162,7 @@ void emu_destroy(void)
     }
     loading_state.store(Loading_State_None);
 
+    emu_stop_video_recording();
     save_ram();
     rewind_destroy();
     runahead_destroy();
@@ -402,6 +406,13 @@ void emu_update(void)
         GB_RuntimeInfo rt_info;
         gearboy->GetRuntimeInfo(rt_info);
         generate_24bit_buffer(emu_frame_buffer, frame_buffer_565, rt_info.screen_width * rt_info.screen_height);
+
+        if (video_recorder_is_recording())
+        {
+            video_recorder_add_audio(audio_buffer, sampleCount);
+            if (frame_completed)
+                video_recorder_add_video((const u8*)emu_frame_buffer, rt_info.screen_width, rt_info.screen_height, 3);
+        }
     }
 
     if ((sampleCount > 0) && !gearboy->IsPaused())
@@ -1149,6 +1160,71 @@ void emu_stop_vgm_recording(void)
 bool emu_is_vgm_recording(void)
 {
     return gearboy->GetAudio()->IsVgmRecording();
+}
+
+bool emu_start_video_recording(const char* file_path)
+{
+    if (!gearboy->GetCartridge()->IsLoadedROM())
+        return false;
+
+    if (video_recorder_is_recording())
+        emu_stop_video_recording();
+
+    GB_RuntimeInfo runtime;
+    gearboy->GetRuntimeInfo(runtime);
+
+    int width = 0;
+    int height = 0;
+    get_video_recording_size(runtime, &width, &height);
+
+    if (!video_recorder_start(file_path, width, height, emu_get_frame_rate(), GB_AUDIO_SAMPLE_RATE, (Video_Recorder_Quality)config_video.recording_quality))
+        return false;
+
+    Log("Video recording started: %s (%dx%d)", file_path, width, height);
+    return true;
+}
+
+void emu_stop_video_recording(void)
+{
+    if (video_recorder_is_recording())
+    {
+        video_recorder_stop();
+        Log("Video recording stopped");
+    }
+}
+
+bool emu_is_video_recording(void)
+{
+    return video_recorder_is_recording();
+}
+
+static void get_video_recording_size(const GB_RuntimeInfo& runtime, int* width, int* height)
+{
+    int selected_ratio = config_debug.debug ? 0 : config_video.ratio;
+    float ratio = 0.0f;
+
+    if (config_video.recording_ratio > 0)
+        selected_ratio = config_video.recording_ratio - 1;
+
+    switch (selected_ratio)
+    {
+        case 1:
+            ratio = 4.0f / 3.0f;
+            break;
+        case 2:
+            ratio = 16.0f / 9.0f;
+            break;
+        case 3:
+            ratio = 16.0f / 10.0f;
+            break;
+        default:
+            ratio = (float)runtime.screen_width / (float)runtime.screen_height;
+    }
+
+    *height = runtime.screen_height * config_video.recording_scale;
+    *width = (int)roundf((float)*height * ratio);
+    *width += *width & 1;
+    *height += *height & 1;
 }
 
 int emu_get_screenshot_png(unsigned char** out_buffer)

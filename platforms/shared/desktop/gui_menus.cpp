@@ -49,8 +49,10 @@ static bool open_about = false;
 static bool open_load_defaults = false;
 static bool save_screenshot = false;
 static bool save_vgm = false;
+static bool save_video = false;
 static bool choose_savestates_path = false;
 static bool choose_screenshots_path = false;
+static bool choose_video_recordings_path = false;
 static bool choose_backup_ram_path = false;
 static bool open_dmg_bootrom = false;
 static bool open_gbc_bootrom = false;
@@ -140,8 +142,10 @@ void gui_main_menu(void)
     open_load_defaults = false;
     save_screenshot = false;
     save_vgm = false;
+    save_video = false;
     choose_savestates_path = false;
     choose_screenshots_path = false;
+    choose_video_recordings_path = false;
     gui_main_menu_hovered = false;
     choose_backup_ram_path = false;
     open_dmg_bootrom = false;
@@ -267,78 +271,146 @@ static void menu_gearboy(void)
 
         ImGui::Separator();
 
-        bool has_ram = media_actions_enabled && emu_get_core()->GetCartridge()->HasRam();
-
-        if (ImGui::MenuItem("Save RAM As...", NULL, false, has_ram))
+        if (ImGui::BeginMenu("RAM"))
         {
-            save_ram = true;
-        }
+            bool has_ram = media_actions_enabled && emu_get_core()->GetCartridge()->HasRam();
 
-        if (ImGui::MenuItem("Load RAM From...", NULL, false, has_ram))
-        {
-            open_ram = true;
-        }
+            if (ImGui::MenuItem("Save As...", NULL, false, has_ram))
+            {
+                save_ram = true;
+            }
 
-        ImGui::Separator();
-
-        if (ImGui::MenuItem("Save State As...", "", false, media_actions_enabled))
-        {
-            save_state = true;
-        }
-
-        if (ImGui::MenuItem("Load State From...", "", false, media_actions_enabled && !link_cable_active))
-        {
-            open_state = true;
-        }
-
-        ImGui::Separator();
-
-        if (ImGui::BeginMenu("Save State Slot"))
-        {
-            ImGui::PushItemWidth(100.0f);
-            ImGui::Combo("##slot", &config_emulator.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
-            ImGui::PopItemWidth();
-
-            ImGui::Separator();
-            draw_savestate_slot_info(config_emulator.save_slot);
+            if (ImGui::MenuItem("Load From...", NULL, false, has_ram))
+            {
+                open_ram = true;
+            }
 
             ImGui::EndMenu();
         }
 
-        if (ImGui::MenuItem("Save State", config_hotkeys[config_HotkeyIndex_SaveState].str, false, media_actions_enabled))
+        if (ImGui::BeginMenu("Savestates"))
         {
-            std::string message("Saving state to slot ");
-            message += std::to_string(config_emulator.save_slot + 1);
-            gui_set_status_message(message.c_str(), 3000);
-            emu_save_state_slot(config_emulator.save_slot + 1);
-        }
+            if (ImGui::MenuItem("Save As...", "", false, media_actions_enabled))
+            {
+                save_state = true;
+            }
 
-        if (ImGui::MenuItem("Load State", config_hotkeys[config_HotkeyIndex_LoadState].str, false, media_actions_enabled && !link_cable_active))
-        {
-            std::string message("Loading state from slot ");
-            message += std::to_string(config_emulator.save_slot + 1);
-            gui_set_status_message(message.c_str(), 3000);
-            emu_load_state_slot(config_emulator.save_slot + 1);
-        }
-        if (ImGui::IsItemHovered())
-        {
-            ImGui::BeginTooltip();
-            ImGui::Text("Slot: %d", config_emulator.save_slot + 1);
+            if (ImGui::MenuItem("Load From...", "", false, media_actions_enabled && !link_cable_active))
+            {
+                open_state = true;
+            }
+
             ImGui::Separator();
-            draw_savestate_slot_info(config_emulator.save_slot);
-            ImGui::EndTooltip();
+
+            if (ImGui::BeginMenu("Slot"))
+            {
+                ImGui::PushItemWidth(100.0f);
+                ImGui::Combo("##slot", &config_emulator.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
+                ImGui::PopItemWidth();
+
+                ImGui::Separator();
+                draw_savestate_slot_info(config_emulator.save_slot);
+
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::MenuItem("Save", config_hotkeys[config_HotkeyIndex_SaveState].str, false, media_actions_enabled))
+            {
+                std::string message("Saving state to slot ");
+                message += std::to_string(config_emulator.save_slot + 1);
+                gui_set_status_message(message.c_str(), 3000);
+                emu_save_state_slot(config_emulator.save_slot + 1);
+            }
+
+            if (ImGui::MenuItem("Load", config_hotkeys[config_HotkeyIndex_LoadState].str, false, media_actions_enabled && !link_cable_active))
+            {
+                std::string message("Loading state from slot ");
+                message += std::to_string(config_emulator.save_slot + 1);
+                gui_set_status_message(message.c_str(), 3000);
+                emu_load_state_slot(config_emulator.save_slot + 1);
+            }
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("Slot: %d", config_emulator.save_slot + 1);
+                ImGui::Separator();
+                draw_savestate_slot_info(config_emulator.save_slot);
+                ImGui::EndTooltip();
+            }
+
+            ImGui::EndMenu();
         }
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Save Screenshot As...", "", false, media_actions_enabled))
+        if (ImGui::BeginMenu("Screenshots"))
         {
-            save_screenshot = true;
+            if (ImGui::MenuItem("Save As...", "", false, media_actions_enabled))
+            {
+                save_screenshot = true;
+            }
+
+            if (ImGui::MenuItem("Save", config_hotkeys[config_HotkeyIndex_Screenshot].str, false, media_actions_enabled))
+            {
+                gui_action_save_screenshot(NULL);
+            }
+
+            ImGui::EndMenu();
         }
 
-        if (ImGui::MenuItem("Save Screenshot", config_hotkeys[config_HotkeyIndex_Screenshot].str, false, media_actions_enabled))
+        if (ImGui::BeginMenu("Video Recording"))
         {
-            gui_action_save_screenshot(NULL);
+            bool is_recording = emu_is_video_recording();
+
+            if (ImGui::MenuItem("Start Recording As...", "", false, !is_recording && media_actions_enabled))
+            {
+                save_video = true;
+            }
+
+            if (ImGui::MenuItem("Start Recording", config_hotkeys[config_HotkeyIndex_VideoRecording].str, false, !is_recording && media_actions_enabled))
+            {
+                gui_action_start_video_recording(NULL);
+            }
+
+            if (ImGui::MenuItem("Stop Recording", config_hotkeys[config_HotkeyIndex_VideoRecording].str, false, is_recording))
+            {
+                gui_action_stop_video_recording();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Scale", !is_recording))
+            {
+                ImGui::PushItemWidth(100.0f);
+                ImGui::SliderInt("##video_recording_scale", &config_video.recording_scale, 1, 20, "%dx");
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Aspect Ratio", !is_recording))
+            {
+                ImGui::PushItemWidth(190.0f);
+                ImGui::Combo("##video_recording_ratio", &config_video.recording_ratio, "Follow Screen\0Game Boy (1:1 PAR)\0Standard (4:3 DAR)\0Wide (16:9 DAR)\0Wide (16:10 DAR)\0\0");
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Quality", !is_recording))
+            {
+                ImGui::PushItemWidth(100.0f);
+                ImGui::Combo("##video_recording_quality", &config_video.recording_quality, "Low\0Medium\0High\0Lossless\0\0");
+                ImGui::PopItemWidth();
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("Low and Medium halve the color resolution, best used at 2x or higher.");
+                    ImGui::Text("Lossless writes uncompressed video, producing very large files.");
+                    ImGui::EndTooltip();
+                }
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenu();
         }
 
         ImGui::Separator();
@@ -365,119 +437,162 @@ static void menu_emulator(void)
     {
         gui_in_use = true;
 
-        if (ImGui::BeginMenu("Save States Dir"))
+        if (ImGui::BeginMenu("Directories"))
         {
-            ImGui::PushItemWidth(220.0f);
-            if (ImGui::Combo("##savestate_option", &config_emulator.savestates_dir_option, "Default Location\0Same as ROM\0Custom Location\0\0"))
+            if (ImGui::BeginMenu("Save States"))
             {
-                update_savestates_data();
+                ImGui::PushItemWidth(220.0f);
+                if (ImGui::Combo("##savestate_option", &config_emulator.savestates_dir_option, "Default Location\0Same as ROM\0Custom Location\0\0"))
+                {
+                    update_savestates_data();
+                }
+
+                switch ((Directory_Location)config_emulator.savestates_dir_option)
+                {
+                    case Directory_Location_Default:
+                    {
+                        ImGui::Text("%s", config_root_path);
+                        break;
+                    }
+                    case Directory_Location_ROM:
+                    {
+                        if (!emu_is_empty())
+                            ImGui::Text("%s", emu_get_core()->GetCartridge()->GetFileDirectory());
+                        break;
+                    }
+                    case Directory_Location_Custom:
+                    {
+                        if (ImGui::MenuItem("Choose..."))
+                        {
+                            choose_savestates_path = true;
+                        }
+
+                        ImGui::PushItemWidth(450);
+                        if (ImGui::InputText("##savestate_path", gui_savestates_path, IM_ARRAYSIZE(gui_savestates_path), ImGuiInputTextFlags_AutoSelectAll))
+                        {
+                            config_emulator.savestates_path.assign(gui_savestates_path);
+                            update_savestates_data();
+                        }
+                        ImGui::PopItemWidth();
+                        break;
+                    }
+                }
+
+                ImGui::EndMenu();
             }
 
-            switch ((Directory_Location)config_emulator.savestates_dir_option)
+            if (ImGui::BeginMenu("Save Files"))
             {
-                case Directory_Location_Default:
-                {
-                    ImGui::Text("%s", config_root_path);
-                    break;
-                }
-                case Directory_Location_ROM:
-                {
-                    if (!emu_is_empty())
-                        ImGui::Text("%s", emu_get_core()->GetCartridge()->GetFileDirectory());
-                    break;
-                }
-                case Directory_Location_Custom:
-                {
-                    if (ImGui::MenuItem("Choose..."))
-                    {
-                        choose_savestates_path = true;
-                    }
+                ImGui::PushItemWidth(220.0f);
+                ImGui::Combo("##savefiles_option", &config_emulator.savefiles_dir_option, "Default Location\0Same as ROM\0Custom Location\0\0");
 
-                    ImGui::PushItemWidth(450);
-                    if (ImGui::InputText("##savestate_path", gui_savestates_path, IM_ARRAYSIZE(gui_savestates_path), ImGuiInputTextFlags_AutoSelectAll))
+                switch ((Directory_Location)config_emulator.savefiles_dir_option)
+                {
+                    case Directory_Location_Default:
                     {
-                        config_emulator.savestates_path.assign(gui_savestates_path);
-                        update_savestates_data();
+                        ImGui::Text("%s", config_root_path);
+                        break;
                     }
-                    ImGui::PopItemWidth();
-                    break;
+                    case Directory_Location_ROM:
+                    {
+                        if (!emu_is_empty())
+                            ImGui::Text("%s", emu_get_core()->GetCartridge()->GetFileDirectory());
+                        break;
+                    }
+                    case Directory_Location_Custom:
+                    {
+                        if (ImGui::MenuItem("Choose..."))
+                        {
+                            choose_backup_ram_path = true;
+                        }
+
+                        ImGui::PushItemWidth(450);
+                        if (ImGui::InputText("##savefiles_path", gui_savefiles_path, IM_ARRAYSIZE(gui_savefiles_path), ImGuiInputTextFlags_AutoSelectAll))
+                        {
+                            config_emulator.savefiles_path.assign(gui_savefiles_path);
+                        }
+                        ImGui::PopItemWidth();
+                        break;
+                    }
                 }
+
+                ImGui::EndMenu();
             }
 
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Save Files Dir"))
-        {
-            ImGui::PushItemWidth(220.0f);
-            ImGui::Combo("##savefiles_option", &config_emulator.savefiles_dir_option, "Default Location\0Same as ROM\0Custom Location\0\0");
-
-            switch ((Directory_Location)config_emulator.savefiles_dir_option)
+            if (ImGui::BeginMenu("Screenshots"))
             {
-                case Directory_Location_Default:
-                {
-                    ImGui::Text("%s", config_root_path);
-                    break;
-                }
-                case Directory_Location_ROM:
-                {
-                    if (!emu_is_empty())
-                        ImGui::Text("%s", emu_get_core()->GetCartridge()->GetFileDirectory());
-                    break;
-                }
-                case Directory_Location_Custom:
-                {
-                    if (ImGui::MenuItem("Choose..."))
-                    {
-                        choose_backup_ram_path = true;
-                    }
+                ImGui::PushItemWidth(220.0f);
+                ImGui::Combo("##screenshots_option", &config_emulator.screenshots_dir_option, "Default Location\0Same as ROM\0Custom Location\0\0");
 
-                    ImGui::PushItemWidth(450);
-                    if (ImGui::InputText("##savefiles_path", gui_savefiles_path, IM_ARRAYSIZE(gui_savefiles_path), ImGuiInputTextFlags_AutoSelectAll))
+                switch ((Directory_Location)config_emulator.screenshots_dir_option)
+                {
+                    case Directory_Location_Default:
                     {
-                        config_emulator.savefiles_path.assign(gui_savefiles_path);
+                        ImGui::Text("%s", config_root_path);
+                        break;
                     }
-                    ImGui::PopItemWidth();
-                    break;
+                    case Directory_Location_ROM:
+                    {
+                        if (!emu_is_empty())
+                            ImGui::Text("%s", emu_get_core()->GetCartridge()->GetFileDirectory());
+                        break;
+                    }
+                    case Directory_Location_Custom:
+                    {
+                        if (ImGui::MenuItem("Choose..."))
+                        {
+                            choose_screenshots_path = true;
+                        }
+
+                        ImGui::PushItemWidth(450);
+                        if (ImGui::InputText("##screenshots_path", gui_screenshots_path, IM_ARRAYSIZE(gui_screenshots_path), ImGuiInputTextFlags_AutoSelectAll))
+                        {
+                            config_emulator.screenshots_path.assign(gui_screenshots_path);
+                        }
+                        ImGui::PopItemWidth();
+                        break;
+                    }
                 }
+
+                ImGui::EndMenu();
             }
 
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Screenshots Dir"))
-        {
-            ImGui::PushItemWidth(220.0f);
-            ImGui::Combo("##screenshots_option", &config_emulator.screenshots_dir_option, "Default Location\0Same as ROM\0Custom Location\0\0");
-
-            switch ((Directory_Location)config_emulator.screenshots_dir_option)
+            if (ImGui::BeginMenu("Video Recordings"))
             {
-                case Directory_Location_Default:
-                {
-                    ImGui::Text("%s", config_root_path);
-                    break;
-                }
-                case Directory_Location_ROM:
-                {
-                    if (!emu_is_empty())
-                        ImGui::Text("%s", emu_get_core()->GetCartridge()->GetFileDirectory());
-                    break;
-                }
-                case Directory_Location_Custom:
-                {
-                    if (ImGui::MenuItem("Choose..."))
-                    {
-                        choose_screenshots_path = true;
-                    }
+                ImGui::PushItemWidth(220.0f);
+                ImGui::Combo("##video_recordings_option", &config_emulator.video_recordings_dir_option, "Default Location\0Same as ROM\0Custom Location\0\0");
 
-                    ImGui::PushItemWidth(450);
-                    if (ImGui::InputText("##screenshots_path", gui_screenshots_path, IM_ARRAYSIZE(gui_screenshots_path), ImGuiInputTextFlags_AutoSelectAll))
+                switch ((Directory_Location)config_emulator.video_recordings_dir_option)
+                {
+                    case Directory_Location_Default:
                     {
-                        config_emulator.screenshots_path.assign(gui_screenshots_path);
+                        ImGui::Text("%s", config_root_path);
+                        break;
                     }
-                    ImGui::PopItemWidth();
-                    break;
+                    case Directory_Location_ROM:
+                    {
+                        if (!emu_is_empty())
+                            ImGui::Text("%s", emu_get_core()->GetCartridge()->GetFileDirectory());
+                        break;
+                    }
+                    case Directory_Location_Custom:
+                    {
+                        if (ImGui::MenuItem("Choose..."))
+                        {
+                            choose_video_recordings_path = true;
+                        }
+
+                        ImGui::PushItemWidth(450);
+                        if (ImGui::InputText("##video_recordings_path", gui_video_recordings_path, IM_ARRAYSIZE(gui_video_recordings_path), ImGuiInputTextFlags_AutoSelectAll))
+                        {
+                            config_emulator.video_recordings_path.assign(gui_video_recordings_path);
+                        }
+                        ImGui::PopItemWidth();
+                        break;
+                    }
                 }
+
+                ImGui::EndMenu();
             }
 
             ImGui::EndMenu();
@@ -615,6 +730,7 @@ static void menu_emulator(void)
             hotkey_configuration_item("Save State Slot 4:", &config_hotkeys[config_HotkeyIndex_SelectSlot4]);
             hotkey_configuration_item("Save State Slot 5:", &config_hotkeys[config_HotkeyIndex_SelectSlot5]);
             hotkey_configuration_item("Screenshot:", &config_hotkeys[config_HotkeyIndex_Screenshot]);
+            hotkey_configuration_item("Video Recording:", &config_hotkeys[config_HotkeyIndex_VideoRecording]);
             hotkey_configuration_item("Mute Audio:", &config_hotkeys[config_HotkeyIndex_Mute]);
             hotkey_configuration_item("Fullscreen:", &config_hotkeys[config_HotkeyIndex_Fullscreen]);
             hotkey_configuration_item("Show Main Menu:", &config_hotkeys[config_HotkeyIndex_ShowMainMenu]);
@@ -1096,6 +1212,7 @@ static void menu_input(void)
                 gamepad_configuration_item("Pause:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Pause], 0);
                 gamepad_configuration_item("Fast Forward:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_FFWD], 0);
                 gamepad_configuration_item("Screenshot:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Screenshot], 0);
+                gamepad_configuration_item("Video Recording:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_VideoRecording], 0);
                 gamepad_configuration_item("Mute Audio:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Mute], 0);
                 gamepad_configuration_item("Fullscreen:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_Fullscreen], 0);
                 gamepad_configuration_item("Capture Mouse:", &config_input_gamepad_shortcuts.gamepad_shortcuts[config_HotkeyIndex_CaptureMouse], 0);
@@ -1281,17 +1398,22 @@ static void menu_audio(void)
 #ifndef GEARBOY_DISABLE_VGMRECORDER
         ImGui::Separator();
 
-        bool is_recording = emu_is_vgm_recording();
-
-        if (ImGui::MenuItem("Start VGM Recording...", "", false, !is_recording && !emu_is_empty()))
+        if (ImGui::BeginMenu("VGM Recorder"))
         {
-            save_vgm = true;
-        }
+            bool is_recording = emu_is_vgm_recording();
 
-        if (ImGui::MenuItem("Stop VGM Recording", "", false, is_recording))
-        {
-            emu_stop_vgm_recording();
-            gui_set_status_message("VGM recording stopped", 3000);
+            if (ImGui::MenuItem("Start Recording...", "", false, !is_recording && !emu_is_empty()))
+            {
+                save_vgm = true;
+            }
+
+            if (ImGui::MenuItem("Stop Recording", "", false, is_recording))
+            {
+                emu_stop_vgm_recording();
+                gui_set_status_message("VGM recording stopped", 3000);
+            }
+
+            ImGui::EndMenu();
         }
 #endif
 
@@ -1542,10 +1664,13 @@ static void menu_debug(void)
 
         ImGui::MenuItem("Show PSG", "", &config_debug.show_psg, config_debug.debug);
         ImGui::MenuItem("Show IO Map", "", &config_debug.show_io, config_debug.debug);
-        ImGui::MenuItem("Show Link Cable", "", &config_debug.show_link_cable,
-            config_debug.debug);
-        ImGui::MenuItem("Show Link Cable (Transport)", "",
-            &config_debug.show_link_cable_transport, config_debug.debug);
+
+        if (ImGui::BeginMenu("Link Cable", config_debug.debug))
+        {
+            ImGui::MenuItem("Show Hardware", "", &config_debug.show_link_cable);
+            ImGui::MenuItem("Show Transport", "", &config_debug.show_link_cable_transport);
+            ImGui::EndMenu();
+        }
 
         if (ImGui::BeginMenu("Super Game Boy", config_debug.debug && emu_get_core()->IsSGB()))
         {
@@ -1719,10 +1844,14 @@ static void file_dialogs(void)
         gui_file_dialog_save_screenshot();
     if (save_vgm)
         gui_file_dialog_save_vgm();
+    if (save_video)
+        gui_file_dialog_save_video();
     if (choose_savestates_path)
         gui_file_dialog_choose_savestate_path();
     if (choose_screenshots_path)
         gui_file_dialog_choose_screenshot_path();
+    if (choose_video_recordings_path)
+        gui_file_dialog_choose_video_recording_path();
     if (choose_backup_ram_path)
         gui_file_dialog_choose_saves_path();
     if (open_dmg_bootrom)

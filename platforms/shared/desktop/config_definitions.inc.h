@@ -170,6 +170,8 @@ static inline void process(config_Operation operation)
     CONFIG_STRING_NOT_EMPTY("Emulator", "SaveStatesPath", config_emulator.savestates_path, config_root_path);
     CONFIG_INT("Emulator", "ScreenshotDirOption", config_emulator.screenshots_dir_option, 0);
     CONFIG_STRING_NOT_EMPTY("Emulator", "ScreenshotPath", config_emulator.screenshots_path, config_root_path);
+    CONFIG_INT("Emulator", "VideoRecordingDirOption", config_emulator.video_recordings_dir_option, 0);
+    CONFIG_STRING_NOT_EMPTY("Emulator", "VideoRecordingPath", config_emulator.video_recordings_path, config_root_path);
     CONFIG_STRING("Emulator", "LastOpenPath", config_emulator.last_open_path, "");
     CONFIG_STRING_ARRAY("Emulator", "RecentROM%d", config_emulator.recent_roms, config_max_recent_roms, "");
 
@@ -211,6 +213,9 @@ static inline void process(config_Operation operation)
     }
 
     CONFIG_INT_RANGE("Video", "SyncMode", config_video.sync_mode, config_VideoSync_Fixed, config_VideoSync_Disabled, config_VideoSync_VRR);
+    CONFIG_INT_RANGE("Video", "RecordingScale", config_video.recording_scale, 2, 1, 20);
+    CONFIG_INT_RANGE("Video", "RecordingAspectRatio", config_video.recording_ratio, 0, 0, 4);
+    CONFIG_INT_RANGE("Video", "RecordingQuality", config_video.recording_quality, 2, 0, 3);
 
     // Background colors
     CONFIG_FLOAT("Video", "BackgroundColorR", config_video.background_color[config_Theme_Dark][0], 0.1f);
@@ -336,6 +341,7 @@ static inline void process(config_Operation operation)
     CONFIG_HOTKEY("SelectSlot5", config_hotkeys[config_HotkeyIndex_SelectSlot5], SDL_SCANCODE_5, SDL_KMOD_CTRL);
     CONFIG_HOTKEY("Mute", config_hotkeys[config_HotkeyIndex_Mute], SDL_SCANCODE_U, SDL_KMOD_CTRL);
     CONFIG_HOTKEY("ScanBarcode", config_hotkeys[config_HotkeyIndex_ScanBarcode], SDL_SCANCODE_B, SDL_KMOD_CTRL);
+    CONFIG_HOTKEY("VideoRecording", config_hotkeys[config_HotkeyIndex_VideoRecording], SDL_SCANCODE_R, (SDL_Keymod)(SDL_KMOD_CTRL | SDL_KMOD_SHIFT));
 }
 
 //**************************************

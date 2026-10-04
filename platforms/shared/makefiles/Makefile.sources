@@ -37,6 +37,7 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/link_cable/link_cable_manager.cpp \
     $(DESKTOP_SRC_DIR)/rewind.cpp \
     $(DESKTOP_SRC_DIR)/runahead.cpp \
+    $(DESKTOP_SRC_DIR)/video_recorder.cpp \
     $(DESKTOP_SRC_DIR)/sound_queue.cpp \
     $(DESKTOP_SRC_DIR)/single_instance.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug.cpp \

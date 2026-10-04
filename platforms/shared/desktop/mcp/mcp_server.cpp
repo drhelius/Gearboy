@@ -320,7 +320,7 @@ void McpServer::HandleInitialize(const json& request)
         {"serverInfo", {
             {"name", "gearboy-mcp-server"},
             {"title", GEARBOY_TITLE " MCP Server"},
-            {"description", "Debug/control " GEARBOY_TITLE " Game Boy/Game Boy Color: execution, breakpoints, memory, SM83 CPU, LCD/PPU, APU, SGB, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
+            {"description", "Debug/control " GEARBOY_TITLE " Game Boy/Game Boy Color: execution, breakpoints, memory, SM83 CPU, LCD/PPU, APU, SGB, disassembly, symbols, sprites, save states, rewind, input, screenshots, video recording."},
             {"version", GEARBOY_VERSION}
         }}
     };
@@ -328,7 +328,7 @@ void McpServer::HandleInitialize(const json& request)
     response["result"]["instructions"] =
         "Use this server for Game Boy, Game Boy Color, and Super Game Boy game debugging, reverse "
         "engineering, memory inspection, SM83 tracing, breakpoints, LCD/PPU, APU, sprites, save states, "
-        "rewind, input, and screenshots.";
+        "rewind, input, screenshots, and video recording.";
 
     if (g_mcp_router_enabled)
     {
@@ -807,6 +807,51 @@ json McpServer::BuildToolList()
         {"title", "Get Screenshot"},
         {"description", "Capture current screen/frame/video output as PNG screenshot image."},
         {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "start_video_recording"},
+        {"title", "Start Video Recording"},
+        {"description", "Start recording emulated video and audio to an AVI file (MJPEG or uncompressed video, PCM audio). The file is written to disk only; its path is returned. Options given here update the recording settings, same as the GUI menu."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", true}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"file_path", {
+                    {"type", "string"},
+                    {"description", "Absolute destination .avi file path. If omitted, an automatic name is used in the configured video recordings directory."}
+                }},
+                {"scale", {
+                    {"type", "integer"},
+                    {"description", "Output height multiplier (1-20)."},
+                    {"minimum", 1},
+                    {"maximum", 20}
+                }},
+                {"aspect_ratio", {
+                    {"type", "string"},
+                    {"description", "Output aspect ratio. screen follows the current display settings (square pixels while debugging)."},
+                    {"enum", json::array({"screen", "square", "4:3", "16:9", "16:10"})}
+                }},
+                {"quality", {
+                    {"type", "string"},
+                    {"description", "low and medium halve color resolution; lossless writes uncompressed video with very large files."},
+                    {"enum", json::array({"low", "medium", "high", "lossless"})}
+                }}
+            }},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "stop_video_recording"},
+        {"title", "Stop Video Recording"},
+        {"description", "Stop the active video recording and finalize the AVI file. Returns the file path and recorded frame count."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", false}, {"openWorldHint", true}}},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -2501,6 +2546,18 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     else if (normalizedTool == "get_screenshot")
     {
         return m_debugAdapter.GetScreenshot();
+    }
+    else if (normalizedTool == "start_video_recording")
+    {
+        std::string file_path = arguments.value("file_path", "");
+        int scale = arguments.value("scale", 0);
+        std::string aspect_ratio = arguments.value("aspect_ratio", "");
+        std::string quality = arguments.value("quality", "");
+        return m_debugAdapter.StartVideoRecording(file_path, scale, aspect_ratio, quality);
+    }
+    else if (normalizedTool == "stop_video_recording")
+    {
+        return m_debugAdapter.StopVideoRecording();
     }
     // Media and state management
     else if (normalizedTool == "load_media")

@@ -81,6 +81,7 @@
     <ClCompile Include="..\shared\desktop\emu.cpp" />
     <ClCompile Include="..\shared\desktop\rewind.cpp" />
     <ClCompile Include="..\shared\desktop\runahead.cpp" />
+    <ClCompile Include="..\shared\desktop\video_recorder.cpp" />
     <ClCompile Include="..\shared\desktop\gui.cpp" />
     <ClCompile Include="..\shared\desktop\gui_actions.cpp" />
     <ClCompile Include="..\shared\desktop\gui_cheats.cpp" />
@@ -244,6 +245,7 @@
     <ClInclude Include="..\shared\desktop\emu.h" />
     <ClInclude Include="..\shared\desktop\rewind.h" />
     <ClInclude Include="..\shared\desktop\runahead.h" />
+    <ClInclude Include="..\shared\desktop\video_recorder.h" />
     <ClInclude Include="..\shared\desktop\gui.h" />
     <ClInclude Include="..\shared\desktop\gui_actions.h" />
     <ClInclude Include="..\shared\desktop\gui_cheats.h" />
