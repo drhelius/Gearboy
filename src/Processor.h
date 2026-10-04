@@ -145,7 +145,12 @@ public:
     void DisassembleAhead(int count);
     void DisassembleAhead(u16 start_address, int count, int depth);
     void EnableBreakpoints(bool enable, bool irqs);
-    INLINE bool MemoryBreakpointsEnabled() const;
+    INLINE bool HasMemoryHooks(bool read) const;
+    INLINE void CheckVBlankWatch(u16 address, bool read);
+    void SetVBlankWatch(bool read, bool write, u16 address);
+    u32 UpdateVBlankWatch();
+    INLINE u16 GetVBlankWatchAddress() const;
+    INLINE bool GetVBlankWatchAccess(bool read) const;
     bool BreakpointHit();
     bool MemoryBreakpointHit();
     bool RunToBreakpointHit();
@@ -250,6 +255,14 @@ private:
     u8 m_iReadCache;
     bool m_breakpoints_enabled;
     bool m_breakpoints_irq_enabled;
+    bool m_memory_hooks_read;
+    bool m_memory_hooks_write;
+    bool m_vblank_watch_read;
+    bool m_vblank_watch_write;
+    u16 m_vblank_watch_address;
+    bool m_vblank_watch_hit;
+    bool m_vblank_watch_armed;
+    u32 m_vblank_watch_misses;
     bool m_cpu_breakpoint_hit;
     bool m_memory_breakpoint_hit;
     bool m_run_to_breakpoint_hit;
@@ -272,6 +285,8 @@ private:
 
 private:
     void CheckBreakpoints();
+    void RefreshMemoryHooks();
+    void ResetVBlankWatch();
     void PushCallStack(u16 src, u16 dest, u16 back, u8 bank, u8 machine_cycles, bool irq);
     void PopCallStack(u8 machine_cycles);
     NO_INLINE void ProfilerEnter(u16 address, u32 pending_cycles, bool irq);

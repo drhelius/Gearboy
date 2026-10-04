@@ -76,6 +76,8 @@ private:
     NO_INLINE void LogTraceEvent(u8 event, u8 value);
     INLINE void TraceSpriteBudget(int line, int spriteHeight);
     NO_INLINE void LogSpriteBudget(int line, int spriteHeight);
+    INLINE void TraceMissedVBlank();
+    NO_INLINE void LogMissedVBlank();
 
 private:
     Memory* m_pMemory;
@@ -123,6 +125,12 @@ INLINE void Video::TraceSpriteBudget(int line, int spriteHeight)
 {
     if (m_pTraceLogger->IsEnabled(TRACE_LCD))
         LogSpriteBudget(line, spriteHeight);
+}
+
+INLINE void Video::TraceMissedVBlank()
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_LCD, TRACE_LCD_MISSED_VBLANK))
+        LogMissedVBlank();
 }
 
 INLINE bool Video::IsScreenEnabled() const

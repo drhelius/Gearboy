@@ -994,6 +994,7 @@ bool GearboyCore::SaveState(std::ostream& stream, size_t& size, bool screenshot)
         }
 
 #if defined(__LIBRETRO__)
+        UNUSED(screenshot);
         GB_SaveState_Header_Libretro header;
         header.magic = GB_SAVESTATE_MAGIC;
         header.version = GB_SAVESTATE_VERSION;

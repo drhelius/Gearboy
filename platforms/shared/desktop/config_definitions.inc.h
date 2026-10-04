@@ -76,6 +76,8 @@ static inline void process(config_Operation operation)
     CONFIG_INT_RANGE("Debug", "TraceApuEvents", config_debug.trace_apu_events, TRACE_APU_FILTER_ALL, 0, TRACE_APU_FILTER_ALL);
     CONFIG_INT_RANGE("Debug", "TraceSerialEvents", config_debug.trace_serial_events, TRACE_SERIAL_FILTER_ALL, 0, TRACE_SERIAL_FILTER_ALL);
     CONFIG_INT_RANGE("Debug", "TraceMapperEvents", config_debug.trace_mapper_events, TRACE_MAPPER_FILTER_ALL, 0, TRACE_MAPPER_FILTER_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceVBlankWatchAddress", config_debug.trace_vblank_watch_address, 0, 0, 0xFFFF);
+    CONFIG_INT_RANGE("Debug", "TraceVBlankWatchOperation", config_debug.trace_vblank_watch_operation, 1, 0, 2);
     CONFIG_INT_RANGE("Debug", "TraceOutput", config_debug.trace_output, 0, 0, 1);
     CONFIG_INT_RANGE("Debug", "TraceCapacity", config_debug.trace_capacity, 0, 0, 4);
     CONFIG_INT_RANGE("Debug", "TraceDiskDirOption", config_debug.trace_disk_dir_option, 0, 0, 2);

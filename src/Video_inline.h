@@ -49,6 +49,8 @@ inline bool Video::Tick(unsigned int &clockCycles, u16* pColorFrameBuffer, GB_Co
                         m_iStatusVBlankLine = 0;
                         m_iStatusModeCounterAux = m_iStatusModeCounter;
 
+                        TraceMissedVBlank();
+
                         if (m_pProcessor->CGBSpeed())
                         {
                             m_iPendingVBlankInterruptCycles = 12;

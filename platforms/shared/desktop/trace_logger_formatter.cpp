@@ -517,6 +517,13 @@ void trace_logger_format_entry(const GB_Trace_Entry& entry,
                                  entry.lcd.line, entry.lcd.value);
                     break;
                 }
+                case TRACE_LCD_MISSED_VBLANK:
+                {
+                    const char* access = entry.lcd.raw == 0x03 ? "R/W" : (entry.lcd.raw == 0x02 ? "W" : "R");
+                    snprintf(buf, buf_size, "  [LCD]  VBLANK MISSED Watch:$%04X %s Consecutive:%u",
+                             entry.lcd.address, access, entry.lcd.value);
+                    break;
+                }
                 default:
                     snprintf(buf, buf_size, "  [LCD]  UNKNOWN EVENT($%02X)", entry.lcd.event);
                     break;

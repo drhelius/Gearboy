@@ -1653,6 +1653,15 @@ json McpServer::BuildToolList()
                     {"type", "string"},
                     {"description", "Directory for the automatically named disk trace file."}
                 }},
+                {"vblank_watch_address", {
+                    {"type", "string"},
+                    {"description", "CPU address hex watched by lcd.missed_vblank: 'C000', '0xC000', or '$C000'. Omit to keep current."}
+                }},
+                {"vblank_watch_operation", {
+                    {"type", "string"},
+                    {"description", "Access that marks a frame as on time for lcd.missed_vblank. Omit to keep current."},
+                    {"enum", json::array({"read", "write", "read_write"})}
+                }},
                 {"filters", {
                     {"type", "array"},
                     {"description", "Exact event streams to record. Defaults to CPU instructions and interrupts."},
@@ -1660,7 +1669,7 @@ json McpServer::BuildToolList()
                         {"type", "string"},
                         {"enum", json::array({
                             "cpu.instructions", "cpu.interrupts",
-                            "lcd.registers", "lcd.interrupts", "lcd.dma", "lcd.sprite_budget", "lcd.sprite_limit",
+                            "lcd.registers", "lcd.interrupts", "lcd.dma", "lcd.sprite_budget", "lcd.sprite_limit", "lcd.missed_vblank",
                             "input.reads", "input.writes",
                             "timer.interrupts", "timer.registers",
                             "apu.global", "apu.pulse1", "apu.pulse2", "apu.wave", "apu.noise", "apu.wave_ram",
@@ -2813,6 +2822,8 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
                         add_trace_event_filter(&flags, event_filters, TRACE_LCD, TRACE_LCD_FILTER_SPRITE_BUDGET);
                     else if (filter == "lcd.sprite_limit")
                         add_trace_event_filter(&flags, event_filters, TRACE_LCD, TRACE_LCD_FILTER_SPRITE_LIMIT);
+                    else if (filter == "lcd.missed_vblank")
+                        add_trace_event_filter(&flags, event_filters, TRACE_LCD, TRACE_LCD_FILTER_MISSED_VBLANK);
                     else if (filter == "input.reads")
                         add_trace_event_filter(&flags, event_filters, TRACE_INPUT, TRACE_INPUT_FILTER_READS);
                     else if (filter == "input.writes")
@@ -2856,8 +2867,11 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         std::string memory_size = arguments.value("memory_size", "");
         std::string disk_size = arguments.value("disk_size", "");
         std::string output_path = arguments.value("output_path", "");
+        std::string vblank_watch_address = arguments.value("vblank_watch_address", "");
+        std::string vblank_watch_operation = arguments.value("vblank_watch_operation", "");
         return m_debugAdapter.SetTraceLog(enabled, flags, output, memory_size,
-                                          disk_size, output_path, event_filters);
+                                          disk_size, output_path, event_filters,
+                                          vblank_watch_address, vblank_watch_operation);
     }
     else if (normalizedTool == "get_sgb_status")
     {

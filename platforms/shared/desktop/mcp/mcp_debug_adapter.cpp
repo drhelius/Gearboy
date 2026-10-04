@@ -2916,8 +2916,10 @@ json DebugAdapter::GetTraceLog(s64 start, int count)
 
 json DebugAdapter::SetTraceLog(bool enabled, u32 flags, const std::string& output,
     const std::string& memory_size, const std::string& disk_size,
-    const std::string& output_path, const u32* event_filters)
+    const std::string& output_path, const u32* event_filters,
+    const std::string& vblank_watch_address, const std::string& vblank_watch_operation)
 {
+    static const char* const k_vblank_watch_operations[] = { "read", "write", "read_write" };
     json result;
 
     TraceLogger* tl = m_core->GetTraceLogger();
@@ -2965,6 +2967,34 @@ json DebugAdapter::SetTraceLog(bool enabled, u32 flags, const std::string& outpu
             }
         }
 
+        int vblank_watch_address_value = config_debug.trace_vblank_watch_address;
+        if (!vblank_watch_address.empty())
+        {
+            u16 address = 0;
+            if (!parse_hex_with_prefix(vblank_watch_address, &address))
+            {
+                result["error"] = "Invalid vblank watch address";
+                return result;
+            }
+            vblank_watch_address_value = address;
+        }
+
+        int vblank_watch_operation_value = config_debug.trace_vblank_watch_operation;
+        if (!vblank_watch_operation.empty())
+        {
+            vblank_watch_operation_value = -1;
+            for (int i = 0; i < 3; i++)
+            {
+                if (vblank_watch_operation == k_vblank_watch_operations[i])
+                    vblank_watch_operation_value = i;
+            }
+            if (vblank_watch_operation_value < 0)
+            {
+                result["error"] = "Invalid vblank watch operation";
+                return result;
+            }
+        }
+
         bool configuration_changed = output_value != config_debug.trace_output;
         if (output_value == gui_TraceOutput_Memory)
             configuration_changed = configuration_changed || memory_size_value != config_debug.trace_capacity;
@@ -2995,6 +3025,8 @@ json DebugAdapter::SetTraceLog(bool enabled, u32 flags, const std::string& outpu
         }
 
         gui_debug_trace_logger_set_event_filters(event_filters);
+        config_debug.trace_vblank_watch_address = vblank_watch_address_value;
+        config_debug.trace_vblank_watch_operation = vblank_watch_operation_value;
 
         if (!gui_debug_trace_logger_start(flags))
         {
@@ -3024,6 +3056,7 @@ json DebugAdapter::SetTraceLog(bool enabled, u32 flags, const std::string& outpu
         if ((lcd & TRACE_LCD_FILTER_DMA) == TRACE_LCD_FILTER_DMA) event_filter_list.push_back("lcd.dma");
         if ((lcd & TRACE_LCD_FILTER_SPRITE_BUDGET) != 0) event_filter_list.push_back("lcd.sprite_budget");
         if ((lcd & TRACE_LCD_FILTER_SPRITE_LIMIT) != 0) event_filter_list.push_back("lcd.sprite_limit");
+        if ((lcd & TRACE_LCD_FILTER_MISSED_VBLANK) != 0) event_filter_list.push_back("lcd.missed_vblank");
         if ((input & TRACE_INPUT_FILTER_READS) != 0) event_filter_list.push_back("input.reads");
         if ((input & TRACE_INPUT_FILTER_WRITES) != 0) event_filter_list.push_back("input.writes");
         if ((timer & TRACE_TIMER_FILTER_INTERRUPTS) != 0) event_filter_list.push_back("timer.interrupts");
@@ -3041,6 +3074,14 @@ json DebugAdapter::SetTraceLog(bool enabled, u32 flags, const std::string& outpu
         if ((mapper & TRACE_MAPPER_FILTER_RAM_RTC) != 0) event_filter_list.push_back("mapper.ram_rtc");
         if ((mapper & TRACE_MAPPER_FILTER_CONTROL) != 0) event_filter_list.push_back("mapper.control");
         result["filters"] = event_filter_list;
+
+        if ((lcd & TRACE_LCD_FILTER_MISSED_VBLANK) != 0)
+        {
+            char address[8];
+            snprintf(address, sizeof(address), "%04X", config_debug.trace_vblank_watch_address);
+            result["vblank_watch_address"] = address;
+            result["vblank_watch_operation"] = k_vblank_watch_operations[config_debug.trace_vblank_watch_operation];
+        }
     }
     else
     {

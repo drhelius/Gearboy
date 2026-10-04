@@ -140,6 +140,27 @@ void Video::LogSpriteBudget(int line, int sprite_height)
 #endif
 }
 
+void Video::LogMissedVBlank()
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u32 misses = m_pProcessor->UpdateVBlankWatch();
+
+    if (misses == 0)
+        return;
+
+    GB_Trace_Entry e = {};
+    e.type = TRACE_LCD;
+    e.lcd.event = TRACE_LCD_MISSED_VBLANK;
+    e.lcd.address = m_pProcessor->GetVBlankWatchAddress();
+    e.lcd.raw = (m_pProcessor->GetVBlankWatchAccess(true) ? 0x01 : 0x00) |
+        (m_pProcessor->GetVBlankWatchAccess(false) ? 0x02 : 0x00);
+    e.lcd.value = (u16)MIN(misses, 0xFFFFU);
+    e.lcd.line = (u16)m_iStatusModeLYCounter;
+    e.lcd.mode = (u8)m_iStatusMode;
+    m_pTraceLogger->TraceLog(e);
+#endif
+}
+
 void Video::SetSGBTransferMode(bool enabled)
 {
     m_bSGBTransferMode = enabled;

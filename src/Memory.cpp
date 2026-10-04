@@ -88,8 +88,10 @@ void Memory::LogLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length)
 #endif
 }
 
-void Memory::CheckBreakpoints(u16 address, bool write)
+void Memory::CheckMemoryHooks(u16 address, bool write)
 {
+    m_pProcessor->CheckVBlankWatch(address, !write);
+
     if (address >= 0xFF00 && address <= 0xFF7F)
         m_pProcessor->CheckMemoryBreakpoints(Processor::GB_BREAKPOINT_TYPE_IO, address - 0xFF00, !write);
     else if (address >= 0x8000 && address <= 0x9FFF)

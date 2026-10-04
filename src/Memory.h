@@ -103,7 +103,7 @@ public:
 
 private:
     void LoadBootroom(const char* szFilePath, bool gbc);
-    NO_INLINE void CheckBreakpoints(u16 address, bool write);
+    NO_INLINE void CheckMemoryHooks(u16 address, bool write);
     bool IsHDMASourceInvalid() const;
     INLINE void TraceLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length);
     NO_INLINE void LogLCDDMAEvent(u8 event, u16 source, u16 destination, u16 length);
