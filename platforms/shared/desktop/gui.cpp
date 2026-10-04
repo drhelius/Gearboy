@@ -57,6 +57,7 @@ static void show_error_window(void);
 static void show_loading_popup(void);
 static bool finish_loading_rom(void);
 static void update_window_visibility_padding(void);
+static ImVec2 snap_to_physical_pixel(const ImVec2& pos);
 static void set_style(void);
 static void set_style_light(ImGuiStyle& style);
 static void set_style_dark(ImGuiStyle& style);
@@ -574,7 +575,8 @@ static void main_window(void)
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar;
-    
+    bool window_visible = false;
+
     if (config_debug.debug)
     {
         flags |= ImGuiWindowFlags_AlwaysAutoResize;
@@ -582,7 +584,7 @@ static void main_window(void)
         ImGui::SetNextWindowPos(ImVec2(631, 26), ImGuiCond_FirstUseEver);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-        ImGui::Begin("Output###debug_output", &config_debug.show_screen, flags);
+        window_visible = ImGui::Begin("Output###debug_output", &config_debug.show_screen, flags);
         gui_main_window_hovered = ImGui::IsWindowHovered();
     }
     else
@@ -599,7 +601,7 @@ static void main_window(void)
 
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-        ImGui::Begin(GEARBOY_TITLE, 0, flags);
+        window_visible = ImGui::Begin(GEARBOY_TITLE, 0, flags);
         gui_main_window_hovered = ImGui::IsWindowHovered();
     }
 
@@ -616,7 +618,31 @@ static void main_window(void)
     float tex_v = 1.0f;
     ogl_renderer_get_screen_uv(&tex_h, &tex_v);
 
-    ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_get_screen_texture(), ImVec2(image_w, image_h), ImVec2(0, 0), ImVec2(tex_h, tex_v));
+    ImVec2 image_size(image_w, image_h);
+    ImVec2 layout_max = ImGui::GetCursorScreenPos() + image_size;
+    ImVec2 image_min = snap_to_physical_pixel(ImGui::GetCursorScreenPos());
+    ImVec2 image_max = image_min + image_size;
+
+    ImGui::Dummy(image_size);
+
+    if (window_visible)
+    {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        ImVec2 clip_min = draw_list->GetClipRectMin();
+        ImVec2 clip_max = draw_list->GetClipRectMax();
+
+        if (!ImGui::IsWindowDocked())
+        {
+            if (clip_max.x > layout_max.x - 1.0f)
+                clip_max.x = fmaxf(clip_max.x, image_max.x);
+            if (clip_max.y > layout_max.y - 1.0f)
+                clip_max.y = fmaxf(clip_max.y, image_max.y);
+        }
+
+        draw_list->PushClipRect(clip_min, clip_max, false);
+        draw_list->AddImage((ImTextureID)(intptr_t)ogl_renderer_get_screen_texture(), image_min, image_max, ImVec2(0, 0), ImVec2(tex_h, tex_v));
+        draw_list->PopClipRect();
+    }
 
     if (config_video.fps)
         gui_show_fps();
@@ -626,6 +652,20 @@ static void main_window(void)
     ImGui::PopStyleVar();
     ImGui::PopStyleVar();
     ImGui::PopStyleVar();
+}
+
+static ImVec2 snap_to_physical_pixel(const ImVec2& pos)
+{
+    ImGuiViewport* viewport = ImGui::GetWindowViewport();
+    ImVec2 scale = viewport->FramebufferScale;
+
+    if (scale.x <= 0.0f || scale.y <= 0.0f)
+        scale = ImGui::GetIO().DisplayFramebufferScale;
+
+    float x = ceilf(((pos.x - viewport->Pos.x) * scale.x) - 0.5f - 0.01f);
+    float y = ceilf(((pos.y - viewport->Pos.y) * scale.y) - 0.5f - 0.01f);
+
+    return ImVec2(viewport->Pos.x + (x / scale.x), viewport->Pos.y + (y / scale.y));
 }
 
 static void show_status_message(void)

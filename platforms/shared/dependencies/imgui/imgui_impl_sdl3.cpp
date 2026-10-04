@@ -1197,7 +1197,7 @@ static void ImGui_ImplSDL3_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 {
     ImGui_ImplSDL3_ViewportData* vd = (ImGui_ImplSDL3_ViewportData*)viewport->PlatformUserData;
     float coord_scale = ImGui_ImplSDL3_GetCoordScale(vd->Window);
-    SDL_SetWindowSize(vd->Window, (int)(size.x / coord_scale), (int)(size.y / coord_scale));
+    SDL_SetWindowSize(vd->Window, (int)(size.x / coord_scale + 0.01f), (int)(size.y / coord_scale + 0.01f));
 }
 
 static ImVec2 ImGui_ImplSDL3_GetWindowFramebufferScale(ImGuiViewport* viewport)

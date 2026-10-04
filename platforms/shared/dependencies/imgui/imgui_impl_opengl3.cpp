@@ -127,6 +127,7 @@
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
 #include <stdint.h>     // intptr_t
+#include <math.h>       // ceilf
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
@@ -539,8 +540,8 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
 void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
-    int fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
-    int fb_height = (int)(draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
+    int fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x + 0.01f);
+    int fb_height = (int)(draw_data->DisplaySize.y * draw_data->FramebufferScale.y + 0.01f);
     if (fb_width <= 0 || fb_height <= 0)
         return;
 
@@ -661,8 +662,14 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
+                // Round to the pixels whose centers are inside, matching rasterization with fractional framebuffer scales
+                int scissor_x0 = (int)ceilf(clip_min.x - 0.5f - 0.01f);
+                int scissor_y0 = (int)ceilf(clip_min.y - 0.5f - 0.01f);
+                int scissor_x1 = (int)ceilf(clip_max.x - 0.5f - 0.01f);
+                int scissor_y1 = (int)ceilf(clip_max.y - 0.5f - 0.01f);
+
                 // Apply scissor/clipping rectangle (Y is inverted in OpenGL)
-                GL_CALL(glScissor((int)clip_min.x, (int)((float)fb_height - clip_max.y), (int)(clip_max.x - clip_min.x), (int)(clip_max.y - clip_min.y)));
+                GL_CALL(glScissor(scissor_x0, fb_height - scissor_y1, scissor_x1 - scissor_x0, scissor_y1 - scissor_y0));
 
                 // Bind texture, Draw
                 GL_CALL(glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->GetTexID()));
