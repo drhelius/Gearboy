@@ -223,11 +223,12 @@ static void ImGui_ImplSDL3_UpdateIme()
         ImVec2 viewport_pos;
         if (ImGuiViewport* viewport = ImGui_ImplSDL3_GetViewportForWindowID(SDL_GetWindowID(window)))
             viewport_pos = viewport->Pos;
+        float coord_scale = ImGui_ImplSDL3_GetCoordScale(window);
         SDL_Rect r;
-        r.x = (int)(data->InputPos.x - viewport_pos.x);
-        r.y = (int)(data->InputPos.y - viewport_pos.y);
+        r.x = (int)((data->InputPos.x - viewport_pos.x) / coord_scale);
+        r.y = (int)((data->InputPos.y - viewport_pos.y) / coord_scale);
         r.w = 1;
-        r.h = (int)data->InputLineHeight;
+        r.h = (int)(data->InputLineHeight / coord_scale);
         SDL_SetTextInputArea(window, &r, 0);
         bd->ImeWindow = window;
     }
@@ -485,6 +486,13 @@ bool ImGui_ImplSDL3_ProcessEvent(const SDL_Event* event)
         case SDL_EVENT_DISPLAY_USABLE_BOUNDS_CHANGED:
 #endif
         {
+            bd->WantUpdateMonitors = true;
+            return true;
+        }
+        case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+        {
+            if (event->window.windowID != bd->WindowID)
+                return false;
             bd->WantUpdateMonitors = true;
             return true;
         }
@@ -952,6 +960,7 @@ static void ImGui_ImplSDL3_UpdateMonitors()
     platform_io.Monitors.resize(0);
     bd->WantUpdateMonitors = false;
 
+    float coord_scale = ImGui_ImplSDL3_GetCoordScale(bd->Window);
     int display_count;
     SDL_DisplayID* displays = SDL_GetDisplays(&display_count);
     for (int n = 0; n < display_count; n++)
@@ -961,12 +970,12 @@ static void ImGui_ImplSDL3_UpdateMonitors()
         ImGuiPlatformMonitor monitor;
         SDL_Rect r;
         SDL_GetDisplayBounds(display_id, &r);
-        monitor.MainPos = monitor.WorkPos = ImVec2((float)r.x, (float)r.y);
-        monitor.MainSize = monitor.WorkSize = ImVec2((float)r.w, (float)r.h);
+        monitor.MainPos = monitor.WorkPos = ImVec2((float)r.x * coord_scale, (float)r.y * coord_scale);
+        monitor.MainSize = monitor.WorkSize = ImVec2((float)r.w * coord_scale, (float)r.h * coord_scale);
         if (SDL_GetDisplayUsableBounds(display_id, &r) && r.w > 0 && r.h > 0)
         {
-            monitor.WorkPos = ImVec2((float)r.x, (float)r.y);
-            monitor.WorkSize = ImVec2((float)r.w, (float)r.h);
+            monitor.WorkPos = ImVec2((float)r.x * coord_scale, (float)r.y * coord_scale);
+            monitor.WorkSize = ImVec2((float)r.w * coord_scale, (float)r.h * coord_scale);
         }
         monitor.DpiScale = SDL_GetDisplayContentScale(display_id); // See https://wiki.libsdl.org/SDL3/README-highdpi for details.
         monitor.PlatformHandle = (void*)(intptr_t)n;
