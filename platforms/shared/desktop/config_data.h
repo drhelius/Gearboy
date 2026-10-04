@@ -220,6 +220,7 @@ struct config_Debug
     bool show_call_stack;
     bool show_breakpoints;
     bool show_symbols;
+    bool show_profiler;
     bool show_memory;
     bool show_video;
     bool show_video_nametable;

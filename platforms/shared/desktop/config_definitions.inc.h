@@ -35,6 +35,7 @@ static inline void process(config_Operation operation)
     CONFIG_BOOL("Debug", "CallStack", config_debug.show_call_stack, false);
     CONFIG_BOOL("Debug", "Breakpoints", config_debug.show_breakpoints, false);
     CONFIG_BOOL("Debug", "Symbols", config_debug.show_symbols, false);
+    CONFIG_BOOL("Debug", "Profiler", config_debug.show_profiler, false);
     CONFIG_BOOL("Debug", "Video", config_debug.show_video, false);
     CONFIG_BOOL("Debug", "VideoNameTable", config_debug.show_video_nametable, false);
     CONFIG_BOOL("Debug", "VideoTiles", config_debug.show_video_tiles, false);

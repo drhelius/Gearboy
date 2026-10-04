@@ -33,6 +33,7 @@
 #include "gui_debug_link_cable.h"
 #include "gui_debug_trace_logger.h"
 #include "gui_debug_sgb.h"
+#include "gui_debug_profiler.h"
 #include "emu.h"
 #include "config.h"
 
@@ -65,6 +66,7 @@ void gui_debug_reset(void)
 {
     gui_debug_disassembler_reset();
     gui_debug_memory_reset();
+    gui_debug_profiler_reset();
     gui_debug_reset_breakpoints();
     gui_debug_reset_symbols();
 }
@@ -79,6 +81,7 @@ void gui_debug_windows(void)
     gui_debug_update();
 
     emu_get_core()->GetAudio()->EnablePSGDebug(config_debug.debug && config_debug.show_psg);
+    gui_debug_profiler_update();
 
     if (config_debug.debug)
     {
@@ -94,6 +97,8 @@ void gui_debug_windows(void)
             gui_debug_window_breakpoints();
         if (config_debug.show_symbols)
             gui_debug_window_symbols();
+        if (config_debug.show_profiler)
+            gui_debug_window_profiler();
         if (config_debug.show_io)
             gui_debug_window_io();
         if (config_debug.show_psg)

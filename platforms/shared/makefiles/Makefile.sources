@@ -45,6 +45,7 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/gui_debug_memory.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_memeditor.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_trace_logger.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_profiler.cpp \
     $(DESKTOP_SRC_DIR)/trace_logger_formatter.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_processor.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_video.cpp \
@@ -99,6 +100,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/VgmRecorder.cpp \
     $(SRC_DIR)/SGB.cpp \
     $(SRC_DIR)/TraceLogger.cpp \
+    $(SRC_DIR)/Profiler.cpp \
     $(SRC_DIR)/audio/Blip_Buffer.cpp \
     $(SRC_DIR)/audio/Effects_Buffer.cpp \
     $(SRC_DIR)/audio/Gb_Apu.cpp \

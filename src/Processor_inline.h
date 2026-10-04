@@ -24,6 +24,7 @@
 #include "definitions.h"
 #include "log.h"
 #include "Memory.h"
+#include "Profiler.h"
 #include "opcode_timing.h"
 
 INLINE void Processor::TraceInstruction(u16 pc, bool halt_bug)
@@ -744,7 +745,7 @@ inline std::stack<Processor::GB_CallStackEntry>* Processor::GetDisassemblerCallS
     return &m_disassembler_call_stack;
 }
 
-inline void Processor::PushCallStack(u16 src, u16 dest, u16 back, u8 bank)
+inline void Processor::PushCallStack(u16 src, u16 dest, u16 back, u8 bank, u8 machine_cycles, bool irq)
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
     GB_CallStackEntry entry;
@@ -754,19 +755,29 @@ inline void Processor::PushCallStack(u16 src, u16 dest, u16 back, u8 bank)
     entry.bank = bank;
     if (m_disassembler_call_stack.size() < 256)
         m_disassembler_call_stack.push(entry);
+
+    if (unlikely(m_pProfiler->IsEnabled()))
+        ProfilerEnter(dest, m_iCurrentClockCycles + (machine_cycles * m_iMachineCycle), irq);
 #else
     UNUSED(src);
     UNUSED(dest);
     UNUSED(back);
     UNUSED(bank);
+    UNUSED(machine_cycles);
+    UNUSED(irq);
 #endif
 }
 
-inline void Processor::PopCallStack()
+inline void Processor::PopCallStack(u8 machine_cycles)
 {
 #if !defined(GEARBOY_DISABLE_DISASSEMBLER)
     if (!m_disassembler_call_stack.empty())
         m_disassembler_call_stack.pop();
+
+    if (unlikely(m_pProfiler->IsEnabled()))
+        m_pProfiler->Return((u16)(SP.GetValue() - 2), m_iCurrentClockCycles + (machine_cycles * m_iMachineCycle));
+#else
+    UNUSED(machine_cycles);
 #endif
 }
 
@@ -797,6 +808,10 @@ INLINE u8 Processor::RunFor(u8 ticks)
                 {
                     m_iUnhaltCycles = 0;
                     m_bHalt = false;
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+                    if (unlikely(m_pProfiler->IsEnabled()))
+                        m_pProfiler->Halt(false, m_iCurrentClockCycles);
+#endif
                 }
             }
 

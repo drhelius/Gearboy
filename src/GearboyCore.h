@@ -67,6 +67,7 @@ class SintaxMemoryRule;
 class NTOldMemoryRule;
 class MemoryRule;
 class TraceLogger;
+class Profiler;
 class SGB;
 
 class GearboyCore
@@ -142,6 +143,7 @@ public:
     Input* GetInput();
     SGB* GetSGB();
     TraceLogger* GetTraceLogger();
+    Profiler* GetProfiler();
     u64 GetMasterClockCycles();
     u64 GetLinkCableCycle() const;
     void SetLinkCableCallbacks(GB_LinkCableStateCallback state_callback, GB_LinkCableStartCallback start_callback,
@@ -224,6 +226,7 @@ private:
     u16 m_ColorCorrectionLUT[65536];
     u8* m_pSaveStateFrameBuffer;
     TraceLogger* m_trace_logger;
+    Profiler* m_profiler;
     u64 m_master_clock_cycles;
     u64 m_link_cable_cycles;
     BarcodeBoy* m_pBarcodeBoy;

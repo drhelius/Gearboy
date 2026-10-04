@@ -56,6 +56,7 @@
 #include "SintaxMemoryRule.h"
 #include "NTOldMemoryRule.h"
 #include "TraceLogger.h"
+#include "Profiler.h"
 #include "SGB.h"
 #include "common.h"
 #include "memory_stream.h"
@@ -100,6 +101,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pNTOldMemoryRule);
     InitPointer(m_pRamChangedCallback);
     InitPointer(m_trace_logger);
+    InitPointer(m_profiler);
     m_bCGB = false;
     m_bGBA = false;
     m_bSGB = false;
@@ -161,6 +163,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pProcessor);
     SafeDelete(m_pMemory);
     SafeDelete(m_trace_logger);
+    SafeDelete(m_profiler);
 }
 
 void GearboyCore::Init(GB_Color_Format pixelFormat)
@@ -192,6 +195,8 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pProcessor->SetTraceLogger(m_trace_logger);
     m_pVideo->SetTraceLogger(m_trace_logger);
     m_pMemory->SetTraceLogger(m_trace_logger);
+    m_profiler = new Profiler(&m_master_clock_cycles);
+    m_pProcessor->SetProfiler(m_profiler);
 #endif
 
     InitMemoryRules();
@@ -394,6 +399,11 @@ Input* GearboyCore::GetInput()
 TraceLogger* GearboyCore::GetTraceLogger()
 {
     return m_trace_logger;
+}
+
+Profiler* GearboyCore::GetProfiler()
+{
+    return m_profiler;
 }
 
 u64 GearboyCore::GetMasterClockCycles()
@@ -2068,6 +2078,9 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pCartridge->UpdateCurrentRTC();
     m_iRTCUpdateCount = 0;
     m_master_clock_cycles = 0;
+
+    if (IsValidPointer(m_profiler))
+        m_profiler->Reset();
 
     m_pCommonMemoryRule->Reset(m_bCGB);
     m_pRomOnlyMemoryRule->Reset(m_bCGB);

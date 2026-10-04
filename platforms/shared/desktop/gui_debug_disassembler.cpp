@@ -1137,6 +1137,11 @@ static void request_goto_address(u16 address)
     goto_address_target = address;
 }
 
+void gui_debug_goto_address(u16 address)
+{
+    request_goto_address(address);
+}
+
 static bool is_return_instruction(GS_Disassembler_Record* record)
 {
     if (!IsValidPointer(record) || record->size == 0)
@@ -2375,6 +2380,31 @@ DebugSymbol* gui_debug_get_symbol(u8 bank, u16 address)
         return NULL;
 
     return fixed_symbols[bank][address];
+}
+
+const char* gui_debug_get_symbol_name(u16 bank, u16 address, bool* is_manual)
+{
+    *is_manual = false;
+
+    if (IsValidPointer(fixed_symbols) && IsValidPointer(dynamic_symbols))
+    {
+        DebugSymbol* symbol = fixed_symbols[(u8)bank][address];
+        if (IsValidPointer(symbol))
+        {
+            *is_manual = true;
+            return symbol->text;
+        }
+
+        symbol = dynamic_symbols[(u8)bank][address];
+        if (IsValidPointer(symbol))
+            return symbol->text;
+    }
+
+    GS_Disassembler_Record* record = emu_get_core()->GetMemory()->GetDisassemblerRecord(address, bank);
+    if (IsValidPointer(record) && (record->auto_symbol[0] != 0))
+        return record->auto_symbol;
+
+    return NULL;
 }
 
 void gui_debug_find_symbols(const char* name, std::vector<DebugSymbol*>& symbols)

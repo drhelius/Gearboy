@@ -22,6 +22,7 @@
 #include <ctype.h>
 #include "Processor.h"
 #include "TraceLogger.h"
+#include "Profiler.h"
 #include "opcode_timing.h"
 #include "opcode_names.h"
 #include "common.h"
@@ -31,6 +32,7 @@ Processor::Processor(Memory* pMemory)
     m_pMemory = pMemory;
     m_pMemory->SetProcessor(this);
     InitPointer(m_pTraceLogger);
+    InitPointer(m_pProfiler);
     InitOPCodeTable();
     m_bIME = false;
     m_bHalt = false;
@@ -84,6 +86,23 @@ Processor::~Processor()
 void Processor::SetTraceLogger(TraceLogger* pTraceLogger)
 {
     m_pTraceLogger = pTraceLogger;
+}
+
+void Processor::SetProfiler(Profiler* pProfiler)
+{
+    m_pProfiler = pProfiler;
+}
+
+void Processor::ProfilerEnter(u16 address, u32 pending_cycles, bool irq)
+{
+#if !defined(GEARBOY_DISABLE_DISASSEMBLER)
+    u32 key = (address < 0x8000) ? m_pMemory->GetPhysicalAddress(address) : (PROFILER_RAM_KEY | address);
+    m_pProfiler->Enter(key, address, m_pMemory->GetTraceBank(address), SP.GetValue(), irq, pending_cycles);
+#else
+    UNUSED(address);
+    UNUSED(pending_cycles);
+    UNUSED(irq);
+#endif
 }
 
 void Processor::SetDisassemblerSyntax(GB_Disassembler_Syntax syntax)
@@ -365,7 +384,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
             }
         }
 
-        PushCallStack(old_pc, PC.GetValue(), old_pc, 0);
+        PushCallStack(old_pc, PC.GetValue(), old_pc, 0, 0, true);
 
         TraceIRQEvent(old_pc, PC.GetValue(), irq_type);
     }
@@ -1377,6 +1396,9 @@ void Processor::ResetDebuggerExecutionState()
     m_memory_breakpoint_hit = false;
     m_run_to_breakpoint_hit = false;
     m_debug_next_irq = 0;
+
+    if (IsValidPointer(m_pProfiler))
+        m_pProfiler->ResetStack();
 }
 
 void Processor::ClearDisassemblerCallStack()

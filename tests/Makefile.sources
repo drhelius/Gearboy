@@ -49,6 +49,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/VgmRecorder.cpp \
     $(SRC_DIR)/SGB.cpp \
     $(SRC_DIR)/TraceLogger.cpp \
+    $(SRC_DIR)/Profiler.cpp \
     ../platforms/shared/desktop/trace_logger_formatter.cpp \
     $(SRC_DIR)/audio/Blip_Buffer.cpp \
     $(SRC_DIR)/audio/Effects_Buffer.cpp \

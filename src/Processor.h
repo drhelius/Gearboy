@@ -31,6 +31,7 @@
 
 class Memory;
 class TraceLogger;
+class Profiler;
 
 class Processor
 {
@@ -161,6 +162,7 @@ public:
     void CheckMemoryBreakpoints(int type, u16 address, bool read);
     bool Halted();
     void SetTraceLogger(TraceLogger* pTraceLogger);
+    void SetProfiler(Profiler* pProfiler);
     u8 NormalizeSerialControl(u8 value) const;
     void NotifySerialDataWrite(u8 value);
     void NotifySerialControlWrite(u8 value);
@@ -195,6 +197,7 @@ private:
     OPCptr m_OPCodesCB[256];
     Memory* m_pMemory;
     TraceLogger* m_pTraceLogger;
+    Profiler* m_pProfiler;
     SixteenBitRegister AF;
     SixteenBitRegister BC;
     SixteenBitRegister DE;
@@ -269,8 +272,9 @@ private:
 
 private:
     void CheckBreakpoints();
-    void PushCallStack(u16 src, u16 dest, u16 back, u8 bank);
-    void PopCallStack();
+    void PushCallStack(u16 src, u16 dest, u16 back, u8 bank, u8 machine_cycles, bool irq);
+    void PopCallStack(u8 machine_cycles);
+    NO_INLINE void ProfilerEnter(u16 address, u32 pending_cycles, bool irq);
     void FormatDisassemblerDataBytes(char* text, size_t text_size, const u8* bytes, int size);
     void SetDisassemblerOperandText(GB_Disassembler_Record* record, const char* text);
     void SetDisassemblerOperand(GB_Disassembler_Record* record, u16 address, bool is_zp, const char* text);
