@@ -145,7 +145,7 @@ bool video_recorder_start(const char* path, int video_width, int video_height, d
     max_chunk_size[Video_Recorder_Stream_Audio] = 0;
     memset(segments, 0, sizeof(segments));
 
-    scaled_buffer = new u32[width * height];
+    scaled_buffer = new u32[(size_t)width * height];
     scaled_x = new int[width];
     scaled_source_width = 0;
 
@@ -601,7 +601,7 @@ static void scale_frame(const u8* frame_buffer, int frame_width, int frame_heigh
 static void encode_lossless(void)
 {
     int stride = get_lossless_stride();
-    frame_data.assign(stride * height, 0);
+    frame_data.assign((size_t)stride * height, 0);
 
     for (int y = 0; y < height; y++)
     {
