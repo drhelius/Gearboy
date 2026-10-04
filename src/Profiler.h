@@ -47,7 +47,7 @@ struct GB_Profiler_Function
     u64 exclusive_cycles;
     u32 key;
     u32 calls;
-    u32 active;
+    u32 completed;
     u32 min_cycles;
     u32 max_cycles;
     u16 address;
@@ -62,6 +62,7 @@ struct GB_Profiler_Frame
     u16 function;
     u16 return_sp;
     bool irq;
+    bool outermost;
 };
 
 class Profiler
@@ -88,6 +89,7 @@ private:
     void Leave(u64 cycle);
     void AddSample(GB_Profiler_Function* function, u64 cycles);
     u16 GetCurrentFunction() const;
+    bool IsOutermost(u16 function, bool irq) const;
 
 private:
     GB_Profiler_Function* m_functions;

@@ -29,11 +29,14 @@
 #include "../gui_debug_memeditor.h"
 #include "../gui_debug_rewind.h"
 #include "../gui_debug_trace_logger.h"
+#include "../gui_debug_profiler.h"
 #include "../trace_logger_formatter.h"
 #include "../config.h"
 #include "../events.h"
 #include "../rewind.h"
 #include <cstring>
+#include <cctype>
+#include <cmath>
 #include <sstream>
 #include <iomanip>
 #include <vector>
@@ -3051,5 +3054,207 @@ json DebugAdapter::SetTraceLog(bool enabled, u32 flags, const std::string& outpu
     }
 
     result["total_entries"] = tl->GetCount();
+    return result;
+}
+
+struct ProfilerEntry
+{
+    u32 index;
+    u64 key;
+    std::string name;
+    const char* symbol;
+};
+
+static const char* const k_profiler_type_names[] = { "root", "halt", "call", "irq" };
+
+static bool profiler_entry_compare(const ProfilerEntry& a, const ProfilerEntry& b)
+{
+    if (a.key != b.key)
+        return a.key > b.key;
+    return a.index < b.index;
+}
+
+static double profiler_round(double value)
+{
+    return floor((value * 100.0) + 0.5) / 100.0;
+}
+
+json DebugAdapter::SetProfiler(const std::string& action)
+{
+    json result;
+
+    Profiler* profiler = m_core->GetProfiler();
+    if (!IsValidPointer(profiler))
+    {
+        result["error"] = "Profiler not available";
+        return result;
+    }
+
+    if (action == "start")
+    {
+        if (!config_debug.debug)
+        {
+            config_debug.debug = true;
+            emu_debug_continue();
+        }
+        gui_debug_profiler_show(true);
+    }
+    else if (action == "stop")
+        gui_debug_profiler_show(false);
+    else if (action == "reset")
+    {
+        profiler->Reset();
+        gui_debug_profiler_reset();
+    }
+    else
+    {
+        result["error"] = "Invalid profiler action";
+        return result;
+    }
+
+    result["success"] = true;
+    result["action"] = action;
+    result["window_open"] = config_debug.show_profiler;
+    return result;
+}
+
+json DebugAdapter::GetProfilerData(const std::string& sort, int count, const std::string& filter)
+{
+    json result;
+
+    Profiler* profiler = m_core->GetProfiler();
+    if (!IsValidPointer(profiler) || !IsValidPointer(profiler->GetFunctions()))
+    {
+        result["error"] = "Profiler not available";
+        return result;
+    }
+
+    if (count < 1)
+        count = 50;
+    if (count > 1000)
+        count = 1000;
+
+    profiler->Sync();
+
+    const GB_Profiler_Function* functions = profiler->GetFunctions();
+    u32 function_count = profiler->GetFunctionCount();
+    u64 total = profiler->GetTotalCycles();
+    u32 frame_cycles = gui_debug_profiler_get_frame_cycles();
+    double frames = (frame_cycles > 0) ? (double)total / (double)frame_cycles : 0.0;
+
+    std::string filter_upper = filter;
+    std::transform(filter_upper.begin(), filter_upper.end(), filter_upper.begin(), ::toupper);
+
+    std::vector<ProfilerEntry> entries;
+
+    for (u32 i = 0; i < function_count; i++)
+    {
+        const GB_Profiler_Function& function = functions[i];
+        bool pseudo = (function.type == PROFILER_FUNCTION_ROOT) || (function.type == PROFILER_FUNCTION_HALT);
+
+        ProfilerEntry entry;
+        entry.index = i;
+        entry.key = 0;
+        entry.symbol = "none";
+
+        if (function.type == PROFILER_FUNCTION_ROOT)
+            entry.name = "[Root]";
+        else if (function.type == PROFILER_FUNCTION_HALT)
+            entry.name = "[HALT]";
+        else
+        {
+            bool is_manual = false;
+            const char* name = gui_debug_get_symbol_name(function.bank, function.address, &is_manual);
+            if (IsValidPointer(name))
+            {
+                entry.name = name;
+                entry.symbol = is_manual ? "manual" : "auto";
+            }
+        }
+
+        if (!filter_upper.empty())
+        {
+            std::string name_upper = entry.name;
+            std::transform(name_upper.begin(), name_upper.end(), name_upper.begin(), ::toupper);
+
+            char address[8];
+            snprintf(address, sizeof(address), "%04X", function.address);
+
+            bool name_match = (name_upper.find(filter_upper) != std::string::npos);
+            bool address_match = !pseudo && (std::string(address).find(filter_upper) != std::string::npos);
+
+            if (!name_match && !address_match)
+                continue;
+        }
+
+        if (sort == "exclusive")
+            entry.key = function.exclusive_cycles;
+        else if (sort == "calls")
+            entry.key = function.calls;
+        else if (sort == "average")
+            entry.key = (function.completed > 0) ? function.inclusive_cycles / function.completed : 0;
+        else if (sort == "max")
+            entry.key = (function.completed > 0) ? function.max_cycles : 0;
+        else
+            entry.key = function.inclusive_cycles;
+
+        entries.push_back(entry);
+    }
+
+    std::sort(entries.begin(), entries.end(), profiler_entry_compare);
+
+    json functions_array = json::array();
+
+    for (size_t i = 0; (i < entries.size()) && (i < (size_t)count); i++)
+    {
+        const GB_Profiler_Function& function = functions[entries[i].index];
+        bool root = (function.type == PROFILER_FUNCTION_ROOT);
+        bool pseudo = root || (function.type == PROFILER_FUNCTION_HALT);
+        json item;
+        char text[16];
+
+        item["name"] = entries[i].name;
+        item["type"] = k_profiler_type_names[function.type];
+
+        if (!pseudo)
+        {
+            item["symbol"] = entries[i].symbol;
+            snprintf(text, sizeof(text), "%02X", function.bank);
+            item["bank"] = text;
+            snprintf(text, sizeof(text), "%04X", function.address);
+            item["address"] = text;
+        }
+
+        if (!root)
+        {
+            item["calls"] = function.calls;
+            item["calls_per_frame"] = (frames > 0.0) ? profiler_round((double)function.calls / frames) : 0.0;
+            item["inclusive_cycles"] = function.inclusive_cycles;
+            item["inclusive_percent"] = (total > 0) ? profiler_round(((double)function.inclusive_cycles * 100.0) / (double)total) : 0.0;
+        }
+
+        item["exclusive_cycles"] = function.exclusive_cycles;
+        item["exclusive_percent"] = (total > 0) ? profiler_round(((double)function.exclusive_cycles * 100.0) / (double)total) : 0.0;
+
+        if (!root && (function.completed > 0))
+        {
+            item["average_cycles"] = function.inclusive_cycles / function.completed;
+            item["min_cycles"] = function.min_cycles;
+            item["max_cycles"] = function.max_cycles;
+        }
+
+        functions_array.push_back(item);
+    }
+
+    result["collecting"] = profiler->IsEnabled();
+    result["window_open"] = config_debug.show_profiler;
+    result["total_cycles"] = total;
+    result["frame_cycles"] = frame_cycles;
+    result["frames"] = profiler_round(frames);
+    result["function_count"] = function_count - 2;
+    result["sort"] = sort;
+    result["count"] = functions_array.size();
+    result["functions"] = functions_array;
+
     return result;
 }

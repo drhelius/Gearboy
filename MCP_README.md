@@ -57,6 +57,7 @@ This server provides tools for game development, rom hacking, reverse engineerin
 - **Bookmarks**: Memory and disassembler bookmarks for navigation
 - **Call Stack**: View function call hierarchy
 - **Trace Logger**: CPU instruction trace with interleaved LCD, input, timer, APU, serial, and mapper events
+- **Profiler**: Per-function call counts, calls per frame, and inclusive/exclusive cycle statistics
 - **Rewind**: Time-travel debugging with snapshot status and seek tools
 - **Screenshot Capture**: Get current frame as PNG image
 - **GUI Integration**: MCP server runs alongside the emulator GUI, sharing the same state
@@ -325,6 +326,7 @@ Once configured, you can ask your AI assistant:
 - "Locate the sprite update routine. Study how this game manages its OAM sprite system, explain the algorithm, and add bookmarks to key sections. Also add watches for any sprite-related variables you find"
 - "There's a data decompression routine around address 0x4000. Step through it instruction by instruction, reverse engineer the compression algorithm, and explain how it works with examples"
 - "Find where the game stores its level data in ROM. Analyze the data structure format, create a memory map showing each section, and add symbols for the data tables"
+- "Profile the game for a few seconds, then tell me which functions use the most CPU time per frame and what they do"
 - "The game is rendering corrupted graphics. Examine the LCD registers, check the VRAM contents, inspect the OAM sprite table, and diagnose what's causing the corruption. Set up watches on relevant memory addresses"
 
 ## Available MCP Tools
@@ -378,6 +380,10 @@ The server exposes tools organized in the following categories:
 - `get_call_stack` - View function call hierarchy
 - `get_trace_log` - Read trace logger entries using absolute sequence pagination. Responses include `total_entries`, `total_logged`, `oldest_sequence`, `start`, `next_sequence`, `count`, `overrun`, and `lines`. Omit `start` for the latest 100 retained entries, or use a negative value to start that many entries from the retained tail
 - `set_trace_log` - Start or stop trace logging. Use `filters` for exact streams such as `cpu.instructions`, `lcd.interrupts`, or `serial.transfers`; omitting it enables the safe default of CPU instructions and interrupts. Storage options are `output` (`memory` or `disk`), `memory_size` (`100K` through `5M`), `disk_size` (`10MB` through `1GB`, or `unbounded`), and `output_path`
+
+### Profiler
+- `set_profiler` - Start, stop, or reset the function profiler with `action` (`start`, `stop`, `reset`). `start` opens the Profiler debugger window and `stop` closes it. Statistics are only collected while the window is visible (in headless mode, while started), starting on the next frame
+- `get_profiler_data` - Read profiler results: `collecting`, `window_open`, `total_cycles`, `frame_cycles`, `frames`, `function_count`, and per-function `name`, `symbol`, `bank`, `address`, `type`, `calls`, `calls_per_frame`, `inclusive_cycles`, `inclusive_percent`, `exclusive_cycles`, `exclusive_percent`, `average_cycles`, `min_cycles`, and `max_cycles`. Optional `sort` (`inclusive`, `exclusive`, `calls`, `average`, `max`; highest first), `count` (default 50, max 1000), and `filter` (name or hex address substring)
 
 ### Breakpoints
 - `set_breakpoint` - Set execution, read, or write breakpoint (supports 3 memory areas: rom_ram, vram, io)

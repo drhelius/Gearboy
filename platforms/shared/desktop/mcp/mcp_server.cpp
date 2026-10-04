@@ -1678,6 +1678,53 @@ json McpServer::BuildToolList()
     });
 
     tools.push_back({
+        {"name", "set_profiler"},
+        {"title", "Set Profiler"},
+        {"description", "Start (opens the Profiler window), stop (closes it), or reset the function profiler. Collects only while the window is visible."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"action", {
+                    {"type", "string"},
+                    {"description", "start opens the window and resumes collection; stop closes the window; reset clears collected data."},
+                    {"enum", json::array({"start", "stop", "reset"})}
+                }}
+            }},
+            {"required", json::array({"action"})},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_profiler_data"},
+        {"title", "Get Profiler Data"},
+        {"description", "Read function profiler results: totals plus per-function symbol, address, bank, calls, calls per frame, inclusive/exclusive cycles and percentages, and avg/min/max cycles per call."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"sort", {
+                    {"type", "string"},
+                    {"description", "Sort order, highest first (default inclusive)."},
+                    {"enum", json::array({"inclusive", "exclusive", "calls", "average", "max"})}
+                }},
+                {"count", {
+                    {"type", "integer"},
+                    {"description", "Functions to return (default 50, max 1000)"},
+                    {"minimum", 1},
+                    {"maximum", 1000}
+                }},
+                {"filter", {
+                    {"type", "string"},
+                    {"description", "Case-insensitive substring matched against function name or hex address."}
+                }}
+            }},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
         {"name", "get_sgb_status"},
         {"title", "Get SGB Status"},
         {"description", "Read Super Game Boy state: active, mask, multiplayer, last command, transfer, border animation, palettes, attribute map."},
@@ -2815,6 +2862,18 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     else if (normalizedTool == "get_sgb_status")
     {
         return m_debugAdapter.GetSGBStatus();
+    }
+    else if (normalizedTool == "set_profiler")
+    {
+        std::string action = arguments["action"];
+        return m_debugAdapter.SetProfiler(action);
+    }
+    else if (normalizedTool == "get_profiler_data")
+    {
+        std::string sort = arguments.value("sort", "inclusive");
+        int count = arguments.value("count", 50);
+        std::string filter = arguments.value("filter", "");
+        return m_debugAdapter.GetProfilerData(sort, count, filter);
     }
     else
     {

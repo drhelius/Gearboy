@@ -64,18 +64,11 @@ void Profiler::Reset()
         InitFunction(PROFILER_HALT, 0, 0, 0, PROFILER_FUNCTION_HALT);
     }
 
-    m_depth = 0;
     ResetStack();
 }
 
 void Profiler::ResetStack()
 {
-    for (int i = 0; i < m_depth; i++)
-        m_functions[m_stack[i].function].active = 0;
-
-    if (IsValidPointer(m_functions))
-        m_functions[PROFILER_HALT].active = 0;
-
     m_depth = 0;
     m_halted = false;
     m_halt_cycle = 0;
@@ -119,7 +112,6 @@ void Profiler::Enter(u32 key, u16 address, u16 bank, u16 return_sp, bool irq, u3
 
     GB_Profiler_Function* function = &m_functions[index];
     function->calls++;
-    function->active++;
 
     GB_Profiler_Frame* frame = &m_stack[m_depth];
     frame->enter_cycle = cycle;
@@ -127,6 +119,7 @@ void Profiler::Enter(u32 key, u16 address, u16 bank, u16 return_sp, bool irq, u3
     frame->function = index;
     frame->return_sp = return_sp;
     frame->irq = irq;
+    frame->outermost = IsOutermost(index, irq);
     m_depth++;
 }
 
@@ -155,14 +148,13 @@ void Profiler::Halt(bool halted, u32 pending_cycles)
     if (halted)
     {
         function->calls++;
-        function->active = 1;
         m_halt_cycle = cycle;
     }
     else
     {
         u64 cycles = (cycle > m_halt_cycle) ? cycle - m_halt_cycle : 0;
-        function->active = 0;
         function->inclusive_cycles += cycles;
+        function->completed++;
         AddSample(function, cycles);
     }
 
@@ -191,7 +183,7 @@ void Profiler::InitFunction(u16 index, u32 key, u16 address, u16 bank, GB_Profil
     function->exclusive_cycles = 0;
     function->key = key;
     function->calls = 0;
-    function->active = 0;
+    function->completed = 0;
     function->min_cycles = 0xFFFFFFFF;
     function->max_cycles = 0;
     function->address = address;
@@ -249,9 +241,11 @@ void Profiler::Leave(u64 cycle)
     u64 irq_cycles = m_irq_cycles - frame->irq_cycles;
     u64 cycles = (elapsed > irq_cycles) ? elapsed - irq_cycles : 0;
 
-    function->active--;
-    if (function->active == 0)
+    if (frame->outermost)
+    {
         function->inclusive_cycles += cycles;
+        function->completed++;
+    }
 
     AddSample(function, cycles);
 
@@ -267,6 +261,22 @@ void Profiler::AddSample(GB_Profiler_Function* function, u64 cycles)
         function->min_cycles = value;
     if (value > function->max_cycles)
         function->max_cycles = value;
+}
+
+bool Profiler::IsOutermost(u16 function, bool irq) const
+{
+    if (irq)
+        return true;
+
+    for (int i = m_depth - 1; i >= 0; i--)
+    {
+        if (m_stack[i].function == function)
+            return false;
+        if (m_stack[i].irq)
+            return true;
+    }
+
+    return true;
 }
 
 u16 Profiler::GetCurrentFunction() const

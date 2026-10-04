@@ -181,6 +181,8 @@ public:
     json SetTraceLog(bool enabled, u32 flags, const std::string& output,
         const std::string& memory_size, const std::string& disk_size,
         const std::string& output_path, const u32* event_filters);
+    json SetProfiler(const std::string& action);
+    json GetProfilerData(const std::string& sort, int count, const std::string& filter);
 
     // Core access
     GearboyCore* GetCore() { return m_core; }

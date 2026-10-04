@@ -20,6 +20,8 @@
 #ifndef GUI_DEBUG_PROFILER_H
 #define GUI_DEBUG_PROFILER_H
 
+#include "gearboy.h"
+
 #ifdef GUI_DEBUG_PROFILER_IMPORT
     #define EXTERN
 #else
@@ -28,7 +30,10 @@
 
 EXTERN void gui_debug_window_profiler(void);
 EXTERN void gui_debug_profiler_update(void);
+EXTERN void gui_debug_profiler_update_headless(void);
 EXTERN void gui_debug_profiler_reset(void);
+EXTERN void gui_debug_profiler_show(bool show);
+EXTERN u32 gui_debug_profiler_get_frame_cycles(void);
 
 #undef GUI_DEBUG_PROFILER_IMPORT
 #undef EXTERN

@@ -25,6 +25,7 @@
 #include "gui.h"
 #include "gui_debug.h"
 #include "gui_debug_disassembler.h"
+#include "gui_debug_profiler.h"
 #include "log.h"
 
 static volatile bool headless_running = true;
@@ -134,6 +135,7 @@ void application_headless_mainloop(void)
 
         emu_update();
         gui_debug_update();
+        gui_debug_profiler_update_headless();
         gui_finish_loading_rom();
 
         if (!emu_mcp_is_running() && !emu_link_cable_is_active())

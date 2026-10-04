@@ -88,7 +88,6 @@ static void draw_profiler(Profiler* profiler);
 static void build_rows(const GB_Profiler_Function* functions, u32 count);
 static bool row_matches_filter(const ProfilerRow& row, const GB_Profiler_Function& function, const char* filter);
 static bool is_pseudo_function(const GB_Profiler_Function& function);
-static u32 get_completed_calls(const GB_Profiler_Function& function);
 static u64 get_sort_value(const GB_Profiler_Function& function, int column);
 static bool row_sort_compare(const ProfilerRow& a, const ProfilerRow& b);
 static void draw_right_aligned(const ImVec4& color, const char* text);
@@ -122,11 +121,40 @@ void gui_debug_profiler_update(void)
         profiler->Enable(profiler_visible && !profiler_paused);
 }
 
+void gui_debug_profiler_update_headless(void)
+{
+    Profiler* profiler = emu_get_core()->GetProfiler();
+    if (IsValidPointer(profiler))
+        profiler->Enable(config_debug.debug && config_debug.show_profiler && !profiler_paused);
+}
+
 void gui_debug_profiler_reset(void)
 {
     profiler_rows.clear();
     profiler_function_count = 0;
     profiler_dirty = true;
+}
+
+void gui_debug_profiler_show(bool show)
+{
+    config_debug.show_profiler = show;
+
+    if (show)
+    {
+        profiler_paused = false;
+        return;
+    }
+
+    profiler_visible = false;
+
+    Profiler* profiler = emu_get_core()->GetProfiler();
+    if (IsValidPointer(profiler))
+        profiler->Enable(false);
+}
+
+u32 gui_debug_profiler_get_frame_cycles(void)
+{
+    return GAMEBOY_CLOCKS_PER_FRAME;
 }
 
 static void draw_profiler(Profiler* profiler)
@@ -153,7 +181,7 @@ static void draw_profiler(Profiler* profiler)
 
     ImGui::SameLine();
     ImGui::Text("Functions: %u  Frames: %llu  Cycles: %llu", count - 2,
-        (unsigned long long)(total / GAMEBOY_CLOCKS_PER_FRAME), (unsigned long long)total);
+        (unsigned long long)(total / gui_debug_profiler_get_frame_cycles()), (unsigned long long)total);
 
     ImGui::SameLine();
     ImGui::PushItemWidth(-1);
@@ -231,7 +259,7 @@ static void draw_profiler(Profiler* profiler)
                 const GB_Profiler_Function& function = functions[row.index];
                 bool pseudo = is_pseudo_function(function);
                 bool root = (function.type == PROFILER_FUNCTION_ROOT);
-                u32 completed = get_completed_calls(function);
+                u32 completed = function.completed;
 
                 ImGui::TableNextRow();
 
@@ -400,14 +428,9 @@ static bool is_pseudo_function(const GB_Profiler_Function& function)
     return (function.type == PROFILER_FUNCTION_ROOT) || (function.type == PROFILER_FUNCTION_HALT);
 }
 
-static u32 get_completed_calls(const GB_Profiler_Function& function)
-{
-    return (function.calls > function.active) ? function.calls - function.active : 0;
-}
-
 static u64 get_sort_value(const GB_Profiler_Function& function, int column)
 {
-    u32 completed = get_completed_calls(function);
+    u32 completed = function.completed;
 
     switch (column)
     {
@@ -484,7 +507,7 @@ static void draw_percent(u64 value, u64 total)
 static void draw_calls_per_frame(u32 calls, u64 total)
 {
     char text[32];
-    double frames = (double)total / (double)GAMEBOY_CLOCKS_PER_FRAME;
+    double frames = (double)total / (double)gui_debug_profiler_get_frame_cycles();
     snprintf(text, sizeof(text), "%.2f", (double)calls / frames);
     draw_right_aligned(white, text);
 }
