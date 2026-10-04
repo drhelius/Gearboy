@@ -160,12 +160,15 @@ void gui_debug_window_psg(void)
 
                     ImPlotAxisFlags flags = ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickLabels | ImPlotAxisFlags_NoLabel | ImPlotAxisFlags_NoHighlight | ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickMarks;
 
+                    ImPlotSpec spec;
+                    spec.LineColor = green;
+                    spec.LineWeight = 1.0f;
+
                     if (ImPlot::BeginPlot("Waveform", ImVec2(180, 50), ImPlotFlags_CanvasOnly))
                     {
                         ImPlot::SetupAxes("x", "y", flags, flags);
                         ImPlot::SetupAxesLimits(x_min, x_max, -1.0f, 1.0f, ImPlotCond_Always);
-                        ImPlot::SetNextLineStyle(green, 1.0f);
-                        ImPlot::PlotLine("Wave", wave_buffer, data_size);
+                        ImPlot::PlotLine("Wave", wave_buffer, data_size, 1.0, 0.0, spec);
                         ImPlot::EndPlot();
                     }
 
