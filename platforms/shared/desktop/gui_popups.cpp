@@ -23,7 +23,7 @@
 #include "gui_popups.h"
 #include "gui.h"
 #include "gui_actions.h"
-#include "gui_debug_constants.h"
+#include "gui_colors.h"
 #include "config.h"
 #include "application.h"
 #include "gamepad.h"

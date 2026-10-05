@@ -22,6 +22,7 @@
 
 #include <list>
 #include "gui.h"
+#include "gui_colors.h"
 #include "emu.h"
 #include "utils.h"
 
@@ -245,7 +246,7 @@ void gui_cheats_window(void)
             ImGui::TableSetColumnIndex(1);
             if (invalid)
             {
-                ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.85f, 0.20f, 0.20f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_Border, red);
                 ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             }
 
