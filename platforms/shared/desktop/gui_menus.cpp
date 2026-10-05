@@ -70,6 +70,7 @@ static void menu_emulator(void);
 static void menu_video(void);
 static void menu_shader(void);
 static void draw_shader_parameters(void);
+static void draw_shader_parameter_tooltip(void);
 static bool shader_parameter_is_toggle(const ShaderPresetParameter* parameter);
 static bool shader_parameter_is_integer(const ShaderPresetParameter* parameter);
 static int shader_parameter_round_to_int(float value);
@@ -1113,6 +1114,7 @@ static void draw_shader_parameters(void)
                 ogl_shader_chain_set_parameter(i, (float)int_value);
                 ogl_renderer_save_shader_parameter_config();
             }
+            draw_shader_parameter_tooltip();
             continue;
         }
 
@@ -1121,9 +1123,22 @@ static void draw_shader_parameters(void)
             ogl_shader_chain_set_parameter(i, value);
             ogl_renderer_save_shader_parameter_config();
         }
+        draw_shader_parameter_tooltip();
     }
 
     ImGui::PopItemWidth();
+}
+
+static void draw_shader_parameter_tooltip(void)
+{
+    if (ImGui::IsItemHovered() && !ImGui::IsItemActive())
+    {
+#if defined(__APPLE__)
+        ImGui::SetTooltip("Cmd+Click to enter a value");
+#else
+        ImGui::SetTooltip("Ctrl+Click to enter a value");
+#endif
+    }
 }
 
 static bool shader_parameter_is_toggle(const ShaderPresetParameter* parameter)
