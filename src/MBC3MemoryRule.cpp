@@ -733,8 +733,6 @@ void MBC3MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
     stream.write(reinterpret_cast<const char*> (&m_bRTCEnabled), sizeof(m_bRTCEnabled));
     stream.write(reinterpret_cast<const char*> (m_pRAMBanks), m_iRAMBanksSize);
-    s32 rtc_latch = 0;
-    stream.write(reinterpret_cast<const char*> (&rtc_latch), sizeof(rtc_latch));
     stream.write(reinterpret_cast<const char*> (&m_RTCRegister), sizeof(m_RTCRegister));
     stream.write(reinterpret_cast<const char*> (&m_RTCLastTimeCache), sizeof(m_RTCLastTimeCache));
     stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
@@ -768,8 +766,11 @@ void MBC3MemoryRule::LoadState(std::istream& stream, u32 version)
     stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
     stream.read(reinterpret_cast<char*> (&m_bRTCEnabled), sizeof(m_bRTCEnabled));
     stream.read(reinterpret_cast<char*> (m_pRAMBanks), m_iRAMBanksSize);
-    s32 rtc_latch = 0;
-    stream.read(reinterpret_cast<char*> (&rtc_latch), sizeof(rtc_latch));
+    if (version < 117)
+    {
+        s32 rtc_latch = 0;
+        stream.read(reinterpret_cast<char*> (&rtc_latch), sizeof(rtc_latch));
+    }
     stream.read(reinterpret_cast<char*> (&m_RTCRegister), sizeof(m_RTCRegister));
     stream.read(reinterpret_cast<char*> (&m_RTCLastTimeCache), sizeof(m_RTCLastTimeCache));
     stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));

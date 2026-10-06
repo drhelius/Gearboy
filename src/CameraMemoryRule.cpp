@@ -261,13 +261,11 @@ void CameraMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_pRAMBanks), kCameraRamBanksSize);
     stream.write(reinterpret_cast<const char*> (m_CameraRegisters), sizeof(m_CameraRegisters));
     stream.write(reinterpret_cast<const char*> (&m_bCapturing), sizeof(m_bCapturing));
-    int capture_clocks = 0;
-    stream.write(reinterpret_cast<const char*> (&capture_clocks), sizeof(capture_clocks));
     stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
     stream.write(reinterpret_cast<const char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
 }
 
-void CameraMemoryRule::LoadState(std::istream& stream, u32)
+void CameraMemoryRule::LoadState(std::istream& stream, u32 version)
 {
     using namespace std;
 
@@ -278,8 +276,11 @@ void CameraMemoryRule::LoadState(std::istream& stream, u32)
     stream.read(reinterpret_cast<char*> (m_pRAMBanks), kCameraRamBanksSize);
     stream.read(reinterpret_cast<char*> (m_CameraRegisters), sizeof(m_CameraRegisters));
     stream.read(reinterpret_cast<char*> (&m_bCapturing), sizeof(m_bCapturing));
-    int capture_clocks = 0;
-    stream.read(reinterpret_cast<char*> (&capture_clocks), sizeof(capture_clocks));
+    if (version < 117)
+    {
+        int capture_clocks = 0;
+        stream.read(reinterpret_cast<char*> (&capture_clocks), sizeof(capture_clocks));
+    }
     stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
     stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
 

@@ -257,23 +257,24 @@ void MultiMBC1MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iMulticartMode), sizeof(m_iMulticartMode));
     stream.write(reinterpret_cast<const char*> (&m_iROMBankHi), sizeof(m_iROMBankHi));
     stream.write(reinterpret_cast<const char*> (&m_iROMBankLo), sizeof(m_iROMBankLo));
-    int mbc1_bank_1 = 0;
-    stream.write(reinterpret_cast<const char*> (&mbc1_bank_1), sizeof(mbc1_bank_1));
     stream.write(reinterpret_cast<const char*> (&m_iMBC1MBank_0), sizeof(m_iMBC1MBank_0));
     stream.write(reinterpret_cast<const char*> (&m_iMBC1MBank_1), sizeof(m_iMBC1MBank_1));
     stream.write(reinterpret_cast<const char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
     stream.write(reinterpret_cast<const char*> (m_pRAMBanks), 0x2000);
 }
 
-void MultiMBC1MemoryRule::LoadState(std::istream& stream, u32)
+void MultiMBC1MemoryRule::LoadState(std::istream& stream, u32 version)
 {
     using namespace std;
 
     stream.read(reinterpret_cast<char*> (&m_iMulticartMode), sizeof(m_iMulticartMode));
     stream.read(reinterpret_cast<char*> (&m_iROMBankHi), sizeof(m_iROMBankHi));
     stream.read(reinterpret_cast<char*> (&m_iROMBankLo), sizeof(m_iROMBankLo));
-    int mbc1_bank_1 = 0;
-    stream.read(reinterpret_cast<char*> (&mbc1_bank_1), sizeof(mbc1_bank_1));
+    if (version < 117)
+    {
+        int mbc1_bank_1 = 0;
+        stream.read(reinterpret_cast<char*> (&mbc1_bank_1), sizeof(mbc1_bank_1));
+    }
     stream.read(reinterpret_cast<char*> (&m_iMBC1MBank_0), sizeof(m_iMBC1MBank_0));
     stream.read(reinterpret_cast<char*> (&m_iMBC1MBank_1), sizeof(m_iMBC1MBank_1));
     stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
