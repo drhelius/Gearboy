@@ -128,10 +128,7 @@ static int DayOfYearToDayOfMonth(int dayOfYear, int leapYear)
     return dayOfYear - offset;
 }
 
-TAMA5MemoryRule::TAMA5MemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+TAMA5MemoryRule::TAMA5MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     Reset(false);
 }

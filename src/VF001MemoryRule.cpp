@@ -21,8 +21,8 @@
 #include "Cartridge.h"
 #include <cstring>
 
-VF001MemoryRule::VF001MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio) :
-        MBC5LogoMemoryRule(pProcessor, pMemory, pVideo, pInput, pCartridge, pAudio)
+VF001MemoryRule::VF001MemoryRule(Memory* pMemory, Cartridge* pCartridge) :
+        MBC5LogoMemoryRule(pMemory, pCartridge)
 {
     m_InitialValue = 0;
     Reset(false);

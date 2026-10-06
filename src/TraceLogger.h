@@ -47,7 +47,6 @@ static_assert(TRACE_TYPE_COUNT < 32, "Trace category count exceeds flag width");
 #define TRACE_FLAG_APU          (1U << TRACE_APU)
 #define TRACE_FLAG_SERIAL       (1U << TRACE_SERIAL)
 #define TRACE_FLAG_MAPPER       (1U << TRACE_MAPPER)
-#define TRACE_FLAG_ALL          ((1U << TRACE_TYPE_COUNT) - 1)
 
 enum GB_Trace_LCD_Event : u8
 {
@@ -225,7 +224,6 @@ struct GB_Trace_Entry
             u8 control;
             u8 value;
             u8 event;
-            u8 enabled;
         } timer;
 
         struct
@@ -286,10 +284,8 @@ public:
     void SetEventFilter(GB_Trace_Type type, u32 filter);
     u32 GetEnabledFlags() const;
     u32 GetEventFilter(GB_Trace_Type type) const;
-    const GB_Trace_Entry* GetBuffer() const;
     u32 GetCount() const;
     u32 GetCapacity() const;
-    u32 GetPosition() const;
     u64 GetTotalLogged() const;
     u64 GetSequence() const;
     u64 GetLinkCableCycle() const;

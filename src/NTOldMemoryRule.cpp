@@ -21,9 +21,8 @@
 #include "Memory.h"
 #include "Cartridge.h"
 
-NTOldMemoryRule::NTOldMemoryRule(Processor* pProcessor, Memory* pMemory,
-        Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio) :
-        MemoryRule(pProcessor, pMemory, pVideo, pInput, pCartridge, pAudio)
+NTOldMemoryRule::NTOldMemoryRule(Memory* pMemory, Cartridge* pCartridge) :
+        MemoryRule(pMemory, pCartridge)
 {
     m_bType2 = false;
     Reset(false);
@@ -111,10 +110,7 @@ void NTOldMemoryRule::PerformWrite(u16 address, u8 value)
 {
     if (address < 0x2000)
     {
-        bool previous = m_bRamEnabled;
         m_bRamEnabled = ((value & 0x0A) == 0x0A) && (GetRamSize() > 0);
-        if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-            (*m_pRamChangedCallback)();
     }
     else if (address < 0x4000)
     {

@@ -99,7 +99,6 @@ GearboyCore::GearboyCore()
     InitPointer(m_pVF001MemoryRule);
     InitPointer(m_pSintaxMemoryRule);
     InitPointer(m_pNTOldMemoryRule);
-    InitPointer(m_pRamChangedCallback);
     InitPointer(m_trace_logger);
     InitPointer(m_profiler);
     m_bCGB = false;
@@ -176,9 +175,9 @@ void GearboyCore::Init(GB_Color_Format pixelFormat)
     m_pProcessor = new Processor(m_pMemory);
     m_pVideo = new Video(m_pMemory, m_pProcessor);
     m_pAudio = new Audio();
-    m_pInput = new Input(m_pMemory, m_pProcessor);
+    m_pInput = new Input(m_pProcessor);
     m_pCartridge = new Cartridge();
-    m_pSGB = new SGB(m_pMemory, m_pVideo);
+    m_pSGB = new SGB();
     m_pSGBFrameBuffer = new u16[SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT];
 
 
@@ -610,11 +609,6 @@ void GearboyCore::ResetROMPreservingRAM(bool forceDMG, Cartridge::CartridgeTypes
     }
 }
 
-void GearboyCore::ResetSound()
-{
-    m_pAudio->Reset(m_bCGB);
-}
-
 void GearboyCore::SetSoundSampleRate(int rate)
 {
     m_pAudio->SetSampleRate(rate);
@@ -810,11 +804,6 @@ void GearboyCore::LoadRam(const char* szPath, bool fullPath)
 void GearboyCore::SaveState(int index)
 {
     SaveState(NULL, index, false);
-}
-
-void GearboyCore::SaveState(const char* szPath, int index)
-{
-    SaveState(szPath, index, false);
 }
 
 void GearboyCore::SetFrameBuffer(u8* frame_buffer)
@@ -1063,11 +1052,6 @@ void GearboyCore::LoadState(int index)
     Log("Loading save state %d...", index);
     LoadState(NULL, index, false);
     Log("State %d file loaded", index);
-}
-
-void GearboyCore::LoadState(const char* szPath, int index)
-{
-    LoadState(szPath, index, false);
 }
 
 bool GearboyCore::LoadState(const char* path, int index, bool)
@@ -1695,11 +1679,6 @@ void GearboyCore::ClearCheats()
         m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
 }
 
-void GearboyCore::SetRamModificationCallback(RamChangedCallback callback)
-{
-    m_pRamChangedCallback = callback;
-}
-
 bool GearboyCore::IsCGB()
 {
     return m_bCGB;
@@ -1838,60 +1817,33 @@ void GearboyCore::InitMemoryRules()
 {
     m_pIORegistersMemoryRule = new IORegistersMemoryRule(m_pProcessor, m_pMemory, m_pVideo, m_pInput, m_pAudio);
     m_pCommonMemoryRule = new CommonMemoryRule(m_pMemory);
-    m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC1MemoryRule = new MBC1MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMultiMBC1MemoryRule = new MultiMBC1MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC2MemoryRule = new MBC2MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC3MemoryRule = new MBC3MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC5MemoryRule = new MBC5MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC6MemoryRule = new MBC6MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pHuC1MemoryRule = new HuC1MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pHuC3MemoryRule = new HuC3MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMMM01MemoryRule = new MMM01MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pCameraMemoryRule = new CameraMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pMBC7MemoryRule = new MBC7MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pTAMA5MemoryRule = new TAMA5MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pWisdomTreeMemoryRule = new WisdomTreeMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pM161MemoryRule = new M161MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pSachenMMC1MemoryRule = new SachenMMC1MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pSachenMMC2MemoryRule = new SachenMMC2MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pRocketMemoryRule = new RocketMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pFlashcartMemoryRule = new FlashcartMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pBHGOSMemoryRule = new BHGOSMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pLiChengMemoryRule = new LiChengMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pNTNewMemoryRule = new NTNewMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pGGB81MemoryRule = new GGB81MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pHitekMemoryRule = new HitekMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pVF001MemoryRule = new VF001MemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pSintaxMemoryRule = new SintaxMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
-    m_pNTOldMemoryRule = new NTOldMemoryRule(m_pProcessor, m_pMemory,
-            m_pVideo, m_pInput, m_pCartridge, m_pAudio);
+    m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pMemory, m_pCartridge);
+    m_pMBC1MemoryRule = new MBC1MemoryRule(m_pMemory, m_pCartridge);
+    m_pMultiMBC1MemoryRule = new MultiMBC1MemoryRule(m_pMemory, m_pCartridge);
+    m_pMBC2MemoryRule = new MBC2MemoryRule(m_pMemory, m_pCartridge);
+    m_pMBC3MemoryRule = new MBC3MemoryRule(m_pMemory, m_pCartridge);
+    m_pMBC5MemoryRule = new MBC5MemoryRule(m_pMemory, m_pCartridge);
+    m_pMBC6MemoryRule = new MBC6MemoryRule(m_pMemory, m_pCartridge);
+    m_pHuC1MemoryRule = new HuC1MemoryRule(m_pMemory, m_pCartridge);
+    m_pHuC3MemoryRule = new HuC3MemoryRule(m_pMemory, m_pCartridge);
+    m_pMMM01MemoryRule = new MMM01MemoryRule(m_pMemory, m_pCartridge);
+    m_pCameraMemoryRule = new CameraMemoryRule(m_pMemory, m_pCartridge);
+    m_pMBC7MemoryRule = new MBC7MemoryRule(m_pMemory, m_pCartridge);
+    m_pTAMA5MemoryRule = new TAMA5MemoryRule(m_pMemory, m_pCartridge);
+    m_pWisdomTreeMemoryRule = new WisdomTreeMemoryRule(m_pMemory, m_pCartridge);
+    m_pM161MemoryRule = new M161MemoryRule(m_pMemory, m_pCartridge);
+    m_pSachenMMC1MemoryRule = new SachenMMC1MemoryRule(m_pMemory, m_pCartridge);
+    m_pSachenMMC2MemoryRule = new SachenMMC2MemoryRule(m_pMemory, m_pCartridge);
+    m_pRocketMemoryRule = new RocketMemoryRule(m_pMemory, m_pCartridge);
+    m_pFlashcartMemoryRule = new FlashcartMemoryRule(m_pMemory, m_pCartridge);
+    m_pBHGOSMemoryRule = new BHGOSMemoryRule(m_pMemory, m_pCartridge);
+    m_pLiChengMemoryRule = new LiChengMemoryRule(m_pMemory, m_pCartridge);
+    m_pNTNewMemoryRule = new NTNewMemoryRule(m_pMemory, m_pCartridge);
+    m_pGGB81MemoryRule = new GGB81MemoryRule(m_pMemory, m_pCartridge);
+    m_pHitekMemoryRule = new HitekMemoryRule(m_pMemory, m_pCartridge);
+    m_pVF001MemoryRule = new VF001MemoryRule(m_pMemory, m_pCartridge);
+    m_pSintaxMemoryRule = new SintaxMemoryRule(m_pMemory, m_pCartridge);
+    m_pNTOldMemoryRule = new NTOldMemoryRule(m_pMemory, m_pCartridge);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetIORule(m_pIORegistersMemoryRule);
@@ -2036,11 +1988,6 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
     }
 
     m_MapperType = notSupported ? Cartridge::CartridgeNotSupported : type;
-
-    if (!notSupported)
-    {
-        m_pMemory->GetCurrentRule()->SetRamChangedCallback(m_pRamChangedCallback);
-    }
 
     return !notSupported;
 }

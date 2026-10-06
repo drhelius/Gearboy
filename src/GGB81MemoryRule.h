@@ -25,7 +25,7 @@
 class GGB81MemoryRule : public MBC5LogoMemoryRule
 {
 public:
-    GGB81MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    GGB81MemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~GGB81MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

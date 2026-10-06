@@ -22,9 +22,7 @@
 #include "Memory.h"
 #include "Cartridge.h"
 
-MBC6MemoryRule::MBC6MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo,
-        Input* pInput, Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-        pMemory, pVideo, pInput, pCartridge, pAudio)
+MBC6MemoryRule::MBC6MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     m_pPersistentMemory = new u8[kPersistentSize];
     m_pRAMBanks = m_pPersistentMemory;
@@ -161,11 +159,7 @@ void MBC6MemoryRule::PerformWrite(u16 address, u8 value)
 {
     if (address < 0x0400)
     {
-        bool previous = m_bRamEnabled;
         m_bRamEnabled = ((value & 0x0F) == 0x0A);
-
-        if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-            (*m_pRamChangedCallback)();
 
         if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
         {
@@ -464,8 +458,6 @@ void MBC6MemoryRule::BeginProgram(FlashReadMode mode)
 
 void MBC6MemoryRule::CommitProgram(u32 flashAddress)
 {
-    bool changed = false;
-
     if (m_FlashReadMode == FlashProgramMain)
     {
         u32 target = flashAddress & ~(u32)(kFlashBufferSize - 1);
@@ -473,6 +465,8 @@ void MBC6MemoryRule::CommitProgram(u32 flashAddress)
 
         if (!protectedSector && target + kFlashBufferSize <= kFlashSize)
         {
+            bool changed = false;
+
             for (int i = 0; i < kFlashBufferSize; i++)
             {
                 u8 programmed = m_pFlash[target + i] & m_FlashProgramBuffer[i];
@@ -492,19 +486,8 @@ void MBC6MemoryRule::CommitProgram(u32 flashAddress)
         int target = flashAddress & 0x80;
 
         for (int i = 0; i < kFlashBufferSize; i++)
-        {
-            u8 programmed = m_pHidden[target + i] & m_FlashProgramBuffer[i];
-
-            if (programmed != m_pHidden[target + i])
-            {
-                m_pHidden[target + i] = programmed;
-                changed = true;
-            }
-        }
+            m_pHidden[target + i] &= m_FlashProgramBuffer[i];
     }
-
-    if (changed)
-        PersistentMemoryChanged();
 
     EnterStatusMode();
 }
@@ -516,7 +499,6 @@ void MBC6MemoryRule::EraseChip()
     if (EraseBytes(m_pFlash + start, kFlashSize - start))
     {
         m_pMemory->InvalidateDisassemblerRecords(MAX_ROM_SIZE + start, kFlashSize - start);
-        PersistentMemoryChanged();
     }
 }
 
@@ -532,14 +514,12 @@ void MBC6MemoryRule::EraseSector(u32 flashAddress)
     if (EraseBytes(m_pFlash + start, kFlashSectorSize))
     {
         m_pMemory->InvalidateDisassemblerRecords(MAX_ROM_SIZE + start, kFlashSectorSize);
-        PersistentMemoryChanged();
     }
 }
 
 void MBC6MemoryRule::EraseHidden()
 {
-    if (EraseBytes(m_pHidden, kFlashHiddenSize))
-        PersistentMemoryChanged();
+    EraseBytes(m_pHidden, kFlashHiddenSize);
 }
 
 bool MBC6MemoryRule::EraseBytes(u8* memory, int size)
@@ -563,12 +543,7 @@ bool MBC6MemoryRule::EraseBytes(u8* memory, int size)
 
 void MBC6MemoryRule::SetSector0Protected(bool protect)
 {
-    bool previous = IsSector0Protected();
-
     m_pPersistentMemory[kProtectionOffset] = protect ? 1 : 0;
-
-    if (previous != protect)
-        PersistentMemoryChanged();
 }
 
 bool MBC6MemoryRule::IsSector0Protected() const
@@ -611,12 +586,6 @@ void MBC6MemoryRule::EnterStatusMode()
     m_FlashReadMode = FlashReadStatus;
     m_iFlashLastProgramPosition = 0;
     m_bFlashLastProgramPositionValid = false;
-}
-
-void MBC6MemoryRule::PersistentMemoryChanged()
-{
-    if (IsValidPointer(m_pRamChangedCallback))
-        (*m_pRamChangedCallback)();
 }
 
 void MBC6MemoryRule::RefreshROMView()

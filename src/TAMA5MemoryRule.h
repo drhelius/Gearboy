@@ -36,8 +36,7 @@ struct TAMA5_RTC
 class TAMA5MemoryRule : public MemoryRule
 {
 public:
-    TAMA5MemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    TAMA5MemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~TAMA5MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

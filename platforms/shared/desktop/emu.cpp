@@ -50,7 +50,6 @@ static GB_Color slime_palette[4] = {{0xD4,0xEB,0xA5},{0x62,0xB8,0x7C},{0x27,0x76
 static GearboyCore* gearboy;
 static u16* frame_buffer_565;
 static s16* audio_buffer;
-static bool audio_enabled;
 static McpManager* mcp_manager;
 static LinkCableManager* link_cable_manager;
 static bool link_cable_applied;
@@ -121,7 +120,6 @@ bool emu_init(void)
     audio_buffer = new s16[AUDIO_BUFFER_SIZE];
     for (int i = 0; i < AUDIO_BUFFER_SIZE; i++)
         audio_buffer[i] = 0;
-    audio_enabled = true;
     emu_audio_sync = true;
     emu_debug_disable_breakpoints = false;
     emu_debug_irq_breakpoints = false;
@@ -191,19 +189,6 @@ void emu_destroy(void)
         SafeDeleteArray(debug_oam_buffers_565[s]);
         SafeDeleteArray(emu_debug_oam_buffers[s]);
     }
-}
-
-void emu_load_rom(const char* file_path, bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba)
-{
-    gui_debug_trace_logger_reset();
-    emu_audio_reset();
-    save_ram();
-    gearboy->SetSGBEnabled(config_emulator.sgb);
-    gearboy->SetBarcodeBoyMode((GB_BarcodeBoyMode)config_emulator.barcode_boy_mode);
-    gearboy->LoadROM(file_path, force_dmg, mbc, force_gba, config_emulator.softpatching);
-    load_ram();
-    rewind_reset();
-    emu_debug_continue();
 }
 
 static void load_rom_thread_func(void)
@@ -539,13 +524,11 @@ void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba, bo
 
 void emu_audio_volume(float volume)
 {
-    audio_enabled = (volume > 0.0f);
     gearboy->SetSoundVolume(volume);
 }
 
 void emu_audio_mute(bool mute)
 {
-    audio_enabled = !mute;
     gearboy->SetSoundMute(mute);
 }
 
@@ -558,11 +541,6 @@ void emu_audio_reset(void)
 {
     sound_queue_stop();
     sound_queue_start(GB_AUDIO_SAMPLE_RATE, 2, GB_AUDIO_QUEUE_SIZE, config_audio.buffer_count);
-}
-
-bool emu_is_audio_enabled(void)
-{
-    return audio_enabled;
 }
 
 bool emu_is_audio_open(void)

@@ -24,10 +24,7 @@
 #include "Input.h"
 #include "Cartridge.h"
 
-RomOnlyMemoryRule::RomOnlyMemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+RomOnlyMemoryRule::RomOnlyMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     Reset(false);
 }

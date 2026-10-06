@@ -50,16 +50,11 @@ public:
     {
         GB_BREAKPOINT_TYPE_ROMRAM = 0,
         GB_BREAKPOINT_TYPE_VRAM,
-        GB_BREAKPOINT_TYPE_IO,
-        GB_BREAKPOINT_TYPE_COUNT
+        GB_BREAKPOINT_TYPE_IO
     };
 
     // Compatibility aliases for shared GUI code
     static const int GS_BREAKPOINT_TYPE_ROMRAM = GB_BREAKPOINT_TYPE_ROMRAM;
-    static const int GS_BREAKPOINT_TYPE_VRAM = GB_BREAKPOINT_TYPE_VRAM;
-    static const int GS_BREAKPOINT_TYPE_VDP_REGISTER = GB_BREAKPOINT_TYPE_IO;
-    static const int GS_BREAKPOINT_TYPE_CRAM = GB_BREAKPOINT_TYPE_IO;
-    static const int GS_BREAKPOINT_TYPE_COUNT = GB_BREAKPOINT_TYPE_COUNT;
 
     struct GB_Breakpoint
     {
@@ -130,7 +125,6 @@ public:
     bool DuringOpCode() const;
     bool CGBSpeed() const;
     void AddCycles(unsigned int cycles);
-    bool InterruptIsAboutToRaise();
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
     void SetGameSharkCheat(const char* szCheat);
@@ -138,7 +132,6 @@ public:
     ProcessorState* GetState();
     void SetPC(u16 value);
     void SetDisassemblerSyntax(GB_Disassembler_Syntax syntax);
-    GB_Disassembler_Syntax GetDisassemblerSyntax() const;
     NO_INLINE void DisassembleNextOPCode();
     NO_INLINE void PopulateDisassemblerRecord(GB_Disassembler_Record* record, u16 address);
     void InvalidateOverlappingRecords(u16 address, u8 opcode_size);
@@ -173,7 +166,6 @@ public:
     void NotifySerialControlWrite(u8 value);
     void SetLinkCableCallbacks(GB_LinkCableStateCallback state_callback, GB_LinkCableStartCallback start_callback,
         GB_LinkCablePollCallback poll_callback, GB_LinkCableSyncCallback sync_callback, void* user_data);
-    void SetLinkCableConnected(bool connected, u64 current_cycle);
     bool IsLinkCableConnected() const;
     void SetSerialConnected(bool connected, bool link_connected, u64 current_cycle);
     void ResetSerialDevice();

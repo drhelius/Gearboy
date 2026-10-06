@@ -25,10 +25,7 @@
 #include "Input.h"
 #include "Cartridge.h"
 
-MultiMBC1MemoryRule::MultiMBC1MemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+MultiMBC1MemoryRule::MultiMBC1MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     m_pRAMBanks = new u8[0x2000];
     Reset(false);
@@ -45,7 +42,6 @@ void MultiMBC1MemoryRule::Reset(bool bCGB)
     m_iMulticartMode = 0;
     m_iROMBankHi = 0;
     m_iROMBankLo = 1;
-    m_iMBC1Bank_1 = 0;
     m_bRamEnabled = false;
     for (int i = 0; i < 0x2000; i++)
         m_pRAMBanks[i] = 0xFF;
@@ -102,13 +98,7 @@ void MultiMBC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             if (m_pCartridge->GetRAMBankCount() > 0)
             {
-                bool previous = m_bRamEnabled;
                 m_bRamEnabled = ((value & 0x0F) == 0x0A);
-
-                if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-                {
-                    (*m_pRamChangedCallback)();
-                }
             }
             if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
             {
@@ -267,7 +257,8 @@ void MultiMBC1MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iMulticartMode), sizeof(m_iMulticartMode));
     stream.write(reinterpret_cast<const char*> (&m_iROMBankHi), sizeof(m_iROMBankHi));
     stream.write(reinterpret_cast<const char*> (&m_iROMBankLo), sizeof(m_iROMBankLo));
-    stream.write(reinterpret_cast<const char*> (&m_iMBC1Bank_1), sizeof(m_iMBC1Bank_1));
+    int mbc1_bank_1 = 0;
+    stream.write(reinterpret_cast<const char*> (&mbc1_bank_1), sizeof(mbc1_bank_1));
     stream.write(reinterpret_cast<const char*> (&m_iMBC1MBank_0), sizeof(m_iMBC1MBank_0));
     stream.write(reinterpret_cast<const char*> (&m_iMBC1MBank_1), sizeof(m_iMBC1MBank_1));
     stream.write(reinterpret_cast<const char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
@@ -281,7 +272,8 @@ void MultiMBC1MemoryRule::LoadState(std::istream& stream, u32)
     stream.read(reinterpret_cast<char*> (&m_iMulticartMode), sizeof(m_iMulticartMode));
     stream.read(reinterpret_cast<char*> (&m_iROMBankHi), sizeof(m_iROMBankHi));
     stream.read(reinterpret_cast<char*> (&m_iROMBankLo), sizeof(m_iROMBankLo));
-    stream.read(reinterpret_cast<char*> (&m_iMBC1Bank_1), sizeof(m_iMBC1Bank_1));
+    int mbc1_bank_1 = 0;
+    stream.read(reinterpret_cast<char*> (&mbc1_bank_1), sizeof(mbc1_bank_1));
     stream.read(reinterpret_cast<char*> (&m_iMBC1MBank_0), sizeof(m_iMBC1MBank_0));
     stream.read(reinterpret_cast<char*> (&m_iMBC1MBank_1), sizeof(m_iMBC1MBank_1));
     stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));

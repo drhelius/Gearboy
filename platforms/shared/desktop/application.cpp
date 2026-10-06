@@ -64,10 +64,9 @@ static void apply_window_settings(void);
 static void save_window_size(void);
 
 #if defined(__APPLE__)
-static void* macos_fullscreen_observer = NULL;
 static void* macos_nswindow = NULL;
 static bool macos_new_instance_enabled = false;
-extern "C" void* macos_install_fullscreen_observer(void* nswindow, void(*enter_cb)(), void(*exit_cb)());
+extern "C" void macos_install_fullscreen_observer(void* nswindow, void(*enter_cb)(), void(*exit_cb)());
 extern "C" void macos_set_native_fullscreen(void* nswindow, bool enter);
 extern "C" void macos_refocus_window(void* nswindow);
 extern "C" void macos_install_dock_menu(void);
@@ -303,11 +302,6 @@ void application_update_title_with_rom(const char* rom)
     SDL_SetWindowTitle(application_sdl_window, final_title);
 }
 
-void application_input_pump(void)
-{
-    events_emu();
-}
-
 bool application_check_single_instance(const char* rom_file, const char* symbol_file)
 {
 #if defined(__APPLE__)
@@ -434,7 +428,7 @@ static bool sdl_init(void)
     if (nswindow)
     {
         macos_nswindow = nswindow;
-        macos_fullscreen_observer = macos_install_fullscreen_observer(nswindow, on_enter_fullscreen, on_exit_fullscreen);
+        macos_install_fullscreen_observer(nswindow, on_enter_fullscreen, on_exit_fullscreen);
     }
 
     if (macos_new_instance_enabled)

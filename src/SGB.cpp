@@ -21,10 +21,8 @@
 #include "Memory.h"
 #include "Video.h"
 
-SGB::SGB(Memory* pMemory, Video* pVideo)
+SGB::SGB()
 {
-    m_pMemory = pMemory;
-    m_pVideo = pVideo;
 }
 
 SGB::~SGB()
@@ -265,11 +263,6 @@ int SGB::GetCurrentPlayer() const
 SGB::MaskMode SGB::GetMaskMode() const
 {
     return (MaskMode)m_MaskMode;
-}
-
-u8* SGB::GetScreenBuffer()
-{
-    return m_ScreenBuffer;
 }
 
 u16 SGB::GetCommandWriteIndex() const

@@ -24,10 +24,7 @@
 #include "Input.h"
 #include "Cartridge.h"
 
-SachenMMC2MemoryRule::SachenMMC2MemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+SachenMMC2MemoryRule::SachenMMC2MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     m_iRAMBanksSize = 0;
     m_iRAMBytesSize = 0;

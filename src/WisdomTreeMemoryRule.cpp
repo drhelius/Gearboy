@@ -24,10 +24,7 @@
 #include "Input.h"
 #include "Cartridge.h"
 
-WisdomTreeMemoryRule::WisdomTreeMemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+WisdomTreeMemoryRule::WisdomTreeMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     Reset(false);
 }

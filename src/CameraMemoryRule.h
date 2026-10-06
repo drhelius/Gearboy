@@ -25,8 +25,7 @@
 class CameraMemoryRule : public MemoryRule
 {
 public:
-    CameraMemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    CameraMemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~CameraMemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
@@ -54,7 +53,6 @@ private:
     int m_CurrentRAMAddress;
     u8 m_CameraRegisters[0x36];
     bool m_bCapturing;
-    int m_iCaptureClocks;
 };
 
 #endif	/* CAMERAMEMORYRULE_H */

@@ -25,7 +25,7 @@
 class VF001MemoryRule : public MBC5LogoMemoryRule
 {
 public:
-    VF001MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    VF001MemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~VF001MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual u8 DebugRead(u16 address);

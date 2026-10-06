@@ -46,7 +46,6 @@ public:
     void LoadState(std::istream& stream, int version);
     Gb_Apu* GetApu();
     void EnablePSGDebug(bool enable);
-    bool IsPSGDebugEnabled();
     blip_sample_t* GetDebugChannelBuffer(int channel);
     int GetDebugChannelSamples(int channel);
     bool StartVgmRecording(const char* file_path, int clock_rate, bool is_double_speed, const VgmMetadata& metadata);
@@ -117,11 +116,6 @@ inline void Audio::EnablePSGDebug(bool enable)
     {
         m_pApu->disable_debug_buffers();
     }
-}
-
-inline bool Audio::IsPSGDebugEnabled()
-{
-    return m_pApu->is_debug_enabled();
 }
 
 inline blip_sample_t* Audio::GetDebugChannelBuffer(int channel)

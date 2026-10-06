@@ -228,7 +228,6 @@ struct config_Debug
     bool show_symbols;
     bool show_profiler;
     bool show_memory;
-    bool show_video;
     bool show_video_nametable;
     bool show_video_tiles;
     bool show_video_sprites;

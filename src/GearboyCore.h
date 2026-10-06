@@ -81,8 +81,6 @@ public:
         bool stop_on_irq;
     };
 
-    typedef GB_Debug_Run GS_Debug_Run;
-
 public:
     GearboyCore();
     ~GearboyCore();
@@ -103,7 +101,6 @@ public:
     bool IsPaused();
     void ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
     void ResetROMPreservingRAM(bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
-    void ResetSound();
     void SetSoundSampleRate(int rate);
     void SetSoundMute(bool mute);
     void SetSoundVolume(float volume);
@@ -115,11 +112,9 @@ public:
     void LoadRam();
     void LoadRam(const char* szPath, bool fullPath = false);
     void SaveState(int index);
-    void SaveState(const char* szPath, int index);
     bool SaveState(const char* path, int index, bool screenshot);
     bool SaveState(u8* buffer, size_t& size, bool screenshot = false);
     void LoadState(int index);
-    void LoadState(const char* szPath, int index);
     bool LoadState(const char* path, int index, bool unused);
     bool LoadState(const u8* buffer, size_t size);
     bool GetSaveStateHeader(int index, const char* path, GB_SaveState_Header* header, bool* out_sgb = NULL);
@@ -128,7 +123,6 @@ public:
     void SetFrameBuffer(u8* frame_buffer);
     void SetCheat(const char* szCheat);
     void ClearCheats();
-    void SetRamModificationCallback(RamChangedCallback callback);
     bool IsCGB();
     bool IsGBA();
     bool IsSGB();
@@ -220,7 +214,6 @@ private:
     bool m_bSGBBorder;
     u16* m_pSGBFrameBuffer;
     int m_iRTCUpdateCount;
-    RamChangedCallback m_pRamChangedCallback;
     GB_Color_Format m_pixelFormat;
     bool m_bColorCorrectionEnabled;
     u16 m_ColorCorrectionLUT[65536];

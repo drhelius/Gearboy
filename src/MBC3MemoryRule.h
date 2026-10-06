@@ -42,8 +42,7 @@ struct RTC_Registers
 class MBC3MemoryRule : public MemoryRule
 {
 public:
-    MBC3MemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    MBC3MemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~MBC3MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
@@ -88,7 +87,6 @@ private:
     bool m_bRTCEnabled;
     u8* m_pRAMBanks;
     int m_iRAMBanksSize;
-    s32 m_iRTCLatch;
     u8 m_RTCRegister;
     s32 m_RTCLastTimeCache;
     int m_CurrentROM0Address;

@@ -28,7 +28,6 @@
 #include "rewind.h"
 
 static int seek_position = 0;
-static bool scrubbing = false;
 
 static void draw_transport_bar(void);
 static void draw_timeline(void);
@@ -73,7 +72,6 @@ static void draw_transport_bar(void)
                 emu_debug_continue();
             else
                 emu_resume();
-            scrubbing = false;
             seek_position = 0;
         }
     }
@@ -85,7 +83,6 @@ static void draw_transport_bar(void)
                 emu_debug_break();
             else
                 emu_pause();
-            scrubbing = false;
             seek_position = 0;
         }
     }
@@ -177,6 +174,5 @@ bool gui_debug_rewind_seek(int age)
         return false;
 
     seek_position = age;
-    scrubbing = true;
     return true;
 }

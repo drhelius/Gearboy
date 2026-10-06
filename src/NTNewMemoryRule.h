@@ -25,7 +25,7 @@
 class NTNewMemoryRule : public MBC5MemoryRule
 {
 public:
-    NTNewMemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    NTNewMemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~NTNewMemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

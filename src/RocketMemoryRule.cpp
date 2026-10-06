@@ -32,9 +32,7 @@ static const u8 kRocketLogoXor[48] =
     0x77, 0x2C, 0xA8, 0xEE, 0xFF, 0x9B, 0x99, 0x91, 0xAA, 0x9B, 0x33, 0x3E
 };
 
-RocketMemoryRule::RocketMemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+RocketMemoryRule::RocketMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     Reset(false);
 }

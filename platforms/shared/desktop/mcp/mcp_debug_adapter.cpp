@@ -271,30 +271,6 @@ std::vector<BreakpointInfo> DebugAdapter::ListBreakpoints()
     return result;
 }
 
-RegistersSnapshot DebugAdapter::GetRegisters()
-{
-    Debug("[MCP] GetRegisters: start");
-
-    Processor* cpu = m_core->GetProcessor();
-    Processor::ProcessorState* state = cpu->GetState();
-
-    Debug("[MCP] GetRegisters: creating snapshot");
-    RegistersSnapshot snapshot;
-
-    snapshot.AF = state->AF->GetValue();
-    snapshot.BC = state->BC->GetValue();
-    snapshot.DE = state->DE->GetValue();
-    snapshot.HL = state->HL->GetValue();
-    snapshot.SP = state->SP->GetValue();
-    snapshot.PC = state->PC->GetValue();
-    snapshot.IME = *state->IME;
-    snapshot.Halt = *state->Halt;
-    snapshot.DoubleSpeed = cpu->CGBSpeed();
-
-    Debug("[MCP] GetRegisters: done (PC=%04X)", snapshot.PC);
-    return snapshot;
-}
-
 void DebugAdapter::SetRegister(const std::string& name, u32 value)
 {
     Processor* cpu = m_core->GetProcessor();

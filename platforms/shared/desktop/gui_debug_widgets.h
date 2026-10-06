@@ -294,18 +294,6 @@ inline bool EditableRegister16(
     return modified;
 }
 
-inline bool SliderFloatWithSteps(const char* label, float* v, float v_min, float v_max, float v_step, const char* display_format)
-{
-    if (!display_format)
-        display_format = "%.3f";
-
-    float v_f = *v;
-    bool value_changed = ImGui::SliderFloat(label, &v_f, v_min, v_max, display_format, ImGuiSliderFlags_AlwaysClamp);
-    float remain = fmodf((v_f - v_min), v_step);
-    *v = (v_f - remain);
-    return value_changed;
-}
-
 inline bool SliderIntWithSteps(const char* label, int* v, int v_min, int v_max, int v_step, const char* display_format)
 {
     if (!display_format)

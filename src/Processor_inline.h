@@ -51,14 +51,6 @@ INLINE void Processor::TraceSerialEvent(u8 event, u64 link_cycle)
         LogSerialEvent(event, link_cycle);
 }
 
-inline bool Processor::InterruptIsAboutToRaise()
-{
-    u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
-    u8 if_reg = m_pMemory->Retrieve(0xFF0F);
-
-    return (if_reg & ie_reg & 0x1F) != 0;
-}
-
 inline Processor::Interrupts Processor::InterruptPending()
 {
     u8 ie_reg = m_pMemory->Retrieve(0xFFFF);

@@ -55,10 +55,6 @@
 #define NULL 0
 #endif
 
-#ifdef _WIN32
-#define BLARGG_USE_NAMESPACE 1
-#endif
-
 //#define GEARBOY_DISABLE_DISASSEMBLER
 
 #define MAX_ROM_SIZE 0x800000
@@ -98,8 +94,6 @@ typedef uint32_t u32;
 typedef int32_t s32;
 typedef uint64_t u64;
 typedef int64_t s64;
-
-typedef void (*RamChangedCallback) (void);
 
 #define FLAG_ZERO 0x80
 #define FLAG_SUB 0x40
@@ -206,7 +200,6 @@ enum GB_Disassembler_Syntax
 
 struct GB_Disassembler_Record
 {
-    u32 address;
     u8 bank;
     char name[64];
     char bytes[25];

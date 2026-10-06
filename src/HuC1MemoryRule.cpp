@@ -26,10 +26,7 @@
 
 const int kHuC1RamBanksSize = 0x8000;
 
-HuC1MemoryRule::HuC1MemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+HuC1MemoryRule::HuC1MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     m_pRAMBanks = new u8[kHuC1RamBanksSize];
     Reset(false);

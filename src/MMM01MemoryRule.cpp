@@ -26,10 +26,7 @@
 
 const int kMMM01RamBanksSize = 0x20000;
 
-MMM01MemoryRule::MMM01MemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+MMM01MemoryRule::MMM01MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     m_pRAMBanks = new u8[kMMM01RamBanksSize];
     Reset(false);

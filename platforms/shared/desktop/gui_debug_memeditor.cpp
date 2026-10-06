@@ -49,8 +49,6 @@ MemEditor::MemEditor()
     m_add_bookmark = false;
     m_watch_window = false;
     m_add_watch = false;
-    m_pending_watch_address = -1;
-    m_pending_watch_notes[0] = 0;
     InitPointer(m_gui_font);
     InitPointer(m_draw_list);
     m_search_window = false;
@@ -924,19 +922,10 @@ void MemEditor::WatchPopup()
         static char notes[128] = "";
         static int size = 0;
 
-        if (m_pending_watch_address >= 0)
-        {
-            snprintf(address, 9, m_hex_addr_format, m_pending_watch_address);
-            snprintf(notes, 128, "%s", m_pending_watch_notes);
-            m_pending_watch_address = -1;
-        }
-        else
-        {
-            int initial_address = m_selection_start + m_mem_base_addr;
+        int initial_address = m_selection_start + m_mem_base_addr;
 
-            if (address[0] == 0 && initial_address >= 0)
-                snprintf(address, 9, m_hex_addr_format, initial_address);
-        }
+        if (address[0] == 0 && initial_address >= 0)
+            snprintf(address, 9, m_hex_addr_format, initial_address);
 
         ImGui::Text("Address:");
 
@@ -2251,16 +2240,6 @@ void MemEditor::AddWatch()
     m_add_watch = true;
 }
 
-void MemEditor::PrepareAddWatch(int address, const char* notes)
-{
-    m_pending_watch_address = address;
-    if (notes && strlen(notes) > 0)
-        snprintf(m_pending_watch_notes, sizeof(m_pending_watch_notes), "%s", notes);
-    else
-        m_pending_watch_notes[0] = 0;
-    m_add_watch = true;
-}
-
 bool MemEditor::AddWatchDirect(int address, const char* notes, int size)
 {
     Watch watch;
@@ -2463,32 +2442,5 @@ void MemEditor::SaveSettings(std::ostream& stream)
         stream.write(m_watches[i].notes, sizeof(m_watches[i].notes));
         stream.write((const char*)&m_watches[i].size, sizeof(int));
         stream.write((const char*)&m_watches[i].format, sizeof(int));
-    }
-}
-
-void MemEditor::LoadSettings(std::istream& stream)
-{
-    m_bookmarks.clear();
-    int bookmark_count = 0;
-    stream.read((char*)&bookmark_count, sizeof(int));
-    for (int i = 0; i < bookmark_count; i++)
-    {
-        Bookmark bookmark;
-        stream.read((char*)&bookmark.address, sizeof(int));
-        stream.read(bookmark.name, sizeof(bookmark.name));
-        m_bookmarks.push_back(bookmark);
-    }
-
-    m_watches.clear();
-    int watch_count = 0;
-    stream.read((char*)&watch_count, sizeof(int));
-    for (int i = 0; i < watch_count; i++)
-    {
-        Watch watch;
-        stream.read((char*)&watch.address, sizeof(int));
-        stream.read(watch.notes, sizeof(watch.notes));
-        stream.read((char*)&watch.size, sizeof(int));
-        stream.read((char*)&watch.format, sizeof(int));
-        m_watches.push_back(watch);
     }
 }

@@ -26,10 +26,7 @@
 
 const int kCameraRamBanksSize = 0x20000;
 
-CameraMemoryRule::CameraMemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+CameraMemoryRule::CameraMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     m_pRAMBanks = new u8[kCameraRamBanksSize];
     Reset(false);
@@ -51,7 +48,6 @@ void CameraMemoryRule::Reset(bool bCGB)
         m_pRAMBanks[i] = 0xFF;
     memset(m_CameraRegisters, 0, sizeof(m_CameraRegisters));
     m_bCapturing = false;
-    m_iCaptureClocks = 0;
     m_CurrentROMAddress = 0x4000;
     m_CurrentRAMAddress = 0;
 }
@@ -104,13 +100,7 @@ void CameraMemoryRule::PerformWrite(u16 address, u8 value)
     {
         case 0x0000:
         {
-            bool previous = m_bRamEnabled;
             m_bRamEnabled = ((value & 0x0F) == 0x0A);
-
-            if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-            {
-                (*m_pRamChangedCallback)();
-            }
             if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
             {
                 LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,
@@ -271,7 +261,8 @@ void CameraMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_pRAMBanks), kCameraRamBanksSize);
     stream.write(reinterpret_cast<const char*> (m_CameraRegisters), sizeof(m_CameraRegisters));
     stream.write(reinterpret_cast<const char*> (&m_bCapturing), sizeof(m_bCapturing));
-    stream.write(reinterpret_cast<const char*> (&m_iCaptureClocks), sizeof(m_iCaptureClocks));
+    int capture_clocks = 0;
+    stream.write(reinterpret_cast<const char*> (&capture_clocks), sizeof(capture_clocks));
     stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
     stream.write(reinterpret_cast<const char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
 }
@@ -287,7 +278,8 @@ void CameraMemoryRule::LoadState(std::istream& stream, u32)
     stream.read(reinterpret_cast<char*> (m_pRAMBanks), kCameraRamBanksSize);
     stream.read(reinterpret_cast<char*> (m_CameraRegisters), sizeof(m_CameraRegisters));
     stream.read(reinterpret_cast<char*> (&m_bCapturing), sizeof(m_bCapturing));
-    stream.read(reinterpret_cast<char*> (&m_iCaptureClocks), sizeof(m_iCaptureClocks));
+    int capture_clocks = 0;
+    stream.read(reinterpret_cast<char*> (&capture_clocks), sizeof(capture_clocks));
     stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
     stream.read(reinterpret_cast<char*> (&m_CurrentRAMAddress), sizeof(m_CurrentRAMAddress));
 

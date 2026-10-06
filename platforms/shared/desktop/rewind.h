@@ -28,7 +28,6 @@
     #define EXTERN extern
 #endif
 
-#define REWIND_MAX_STATE_SIZE       (256 * 1024)
 #define REWIND_MAX_SNAPSHOTS        600
 
 EXTERN bool rewind_init(void);
@@ -43,7 +42,6 @@ EXTERN bool rewind_is_active(void);
 EXTERN int rewind_get_snapshot_count(void);
 EXTERN int rewind_get_capacity(void);
 EXTERN int rewind_get_frames_per_snapshot(void);
-EXTERN size_t rewind_get_memory_usage(void);
 
 #undef REWIND_IMPORT
 #undef EXTERN

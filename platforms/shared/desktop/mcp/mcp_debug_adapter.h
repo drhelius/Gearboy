@@ -44,14 +44,6 @@ struct MemoryAreaInfo
     bool read_only;
 };
 
-struct RegistersSnapshot
-{
-    u16 AF, BC, DE, HL, SP, PC;
-    bool IME;
-    bool Halt;
-    bool DoubleSpeed;
-};
-
 struct BreakpointInfo
 {
     bool enabled;
@@ -108,7 +100,6 @@ public:
     std::vector<BreakpointInfo> ListBreakpoints();
 
     // Registers
-    RegistersSnapshot GetRegisters();
     void SetRegister(const std::string& name, u32 value);
 
     // Memory areas (matching debugger memory editor)
@@ -186,9 +177,6 @@ public:
         const std::string& vblank_watch_address, const std::string& vblank_watch_operation);
     json SetProfiler(const std::string& action);
     json GetProfilerData(const std::string& sort, int count, const std::string& filter);
-
-    // Core access
-    GearboyCore* GetCore() { return m_core; }
 
 private:
     GearboyCore* m_core;

@@ -25,8 +25,7 @@
 class NTOldMemoryRule : public MemoryRule
 {
 public:
-    NTOldMemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    NTOldMemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~NTOldMemoryRule();
     void SetVariant(bool type2);
     virtual u8 GetMapperType();

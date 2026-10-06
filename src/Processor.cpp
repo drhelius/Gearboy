@@ -118,11 +118,6 @@ void Processor::SetDisassemblerSyntax(GB_Disassembler_Syntax syntax)
     m_disassembler_syntax = syntax;
 }
 
-GB_Disassembler_Syntax Processor::GetDisassemblerSyntax() const
-{
-    return m_disassembler_syntax;
-}
-
 void Processor::Init()
 {
     Reset(false, false);
@@ -275,7 +270,6 @@ void Processor::LogTimerEvent(u8 event)
     e.timer.control = m_pMemory->Retrieve(0xFF07);
     e.timer.value = e.timer.counter;
     e.timer.event = event;
-    e.timer.enabled = (e.timer.control & 0x04) ? 1 : 0;
     m_pTraceLogger->TraceLog(e);
 #else
     UNUSED(event);
@@ -457,11 +451,6 @@ void Processor::SetLinkCableCallbacks(GB_LinkCableStateCallback state_callback,
     m_link_cable_poll_callback = poll_callback;
     m_link_cable_sync_callback = sync_callback;
     m_link_cable_user_data = user_data;
-}
-
-void Processor::SetLinkCableConnected(bool connected, u64 current_cycle)
-{
-    SetSerialConnected(connected, connected, current_cycle);
 }
 
 void Processor::SetSerialConnected(bool connected, bool link_connected, u64 current_cycle)
@@ -867,7 +856,6 @@ void Processor::PopulateDisassemblerRecord(GB_Disassembler_Record* record, u16 a
 {
 #ifndef GEARBOY_DISABLE_DISASSEMBLER
 
-    record->address = m_pMemory->GetPhysicalAddress(address);
     record->bank = m_pMemory->GetBank(address);
     record->name[0] = 0;
     record->bytes[0] = 0;

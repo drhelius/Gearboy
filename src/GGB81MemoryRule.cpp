@@ -32,8 +32,8 @@ static const u8 kDataBitOrder[8][8] =
     { 0, 6, 1, 3, 4, 2, 5, 7 }
 };
 
-GGB81MemoryRule::GGB81MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio) :
-        MBC5LogoMemoryRule(pProcessor, pMemory, pVideo, pInput, pCartridge, pAudio)
+GGB81MemoryRule::GGB81MemoryRule(Memory* pMemory, Cartridge* pCartridge) :
+        MBC5LogoMemoryRule(pMemory, pCartridge)
 {
     for (int mode = 0; mode < 8; mode++)
     {

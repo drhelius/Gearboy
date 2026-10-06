@@ -24,10 +24,7 @@
 #include "Input.h"
 #include "Cartridge.h"
 
-MBC5MemoryRule::MBC5MemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+MBC5MemoryRule::MBC5MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     m_pRAMBanks = new u8[0x20000];
     Reset(false);
@@ -102,13 +99,7 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
         {
             if (GetRamSize() > 0)
             {
-                bool previous = m_bRamEnabled;
                 m_bRamEnabled = (value == 0x0A);
-
-                if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-                {
-                    (*m_pRamChangedCallback)();
-                }
             }
             if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
             {

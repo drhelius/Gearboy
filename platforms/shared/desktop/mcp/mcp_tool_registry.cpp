@@ -596,11 +596,6 @@ json McpToolRegistry::SearchTools(const std::string& query) const
     return tools;
 }
 
-bool McpToolRegistry::IsRouterTool(const std::string& tool_name) const
-{
-    return IsRouterToolName(tool_name);
-}
-
 bool McpToolRegistry::IsRouterTool(const std::string& tool_name, const std::string& router_tool_name) const
 {
     return NormalizeToolName(tool_name) == router_tool_name;

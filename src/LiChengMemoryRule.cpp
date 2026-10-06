@@ -20,8 +20,8 @@
 #include "LiChengMemoryRule.h"
 #include "Cartridge.h"
 
-LiChengMemoryRule::LiChengMemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio) :
-        MBC5LogoMemoryRule(pProcessor, pMemory, pVideo, pInput, pCartridge, pAudio)
+LiChengMemoryRule::LiChengMemoryRule(Memory* pMemory, Cartridge* pCartridge) :
+        MBC5LogoMemoryRule(pMemory, pCartridge)
 {
 }
 

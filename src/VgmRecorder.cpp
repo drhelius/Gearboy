@@ -30,7 +30,6 @@ VgmRecorder::VgmRecorder()
     m_ClockRate = 0;
     m_TimingRemainder = 0;
     m_bDoubleSpeed = false;
-    m_bGbDmgUsed = false;
 }
 
 VgmRecorder::~VgmRecorder()
@@ -54,7 +53,6 @@ void VgmRecorder::Start(const char* file_path, int clock_rate, bool is_double_sp
     m_PendingWait = 0;
     m_TotalSamples = 0;
     m_TimingRemainder = 0;
-    m_bGbDmgUsed = false;
     m_CommandBuffer.clear();
     
     Log("VGM: Start recording, clock_rate=%d (0x%08X), double_speed=%d", clock_rate, clock_rate, is_double_speed);
@@ -177,8 +175,6 @@ void VgmRecorder::WriteGbDmg(u16 address, u8 data)
 
     FlushPendingWait();
 
-    m_bGbDmgUsed = true;
-
     // 0xB3 aa dd - GameBoy DMG, write value dd to register aa
     // Register 00 equals GameBoy address FF10
     // Valid ranges: FF10-FF26 (sound registers) and FF30-FF3F (wave RAM)
@@ -196,12 +192,6 @@ void VgmRecorder::WriteGbDmg(u16 address, u8 data)
 void VgmRecorder::WriteCommand(u8 command)
 {
     m_CommandBuffer.push_back(command);
-}
-
-void VgmRecorder::WriteCommand(u8 command, u8 data)
-{
-    m_CommandBuffer.push_back(command);
-    m_CommandBuffer.push_back(data);
 }
 
 void VgmRecorder::WriteCommand(u8 command, u8 data1, u8 data2)

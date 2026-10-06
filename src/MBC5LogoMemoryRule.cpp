@@ -21,8 +21,8 @@
 #include "Memory.h"
 #include "Cartridge.h"
 
-MBC5LogoMemoryRule::MBC5LogoMemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio) :
-        MBC5MemoryRule(pProcessor, pMemory, pVideo, pInput, pCartridge, pAudio)
+MBC5LogoMemoryRule::MBC5LogoMemoryRule(Memory* pMemory, Cartridge* pCartridge) :
+        MBC5MemoryRule(pMemory, pCartridge)
 {
     Reset(false);
 }

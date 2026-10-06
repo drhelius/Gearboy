@@ -25,8 +25,7 @@
 class MBC5MemoryRule : public MemoryRule
 {
 public:
-    MBC5MemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    MBC5MemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~MBC5MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

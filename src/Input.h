@@ -22,21 +22,18 @@
 
 #include "definitions.h"
 
-class Memory;
 class Processor;
 
 class Input
 {
 public:
-    Input(Memory* pMemory, Processor* pProcessor);
+    Input(Processor* pProcessor);
     void Init();
     void Reset();
     void Tick(unsigned int clockCycles);
     void KeyPressed(Gameboy_Keys key);
     void KeyReleased(Gameboy_Keys key);
     bool IsKeyPressed(Gameboy_Keys key) const;
-    void KeyPressed(Gameboy_Keys key, int player);
-    void KeyReleased(Gameboy_Keys key, int player);
     void SetCurrentPlayer(int player);
     void Write(u8 value);
     u8 Read();
@@ -47,7 +44,6 @@ private:
     void Update();
 
 private:
-    Memory* m_pMemory;
     Processor* m_pProcessor;
     u8 m_JoypadState[4];
     u8 m_P1;

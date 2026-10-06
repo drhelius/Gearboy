@@ -21,9 +21,7 @@
 #include "Memory.h"
 #include "Cartridge.h"
 
-BHGOSMemoryRule::BHGOSMemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+BHGOSMemoryRule::BHGOSMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     Reset(false);
 }

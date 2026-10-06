@@ -48,10 +48,7 @@ static u8 ExpandLogoPass(u8& c, u8 a, bool& carry)
     return a;
 }
 
-SachenMMC1MemoryRule::SachenMMC1MemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+SachenMMC1MemoryRule::SachenMMC1MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     Reset(false);
 }

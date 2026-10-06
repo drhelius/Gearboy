@@ -40,8 +40,8 @@ static const u8 kBankBitOrder[16][8] =
     { 0, 1, 2, 3, 4, 5, 6, 7 }
 };
 
-SintaxMemoryRule::SintaxMemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio) :
-        MBC5LogoMemoryRule(pProcessor, pMemory, pVideo, pInput, pCartridge, pAudio)
+SintaxMemoryRule::SintaxMemoryRule(Memory* pMemory, Cartridge* pCartridge) :
+        MBC5LogoMemoryRule(pMemory, pCartridge)
 {
     for (int mode = 0; mode < 16; mode++)
     {

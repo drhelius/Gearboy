@@ -34,9 +34,6 @@
 #define SGB_SYSTEM_PALETTE_COUNT 512
 #define SGB_BORDER_TILE_DATA_SIZE (256 * 32)
 
-class Memory;
-class Video;
-
 class SGB
 {
 public:
@@ -88,7 +85,7 @@ public:
     };
 
 public:
-    SGB(Memory* pMemory, Video* pVideo);
+    SGB();
     ~SGB();
     void Init();
     void Reset();
@@ -98,7 +95,6 @@ public:
     int GetPlayerCount() const;
     int GetCurrentPlayer() const;
     MaskMode GetMaskMode() const;
-    u8* GetScreenBuffer();
     u16 GetCommandWriteIndex() const;
     bool IsReadyForPulse() const;
     bool IsReadyForWrite() const;
@@ -141,9 +137,6 @@ private:
     void LoadDefaultBorder();
 
 private:
-    Memory* m_pMemory;
-    Video* m_pVideo;
-
     u8 m_Command[SGB_MAX_COMMAND_SIZE];
     u16 m_CommandWriteIndex;
     bool m_bReadyForPulse;

@@ -140,13 +140,6 @@ void sound_queue_stop(void)
     }
 }
 
-int sound_queue_get_sample_count(void)
-{
-    if (!sound_queue_stream)
-        return 0;
-    return SDL_GetAudioStreamQueued(sound_queue_stream) / (int)sizeof(s16);
-}
-
 float sound_queue_get_target_latency_ms(void)
 {
     if (sound_queue_bytes_per_second <= 0)

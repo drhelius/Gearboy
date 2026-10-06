@@ -24,10 +24,7 @@
 #include "Input.h"
 #include "Cartridge.h"
 
-MBC2MemoryRule::MBC2MemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+MBC2MemoryRule::MBC2MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     Reset(false);
 }
@@ -97,13 +94,7 @@ void MBC2MemoryRule::PerformWrite(u16 address, u8 value)
             else
             {
                 // RAM enable (bit 8 clear)
-                bool previous = m_bRamEnabled;
                 m_bRamEnabled = ((value & 0x0F) == 0x0A);
-
-                if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-                {
-                    (*m_pRamChangedCallback)();
-                }
                 if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
                 {
                     LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,

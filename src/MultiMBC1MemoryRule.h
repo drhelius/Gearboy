@@ -25,8 +25,7 @@
 class MultiMBC1MemoryRule : public MemoryRule
 {
 public:
-    MultiMBC1MemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    MultiMBC1MemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~MultiMBC1MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
@@ -51,7 +50,6 @@ private:
     int m_iMulticartMode;
     int m_iROMBankHi;
     int m_iROMBankLo;
-    int m_iMBC1Bank_1;
     int m_iMBC1MBank_0;
     int m_iMBC1MBank_1;
     bool m_bRamEnabled;

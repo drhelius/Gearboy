@@ -26,10 +26,7 @@
 
 const int kHuC3RamBanksSize = 0x8000;
 
-HuC3MemoryRule::HuC3MemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+HuC3MemoryRule::HuC3MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     m_pRAMBanks = new u8[kHuC3RamBanksSize];
     Reset(false);
@@ -241,14 +238,8 @@ void HuC3MemoryRule::PerformWrite(u16 address, u8 value)
         case 0x0000:
         {
             // Mode select
-            bool previous = m_bRamEnabled;
             m_iMode = value & 0x0F;
             m_bRamEnabled = (m_iMode == 0x0A);
-
-            if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-            {
-                (*m_pRamChangedCallback)();
-            }
             if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
             {
                 LogTraceMapperEvent(address, value, TRACE_MAPPER_CONTROL,

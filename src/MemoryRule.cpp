@@ -20,17 +20,11 @@
 #include "MemoryRule.h"
 #include "Cartridge.h"
 
-MemoryRule::MemoryRule(Processor* pProcessor, Memory* pMemory,
-        Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio)
+MemoryRule::MemoryRule(Memory* pMemory, Cartridge* pCartridge)
 {
-    m_pProcessor = pProcessor;
     m_pMemory = pMemory;
-    m_pVideo = pVideo;
-    m_pInput = pInput;
     m_pCartridge = pCartridge;
-    m_pAudio = pAudio;
     m_bCGB = false;
-    InitPointer(m_pRamChangedCallback);
     InitPointer(m_pTraceLogger);
 }
 
@@ -125,11 +119,6 @@ bool MemoryRule::LoadRam(std::istream&, s32)
 {
     Debug("MemoryRule::LoadRam not implemented");
     return false;
-}
-
-void MemoryRule::SetRamChangedCallback(RamChangedCallback callback)
-{
-    m_pRamChangedCallback = callback;
 }
 
 size_t MemoryRule::GetRamSize()

@@ -86,7 +86,6 @@ LinkCableManager::LinkCableManager()
     m_mapping_fd = -1;
     m_slot = -1;
     m_generation = 0;
-    m_session = 0;
     m_local_anchor = 0;
     m_bus_anchor = 0;
     m_last_sync_exit_us = 0;
@@ -115,8 +114,6 @@ bool LinkCableManager::Connect(u8 session, u64 local_cycle)
 
     if (!Map(session))
         return false;
-
-    m_session = session;
 
     if (!ClaimSlot(local_cycle, false))
     {
@@ -151,7 +148,6 @@ void LinkCableManager::Stop()
 
     m_slot = -1;
     m_generation = 0;
-    m_session = 0;
     m_remote_slot = -1;
     m_remote_generation = 0;
     m_transfer_read_index = 0;

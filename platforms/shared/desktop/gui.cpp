@@ -611,8 +611,6 @@ static void main_window(void)
     }
 
     OglRendererScreenGeometry screen_geometry;
-    screen_geometry.logical_width = image_logical_width;
-    screen_geometry.logical_height = image_logical_height;
     screen_geometry.physical_width = image_physical_width;
     screen_geometry.physical_height = image_physical_height;
     screen_geometry.framebuffer_scale_x = framebuffer_scale_x;

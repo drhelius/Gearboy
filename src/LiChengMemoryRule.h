@@ -25,8 +25,7 @@
 class LiChengMemoryRule : public MBC5LogoMemoryRule
 {
 public:
-    LiChengMemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    LiChengMemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~LiChengMemoryRule();
     virtual void PerformWrite(u16 address, u8 value);
     virtual u8 GetMapperType();

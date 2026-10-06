@@ -24,10 +24,7 @@
 #include "Input.h"
 #include "Cartridge.h"
 
-FlashcartMemoryRule::FlashcartMemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+FlashcartMemoryRule::FlashcartMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     m_iRAMBanksSize = 0x20000;
     m_pRAMBanks = new u8[m_iRAMBanksSize];

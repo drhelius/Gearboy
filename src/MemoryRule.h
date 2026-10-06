@@ -26,17 +26,12 @@
 #include <vector>
 
 class Memory;
-class Video;
-class Processor;
-class Input;
 class Cartridge;
-class Audio;
 
 class MemoryRule
 {
 public:
-    MemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo,
-            Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    MemoryRule(Memory* pMemory, Cartridge* pCartridge);
     void SetTraceLogger(TraceLogger* pTraceLogger);
     virtual ~MemoryRule();
     virtual u8 PerformRead(u16 address) = 0;
@@ -50,7 +45,6 @@ public:
     virtual void Reset(bool bCGB) = 0;
     virtual void SaveRam(std::ostream &file);
     virtual bool LoadRam(std::istream &file, s32 fileSize);
-    virtual void SetRamChangedCallback(RamChangedCallback callback);
     virtual size_t GetRamSize();
     virtual size_t GetRTCSize();
     virtual u8* GetRamBanks();
@@ -73,14 +67,9 @@ protected:
     INLINE bool IsTraceMapperEventEnabled(u8 event) const;
     NO_INLINE void LogTraceMapperEvent(u16 address, u8 value, u8 event, u8 flags, bool flags_valid);
 
-    Processor* m_pProcessor;
     Memory* m_pMemory;
-    Video* m_pVideo;
-    Input* m_pInput;
     Cartridge* m_pCartridge;
-    Audio* m_pAudio;
     bool m_bCGB;
-    RamChangedCallback m_pRamChangedCallback;
     TraceLogger* m_pTraceLogger;
 };
 

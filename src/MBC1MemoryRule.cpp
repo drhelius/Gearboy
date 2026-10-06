@@ -26,10 +26,7 @@
 
 const int kMBC1RamBanksSize = 0x8000;
 
-MBC1MemoryRule::MBC1MemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+MBC1MemoryRule::MBC1MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     m_pRAMBanks = new u8[kMBC1RamBanksSize];
     Reset(false);
@@ -137,13 +134,7 @@ void MBC1MemoryRule::PerformWrite(u16 address, u8 value)
         {
             if (m_pCartridge->GetRAMSize() > 0)
             {
-                bool previous = m_bRamEnabled;
                 m_bRamEnabled = ((value & 0x0F) == 0x0A);
-
-                if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-                {
-                    (*m_pRamChangedCallback)();
-                }
             }
             if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
             {

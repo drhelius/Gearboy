@@ -153,14 +153,13 @@
 static GearboyApplicationDelegate* gearboy_application_delegate = nil;
 
 // C bridge
-extern "C" void* macos_install_fullscreen_observer(void* nswindow,
-                                             void(*enter_cb)(),
-                                             void(*exit_cb)())
+extern "C" void macos_install_fullscreen_observer(void* nswindow,
+                                            void(*enter_cb)(),
+                                            void(*exit_cb)())
 {
     FullscreenObserver* obs = [[FullscreenObserver alloc] initWithWindow:(__bridge NSWindow*)nswindow];
     if (enter_cb) obs.onEnterFullscreen = ^{ enter_cb(); };
     if (exit_cb) obs.onExitFullscreen = ^{ exit_cb(); };
-    return (void*)obs;
 }
 
 extern "C" void macos_set_native_fullscreen(void* nswindow, bool enter)

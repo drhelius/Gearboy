@@ -49,7 +49,6 @@ public:
     int GetCategoryToolCount(const std::string& category) const;
     json SearchTools(const std::string& query) const;
 
-    bool IsRouterTool(const std::string& tool_name) const;
     bool IsRouterTool(const std::string& tool_name, const std::string& router_tool_name) const;
     size_t GetSearchToolLimit() const;
 

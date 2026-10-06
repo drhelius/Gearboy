@@ -24,10 +24,7 @@
 #include "Input.h"
 #include "Cartridge.h"
 
-MBC3MemoryRule::MBC3MemoryRule(Processor* pProcessor,
-        Memory* pMemory, Video* pVideo, Input* pInput,
-        Cartridge* pCartridge, Audio* pAudio) : MemoryRule(pProcessor,
-pMemory, pVideo, pInput, pCartridge, pAudio)
+MBC3MemoryRule::MBC3MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     m_iRAMBanksSize = 0;
     m_pRAMBanks = NULL;
@@ -67,7 +64,6 @@ void MBC3MemoryRule::Reset(bool bCGB)
     m_RTC.LatchedControl = 0;
     m_RTC.LastTime = static_cast<s32>(m_pCartridge->GetCurrentRTC());
     m_RTC.padding = 0;
-    m_iRTCLatch = 0;
     m_RTCRegister = 0;
     m_RTCLastTimeCache = m_RTC.LastTime;
     m_iCurrentROM0Bank = 0;
@@ -319,14 +315,8 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
         {
             if (IsPoke2in1())
             {
-                bool previous = m_bRamEnabled;
                 m_bRamEnabled = ((value & 0x0F) == 0x0A);
                 m_bPoke2in1Bank0Change = ((value & 0xC0) == 0xC0);
-
-                if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-                {
-                    (*m_pRamChangedCallback)();
-                }
                 m_bRTCEnabled = false;
                 if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
                 {
@@ -337,14 +327,8 @@ void MBC3MemoryRule::PerformWrite(u16 address, u8 value)
                 break;
             }
 
-            bool previous = m_bRamEnabled;
             bool enabled = ((value & 0x0F) == 0x0A);
             m_bRamEnabled = enabled && (m_pCartridge->GetRAMBankCount() > 0);
-
-            if (IsValidPointer(m_pRamChangedCallback) && previous && !m_bRamEnabled)
-            {
-                (*m_pRamChangedCallback)();
-            }
             m_bRTCEnabled = enabled && m_pCartridge->IsRTCPresent();
             if (IsTraceMapperEventEnabled(TRACE_MAPPER_CONTROL))
             {
@@ -749,7 +733,8 @@ void MBC3MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
     stream.write(reinterpret_cast<const char*> (&m_bRTCEnabled), sizeof(m_bRTCEnabled));
     stream.write(reinterpret_cast<const char*> (m_pRAMBanks), m_iRAMBanksSize);
-    stream.write(reinterpret_cast<const char*> (&m_iRTCLatch), sizeof(m_iRTCLatch));
+    s32 rtc_latch = 0;
+    stream.write(reinterpret_cast<const char*> (&rtc_latch), sizeof(rtc_latch));
     stream.write(reinterpret_cast<const char*> (&m_RTCRegister), sizeof(m_RTCRegister));
     stream.write(reinterpret_cast<const char*> (&m_RTCLastTimeCache), sizeof(m_RTCLastTimeCache));
     stream.write(reinterpret_cast<const char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));
@@ -783,7 +768,8 @@ void MBC3MemoryRule::LoadState(std::istream& stream, u32 version)
     stream.read(reinterpret_cast<char*> (&m_bRamEnabled), sizeof(m_bRamEnabled));
     stream.read(reinterpret_cast<char*> (&m_bRTCEnabled), sizeof(m_bRTCEnabled));
     stream.read(reinterpret_cast<char*> (m_pRAMBanks), m_iRAMBanksSize);
-    stream.read(reinterpret_cast<char*> (&m_iRTCLatch), sizeof(m_iRTCLatch));
+    s32 rtc_latch = 0;
+    stream.read(reinterpret_cast<char*> (&rtc_latch), sizeof(rtc_latch));
     stream.read(reinterpret_cast<char*> (&m_RTCRegister), sizeof(m_RTCRegister));
     stream.read(reinterpret_cast<char*> (&m_RTCLastTimeCache), sizeof(m_RTCLastTimeCache));
     stream.read(reinterpret_cast<char*> (&m_CurrentROMAddress), sizeof(m_CurrentROMAddress));

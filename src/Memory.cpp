@@ -350,35 +350,6 @@ void Memory::LoadBank0and1FromROM(u8* pTheROM)
     }
 }
 
-void Memory::MemoryDump(const char* szFilePath)
-{
-    if (!IsValidPointer(m_pDisassembledMap))
-        return;
-
-    using namespace std;
-
-    ofstream myfile;
-    open_ofstream_utf8(myfile, szFilePath, ios::out | ios::trunc);
-
-    if (myfile.is_open())
-    {
-        for (int i = 0; i < 65536; i++)
-        {
-            if (IsValidPointer(m_pDisassembledMap[i]) && (m_pDisassembledMap[i]->name[0] != 0))
-            {
-                myfile << "0x" << hex << i << "\t " << m_pDisassembledMap[i]->name << "\n";
-                i += (m_pDisassembledMap[i]->size - 1);
-            }
-            else
-            {
-                myfile << "0x" << hex << i << "\t [0x" << hex << (int) m_pMap[i] << "]\n";
-            }
-        }
-
-        myfile.close();
-    }
-}
-
 void Memory::PerformDMA(u8 value)
 {
     u16 address = value << 8;
@@ -708,7 +679,6 @@ GB_Disassembler_Record* Memory::GetOrCreateDisassemblerRecord(u16 address)
     if (!IsValidPointer(record))
     {
         record = new GB_Disassembler_Record();
-        record->address = physical_address;
         record->bank = GetBank(address);
         record->segment[0] = 0;
         record->name[0] = 0;

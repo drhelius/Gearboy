@@ -116,7 +116,6 @@ private:
     int m_mapping_fd;
     int m_slot;
     u32 m_generation;
-    u8 m_session;
     u64 m_local_anchor;
     u64 m_bus_anchor;
     u64 m_last_sync_exit_us;

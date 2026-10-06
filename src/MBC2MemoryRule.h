@@ -25,8 +25,7 @@
 class MBC2MemoryRule : public MemoryRule
 {
 public:
-    MBC2MemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    MBC2MemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~MBC2MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

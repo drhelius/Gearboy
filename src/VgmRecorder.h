@@ -47,7 +47,6 @@ public:
     
 private:
     void WriteCommand(u8 command);
-    void WriteCommand(u8 command, u8 data);
     void WriteCommand(u8 command, u8 data1, u8 data2);
     void WriteWait(int samples);
     void FlushPendingWait();
@@ -66,7 +65,6 @@ private:
     int m_ClockRate;
     u64 m_TimingRemainder;
     bool m_bDoubleSpeed;
-    bool m_bGbDmgUsed;
 };
 
 INLINE void VgmRecorder::UpdateTiming(unsigned int elapsed_cycles)

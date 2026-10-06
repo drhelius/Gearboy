@@ -44,8 +44,8 @@ static const u8 kBankBitOrder[8][8] =
     { 0, 1, 2, 3, 6, 4, 7, 5 }
 };
 
-HitekMemoryRule::HitekMemoryRule(Processor* pProcessor, Memory* pMemory, Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio) :
-        MBC5LogoMemoryRule(pProcessor, pMemory, pVideo, pInput, pCartridge, pAudio)
+HitekMemoryRule::HitekMemoryRule(Memory* pMemory, Cartridge* pCartridge) :
+        MBC5LogoMemoryRule(pMemory, pCartridge)
 {
     for (int mode = 0; mode < 8; mode++)
     {

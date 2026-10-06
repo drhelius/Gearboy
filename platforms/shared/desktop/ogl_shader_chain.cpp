@@ -73,8 +73,6 @@ struct PresetProgramState
     int uniform_feedback;
     int uniform_source_history[SHADER_PRESET_MAX_HISTORY_TEXTURES];
     int uniform_pass_output[SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES];
-    bool uses_original;
-    bool uses_feedback;
     bool uses_source_history[SHADER_PRESET_MAX_HISTORY_TEXTURES];
     bool uses_pass_output[SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES];
     int uniform_source_size;
@@ -418,11 +416,6 @@ bool ogl_shader_chain_has_preset(void)
     return preset_loaded && active_preset.pass_count > 0 && preset_programs[0].program != 0;
 }
 
-uint32_t ogl_shader_chain_get_preset_program(void)
-{
-    return ogl_shader_chain_get_preset_pass_program(0);
-}
-
 uint32_t ogl_shader_chain_get_preset_pass_program(int index)
 {
     if (!preset_loaded || index < 0 || index >= active_preset.pass_count)
@@ -483,22 +476,6 @@ bool ogl_shader_chain_get_preset_pass_uses_history(int index)
         return false;
 
     return active_preset.passes[index].history;
-}
-
-bool ogl_shader_chain_get_preset_pass_uses_original_sampler(int index)
-{
-    if (!preset_loaded || index < 0 || index >= active_preset.pass_count)
-        return false;
-
-    return preset_programs[index].uses_original;
-}
-
-bool ogl_shader_chain_get_preset_pass_uses_feedback_sampler(int index)
-{
-    if (!preset_loaded || index < 0 || index >= active_preset.pass_count)
-        return false;
-
-    return preset_programs[index].uses_feedback;
 }
 
 bool ogl_shader_chain_get_preset_pass_uses_history_sampler(int pass_index, int history_index)
@@ -741,22 +718,6 @@ uint32_t ogl_shader_chain_get_pass_history_texture(int pass_index, int history_i
     return pass_history_textures[pass_index][index];
 }
 
-int ogl_shader_chain_get_intermediate_width(int index)
-{
-    if (index < 0 || index >= SHADER_PRESET_MAX_PASSES - 1)
-        return 1;
-
-    return intermediate_widths[index];
-}
-
-int ogl_shader_chain_get_intermediate_height(int index)
-{
-    if (index < 0 || index >= SHADER_PRESET_MAX_PASSES - 1)
-        return 1;
-
-    return intermediate_heights[index];
-}
-
 int ogl_shader_chain_get_pass_width(void)
 {
     return pass_width;
@@ -805,8 +766,6 @@ static void bind_preset_uniform_locations(PresetProgramState* state)
     state->uniform_source = glGetUniformLocation(program, "Source");
     state->uniform_original = glGetUniformLocation(program, "Original");
     state->uniform_feedback = glGetUniformLocation(program, "PassFeedback0");
-    state->uses_original = state->uniform_original >= 0;
-    state->uses_feedback = state->uniform_feedback >= 0;
 
     for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
     {

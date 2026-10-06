@@ -25,8 +25,7 @@
 class MMM01MemoryRule : public MemoryRule
 {
 public:
-    MMM01MemoryRule(Processor* pProcessor, Memory* pMemory,
-            Video* pVideo, Input* pInput, Cartridge* pCartridge, Audio* pAudio);
+    MMM01MemoryRule(Memory* pMemory, Cartridge* pCartridge);
     virtual ~MMM01MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

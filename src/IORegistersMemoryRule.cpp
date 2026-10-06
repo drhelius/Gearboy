@@ -89,7 +89,6 @@ void IORegistersMemoryRule::LogTraceTimerEvent(u8 event, u8 value)
     e.timer.control = m_pMemory->Retrieve(0xFF07);
     e.timer.value = value;
     e.timer.event = event;
-    e.timer.enabled = (e.timer.control & 0x04) ? 1 : 0;
     m_pTraceLogger->TraceLog(e);
 #else
     UNUSED(event);
