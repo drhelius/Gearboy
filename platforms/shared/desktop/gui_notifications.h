@@ -17,27 +17,32 @@
  *
  */
 
-#ifndef GUI_DEBUG_H
-#define GUI_DEBUG_H
+#ifndef GUI_NOTIFICATIONS_H
+#define GUI_NOTIFICATIONS_H
 
-#include "gearboy.h"
+#include <SDL3/SDL.h>
+#include "imgui.h"
+#include "fonts/IconsMaterialDesign.h"
 
-#ifdef GUI_DEBUG_IMPORT
+#ifdef GUI_NOTIFICATIONS_IMPORT
     #define EXTERN
 #else
     #define EXTERN extern
 #endif
 
-EXTERN void gui_debug_init(void);
-EXTERN void gui_debug_destroy(void);
-EXTERN void gui_debug_reset(void);
-EXTERN void gui_debug_update(void);
-EXTERN void gui_debug_windows(void);
-EXTERN bool gui_debug_save_settings(const char* file_path);
-EXTERN bool gui_debug_load_settings(const char* file_path);
-EXTERN void gui_debug_auto_save_settings(void);
-EXTERN void gui_debug_auto_load_settings(void);
+enum gui_NotificationType
+{
+    gui_NotificationInfo = 0,
+    gui_NotificationSuccess,
+    gui_NotificationWarning,
+    gui_NotificationError
+};
 
-#undef GUI_DEBUG_IMPORT
+EXTERN void gui_notify(gui_NotificationType type, const char* icon, const char* message, const char* detail = NULL,
+    const char* tag = NULL, Uint64 milliseconds = 0);
+EXTERN void gui_notifications_render_output(const ImVec2& min, const ImVec2& max);
+EXTERN void gui_notifications_render(void);
+
+#undef GUI_NOTIFICATIONS_IMPORT
 #undef EXTERN
-#endif /* GUI_DEBUG_H */
+#endif /* GUI_NOTIFICATIONS_H */

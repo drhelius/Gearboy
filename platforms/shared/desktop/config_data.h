@@ -87,7 +87,7 @@ struct config_Emulator
     std::string last_open_path;
     int window_width;
     int window_height;
-    bool status_messages;
+    bool show_notifications;
     bool allow_screensaver;
     int mcp_tcp_port;
     std::string mcp_http_address;

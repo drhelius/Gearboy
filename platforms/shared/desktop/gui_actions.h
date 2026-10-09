@@ -43,6 +43,8 @@ EXTERN void gui_action_save_background(const char* path);
 EXTERN void gui_action_save_tiles(const char* path);
 EXTERN void gui_action_save_sgb_border(const char* path);
 EXTERN void gui_action_save_sgb_tiles(const char* path, int palette);
+EXTERN void gui_action_save_state(const char* path);
+EXTERN void gui_action_load_state(const char* path);
 
 #undef GUI_ACTIONS_IMPORT
 #undef EXTERN

@@ -63,7 +63,7 @@ EXTERN void gui_debug_runto_address(u16 address);
 EXTERN void gui_debug_goto_address(u16 address);
 EXTERN void gui_debug_go_back(void);
 EXTERN void gui_debug_window_disassembler(void);
-EXTERN void gui_debug_save_disassembler(const char* file_path, bool full);
+EXTERN bool gui_debug_save_disassembler(const char* file_path, bool full);
 EXTERN void gui_debug_window_call_stack(void);
 EXTERN void gui_debug_window_breakpoints(void);
 EXTERN void gui_debug_window_symbols(void);

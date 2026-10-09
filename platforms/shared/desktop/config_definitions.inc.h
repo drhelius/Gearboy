@@ -126,7 +126,7 @@ static inline void process(config_Operation operation)
     CONFIG_INT_RANGE("Emulator", "Theme", config_emulator.theme, config_Theme_Dark, config_Theme_Light, config_Theme_Dark);
     CONFIG_INT("Emulator", "WindowWidth", config_emulator.window_width, 800);
     CONFIG_INT("Emulator", "WindowHeight", config_emulator.window_height, 700);
-    CONFIG_BOOL("Emulator", "StatusMessages", config_emulator.status_messages, false);
+    CONFIG_BOOL("Emulator", "ShowNotifications", config_emulator.show_notifications, true);
     CONFIG_BOOL("Emulator", "AllowScreenSaver", config_emulator.allow_screensaver, false);
 
     // Emulation

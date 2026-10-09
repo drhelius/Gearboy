@@ -667,25 +667,28 @@ bool emu_load_state_slot(int index)
     return false;
 }
 
-void emu_save_state_file(const char* file_path)
+bool emu_save_state_file(const char* file_path)
 {
-    if (!emu_is_empty()) {
-        gearboy->SaveState(file_path, -1, true);
-    }
+    if (emu_is_empty())
+        return false;
+
+    return gearboy->SaveState(file_path, -1, true);
 }
 
-void emu_load_state_file(const char* file_path)
+bool emu_load_state_file(const char* file_path)
 {
-    if (!emu_is_empty())
-    {
-        emu_link_cable_stop();
-        if (gearboy->LoadState(file_path, -1, false))
-        {
-            emu_debug_state_restored();
-            events_sync_input();
-            rewind_reset();
-        }
-    }
+    if (emu_is_empty())
+        return false;
+
+    emu_link_cable_stop();
+
+    if (!gearboy->LoadState(file_path, -1, false))
+        return false;
+
+    emu_debug_state_restored();
+    events_sync_input();
+    rewind_reset();
+    return true;
 }
 
 void update_savestates_data(void)
@@ -894,20 +897,21 @@ void emu_enable_bootrom_gbc(bool enable)
     gearboy->GetMemory()->EnableBootromGBC(enable);
 }
 
-void emu_save_screenshot(const char* file_path)
+bool emu_save_screenshot(const char* file_path)
 {
     if (!gearboy->GetCartridge()->IsLoadedROM())
-        return;
+        return false;
     GB_RuntimeInfo rt_info;
     gearboy->GetRuntimeInfo(rt_info);
     Log("Saving screenshot to %s", file_path);
-    stbi_write_png(file_path, rt_info.screen_width, rt_info.screen_height, 3, emu_frame_buffer, rt_info.screen_width * 3);
+    return stbi_write_png(file_path, rt_info.screen_width, rt_info.screen_height, 3, emu_frame_buffer,
+        rt_info.screen_width * 3) != 0;
 }
 
-void emu_save_sprite(const char* file_path, int index)
+bool emu_save_sprite(const char* file_path, int index)
 {
     if (!gearboy->GetCartridge()->IsLoadedROM())
-        return;
+        return false;
 
     update_debug_oam_buffers();
 
@@ -918,9 +922,11 @@ void emu_save_sprite(const char* file_path, int index)
 
     generate_24bit_buffer(emu_debug_oam_buffers[index], debug_oam_buffers_565[index], 8 * 16);
 
-    stbi_write_png(file_path, 8, height, 3, emu_debug_oam_buffers[index], 8 * 3);
+    if (!stbi_write_png(file_path, 8, height, 3, emu_debug_oam_buffers[index], 8 * 3))
+        return false;
 
     Log("Sprite saved to %s", file_path);
+    return true;
 }
 
 void emu_set_accelerometer(float x, float y, bool absolute)
@@ -940,23 +946,25 @@ void emu_set_accelerometer(float x, float y, bool absolute)
     gearboy->SetAccelerometer((double)tilt_x, (double)tilt_y);
 }
 
-void emu_save_background(const char* file_path)
+bool emu_save_background(const char* file_path)
 {
     if (!gearboy->GetCartridge()->IsLoadedROM())
-        return;
+        return false;
 
     update_debug_background_buffer();
     generate_24bit_buffer(emu_debug_background_buffer, debug_background_buffer_565, 256 * 256);
 
-    stbi_write_png(file_path, 256, 256, 3, emu_debug_background_buffer, 256 * 3);
+    if (!stbi_write_png(file_path, 256, 256, 3, emu_debug_background_buffer, 256 * 3))
+        return false;
 
     Log("Background saved to %s", file_path);
+    return true;
 }
 
-void emu_save_tiles(const char* file_path)
+bool emu_save_tiles(const char* file_path)
 {
     if (!gearboy->GetCartridge()->IsLoadedROM())
-        return;
+        return false;
 
     update_debug_tile_buffers();
 
@@ -974,17 +982,21 @@ void emu_save_tiles(const char* file_path)
         memcpy(&combined[y * width * 2 + width], &emu_debug_tile_buffers[1][y * width], width * sizeof(GB_Color));
     }
 
-    stbi_write_png(file_path, width * 2, height, 3, combined, width * 2 * 3);
+    bool saved = stbi_write_png(file_path, width * 2, height, 3, combined, width * 2 * 3) != 0;
 
     delete[] combined;
 
+    if (!saved)
+        return false;
+
     Log("Tiles saved to %s", file_path);
+    return true;
 }
 
-void emu_save_sgb_border(const char* file_path)
+bool emu_save_sgb_border(const char* file_path)
 {
     if (!gearboy->GetCartridge()->IsLoadedROM() || !gearboy->IsSGB())
-        return;
+        return false;
 
     SGB* sgb = gearboy->GetSGB();
     const SGB::Border* border = sgb->GetBorder();
@@ -1042,15 +1054,20 @@ void emu_save_sgb_border(const char* file_path)
         }
     }
 
-    stbi_write_png(file_path, w, h, 3, pixels, w * 3);
+    bool saved = stbi_write_png(file_path, w, h, 3, pixels, w * 3) != 0;
     SafeDeleteArray(pixels);
+
+    if (!saved)
+        return false;
+
     Log("SGB border saved to %s", file_path);
+    return true;
 }
 
-void emu_save_sgb_tiles(const char* file_path, int palette)
+bool emu_save_sgb_tiles(const char* file_path, int palette)
 {
     if (!gearboy->GetCartridge()->IsLoadedROM() || !gearboy->IsSGB())
-        return;
+        return false;
 
     SGB* sgb = gearboy->GetSGB();
     const SGB::Border* border = sgb->GetBorder();
@@ -1101,15 +1118,20 @@ void emu_save_sgb_tiles(const char* file_path, int palette)
         }
     }
 
-    stbi_write_png(file_path, w, h, 3, pixels, w * 3);
+    bool saved = stbi_write_png(file_path, w, h, 3, pixels, w * 3) != 0;
     SafeDeleteArray(pixels);
+
+    if (!saved)
+        return false;
+
     Log("SGB tiles saved to %s", file_path);
+    return true;
 }
 
-void emu_start_vgm_recording(const char* file_path)
+bool emu_start_vgm_recording(const char* file_path)
 {
     if (!gearboy->GetCartridge()->IsLoadedROM())
-        return;
+        return false;
     if (gearboy->GetAudio()->IsVgmRecording())
         emu_stop_vgm_recording();
     VgmMetadata metadata;
@@ -1122,8 +1144,11 @@ void emu_start_vgm_recording(const char* file_path)
     metadata.game_name = gearboy->GetCartridge()->GetFileName();
     metadata.comment = "Created with " GEARBOY_TITLE " " GEARBOY_VERSION;
 
-    if (gearboy->GetAudio()->StartVgmRecording(file_path, GEARBOY_MASTER_CLOCK_RATE, false, metadata))
-        Log("VGM recording started: %s", file_path);
+    if (!gearboy->GetAudio()->StartVgmRecording(file_path, GEARBOY_MASTER_CLOCK_RATE, false, metadata))
+        return false;
+
+    Log("VGM recording started: %s", file_path);
+    return true;
 }
 
 void emu_stop_vgm_recording(void)

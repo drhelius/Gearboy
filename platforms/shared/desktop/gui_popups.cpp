@@ -23,6 +23,7 @@
 #include "gui_popups.h"
 #include "gui.h"
 #include "gui_actions.h"
+#include "gui_notifications.h"
 #include "gui_colors.h"
 #include "config.h"
 #include "application.h"
@@ -233,9 +234,7 @@ void gui_popup_modal_barcode(void)
 
             if (result == GB_BarcodeBoyResult_Accepted)
             {
-                char message[64];
-                snprintf(message, sizeof(message), "Barcode queued: %s", barcode);
-                gui_set_status_message(message, 3000);
+                gui_notify(gui_NotificationSuccess, ICON_MD_VIEW_WEEK, "Barcode queued", barcode);
 
                 gui_dialog_in_use = false;
                 ImGui::CloseCurrentPopup();

@@ -303,7 +303,7 @@ void gui_debug_window_disassembler(void)
     ImGui::PopStyleVar();
 }
 
-void gui_debug_save_disassembler(const char* file_path, bool full)
+bool gui_debug_save_disassembler(const char* file_path, bool full)
 {
     FILE* file = fopen_utf8(file_path, "w");
 
@@ -315,7 +315,10 @@ void gui_debug_save_disassembler(const char* file_path, bool full)
             save_current_disassembler(file);
 
         fclose(file);
+        return true;
     }
+
+    return false;
 }
 
 static void draw_controls(void)

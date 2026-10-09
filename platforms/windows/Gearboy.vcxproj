@@ -84,6 +84,7 @@
     <ClCompile Include="..\shared\desktop\video_recorder.cpp" />
     <ClCompile Include="..\shared\desktop\gui.cpp" />
     <ClCompile Include="..\shared\desktop\gui_actions.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_notifications.cpp" />
     <ClCompile Include="..\shared\desktop\gui_cheats.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_rewind.cpp" />
@@ -248,6 +249,7 @@
     <ClInclude Include="..\shared\desktop\video_recorder.h" />
     <ClInclude Include="..\shared\desktop\gui.h" />
     <ClInclude Include="..\shared\desktop\gui_actions.h" />
+    <ClInclude Include="..\shared\desktop\gui_notifications.h" />
     <ClInclude Include="..\shared\desktop\gui_cheats.h" />
     <ClInclude Include="..\shared\desktop\gui_debug.h" />
     <ClInclude Include="..\shared\desktop\gui_colors.h" />

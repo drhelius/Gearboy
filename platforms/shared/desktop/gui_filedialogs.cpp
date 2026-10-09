@@ -25,6 +25,7 @@
 #include <cstring>
 #include "gui.h"
 #include "gui_actions.h"
+#include "gui_notifications.h"
 #include "gui_debug.h"
 #include "gui_debug_disassembler.h"
 #include "gui_debug_memory.h"
@@ -465,27 +466,23 @@ static void process_dialog_result(FileDialogID id, const char* path)
         case FileDialog_LoadRAM:
         {
             emu_load_ram(path, config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);
+            gui_notify(gui_NotificationInfo, ICON_MD_SD_STORAGE, "RAM loaded", path);
             break;
         }
         case FileDialog_SaveRAM:
         {
             emu_save_ram(path);
+            gui_notify(gui_NotificationInfo, ICON_MD_SD_STORAGE, "RAM saved", path);
             break;
         }
         case FileDialog_LoadState:
         {
-            std::string message("Loading state from ");
-            message += path;
-            gui_set_status_message(message.c_str(), 3000);
-            emu_load_state_file(path);
+            gui_action_load_state(path);
             break;
         }
         case FileDialog_SaveState:
         {
-            std::string message("Saving state to ");
-            message += path;
-            gui_set_status_message(message.c_str(), 3000);
-            emu_save_state_file(path);
+            gui_action_save_state(path);
             break;
         }
         case FileDialog_ChooseSavestatePath:
@@ -515,7 +512,11 @@ static void process_dialog_result(FileDialogID id, const char* path)
         case FileDialog_LoadSymbols:
         {
             gui_debug_reset_symbols();
-            gui_debug_load_symbols_file(path);
+
+            if (gui_debug_load_symbols_file(path))
+                gui_notify(gui_NotificationSuccess, ICON_MD_LABEL, "Symbols loaded", path);
+            else
+                gui_notify(gui_NotificationError, NULL, "Unable to load symbols", path);
             break;
         }
         case FileDialog_SaveScreenshot:
@@ -525,8 +526,10 @@ static void process_dialog_result(FileDialogID id, const char* path)
         }
         case FileDialog_SaveVGM:
         {
-            emu_start_vgm_recording(path);
-            gui_set_status_message("VGM recording started", 3000);
+            if (emu_start_vgm_recording(path))
+                gui_notify(gui_NotificationInfo, ICON_MD_FIBER_MANUAL_RECORD, "VGM recording started", path, "vgm");
+            else
+                gui_notify(gui_NotificationError, NULL, "Unable to start VGM recording", path, "vgm");
             break;
         }
         case FileDialog_SaveVideo:
@@ -567,43 +570,52 @@ static void process_dialog_result(FileDialogID id, const char* path)
         case FileDialog_SaveMemoryDumpBinary:
         {
             gui_debug_memory_save_dump(path, true);
+            gui_notify(gui_NotificationInfo, ICON_MD_SAVE, "Memory dump saved", path);
             break;
         }
         case FileDialog_SaveMemoryDumpText:
         {
             gui_debug_memory_save_dump(path, false);
+            gui_notify(gui_NotificationInfo, ICON_MD_SAVE, "Memory dump saved", path);
             break;
         }
         case FileDialog_LoadMemoryDumpBinary:
         {
             gui_debug_memory_load_dump(path);
+            gui_notify(gui_NotificationInfo, ICON_MD_FILE_UPLOAD, "Memory dump loaded", path);
             break;
         }
         case FileDialog_SaveDisassemblerFull:
-        {
-            gui_debug_save_disassembler(path, true);
-            break;
-        }
         case FileDialog_SaveDisassemblerVisible:
         {
-            gui_debug_save_disassembler(path, false);
+            if (gui_debug_save_disassembler(path, id == FileDialog_SaveDisassemblerFull))
+                gui_notify(gui_NotificationSuccess, ICON_MD_CODE, "Disassembly saved", path);
+            else
+                gui_notify(gui_NotificationError, NULL, "Unable to save the disassembly", path);
             break;
         }
         case FileDialog_SaveLog:
         {
-            gui_debug_save_log(path);
+            if (gui_debug_save_log(path))
+                gui_notify(gui_NotificationSuccess, ICON_MD_DESCRIPTION, "Trace log saved", path);
+            else
+                gui_notify(gui_NotificationError, NULL, "Unable to save the trace log", path);
             break;
         }
         case FileDialog_SaveDebugSettings:
         {
-            gui_debug_save_settings(path);
-            gui_set_status_message("Debug settings saved", 3000);
+            if (gui_debug_save_settings(path))
+                gui_notify(gui_NotificationSuccess, ICON_MD_BUG_REPORT, "Debug settings saved", path);
+            else
+                gui_notify(gui_NotificationError, NULL, "Unable to save debug settings", path);
             break;
         }
         case FileDialog_LoadDebugSettings:
         {
-            gui_debug_load_settings(path);
-            gui_set_status_message("Debug settings loaded", 3000);
+            if (gui_debug_load_settings(path))
+                gui_notify(gui_NotificationSuccess, ICON_MD_BUG_REPORT, "Debug settings loaded", path);
+            else
+                gui_notify(gui_NotificationError, NULL, "Unable to load debug settings", path);
             break;
         }
         case FileDialog_ChooseSavesPath:
@@ -617,6 +629,11 @@ static void process_dialog_result(FileDialogID id, const char* path)
             strncpy_fit(gui_dmg_bootrom_path, path, sizeof(gui_dmg_bootrom_path));
             config_emulator.dmg_bootrom_path.assign(path);
             emu_load_bootrom_dmg(gui_dmg_bootrom_path);
+
+            if (emu_get_core()->GetMemory()->IsBootromLoaded(false))
+                gui_notify(gui_NotificationSuccess, ICON_MD_MEMORY, "DMG boot ROM loaded", path);
+            else
+                gui_notify(gui_NotificationError, NULL, "Unable to load the DMG boot ROM", path);
             break;
         }
         case FileDialog_LoadGbcBootrom:
@@ -624,6 +641,11 @@ static void process_dialog_result(FileDialogID id, const char* path)
             strncpy_fit(gui_gbc_bootrom_path, path, sizeof(gui_gbc_bootrom_path));
             config_emulator.gbc_bootrom_path.assign(path);
             emu_load_bootrom_gbc(gui_gbc_bootrom_path);
+
+            if (emu_get_core()->GetMemory()->IsBootromLoaded(true))
+                gui_notify(gui_NotificationSuccess, ICON_MD_MEMORY, "GBC boot ROM loaded", path);
+            else
+                gui_notify(gui_NotificationError, NULL, "Unable to load the GBC boot ROM", path);
             break;
         }
         default:

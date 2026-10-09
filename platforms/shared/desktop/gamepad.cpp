@@ -22,12 +22,15 @@
 #include "config.h"
 #include "gui.h"
 #include "gui_actions.h"
+#include "gui_notifications.h"
 #include "utils.h"
 
 #define GAMEPAD_IMPORT
 #include "gamepad.h"
 
 static bool gamepad_shortcut_prev[GEARBOY_MAX_GAMEPADS][config_HotkeyIndex_COUNT] = { };
+
+static void notify_gamepad(int player, SDL_Gamepad* controller, bool connected);
 
 bool gamepad_init(void)
 {
@@ -207,6 +210,7 @@ void gamepad_add(void)
                 gamepad_controller[p] = controller;
                 player_connected[p] = true;
                 Debug("Game controller %d assigned to Player %d", i, p+1);
+                notify_gamepad(p, controller, true);
                 assigned = true;
                 break;
             }
@@ -243,6 +247,7 @@ void gamepad_remove(SDL_JoystickID instance_id)
             SDL_JoystickID current_id = SDL_GetJoystickID(SDL_GetGamepadJoystick(gamepad_controller[i]));
             if (current_id == instance_id)
             {
+                notify_gamepad(i, gamepad_controller[i], false);
                 SDL_CloseGamepad(gamepad_controller[i]);
                 gamepad_controller[i] = NULL;
                 Debug("Game controller %d disconnected from slot %d", instance_id, i);
@@ -408,4 +413,12 @@ bool gamepad_get_button(SDL_Gamepad* controller, int mapping)
     }
 
     return false;
+}
+
+static void notify_gamepad(int player, SDL_Gamepad* controller, bool connected)
+{
+    const char* name = SDL_GetGamepadName(controller);
+    char detail[256];
+    snprintf(detail, sizeof(detail), "Player %d: %s", player + 1, IsValidPointer(name) ? name : "Unknown");
+    gui_notify(gui_NotificationInfo, ICON_MD_GAMEPAD, connected ? "Gamepad connected" : "Gamepad disconnected", detail);
 }

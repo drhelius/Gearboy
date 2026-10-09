@@ -134,7 +134,6 @@ EXTERN bool gui_load_rom(const char* path, const char* symbol_path = NULL);
 EXTERN bool gui_is_rom_loading(void);
 EXTERN bool gui_finish_loading_rom(void);
 EXTERN void gui_set_style(void);
-EXTERN void gui_set_status_message(const char* message, Uint64 milliseconds);
 EXTERN void gui_set_error_message(const char* message);
 Cartridge::CartridgeTypes gui_get_mbc(int index);
 
