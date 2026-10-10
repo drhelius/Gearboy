@@ -22,6 +22,7 @@
 #include <vector>
 #include <fstream>
 #include "stb_image_write.h"
+#include "gui_notifications.h"
 
 #define VIDEO_RECORDER_IMPORT
 #include "video_recorder.h"
@@ -227,6 +228,7 @@ void video_recorder_add_video(const u8* frame_buffer, int frame_width, int frame
     {
         Error("Video recording: unable to write %s", file_path.c_str());
         video_recorder_stop();
+        gui_notify(gui_NotificationError, NULL, "Unable to write video recording", file_path.c_str(), "video");
     }
 }
 
@@ -541,6 +543,7 @@ static bool check_segment(void)
     {
         Log("Video recording: maximum file size reached");
         video_recorder_stop();
+        gui_notify(gui_NotificationWarning, NULL, "Video size limit reached, recording stopped", file_path.c_str(), "video");
         return false;
     }
 
