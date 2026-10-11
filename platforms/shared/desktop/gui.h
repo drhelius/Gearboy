@@ -135,6 +135,7 @@ EXTERN bool gui_is_rom_loading(void);
 EXTERN bool gui_finish_loading_rom(void);
 EXTERN void gui_set_style(void);
 EXTERN void gui_set_error_message(const char* message);
+EXTERN void gui_center_next_window(void);
 Cartridge::CartridgeTypes gui_get_mbc(int index);
 
 #undef GUI_IMPORT
