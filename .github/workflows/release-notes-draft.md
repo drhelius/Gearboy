@@ -72,7 +72,7 @@ safe-outputs:
 
 ## Task
 
-Detect the newest Gearboy draft release created by the `Build and Release` workflow and replace its generated release notes with concise notes that match the recent manual release style.
+Detect the newest Gearboy draft release created by the `Build and Release` workflow and replace its generated release notes with short headline notes that match the established drhelius emulator release style.
 
 ## Procedure
 
@@ -83,48 +83,70 @@ Detect the newest Gearboy draft release created by the `Build and Release` workf
 3. If `${{ github.event.inputs.release_tag }}` is empty, call `noop` with a short explanation.
 4. If `/tmp/gh-aw/agent/memory/release-notes-draft/processed-drafts.json` shows that tag `${{ github.event.inputs.release_tag }}` was already processed, call `noop`.
 
-### Phase 2: Learn The Local Style
+### Phase 2: Learn The Style
 
-1. Read at least six published releases from the last year in this repository.
-2. Use those releases as the style reference. Recent style is concise bullet lists with emoji, followed by a `**Full Changelog**:` compare link.
-3. Prefer the direct bullet style used in recent releases, without `## What's Changed`, unless the existing generated notes include new contributors that should be preserved.
-4. Each bullet names a concrete, user-facing change in specific wording derived from the merged pull requests (name the exact feature or subsystem). Reserve `Many bug fixes and improvements` as the final catch-all bullet, and avoid vague `Improved X` bullets when a specific description is available.
+1. Read at least six published releases from the last year in this repository as the style reference for tone and recurring bullets. The rules and examples in Phase 4 summarize that style; follow them when an older release differs.
+2. The format is a direct bullet list with emoji, without headings or `## What's Changed`, followed by a `**Full Changelog**:` compare link. Keep a `New Contributors` section only when a first-time external contributor landed a pull request in the range.
 
 ### Phase 3: Collect Changes
 
-1. The target release tag is `${{ github.event.inputs.release_tag }}`. Identify the previous published release tag from the list of published releases (published releases are visible to the read-only token).
-2. List both the merged pull requests and the full commit log between the previous published tag and `${{ github.event.inputs.release_tag }}`. Most feature work in this repository lands as direct commits without a pull request, so the commit log is the primary source of truth for features; read every commit subject in the range. Use the pull requests mainly to attribute external contributors and to confirm the compare range.
+1. The target release tag is `${{ github.event.inputs.release_tag }}`. Identify the previous published release tag from the list of published releases (published releases and pre-releases are visible to the read-only token).
+2. List both the merged pull requests and the full commit log between the previous published tag and `${{ github.event.inputs.release_tag }}`. Most feature work in this repository lands as direct commits without a pull request, so the commit log is the primary source of truth for features; read every commit subject in the range. Use pull requests mainly to attribute external contributors and confirm the range.
 3. Do not read the draft release body or call GitHub's generate-notes API; the read-only token cannot access drafts. Reconstruct the changelog from the commit log and merged pull requests instead.
-4. Identify notable user-facing changes from the commit subjects, not just from pull requests. Commit-message prefixes signal the affected area (for example `[mcp]` for the MCP server, `[debugger]` for debugger/tooling), and many feature commits have no prefix at all. Group related commits into a single bullet per feature, and fold only genuinely minor or purely internal commits into `Many bug fixes and improvements`. Never collapse a notable feature into the catch-all bullet just because it did not arrive through a pull request.
-5. Note the GitHub login of each notable pull request's author. Treat authors other than the repository owner (`drhelius`) as external contributors whose work should be credited with a profile link in Phase 4. Preserve useful `New Contributors` information when present.
+4. Commit-message prefixes signal the affected area (`[libretro]` for the RetroArch core, `[debugger]` for debugger windows and tooling, `[mcp]` for the MCP server), and many feature commits have no prefix at all. Group related commits into one candidate per feature or subsystem. Never drop a notable feature just because it did not arrive through a pull request.
+5. Note whether `platforms/shared/gamecontrollerdb.txt` changed in the range (commit subjects start with `Update gamecontrollerdb`).
+6. Note the total number of commits in the range; it decides the wording of the catch-all bullet.
+7. Note the GitHub login of each notable pull request's author. Treat authors other than the repository owner (`drhelius`) as external contributors to be credited in Phase 4.
 
 ### Phase 4: Draft Notes
 
-Write concise, specific release notes in the established style. Every bullet must describe a concrete, user-facing change taken from the merged pull requests — never a vague summary.
+Write headlines, not a changelog. The notes read like the feature list on a box: a few short bullets naming what a player or homebrew developer will notice, followed by a catch-all bullet.
 
-Guidelines:
-- Be specific. Prefer `Variable Refresh Rate ready` over `VRR ready`, and `Added WLA-DX and PCEAS syntaxes in disassembler` over `Improved debugger`. Spell out acronyms and name the actual feature, syntax, palette, or subsystem that changed.
-- Avoid generic `Improved X` bullets when a more specific description is available. Take the specifics from the merged pull request titles and descriptions.
-- Credit external contributors. When a change comes from a pull request authored by someone other than the repository owner, append `by [username](https://github.com/username)` using that author's GitHub login.
-- One bullet per notable change. Fold minor or numerous fixes into the single `🐛 Many bug fixes and improvements` bullet. Do not invent features.
-- Keep each bullet brief and on a single line. Never wrap a bullet across multiple lines or add sub-bullets.
+Rules:
+- Keep 2 to 6 feature bullets. Choose the changes users will notice most and fold everything else into the catch-all bullet.
+- Keep each bullet to roughly 3 to 10 words on a single line. No sub-bullets, semicolons, or trailing `and ...` clauses listing extra fixes. A short colon or parenthetical is fine only to name supported items such as models, mappers or event types (`New trace logger events: missed frame and sprite budgets`), never to list fixes or implementation details.
+- Name what changed, not how. Name the feature or subsystem users recognize (Game Boy Color, Super Game Boy, sound, cartridge mappers, link cable, cheats, save states, libretro core, or a specific debugger window) and leave out registers, timings, function names, implementation details, and lists of individual fixes.
+- A new feature gets its own name: `Added video recording`, `Ubuntu 26.04 builds`, `Variable Refresh Rate ready`. Several fixes in one subsystem become a single `Improved <subsystem> accuracy` or `Improved <subsystem> compatibility` bullet; never enumerate them. Avoid a vague `Improved X` only when one concrete new feature describes the change better.
+- Use names users know instead of internal ones, and spell out unfamiliar acronyms (`LaserActive`, not `MMI`).
+- Prefix a bullet with `[debugger]` when the feature only concerns the debugger, after the emoji: `⚙️ [debugger] CPU Profiler`.
+- When an MCP change only exposes a debugger feature already listed, fold it into that bullet's area instead of adding a separate MCP bullet.
+- Leave out changes that do not reach users: refactors, tests, CI, documentation, build-system or packaging fixes, and preparatory work for something not shipped yet. New download targets or platforms are user-facing and stay.
+- Credit external contributors on the bullets that are kept by appending `by [username](https://github.com/username)` using the author's GitHub login.
+- Do not invent features.
 
-Order the bullets like this: notable user-facing features first (most significant first), and always `🐛 Many bug fixes and improvements` last.
+Order:
+1. Feature bullets, most significant first.
+2. `🎮 Updated Game Controller DB` if `platforms/shared/gamecontrollerdb.txt` changed in the range.
+3. The catch-all bullet, always last, scaled to the release size: `🐛 Bug fixes` for about 5 commits or fewer, `🐛 Bug fixes and improvements` for up to about 25 commits, `🐛 Many bug fixes and improvements` for larger releases.
 
-Emoji guide (pick the closest match): `🎯` accuracy or hardware behavior, `🖥️` display/video/host integration, `🔊` audio, `🎮` input/controllers, `🎨` palettes/themes/visuals, `🧠` MCP server, `⚙️` debugger/tooling, `🤖` AI, `🐛` bug fixes.
+Emoji guide (pick the closest match): `🎯` accuracy or compatibility, `🖥️` display, video and host integration, `🔊` audio, `🎵` sound chips and VGM recording, `🎮` input and controllers, `💾` save states, BIOS, patching and files, `🎨` themes, shaders and visuals, `🚀` performance and latency, `🎥` video recording, `🔔` notifications, `🔌` link cables and multiplayer, `📦` builds and packages, `📱` mobile apps, `🕹️` libretro core, `🧠` MCP server, `⚙️` debugger and tooling, `⚠️` trace logger events, `🤖` AI, `🐛` bug fixes.
 
-Style example (illustrative only — every bullet must reflect this repository's actual merged changes; never copy these specific items):
+Too detailed versus preferred, taken from real edits made to drafts in Geargrafx, a sibling emulator:
+
+| Too detailed | Preferred |
+| --- | --- |
+| `💿 CD-ROM: SCSI seek timing for pause/delay commands, on-demand CD audio track loading, smaller CD image chunks` | `💿 Improved CD-ROM accuracy` |
+| `🎯 Improved PSG accuracy: trigger, counter and modulation timing fixes` | `🎯 Improved PSG accuracy` |
+| `🎮 Reduced input lag and improved mouse capture handling (persistent capture hotkey, released on launch)` | `🎮 Reduced input lag` |
+| `⚙️ New function profiler debugger window with cycle stats` | `⚙️ [debugger] CPU Profiler` |
+| `💾 Smaller savestates and fixed input restoration and validation` | `💾 Smaller save states` |
+| `💿 Improved libretro MMI implementation` | `💿 Improved libretro LaserActive implementation` |
+
+Style example (a real release of this repository, illustrative only — every bullet must reflect this repository's actual changes; never copy these items):
 
 ```markdown
-- 🖥️ Variable Refresh Rate ready
-- 🧠 Reduced token usage in MCP server with optional tool router
-- ⚙️ Added WLA-DX and PCEAS syntaxes in disassembler
-- 🎨 New palette by [username](https://github.com/username)
-- 🤖 Agentic Workflows
-- 🐛 Many bug fixes and improvements
+- 🎥 Added video recording
+- 🖥️ Improved fractional DPI display rendering and scaling
+- ⚙️ [debugger] CPU Profiler
+- ⚠️ [debugger] New trace logger events: missed frame and sprite budgets
+- 💾 Smaller save states
+- 🎮 Updated Game Controller DB
+- 🐛 Bug fixes and improvements
 
 **Full Changelog**: https://github.com/drhelius/Gearboy/compare/<previous>...<current>
 ```
+
+Before submitting, re-read every bullet and shorten any that breaks the rules above.
 
 ### Phase 5: Update Release
 
