@@ -101,3 +101,6 @@ platforms/libretro/libs/
 
 #JetBrains
 .idea
+
+#GitHub Agentic Workflows
+.github/agents/agentic-workflows.md
