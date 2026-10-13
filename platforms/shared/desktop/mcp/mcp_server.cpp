@@ -839,8 +839,8 @@ json McpServer::BuildToolList()
                 }},
                 {"quality", {
                     {"type", "string"},
-                    {"description", "low and medium halve color resolution; lossless writes uncompressed video with very large files."},
-                    {"enum", json::array({"low", "medium", "high", "lossless"})}
+                    {"description", "low and medium halve color resolution; lossless writes uncompressed video with very large files; lossless_compressed stores PNG frames, much smaller but needs an FFmpeg based player."},
+                    {"enum", json::array({"low", "medium", "high", "lossless", "lossless_compressed"})}
                 }}
             }},
             {"additionalProperties", false}

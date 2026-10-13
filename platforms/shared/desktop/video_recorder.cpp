@@ -21,6 +21,9 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <SDL3/SDL.h>
+#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
+#include <miniz.h>
 #include "stb_image_write.h"
 #include "gui_notifications.h"
 
@@ -32,6 +35,8 @@
 #define VIDEO_RECORDER_BLOCK_ALIGN (VIDEO_RECORDER_CHANNELS * 2)
 #define VIDEO_RECORDER_SEGMENT_SIZE 0x40000000
 #define VIDEO_RECORDER_MAX_SEGMENTS 1024
+#define VIDEO_RECORDER_MAX_ENCODERS 8
+#define VIDEO_RECORDER_MAX_SLOTS (VIDEO_RECORDER_MAX_ENCODERS + 2)
 
 #define AVIF_HASINDEX 0x00000010
 #define AVIF_ISINTERLEAVED 0x00000100
@@ -47,6 +52,21 @@ enum Video_Recorder_Stream
     Video_Recorder_Stream_Count
 };
 
+enum Video_Recorder_Slot_State
+{
+    Video_Recorder_Slot_Free = 0,
+    Video_Recorder_Slot_Queued,
+    Video_Recorder_Slot_Encoding,
+    Video_Recorder_Slot_Encoded
+};
+
+enum Video_Recorder_Status
+{
+    Video_Recorder_Status_Ok = 0,
+    Video_Recorder_Status_WriteError,
+    Video_Recorder_Status_SizeLimit
+};
+
 struct Video_Recorder_Chunk
 {
     u32 offset;
@@ -58,6 +78,15 @@ struct Video_Recorder_Segment
     u64 offset;
     u32 size;
     u32 duration;
+};
+
+struct Video_Recorder_Slot
+{
+    Video_Recorder_Slot_State state;
+    bool has_video;
+    u32* pixels;
+    std::vector<u8> data;
+    std::vector<s16> audio;
 };
 
 static const int k_jpeg_quality[Video_Recorder_Quality_Lossless] = { 75, 90, 95 };
@@ -84,8 +113,23 @@ static u64 audio_bytes = 0;
 static u32 max_chunk_size[Video_Recorder_Stream_Count] = { 0 };
 static std::vector<Video_Recorder_Chunk> chunks[Video_Recorder_Stream_Count];
 static Video_Recorder_Segment segments[Video_Recorder_Stream_Count][VIDEO_RECORDER_MAX_SEGMENTS];
-static std::vector<u8> frame_data;
-static u32* scaled_buffer = NULL;
+static Video_Recorder_Slot slots[VIDEO_RECORDER_MAX_SLOTS];
+static int slot_count = 0;
+static int submit_index = 0;
+static int encode_index = 0;
+static int write_index = 0;
+static int queued_slots = 0;
+static bool threads_quit = false;
+static Video_Recorder_Status status = Video_Recorder_Status_Ok;
+static SDL_Mutex* mutex = NULL;
+static SDL_Condition* queued_condition = NULL;
+static SDL_Condition* encoded_condition = NULL;
+static SDL_Condition* free_condition = NULL;
+static SDL_Thread* writer_thread = NULL;
+static SDL_Thread* encoder_threads[VIDEO_RECORDER_MAX_ENCODERS] = { NULL };
+static int encoder_count = 0;
+static std::vector<s16> pending_audio;
+static u32 submitted_frames = 0;
 static int* scaled_x = NULL;
 static int scaled_source_width = 0;
 
@@ -107,8 +151,20 @@ static void write_chunk(int stream, const void* data, u32 size);
 static void begin_segment(void);
 static void end_segment(void);
 static bool check_segment(void);
-static void scale_frame(const u8* frame_buffer, int frame_width, int frame_height, int bytes_per_pixel);
-static void encode_lossless(void);
+static bool start_threads(void);
+static void stop_threads(void);
+static int SDLCALL encoder_thread_func(void* data);
+static int SDLCALL writer_thread_func(void* data);
+static Video_Recorder_Slot* acquire_slot(void);
+static void submit_slot(Video_Recorder_Slot* slot);
+static bool check_status(void);
+static void release_buffers(void);
+static void encode_slot(Video_Recorder_Slot* slot);
+static Video_Recorder_Status write_slot(Video_Recorder_Slot* slot);
+static void scale_frame(u32* dst, const u8* frame_buffer, int frame_width, int frame_height, int bytes_per_pixel);
+static void encode_lossless(Video_Recorder_Slot* slot);
+static void encode_lossless_compressed(Video_Recorder_Slot* slot);
+static void write_codec_fourcc(void);
 static int get_lossless_stride(void);
 static void jpeg_write(void* context, void* data, int size);
 
@@ -145,13 +201,37 @@ bool video_recorder_start(const char* path, int video_width, int video_height, d
     max_chunk_size[Video_Recorder_Stream_Video] = 0;
     max_chunk_size[Video_Recorder_Stream_Audio] = 0;
     memset(segments, 0, sizeof(segments));
+    status = Video_Recorder_Status_Ok;
+    submitted_frames = 0;
 
-    scaled_buffer = new u32[(size_t)width * height];
+    encoder_count = SDL_GetNumLogicalCPUCores() / 2;
+    if (encoder_count < 1)
+        encoder_count = 1;
+    if (encoder_count > VIDEO_RECORDER_MAX_ENCODERS)
+        encoder_count = VIDEO_RECORDER_MAX_ENCODERS;
+    slot_count = encoder_count + 2;
+
+    for (int i = 0; i < slot_count; i++)
+    {
+        slots[i].state = Video_Recorder_Slot_Free;
+        slots[i].has_video = false;
+        slots[i].pixels = new u32[(size_t)width * height];
+    }
+
     scaled_x = new int[width];
     scaled_source_width = 0;
 
     write_header();
     begin_segment();
+
+    if (!start_threads())
+    {
+        Log("Video recording: unable to start encoder threads");
+        stop_threads();
+        file.close();
+        release_buffers();
+        return false;
+    }
 
     recording = true;
     return true;
@@ -164,18 +244,29 @@ void video_recorder_stop(void)
 
     recording = false;
 
+    if (!pending_audio.empty())
+    {
+        Video_Recorder_Slot* slot = acquire_slot();
+        slot->has_video = false;
+        slot->audio.swap(pending_audio);
+        pending_audio.clear();
+        submit_slot(slot);
+    }
+
+    SDL_LockMutex(mutex);
+    while (queued_slots > 0)
+        SDL_WaitCondition(free_condition, mutex);
+    SDL_UnlockMutex(mutex);
+
+    stop_threads();
+
     end_segment();
     file.seekp(0);
     position = 0;
     write_header();
     file.close();
 
-    for (int i = 0; i < Video_Recorder_Stream_Count; i++)
-        std::vector<Video_Recorder_Chunk>().swap(chunks[i]);
-
-    std::vector<u8>().swap(frame_data);
-    SafeDeleteArray(scaled_buffer);
-    SafeDeleteArray(scaled_x);
+    release_buffers();
 }
 
 bool video_recorder_is_recording(void)
@@ -190,46 +281,29 @@ const char* video_recorder_get_file_path(void)
 
 u32 video_recorder_get_frame_count(void)
 {
-    return frame_count;
+    return submitted_frames;
 }
 
 void video_recorder_add_audio(const s16* samples, int count)
 {
-    if (!recording || (count <= 0) || !check_segment())
+    if (!recording || (count <= 0) || !check_status())
         return;
 
-    u32 size = (u32)count * sizeof(s16);
-    write_chunk(Video_Recorder_Stream_Audio, samples, size);
-    audio_bytes += size;
+    pending_audio.insert(pending_audio.end(), samples, samples + count);
 }
 
 void video_recorder_add_video(const u8* frame_buffer, int frame_width, int frame_height, int bytes_per_pixel)
 {
-    if (!recording || (frame_width <= 0) || (frame_height <= 0) || !check_segment())
+    if (!recording || (frame_width <= 0) || (frame_height <= 0) || !check_status())
         return;
 
-    scale_frame(frame_buffer, frame_width, frame_height, bytes_per_pixel);
-
-    if (quality == Video_Recorder_Quality_Lossless)
-        encode_lossless();
-    else
-    {
-        frame_data.clear();
-        if (!stbi_write_jpg_to_func(jpeg_write, NULL, width, height, 4, scaled_buffer, k_jpeg_quality[quality]))
-            return;
-    }
-
-    u32 size = (u32)frame_data.size();
-    write_chunk(Video_Recorder_Stream_Video, frame_data.data(), size);
-    video_bytes += size;
-    frame_count++;
-
-    if (!file.good())
-    {
-        Error("Video recording: unable to write %s", file_path.c_str());
-        video_recorder_stop();
-        gui_notify(gui_NotificationError, NULL, "Unable to write video recording", file_path.c_str(), "video");
-    }
+    Video_Recorder_Slot* slot = acquire_slot();
+    scale_frame(slot->pixels, frame_buffer, frame_width, frame_height, bytes_per_pixel);
+    slot->has_video = true;
+    slot->audio.swap(pending_audio);
+    pending_audio.clear();
+    submit_slot(slot);
+    submitted_frames++;
 }
 
 static void write_data(const void* data, u32 size)
@@ -322,15 +396,10 @@ static void write_header(void)
 
     u64 strl = begin_list("LIST", "strl");
 
-    bool lossless = (quality == Video_Recorder_Quality_Lossless);
-
     write_fourcc("strh");
     write_u32(56);
     write_fourcc("vids");
-    if (lossless)
-        write_u32(0);
-    else
-        write_fourcc("MJPG");
+    write_codec_fourcc();
     write_u32(0);
     write_u16(0);
     write_u16(0);
@@ -354,10 +423,7 @@ static void write_header(void)
     write_u32(height);
     write_u16(1);
     write_u16(24);
-    if (lossless)
-        write_u32(0);
-    else
-        write_fourcc("MJPG");
+    write_codec_fourcc();
     write_u32(get_lossless_stride() * height);
     write_zeros(16);
 
@@ -540,20 +606,262 @@ static bool check_segment(void)
         return true;
 
     if (segment_count >= (VIDEO_RECORDER_MAX_SEGMENTS - 1))
-    {
-        Log("Video recording: maximum file size reached");
-        video_recorder_stop();
-        gui_notify(gui_NotificationWarning, NULL, "Video size limit reached, recording stopped", file_path.c_str(), "video");
         return false;
-    }
 
     end_segment();
     begin_segment();
     return true;
 }
 
-static void scale_frame(const u8* frame_buffer, int frame_width, int frame_height, int bytes_per_pixel)
+static bool start_threads(void)
 {
+    threads_quit = false;
+    submit_index = 0;
+    encode_index = 0;
+    write_index = 0;
+    queued_slots = 0;
+
+    mutex = SDL_CreateMutex();
+    queued_condition = SDL_CreateCondition();
+    encoded_condition = SDL_CreateCondition();
+    free_condition = SDL_CreateCondition();
+
+    if (!mutex || !queued_condition || !encoded_condition || !free_condition)
+        return false;
+
+    writer_thread = SDL_CreateThread(writer_thread_func, "VideoRecorderWriter", NULL);
+    if (!writer_thread)
+        return false;
+
+    for (int i = 0; i < encoder_count; i++)
+    {
+        encoder_threads[i] = SDL_CreateThread(encoder_thread_func, "VideoRecorderEncoder", NULL);
+        if (!encoder_threads[i])
+            return false;
+    }
+
+    return true;
+}
+
+static void stop_threads(void)
+{
+    SDL_LockMutex(mutex);
+    threads_quit = true;
+    if (queued_condition)
+        SDL_BroadcastCondition(queued_condition);
+    if (encoded_condition)
+        SDL_BroadcastCondition(encoded_condition);
+    SDL_UnlockMutex(mutex);
+
+    if (writer_thread)
+        SDL_WaitThread(writer_thread, NULL);
+    writer_thread = NULL;
+
+    for (int i = 0; i < VIDEO_RECORDER_MAX_ENCODERS; i++)
+    {
+        if (encoder_threads[i])
+            SDL_WaitThread(encoder_threads[i], NULL);
+        encoder_threads[i] = NULL;
+    }
+
+    if (queued_condition)
+        SDL_DestroyCondition(queued_condition);
+    if (encoded_condition)
+        SDL_DestroyCondition(encoded_condition);
+    if (free_condition)
+        SDL_DestroyCondition(free_condition);
+    if (mutex)
+        SDL_DestroyMutex(mutex);
+
+    queued_condition = NULL;
+    encoded_condition = NULL;
+    free_condition = NULL;
+    mutex = NULL;
+}
+
+static int SDLCALL encoder_thread_func(void* data)
+{
+    UNUSED(data);
+
+    SDL_LockMutex(mutex);
+
+    while (true)
+    {
+        while (!threads_quit && (slots[encode_index].state != Video_Recorder_Slot_Queued))
+            SDL_WaitCondition(queued_condition, mutex);
+
+        if (threads_quit)
+            break;
+
+        Video_Recorder_Slot* slot = &slots[encode_index];
+        slot->state = Video_Recorder_Slot_Encoding;
+        encode_index = (encode_index + 1) % slot_count;
+        SDL_UnlockMutex(mutex);
+
+        encode_slot(slot);
+
+        SDL_LockMutex(mutex);
+        slot->state = Video_Recorder_Slot_Encoded;
+        SDL_SignalCondition(encoded_condition);
+    }
+
+    SDL_UnlockMutex(mutex);
+    return 0;
+}
+
+static int SDLCALL writer_thread_func(void* data)
+{
+    UNUSED(data);
+
+    SDL_LockMutex(mutex);
+
+    while (true)
+    {
+        while (!threads_quit && (slots[write_index].state != Video_Recorder_Slot_Encoded))
+            SDL_WaitCondition(encoded_condition, mutex);
+
+        if (threads_quit)
+            break;
+
+        Video_Recorder_Slot* slot = &slots[write_index];
+        Video_Recorder_Status slot_status = status;
+        SDL_UnlockMutex(mutex);
+
+        if (slot_status == Video_Recorder_Status_Ok)
+            slot_status = write_slot(slot);
+
+        SDL_LockMutex(mutex);
+        status = slot_status;
+        slot->state = Video_Recorder_Slot_Free;
+        write_index = (write_index + 1) % slot_count;
+        queued_slots--;
+        SDL_SignalCondition(free_condition);
+    }
+
+    SDL_UnlockMutex(mutex);
+    return 0;
+}
+
+static Video_Recorder_Slot* acquire_slot(void)
+{
+    Video_Recorder_Slot* slot = &slots[submit_index];
+
+    SDL_LockMutex(mutex);
+    while (slot->state != Video_Recorder_Slot_Free)
+        SDL_WaitCondition(free_condition, mutex);
+    SDL_UnlockMutex(mutex);
+
+    return slot;
+}
+
+static void submit_slot(Video_Recorder_Slot* slot)
+{
+    SDL_LockMutex(mutex);
+    slot->state = Video_Recorder_Slot_Queued;
+    submit_index = (submit_index + 1) % slot_count;
+    queued_slots++;
+    SDL_SignalCondition(queued_condition);
+    SDL_UnlockMutex(mutex);
+}
+
+static bool check_status(void)
+{
+    SDL_LockMutex(mutex);
+    Video_Recorder_Status current_status = status;
+    SDL_UnlockMutex(mutex);
+
+    if (current_status == Video_Recorder_Status_Ok)
+        return true;
+
+    video_recorder_stop();
+
+    if (current_status == Video_Recorder_Status_SizeLimit)
+    {
+        Log("Video recording: maximum file size reached");
+        gui_notify(gui_NotificationWarning, NULL, "Video size limit reached, recording stopped", file_path.c_str(), "video");
+    }
+    else
+    {
+        Error("Video recording: unable to write %s", file_path.c_str());
+        gui_notify(gui_NotificationError, NULL, "Unable to write video recording", file_path.c_str(), "video");
+    }
+
+    return false;
+}
+
+static void release_buffers(void)
+{
+    for (int i = 0; i < Video_Recorder_Stream_Count; i++)
+        std::vector<Video_Recorder_Chunk>().swap(chunks[i]);
+
+    for (int i = 0; i < VIDEO_RECORDER_MAX_SLOTS; i++)
+    {
+        SafeDeleteArray(slots[i].pixels);
+        std::vector<u8>().swap(slots[i].data);
+        std::vector<s16>().swap(slots[i].audio);
+    }
+
+    std::vector<s16>().swap(pending_audio);
+    SafeDeleteArray(scaled_x);
+    slot_count = 0;
+}
+
+static void encode_slot(Video_Recorder_Slot* slot)
+{
+    if (!slot->has_video)
+        return;
+
+    if (quality == Video_Recorder_Quality_Lossless)
+    {
+        encode_lossless(slot);
+        return;
+    }
+
+    if (quality == Video_Recorder_Quality_LosslessCompressed)
+    {
+        encode_lossless_compressed(slot);
+        return;
+    }
+
+    slot->data.clear();
+    if (!stbi_write_jpg_to_func(jpeg_write, &slot->data, width, height, 4, slot->pixels, k_jpeg_quality[quality]))
+        slot->has_video = false;
+}
+
+static Video_Recorder_Status write_slot(Video_Recorder_Slot* slot)
+{
+    if (!check_segment())
+        return Video_Recorder_Status_SizeLimit;
+
+    if (!slot->audio.empty())
+    {
+        u32 size = (u32)slot->audio.size() * sizeof(s16);
+        write_chunk(Video_Recorder_Stream_Audio, slot->audio.data(), size);
+        audio_bytes += size;
+    }
+
+    if (slot->has_video)
+    {
+        u32 size = (u32)slot->data.size();
+        write_chunk(Video_Recorder_Stream_Video, slot->data.data(), size);
+        video_bytes += size;
+        frame_count++;
+    }
+
+    if (!file.good())
+        return Video_Recorder_Status_WriteError;
+
+    return Video_Recorder_Status_Ok;
+}
+
+static void scale_frame(u32* dst, const u8* frame_buffer, int frame_width, int frame_height, int bytes_per_pixel)
+{
+    if ((frame_width == width) && (frame_height == height) && (bytes_per_pixel == 4))
+    {
+        memcpy(dst, frame_buffer, (size_t)width * height * sizeof(u32));
+        return;
+    }
+
     if (frame_width != scaled_source_width)
     {
         for (int x = 0; x < width; x++)
@@ -565,7 +873,7 @@ static void scale_frame(const u8* frame_buffer, int frame_width, int frame_heigh
 
     for (int y = 0; y < height; y++)
     {
-        u32* dst_line = scaled_buffer + (y * width);
+        u32* dst_line = dst + (y * width);
         int src_y = (((2 * y) + 1) * frame_height) / (2 * height);
 
         if (src_y == last_y)
@@ -601,15 +909,15 @@ static void scale_frame(const u8* frame_buffer, int frame_width, int frame_heigh
     }
 }
 
-static void encode_lossless(void)
+static void encode_lossless(Video_Recorder_Slot* slot)
 {
     int stride = get_lossless_stride();
-    frame_data.assign((size_t)stride * height, 0);
+    slot->data.assign((size_t)stride * height, 0);
 
     for (int y = 0; y < height; y++)
     {
-        const u8* src_line = (const u8*)(scaled_buffer + ((height - 1 - y) * width));
-        u8* dst_line = frame_data.data() + (y * stride);
+        const u8* src_line = (const u8*)(slot->pixels + ((height - 1 - y) * width));
+        u8* dst_line = slot->data.data() + (y * stride);
 
         for (int x = 0; x < width; x++)
         {
@@ -620,6 +928,42 @@ static void encode_lossless(void)
     }
 }
 
+static void encode_lossless_compressed(Video_Recorder_Slot* slot)
+{
+    const u8* src = (const u8*)slot->pixels;
+    u8* dst = (u8*)slot->pixels;
+    int count = width * height;
+
+    for (int i = 0; i < count; i++)
+    {
+        dst[(i * 3) + 0] = src[(i * 4) + 0];
+        dst[(i * 3) + 1] = src[(i * 4) + 1];
+        dst[(i * 3) + 2] = src[(i * 4) + 2];
+    }
+
+    size_t size = 0;
+    void* png = tdefl_write_image_to_png_file_in_memory_ex(dst, width, height, 3, &size, MZ_BEST_SPEED, MZ_FALSE);
+
+    if (!png)
+    {
+        slot->has_video = false;
+        return;
+    }
+
+    slot->data.assign((const u8*)png, (const u8*)png + size);
+    mz_free(png);
+}
+
+static void write_codec_fourcc(void)
+{
+    if (quality == Video_Recorder_Quality_Lossless)
+        write_u32(0);
+    else if (quality == Video_Recorder_Quality_LosslessCompressed)
+        write_fourcc("MPNG");
+    else
+        write_fourcc("MJPG");
+}
+
 static int get_lossless_stride(void)
 {
     return (((width * 3) + 3) / 4) * 4;
@@ -627,7 +971,7 @@ static int get_lossless_stride(void)
 
 static void jpeg_write(void* context, void* data, int size)
 {
-    UNUSED(context);
+    std::vector<u8>* output = (std::vector<u8>*)context;
     const u8* bytes = (const u8*)data;
-    frame_data.insert(frame_data.end(), bytes, bytes + size);
+    output->insert(output->end(), bytes, bytes + size);
 }

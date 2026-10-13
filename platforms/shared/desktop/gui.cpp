@@ -235,6 +235,8 @@ void gui_shortcut(gui_ShortCutEvent event)
         gui_action_toggle_video_recording();
         break;
     case gui_ShortcutFullscreen:
+        if (emu_is_video_recording())
+            break;
         config_emulator.fullscreen = !config_emulator.fullscreen;
         application_trigger_fullscreen(config_emulator.fullscreen);
         break;

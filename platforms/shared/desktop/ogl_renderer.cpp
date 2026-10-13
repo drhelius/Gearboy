@@ -31,6 +31,7 @@
 #include "emu.h"
 #include "config.h"
 #include "gearboy.h"
+#include "video_recorder.h"
 
 #define OGL_RENDERER_IMPORT
 #include "ogl_renderer.h"
@@ -43,6 +44,8 @@ static u32 system_frame_buffer[SGB_SCREEN_WIDTH * SGB_SCREEN_HEIGHT];
 static OglRendererScreenGeometry screen_geometry;
 static int savestates_texture_slot = -1;
 static u32 savestates_texture_generation = 0;
+static u8* recording_buffer = NULL;
+static int recording_buffer_size = 0;
 
 static uint32_t quad_shader_program = 0;
 static uint32_t quad_vao = 0;
@@ -58,9 +61,10 @@ static void init_ogl_savestates(void);
 static bool init_shaders(void);
 static void render_gui(void);
 static bool should_use_internal_shader_chain(void);
-static void render_internal_shader_chain(void);
-static void render_external_shader_chain(void);
+static bool render_internal_shader_chain(void);
+static bool render_external_shader_chain(void);
 static void render_internal_shader_chain_feedback(void);
+static void record_video_frame(bool shader_rendered);
 static void bind_texture_unit(int unit, uint32_t texture, uint32_t fallback_texture);
 static void render_quad(uint32_t program, uint32_t texture, int viewport_width, int viewport_height, float tex_h, float tex_v, float red, float green, float blue, float alpha);
 static void render_quad_preset(int pass_index, uint32_t program, uint32_t texture, int input_width, int input_height, int viewport_width, int viewport_height);
@@ -136,6 +140,9 @@ void ogl_renderer_destroy(void)
     quad_vao = 0;
     quad_vbo = 0;
 
+    SafeDeleteArray(recording_buffer);
+    recording_buffer_size = 0;
+
     ImGui_ImplOpenGL3_Shutdown();
 }
 
@@ -157,11 +164,14 @@ void ogl_renderer_render(void)
     update_savestates_texture();
 
     bool use_internal_shader_chain = should_use_internal_shader_chain();
+    bool shader_rendered = false;
 
     if (use_internal_shader_chain)
-        render_internal_shader_chain();
+        shader_rendered = render_internal_shader_chain();
     else
         update_system_texture();
+
+    record_video_frame(shader_rendered);
 
     ImVec4 clear_color = ImVec4(config_video.background_color[config_emulator.theme][0], config_video.background_color[config_emulator.theme][1], config_video.background_color[config_emulator.theme][2], 1.00f);
 
@@ -236,6 +246,16 @@ void ogl_renderer_get_screen_uv(float* u, float* v)
         *u = (float)runtime.screen_width / (float)SYSTEM_TEXTURE_WIDTH;
     if (v)
         *v = (float)runtime.screen_height / (float)SYSTEM_TEXTURE_HEIGHT;
+}
+
+bool ogl_renderer_get_output_size(int* width, int* height)
+{
+    if (!should_use_internal_shader_chain())
+        return false;
+
+    *width = screen_geometry.physical_width;
+    *height = screen_geometry.physical_height;
+    return true;
 }
 
 bool ogl_renderer_load_shader_preset(const char* path)
@@ -338,7 +358,7 @@ static bool should_use_internal_shader_chain(void)
             screen_geometry.physical_height > 0;
 }
 
-static void render_internal_shader_chain(void)
+static bool render_internal_shader_chain(void)
 {
     bool filter_linear = ogl_shader_chain_get_preset_filter_linear();
 
@@ -351,19 +371,19 @@ static void render_internal_shader_chain(void)
     if (!ogl_shader_chain_update_source_texture(&source_texture))
     {
         update_system_texture();
-        return;
+        return false;
     }
 
-    render_external_shader_chain();
+    return render_external_shader_chain();
 }
 
-static void render_external_shader_chain(void)
+static bool render_external_shader_chain(void)
 {
     glDisable(GL_BLEND);
 
     int pass_count = ogl_shader_chain_get_preset_pass_count();
     if (pass_count <= 0)
-        return;
+        return false;
 
     int original_width = current_runtime.screen_width;
     int original_height = current_runtime.screen_height;
@@ -398,7 +418,7 @@ static void render_external_shader_chain(void)
         {
             framebuffer_texture.filter_linear = false;
             if (!ogl_shader_chain_resize_pass_texture(&framebuffer_texture))
-                return;
+                return false;
             output_fbo = ogl_shader_chain_get_pass_framebuffer();
             output_texture = ogl_shader_chain_get_pass_texture();
         }
@@ -406,7 +426,7 @@ static void render_external_shader_chain(void)
         {
             framebuffer_texture.filter_linear = ogl_shader_chain_get_preset_pass_filter_linear(i + 1);
             if (!ogl_shader_chain_resize_intermediate_texture(i, &framebuffer_texture))
-                return;
+                return false;
             output_fbo = ogl_shader_chain_get_intermediate_framebuffer(i);
             output_texture = ogl_shader_chain_get_intermediate_texture(i);
         }
@@ -431,6 +451,8 @@ static void render_external_shader_chain(void)
 
     if (ogl_shader_chain_preset_uses_feedback())
         render_internal_shader_chain_feedback();
+
+    return true;
 }
 
 static void render_internal_shader_chain_feedback(void)
@@ -444,6 +466,43 @@ static void render_internal_shader_chain_feedback(void)
             1.0f, 1.0f, 1.0f, 1.0f);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+static void record_video_frame(bool shader_rendered)
+{
+    if (!emu_video_recording_frame_pending)
+        return;
+
+    emu_video_recording_frame_pending = false;
+
+    if (!shader_rendered)
+    {
+        video_recorder_add_video((const u8*)emu_frame_buffer, current_runtime.screen_width, current_runtime.screen_height, 3);
+        return;
+    }
+
+    int width = ogl_shader_chain_get_pass_width();
+    int height = ogl_shader_chain_get_pass_height();
+
+    if (width > 1)
+        width &= ~1;
+    if (height > 1)
+        height &= ~1;
+
+    int size = width * height * 4;
+
+    if (size > recording_buffer_size)
+    {
+        SafeDeleteArray(recording_buffer);
+        recording_buffer = new u8[size];
+        recording_buffer_size = size;
+    }
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, ogl_shader_chain_get_pass_framebuffer());
+    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, recording_buffer);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+    video_recorder_add_video(recording_buffer, width, height, 4);
 }
 
 static void update_system_texture(void)

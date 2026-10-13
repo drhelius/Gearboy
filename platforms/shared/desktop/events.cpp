@@ -98,7 +98,7 @@ void events_shortcuts(const SDL_Event* event)
     // ESC to exit fullscreen
     if (event->key.repeat == 0 && key == SDL_SCANCODE_ESCAPE)
     {
-        if (config_emulator.fullscreen && !config_emulator.always_show_menu)
+        if (config_emulator.fullscreen && !config_emulator.always_show_menu && !emu_is_video_recording())
         {
             config_emulator.fullscreen = false;
             application_trigger_fullscreen(false);

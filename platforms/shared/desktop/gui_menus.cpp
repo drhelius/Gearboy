@@ -392,14 +392,15 @@ static void menu_gearboy(void)
 
             if (ImGui::BeginMenu("Quality", !is_recording))
             {
-                ImGui::PushItemWidth(100.0f);
-                ImGui::Combo("##video_recording_quality", &config_video.recording_quality, "Low\0Medium\0High\0Lossless\0\0");
+                ImGui::PushItemWidth(200.0f);
+                ImGui::Combo("##video_recording_quality", &config_video.recording_quality, "Low\0Medium\0High\0Lossless (Uncompressed)\0Lossless (Compressed)\0\0");
                 ImGui::PopItemWidth();
                 if (ImGui::IsItemHovered())
                 {
                     ImGui::BeginTooltip();
                     ImGui::Text("Low and Medium halve the color resolution, best used at 2x or higher.");
-                    ImGui::Text("Lossless writes uncompressed video, producing very large files.");
+                    ImGui::Text("Lossless (Uncompressed) produces very large files.");
+                    ImGui::Text("Lossless (Compressed) stores PNG frames, it needs an FFmpeg based player like VLC or mpv.");
                     ImGui::EndTooltip();
                 }
                 ImGui::EndMenu();
@@ -778,7 +779,9 @@ static void menu_video(void)
     {
         gui_in_use = true;
 
-        if (ImGui::MenuItem("Full Screen", config_hotkeys[config_HotkeyIndex_Fullscreen].str, &config_emulator.fullscreen))
+        bool is_recording = emu_is_video_recording();
+
+        if (ImGui::MenuItem("Full Screen", config_hotkeys[config_HotkeyIndex_Fullscreen].str, &config_emulator.fullscreen, !is_recording))
         {
             application_trigger_fullscreen(config_emulator.fullscreen);
         }
@@ -804,7 +807,7 @@ static void menu_video(void)
             ImGui::EndTooltip();
         }
 
-        if (ImGui::MenuItem("Resize Window to Content"))
+        if (ImGui::MenuItem("Resize Window to Content", NULL, false, !is_recording))
         {
             if (!config_debug.debug)
             {

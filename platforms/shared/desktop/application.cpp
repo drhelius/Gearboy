@@ -45,6 +45,7 @@
 static bool running = true;
 static bool paused_when_focus_lost = false;
 static bool window_settings_pending = false;
+static bool window_resizable = true;
 static Uint64 mouse_last_motion_time = 0;
 static const Uint64 mouse_hide_timeout_ms = 1500;
 static SDL_DisplayID current_display_id = 0;
@@ -58,6 +59,7 @@ static void sdl_events_quit(const SDL_Event* event);
 static void sdl_events_app(const SDL_Event* event);
 static void handle_mouse_cursor(void);
 static void handle_menu(void);
+static void handle_window_resizable(void);
 static void handle_single_instance(void);
 static void run_emulator(void);
 static void apply_window_settings(void);
@@ -211,6 +213,7 @@ void application_mainloop(void)
         sdl_events();
         handle_mouse_cursor();
         handle_menu();
+        handle_window_resizable();
         handle_single_instance();
         run_emulator();
         display_render();
@@ -482,6 +485,17 @@ static void handle_menu(void)
         application_show_menu = config_emulator.always_show_menu;
     else
         application_show_menu = true;
+}
+
+static void handle_window_resizable(void)
+{
+    bool resizable = !emu_is_video_recording();
+
+    if (resizable == window_resizable)
+        return;
+
+    window_resizable = resizable;
+    SDL_SetWindowResizable(application_sdl_window, resizable);
 }
 
 static void handle_single_instance(void)

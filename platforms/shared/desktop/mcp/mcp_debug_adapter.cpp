@@ -1376,7 +1376,7 @@ json DebugAdapter::GetScreenshot()
 }
 
 static const char* const k_video_recording_ratios[] = { "screen", "square", "4:3", "16:9", "16:10" };
-static const char* const k_video_recording_qualities[] = { "low", "medium", "high", "lossless" };
+static const char* const k_video_recording_qualities[] = { "low", "medium", "high", "lossless", "lossless_compressed" };
 static const int k_video_recording_ratio_count = sizeof(k_video_recording_ratios) / sizeof(k_video_recording_ratios[0]);
 static const int k_video_recording_quality_count = sizeof(k_video_recording_qualities) / sizeof(k_video_recording_qualities[0]);
 

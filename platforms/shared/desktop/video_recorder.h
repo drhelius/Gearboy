@@ -33,7 +33,8 @@ enum Video_Recorder_Quality
     Video_Recorder_Quality_Low = 0,
     Video_Recorder_Quality_Medium,
     Video_Recorder_Quality_High,
-    Video_Recorder_Quality_Lossless
+    Video_Recorder_Quality_Lossless,
+    Video_Recorder_Quality_LosslessCompressed
 };
 
 EXTERN bool video_recorder_start(const char* file_path, int width, int height, double fps, int sample_rate, Video_Recorder_Quality quality);
