@@ -64,7 +64,7 @@ static inline bool get_local_time(time_t timestamp, struct tm* time_info)
 static inline void create_directory_if_not_exists(const char* path)
 {
 #if defined(_WIN32)
-    _mkdir(path);
+    _wmkdir(utf8_to_wstring(path).c_str());
 #else
     mkdir(path, 0755);
 #endif
