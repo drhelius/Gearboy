@@ -163,9 +163,14 @@ void retro_init(void)
 
 static void init_instances(unsigned count)
 {
+    unsigned max_count = (unsigned)(sizeof(instances) / sizeof(instances[0]));
+
+    if (count > max_count)
+        count = max_count;
+
     instance_count = count;
 
-    for (unsigned i = 0; i < instance_count; i++)
+    for (unsigned i = 0; i < count; i++)
     {
         memset(&instances[i], 0, sizeof(instances[i]));
         instances[i].core = new GearboyCore();

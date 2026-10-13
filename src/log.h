@@ -38,7 +38,7 @@ extern bool g_mcp_stdio_mode;
     #endif
     #define Debug(msg, ...) (Log_func(msg, ##__VA_ARGS__))
 #else
-    #define Debug(msg, ...)
+    #define Debug(msg, ...) ((void)0)
 #endif
 
 #define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))

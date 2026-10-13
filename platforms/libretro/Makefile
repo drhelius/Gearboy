@@ -1,3 +1,4 @@
+PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
 STATIC_LINKING := 0
 AR             ?= ar
 
@@ -346,7 +347,6 @@ else
 	endif
 endif
 
-PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
 GIT_VERSION ?= $(shell git -c safe.directory="$(PROJECT_ROOT)" describe --abbrev=7 --dirty --always --tags || echo unknown)
 ifneq ($(GIT_VERSION), unknown)
 	CPPFLAGS += -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
