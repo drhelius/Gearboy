@@ -862,14 +862,15 @@ bool GearboyCore::SaveState(const char* path, int index, bool screenshot)
     }
 
     string full_path = GetSaveStatePath(path, index);
+    string temp_path = full_path + ".tmp";
     Debug("Saving state to %s...", full_path.c_str());
 
     ofstream stream;
-    open_ofstream_utf8(stream, full_path.c_str(), ios::out | ios::binary);
+    open_ofstream_utf8(stream, temp_path.c_str(), ios::out | ios::binary);
 
     if (!stream.is_open())
     {
-        Error("Failed to open save state file for writing: %s", full_path.c_str());
+        Error("Failed to open save state file for writing: %s", temp_path.c_str());
         return false;
     }
 
@@ -877,14 +878,16 @@ bool GearboyCore::SaveState(const char* path, int index, bool screenshot)
     if (!SaveState(stream, size, screenshot))
     {
         stream.close();
+        remove_file_utf8(temp_path.c_str());
         Error("Failed to save state to file: %s", full_path.c_str());
         return false;
     }
 
     stream.close();
 
-    if (!stream.good())
+    if (!stream.good() || !rename_file_utf8(temp_path.c_str(), full_path.c_str()))
     {
+        remove_file_utf8(temp_path.c_str());
         Error("Failed to write save state file: %s", full_path.c_str());
         return false;
     }
