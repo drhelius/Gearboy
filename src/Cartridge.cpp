@@ -244,6 +244,15 @@ bool Cartridge::LoadFromFile(const char* path, bool softpatching)
     snprintf(m_szFileName, sizeof(m_szFileName), "%s", filename.c_str());
     snprintf(m_szFileDirectory, sizeof(m_szFileDirectory), "%s", directory.c_str());
 
+    const char* dot = strrchr(m_szFileName, '.');
+
+    if (!IsValidPointer(dot) || (dot[1] == 0))
+    {
+        Error("ROM file has no extension: %s", path);
+        Reset();
+        return false;
+    }
+
     ifstream file;
     open_ifstream_utf8(file, path, ios::in | ios::binary | ios::ate);
 
