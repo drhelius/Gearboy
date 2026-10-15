@@ -1,19 +1,36 @@
 #!/bin/bash
 
+set -e
+
+cd "$(dirname "$0")"
+
+name=$(/usr/libexec/PlistBuddy -c "Print :CFBundleName" Info.plist | tr '[:upper:]' '[:lower:]')
 input_filepath="image.png"
-output_iconset_name="iconfile.iconset"
-mkdir $output_iconset_name
+work_dir=$(mktemp -d)
+generator="${work_dir}/generate_icon"
+output_iconset_name="${work_dir}/iconfile.iconset"
 
-sips -z 16 16     $input_filepath --out "${output_iconset_name}/icon_16x16.png"
-sips -z 32 32     $input_filepath --out "${output_iconset_name}/icon_16x16@2x.png"
-sips -z 32 32     $input_filepath --out "${output_iconset_name}/icon_32x32.png"
-sips -z 64 64     $input_filepath --out "${output_iconset_name}/icon_32x32@2x.png"
-sips -z 128 128   $input_filepath --out "${output_iconset_name}/icon_128x128.png"
-sips -z 256 256   $input_filepath --out "${output_iconset_name}/icon_128x128@2x.png"
-sips -z 256 256   $input_filepath --out "${output_iconset_name}/icon_256x256.png"
-sips -z 512 512   $input_filepath --out "${output_iconset_name}/icon_256x256@2x.png"
-sips -z 512 512   $input_filepath --out "${output_iconset_name}/icon_512x512.png"
+trap 'rm -rf "$work_dir"' EXIT
 
-iconutil -c icns $output_iconset_name
+xcrun swiftc -O generate_icon.swift -o "$generator"
 
-rm -R $output_iconset_name
+mkdir "$output_iconset_name"
+for size in 16 32 128 256 512; do
+    "$generator" png $input_filepath "${output_iconset_name}/icon_${size}x${size}.png" $size
+    "$generator" png $input_filepath "${output_iconset_name}/icon_${size}x${size}@2x.png" $((size * 2))
+done
+iconutil -c icns "$output_iconset_name" -o iconfile.icns
+
+"$generator" ico $input_filepath ../windows/iconfile.ico 16 20 24 32 40 48 64 96 128 256
+
+mkdir -p ../shared/desktop/icons
+for size in 16 24 32 48 64 128 256 512; do
+    "$generator" png $input_filepath "../shared/desktop/icons/${name}-${size}.png" $size
+done
+cp "../shared/desktop/icons/${name}-128.png" ../shared/desktop/mcp/icon.png
+
+for appiconset in ../ios/*/Resources/Assets.xcassets/AppIcon.appiconset; do
+    if [ -d "$appiconset" ]; then
+        "$generator" appiconset $input_filepath "$appiconset"
+    fi
+done

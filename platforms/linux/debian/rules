@@ -20,8 +20,10 @@ override_dh_auto_clean:
 
 override_dh_install:
 	dh_install
-	install -Dm644 platforms/shared/desktop/mcp/icon.png \
-		debian/gearboy/usr/share/icons/hicolor/128x128/apps/gearboy.png
+	for size in 16 24 32 48 64 128 256 512; do \
+		install -Dm644 platforms/shared/desktop/icons/gearboy-$${size}.png \
+			debian/gearboy/usr/share/icons/hicolor/$${size}x$${size}/apps/gearboy.png; \
+	done
 	install -dm755 debian/gearboy/usr/lib/gearboy/mcp/resources/hardware
 	install -m644 platforms/shared/desktop/mcp/resources/hardware/toc.json \
 		debian/gearboy/usr/lib/gearboy/mcp/resources/hardware/toc.json
