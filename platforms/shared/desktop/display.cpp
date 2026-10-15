@@ -255,6 +255,11 @@ bool display_is_vsync_forced_off(void)
     return config_debug.debug && config_debug.multi_viewport && multi_monitor_mixed_refresh;
 }
 
+bool display_is_vsync_pacing(void)
+{
+    return config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state == 1 && !config_emulator.ffwd;
+}
+
 void display_request_gl_context_recreate(void)
 {
     pending_gl_context_recreate = true;

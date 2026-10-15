@@ -31,7 +31,11 @@ static bool sound_queue_playing;
 static int sound_queue_max_queued_bytes;
 static int sound_queue_buffer_size;
 static int sound_queue_bytes_per_second;
+static float sound_queue_ratio;
 
+static const float k_sound_queue_max_ratio_delta = 0.005f;
+
+static void sound_queue_update_ratio(int queued, int bytes, bool rate_control);
 static bool is_running_in_wsl(void);
 
 void sound_queue_init(void)
@@ -119,6 +123,7 @@ bool sound_queue_start(int sample_rate, int channel_count, int buffer_size, int 
 
     sound_queue_playing = false;
     sound_queue_sound_open = true;
+    sound_queue_ratio = 1.0f;
 
     return true;
 }
@@ -153,7 +158,7 @@ bool sound_queue_is_open(void)
     return sound_queue_sound_open;
 }
 
-void sound_queue_write(s16* samples, int count, bool sync)
+void sound_queue_write(s16* samples, int count, bool sync, bool rate_control)
 {
     if (!sound_queue_sound_open || !sound_queue_stream)
         return;
@@ -170,6 +175,9 @@ void sound_queue_write(s16* samples, int count, bool sync)
     {
         SOUND_QUEUE_DEBUG("Sound Queue: Underrun detected, queue was empty");
     }
+
+    if (sound_queue_playing)
+        sound_queue_update_ratio(queued, bytes, rate_control);
 
     if (sound_queue_playing && sync)
     {
@@ -214,6 +222,22 @@ void sound_queue_write(s16* samples, int count, bool sync)
             sound_queue_playing = true;
         }
     }
+}
+
+// Frames paced by vsync can come slower than the device plays them, so a low queue plays up to 0.5% slower
+static void sound_queue_update_ratio(int queued, int bytes, bool rate_control)
+{
+    int target = (sound_queue_max_queued_bytes - bytes) / 2;
+    float ratio = 1.0f;
+
+    if (rate_control && (queued < target))
+        ratio = 1.0f - (((float)(target - queued) / (float)target) * k_sound_queue_max_ratio_delta);
+
+    if (ratio == sound_queue_ratio)
+        return;
+
+    if (SDL_SetAudioStreamFrequencyRatio(sound_queue_stream, ratio))
+        sound_queue_ratio = ratio;
 }
 
 static bool is_running_in_wsl(void)

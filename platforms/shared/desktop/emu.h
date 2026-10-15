@@ -59,6 +59,7 @@ EXTERN int emu_debug_tile_dmg_palette;
 EXTERN int emu_debug_tile_color_palette;
 EXTERN bool emu_debug_background_is_window;
 EXTERN bool emu_audio_sync;
+EXTERN bool emu_audio_rate_control;
 EXTERN bool emu_debug_disable_breakpoints;
 EXTERN bool emu_debug_irq_breakpoints;
 
