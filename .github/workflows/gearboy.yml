@@ -174,6 +174,26 @@ jobs:
     - name: make
       run: make dist
       working-directory: platforms/macos
+    - name: Create retry helper
+      if: github.event_name != 'pull_request' && github.repository_owner == 'drhelius'
+      run: |
+        cat > "$RUNNER_TEMP/retry.sh" << 'EOF'
+        retry()
+        {
+          local attempt=1
+          local delay=10
+          until "$@"; do
+            if [ $attempt -ge 6 ]; then
+              echo "::error::Failed after $attempt attempts"
+              return 1
+            fi
+            echo "::warning::Attempt $attempt failed, retrying in ${delay}s"
+            sleep $delay
+            attempt=$((attempt + 1))
+            delay=$((delay * 2))
+          done
+        }
+        EOF
     - name: Codesign app bundle
       if: github.event_name != 'pull_request' && github.repository_owner == 'drhelius'
       env:
@@ -182,6 +202,7 @@ jobs:
         MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
         MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
       run: |
+        source "$RUNNER_TEMP/retry.sh"
         echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
 
         security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
@@ -190,9 +211,9 @@ jobs:
         security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
 
-        codesign -v -f -o runtime --sign "$MACOS_CERTIFICATE_NAME" ${{ env.NAME_UPPER }}.app/Contents/Frameworks/libSDL3.0.dylib
-        codesign -v -f -o runtime --entitlements "app.entitlements" --sign "$MACOS_CERTIFICATE_NAME" ${{ env.NAME_UPPER }}.app/Contents/MacOS/${{ env.NAME_LOWER }}
-        codesign -v -f -o runtime --sign "$MACOS_CERTIFICATE_NAME" ${{ env.NAME_UPPER }}.app
+        retry codesign -v -f -o runtime --sign "$MACOS_CERTIFICATE_NAME" ${{ env.NAME_UPPER }}.app/Contents/Frameworks/libSDL3.0.dylib
+        retry codesign -v -f -o runtime --entitlements "app.entitlements" --sign "$MACOS_CERTIFICATE_NAME" ${{ env.NAME_UPPER }}.app/Contents/MacOS/${{ env.NAME_LOWER }}
+        retry codesign -v -f -o runtime --sign "$MACOS_CERTIFICATE_NAME" ${{ env.NAME_UPPER }}.app
 
         codesign -v -vvv --deep "${{ env.NAME_UPPER }}.app"
       working-directory: platforms/macos
@@ -203,10 +224,11 @@ jobs:
         PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
         PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
       run: |
-        xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
+        source "$RUNNER_TEMP/retry.sh"
+        retry xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
         ditto -c -k --keepParent "${{ env.NAME_UPPER }}.app" "notarization.zip"
-        xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
-        xcrun stapler staple "${{ env.NAME_UPPER }}.app"
+        retry xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
+        retry xcrun stapler staple "${{ env.NAME_UPPER }}.app"
         spctl -a -vvv -t install "${{ env.NAME_UPPER }}.app"
       working-directory: platforms/macos
     - name: Prepare artifact directory
