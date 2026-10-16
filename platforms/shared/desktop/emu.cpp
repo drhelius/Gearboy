@@ -547,6 +547,14 @@ void emu_audio_set_master_volume(float volume)
 
 void emu_audio_reset(void)
 {
+    if (sound_queue_is_open())
+        sound_queue_flush();
+    else
+        emu_audio_restart();
+}
+
+void emu_audio_restart(void)
+{
     sound_queue_stop();
     sound_queue_start(GB_AUDIO_SAMPLE_RATE, 2, GB_AUDIO_QUEUE_SIZE, config_audio.buffer_count);
 }

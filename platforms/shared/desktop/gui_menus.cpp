@@ -1380,7 +1380,7 @@ static void menu_audio(void)
             ImGui::PushItemWidth(150.0f);
             if (ImGui::SliderInt("##buffer_count", &config_audio.buffer_count, 2, 5, "Buffers = %d"))
             {
-                emu_audio_reset();
+                emu_audio_restart();
             }
             ImGui::PopItemWidth();
             if (ImGui::IsItemHovered())

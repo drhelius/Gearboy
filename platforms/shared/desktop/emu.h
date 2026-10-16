@@ -84,6 +84,7 @@ EXTERN void emu_audio_mute(bool mute);
 EXTERN void emu_audio_volume(float volume);
 EXTERN void emu_audio_set_master_volume(float volume);
 EXTERN void emu_audio_reset(void);
+EXTERN void emu_audio_restart(void);
 EXTERN bool emu_is_audio_open(void);
 EXTERN void emu_dmg_palette(GB_Color& color1, GB_Color& color2, GB_Color& color3, GB_Color& color4);
 EXTERN void emu_dmg_predefined_palette(int palette);
