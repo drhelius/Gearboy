@@ -55,6 +55,7 @@ static char retro_game_path[4096];
 static bool force_dmg = false;
 static bool force_gba = false;
 static bool sgb_enabled = true;
+static bool sgb_all_games = false;
 static bool sgb_border = true;
 static bool allow_up_down = false;
 static int8_t dpad_vertical_latch[2] = {0, 0};
@@ -405,6 +406,83 @@ static bool load_bootrom_file(GearboyCore* target, const char* path, bool gbc)
     return true;
 }
 
+static bool read_whole_file(const char* path, std::vector<u8>& data, s64 max_size)
+{
+    s64 size = -1;
+    s64 total = 0;
+
+    if (vfs_interface)
+    {
+        retro_vfs_file_handle* file = vfs_interface->open(path, RETRO_VFS_FILE_ACCESS_READ,
+            RETRO_VFS_FILE_ACCESS_HINT_NONE);
+        if (!file)
+            return false;
+
+        size = (s64)vfs_interface->size(file);
+        if (size > 0 && size <= max_size)
+        {
+            data.resize((size_t)size);
+            while (total < size)
+            {
+                s64 read = (s64)vfs_interface->read(file, data.data() + total, size - total);
+                if (read <= 0)
+                    break;
+                total += read;
+            }
+        }
+
+        vfs_interface->close(file);
+    }
+    else
+    {
+        FILE* file = fopen(path, "rb");
+        if (!file)
+            return false;
+
+        if (fseek(file, 0, SEEK_END) == 0)
+            size = (s64)ftell(file);
+        if (size > 0 && size <= max_size && fseek(file, 0, SEEK_SET) == 0)
+        {
+            data.resize((size_t)size);
+            total = (s64)fread(data.data(), 1, (size_t)size, file);
+        }
+
+        fclose(file);
+    }
+
+    return size > 0 && total == size;
+}
+
+static void load_sgb_bios(GearboyCore* target)
+{
+    static const char* const roms[] = { "SGB1.sfc", "SGB2.sfc" };
+
+    target->LoadSGBBIOS(NULL, 0);
+
+    if (!sgb_enabled)
+        return;
+
+    for (unsigned i = 0; i < 2; i++)
+    {
+        char path[4112];
+        snprintf(path, sizeof(path), "%s%c%s", retro_system_directory, slash, roms[i]);
+
+        std::vector<u8> rom;
+        if (!read_whole_file(path, rom, 0x100000))
+            continue;
+
+        target->LoadSGBBIOS(rom.data(), (int)rom.size());
+        if (target->HasSGBBIOS())
+        {
+            log_cb(RETRO_LOG_INFO, "SGB BIOS loaded from %s (%s)\n", path,
+                target->HasSGBBIOSBorder() ? "palette and border" : "palette only, unknown revision");
+            return;
+        }
+    }
+
+    log_cb(RETRO_LOG_INFO, "No SGB1.sfc/SGB2.sfc found, no SGB default palette and border\n");
+}
+
 static void load_bootroms(GearboyCore* target)
 {
     char bootrom_dmg_path[4112];
@@ -418,6 +496,8 @@ static void load_bootroms(GearboyCore* target)
 
     target->GetMemory()->EnableBootromDMG(bootrom_dmg);
     target->GetMemory()->EnableBootromGBC(bootrom_gbc);
+
+    load_sgb_bios(target);
 }
 
 static void update_input(GearboyCore* target, unsigned port)
@@ -818,6 +898,14 @@ static void check_variables(void)
         sgb_enabled = (strcmp(var.value, "Enabled") == 0);
     }
 
+    var.key = "gearboy_sgb_all_games";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        sgb_all_games = (strcmp(var.value, "Enabled") == 0);
+    }
+
     var.key = "gearboy_sgb_border";
     var.value = NULL;
 
@@ -1097,6 +1185,7 @@ void retro_reset(void)
 
         load_bootroms(core);
         core->SetSGBEnabled(instance_count == 1 && sgb_enabled);
+        core->SetSGBAllGames(sgb_all_games);
         core->ResetROMPreservingRAM(force_dmg, mapper, force_gba);
         memset(instances[i].frame_buffer, 0, sizeof(instances[i].frame_buffer));
         instances[i].sample_count = 0;
@@ -1136,6 +1225,7 @@ static bool load_game(const struct retro_game_info* info, const struct retro_gam
         load_bootroms(core);
 
         core->SetSGBEnabled(instance_count == 1 && sgb_enabled);
+        core->SetSGBAllGames(sgb_all_games);
         core->SetBarcodeBoyMode(instance_count == 1 ? libretro_barcode_get_mode() : GB_BarcodeBoyMode_Disabled);
 
         if (!load_rom(core, roms[i]))

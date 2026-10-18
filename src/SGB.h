@@ -92,6 +92,9 @@ public:
     void WriteJOYP(u8 value);
     void Render(u16* pFrameBuffer, GB_Color_Format pixelFormat, bool incomplete);
     void CopyScreenBuffer(const u8* pVideoFrameBuffer);
+    void StartNonSGBCartridge(const u16* pPalette);
+    void SetDefaultBorder(const Border* pBorder);
+    static bool ParseBIOS(const u8* pROM, int size, u16* pPalette, Border* pBorder, bool* pHasBorder);
     int GetPlayerCount() const;
     int GetCurrentPlayer() const;
     MaskMode GetMaskMode() const;
@@ -167,6 +170,8 @@ private:
     Border* m_pPendingBorder;
     u8 m_iBorderAnimation;
     bool m_bBorderEmpty;
+    Border m_DefaultBorder;
+    bool m_bDefaultBorder;
 
     u8 m_PreviousJOYP;
 };
