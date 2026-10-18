@@ -95,8 +95,8 @@ public:
         bool forceGBA = false, bool softpatching = false);
     bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
     bool GetRuntimeInfo(GB_RuntimeInfo& runtime_info);
-    void KeyPressed(Gameboy_Keys key);
-    void KeyReleased(Gameboy_Keys key);
+    void KeyPressed(Gameboy_Keys key, int player = 0);
+    void KeyReleased(Gameboy_Keys key, int player = 0);
     void Pause(bool paused);
     bool IsPaused();
     void ResetROM(bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);

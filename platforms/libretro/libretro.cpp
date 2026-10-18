@@ -57,15 +57,15 @@ static bool force_gba = false;
 static bool sgb_enabled = true;
 static bool sgb_border = true;
 static bool allow_up_down = false;
-static int8_t dpad_vertical_latch[2] = {0, 0};
-static int8_t dpad_horizontal_latch[2] = {0, 0};
+static int8_t dpad_vertical_latch[4] = {0, 0, 0, 0};
+static int8_t dpad_horizontal_latch[4] = {0, 0, 0, 0};
 static bool bootrom_dmg = false;
 static bool bootrom_gbc = false;
 static bool color_correction = true;
 static bool no_sprite_limit = false;
 static bool libretro_supports_bitmasks = false;
 static bool categories_supported = false;
-static unsigned input_device[2] = {RETRO_DEVICE_GAMEBOY, RETRO_DEVICE_GAMEBOY};
+static unsigned input_device[4] = {RETRO_DEVICE_GAMEBOY, RETRO_DEVICE_GAMEBOY, RETRO_DEVICE_GAMEBOY, RETRO_DEVICE_GAMEBOY};
 static float libretro_tilt_x[2] = {0.0f, 0.0f};
 static float libretro_tilt_y[2] = {0.0f, 0.0f};
 static int mouse_sensitivity_x = 5;
@@ -202,7 +202,7 @@ unsigned retro_api_version(void)
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-    if (port > 1)
+    if (port > 3)
     {
         if (log_cb)
             log_cb(RETRO_LOG_DEBUG, "retro_set_controller_port_device invalid port number: %u\n", port);
@@ -216,7 +216,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
 static void reset_controller_device(void)
 {
-    input_device[0] = input_device[1] = RETRO_DEVICE_GAMEBOY;
+    input_device[0] = input_device[1] = input_device[2] = input_device[3] = RETRO_DEVICE_GAMEBOY;
 }
 
 static void apply_controller_device(unsigned port, unsigned device, bool log_device)
@@ -297,6 +297,8 @@ void retro_set_environment(retro_environment_t cb)
     };
 
     static const struct retro_controller_info ports[] = {
+        { controllers, 3 },
+        { controllers, 3 },
         { controllers, 3 },
         { controllers, 3 },
         { NULL, 0 },
@@ -420,7 +422,7 @@ static void load_bootroms(GearboyCore* target)
     target->GetMemory()->EnableBootromGBC(bootrom_gbc);
 }
 
-static void update_input(GearboyCore* target, unsigned port)
+static void update_input(GearboyCore* target, unsigned port, int player)
 {
     int16_t ib = 0;
     if (IsJoypadDevice(input_device[port]))
@@ -528,41 +530,45 @@ static void update_input(GearboyCore* target, unsigned port)
     }
 
     if (up)
-        target->KeyPressed(Up_Key);
+        target->KeyPressed(Up_Key, player);
     else
-        target->KeyReleased(Up_Key);
+        target->KeyReleased(Up_Key, player);
 
     if (down)
-        target->KeyPressed(Down_Key);
+        target->KeyPressed(Down_Key, player);
     else
-        target->KeyReleased(Down_Key);
+        target->KeyReleased(Down_Key, player);
 
     if (left)
-        target->KeyPressed(Left_Key);
+        target->KeyPressed(Left_Key, player);
     else
-        target->KeyReleased(Left_Key);
+        target->KeyReleased(Left_Key, player);
 
     if (right)
-        target->KeyPressed(Right_Key);
+        target->KeyPressed(Right_Key, player);
     else
-        target->KeyReleased(Right_Key);
+        target->KeyReleased(Right_Key, player);
 
     if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_B))
-        target->KeyPressed(B_Key);
+        target->KeyPressed(B_Key, player);
     else
-        target->KeyReleased(B_Key);
+        target->KeyReleased(B_Key, player);
     if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_A))
-        target->KeyPressed(A_Key);
+        target->KeyPressed(A_Key, player);
     else
-        target->KeyReleased(A_Key);
+        target->KeyReleased(A_Key, player);
     if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_START))
-        target->KeyPressed(Start_Key);
+        target->KeyPressed(Start_Key, player);
     else
-        target->KeyReleased(Start_Key);
+        target->KeyReleased(Start_Key, player);
     if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
-        target->KeyPressed(Select_Key);
+        target->KeyPressed(Select_Key, player);
     else
-        target->KeyReleased(Select_Key);
+        target->KeyReleased(Select_Key, player);
+
+    // SGB extra players only feed the joypad
+    if (player != 0)
+        return;
 
     // MBC7 tilt input
     if (tilt_source == 1)
@@ -1053,7 +1059,14 @@ void retro_run(void)
     for (unsigned i = 0; i < instance_count; i++)
     {
         instances[i].sample_count = 0;
-        update_input(instances[i].core, i);
+        update_input(instances[i].core, i, 0);
+    }
+
+    // SGB multiplayer: ports 1-3 drive players 2-4 when not linking
+    if (!link_cable)
+    {
+        for (unsigned p = 1; p < 4; p++)
+            update_input(instances[0].core, p, (int)p);
     }
 
     if (link_cable)

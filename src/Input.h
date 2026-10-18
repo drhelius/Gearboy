@@ -31,8 +31,8 @@ public:
     void Init();
     void Reset();
     void Tick(unsigned int clockCycles);
-    void KeyPressed(Gameboy_Keys key);
-    void KeyReleased(Gameboy_Keys key);
+    void KeyPressed(Gameboy_Keys key, int player = 0);
+    void KeyReleased(Gameboy_Keys key, int player = 0);
     bool IsKeyPressed(Gameboy_Keys key) const;
     void SetCurrentPlayer(int player);
     void Write(u8 value);

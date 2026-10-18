@@ -1182,7 +1182,16 @@ static void menu_input(void)
 
             if (ImGui::BeginMenu("Device"))
             {
-                gamepad_device_selector(0);
+                for (int i = 0; i < GEARBOY_MAX_GAMEPADS; i++)
+                {
+                    char label[32];
+                    snprintf(label, sizeof(label), "Player %d", i + 1);
+                    if (ImGui::BeginMenu(label))
+                    {
+                        gamepad_device_selector(i);
+                        ImGui::EndMenu();
+                    }
+                }
                 ImGui::EndMenu();
             }
 

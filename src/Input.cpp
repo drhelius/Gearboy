@@ -43,14 +43,14 @@ void Input::Reset()
     m_iCurrentPlayer = 0;
 }
 
-void Input::KeyPressed(Gameboy_Keys key)
+void Input::KeyPressed(Gameboy_Keys key, int player)
 {
-    m_JoypadState[0] &= ~key;
+    m_JoypadState[player & 3] &= ~key;
 }
 
-void Input::KeyReleased(Gameboy_Keys key)
+void Input::KeyReleased(Gameboy_Keys key, int player)
 {
-    m_JoypadState[0] |= key;
+    m_JoypadState[player & 3] |= key;
 }
 
 bool Input::IsKeyPressed(Gameboy_Keys key) const

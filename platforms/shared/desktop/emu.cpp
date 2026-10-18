@@ -471,14 +471,14 @@ static int get_rewind_pop_budget(void)
     return to_pop;
 }
 
-void emu_key_pressed(Gameboy_Keys key)
+void emu_key_pressed(Gameboy_Keys key, int player)
 {
-    gearboy->KeyPressed(key);
+    gearboy->KeyPressed(key, player);
 }
 
-void emu_key_released(Gameboy_Keys key)
+void emu_key_released(Gameboy_Keys key, int player)
 {
-    gearboy->KeyReleased(key);
+    gearboy->KeyReleased(key, player);
 }
 
 void emu_pause(void)
