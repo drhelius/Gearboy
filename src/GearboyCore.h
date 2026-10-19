@@ -128,10 +128,6 @@ public:
     bool IsSGB();
     void SetSGBEnabled(bool enabled);
     void SetSGBAllGames(bool enabled);
-    void SetSGBDefaultPalette(const u16* pPalette);
-    void LoadSGBBIOS(const u8* pROM, int size);
-    bool HasSGBBIOS() const;
-    bool HasSGBBIOSBorder() const;
     void SetSGBBorder(bool enabled);
     Memory* GetMemory();
     Cartridge* GetCartridge();
@@ -217,9 +213,6 @@ private:
     bool m_bForceDMG;
     bool m_bSGBEnabled;
     bool m_bSGBAllGames;
-    bool m_bSGBDefaultPalette;
-    u16 m_SGBDefaultPalette[4];
-    bool m_bSGBBIOSBorder;
     bool m_bSGBBorder;
     u16* m_pSGBFrameBuffer;
     int m_iRTCUpdateCount;

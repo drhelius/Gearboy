@@ -109,9 +109,6 @@ GearboyCore::GearboyCore()
     m_MapperType = Cartridge::CartridgeNotSupported;
     m_bSGBEnabled = true;
     m_bSGBAllGames = false;
-    m_bSGBDefaultPalette = false;
-    m_bSGBBIOSBorder = false;
-    memset(m_SGBDefaultPalette, 0, sizeof(m_SGBDefaultPalette));
     m_bSGBBorder = true;
     InitPointer(m_pSGBFrameBuffer);
     m_iRTCUpdateCount = 0;
@@ -1716,36 +1713,6 @@ void GearboyCore::SetSGBAllGames(bool enabled)
     m_bSGBAllGames = enabled;
 }
 
-void GearboyCore::LoadSGBBIOS(const u8* pROM, int size)
-{
-    u16 palette[4];
-    SGB::Border* border = new SGB::Border;
-    bool hasBorder = false;
-    bool valid = SGB::ParseBIOS(pROM, size, palette, border, &hasBorder);
-
-    SetSGBDefaultPalette(valid ? palette : NULL);
-    m_pSGB->SetDefaultBorder(hasBorder ? border : NULL);
-    m_bSGBBIOSBorder = hasBorder;
-    delete border;
-}
-
-bool GearboyCore::HasSGBBIOS() const
-{
-    return m_bSGBDefaultPalette;
-}
-
-bool GearboyCore::HasSGBBIOSBorder() const
-{
-    return m_bSGBBIOSBorder;
-}
-
-void GearboyCore::SetSGBDefaultPalette(const u16* pPalette)
-{
-    m_bSGBDefaultPalette = IsValidPointer(pPalette);
-    if (m_bSGBDefaultPalette)
-        memcpy(m_SGBDefaultPalette, pPalette, sizeof(m_SGBDefaultPalette));
-}
-
 void GearboyCore::SetSGBBorder(bool enabled)
 {
     m_bSGBBorder = enabled;
@@ -2052,7 +2019,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
         Log("Reset: Defaulting to Game Boy DMG");
     }
 
-    m_bSGB = !m_bCGB && (m_pCartridge->IsSGB() || (m_bSGBAllGames && m_bSGBDefaultPalette)) && !m_bForceDMG && m_bSGBEnabled;
+    m_bSGB = !m_bCGB && (m_pCartridge->IsSGB() || (m_bSGBAllGames && m_pSGB->IsBIOSLoaded())) && !m_bForceDMG && m_bSGBEnabled;
     m_pMemory->Reset(m_bCGB, m_bSGB);
     m_pProcessor->Reset(m_bCGB, m_bGBA, m_bSGB);
     m_pVideo->SetSGBTransferMode(m_bSGB);
@@ -2104,7 +2071,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
 
     m_pSGB->Reset();
     if (m_bSGB && !m_pCartridge->IsSGB())
-        m_pSGB->StartNonSGBCartridge(m_SGBDefaultPalette);
+        m_pSGB->StartNonSGBCartridge();
     m_pIORegistersMemoryRule->SetSGB(m_bSGB ? m_pSGB : NULL);
 
     if (m_pBarcodeBoy)

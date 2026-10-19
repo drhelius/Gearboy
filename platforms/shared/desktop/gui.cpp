@@ -108,6 +108,8 @@ bool gui_init(void)
         emu_load_bootrom_dmg(gui_dmg_bootrom_path);
     if (strlen(gui_gbc_bootrom_path) > 0)
         emu_load_bootrom_gbc(gui_gbc_bootrom_path);
+    if (strlen(gui_sgb_bios_path) > 0)
+        emu_load_sgb_bios(gui_sgb_bios_path);
 
     gui_debug_init();
     gui_cheats_init();
@@ -139,6 +141,7 @@ void gui_apply_settings(void)
     strncpy_fit(gui_video_recordings_path, config_emulator.video_recordings_path.c_str(), sizeof(gui_video_recordings_path));
     strncpy_fit(gui_dmg_bootrom_path, config_emulator.dmg_bootrom_path.c_str(), sizeof(gui_dmg_bootrom_path));
     strncpy_fit(gui_gbc_bootrom_path, config_emulator.gbc_bootrom_path.c_str(), sizeof(gui_gbc_bootrom_path));
+    strncpy_fit(gui_sgb_bios_path, config_emulator.sgb_bios_path.c_str(), sizeof(gui_sgb_bios_path));
     strncpy_fit(gui_mcp_http_address, config_emulator.mcp_http_address.c_str(), sizeof(gui_mcp_http_address));
 }
 

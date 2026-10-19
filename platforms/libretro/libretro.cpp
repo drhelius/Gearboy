@@ -406,81 +406,62 @@ static bool load_bootrom_file(GearboyCore* target, const char* path, bool gbc)
     return true;
 }
 
-static bool read_whole_file(const char* path, std::vector<u8>& data, s64 max_size)
+static bool load_sgb_bios_file(GearboyCore* target, const char* path)
 {
-    s64 size = -1;
+    if (!vfs_interface)
+        return target->GetSGB()->LoadBIOS(path);
+
+    retro_vfs_file_handle* file = vfs_interface->open(path, RETRO_VFS_FILE_ACCESS_READ,
+        RETRO_VFS_FILE_ACCESS_HINT_NONE);
+    if (!file)
+        return false;
+
+    s64 size = (s64)vfs_interface->size(file);
+    if ((size <= 0) || (size > 0x80000))
+    {
+        vfs_interface->close(file);
+        return false;
+    }
+
+    u8* buffer = new u8[(int)size];
     s64 total = 0;
 
-    if (vfs_interface)
+    while (total < size)
     {
-        retro_vfs_file_handle* file = vfs_interface->open(path, RETRO_VFS_FILE_ACCESS_READ,
-            RETRO_VFS_FILE_ACCESS_HINT_NONE);
-        if (!file)
-            return false;
+        s64 read = (s64)vfs_interface->read(file, buffer + total, size - total);
+        if (read <= 0)
+            break;
 
-        size = (s64)vfs_interface->size(file);
-        if (size > 0 && size <= max_size)
-        {
-            data.resize((size_t)size);
-            while (total < size)
-            {
-                s64 read = (s64)vfs_interface->read(file, data.data() + total, size - total);
-                if (read <= 0)
-                    break;
-                total += read;
-            }
-        }
-
-        vfs_interface->close(file);
-    }
-    else
-    {
-        FILE* file = fopen(path, "rb");
-        if (!file)
-            return false;
-
-        if (fseek(file, 0, SEEK_END) == 0)
-            size = (s64)ftell(file);
-        if (size > 0 && size <= max_size && fseek(file, 0, SEEK_SET) == 0)
-        {
-            data.resize((size_t)size);
-            total = (s64)fread(data.data(), 1, (size_t)size, file);
-        }
-
-        fclose(file);
+        total += read;
     }
 
-    return size > 0 && total == size;
+    vfs_interface->close(file);
+
+    bool loaded = (total == size) && target->GetSGB()->LoadBIOSFromBuffer(buffer, (int)size);
+    SafeDeleteArray(buffer);
+    return loaded;
 }
 
 static void load_sgb_bios(GearboyCore* target)
 {
-    static const char* const roms[] = { "SGB1.sfc", "SGB2.sfc" };
+    static const char* const files[] = { "SGB1.sfc", "SGB2.sfc" };
 
-    target->LoadSGBBIOS(NULL, 0);
+    target->GetSGB()->UnloadBIOS();
 
-    if (!sgb_enabled)
+    if ((instance_count != 1) || !sgb_enabled)
         return;
 
-    for (unsigned i = 0; i < 2; i++)
+    for (int i = 0; i < 2; i++)
     {
         char path[4112];
-        snprintf(path, sizeof(path), "%s%c%s", retro_system_directory, slash, roms[i]);
+        snprintf(path, 4112, "%s%c%s", retro_system_directory, slash, files[i]);
 
-        std::vector<u8> rom;
-        if (!read_whole_file(path, rom, 0x100000))
-            continue;
-
-        target->LoadSGBBIOS(rom.data(), (int)rom.size());
-        if (target->HasSGBBIOS())
+        if (load_sgb_bios_file(target, path))
         {
-            log_cb(RETRO_LOG_INFO, "SGB BIOS loaded from %s (%s)\n", path,
-                target->HasSGBBIOSBorder() ? "palette and border" : "palette only, unknown revision");
+            log_cb(RETRO_LOG_INFO, "SGB BIOS %s loaded\n", path);
             return;
         }
     }
-
-    log_cb(RETRO_LOG_INFO, "No SGB1.sfc/SGB2.sfc found, no SGB default palette and border\n");
 }
 
 static void load_bootroms(GearboyCore* target)

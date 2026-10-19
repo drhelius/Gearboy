@@ -54,6 +54,7 @@ void gui_action_load_defaults(void)
     GearboyCore* core = emu_get_core();
     core->GetMemory()->UnloadBootrom(false);
     core->GetMemory()->UnloadBootrom(true);
+    core->GetSGB()->UnloadBIOS();
 
     config_load_defaults();
     gui_apply_settings();

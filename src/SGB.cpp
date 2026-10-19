@@ -20,6 +20,7 @@
 #include "SGB.h"
 #include "Memory.h"
 #include "Video.h"
+#include "common.h"
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "miniz.h"
 #undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
@@ -27,17 +28,19 @@
 struct SGBBIOSLayout
 {
     u32 crc;
+    int size;
     u32 tiles;
     u32 map;
     u32 palettes;
     bool compressed;
 };
 
-// SNES addresses of the default border, taken from the BIOS boot code
 static const SGBBIOSLayout kSGBBIOSLayouts[] =
 {
-    { 0x8A4A174F, 0x03D868, 0x04EE6F, 0x04EFF1, true },  // SGB1.sfc
-    { 0xCB176E45, 0x0BC2C0, 0x0A9800, 0x0B8000, false }, // SGB2.sfc
+    { 0x2E35EDBB, 0x40000, 0x03D868, 0x04EE6F, 0x04EFF1, true },
+    { 0x27A03C98, 0x40000, 0x03D868, 0x04EE6F, 0x04EFF1, true },
+    { 0x8A4A174F, 0x40000, 0x03D868, 0x04EE6F, 0x04EFF1, true },
+    { 0xCB176E45, 0x80000, 0x0BC2C0, 0x0A9800, 0x0B8000, false },
 };
 
 static int LoROMOffset(u32 address)
@@ -50,7 +53,7 @@ static u16 ReadLE16(const u8* p)
     return (u16)(p[0] | (p[1] << 8));
 }
 
-// Word-based LZ of the SGB1 BIOS (routine at $01:83CA). Returns the output size or -1.
+// Word based LZ used by the SGB1 BIOS (routine at $01:83CA)
 static int DecompressBIOS(const u8* rom, int size, int offset, u8* out, int outSize)
 {
     if (offset < 0 || offset + 8 > size || outSize < 2)
@@ -95,72 +98,11 @@ static int DecompressBIOS(const u8* rom, int size, int offset, u8* out, int outS
     return written;
 }
 
-bool SGB::ParseBIOS(const u8* pROM, int size, u16* pPalette, Border* pBorder, bool* pHasBorder)
-{
-    static const char kTitle[] = "Super GAMEBOY";
-
-    *pHasBorder = false;
-
-    if (!IsValidPointer(pROM) || size < 0x10008 || memcmp(pROM + 0x7FC0, kTitle, sizeof(kTitle) - 1) != 0)
-        return false;
-
-    // Palette 1-A, first of the 32 built-in palettes
-    for (int i = 0; i < 4; i++)
-        pPalette[i] = ReadLE16(pROM + 0x10000 + i * 2);
-
-    u32 crc = (u32)mz_crc32(MZ_CRC32_INIT, pROM, (size_t)size);
-    const SGBBIOSLayout* layout = NULL;
-
-    for (unsigned i = 0; i < sizeof(kSGBBIOSLayouts) / sizeof(kSGBBIOSLayouts[0]); i++)
-    {
-        if (kSGBBIOSLayouts[i].crc == crc)
-            layout = &kSGBBIOSLayouts[i];
-    }
-
-    if (!IsValidPointer(layout))
-        return true;
-
-    memset(pBorder, 0, sizeof(Border));
-    u8* map = reinterpret_cast<u8*>(pBorder->map);
-    int tiles = LoROMOffset(layout->tiles);
-    int mapOffset = LoROMOffset(layout->map);
-    int palettes = LoROMOffset(layout->palettes);
-
-    if (palettes + 0x100 > size)
-        return true;
-
-    if (layout->compressed)
-    {
-        if (DecompressBIOS(pROM, size, tiles, pBorder->tiles, sizeof(pBorder->tiles)) < 0 ||
-            DecompressBIOS(pROM, size, mapOffset, map, sizeof(pBorder->map)) != (int)sizeof(pBorder->map))
-            return true;
-    }
-    else
-    {
-        if (tiles + 0x1000 > size || mapOffset + (int)sizeof(pBorder->map) > size)
-            return true;
-        memcpy(pBorder->tiles, pROM + tiles, 0x1000);
-        memcpy(map, pROM + mapOffset, sizeof(pBorder->map));
-    }
-
-    // The boot animation ends by moving the logo from palette 7 to palette 4
-    for (unsigned i = 1; i < sizeof(pBorder->map); i += 2)
-    {
-        if ((map[i] & 0x1C) == 0x1C)
-            map[i] = (u8)((map[i] & ~0x1C) | 0x10);
-    }
-
-    // Border palettes are SNES palettes 4-7
-    memcpy(pBorder->palette, pROM + palettes + 0x80, sizeof(pBorder->palette));
-
-    *pHasBorder = true;
-    return true;
-}
-
 SGB::SGB()
 {
-    m_bDefaultBorder = false;
-    memset(&m_DefaultBorder, 0, sizeof(m_DefaultBorder));
+    m_bBIOSLoaded = false;
+    memset(m_BIOSPalette, 0, sizeof(m_BIOSPalette));
+    memset(&m_BIOSBorder, 0, sizeof(m_BIOSBorder));
 }
 
 SGB::~SGB()
@@ -210,14 +152,115 @@ void SGB::Reset()
     LoadDefaultBorder();
 }
 
-void SGB::StartNonSGBCartridge(const u16* pPalette)
+void SGB::StartNonSGBCartridge()
 {
-    for (int p = 0; p < 4; p++)
-        memcpy(&m_EffectivePalettes[p * 4], pPalette, 4 * sizeof(u16));
+    for (int i = 0; i < 4; i++)
+        memcpy(&m_EffectivePalettes[i * 4], m_BIOSPalette, sizeof(m_BIOSPalette));
 
-    // The SNES side ignores packets from cartridges without the SGB flag
     m_bDisableCommands = true;
     m_MaskMode = MaskDisabled;
+}
+
+bool SGB::LoadBIOS(const char* szFilePath)
+{
+    using namespace std;
+
+    Log("Loading SGB BIOS %s...", szFilePath);
+
+    UnloadBIOS();
+
+    ifstream file;
+    open_ifstream_utf8(file, szFilePath, ios::in | ios::binary | ios::ate);
+
+    if (!file.is_open())
+    {
+        Log("There was a problem opening the file %s", szFilePath);
+        return false;
+    }
+
+    int size = static_cast<int> (file.tellg());
+
+    if ((size <= 0) || (size > 0x80000))
+    {
+        Log("Incompatible SGB BIOS size: 0x%X", size);
+        return false;
+    }
+
+    u8* buffer = new u8[size];
+    file.seekg(0, ios::beg);
+    bool loaded = file.read(reinterpret_cast<char*>(buffer), size) && LoadBIOSFromBuffer(buffer, size);
+    SafeDeleteArray(buffer);
+
+    if (loaded)
+        Debug("SGB BIOS %s loaded", szFilePath);
+
+    return loaded;
+}
+
+bool SGB::LoadBIOSFromBuffer(const u8* buffer, int size)
+{
+    UnloadBIOS();
+
+    if (!IsValidPointer(buffer) || (size <= 0))
+        return false;
+
+    u32 crc = (u32)mz_crc32(MZ_CRC32_INIT, buffer, (size_t)size);
+    const SGBBIOSLayout* layout = NULL;
+
+    for (unsigned i = 0; i < sizeof(kSGBBIOSLayouts) / sizeof(kSGBBIOSLayouts[0]); i++)
+    {
+        if ((kSGBBIOSLayouts[i].crc == crc) && (kSGBBIOSLayouts[i].size == size))
+        {
+            layout = &kSGBBIOSLayouts[i];
+            break;
+        }
+    }
+
+    if (!IsValidPointer(layout))
+    {
+        Log("Unknown SGB BIOS (CRC: %08X)", crc);
+        return false;
+    }
+
+    u8* map = reinterpret_cast<u8*>(m_BIOSBorder.map);
+    int tiles = LoROMOffset(layout->tiles);
+    int mapOffset = LoROMOffset(layout->map);
+
+    if (layout->compressed)
+    {
+        if ((DecompressBIOS(buffer, size, tiles, m_BIOSBorder.tiles, sizeof(m_BIOSBorder.tiles)) < 0) ||
+            (DecompressBIOS(buffer, size, mapOffset, map, sizeof(m_BIOSBorder.map)) != (int)sizeof(m_BIOSBorder.map)))
+            return false;
+    }
+    else
+    {
+        memcpy(m_BIOSBorder.tiles, buffer + tiles, 0x1000);
+        memcpy(map, buffer + mapOffset, sizeof(m_BIOSBorder.map));
+    }
+
+    for (unsigned i = 1; i < sizeof(m_BIOSBorder.map); i += 2)
+    {
+        if ((map[i] & 0x1C) == 0x1C)
+            map[i] = (u8)((map[i] & ~0x1C) | 0x10);
+    }
+
+    memcpy(m_BIOSBorder.palette, buffer + LoROMOffset(layout->palettes) + 0x80, sizeof(m_BIOSBorder.palette));
+    memcpy(m_BIOSPalette, buffer + 0x10000, sizeof(m_BIOSPalette));
+
+    m_bBIOSLoaded = true;
+    return true;
+}
+
+void SGB::UnloadBIOS()
+{
+    m_bBIOSLoaded = false;
+    memset(m_BIOSPalette, 0, sizeof(m_BIOSPalette));
+    memset(&m_BIOSBorder, 0, sizeof(m_BIOSBorder));
+}
+
+bool SGB::IsBIOSLoaded() const
+{
+    return m_bBIOSLoaded;
 }
 
 void SGB::WriteJOYP(u8 value)
@@ -1050,26 +1093,19 @@ u16 SGB::ConvertRGB15(u16 color, GB_Color_Format pixelFormat)
     }
 }
 
-void SGB::SetDefaultBorder(const Border* pBorder)
-{
-    m_bDefaultBorder = IsValidPointer(pBorder);
-    if (m_bDefaultBorder)
-        memcpy(&m_DefaultBorder, pBorder, sizeof(Border));
-}
-
 void SGB::LoadDefaultBorder()
 {
-    if (!m_bDefaultBorder)
+    if (m_bBIOSLoaded)
+    {
+        memcpy(m_pBorder, &m_BIOSBorder, sizeof(Border));
+        memcpy(m_pPendingBorder, &m_BIOSBorder, sizeof(Border));
+        m_bBorderEmpty = false;
+    }
+    else
     {
         memset(m_pBorder, 0, sizeof(Border));
         memset(m_pPendingBorder, 0, sizeof(Border));
-        return;
     }
-
-    // Both buffers start from the BIOS border: CHR_TRN only overwrites part of the tiles on hardware
-    memcpy(m_pBorder, &m_DefaultBorder, sizeof(Border));
-    memcpy(m_pPendingBorder, &m_DefaultBorder, sizeof(Border));
-    m_bBorderEmpty = false;
 }
 
 void SGB::SaveState(std::ostream& stream)

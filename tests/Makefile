@@ -3,7 +3,6 @@ include Makefile.sources
 SERIAL_TARGET_NAME = gearboy-serial-tests
 LINK_CABLE_WIRE_TARGET_NAME = gearboy-link-cable-wire-tests
 LINK_CABLE_MANAGER_TARGET_NAME = gearboy-link-cable-manager-tests
-SGB_BIOS_TARGET_NAME = gearboy-sgb-bios-tests
 GIT_VERSION := $(shell git describe --abbrev=7 --dirty --always --tags)
 UNAME_S := $(shell uname -s)
 PLATFORM = "undefined"
@@ -56,7 +55,7 @@ else
     CXXFLAGS += -std=gnu++11
 endif
 
-all: serial link-cable-wire link-cable-manager sgb-bios
+all: serial link-cable-wire link-cable-manager
 
 serial: $(SERIAL_TARGET_NAME)
 	@echo Serial tests build complete for $(PLATFORM)
@@ -67,13 +66,7 @@ link-cable-wire: $(LINK_CABLE_WIRE_TARGET_NAME)
 link-cable-manager: $(LINK_CABLE_MANAGER_TARGET_NAME)
 	@echo Link cable manager tests build complete for $(PLATFORM)
 
-sgb-bios: $(SGB_BIOS_TARGET_NAME)
-	@echo SGB BIOS tests build complete for $(PLATFORM)
-
 $(SERIAL_TARGET_NAME): serial_tests.cpp $(OBJECTS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-
-$(SGB_BIOS_TARGET_NAME): sgb_bios_tests.cpp $(OBJECTS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(LINK_CABLE_WIRE_TARGET_NAME): link_cable_wire_tests.cpp
@@ -91,5 +84,5 @@ $(LINK_CABLE_MANAGER_TARGET_NAME): CPPFLAGS += -DLINK_CABLE_SHM_PREFIX=\"gearboy
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(OBJECTS) $(SERIAL_TARGET_NAME) $(LINK_CABLE_WIRE_TARGET_NAME) $(LINK_CABLE_MANAGER_TARGET_NAME) $(SGB_BIOS_TARGET_NAME)
-	rm -rf $(SERIAL_TARGET_NAME).dSYM $(LINK_CABLE_WIRE_TARGET_NAME).dSYM $(LINK_CABLE_MANAGER_TARGET_NAME).dSYM $(SGB_BIOS_TARGET_NAME).dSYM
+	rm -f $(OBJECTS) $(SERIAL_TARGET_NAME) $(LINK_CABLE_WIRE_TARGET_NAME) $(LINK_CABLE_MANAGER_TARGET_NAME)
+	rm -rf $(SERIAL_TARGET_NAME).dSYM $(LINK_CABLE_WIRE_TARGET_NAME).dSYM $(LINK_CABLE_MANAGER_TARGET_NAME).dSYM
