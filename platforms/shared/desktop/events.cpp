@@ -162,9 +162,12 @@ void events_emu(void)
 
         input_last_state[controller] = now;
 
+        if (controller > 0)
+            continue;
+
         gamepad_check_shortcuts(controller);
 
-        if (controller == 0 && config_emulator.tilt_source == 2)
+        if (config_emulator.tilt_source == 2)
         {
             SDL_Gamepad* sdl_controller = gamepad_controller[controller];
             if (IsValidPointer(sdl_controller) && SDL_GamepadHasSensor(sdl_controller, SDL_SENSOR_ACCEL))
@@ -200,7 +203,7 @@ void events_emu(void)
         }
 
         // Analog stick tilt
-        if (controller == 0 && config_emulator.tilt_source == 3)
+        if (config_emulator.tilt_source == 3)
         {
             SDL_Gamepad* sdl_controller = gamepad_controller[controller];
             if (IsValidPointer(sdl_controller))
