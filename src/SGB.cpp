@@ -189,7 +189,7 @@ bool SGB::LoadBIOS(const char* szFilePath)
     u8* buffer = new u8[size];
     file.seekg(0, ios::beg);
     bool loaded = file.read(reinterpret_cast<char*>(buffer), size) && LoadBIOSFromBuffer(buffer, size);
-    SafeDeleteArray(buffer);
+    delete [] buffer;
 
     if (loaded)
         Debug("SGB BIOS %s loaded", szFilePath);
