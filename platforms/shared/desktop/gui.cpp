@@ -634,10 +634,10 @@ static void main_window(void)
         draw_list->AddImage((ImTextureID)(intptr_t)ogl_renderer_get_screen_texture(), image_min, image_max, ImVec2(0, 0), ImVec2(tex_h, tex_v));
         draw_list->PopClipRect();
         gui_notifications_render_output(image_min, image_max);
-    }
 
-    if (config_video.fps)
-        gui_show_fps();
+        if (config_video.fps)
+            gui_show_fps(image_min, image_max);
+    }
 
     ImGui::End();
 

@@ -18,6 +18,8 @@
  */
 
 #include <SDL3/SDL.h>
+#include <math.h>
+#include <float.h>
 
 #define GUI_POPUPS_IMPORT
 #include "gui_popups.h"
@@ -485,14 +487,67 @@ void gui_show_info(void)
     ImGui::PopStyleVar();
 }
 
-void gui_show_fps(void)
+void gui_show_fps(const ImVec2& min, const ImVec2& max)
 {
-    ImGui::PushFont(gui_default_font);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f,1.00f,0.0f,1.0f));
-    ImGui::SetCursorPos(ImVec2(5.0f, config_debug.debug ? 25.0f : 5.0f));
-    ImGui::Text("FPS:  %.2f\nTIME: %.2f ms", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
-    ImGui::PopStyleColor();
-    ImGui::PopFont();
+    const float margin = 8.0f;
+    const float padding = 6.0f;
+    const float height = 22.0f;
+    const float rounding = 4.0f;
+    const float value_size = 14.0f;
+    const float unit_size = 11.0f;
+    const float unit_spacing = 3.0f;
+    const float group_spacing = 9.0f;
+
+    float framerate = ImGui::GetIO().Framerate;
+    char values[2][16];
+    const char* units[2] = { "FPS", "ms" };
+    snprintf(values[0], sizeof(values[0]), "%.2f", framerate);
+    snprintf(values[1], sizeof(values[1]), "%.2f", (framerate > 0.0f) ? (1000.0f / framerate) : 0.0f);
+
+    ImFont* font = gui_roboto_font;
+    float value_widths[2];
+    float unit_widths[2];
+    float width = (padding * 2.0f) + group_spacing;
+
+    for (int i = 0; i < 2; i++)
+    {
+        value_widths[i] = font->CalcTextSizeA(value_size, FLT_MAX, 0.0f, values[i]).x;
+        unit_widths[i] = font->CalcTextSizeA(unit_size, FLT_MAX, 0.0f, units[i]).x;
+        width += value_widths[i] + unit_spacing + unit_widths[i];
+    }
+
+    ImVec2 box_min(roundf(min.x + margin), roundf(min.y + margin));
+    ImVec2 box_max(box_min.x + roundf(width), box_min.y + height);
+
+    if (box_max.x > max.x || box_max.y > max.y)
+        return;
+
+    const ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4 background = style.Colors[ImGuiCol_PopupBg];
+    background.w = 0.85f;
+    ImU32 value_color = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]);
+    ImU32 unit_color = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_TextDisabled]);
+
+    ImFontGlyph* value_glyph = font->GetFontBaked(value_size)->FindGlyph((ImWchar)'0');
+    ImFontGlyph* unit_glyph = font->GetFontBaked(unit_size)->FindGlyph((ImWchar)'0');
+    float baseline = box_min.y + ((height + (value_glyph->Y1 - value_glyph->Y0)) * 0.5f);
+    float value_y = roundf(baseline - value_glyph->Y1);
+    float unit_y = roundf(baseline - unit_glyph->Y1);
+    float x = box_min.x + padding;
+
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->PushClipRect(min, max, true);
+    draw_list->AddRectFilled(box_min, box_max, ImGui::ColorConvertFloat4ToU32(background), rounding);
+
+    for (int i = 0; i < 2; i++)
+    {
+        draw_list->AddText(font, value_size, ImVec2(roundf(x), value_y), value_color, values[i]);
+        x += value_widths[i] + unit_spacing;
+        draw_list->AddText(font, unit_size, ImVec2(roundf(x), unit_y), unit_color, units[i]);
+        x += unit_widths[i] + group_spacing;
+    }
+
+    draw_list->PopClipRect();
 }
 
 static void add_build_info(const char* fmt, ...)
