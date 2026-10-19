@@ -55,6 +55,7 @@ static char retro_game_path[4096];
 static bool force_dmg = false;
 static bool force_gba = false;
 static bool sgb_enabled = true;
+static bool sgb_all_games = false;
 static bool sgb_border = true;
 static bool allow_up_down = false;
 static int8_t dpad_vertical_latch[4] = {0, 0, 0, 0};
@@ -407,6 +408,64 @@ static bool load_bootrom_file(GearboyCore* target, const char* path, bool gbc)
     return true;
 }
 
+static bool load_sgb_bios_file(GearboyCore* target, const char* path)
+{
+    if (!vfs_interface)
+        return target->GetSGB()->LoadBIOS(path);
+
+    retro_vfs_file_handle* file = vfs_interface->open(path, RETRO_VFS_FILE_ACCESS_READ,
+        RETRO_VFS_FILE_ACCESS_HINT_NONE);
+    if (!file)
+        return false;
+
+    s64 size = (s64)vfs_interface->size(file);
+    if ((size <= 0) || (size > 0x80000))
+    {
+        vfs_interface->close(file);
+        return false;
+    }
+
+    u8* buffer = new u8[(int)size];
+    s64 total = 0;
+
+    while (total < size)
+    {
+        s64 read = (s64)vfs_interface->read(file, buffer + total, size - total);
+        if (read <= 0)
+            break;
+
+        total += read;
+    }
+
+    vfs_interface->close(file);
+
+    bool loaded = (total == size) && target->GetSGB()->LoadBIOSFromBuffer(buffer, (int)size);
+    SafeDeleteArray(buffer);
+    return loaded;
+}
+
+static void load_sgb_bios(GearboyCore* target)
+{
+    static const char* const files[] = { "SGB1.sfc", "SGB2.sfc" };
+
+    target->GetSGB()->UnloadBIOS();
+
+    if ((instance_count != 1) || !sgb_enabled)
+        return;
+
+    for (int i = 0; i < 2; i++)
+    {
+        char path[4112];
+        snprintf(path, 4112, "%s%c%s", retro_system_directory, slash, files[i]);
+
+        if (load_sgb_bios_file(target, path))
+        {
+            log_cb(RETRO_LOG_INFO, "SGB BIOS %s loaded\n", path);
+            return;
+        }
+    }
+}
+
 static void load_bootroms(GearboyCore* target)
 {
     char bootrom_dmg_path[4112];
@@ -420,6 +479,8 @@ static void load_bootroms(GearboyCore* target)
 
     target->GetMemory()->EnableBootromDMG(bootrom_dmg);
     target->GetMemory()->EnableBootromGBC(bootrom_gbc);
+
+    load_sgb_bios(target);
 }
 
 static void update_input(GearboyCore* target, unsigned port, int player)
@@ -823,6 +884,14 @@ static void check_variables(void)
         sgb_enabled = (strcmp(var.value, "Enabled") == 0);
     }
 
+    var.key = "gearboy_sgb_all_games";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        sgb_all_games = (strcmp(var.value, "Enabled") == 0);
+    }
+
     var.key = "gearboy_sgb_border";
     var.value = NULL;
 
@@ -1108,6 +1177,7 @@ void retro_reset(void)
 
         load_bootroms(core);
         core->SetSGBEnabled(instance_count == 1 && sgb_enabled);
+        core->SetSGBAllGames(sgb_all_games);
         core->ResetROMPreservingRAM(force_dmg, mapper, force_gba);
         memset(instances[i].frame_buffer, 0, sizeof(instances[i].frame_buffer));
         instances[i].sample_count = 0;
@@ -1147,6 +1217,7 @@ static bool load_game(const struct retro_game_info* info, const struct retro_gam
         load_bootroms(core);
 
         core->SetSGBEnabled(instance_count == 1 && sgb_enabled);
+        core->SetSGBAllGames(sgb_all_games);
         core->SetBarcodeBoyMode(instance_count == 1 ? libretro_barcode_get_mode() : GB_BarcodeBoyMode_Disabled);
 
         if (!load_rom(core, roms[i]))

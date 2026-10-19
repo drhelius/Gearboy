@@ -58,6 +58,7 @@ static bool choose_video_recordings_path = false;
 static bool choose_backup_ram_path = false;
 static bool open_dmg_bootrom = false;
 static bool open_gbc_bootrom = false;
+static bool open_sgb_bios = false;
 static bool save_debug_settings = false;
 static bool load_debug_settings = false;
 static const GuiColor& service_link_color = cornflower;
@@ -155,6 +156,7 @@ void gui_main_menu(void)
     choose_backup_ram_path = false;
     open_dmg_bootrom = false;
     open_gbc_bootrom = false;
+    open_sgb_bios = false;
     save_debug_settings = false;
     load_debug_settings = false;
 
@@ -664,6 +666,33 @@ static void menu_emulator(void)
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("SGB BIOS"))
+        {
+            if (ImGui::MenuItem("Load BIOS..."))
+            {
+                open_sgb_bios = true;
+            }
+            ImGui::PushItemWidth(350);
+            if (ImGui::InputText("##sgb_bios_path", gui_sgb_bios_path, IM_ARRAYSIZE(gui_sgb_bios_path), ImGuiInputTextFlags_AutoSelectAll))
+            {
+                config_emulator.sgb_bios_path.assign(gui_sgb_bios_path);
+                emu_load_sgb_bios(gui_sgb_bios_path);
+            }
+            ImGui::PopItemWidth();
+
+            ImGui::Separator();
+            if (emu_get_core()->GetSGB()->IsBIOSLoaded())
+            {
+                ImGui::TextColored(service_mcp_http_color, "SGB BIOS loaded");
+            }
+            else
+            {
+                ImGui::TextColored(gray, "No SGB BIOS loaded");
+            }
+
+            ImGui::EndMenu();
+        }
+
         ImGui::Separator();
 
         if (ImGui::MenuItem("Force Game Boy (DMG)", "", &config_emulator.force_dmg))
@@ -680,6 +709,9 @@ static void menu_emulator(void)
 
         ImGui::MenuItem("Super Game Boy", "", &config_emulator.sgb);
         ImGui::MenuItem("SGB Border", "", &config_emulator.sgb_border);
+        ImGui::MenuItem("SGB for All Games", "", &config_emulator.sgb_all_games);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Run regular Game Boy games in Super Game Boy mode with the BIOS default border and palette.\nRequires an SGB BIOS. Takes effect on the next reset or ROM load.");
 
         if (ImGui::BeginMenu("Memory Bank Controller"))
         {
@@ -1924,6 +1956,8 @@ static void file_dialogs(void)
         gui_file_dialog_load_dmg_bootrom();
     if (open_gbc_bootrom)
         gui_file_dialog_load_gbc_bootrom();
+    if (open_sgb_bios)
+        gui_file_dialog_load_sgb_bios();
     if (save_debug_settings)
         gui_file_dialog_save_debug_settings();
     if (load_debug_settings)

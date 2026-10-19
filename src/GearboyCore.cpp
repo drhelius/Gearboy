@@ -108,6 +108,7 @@ GearboyCore::GearboyCore()
     m_bForceDMG = false;
     m_MapperType = Cartridge::CartridgeNotSupported;
     m_bSGBEnabled = true;
+    m_bSGBAllGames = false;
     m_bSGBBorder = true;
     InitPointer(m_pSGBFrameBuffer);
     m_iRTCUpdateCount = 0;
@@ -1707,6 +1708,11 @@ void GearboyCore::SetSGBEnabled(bool enabled)
     m_bSGBEnabled = enabled;
 }
 
+void GearboyCore::SetSGBAllGames(bool enabled)
+{
+    m_bSGBAllGames = enabled;
+}
+
 void GearboyCore::SetSGBBorder(bool enabled)
 {
     m_bSGBBorder = enabled;
@@ -2013,7 +2019,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
         Log("Reset: Defaulting to Game Boy DMG");
     }
 
-    m_bSGB = !m_bCGB && m_pCartridge->IsSGB() && !m_bForceDMG && m_bSGBEnabled;
+    m_bSGB = !m_bCGB && (m_pCartridge->IsSGB() || (m_bSGBAllGames && m_pSGB->IsBIOSLoaded())) && !m_bForceDMG && m_bSGBEnabled;
     m_pMemory->Reset(m_bCGB, m_bSGB);
     m_pProcessor->Reset(m_bCGB, m_bGBA, m_bSGB);
     m_pVideo->SetSGBTransferMode(m_bSGB);
@@ -2064,6 +2070,8 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
     m_pSGB->Reset();
+    if (m_bSGB && !m_pCartridge->IsSGB())
+        m_pSGB->StartNonSGBCartridge();
     m_pIORegistersMemoryRule->SetSGB(m_bSGB ? m_pSGB : NULL);
 
     if (m_pBarcodeBoy)

@@ -211,6 +211,20 @@ struct retro_core_option_v2_definition option_defs_us[] = {
         "Enabled"
     },
     {
+        "gearboy_sgb_all_games",
+        "Super Game Boy for All Games (restart)",
+        NULL,
+        "When enabled and an SGB BIOS (SGB1.sfc or SGB2.sfc) is in the system directory, regular Game Boy (DMG) games also run in Super Game Boy mode, using the BIOS default palette and border.",
+        NULL,
+        "system",
+        {
+            { "Disabled", NULL },
+            { "Enabled",  NULL },
+            { NULL, NULL },
+        },
+        "Disabled"
+    },
+    {
         "gearboy_sgb_border",
         "Super Game Boy Border",
         NULL,

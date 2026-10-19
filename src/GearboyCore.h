@@ -127,6 +127,7 @@ public:
     bool IsGBA();
     bool IsSGB();
     void SetSGBEnabled(bool enabled);
+    void SetSGBAllGames(bool enabled);
     void SetSGBBorder(bool enabled);
     Memory* GetMemory();
     Cartridge* GetCartridge();
@@ -211,6 +212,7 @@ private:
     u16 m_DMGPalette[4];
     bool m_bForceDMG;
     bool m_bSGBEnabled;
+    bool m_bSGBAllGames;
     bool m_bSGBBorder;
     u16* m_pSGBFrameBuffer;
     int m_iRTCUpdateCount;

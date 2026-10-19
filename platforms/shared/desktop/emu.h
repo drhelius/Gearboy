@@ -118,6 +118,7 @@ EXTERN void emu_debug_continue(void);
 EXTERN void emu_set_disassembler_syntax(int syntax);
 EXTERN void emu_load_bootrom_dmg(const char* file_path);
 EXTERN void emu_load_bootrom_gbc(const char* file_path);
+EXTERN void emu_load_sgb_bios(const char* file_path);
 EXTERN void emu_enable_bootrom_dmg(bool enable);
 EXTERN void emu_enable_bootrom_gbc(bool enable);
 EXTERN bool emu_save_screenshot(const char* file_path);

@@ -140,11 +140,13 @@ static inline void process(config_Operation operation)
     CONFIG_BOOL("Emulator", "ForceGBA", config_emulator.force_gba, false);
     CONFIG_BOOL("Emulator", "SGB", config_emulator.sgb, true);
     CONFIG_BOOL("Emulator", "SGBBorder", config_emulator.sgb_border, true);
+    CONFIG_BOOL("Emulator", "SGBAllGames", config_emulator.sgb_all_games, false);
     CONFIG_INT("Emulator", "MBC", config_emulator.mbc, 0);
     CONFIG_BOOL("Emulator", "DMGBootrom", config_emulator.dmg_bootrom, false);
     CONFIG_STRING("Emulator", "DMGBootromPath", config_emulator.dmg_bootrom_path, "");
     CONFIG_BOOL("Emulator", "GBCBootrom", config_emulator.gbc_bootrom, false);
     CONFIG_STRING("Emulator", "GBCBootromPath", config_emulator.gbc_bootrom_path, "");
+    CONFIG_STRING("Emulator", "SGBBIOSPath", config_emulator.sgb_bios_path, "");
 
     // Tilt controls
     CONFIG_INT("Emulator", "TiltSource", config_emulator.tilt_source, 0);

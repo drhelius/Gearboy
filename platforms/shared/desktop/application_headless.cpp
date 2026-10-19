@@ -73,6 +73,12 @@ int application_headless_init(const ApplicationParams& params)
         Log("Loading GBC bootrom: %s", config_emulator.gbc_bootrom_path.c_str());
         emu_load_bootrom_gbc(config_emulator.gbc_bootrom_path.c_str());
     }
+    if (!config_emulator.sgb_bios_path.empty())
+    {
+        Log("Loading SGB BIOS: %s", config_emulator.sgb_bios_path.c_str());
+        emu_load_sgb_bios(config_emulator.sgb_bios_path.c_str());
+    }
+
     emu_enable_bootrom_dmg(config_emulator.dmg_bootrom);
     emu_enable_bootrom_gbc(config_emulator.gbc_bootrom);
     emu_color_correction(config_video.color_correction);

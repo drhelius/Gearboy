@@ -20,9 +20,89 @@
 #include "SGB.h"
 #include "Memory.h"
 #include "Video.h"
+#include "common.h"
+#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
+#include "miniz.h"
+#undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
+
+struct SGBBIOSLayout
+{
+    u32 crc;
+    int size;
+    u32 tiles;
+    u32 map;
+    u32 palettes;
+    bool compressed;
+};
+
+static const SGBBIOSLayout kSGBBIOSLayouts[] =
+{
+    { 0x2E35EDBB, 0x40000, 0x03D868, 0x04EE6F, 0x04EFF1, true },
+    { 0x27A03C98, 0x40000, 0x03D868, 0x04EE6F, 0x04EFF1, true },
+    { 0x8A4A174F, 0x40000, 0x03D868, 0x04EE6F, 0x04EFF1, true },
+    { 0xCB176E45, 0x80000, 0x0BC2C0, 0x0A9800, 0x0B8000, false },
+};
+
+static int LoROMOffset(u32 address)
+{
+    return (int)(((address >> 16) & 0x7F) * 0x8000 + ((address & 0xFFFF) - 0x8000));
+}
+
+static u16 ReadLE16(const u8* p)
+{
+    return (u16)(p[0] | (p[1] << 8));
+}
+
+// Word based LZ used by the SGB1 BIOS (routine at $01:83CA)
+static int DecompressBIOS(const u8* rom, int size, int offset, u8* out, int outSize)
+{
+    if (offset < 0 || offset + 8 > size || outSize < 2)
+        return -1;
+
+    const u8* src = rom + offset;
+    u16 marker = ReadLE16(src);
+    int end = ReadLE16(src + 2) + 8;
+    int written = 2;
+
+    if (offset + end + 5 > size)
+        return -1;
+
+    memcpy(out, src + 6, 2);
+
+    for (int i = 8; i < end;)
+    {
+        u16 word = ReadLE16(src + i);
+        int count = (word == marker) ? src[i + 4] : 0;
+        int from = ReadLE16(src + i + 2);
+
+        if (word != marker || count == 0)
+        {
+            if (written + 2 > outSize)
+                return -1;
+            memcpy(out + written, src + i, 2);
+            written += 2;
+            i += (word == marker) ? 5 : 2;
+            continue;
+        }
+
+        if (from + 2 > written || written + count * 2 > outSize)
+            return -1;
+
+        for (int c = 0; c < count * 2; c++)
+            out[written + c] = out[from + c];
+
+        written += count * 2;
+        i += 5;
+    }
+
+    return written;
+}
 
 SGB::SGB()
 {
+    m_bBIOSLoaded = false;
+    memset(m_BIOSPalette, 0, sizeof(m_BIOSPalette));
+    memset(&m_BIOSBorder, 0, sizeof(m_BIOSBorder));
 }
 
 SGB::~SGB()
@@ -70,6 +150,117 @@ void SGB::Reset()
     m_PreviousJOYP = 0xCF;
 
     LoadDefaultBorder();
+}
+
+void SGB::StartNonSGBCartridge()
+{
+    for (int i = 0; i < 4; i++)
+        memcpy(&m_EffectivePalettes[i * 4], m_BIOSPalette, sizeof(m_BIOSPalette));
+
+    m_bDisableCommands = true;
+    m_MaskMode = MaskDisabled;
+}
+
+bool SGB::LoadBIOS(const char* szFilePath)
+{
+    using namespace std;
+
+    Log("Loading SGB BIOS %s...", szFilePath);
+
+    UnloadBIOS();
+
+    ifstream file;
+    open_ifstream_utf8(file, szFilePath, ios::in | ios::binary | ios::ate);
+
+    if (!file.is_open())
+    {
+        Log("There was a problem opening the file %s", szFilePath);
+        return false;
+    }
+
+    int size = static_cast<int> (file.tellg());
+
+    if ((size <= 0) || (size > 0x80000))
+    {
+        Log("Incompatible SGB BIOS size: 0x%X", size);
+        return false;
+    }
+
+    u8* buffer = new u8[size];
+    file.seekg(0, ios::beg);
+    bool loaded = file.read(reinterpret_cast<char*>(buffer), size) && LoadBIOSFromBuffer(buffer, size);
+    delete [] buffer;
+
+    if (loaded)
+        Debug("SGB BIOS %s loaded", szFilePath);
+
+    return loaded;
+}
+
+bool SGB::LoadBIOSFromBuffer(const u8* buffer, int size)
+{
+    UnloadBIOS();
+
+    if (!IsValidPointer(buffer) || (size <= 0))
+        return false;
+
+    u32 crc = (u32)mz_crc32(MZ_CRC32_INIT, buffer, (size_t)size);
+    const SGBBIOSLayout* layout = NULL;
+
+    for (unsigned i = 0; i < sizeof(kSGBBIOSLayouts) / sizeof(kSGBBIOSLayouts[0]); i++)
+    {
+        if ((kSGBBIOSLayouts[i].crc == crc) && (kSGBBIOSLayouts[i].size == size))
+        {
+            layout = &kSGBBIOSLayouts[i];
+            break;
+        }
+    }
+
+    if (!IsValidPointer(layout))
+    {
+        Log("Unknown SGB BIOS (CRC: %08X)", crc);
+        return false;
+    }
+
+    u8* map = reinterpret_cast<u8*>(m_BIOSBorder.map);
+    int tiles = LoROMOffset(layout->tiles);
+    int mapOffset = LoROMOffset(layout->map);
+
+    if (layout->compressed)
+    {
+        if ((DecompressBIOS(buffer, size, tiles, m_BIOSBorder.tiles, sizeof(m_BIOSBorder.tiles)) < 0) ||
+            (DecompressBIOS(buffer, size, mapOffset, map, sizeof(m_BIOSBorder.map)) != (int)sizeof(m_BIOSBorder.map)))
+            return false;
+    }
+    else
+    {
+        memcpy(m_BIOSBorder.tiles, buffer + tiles, 0x1000);
+        memcpy(map, buffer + mapOffset, sizeof(m_BIOSBorder.map));
+    }
+
+    for (unsigned i = 1; i < sizeof(m_BIOSBorder.map); i += 2)
+    {
+        if ((map[i] & 0x1C) == 0x1C)
+            map[i] = (u8)((map[i] & ~0x1C) | 0x10);
+    }
+
+    memcpy(m_BIOSBorder.palette, buffer + LoROMOffset(layout->palettes) + 0x80, sizeof(m_BIOSBorder.palette));
+    memcpy(m_BIOSPalette, buffer + 0x10000, sizeof(m_BIOSPalette));
+
+    m_bBIOSLoaded = true;
+    return true;
+}
+
+void SGB::UnloadBIOS()
+{
+    m_bBIOSLoaded = false;
+    memset(m_BIOSPalette, 0, sizeof(m_BIOSPalette));
+    memset(&m_BIOSBorder, 0, sizeof(m_BIOSBorder));
+}
+
+bool SGB::IsBIOSLoaded() const
+{
+    return m_bBIOSLoaded;
 }
 
 void SGB::WriteJOYP(u8 value)
@@ -904,8 +1095,17 @@ u16 SGB::ConvertRGB15(u16 color, GB_Color_Format pixelFormat)
 
 void SGB::LoadDefaultBorder()
 {
-    memset(m_pBorder, 0, sizeof(Border));
-    memset(m_pPendingBorder, 0, sizeof(Border));
+    if (m_bBIOSLoaded)
+    {
+        memcpy(m_pBorder, &m_BIOSBorder, sizeof(Border));
+        memcpy(m_pPendingBorder, &m_BIOSBorder, sizeof(Border));
+        m_bBorderEmpty = false;
+    }
+    else
+    {
+        memset(m_pBorder, 0, sizeof(Border));
+        memset(m_pPendingBorder, 0, sizeof(Border));
+    }
 }
 
 void SGB::SaveState(std::ostream& stream)

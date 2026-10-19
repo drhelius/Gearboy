@@ -89,6 +89,11 @@ public:
     ~SGB();
     void Init();
     void Reset();
+    void StartNonSGBCartridge();
+    bool LoadBIOS(const char* szFilePath);
+    bool LoadBIOSFromBuffer(const u8* buffer, int size);
+    void UnloadBIOS();
+    bool IsBIOSLoaded() const;
     void WriteJOYP(u8 value);
     void Render(u16* pFrameBuffer, GB_Color_Format pixelFormat, bool incomplete);
     void CopyScreenBuffer(const u8* pVideoFrameBuffer);
@@ -167,6 +172,10 @@ private:
     Border* m_pPendingBorder;
     u8 m_iBorderAnimation;
     bool m_bBorderEmpty;
+
+    bool m_bBIOSLoaded;
+    u8 m_BIOSPalette[8];
+    Border m_BIOSBorder;
 
     u8 m_PreviousJOYP;
 };

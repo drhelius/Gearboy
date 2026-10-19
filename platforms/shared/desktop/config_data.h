@@ -66,6 +66,7 @@ struct config_Emulator
     bool force_gba;
     bool sgb;
     bool sgb_border;
+    bool sgb_all_games;
     bool ffwd;
     int ffwd_speed;
     int runahead;
@@ -76,6 +77,7 @@ struct config_Emulator
     std::string dmg_bootrom_path;
     bool gbc_bootrom;
     std::string gbc_bootrom_path;
+    std::string sgb_bios_path;
     int savefiles_dir_option;
     std::string savefiles_path;
     int savestates_dir_option;

@@ -69,6 +69,7 @@ enum FileDialogID
     FileDialog_LoadDebugSettings,
     FileDialog_LoadDmgBootrom,
     FileDialog_LoadGbcBootrom,
+    FileDialog_LoadSgbBios,
 };
 
 static FileDialogID pending_dialog_id = FileDialog_None;
@@ -400,6 +401,16 @@ void gui_file_dialog_load_gbc_bootrom(void)
     SDL_ShowOpenFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_LoadGbcBootrom, application_sdl_window, filters, 1, default_path, false);
 }
 
+void gui_file_dialog_load_sgb_bios(void)
+{
+    if (!begin_dialog())
+        return;
+
+    SDL_DialogFileFilter filters[] = { { "SGB BIOS Files", "sfc;smc;bin" } };
+    const char* default_path = config_emulator.last_open_path.empty() ? NULL : config_emulator.last_open_path.c_str();
+    SDL_ShowOpenFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_LoadSgbBios, application_sdl_window, filters, 1, default_path, false);
+}
+
 void gui_file_dialog_process_results(void)
 {
     bool refocus_window = pending_refocus_window && !dialog_active;
@@ -646,6 +657,18 @@ static void process_dialog_result(FileDialogID id, const char* path)
                 gui_notify(gui_NotificationSuccess, ICON_MD_MEMORY, "GBC boot ROM loaded", path);
             else
                 gui_notify(gui_NotificationError, NULL, "Unable to load the GBC boot ROM", path);
+            break;
+        }
+        case FileDialog_LoadSgbBios:
+        {
+            strncpy_fit(gui_sgb_bios_path, path, sizeof(gui_sgb_bios_path));
+            config_emulator.sgb_bios_path.assign(path);
+            emu_load_sgb_bios(gui_sgb_bios_path);
+
+            if (emu_get_core()->GetSGB()->IsBIOSLoaded())
+                gui_notify(gui_NotificationSuccess, ICON_MD_MEMORY, "SGB BIOS loaded", path);
+            else
+                gui_notify(gui_NotificationError, NULL, "Unable to load the SGB BIOS", path);
             break;
         }
         default:
