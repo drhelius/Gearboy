@@ -554,14 +554,14 @@ void GearboyCore::RenderFrameBuffer(u16* pFrameBuffer)
     RenderDMGFrame(pFrameBuffer);
 }
 
-void GearboyCore::KeyPressed(Gameboy_Keys key)
+void GearboyCore::KeyPressed(Gameboy_Keys key, int player)
 {
-    m_pInput->KeyPressed(key);
+    m_pInput->KeyPressed(key, player);
 }
 
-void GearboyCore::KeyReleased(Gameboy_Keys key)
+void GearboyCore::KeyReleased(Gameboy_Keys key, int player)
 {
-    m_pInput->KeyReleased(key);
+    m_pInput->KeyReleased(key, player);
 }
 
 void GearboyCore::Pause(bool paused)

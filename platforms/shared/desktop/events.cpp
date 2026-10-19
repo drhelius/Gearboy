@@ -30,7 +30,7 @@
 #include "events.h"
 
 static bool input_updated = false;
-static Uint16 input_last_state[1] = { };
+static Uint16 input_last_state[GEARBOY_MAX_GAMEPADS] = { };
 
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
 static bool events_match_hotkey_scancode(const SDL_Event* event, const config_Hotkey& hotkey);
@@ -152,9 +152,7 @@ void events_emu(void)
 
     SDL_PumpEvents();
 
-    const int max_controller = 1;
-
-    for (int controller = 0; controller < max_controller; controller++)
+    for (int controller = 0; controller < GEARBOY_MAX_GAMEPADS; controller++)
     {
         Uint16 now = input_filter_opposing_directions(controller, input_build_state(controller));
         Uint16 before = input_last_state[controller];
@@ -163,6 +161,9 @@ void events_emu(void)
             input_apply_state(controller, before, now);
 
         input_last_state[controller] = now;
+
+        if (controller > 0)
+            continue;
 
         gamepad_check_shortcuts(controller);
 
@@ -231,7 +232,7 @@ void events_sync_input(void)
 
     static const Uint16 all_keys = Left_Key | Right_Key | Up_Key | Down_Key | A_Key | B_Key | Start_Key | Select_Key;
 
-    for (int controller = 0; controller < 1; controller++)
+    for (int controller = 0; controller < GEARBOY_MAX_GAMEPADS; controller++)
     {
         Uint16 now = input_filter_opposing_directions(controller, input_build_state(controller));
         input_apply_state(controller, all_keys, 0);
@@ -252,7 +253,7 @@ bool events_input_updated(void)
 
 static Uint16 input_build_state(int controller)
 {
-    if (controller < 0 || controller >= 1)
+    if (controller < 0 || controller >= GEARBOY_MAX_GAMEPADS)
         return 0;
 
     SDL_Keymod mods = SDL_GetModState();
@@ -262,22 +263,25 @@ static Uint16 input_build_state(int controller)
     const bool* keyboard_state = SDL_GetKeyboardState(NULL);
     Uint16 ret = 0;
 
-    if (keyboard_state[config_input.key_left])
-        ret |= Left_Key;
-    if (keyboard_state[config_input.key_right])
-        ret |= Right_Key;
-    if (keyboard_state[config_input.key_up])
-        ret |= Up_Key;
-    if (keyboard_state[config_input.key_down])
-        ret |= Down_Key;
-    if (keyboard_state[config_input.key_a])
-        ret |= A_Key;
-    if (keyboard_state[config_input.key_b])
-        ret |= B_Key;
-    if (keyboard_state[config_input.key_start])
-        ret |= Start_Key;
-    if (config_input.key_select != SDL_SCANCODE_UNKNOWN && keyboard_state[config_input.key_select])
-        ret |= Select_Key;
+    if (controller == 0)
+    {
+        if (keyboard_state[config_input.key_left])
+            ret |= Left_Key;
+        if (keyboard_state[config_input.key_right])
+            ret |= Right_Key;
+        if (keyboard_state[config_input.key_up])
+            ret |= Up_Key;
+        if (keyboard_state[config_input.key_down])
+            ret |= Down_Key;
+        if (keyboard_state[config_input.key_a])
+            ret |= A_Key;
+        if (keyboard_state[config_input.key_b])
+            ret |= B_Key;
+        if (keyboard_state[config_input.key_start])
+            ret |= Start_Key;
+        if (config_input.key_select != SDL_SCANCODE_UNKNOWN && keyboard_state[config_input.key_select])
+            ret |= Select_Key;
+    }
 
     SDL_Gamepad* sdl_controller = gamepad_controller[controller];
 
@@ -363,7 +367,6 @@ static Uint16 input_filter_opposing_directions(int controller, Uint16 state)
 
 static void input_apply_state(int controller, Uint16 before, Uint16 now)
 {
-    (void)controller;
     Uint16 pressed  = now & (Uint16)(~before);
     Uint16 released = before & (Uint16)(~now);
 
@@ -377,8 +380,8 @@ static void input_apply_state(int controller, Uint16 before, Uint16 now)
     for (unsigned i = 0; i < 8; i++)
     {
         Uint16 key = keys[i];
-        if (pressed & key)  emu_key_pressed((Gameboy_Keys)key);
-        if (released & key) emu_key_released((Gameboy_Keys)key);
+        if (pressed & key)  emu_key_pressed((Gameboy_Keys)key, controller);
+        if (released & key) emu_key_released((Gameboy_Keys)key, controller);
     }
 }
 
