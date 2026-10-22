@@ -209,7 +209,7 @@ void emu_load_rom_async(const char* file_path, bool force_dmg, Cartridge::Cartri
     if (loading_state.load() != Loading_State_None)
         return;
 
-    gui_debug_trace_logger_reset();
+    gui_debug_trace_logger_reset("media_change");
 
     emu_debug_command = Debug_Command_None;
     emu_debug_step_frames_pending = 0;
@@ -515,7 +515,7 @@ void emu_save_persistent_data(void)
 
 void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba, bool save_persistent_data)
 {
-    gui_debug_trace_logger_reset();
+    gui_debug_trace_logger_reset("reset");
     emu_debug_command = Debug_Command_None;
     emu_debug_step_frames_pending = 0;
     emu_debug_pc_changed = true;
@@ -629,7 +629,7 @@ void emu_load_ram(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
     if (!emu_is_empty())
     {
         emu_link_cable_stop();
-        gui_debug_trace_logger_reset();
+        gui_debug_trace_logger_reset("media_change");
         save_ram();
         gearboy->SetSGBEnabled(config_emulator.sgb);
         gearboy->SetSGBAllGames(config_emulator.sgb_all_games);

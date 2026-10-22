@@ -2901,6 +2901,12 @@ json DebugAdapter::MemoryFind(int area, const std::string& value, bool text, boo
 json DebugAdapter::GetTraceLog(s64 start, int count)
 {
     json result;
+    const char* stop_reason = gui_debug_trace_logger_get_stop_reason();
+    result["enabled"] = gui_debug_trace_logger_is_enabled();
+
+    if (IsValidPointer(stop_reason))
+        result["stopped_by"] = stop_reason;
+
 
     TraceLogger* tl = m_core->GetTraceLogger();
     if (!tl)

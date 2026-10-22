@@ -39,7 +39,7 @@ EXTERN void gui_debug_trace_logger_init(void);
 EXTERN void gui_debug_trace_logger_update(void);
 EXTERN void gui_debug_trace_logger_shutdown(void);
 EXTERN void gui_debug_trace_logger_clear(void);
-EXTERN void gui_debug_trace_logger_reset(void);
+EXTERN void gui_debug_trace_logger_reset(const char* reason);
 EXTERN void gui_debug_trace_logger_set_output_directory(const char* path);
 EXTERN int gui_debug_trace_logger_memory_size_index(const char* size);
 EXTERN int gui_debug_trace_logger_disk_size_index(const char* size);
@@ -50,6 +50,7 @@ EXTERN void gui_debug_trace_logger_set_event_filters(const u32* filters);
 EXTERN bool gui_debug_trace_logger_start(u32 flags);
 EXTERN bool gui_debug_trace_logger_stop(void);
 EXTERN bool gui_debug_trace_logger_is_enabled(void);
+EXTERN const char* gui_debug_trace_logger_get_stop_reason(void);
 EXTERN const char* gui_debug_trace_logger_get_output_path(void);
 EXTERN bool gui_debug_save_log(const char* file_path);
 
