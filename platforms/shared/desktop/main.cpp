@@ -19,6 +19,9 @@
 
 #include <SDL3/SDL_main.h>
 #include <stdlib.h>
+#if !defined(_WIN32)
+#include <signal.h>
+#endif
 #include "gearboy.h"
 #include "application.h"
 #include "application_headless.h"
@@ -30,6 +33,10 @@ extern bool g_mcp_router_enabled;
 
 int main(int argc, char* argv[])
 {
+#if !defined(_WIN32)
+    signal(SIGPIPE, SIG_IGN);
+#endif
+
     attach_parent_console(argc, argv);
 
     ApplicationParams app_params;
