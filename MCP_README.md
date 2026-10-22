@@ -79,6 +79,10 @@ The HTTP transport mode runs the emulator with an embedded web server on `127.0.
 
 Add `--headless` to run without a GUI window. This is useful for servers, CLI agents, or any machine without a display. All MCP tools work identically in headless mode. Headless mode requires `--mcp-stdio`, `--mcp-http`, or `--link-cable-join N`; link-only mode does not expose MCP tools.
 
+### Pause When Inactive
+
+While the MCP server is running, the emulator keeps running when its window loses focus, even with **Pause When Inactive** enabled in the **Emulator** menu. The setting keeps its value and applies again once the server stops.
+
 ### Concurrent Clients
 
 The HTTP server accepts repeated valid MCP initialization requests. All connected clients control the same Gearboy instance. Individual HTTP requests are serialized, but multi-request debugging workflows are not atomic. Concurrent agents can interfere with each other through pauses, resets, breakpoints, memory writes, media loads, and save states.
