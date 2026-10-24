@@ -370,7 +370,14 @@ void gui_action_load_state(const char* path)
         return;
     }
 
-    int slot = config_emulator.save_slot + 1;
+    gui_action_load_state_slot(config_emulator.save_slot + 1);
+}
+
+void gui_action_load_state_slot(int slot)
+{
+    if (emu_is_empty())
+        return;
+
     char message[64];
 
     if (emu_load_state_slot(slot))

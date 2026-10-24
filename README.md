@@ -149,6 +149,7 @@ Arguments:
 Options:
   -f, --fullscreen            Start in fullscreen mode
   -w, --windowed              Start in windowed mode with menu visible
+      --load-state SLOT       Load save state slot 1-5, or a state file, once the media is loaded
       --mcp-stdio             Auto-start MCP server with stdio transport
       --mcp-http              Auto-start MCP server with HTTP transport
       --mcp-router            Enable compact MCP tool routing

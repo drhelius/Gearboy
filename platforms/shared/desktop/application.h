@@ -34,6 +34,8 @@ struct ApplicationParams
 {
     const char* rom_file = NULL;
     const char* symbol_file = NULL;
+    const char* state_file = NULL;
+    int state_slot = 0;
     bool force_fullscreen = false;
     bool force_windowed = false;
     int mcp_mode = -1;

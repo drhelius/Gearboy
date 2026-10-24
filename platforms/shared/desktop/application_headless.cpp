@@ -104,6 +104,9 @@ int application_headless_init(const ApplicationParams& params)
         gui_debug_load_symbols_file(params.symbol_file);
     }
 
+    if ((params.state_slot > 0) || IsValidPointer(params.state_file))
+        gui_load_state_after_media(params.state_slot, params.state_file);
+
     if (params.mcp_mode >= 0)
     {
         const char* mcp_http_address = params.mcp_http_address.empty() ? "127.0.0.1" : params.mcp_http_address.c_str();
