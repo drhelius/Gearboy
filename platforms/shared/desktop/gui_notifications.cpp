@@ -38,10 +38,6 @@ struct Notification
     char tag[32];
     Uint64 start;
     Uint64 end;
-    float fit_width;
-    float fit_size;
-    char fit_message[512];
-    char fit_detail[512];
 };
 
 static const Uint64 k_notification_durations[4] = { 3000, 3000, 4000, 6000 };
@@ -64,8 +60,7 @@ static bool output_rendered = false;
 
 static int find_notification(const char* message, const char* detail, const char* tag);
 static void remove_notification(int index);
-static void copy_text(char* dest, const char* src, size_t dest_size);
-static void fit_text(char* dest, size_t dest_size, const char* text, ImFont* font, float font_size, float max_width, bool middle);
+static void copy_text(char* dest, const char* src, size_t dest_size, bool lines);
 static float ease(float t);
 static ImVec4 type_color(gui_NotificationType type);
 static void draw(ImDrawList* draw_list, const ImVec2& min, const ImVec2& max);
@@ -100,11 +95,10 @@ void gui_notify(gui_NotificationType type, const char* icon, const char* message
     Notification* notification = &notifications[index];
     notification->type = type;
     notification->end = now + ((milliseconds > 0) ? milliseconds : k_notification_durations[type]);
-    notification->fit_width = 0.0f;
-    copy_text(notification->icon, (icon != NULL) ? icon : k_notification_icons[type], sizeof(notification->icon));
-    copy_text(notification->message, message, sizeof(notification->message));
-    copy_text(notification->detail, (detail != NULL) ? detail : "", sizeof(notification->detail));
-    copy_text(notification->tag, (tag != NULL) ? tag : "", sizeof(notification->tag));
+    copy_text(notification->icon, (icon != NULL) ? icon : k_notification_icons[type], sizeof(notification->icon), false);
+    copy_text(notification->message, message, sizeof(notification->message), false);
+    copy_text(notification->detail, (detail != NULL) ? detail : "", sizeof(notification->detail), true);
+    copy_text(notification->tag, (tag != NULL) ? tag : "", sizeof(notification->tag), false);
 }
 
 void gui_notifications_render_output(const ImVec2& min, const ImVec2& max)
@@ -162,7 +156,7 @@ static void remove_notification(int index)
     notification_count--;
 }
 
-static void copy_text(char* dest, const char* src, size_t dest_size)
+static void copy_text(char* dest, const char* src, size_t dest_size, bool lines)
 {
     size_t length = strlen(src);
 
@@ -175,77 +169,9 @@ static void copy_text(char* dest, const char* src, size_t dest_size)
     }
 
     for (size_t i = 0; i < length; i++)
-        dest[i] = (src[i] == '\n' || src[i] == '\r' || src[i] == '\t') ? ' ' : src[i];
+        dest[i] = ((src[i] == '\n' && !lines) || src[i] == '\r' || src[i] == '\t') ? ' ' : src[i];
 
     dest[length] = 0;
-}
-
-static void fit_text(char* dest, size_t dest_size, const char* text, ImFont* font, float font_size, float max_width, bool middle)
-{
-    int length = (int)strlen(text);
-    int limit = (int)dest_size - 4;
-    int head = length;
-    int tail = 0;
-
-    if (middle)
-        head = (length > limit) ? (limit / 3) : (length / 2);
-    else if (length > limit)
-        head = limit;
-
-    while (head > 0 && (text[head] & 0xC0) == 0x80)
-        head--;
-
-    if (middle)
-        tail = (length > limit) ? (limit - head) : (length - head);
-
-    while (tail > 0 && (text[length - tail] & 0xC0) == 0x80)
-        tail--;
-
-    bool cut = (head + tail) < length;
-    float ellipsis_width = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, "...").x;
-    float head_width = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, text, text + head).x;
-    float tail_width = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, text + length - tail, text + length).x;
-
-    while (head + tail > 0)
-    {
-        if (head_width + tail_width + (cut ? ellipsis_width : 0.0f) <= max_width)
-            break;
-
-        cut = true;
-
-        if (!middle || (head > tail / 2))
-        {
-            int end = head;
-            head--;
-
-            while (head > 0 && (text[head] & 0xC0) == 0x80)
-                head--;
-
-            head_width -= font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, text + head, text + end).x;
-        }
-        else
-        {
-            int start = length - tail;
-            tail--;
-
-            while (tail > 0 && (text[length - tail] & 0xC0) == 0x80)
-                tail--;
-
-            tail_width -= font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, text + start, text + length - tail).x;
-        }
-    }
-
-    int pos = head;
-    memcpy(dest, text, head);
-
-    if (cut)
-    {
-        memcpy(dest + pos, "...", 3);
-        pos += 3;
-    }
-
-    memcpy(dest + pos, text + length - tail, tail);
-    dest[pos + tail] = 0;
 }
 
 static float ease(float t)
@@ -302,25 +228,16 @@ static void draw(ImDrawList* draw_list, const ImVec2& min, const ImVec2& max)
     {
         Notification* notification = &notifications[i];
         bool has_detail = notification->detail[0] != 0;
-
-        if (notification->fit_width != text_width || notification->fit_size != font_size)
-        {
-            fit_text(notification->fit_message, sizeof(notification->fit_message), notification->message, font,
-                font_size, text_width, false);
-            fit_text(notification->fit_detail, sizeof(notification->fit_detail), notification->detail, font,
-                detail_size, text_width, true);
-            notification->fit_width = text_width;
-            notification->fit_size = font_size;
-        }
-
-        float content_width = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, notification->fit_message).x;
-        float height = (k_notification_padding.y * 2.0f) + font_size;
+        ImVec2 message_size = font->CalcTextSizeA(font_size, FLT_MAX, text_width, notification->message);
+        ImVec2 detail_text_size = ImVec2(0.0f, 0.0f);
+        float content_width = message_size.x;
+        float height = (k_notification_padding.y * 2.0f) + message_size.y;
 
         if (has_detail)
         {
-            float detail_width = font->CalcTextSizeA(detail_size, FLT_MAX, 0.0f, notification->fit_detail).x;
-            content_width = fmaxf(content_width, detail_width);
-            height += k_notification_detail_spacing + detail_size;
+            detail_text_size = font->CalcTextSizeA(detail_size, FLT_MAX, text_width, notification->detail);
+            content_width = fmaxf(content_width, detail_text_size.x);
+            height += k_notification_detail_spacing + detail_text_size.y;
         }
 
         float width = (k_notification_padding.x * 2.0f) + icon_width + k_notification_icon_spacing + content_width;
@@ -360,12 +277,12 @@ static void draw(ImDrawList* draw_list, const ImVec2& min, const ImVec2& max)
         draw_list->AddText(font, font_size, ImVec2(box_min.x + k_notification_padding.x, icon_y),
             ImGui::ColorConvertFloat4ToU32(color), notification->icon);
         draw_list->AddText(font, font_size, ImVec2(text_x, text_y), ImGui::ColorConvertFloat4ToU32(message_color),
-            notification->fit_message);
+            notification->message, NULL, text_width);
 
         if (has_detail)
         {
-            draw_list->AddText(font, detail_size, ImVec2(text_x, text_y + font_size + k_notification_detail_spacing),
-                ImGui::ColorConvertFloat4ToU32(detail_color), notification->fit_detail);
+            draw_list->AddText(font, detail_size, ImVec2(text_x, text_y + message_size.y + k_notification_detail_spacing),
+                ImGui::ColorConvertFloat4ToU32(detail_color), notification->detail, NULL, text_width);
         }
     }
 
