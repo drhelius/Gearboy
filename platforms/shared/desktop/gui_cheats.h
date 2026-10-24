@@ -26,10 +26,25 @@
     #define EXTERN extern
 #endif
 
+#define GUI_CHEATS_MAX 50
+
+struct gui_CheatEntry
+{
+    bool enabled;
+    char code[128];
+    char description[128];
+};
+
 EXTERN void gui_cheats_init(void);
 EXTERN void gui_cheats_show(void);
 EXTERN void gui_cheats_window(void);
 EXTERN void gui_cheats_clear(void);
+EXTERN int gui_cheats_add(const char* code, const char* description);
+EXTERN bool gui_cheats_remove(int index);
+EXTERN int gui_cheats_get_count(void);
+EXTERN const gui_CheatEntry* gui_cheats_get(int index);
+EXTERN bool gui_cheats_is_valid(const char* code);
+EXTERN bool gui_cheats_import(const char* path, int* imported, int* skipped);
 
 #undef GUI_CHEATS_IMPORT
 #undef EXTERN

@@ -1562,6 +1562,45 @@ size_t retro_get_memory_size(unsigned id)
     return 0;
 }
 
+static void set_cheat(GearboyCore* target, const std::string& code)
+{
+    std::vector<std::string> parts;
+    size_t begin = 0;
+
+    while (true)
+    {
+        size_t plus = code.find('+', begin);
+
+        if (plus == std::string::npos)
+        {
+            parts.push_back(code.substr(begin));
+            break;
+        }
+
+        parts.push_back(code.substr(begin, plus - begin));
+        begin = plus + 1;
+    }
+
+    bool split = parts.size() > 1;
+
+    for (size_t i = 0; i < parts.size(); i++)
+    {
+        size_t length = parts[i].length();
+
+        if ((length != 7) && (length != 8) && (length != 11))
+            split = false;
+    }
+
+    if (!split)
+    {
+        target->SetCheat(code.c_str());
+        return;
+    }
+
+    for (size_t i = 0; i < parts.size(); i++)
+        target->SetCheat(parts[i].c_str());
+}
+
 static void apply_cheats(void)
 {
     for (unsigned i = 0; i < instance_count; i++)
@@ -1571,7 +1610,7 @@ static void apply_cheats(void)
         for (size_t j = 0; j < libretro_cheats.size(); j++)
         {
             if (!libretro_cheats[j].empty())
-                instances[i].core->SetCheat(libretro_cheats[j].c_str());
+                set_cheat(instances[i].core, libretro_cheats[j]);
         }
     }
 }

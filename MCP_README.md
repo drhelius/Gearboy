@@ -433,6 +433,11 @@ The server exposes tools organized in the following categories:
 - `get_rewind_status` - Get rewind buffer status (enabled, snapshots, capacity, buffered seconds)
 - `rewind_seek` - Seek to a specific rewind snapshot while paused
 
+### Cheats
+- `list_cheats` - List cheats with index, code, description, enabled and valid state
+- `add_cheat` - Add an enabled Game Genie (`XXX-XXX[-XXX]`) or GameShark (`01VVLLHH`, e.g. `010FA1C6`) cheat, join codes with `+`
+- `remove_cheat` - Remove a cheat by index
+
 ### Controller Input
 - `controller_button` - Control a button on the Game Boy. Use action 'press' to hold the button, 'release' to let it go, or 'press_and_release' to simulate a quick tap. Buttons: up, down, left, right, a, b, start, select
 - `controller_macro` - Run an ordered input macro. Top-level `player` defaults to 1, and each command may override it. Supported commands are `tap`, `press`, `release`, and `wait`; timing is explicit through `wait` frame counts

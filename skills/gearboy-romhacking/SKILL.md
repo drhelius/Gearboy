@@ -203,7 +203,7 @@ To find text strings for translation or modification:
 2. Set a write breakpoint: set_breakpoint (type: write) on the address
 3. debug_continue → when it hits, get_disassembly to see the decrement code
 4. Note the instruction (e.g., DEC [HL] or LD [addr], A)
-5. Option A: Periodically write_memory to reset the value (simple poke cheat)
+5. Option A: add_cheat with a GameShark RAM code (e.g. 0109A1C6 writes 09 to C6A1)
 6. Option B: Identify the decrement routine for a NOP patch
 ```
 
@@ -213,6 +213,8 @@ Gearboy has built-in Game Genie and GameShark cheat support. Use the memory sear
 
 - **Game Genie** (ROM patches): format encodes a ROM address and replacement value
 - **GameShark** (RAM patches): format encodes a RAM address and value to continuously write
+
+Use `add_cheat`, `remove_cheat` and `list_cheats` to apply and test codes; they appear in the emulator's Cheats window.
 
 ### Watching Values in Real-Time
 

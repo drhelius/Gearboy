@@ -178,6 +178,11 @@ public:
     json SetProfiler(const std::string& action);
     json GetProfilerData(const std::string& sort, int count, const std::string& filter);
 
+    // Cheats
+    json ListCheats();
+    json AddCheat(const std::string& code, const std::string& description);
+    json RemoveCheat(int index);
+
 private:
     GearboyCore* m_core;
 

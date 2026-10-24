@@ -214,6 +214,7 @@ static const McpToolCategory kMcpToolCategories[] =
     {"input", "Input", "Inspect, press, release, tap, or macro Game Boy input."},
     {"trace", "Trace", "Read trace entries and configure CPU, IRQ, LCD, input, timer, APU, serial, and mapper tracing."},
     {"profiler", "Profiler", "Start, stop, or reset the function profiler and read per-function call counts and cycle statistics."},
+    {"cheats", "Cheats", "List, add, and remove Game Genie and GameShark cheat codes."},
     {"tools", "Other Tools", "Additional emulator/debugger tools that do not fit another category."}
 };
 
@@ -311,6 +312,11 @@ static const char* const kMcpProfilerTools[] =
     "set_profiler", "get_profiler_data"
 };
 
+static const char* const kMcpCheatTools[] =
+{
+    "list_cheats", "add_cheat", "remove_cheat"
+};
+
 static const McpToolCategoryTools kMcpToolCategoryTools[] =
 {
     {"execution", kMcpExecutionTools, MCP_ARRAY_COUNT(kMcpExecutionTools)},
@@ -329,7 +335,8 @@ static const McpToolCategoryTools kMcpToolCategoryTools[] =
     {"rewind", kMcpRewindTools, MCP_ARRAY_COUNT(kMcpRewindTools)},
     {"input", kMcpInputTools, MCP_ARRAY_COUNT(kMcpInputTools)},
     {"trace", kMcpTraceTools, MCP_ARRAY_COUNT(kMcpTraceTools)},
-    {"profiler", kMcpProfilerTools, MCP_ARRAY_COUNT(kMcpProfilerTools)}
+    {"profiler", kMcpProfilerTools, MCP_ARRAY_COUNT(kMcpProfilerTools)},
+    {"cheats", kMcpCheatTools, MCP_ARRAY_COUNT(kMcpCheatTools)}
 };
 
 const size_t kMcpSearchToolLimit = 20;

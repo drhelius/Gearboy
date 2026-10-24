@@ -1792,6 +1792,56 @@ json McpServer::BuildToolList()
         }}
     });
 
+    tools.push_back({
+        {"name", "list_cheats"},
+        {"title", "List Cheats"},
+        {"description", "List cheats: index, code, description, enabled, valid."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", json::object()}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "add_cheat"},
+        {"title", "Add Cheat"},
+        {"description", "Add enabled cheat: Game Genie XXX-XXX[-XXX] or GameShark 01VVLLHH; join codes with +."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"code", {
+                    {"type", "string"},
+                    {"description", "Cheat code, e.g. 010FA1C6 (write 0F to C6A1)."}
+                }},
+                {"description", {
+                    {"type", "string"},
+                    {"description", "Cheat description; optional."}
+                }}
+            }},
+            {"required", json::array({"code"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "remove_cheat"},
+        {"title", "Remove Cheat"},
+        {"description", "Remove cheat by index from list_cheats."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"index", {
+                    {"type", "integer"},
+                    {"description", "0-based cheat index from list_cheats."},
+                    {"minimum", 0}
+                }}
+            }},
+            {"required", json::array({"index"})}
+        }}
+    });
+
     for (json::iterator it = tools.begin(); it != tools.end(); ++it)
     {
         if (it->contains("inputSchema") && (*it)["inputSchema"].is_object() &&
@@ -2947,6 +2997,21 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         int count = arguments.value("count", 50);
         std::string filter = arguments.value("filter", "");
         return m_debugAdapter.GetProfilerData(sort, count, filter);
+    }
+    else if (normalizedTool == "list_cheats")
+    {
+        return m_debugAdapter.ListCheats();
+    }
+    else if (normalizedTool == "add_cheat")
+    {
+        std::string code = arguments["code"];
+        std::string description = arguments.value("description", "");
+        return m_debugAdapter.AddCheat(code, description);
+    }
+    else if (normalizedTool == "remove_cheat")
+    {
+        int index = arguments["index"];
+        return m_debugAdapter.RemoveCheat(index);
     }
     else
     {

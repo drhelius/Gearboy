@@ -24,6 +24,7 @@
 #include "../emu.h"
 #include "../gui.h"
 #include "../gui_actions.h"
+#include "../gui_cheats.h"
 #include "../gui_debug_disassembler.h"
 #include "../gui_debug_memory.h"
 #include "../gui_debug_memeditor.h"
@@ -3369,6 +3370,80 @@ json DebugAdapter::GetProfilerData(const std::string& sort, int count, const std
     result["sort"] = sort;
     result["count"] = functions_array.size();
     result["functions"] = functions_array;
+
+    return result;
+}
+
+static json cheat_to_json(int index, const gui_CheatEntry* entry)
+{
+    json cheat;
+    cheat["index"] = index;
+    cheat["code"] = entry->code;
+    cheat["description"] = entry->description;
+    cheat["enabled"] = entry->enabled;
+    cheat["valid"] = gui_cheats_is_valid(entry->code);
+    return cheat;
+}
+
+json DebugAdapter::ListCheats()
+{
+    json result;
+    json cheats = json::array();
+    int count = gui_cheats_get_count();
+
+    for (int i = 0; i < count; i++)
+        cheats.push_back(cheat_to_json(i, gui_cheats_get(i)));
+
+    result["count"] = count;
+    result["max"] = GUI_CHEATS_MAX;
+    result["cheats"] = cheats;
+
+    return result;
+}
+
+json DebugAdapter::AddCheat(const std::string& code, const std::string& description)
+{
+    json result;
+    gui_CheatEntry entry;
+
+    if (!m_core || emu_is_rom_loading() || !m_core->GetCartridge()->IsLoadedROM())
+    {
+        result["error"] = "No media loaded";
+        return result;
+    }
+
+    if ((code.length() >= sizeof(entry.code)) || !gui_cheats_is_valid(code.c_str()))
+    {
+        result["error"] = "Invalid cheat code. Use XXX-XXX, XXX-XXX-XXX, or XXXXXXXX, join codes with +";
+        return result;
+    }
+
+    int index = gui_cheats_add(code.c_str(), description.c_str());
+
+    if (index < 0)
+    {
+        result["error"] = "Maximum number of cheats reached";
+        return result;
+    }
+
+    result = cheat_to_json(index, gui_cheats_get(index));
+    result["success"] = true;
+
+    return result;
+}
+
+json DebugAdapter::RemoveCheat(int index)
+{
+    json result;
+
+    if (!gui_cheats_remove(index))
+    {
+        result["error"] = "Invalid cheat index";
+        return result;
+    }
+
+    result["success"] = true;
+    result["count"] = gui_cheats_get_count();
 
     return result;
 }

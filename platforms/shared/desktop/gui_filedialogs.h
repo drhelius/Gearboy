@@ -55,6 +55,7 @@ EXTERN void gui_file_dialog_choose_saves_path(void);
 EXTERN void gui_file_dialog_load_dmg_bootrom(void);
 EXTERN void gui_file_dialog_load_gbc_bootrom(void);
 EXTERN void gui_file_dialog_load_sgb_bios(void);
+EXTERN void gui_file_dialog_import_cheats(void);
 EXTERN void gui_file_dialog_process_results(void);
 EXTERN bool gui_file_dialog_is_active(void);
 
