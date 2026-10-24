@@ -47,16 +47,13 @@ Alternatively, download from [GitHub Releases](https://github.com/drhelius/Gearb
 
 ### Connecting as MCP Server
 
-Configure your AI client to run Gearboy as an MCP server via STDIO transport. Example for Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-```json
-{
-  "mcpServers": {
-    "gearboy": {
-      "command": "/path/to/gearboy",
-      "args": ["--mcp-stdio"]
-    }
-  }
-}
+Configure your AI client to run Gearboy as an MCP server via STDIO transport. For Claude Code:
+```bash
+claude mcp add --transport stdio --scope user gearboy -- /path/to/gearboy --mcp-stdio
+```
+For Codex:
+```bash
+codex mcp add gearboy -- /path/to/gearboy --mcp-stdio
 ```
 Replace `/path/to/gearboy` with the actual binary path from the install script. Add `--headless` before `--mcp-stdio` on headless machines.
 

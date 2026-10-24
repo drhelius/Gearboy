@@ -4,9 +4,9 @@
 
 ## Prerequisites
 
-All skills require the **Gearboy emulator** running as an MCP server. The emulator must be configured in your AI client (VS Code, Claude Desktop, Claude Code, etc.) so the agent can access the MCP tools.
+All skills require the **Gearboy emulator** running as an MCP server. The emulator must be configured in your AI client (Claude Code, Codex, etc.) so the agent can access the MCP tools.
 
-See [MCP_README.md](../MCP_README.md) for complete setup instructions (STDIO, HTTP, VS Code, Claude Desktop, Claude Code).
+See [MCP_README.md](../MCP_README.md) for complete setup instructions (STDIO, HTTP, Claude Code, Codex).
 
 ## Installation
 
