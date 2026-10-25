@@ -31,6 +31,8 @@
 #define DISPLAY_IMPORT
 #include "display.h"
 
+static const double k_display_max_rate_skew = 0.01;
+
 static Uint64 frame_time_start = 0;
 static Uint64 frame_time_end = 0;
 static double monitor_refresh_rate = 60.0;
@@ -46,8 +48,10 @@ static int swap_divider_frames = 0;
 static Uint64 swap_divider_start = 0;
 
 static bool display_is_vrr_enabled(void);
+static bool display_is_window_focused(void);
 static bool display_fixed_vsync_supported(void);
 static double display_get_pacing_frame_rate(void);
+static bool display_is_near_content_rate(double frame_rate);
 static int display_get_swap_divider(void);
 static void display_check_swap_divider(void);
 static void display_disable_swap_divider(int interval);
@@ -162,6 +166,9 @@ void display_use_vsync_if_enabled(void)
         !emu_link_cable_is_cable_connected();
 
     if (config_video.sync_mode == config_VideoSync_Fixed && !display_fixed_vsync_supported())
+        effective = false;
+
+    if (!display_is_window_focused())
         effective = false;
 
     display_set_swap_interval(effective);
@@ -279,6 +286,21 @@ bool display_is_vsync_pacing(void)
     return config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state >= 1 && !config_emulator.ffwd;
 }
 
+float display_get_audio_ratio(void)
+{
+    if (!display_is_vsync_pacing())
+        return 1.0f;
+
+    double presented_frame_rate = display_get_pacing_frame_rate();
+
+    if (last_vsync_state > 1)
+        presented_frame_rate = monitor_refresh_rate / last_vsync_state;
+    else if (content_frame_rate + 0.000001 >= monitor_refresh_rate)
+        presented_frame_rate = monitor_refresh_rate;
+
+    return (float)(presented_frame_rate / content_frame_rate);
+}
+
 void display_request_gl_context_recreate(void)
 {
     pending_gl_context_recreate = true;
@@ -314,9 +336,14 @@ static bool display_is_vrr_enabled(void)
 #endif
 }
 
+static bool display_is_window_focused(void)
+{
+    return (SDL_GetWindowFlags(application_sdl_window) & SDL_WINDOW_INPUT_FOCUS) != 0;
+}
+
 static bool display_fixed_vsync_supported(void)
 {
-    bool supported = monitor_refresh_rate + 0.1 >= content_frame_rate;
+    bool supported = monitor_refresh_rate * (1.0 + k_display_max_rate_skew) >= content_frame_rate;
 
     if (!supported && !fixed_vsync_fallback_logged)
     {
@@ -338,13 +365,19 @@ static double display_get_pacing_frame_rate(void)
     {
         double divided_frame_rate = monitor_refresh_rate / interval;
 
-        if ((divided_frame_rate > content_frame_rate - 0.5) && (divided_frame_rate < content_frame_rate + 0.5))
+        if (display_is_near_content_rate(divided_frame_rate))
         {
             return divided_frame_rate;
         }
     }
 
     return content_frame_rate;
+}
+
+static bool display_is_near_content_rate(double frame_rate)
+{
+    double skew = content_frame_rate * k_display_max_rate_skew;
+    return (frame_rate > content_frame_rate - skew) && (frame_rate < content_frame_rate + skew);
 }
 
 static int display_get_swap_divider(void)
@@ -357,9 +390,7 @@ static int display_get_swap_divider(void)
     if (interval < 2)
         return 1;
 
-    double divided_frame_rate = monitor_refresh_rate / interval;
-
-    if ((divided_frame_rate > content_frame_rate - 0.5) && (divided_frame_rate < content_frame_rate + 0.5))
+    if (display_is_near_content_rate(monitor_refresh_rate / interval))
         return interval;
 
     return 1;

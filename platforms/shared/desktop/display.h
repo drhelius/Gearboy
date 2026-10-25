@@ -43,6 +43,7 @@ EXTERN void display_request_gl_context_recreate(void);
 EXTERN void display_check_mixed_refresh_rates(void);
 EXTERN bool display_is_vsync_forced_off(void);
 EXTERN bool display_is_vsync_pacing(void);
+EXTERN float display_get_audio_ratio(void);
 
 #undef DISPLAY_IMPORT
 #undef EXTERN

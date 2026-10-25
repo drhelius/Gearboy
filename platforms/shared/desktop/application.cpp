@@ -650,6 +650,7 @@ static void run_emulator(void)
     config_emulator.paused = emu_is_paused();
     emu_audio_sync = config_audio.sync;
     emu_audio_rate_control = display_is_vsync_pacing();
+    emu_audio_ratio = display_get_audio_ratio();
     emu_update();
 
     events_reset_input();

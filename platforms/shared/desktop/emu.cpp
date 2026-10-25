@@ -124,6 +124,7 @@ bool emu_init(void)
         audio_buffer[i] = 0;
     emu_audio_sync = true;
     emu_audio_rate_control = false;
+    emu_audio_ratio = 1.0f;
     emu_debug_disable_breakpoints = false;
     emu_debug_irq_breakpoints = false;
     emu_debug_step_frames_pending = 0;
@@ -412,7 +413,7 @@ void emu_update(void)
     if ((sampleCount > 0) && !gearboy->IsPaused())
     {
         bool sync_audio = emu_audio_sync && (!emu_link_cable_is_active() || link_cable_manager->IsPacingPeer());
-        sound_queue_write(audio_buffer, sampleCount, sync_audio, emu_audio_rate_control);
+        sound_queue_write(audio_buffer, sampleCount, sync_audio, emu_audio_rate_control, emu_audio_ratio);
     }
     else if (gearboy->IsPaused())
     {
