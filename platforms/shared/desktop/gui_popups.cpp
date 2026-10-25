@@ -41,6 +41,11 @@
 
 static char build_info[4096] = "";
 static int info_pos = 0;
+static u64 fps_frames = 0;
+static u64 fps_window_frames = 0;
+static Uint64 fps_window_start = 0;
+static Uint64 fps_last_frame = 0;
+static float fps_value = 0.0f;
 
 static void add_build_info(const char* fmt, ...);
 static void check_hotkey_duplicates_popup(config_Hotkey* current_hotkey);
@@ -498,7 +503,32 @@ void gui_show_fps(const ImVec2& min, const ImVec2& max)
     const float unit_spacing = 3.0f;
     const float group_spacing = 9.0f;
 
-    float framerate = ImGui::GetIO().Framerate;
+    Uint64 now = SDL_GetPerformanceCounter();
+    double frequency = (double)SDL_GetPerformanceFrequency();
+
+    if (emu_frame_counter != fps_frames)
+    {
+        if ((fps_window_start == 0) || (emu_frame_counter < fps_frames) ||
+            (((double)(now - fps_last_frame) / frequency) > 1.0))
+        {
+            fps_window_start = now;
+            fps_window_frames = emu_frame_counter;
+        }
+        else if (((double)(now - fps_window_start) / frequency) >= 0.5)
+        {
+            double frames = (double)(emu_frame_counter - fps_window_frames);
+            fps_value = (float)((frames * frequency) / (double)(now - fps_window_start));
+            fps_window_start = now;
+            fps_window_frames = emu_frame_counter;
+        }
+
+        fps_frames = emu_frame_counter;
+        fps_last_frame = now;
+    }
+    else if (((double)(now - fps_last_frame) / frequency) > 1.0)
+        fps_value = 0.0f;
+
+    float framerate = fps_value;
     char values[2][16];
     const char* units[2] = { "FPS", "ms" };
     snprintf(values[0], sizeof(values[0]), "%.2f", framerate);
