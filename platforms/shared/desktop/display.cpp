@@ -41,6 +41,7 @@ static Uint64 frame_time_end = 0;
 static double monitor_refresh_rate = 60.0;
 static double content_frame_rate = 60.0;
 static double vsync_frame_accumulator = 0.0;
+static bool emu_frame_skipped = false;
 static int last_vsync_state = -1;
 static bool multi_monitor_mixed_refresh = false;
 static bool last_link_cable_connected = false;
@@ -81,7 +82,7 @@ void display_render(void)
     ogl_renderer_begin_render();
     ImGui_ImplSDL3_NewFrame();
     gui_render();
-    ogl_renderer_render();
+    ogl_renderer_render(!emu_frame_skipped);
     ogl_renderer_end_render();
 
     Uint64 swap_start = SDL_GetPerformanceCounter();
@@ -129,6 +130,8 @@ void display_frame_throttle(void)
 
 bool display_should_run_emu_frame(void)
 {
+    emu_frame_skipped = false;
+
     if (display_is_vrr_enabled())
         return true;
 
@@ -159,6 +162,7 @@ bool display_should_run_emu_frame(void)
             return true;
         }
 
+        emu_frame_skipped = true;
         return false;
     }
 
