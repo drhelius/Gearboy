@@ -44,6 +44,7 @@ EXTERN void display_check_mixed_refresh_rates(void);
 EXTERN bool display_is_vsync_forced_off(void);
 EXTERN bool display_is_vsync_pacing(void);
 EXTERN float display_get_audio_ratio(void);
+EXTERN bool display_should_run_catch_up_frame(void);
 
 #undef DISPLAY_IMPORT
 #undef EXTERN

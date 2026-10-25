@@ -34,6 +34,7 @@
 
 static const double k_display_max_rate_skew = 0.01;
 static const double k_display_min_divided_rate = 45.0;
+static const double k_display_catch_up_decay = 4.0;
 
 static Uint64 frame_time_start = 0;
 static Uint64 frame_time_end = 0;
@@ -49,6 +50,11 @@ static bool swap_divider_unsupported = false;
 static int swap_divider_frames = 0;
 static Uint64 swap_divider_start = 0;
 static int swap_divider_sync_waits = 0;
+static Uint64 catch_up_last_swap = 0;
+static int catch_up_interval = 0;
+static double catch_up_debt = 0.0;
+static double catch_up_work = 0.0;
+static bool catch_up_ready = false;
 
 static bool display_is_vrr_enabled(void);
 static bool display_is_window_focused(void);
@@ -58,6 +64,9 @@ static bool display_is_near_content_rate(double frame_rate);
 static int display_get_swap_divider(void);
 static void display_check_swap_divider(void);
 static void display_disable_swap_divider(int interval);
+static double display_get_presented_frame_rate(void);
+static bool display_can_catch_up(void);
+static void display_update_catch_up(Uint64 swap_start);
 static bool display_update_content_frame_rate(void);
 static void display_reset_vsync_accumulator(void);
 static void display_set_swap_interval(bool enabled);
@@ -75,7 +84,9 @@ void display_render(void)
     ogl_renderer_render();
     ogl_renderer_end_render();
 
+    Uint64 swap_start = SDL_GetPerformanceCounter();
     SDL_GL_SwapWindow(application_sdl_window);
+    display_update_catch_up(swap_start);
 }
 
 void display_frame_throttle(void)
@@ -294,14 +305,17 @@ float display_get_audio_ratio(void)
     if (!display_is_vsync_pacing())
         return 1.0f;
 
-    double presented_frame_rate = display_get_pacing_frame_rate();
+    return (float)(display_get_presented_frame_rate() / content_frame_rate);
+}
 
-    if (last_vsync_state > 1)
-        presented_frame_rate = monitor_refresh_rate / last_vsync_state;
-    else if (content_frame_rate + 0.000001 >= monitor_refresh_rate)
-        presented_frame_rate = monitor_refresh_rate;
+bool display_should_run_catch_up_frame(void)
+{
+    if (!catch_up_ready || !display_can_catch_up())
+        return false;
 
-    return (float)(presented_frame_rate / content_frame_rate);
+    catch_up_ready = false;
+    catch_up_debt -= 1.0 / content_frame_rate;
+    return true;
 }
 
 void display_request_gl_context_recreate(void)
@@ -427,6 +441,65 @@ static void display_disable_swap_divider(int interval)
     Log("Swap interval %d is not supported, pacing with swap interval 1", interval);
     swap_divider_unsupported = true;
     display_set_swap_interval(true);
+}
+
+static double display_get_presented_frame_rate(void)
+{
+    if (last_vsync_state > 1)
+        return monitor_refresh_rate / last_vsync_state;
+
+    if (content_frame_rate + 0.000001 >= monitor_refresh_rate)
+        return monitor_refresh_rate;
+
+    return display_get_pacing_frame_rate();
+}
+
+static bool display_can_catch_up(void)
+{
+    return display_is_vsync_pacing() && !emu_is_empty() && !emu_is_paused() && !emu_is_debug_idle() &&
+        emu_is_audio_open() && !rewind_is_active();
+}
+
+static void display_update_catch_up(Uint64 swap_start)
+{
+    Uint64 now = SDL_GetPerformanceCounter();
+    Uint64 last_swap = catch_up_last_swap;
+    int interval = display_can_catch_up() ? last_vsync_state : 0;
+    bool measure = (last_swap != 0) && (interval > 0) && (interval == catch_up_interval);
+    double frequency = (double)SDL_GetPerformanceFrequency();
+    double work = (double)(swap_start - frame_time_start) / frequency;
+
+    catch_up_last_swap = now;
+    catch_up_interval = interval;
+    catch_up_ready = false;
+    catch_up_work += (work - catch_up_work) * 0.1;
+
+    if (!measure)
+    {
+        catch_up_debt = 0.0;
+        return;
+    }
+
+    double slot = interval / monitor_refresh_rate;
+    double frame = 1.0 / content_frame_rate;
+    double gap = (double)(now - last_swap) / frequency;
+    double decay = gap / k_display_catch_up_decay;
+    double debt = catch_up_debt + (gap - slot);
+
+    if (decay > 1.0)
+        decay = 1.0;
+
+    debt -= debt * decay;
+
+    if (debt < -2.0 * frame)
+        debt = -2.0 * frame;
+    else if (debt > 2.0 * frame)
+        debt = 2.0 * frame;
+
+    bool busy = (work > 0.5 * slot) || (catch_up_work > 0.35 * slot);
+
+    catch_up_ready = (catch_up_debt >= 0.5 * frame) && (debt >= 0.5 * frame) && !busy;
+    catch_up_debt = debt;
 }
 
 static bool display_update_content_frame_rate(void)
