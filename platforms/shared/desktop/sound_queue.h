@@ -38,6 +38,7 @@ EXTERN void sound_queue_flush(void);
 EXTERN void sound_queue_write(s16* samples, int count, bool sync, bool rate_control = false, float base_ratio = 1.0f);
 EXTERN float sound_queue_get_target_latency_ms(void);
 EXTERN bool sound_queue_is_open(void);
+EXTERN int sound_queue_get_sync_wait_count(void);
 
 #undef SOUND_QUEUE_IMPORT
 #undef EXTERN

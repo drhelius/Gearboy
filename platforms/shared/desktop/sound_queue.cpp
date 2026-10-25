@@ -31,6 +31,7 @@ static bool sound_queue_playing;
 static int sound_queue_max_queued_bytes;
 static int sound_queue_bytes_per_second;
 static float sound_queue_ratio;
+static int sound_queue_sync_wait_count;
 
 static const float k_sound_queue_max_ratio_delta = 0.005f;
 
@@ -42,6 +43,7 @@ void sound_queue_init(void)
     InitPointer(sound_queue_stream);
     sound_queue_sound_open = false;
     sound_queue_playing = false;
+    sound_queue_sync_wait_count = 0;
 
     SDL_SetHintWithPriority(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "512", SDL_HINT_DEFAULT);
 
@@ -169,6 +171,11 @@ bool sound_queue_is_open(void)
     return sound_queue_sound_open;
 }
 
+int sound_queue_get_sync_wait_count(void)
+{
+    return sound_queue_sync_wait_count;
+}
+
 void sound_queue_write(s16* samples, int count, bool sync, bool rate_control, float base_ratio)
 {
     if (!sound_queue_sound_open || !sound_queue_stream)
@@ -200,7 +207,10 @@ void sound_queue_write(s16* samples, int count, bool sync, bool rate_control, fl
             int needed = bytes - room;
             int wait_ms = (needed * 1000) / sound_queue_bytes_per_second;
             if (wait_ms >= 1)
+            {
+                sound_queue_sync_wait_count++;
                 SDL_Delay(wait_ms);
+            }
         }
     }
     else if (sound_queue_playing)

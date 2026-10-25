@@ -27,6 +27,7 @@
 #include "emu.h"
 #include "application.h"
 #include "rewind.h"
+#include "sound_queue.h"
 
 #define DISPLAY_IMPORT
 #include "display.h"
@@ -46,6 +47,7 @@ static bool pending_gl_context_recreate = false;
 static bool swap_divider_unsupported = false;
 static int swap_divider_frames = 0;
 static Uint64 swap_divider_start = 0;
+static int swap_divider_sync_waits = 0;
 
 static bool display_is_vrr_enabled(void);
 static bool display_is_window_focused(void);
@@ -399,18 +401,23 @@ static int display_get_swap_divider(void)
 static void display_check_swap_divider(void)
 {
     Uint64 now = SDL_GetPerformanceCounter();
+    int sync_waits = sound_queue_get_sync_wait_count();
 
     if (swap_divider_frames == 0)
+    {
         swap_divider_start = now;
+        swap_divider_sync_waits = sync_waits;
+    }
 
     if (++swap_divider_frames <= 120)
         return;
 
+    int frames = swap_divider_frames - 1;
     double elapsed = (double)(now - swap_divider_start) / (double)SDL_GetPerformanceFrequency();
-    double expected = ((swap_divider_frames - 1) * last_vsync_state) / monitor_refresh_rate;
+    double expected = (frames * last_vsync_state) / monitor_refresh_rate;
     swap_divider_frames = 0;
 
-    if (elapsed < expected * 0.75)
+    if ((elapsed < expected * 0.75) || ((sync_waits - swap_divider_sync_waits) > (frames / 2)))
         display_disable_swap_divider(last_vsync_state);
 }
 
