@@ -23,6 +23,7 @@
 #include "definitions.h"
 #include "Cartridge.h"
 #include "BarcodeBoy.h"
+#include "PS2Keyboard.h"
 #include "link_cable.h"
 #include "Memory.h"
 #include "Processor.h"
@@ -151,6 +152,9 @@ public:
     bool IsBarcodeBoyEnabled() const;
     GB_BarcodeBoyStatus GetBarcodeBoyStatus() const;
     GB_BarcodeBoyResult ScanBarcode(const char* barcode);
+    void SetPS2KeyboardEnabled(bool enabled);
+    bool IsPS2KeyboardEnabled() const;
+    bool QueuePS2KeyboardScanCode(u8 scan_code);
 
 private:
     void RenderDMGFrame(u16* pFrameBuffer) const;
@@ -225,7 +229,9 @@ private:
     u64 m_master_clock_cycles;
     u64 m_link_cable_cycles;
     BarcodeBoy* m_pBarcodeBoy;
+    PS2Keyboard* m_pPS2Keyboard;
     GB_BarcodeBoyMode m_BarcodeBoyMode;
+    bool m_bPS2KeyboardEnabled;
     GB_LinkCableCallbacks m_LinkCableCallbacks;
 };
 

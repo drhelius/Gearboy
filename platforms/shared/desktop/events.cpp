@@ -32,18 +32,72 @@
 static bool input_updated = false;
 static Uint16 input_last_state[GEARBOY_MAX_GAMEPADS] = { };
 
+static bool events_ps2_keyboard_active(void)
+{
+    return emu_ps2_keyboard_is_enabled() && !(SDL_GetModState() & SDL_KMOD_CAPS);
+}
+
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
 static bool events_match_hotkey_scancode(const SDL_Event* event, const config_Hotkey& hotkey);
 static Uint16 input_build_state(int controller);
 static Uint16 input_filter_opposing_directions(int controller, Uint16 state);
 static void input_apply_state(int controller, Uint16 before, Uint16 now);
 
+static bool events_queue_ps2_key(const SDL_Event* event)
+{
+    if (!events_ps2_keyboard_active() || (event->type != SDL_EVENT_KEY_DOWN && event->type != SDL_EVENT_KEY_UP))
+        return false;
+
+    if (event->key.repeat != 0)
+        return false;
+
+    if (event->key.scancode == SDL_SCANCODE_CAPSLOCK)
+        return false;
+
+    const bool release = event->type == SDL_EVENT_KEY_UP;
+    const u8 scancode = gearboy_ps2_map_sdl_scancode((int)event->key.scancode);
+    if (scancode == 0)
+        return false;
+
+    bool extended = false;
+    switch (event->key.scancode)
+    {
+        case SDL_SCANCODE_UP:
+        case SDL_SCANCODE_DOWN:
+        case SDL_SCANCODE_LEFT:
+        case SDL_SCANCODE_RIGHT:
+        case SDL_SCANCODE_KP_DIVIDE:
+        case SDL_SCANCODE_KP_ENTER:
+        case SDL_SCANCODE_INSERT:
+        case SDL_SCANCODE_DELETE:
+        case SDL_SCANCODE_HOME:
+        case SDL_SCANCODE_END:
+        case SDL_SCANCODE_PAGEUP:
+        case SDL_SCANCODE_PAGEDOWN:
+            extended = true;
+            break;
+        default:
+            break;
+    }
+
+    if (release && !emu_queue_ps2_scan_code(0xF0))
+        return false;
+    if (extended && !emu_queue_ps2_scan_code(0xE0))
+        return false;
+    return emu_queue_ps2_scan_code(scancode);
+}
+
 void events_shortcuts(const SDL_Event* event)
 {
+    if (event->key.scancode == SDL_SCANCODE_CAPSLOCK && event->key.repeat == 0)
+        return;
+
     if (event->type == SDL_EVENT_KEY_UP)
     {
         if (events_match_hotkey_scancode(event, config_hotkeys[config_HotkeyIndex_Rewind]))
             gui_action_rewind_released();
+        if (events_ps2_keyboard_active())
+            events_queue_ps2_key(event);
         return;
     }
 
@@ -104,6 +158,9 @@ void events_shortcuts(const SDL_Event* event)
             application_trigger_fullscreen(false);
         }
     }
+
+    if (events_ps2_keyboard_active())
+        events_queue_ps2_key(event);
 }
 
 void events_handle_emu_event(const SDL_Event* event)
@@ -263,7 +320,7 @@ static Uint16 input_build_state(int controller)
     const bool* keyboard_state = SDL_GetKeyboardState(NULL);
     Uint16 ret = 0;
 
-    if (controller == 0)
+    if (controller == 0 && (!emu_ps2_keyboard_is_enabled() || !events_ps2_keyboard_active()))
     {
         if (keyboard_state[config_input.key_left])
             ret |= Left_Key;

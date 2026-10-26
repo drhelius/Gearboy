@@ -97,8 +97,7 @@ static void get_video_recording_size(const GB_RuntimeInfo& runtime, int* width, 
 static void reset_rewind_timing(void);
 static int get_rewind_pop_budget(void);
 static void link_cable_state_callback(u64 cycle, u8 sb, u8 sc, GB_SerialEvent, void* user_data);
-static void link_cable_start_callback(u64 request_cycle, u64 first_shift_cycle, u32 bit_cycles,
-    u8 outgoing_byte, u32 transfer_id, u8* incoming_byte, void* user_data);
+static void link_cable_start_callback(u64 request_cycle, u64 first_shift_cycle, u32 bit_cycles, u8 outgoing_byte, u32 transfer_id, u8* incoming_byte, void* user_data);
 static bool link_cable_poll_callback(u64 current_cycle, GB_LinkCableTransfer* transfer, void* user_data);
 static void link_cable_sync_callback(u64 cycle, u32 promise_cycles, void* user_data);
 
@@ -1374,6 +1373,26 @@ void emu_set_barcode_boy_mode(int mode)
 GB_BarcodeBoyResult emu_scan_barcode(const char* barcode)
 {
     return emu_is_empty() ? GB_BarcodeBoyResult_Unavailable : gearboy->ScanBarcode(barcode);
+}
+
+void emu_set_ps2_keyboard_enabled(bool enabled)
+{
+    if (!gearboy)
+        return;
+
+    gearboy->SetPS2KeyboardEnabled(enabled);
+    if (!enabled)
+        rewind_reset();
+}
+
+bool emu_ps2_keyboard_is_enabled(void)
+{
+    return gearboy && gearboy->IsPS2KeyboardEnabled();
+}
+
+bool emu_queue_ps2_scan_code(u8 scan_code)
+{
+    return gearboy && gearboy->QueuePS2KeyboardScanCode(scan_code);
 }
 
 bool emu_link_cable_connect(int session)

@@ -1157,6 +1157,9 @@ static void menu_input(void)
 
         ImGui::Separator();
 
+        if (ImGui::MenuItem("PS/2 Keyboard", nullptr, emu_ps2_keyboard_is_enabled(), !emu_is_rom_loading()))
+            emu_set_ps2_keyboard_enabled(!emu_ps2_keyboard_is_enabled());
+
         if (ImGui::BeginMenu("Barcode Boy", !emu_is_rom_loading()))
         {
             int mode = config_emulator.barcode_boy_mode;
