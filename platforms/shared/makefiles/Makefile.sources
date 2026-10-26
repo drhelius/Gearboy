@@ -62,6 +62,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/Audio.cpp \
     $(SRC_DIR)/Cartridge.cpp \
     $(SRC_DIR)/BarcodeBoy.cpp \
+    $(SRC_DIR)/PS2Keyboard.cpp \
     $(SRC_DIR)/CommonMemoryRule.cpp \
     $(SRC_DIR)/GearboyCore.cpp \
     $(SRC_DIR)/Input.cpp \
