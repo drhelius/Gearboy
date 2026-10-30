@@ -21,6 +21,7 @@
 #define	MBC5MEMORYRULE_H
 
 #include "MemoryRule.h"
+#include "EverdriveX.h"
 
 class MBC5MemoryRule : public MemoryRule
 {
@@ -57,6 +58,7 @@ private:
     u8* m_pRAMBanks;
     int m_CurrentROMAddress;
     int m_CurrentRAMAddress;
+    EverdriveX m_Everdrive;
 };
 
 #endif	/* MBC5MEMORYRULE_H */

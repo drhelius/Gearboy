@@ -53,6 +53,7 @@ void MBC5MemoryRule::Reset(bool bCGB)
         m_pRAMBanks[i] = 0xFF;
     m_CurrentROMAddress = 0x4000;
     m_CurrentRAMAddress = 0;
+    m_Everdrive.Reset(m_pCartridge->GetFileDirectory());
 }
 
 void MBC5MemoryRule::UpdateBanks()
@@ -80,6 +81,9 @@ u8 MBC5MemoryRule::PerformRead(u16 address)
             }
             else
             {
+                u8 value;
+                if (m_Everdrive.Read(address, &value))
+                    return value;
                 Debug("--> ** Attempting to read from disabled ram %X", address);
                 return 0xFF;
             }
@@ -155,7 +159,7 @@ void MBC5MemoryRule::PerformWrite(u16 address, u8 value)
             {
                 m_pRAMBanks[(address - 0xA000) + m_CurrentRAMAddress] = value;
             }
-            else
+            else if (!m_Everdrive.Write(address, value))
             {
                 Debug("--> ** Attempting to write on RAM when ram is disabled %X %X", address, value);
             }
