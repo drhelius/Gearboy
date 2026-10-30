@@ -124,6 +124,9 @@
     <ClCompile Include="..\shared\desktop\mcp\mcp_debug_adapter.cpp">
       <Filter>desktop\mcp</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\desktop\mcp\mcp_tool_registry.cpp">
+      <Filter>desktop\mcp</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\desktop\mcp\mcp_server.cpp">
       <Filter>desktop\mcp</Filter>
     </ClCompile>
@@ -436,7 +439,7 @@
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\ips_patch.h">
-      <Filter>core</Filter>
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\license.h">
       <Filter>desktop</Filter>
