@@ -2,7 +2,8 @@
 name: Controller Database Watcher
 description: Check upstream SDL controller mappings and open a PR when gamecontrollerdb.txt changes.
 on:
-  schedule: every 2w
+  schedule:
+    - cron: "0 0 15 * *"
   workflow_dispatch:
 permissions:
   contents: read
