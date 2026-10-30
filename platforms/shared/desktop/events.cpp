@@ -66,31 +66,12 @@ static bool events_queue_ps2_key(const SDL_Event* event)
     if (scancode == 0)
         return false;
 
-    bool extended = false;
-    switch (event->key.scancode)
-    {
-        case SDL_SCANCODE_UP:
-        case SDL_SCANCODE_DOWN:
-        case SDL_SCANCODE_LEFT:
-        case SDL_SCANCODE_RIGHT:
-        case SDL_SCANCODE_KP_DIVIDE:
-        case SDL_SCANCODE_KP_ENTER:
-        case SDL_SCANCODE_INSERT:
-        case SDL_SCANCODE_DELETE:
-        case SDL_SCANCODE_HOME:
-        case SDL_SCANCODE_END:
-        case SDL_SCANCODE_PAGEUP:
-        case SDL_SCANCODE_PAGEDOWN:
-            extended = true;
-            break;
-        default:
-            break;
-    }
-
-    if (release && !emu_queue_ps2_scan_code(0xF0))
-        return false;
+    const bool extended = gearboy_ps2_is_extended_sdl_scancode((int)event->key.scancode);
 
     if (extended && !emu_queue_ps2_scan_code(0xE0))
+        return false;
+
+    if (release && !emu_queue_ps2_scan_code(0xF0))
         return false;
 
     return emu_queue_ps2_scan_code(scancode);

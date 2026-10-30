@@ -102,7 +102,45 @@ u8 gearboy_ps2_map_sdl_scancode(int scancode)
         case SDL_SCANCODE_KP_MINUS: return 0x7B;
         case SDL_SCANCODE_KP_PLUS: return 0x79;
         case SDL_SCANCODE_KP_ENTER: return 0x5A;
+        case SDL_SCANCODE_INSERT: return 0x70;
+        case SDL_SCANCODE_DELETE: return 0x71;
+        case SDL_SCANCODE_HOME: return 0x6C;
+        case SDL_SCANCODE_END: return 0x69;
+        case SDL_SCANCODE_PAGEUP: return 0x7D;
+        case SDL_SCANCODE_PAGEDOWN: return 0x7A;
+        case SDL_SCANCODE_RCTRL: return 0x14;
+        case SDL_SCANCODE_RALT: return 0x11;
+        case SDL_SCANCODE_LGUI: return 0x1F;
+        case SDL_SCANCODE_RGUI: return 0x27;
+        case SDL_SCANCODE_APPLICATION: return 0x2F;
         default: return 0;
+    }
+}
+
+bool gearboy_ps2_is_extended_sdl_scancode(int scancode)
+{
+    switch (scancode)
+    {
+        case SDL_SCANCODE_UP:
+        case SDL_SCANCODE_DOWN:
+        case SDL_SCANCODE_LEFT:
+        case SDL_SCANCODE_RIGHT:
+        case SDL_SCANCODE_KP_DIVIDE:
+        case SDL_SCANCODE_KP_ENTER:
+        case SDL_SCANCODE_INSERT:
+        case SDL_SCANCODE_DELETE:
+        case SDL_SCANCODE_HOME:
+        case SDL_SCANCODE_END:
+        case SDL_SCANCODE_PAGEUP:
+        case SDL_SCANCODE_PAGEDOWN:
+        case SDL_SCANCODE_RCTRL:
+        case SDL_SCANCODE_RALT:
+        case SDL_SCANCODE_LGUI:
+        case SDL_SCANCODE_RGUI:
+        case SDL_SCANCODE_APPLICATION:
+            return true;
+        default:
+            return false;
     }
 }
 
