@@ -6,7 +6,7 @@
 //  space and only respond after writing $A5 to the key register:
 //    $BD00 SPI data, $BD01 SPI control (SS, low speed, auto read, busy), $BD0A key
 //  The SD card is an SDHC card over SPI backed by a disk image, sdcard.img next
-//  to the ROM, or GEARBOY_SD_IMAGE.
+//  to the ROM, or GEARBOY_SD_IMAGE. GEARBOY_EVERDRIVE=0 starts with the cart disabled.
 //
 
 #ifndef EVERDRIVE_X_H
@@ -28,6 +28,8 @@ public:
     EverdriveX();
     ~EverdriveX();
     void Reset(const char* rom_directory);
+    void SetEnabled(bool enabled);
+    bool IsEnabled() const;
     bool Read(u16 address, u8* value);
     bool Write(u16 address, u8 value);
 
@@ -48,6 +50,7 @@ private:
         State_WriteData
     };
 
+    bool m_enabled;
     bool m_unlocked;
     u8 m_ctrl;
     u8 m_data;

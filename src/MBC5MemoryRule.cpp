@@ -294,3 +294,13 @@ void MBC5MemoryRule::LoadState(std::istream& stream, u32)
         m_bRamEnabled = false;
     }
 }
+
+void MBC5MemoryRule::SetEverdriveEnabled(bool enabled)
+{
+    m_Everdrive.SetEnabled(enabled);
+}
+
+bool MBC5MemoryRule::IsEverdriveEnabled() const
+{
+    return m_Everdrive.IsEnabled();
+}

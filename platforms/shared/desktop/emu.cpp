@@ -1395,6 +1395,17 @@ bool emu_ps2_keyboard_is_enabled(void)
     return gearboy && gearboy->IsPS2KeyboardEnabled();
 }
 
+void emu_set_everdrive_enabled(bool enabled)
+{
+    if (gearboy)
+        gearboy->SetEverdriveEnabled(enabled);
+}
+
+bool emu_everdrive_is_enabled(void)
+{
+    return gearboy && gearboy->IsEverdriveEnabled();
+}
+
 bool emu_queue_ps2_scan_code(u8 scan_code)
 {
     return gearboy && gearboy->QueuePS2KeyboardScanCode(scan_code);

@@ -480,6 +480,16 @@ bool GearboyCore::IsPS2KeyboardEnabled() const
     return m_pPS2Keyboard != NULL;
 }
 
+void GearboyCore::SetEverdriveEnabled(bool enabled)
+{
+    m_pMBC5MemoryRule->SetEverdriveEnabled(enabled);
+}
+
+bool GearboyCore::IsEverdriveEnabled() const
+{
+    return m_pMBC5MemoryRule->IsEverdriveEnabled();
+}
+
 bool GearboyCore::QueuePS2KeyboardScanCode(u8 scan_code)
 {
     if (!m_pPS2Keyboard || !m_pCartridge->IsLoadedROM())

@@ -150,6 +150,8 @@ EXTERN void emu_set_barcode_boy_mode(int mode);
 EXTERN GB_BarcodeBoyResult emu_scan_barcode(const char* barcode);
 EXTERN void emu_set_ps2_keyboard_enabled(bool enabled);
 EXTERN bool emu_ps2_keyboard_is_enabled(void);
+EXTERN void emu_set_everdrive_enabled(bool enabled);
+EXTERN bool emu_everdrive_is_enabled(void);
 EXTERN bool emu_queue_ps2_scan_code(u8 scan_code);
 EXTERN bool emu_link_cable_connect(int session);
 EXTERN void emu_link_cable_stop(void);

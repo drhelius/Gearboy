@@ -12,6 +12,8 @@ EverdriveX::EverdriveX()
 {
     m_image = NULL;
     m_image_path[0] = 0;
+    const char* env = getenv("GEARBOY_EVERDRIVE");
+    m_enabled = !(env && env[0] == '0');
     Reset(NULL);
 }
 
@@ -47,6 +49,17 @@ void EverdriveX::Reset(const char* rom_directory)
         snprintf(m_image_path, sizeof(m_image_path), "sdcard.img");
 }
 
+void EverdriveX::SetEnabled(bool enabled)
+{
+    m_enabled = enabled;
+    m_unlocked = false;
+}
+
+bool EverdriveX::IsEnabled() const
+{
+    return m_enabled;
+}
+
 bool EverdriveX::OpenImage()
 {
     if (m_image)
@@ -66,7 +79,7 @@ void EverdriveX::CloseImage()
 
 bool EverdriveX::Read(u16 address, u8* value)
 {
-    if (!m_unlocked)
+    if (!m_enabled || !m_unlocked)
         return false;
 
     switch (address)
@@ -86,6 +99,9 @@ bool EverdriveX::Read(u16 address, u8* value)
 
 bool EverdriveX::Write(u16 address, u8 value)
 {
+    if (!m_enabled)
+        return false;
+
     if (address == k_reg_key)
     {
         m_unlocked = (value == k_key_unlock);

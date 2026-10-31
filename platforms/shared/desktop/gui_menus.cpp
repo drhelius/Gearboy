@@ -1180,6 +1180,11 @@ static void menu_input(void)
         if (ImGui::MenuItem("PS/2 Keyboard", nullptr, emu_ps2_keyboard_is_enabled(), !emu_is_rom_loading()))
             emu_set_ps2_keyboard_enabled(!emu_ps2_keyboard_is_enabled());
 
+        if (ImGui::MenuItem("EverDrive X SD Card", nullptr, emu_everdrive_is_enabled(), !emu_is_rom_loading()))
+            emu_set_everdrive_enabled(!emu_everdrive_is_enabled());
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Emulates the EverDrive GB X SD card registers on MBC5 carts.\nUses sdcard.img next to the ROM. Reset the game after changing.");
+
         if (ImGui::BeginMenu("Barcode Boy", !emu_is_rom_loading()))
         {
             int mode = config_emulator.barcode_boy_mode;

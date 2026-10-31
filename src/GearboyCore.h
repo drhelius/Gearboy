@@ -154,6 +154,8 @@ public:
     GB_BarcodeBoyResult ScanBarcode(const char* barcode);
     void SetPS2KeyboardEnabled(bool enabled);
     bool IsPS2KeyboardEnabled() const;
+    void SetEverdriveEnabled(bool enabled);
+    bool IsEverdriveEnabled() const;
     bool QueuePS2KeyboardScanCode(u8 scan_code);
 
 private:
