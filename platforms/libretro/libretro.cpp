@@ -1163,6 +1163,79 @@ void retro_run(void)
         audio_batch_cb(audio, samples / 2);
 }
 
+static void set_memory_maps(void)
+{
+    GearboyCore* core = instances[0].core;
+
+    struct retro_memory_descriptor descs[12];
+
+    memset(descs, 0, sizeof(descs));
+
+    MemoryRule* current_rule = core->GetMemory()->GetCurrentRule();
+    bool mbc6 = current_rule->GetMapperType() == Cartridge::CartridgeMBC6;
+    size_t cart_ram_size = current_rule->GetRamSize();
+    size_t cart_ram_bank_size = (cart_ram_size < 0x2000) ? cart_ram_size : 0x2000;
+
+    // IE
+    descs[0].ptr   = core->GetMemory()->GetMemoryMap() + 0xFFFF;
+    descs[0].start = 0xFFFF;
+    descs[0].len   = 1;
+    // HRAM
+    descs[1].ptr   = core->GetMemory()->GetMemoryMap() + 0xFF80;
+    descs[1].start = 0xFF80;
+    descs[1].len   = 0x007F;
+    // RAM bank 0
+    descs[2].ptr   = core->IsCGB() ? core->GetMemory()->GetCGBRAM() : (core->GetMemory()->GetMemoryMap() + 0xC000);
+    descs[2].start = 0xC000;
+    descs[2].len   = 0x1000;
+    // RAM bank 1
+    descs[3].ptr   = core->IsCGB() ? (core->GetMemory()->GetCGBRAM() + (0x1000)) : (core->GetMemory()->GetMemoryMap() + 0xD000);
+    descs[3].start = 0xD000;
+    descs[3].len   = 0x1000;
+    // CART RAM
+    descs[4].ptr   = (cart_ram_bank_size > 0) ? current_rule->GetCurrentRamBank() : NULL;
+    descs[4].start = 0xA000;
+    descs[4].len   = cart_ram_bank_size;
+    descs[4].flags = mbc6 ? RETRO_MEMDESC_CONST : 0;
+    // VRAM
+    descs[5].ptr   = core->GetMemory()->GetMemoryMap() + 0x8000; // todo: fix GBC
+    descs[5].start = 0x8000;
+    descs[5].len   = 0x2000;
+    // ROM bank 0
+    descs[6].ptr   = current_rule->GetRomBank0();
+    descs[6].start = 0x0000;
+    descs[6].len   = 0x4000;
+    // ROM bank x
+    descs[7].ptr   = current_rule->GetCurrentRomBank1();
+    descs[7].start = 0x4000;
+    descs[7].len   = 0x4000;
+    descs[7].flags = mbc6 ? RETRO_MEMDESC_CONST : 0;
+    // OAM
+    descs[8].ptr   = core->GetMemory()->GetMemoryMap() + 0xFE00;
+    descs[8].start = 0xFE00;
+    descs[8].len   = 0x00A0;
+    descs[8].select= 0xFFFFFF00;
+    // CART RAM banks 1-15
+    descs[9].ptr   = (cart_ram_size > 0x2000) ? (current_rule->GetRamBanks() + 0x2000) : NULL;
+    descs[9].start = 0x16000;
+    descs[9].len   = (cart_ram_size > 0x2000) ? (cart_ram_size - 0x2000) : 0;
+    // CGB RAM banks 2-7
+    descs[10].ptr   = core->IsCGB() ? (core->GetMemory()->GetCGBRAM() + 0x2000) : (core->GetMemory()->GetMemoryMap() + 0xD000);
+    descs[10].start = 0x10000;
+    descs[10].len   = core->IsCGB() ? 0x6000 : 0;
+    descs[10].select= 0xFFFF0000;
+    // IO PORTS
+    descs[11].ptr   = core->GetMemory()->GetMemoryMap() + 0xFF00;
+    descs[11].start = 0xFF00;
+    descs[11].len   = 0x0080;
+    descs[11].select= 0xFFFFFF00;
+
+    struct retro_memory_map mmaps;
+    mmaps.descriptors = descs;
+    mmaps.num_descriptors = sizeof(descs) / sizeof(descs[0]);
+    environ_cb(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &mmaps);
+}
+
 void retro_reset(void)
 {
     if (!game_loaded)
@@ -1185,7 +1258,9 @@ void retro_reset(void)
 
     if (link_cable)
         link_cable->Reset();
-    
+
+    set_memory_maps();
+
     memset(dpad_vertical_latch, 0, sizeof(dpad_vertical_latch));
     memset(dpad_horizontal_latch, 0, sizeof(dpad_horizontal_latch));
 }
@@ -1280,71 +1355,7 @@ static bool load_game(const struct retro_game_info* info, const struct retro_gam
 
     snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path ? info->path : "");
 
-    GearboyCore* core = instances[0].core;
-
-    struct retro_memory_descriptor descs[11];
-
-    memset(descs, 0, sizeof(descs));
-
-    MemoryRule* current_rule = core->GetMemory()->GetCurrentRule();
-    bool mbc6 = current_rule->GetMapperType() == Cartridge::CartridgeMBC6;
-    size_t cart_ram_size = current_rule->GetRamSize();
-    size_t cart_ram_bank_size = (cart_ram_size < 0x2000) ? cart_ram_size : 0x2000;
-
-    // IE
-    descs[0].ptr   = core->GetMemory()->GetMemoryMap() + 0xFFFF;
-    descs[0].start = 0xFFFF;
-    descs[0].len   = 1;
-    // HRAM
-    descs[1].ptr   = core->GetMemory()->GetMemoryMap() + 0xFF80;
-    descs[1].start = 0xFF80;
-    descs[1].len   = 0x007F;
-    // RAM bank 0
-    descs[2].ptr   = core->IsCGB() ? core->GetMemory()->GetCGBRAM() : (core->GetMemory()->GetMemoryMap() + 0xC000);
-    descs[2].start = 0xC000;
-    descs[2].len   = 0x1000;
-    // RAM bank 1
-    descs[3].ptr   = core->IsCGB() ? (core->GetMemory()->GetCGBRAM() + (0x1000)) : (core->GetMemory()->GetMemoryMap() + 0xD000);
-    descs[3].start = 0xD000;
-    descs[3].len   = 0x1000;
-    // CART RAM
-    descs[4].ptr   = (cart_ram_bank_size > 0) ? current_rule->GetCurrentRamBank() : NULL;
-    descs[4].start = 0xA000;
-    descs[4].len   = cart_ram_bank_size;
-    descs[4].flags = mbc6 ? RETRO_MEMDESC_CONST : 0;
-    // VRAM
-    descs[5].ptr   = core->GetMemory()->GetMemoryMap() + 0x8000; // todo: fix GBC
-    descs[5].start = 0x8000;
-    descs[5].len   = 0x2000;
-    // ROM bank 0
-    descs[6].ptr   = current_rule->GetRomBank0();
-    descs[6].start = 0x0000;
-    descs[6].len   = 0x4000;
-    // ROM bank x
-    descs[7].ptr   = current_rule->GetCurrentRomBank1();
-    descs[7].start = 0x4000;
-    descs[7].len   = 0x4000;
-    descs[7].flags = mbc6 ? RETRO_MEMDESC_CONST : 0;
-    // OAM
-    descs[8].ptr   = core->GetMemory()->GetMemoryMap() + 0xFE00;
-    descs[8].start = 0xFE00;
-    descs[8].len   = 0x00A0;
-    descs[8].select= 0xFFFFFF00;
-    // CGB RAM banks 2-7
-    descs[9].ptr   = core->IsCGB() ? (core->GetMemory()->GetCGBRAM() + 0x2000) : (core->GetMemory()->GetMemoryMap() + 0xD000);
-    descs[9].start = 0x10000;
-    descs[9].len   = core->IsCGB() ? 0x6000 : 0;
-    descs[9].select= 0xFFFF0000;
-    // IO PORTS
-    descs[10].ptr   = core->GetMemory()->GetMemoryMap() + 0xFF00;
-    descs[10].start = 0xFF00;
-    descs[10].len   = 0x0080;
-    descs[10].select= 0xFFFFFF00;
-
-    struct retro_memory_map mmaps;
-    mmaps.descriptors = descs;
-    mmaps.num_descriptors = sizeof(descs) / sizeof(descs[0]);
-    environ_cb(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &mmaps);
+    set_memory_maps();
 
     if (instance_count == 2)
     {
