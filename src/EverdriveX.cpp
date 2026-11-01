@@ -12,6 +12,8 @@ EverdriveX::EverdriveX()
 {
     m_image = NULL;
     m_image_path[0] = 0;
+    m_folder[0] = 0;
+    m_root[0] = 0;
     const char* env = getenv("GEARBOY_EVERDRIVE");
     m_enabled = !(env && env[0] == '0');
     Reset(NULL);
@@ -19,7 +21,7 @@ EverdriveX::EverdriveX()
 
 EverdriveX::~EverdriveX()
 {
-    CloseImage();
+    CloseCard();
 }
 
 void EverdriveX::Reset(const char* rom_directory)
@@ -39,14 +41,29 @@ void EverdriveX::Reset(const char* rom_directory)
     if (rom_directory == NULL)
         return;
 
-    CloseImage();
-    const char* env = getenv("GEARBOY_SD_IMAGE");
-    if (env && env[0])
-        snprintf(m_image_path, sizeof(m_image_path), "%s", env);
-    else if (rom_directory[0])
-        snprintf(m_image_path, sizeof(m_image_path), "%s/sdcard.img", rom_directory);
+    CloseCard();
+    m_image_path[0] = 0;
+    m_root[0] = 0;
+    const char* image = getenv("GEARBOY_SD_IMAGE");
+    const char* dir = getenv("GEARBOY_SD_DIR");
+    const char* home = getenv("HOME");
+    if (!home)
+        home = getenv("USERPROFILE");
+    if (image && image[0])
+        snprintf(m_image_path, sizeof(m_image_path), "%s", image);
+    else if (dir && dir[0])
+        snprintf(m_root, sizeof(m_root), "%s", dir);
+    else if (m_folder[0])
+        snprintf(m_root, sizeof(m_root), "%s", m_folder);
+    else if (home)
+        snprintf(m_root, sizeof(m_root), "%s", home);
     else
-        snprintf(m_image_path, sizeof(m_image_path), "sdcard.img");
+        snprintf(m_image_path, sizeof(m_image_path), "%s/sdcard.img", rom_directory[0] ? rom_directory : ".");
+}
+
+void EverdriveX::SetFolder(const char* folder)
+{
+    snprintf(m_folder, sizeof(m_folder), "%s", folder ? folder : "");
 }
 
 void EverdriveX::SetEnabled(bool enabled)
@@ -60,8 +77,10 @@ bool EverdriveX::IsEnabled() const
     return m_enabled;
 }
 
-bool EverdriveX::OpenImage()
+bool EverdriveX::OpenCard()
 {
+    if (m_root[0])
+        return m_fat.IsOpen() || m_fat.Open(m_root);
     if (m_image)
         return true;
     m_image = fopen(m_image_path, "r+b");
@@ -70,11 +89,12 @@ bool EverdriveX::OpenImage()
     return m_image != NULL;
 }
 
-void EverdriveX::CloseImage()
+void EverdriveX::CloseCard()
 {
     if (m_image)
         fclose(m_image);
     m_image = NULL;
+    m_fat.Close();
 }
 
 bool EverdriveX::Read(u16 address, u8* value)
@@ -205,16 +225,21 @@ void EverdriveX::RunCommand()
             break;
         case 17: // READ_SINGLE_BLOCK, SDHC block address
         {
-            if (!OpenImage())
+            if (!OpenCard())
             {
                 r[0] |= 0x20; // address error
                 Respond(r, 1);
                 break;
             }
             memset(r + 2, 0, 512);
-            fseek(m_image, (long)arg * 512, SEEK_SET);
-            if (fread(r + 2, 1, 512, m_image) < 512)
-                clearerr(m_image);
+            if (m_fat.IsOpen())
+                m_fat.ReadSector(arg, r + 2);
+            else
+            {
+                fseek(m_image, (long)arg * 512, SEEK_SET);
+                if (fread(r + 2, 1, 512, m_image) < 512)
+                    clearerr(m_image);
+            }
             r[1] = 0xFE; // data token
             r[514] = 0xFF; // CRC
             r[515] = 0xFF;
@@ -222,7 +247,7 @@ void EverdriveX::RunCommand()
             break;
         }
         case 24: // WRITE_BLOCK
-            if (!OpenImage())
+            if (!OpenCard())
             {
                 r[0] |= 0x20;
                 Respond(r, 1);
@@ -279,9 +304,15 @@ void EverdriveX::ReceiveWriteByte(u8 mosi)
         return;
 
     m_state = State_Command;
-    fseek(m_image, (long)m_write_sector * 512, SEEK_SET);
-    bool ok = fwrite(m_sector, 1, 512, m_image) == 512;
-    fflush(m_image);
+    bool ok = true;
+    if (m_fat.IsOpen())
+        m_fat.WriteSector(m_write_sector, m_sector);
+    else
+    {
+        fseek(m_image, (long)m_write_sector * 512, SEEK_SET);
+        ok = fwrite(m_sector, 1, 512, m_image) == 512;
+        fflush(m_image);
+    }
 
     m_response[0] = ok ? 0x05 : 0x0D; // data accepted / write error
     m_response[1] = 0x00; // busy for a byte

@@ -57,6 +57,7 @@ static bool choose_savestates_path = false;
 static bool choose_screenshots_path = false;
 static bool choose_video_recordings_path = false;
 static bool choose_backup_ram_path = false;
+static bool choose_everdrive_path = false;
 static bool open_dmg_bootrom = false;
 static bool open_gbc_bootrom = false;
 static bool open_sgb_bios = false;
@@ -146,6 +147,7 @@ void gui_main_menu(void)
     choose_screenshots_path = false;
     choose_video_recordings_path = false;
     choose_backup_ram_path = false;
+    choose_everdrive_path = false;
     open_dmg_bootrom = false;
     open_gbc_bootrom = false;
     open_sgb_bios = false;
@@ -1183,7 +1185,13 @@ static void menu_input(void)
         if (ImGui::MenuItem("EverDrive X SD Card", nullptr, emu_everdrive_is_enabled(), !emu_is_rom_loading()))
             emu_set_everdrive_enabled(!emu_everdrive_is_enabled());
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Emulates the EverDrive GB X SD card registers on MBC5 carts.\nUses sdcard.img next to the ROM. Reset the game after changing.");
+            ImGui::SetTooltip("Emulates the EverDrive GB X SD card registers on MBC5 carts.\nThe card shows a host folder (EverDrive X SD Folder), or GEARBOY_SD_IMAGE.\nReset the game after changing.");
+
+        if (ImGui::MenuItem("EverDrive X SD Folder...", nullptr, false, !emu_is_rom_loading()))
+            choose_everdrive_path = true;
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("%s\nThe Game Boy can read everything in it and write new and changed files.\nReset the game after changing.",
+                config_emulator.everdrive_sd_path.empty() ? "Home folder" : config_emulator.everdrive_sd_path.c_str());
 
         if (ImGui::BeginMenu("Barcode Boy", !emu_is_rom_loading()))
         {
@@ -1848,6 +1856,8 @@ static void file_dialogs(void)
         gui_file_dialog_choose_video_recording_path();
     if (choose_backup_ram_path)
         gui_file_dialog_choose_saves_path();
+    if (choose_everdrive_path)
+        gui_file_dialog_choose_everdrive_path();
     if (open_dmg_bootrom)
         gui_file_dialog_load_dmg_bootrom();
     if (open_gbc_bootrom)

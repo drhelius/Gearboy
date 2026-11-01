@@ -149,6 +149,7 @@ static inline void process(config_Operation operation)
     CONFIG_BOOL("Emulator", "GBCBootrom", config_emulator.gbc_bootrom, false);
     CONFIG_STRING("Emulator", "GBCBootromPath", config_emulator.gbc_bootrom_path, "");
     CONFIG_STRING("Emulator", "SGBBIOSPath", config_emulator.sgb_bios_path, "");
+    CONFIG_STRING("Emulator", "EverDriveSDPath", config_emulator.everdrive_sd_path, "");
 
     // Tilt controls
     CONFIG_INT("Emulator", "TiltSource", config_emulator.tilt_source, 0);

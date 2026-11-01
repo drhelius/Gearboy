@@ -5,14 +5,16 @@
 //  EverDrive GB X-series SD card interface. Registers live in cartridge RAM
 //  space and only respond after writing $A5 to the key register:
 //    $BD00 SPI data, $BD01 SPI control (SS, low speed, auto read, busy), $BD0A key
-//  The SD card is an SDHC card over SPI backed by a disk image, sdcard.img next
-//  to the ROM, or GEARBOY_SD_IMAGE. GEARBOY_EVERDRIVE=0 starts with the cart disabled.
+//  The SD card is an SDHC card over SPI. Its files are a host folder (VirtualFat): the
+//  configured one (SetFolder), GEARBOY_SD_DIR, or the home folder. GEARBOY_SD_IMAGE uses a
+//  disk image instead. GEARBOY_EVERDRIVE=0 starts with the cart disabled.
 //
 
 #ifndef EVERDRIVE_X_H
 #define EVERDRIVE_X_H
 
 #include "definitions.h"
+#include "VirtualFat.h"
 #include <cstdio>
 
 class EverdriveX
@@ -29,6 +31,7 @@ public:
     ~EverdriveX();
     void Reset(const char* rom_directory);
     void SetEnabled(bool enabled);
+    void SetFolder(const char* folder); // used from the next Reset, empty for the home folder
     bool IsEnabled() const;
     bool Read(u16 address, u8* value);
     bool Write(u16 address, u8 value);
@@ -39,8 +42,8 @@ private:
     void ReceiveWriteByte(u8 mosi);
     void RunCommand();
     void Respond(const u8* bytes, int count);
-    bool OpenImage();
-    void CloseImage();
+    bool OpenCard();
+    void CloseCard();
 
 private:
     enum State
@@ -66,7 +69,10 @@ private:
     int m_write_pos;
     u32 m_write_sector;
     char m_image_path[600];
+    char m_folder[600];
+    char m_root[600];
     FILE* m_image;
+    VirtualFat m_fat;
 };
 
 #endif // EVERDRIVE_X_H

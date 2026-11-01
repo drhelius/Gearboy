@@ -46,6 +46,7 @@ enum FileDialogID
     FileDialog_LoadState,
     FileDialog_SaveState,
     FileDialog_ChooseSavestatePath,
+    FileDialog_ChooseEverdrivePath,
     FileDialog_ChooseScreenshotPath,
     FileDialog_ChooseVideoRecordingPath,
     FileDialog_ChooseTracePath,
@@ -290,6 +291,15 @@ void gui_file_dialog_choose_savestate_path(void)
 
     const char* default_path = config_emulator.savestates_path.empty() ? NULL : config_emulator.savestates_path.c_str();
     SDL_ShowOpenFolderDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_ChooseSavestatePath, application_sdl_window, default_path, false);
+}
+
+void gui_file_dialog_choose_everdrive_path(void)
+{
+    if (!begin_dialog())
+        return;
+
+    const char* default_path = config_emulator.everdrive_sd_path.empty() ? NULL : config_emulator.everdrive_sd_path.c_str();
+    SDL_ShowOpenFolderDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_ChooseEverdrivePath, application_sdl_window, default_path, false);
 }
 
 void gui_file_dialog_choose_screenshot_path(void)
@@ -599,6 +609,11 @@ static void process_dialog_result(FileDialogID id, const char* path)
             strncpy_fit(gui_savestates_path, path, sizeof(gui_savestates_path));
             config_emulator.savestates_path.assign(path);
             update_savestates_data();
+            break;
+        }
+        case FileDialog_ChooseEverdrivePath:
+        {
+            config_emulator.everdrive_sd_path.assign(path);
             break;
         }
         case FileDialog_ChooseScreenshotPath:

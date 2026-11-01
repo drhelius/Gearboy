@@ -86,6 +86,7 @@ struct config_Emulator
     bool gbc_bootrom;
     std::string gbc_bootrom_path;
     std::string sgb_bios_path;
+    std::string everdrive_sd_path;
     int savefiles_dir_option;
     std::string savefiles_path;
     int savestates_dir_option;

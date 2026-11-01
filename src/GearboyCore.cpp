@@ -485,6 +485,11 @@ void GearboyCore::SetEverdriveEnabled(bool enabled)
     m_pMBC5MemoryRule->SetEverdriveEnabled(enabled);
 }
 
+void GearboyCore::SetEverdriveFolder(const char* folder)
+{
+    m_pMBC5MemoryRule->SetEverdriveFolder(folder);
+}
+
 bool GearboyCore::IsEverdriveEnabled() const
 {
     return m_pMBC5MemoryRule->IsEverdriveEnabled();

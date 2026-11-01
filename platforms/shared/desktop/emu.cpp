@@ -199,6 +199,7 @@ static void load_rom_thread_func(void)
 {
     gearboy->SetSGBEnabled(config_emulator.sgb);
     gearboy->SetSGBAllGames(config_emulator.sgb_all_games);
+    gearboy->SetEverdriveFolder(config_emulator.everdrive_sd_path.c_str());
     gearboy->SetBarcodeBoyMode((GB_BarcodeBoyMode)config_emulator.barcode_boy_mode);
     loading_result = gearboy->LoadROM(loading_file_path, loading_force_dmg, loading_mbc,
         loading_force_gba, loading_softpatching);
@@ -532,6 +533,7 @@ void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba, bo
         emu_save_persistent_data();
     gearboy->SetSGBEnabled(config_emulator.sgb);
     gearboy->SetSGBAllGames(config_emulator.sgb_all_games);
+    gearboy->SetEverdriveFolder(config_emulator.everdrive_sd_path.c_str());
     gearboy->ResetROM(force_dmg, mbc, force_gba);
     load_ram();
     rewind_reset();
@@ -638,6 +640,7 @@ void emu_load_ram(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
         save_ram();
         gearboy->SetSGBEnabled(config_emulator.sgb);
         gearboy->SetSGBAllGames(config_emulator.sgb_all_games);
+        gearboy->SetEverdriveFolder(config_emulator.everdrive_sd_path.c_str());
         gearboy->ResetROM(force_dmg, mbc, force_gba);
         gearboy->LoadRam(file_path, true);
         rewind_reset();

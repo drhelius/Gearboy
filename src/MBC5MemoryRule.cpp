@@ -300,6 +300,11 @@ void MBC5MemoryRule::SetEverdriveEnabled(bool enabled)
     m_Everdrive.SetEnabled(enabled);
 }
 
+void MBC5MemoryRule::SetEverdriveFolder(const char* folder)
+{
+    m_Everdrive.SetFolder(folder);
+}
+
 bool MBC5MemoryRule::IsEverdriveEnabled() const
 {
     return m_Everdrive.IsEnabled();
