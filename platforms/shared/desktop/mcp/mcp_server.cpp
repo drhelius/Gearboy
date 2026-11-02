@@ -1140,6 +1140,32 @@ json McpServer::BuildToolList()
     });
 
     tools.push_back({
+        {"name", "ps2_key"},
+        {"title", "PS/2 Keyboard Key"},
+        {"description", "Send PS/2 keyboard input over the emulated link port (enables the PS/2 keyboard device). Either key+action, or raw scan_codes."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"key", {
+                    {"type", "string"},
+                    {"description", "SDL scancode name, e.g. Z, X, Return, Tab, Escape, Backspace, Up, Down, Left, Right."}
+                }},
+                {"action", {
+                    {"type", "string"},
+                    {"description", "press = make code, release = break code (F0), tap = both queued back to back."},
+                    {"enum", json::array({"press", "release", "tap"})}
+                }},
+                {"scan_codes", {
+                    {"type", "array"},
+                    {"description", "Raw set 2 scan code bytes (hex strings or ints) to queue; overrides key/action."},
+                    {"items", {{"type", {"string", "integer"}}}}
+                }}
+            }}
+        }}
+    });
+
+    tools.push_back({
         {"name", "get_input_state"},
         {"title", "Get Input State"},
         {"description", "Get effective pressed buttons and pending tap releases."},
@@ -2679,6 +2705,11 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         std::string button = arguments["button"];
         std::string action = arguments["action"];
         return m_debugAdapter.ControllerButton(player, button, action);
+    }
+    else if (normalizedTool == "ps2_key")
+    {
+        return m_debugAdapter.PS2Key(arguments.value("key", ""), arguments.value("action", "tap"),
+            arguments.contains("scan_codes") ? arguments["scan_codes"] : json());
     }
     else if (normalizedTool == "get_input_state")
     {

@@ -1961,6 +1961,70 @@ json DebugAdapter::ControllerButton(int player, const std::string& button, const
     return result;
 }
 
+json DebugAdapter::PS2Key(const std::string& key, const std::string& action, const json& scan_codes)
+{
+    json result;
+
+    if (!emu_ps2_keyboard_is_enabled())
+        emu_set_ps2_keyboard_enabled(true);
+    if (!emu_ps2_keyboard_is_enabled())
+        return {{"error", "PS/2 keyboard unavailable (no ROM loaded or link cable connected)"}};
+
+    std::vector<u8> codes;
+
+    if (scan_codes.is_array())
+    {
+        for (const auto& c : scan_codes)
+        {
+            u16 v;
+            if (c.is_number_integer()) v = c.get<int>();
+            else if (!c.is_string() || !parse_hex_with_prefix(c.get<std::string>(), &v)) return {{"error", "Invalid scan code"}};
+            codes.push_back((u8)v);
+        }
+    }
+    else
+    {
+        if (action != "press" && action != "release" && action != "tap")
+            return {{"error", "Invalid action (must be: press, release, tap)"}};
+
+        SDL_Scancode sdl = SDL_GetScancodeFromName(key.c_str());
+        u8 code = gearboy_ps2_map_sdl_scancode((int)sdl);
+        if (code == 0)
+            return {{"error", "Unknown key name (use SDL scancode names: Z, X, Return, Tab, Escape, Up, Left...)"}};
+
+        bool extended = gearboy_ps2_is_extended_sdl_scancode((int)sdl);
+
+        if (action != "release")
+        {
+            if (extended) codes.push_back(0xE0);
+            codes.push_back(code);
+        }
+        if (action != "press")
+        {
+            if (extended) codes.push_back(0xE0);
+            codes.push_back(0xF0);
+            codes.push_back(code);
+        }
+    }
+
+    json sent = json::array();
+    for (u8 c : codes)
+    {
+        if (!emu_queue_ps2_scan_code(c))
+        {
+            result["error"] = "PS/2 queue full";
+            break;
+        }
+        char buf[4];
+        snprintf(buf, sizeof(buf), "%02X", c);
+        sent.push_back(buf);
+    }
+
+    result["success"] = !result.contains("error");
+    result["queued"] = sent;
+    return result;
+}
+
 json DebugAdapter::GetInputState()
 {
     static const char* button_names[] = {"up", "down", "left", "right", "a", "b", "start", "select"};

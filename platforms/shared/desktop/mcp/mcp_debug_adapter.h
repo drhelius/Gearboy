@@ -144,6 +144,7 @@ public:
     // Controller input
     json ControllerButton(int player, const std::string& button, const std::string& action);
     json GetInputState();
+    json PS2Key(const std::string& key, const std::string& action, const json& scan_codes);
 
     // Disassembler operations
     json AddDisassemblerBookmark(u16 address, const std::string& name);
