@@ -35,12 +35,15 @@
 #define OGL_SHADER_CHAIN_IMPORT
 #include "ogl_shader_chain.h"
 
+#define OGL_SHADER_CHAIN_MAX_TEXTURE_UNITS 16
+
 static uint32_t source_texture = 0;
 static uint32_t pass_texture = 0;
 static uint32_t pass_fbo = 0;
 static uint32_t feedback_texture = 0;
 static uint32_t feedback_fbo = 0;
 static uint32_t history_copy_fbo = 0;
+static uint32_t black_texture = 0;
 static uint32_t intermediate_textures[SHADER_PRESET_MAX_PASSES - 1];
 static uint32_t intermediate_fbos[SHADER_PRESET_MAX_PASSES - 1];
 static int intermediate_widths[SHADER_PRESET_MAX_PASSES - 1];
@@ -54,6 +57,12 @@ static bool pass_history_filter_linears[SHADER_PRESET_MAX_PASSES];
 static int pass_history_counts[SHADER_PRESET_MAX_PASSES];
 static int pass_history_write_indices[SHADER_PRESET_MAX_PASSES];
 static bool pass_history_float_framebuffers[SHADER_PRESET_MAX_PASSES];
+static uint32_t pass_feedback_textures[SHADER_PRESET_MAX_PASSES - 1];
+static int pass_feedback_widths[SHADER_PRESET_MAX_PASSES - 1];
+static int pass_feedback_heights[SHADER_PRESET_MAX_PASSES - 1];
+static bool pass_feedback_filter_linears[SHADER_PRESET_MAX_PASSES - 1];
+static bool pass_feedback_float_framebuffers[SHADER_PRESET_MAX_PASSES - 1];
+static bool pass_feedback_used[SHADER_PRESET_MAX_PASSES - 1];
 static int source_width = 1;
 static int source_height = 1;
 static bool source_filter_linear = false;
@@ -65,23 +74,32 @@ static bool pass_float_framebuffer = false;
 static bool initialized = false;
 static const char* framebuffer_name = "shader-chain framebuffer";
 static ShaderPreset active_preset;
+enum PresetTextureKind
+{
+    PresetTexture_Source = 0,
+    PresetTexture_Original,
+    PresetTexture_Feedback,
+    PresetTexture_SourceHistory,
+    PresetTexture_PassOutput,
+    PresetTexture_PassFeedback
+};
+struct PresetTextureBinding
+{
+    PresetTextureKind kind;
+    int index;
+};
 struct PresetProgramState
 {
     uint32_t program;
-    int uniform_source;
-    int uniform_original;
-    int uniform_feedback;
-    int uniform_source_history[SHADER_PRESET_MAX_HISTORY_TEXTURES];
-    int uniform_pass_output[SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES];
-    bool uses_source_history[SHADER_PRESET_MAX_HISTORY_TEXTURES];
-    bool uses_pass_output[SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES];
+    int texture_count;
+    PresetTextureBinding textures[OGL_SHADER_CHAIN_MAX_TEXTURE_UNITS];
     int uniform_source_size;
     int uniform_original_size;
     int uniform_output_size;
     int uniform_final_viewport_size;
     int uniform_feedback_size;
     int uniform_source_history_size;
-    int uniform_pass_output_size[SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES];
+    int uniform_pass_output_size[SHADER_PRESET_MAX_PASSES];
     int uniform_source_history_count;
     int uniform_frame_count;
     int uniform_frame_direction;
@@ -101,7 +119,9 @@ static bool resize_framebuffer_texture(uint32_t texture, uint32_t fbo, int width
 static bool ensure_intermediate_texture(int index);
 static bool ensure_history_copy_framebuffer(void);
 static bool load_preset_programs(const ShaderPreset* preset, PresetProgramState* programs, char* error, size_t error_size);
-static void bind_preset_uniform_locations(PresetProgramState* state);
+static void bind_preset_uniform_locations(int index);
+static bool add_texture_binding(PresetProgramState* state, const char* name, PresetTextureKind kind, int index);
+static int get_pass_output_size_location(uint32_t program, int index);
 static void clear_preset_state(void);
 static void delete_preset_programs(void);
 static void clear_feedback_texture(void);
@@ -109,6 +129,10 @@ static void release_intermediate_textures(int keep_count);
 static void clear_pass_history_textures(int index);
 static void clear_all_pass_history_textures(void);
 static bool resize_pass_history_textures(int index, int width, int height, bool filter_linear, bool float_framebuffer);
+static void release_pass_feedback_textures(void);
+static bool resize_pass_feedback_texture(int index, int width, int height, bool filter_linear, bool float_framebuffer);
+static bool copy_texture(uint32_t source, uint32_t target, int width, int height);
+static void clear_texture(uint32_t texture, int width, int height);
 static void set_last_error(const char* message);
 static int scale_dimension(ShaderPresetScaleType scale_type, float scale, int absolute_size, int source_size, int previous_size, int viewport_size);
 static float safe_inverse(int value);
@@ -141,6 +165,10 @@ bool ogl_shader_chain_init(const char* name)
     glGenTextures(1, &feedback_texture);
     resize_texture_2d(feedback_texture, 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, NULL, false);
 
+    const uint8_t black_pixel[4] = { 0, 0, 0, 0 };
+    glGenTextures(1, &black_texture);
+    resize_texture_2d(black_texture, 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, black_pixel, false);
+
     glGenFramebuffers(1, &feedback_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, feedback_fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, feedback_texture, 0);
@@ -169,6 +197,16 @@ bool ogl_shader_chain_init(const char* name)
             pass_history_textures[i][j] = 0;
     }
 
+    for (int i = 0; i < SHADER_PRESET_MAX_PASSES - 1; i++)
+    {
+        pass_feedback_textures[i] = 0;
+        pass_feedback_widths[i] = 1;
+        pass_feedback_heights[i] = 1;
+        pass_feedback_filter_linears[i] = false;
+        pass_feedback_float_framebuffers[i] = false;
+        pass_feedback_used[i] = false;
+    }
+
     initialized = pass_complete && feedback_complete;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -190,6 +228,7 @@ void ogl_shader_chain_destroy(void)
         glDeleteFramebuffers(1, &history_copy_fbo);
 
     release_intermediate_textures(0);
+    release_pass_feedback_textures();
 
     for (int i = 0; i < SHADER_PRESET_MAX_PASSES; i++)
     {
@@ -211,6 +250,9 @@ void ogl_shader_chain_destroy(void)
     if (feedback_texture)
         glDeleteTextures(1, &feedback_texture);
 
+    if (black_texture)
+        glDeleteTextures(1, &black_texture);
+
     if (pass_texture)
         glDeleteTextures(1, &pass_texture);
 
@@ -221,6 +263,7 @@ void ogl_shader_chain_destroy(void)
     feedback_fbo = 0;
     history_copy_fbo = 0;
     feedback_texture = 0;
+    black_texture = 0;
     pass_texture = 0;
     source_texture = 0;
     source_width = 1;
@@ -363,7 +406,8 @@ bool ogl_shader_chain_resize_intermediate_texture(int index, const OglShaderChai
 
 bool ogl_shader_chain_load_preset(const char* path)
 {
-    ShaderPreset new_preset;
+    static ShaderPreset new_preset;
+    static PresetProgramState new_programs[SHADER_PRESET_MAX_PASSES];
     char error[sizeof(last_error)];
 
     if (!shader_preset_load(path, &new_preset, error, sizeof(error)))
@@ -373,7 +417,6 @@ bool ogl_shader_chain_load_preset(const char* path)
         return false;
     }
 
-    PresetProgramState new_programs[SHADER_PRESET_MAX_PASSES];
     memset(new_programs, 0, sizeof(new_programs));
     if (!load_preset_programs(&new_preset, new_programs, error, sizeof(error)))
     {
@@ -390,8 +433,10 @@ bool ogl_shader_chain_load_preset(const char* path)
     preset_frame_count = 0;
     last_error[0] = '\0';
 
+    release_pass_feedback_textures();
+
     for (int i = 0; i < active_preset.pass_count; i++)
-        bind_preset_uniform_locations(&preset_programs[i]);
+        bind_preset_uniform_locations(i);
 
     release_intermediate_textures(active_preset.pass_count > 1 ? active_preset.pass_count - 1 : 0);
 
@@ -478,22 +523,6 @@ bool ogl_shader_chain_get_preset_pass_uses_history(int index)
     return active_preset.passes[index].history;
 }
 
-bool ogl_shader_chain_get_preset_pass_uses_history_sampler(int pass_index, int history_index)
-{
-    if (!preset_loaded || pass_index < 0 || pass_index >= active_preset.pass_count || history_index < 0 || history_index >= SHADER_PRESET_MAX_HISTORY_TEXTURES)
-        return false;
-
-    return preset_programs[pass_index].uses_source_history[history_index];
-}
-
-bool ogl_shader_chain_get_preset_pass_uses_pass_output_sampler(int pass_index, int output_index)
-{
-    if (!preset_loaded || pass_index < 0 || pass_index >= active_preset.pass_count || output_index < 0 || output_index >= SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES)
-        return false;
-
-    return preset_programs[pass_index].uses_pass_output[output_index];
-}
-
 bool ogl_shader_chain_preset_uses_feedback(void)
 {
     if (!preset_loaded)
@@ -558,13 +587,40 @@ bool ogl_shader_chain_restore_default_parameters(void)
     if (!preset_loaded || active_preset.parameter_count <= 0)
         return false;
 
-    for (int i = 0; i < active_preset.parameter_count; i++)
-    {
-        ShaderPresetParameter* parameter = &active_preset.parameters[i];
-        parameter->value = CLAMP(parameter->default_value, parameter->minimum, parameter->maximum);
-    }
-
+    shader_preset_apply_variant(&active_preset, active_preset.variant);
     return true;
+}
+
+int ogl_shader_chain_get_variant_count(void)
+{
+    return preset_loaded ? active_preset.variant_count : 0;
+}
+
+const char* ogl_shader_chain_get_variant_name(int index)
+{
+    if (!preset_loaded || index < 0 || index >= active_preset.variant_count)
+        return "";
+
+    return active_preset.variants[index].name;
+}
+
+int ogl_shader_chain_get_variant(void)
+{
+    return preset_loaded ? active_preset.variant : 0;
+}
+
+bool ogl_shader_chain_set_variant(int index)
+{
+    if (!preset_loaded || index < 0 || index >= active_preset.variant_count)
+        return false;
+
+    shader_preset_apply_variant(&active_preset, index);
+    return true;
+}
+
+int ogl_shader_chain_find_variant(const char* name)
+{
+    return preset_loaded ? shader_preset_find_variant(&active_preset, name) : -1;
 }
 
 void ogl_shader_chain_apply_preset_uniforms(int index, const OglShaderChainUniforms* uniforms)
@@ -594,7 +650,7 @@ void ogl_shader_chain_apply_preset_uniforms(int index, const OglShaderChainUnifo
     if (state->uniform_source_history_size >= 0)
         glUniform4f(state->uniform_source_history_size, (float)pass_history_widths[index], (float)pass_history_heights[index], safe_inverse(pass_history_widths[index]), safe_inverse(pass_history_heights[index]));
 
-    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
+    for (int i = 0; i < index; i++)
     {
         if (state->uniform_pass_output_size[i] >= 0)
             glUniform4f(state->uniform_pass_output_size[i], (float)intermediate_widths[i], (float)intermediate_heights[i], safe_inverse(intermediate_widths[i]), safe_inverse(intermediate_heights[i]));
@@ -623,6 +679,48 @@ void ogl_shader_chain_apply_preset_uniforms(int index, const OglShaderChainUnifo
 
     if (index == active_preset.pass_count - 1)
         preset_frame_count++;
+}
+
+void ogl_shader_chain_bind_preset_textures(int index, uint32_t input_texture)
+{
+    if (!preset_loaded || index < 0 || index >= active_preset.pass_count)
+        return;
+
+    const PresetProgramState* state = &preset_programs[index];
+    uint32_t fallback_texture = source_texture ? source_texture : input_texture;
+
+    for (int i = 0; i < state->texture_count; i++)
+    {
+        const PresetTextureBinding* binding = &state->textures[i];
+        uint32_t texture = 0;
+
+        switch (binding->kind)
+        {
+            case PresetTexture_Source:
+                texture = input_texture;
+                break;
+            case PresetTexture_Original:
+                texture = source_texture;
+                break;
+            case PresetTexture_Feedback:
+                texture = feedback_texture;
+                break;
+            case PresetTexture_SourceHistory:
+                texture = ogl_shader_chain_get_pass_history_texture(index, binding->index);
+                break;
+            case PresetTexture_PassOutput:
+                texture = intermediate_textures[binding->index];
+                break;
+            case PresetTexture_PassFeedback:
+                texture = pass_feedback_textures[binding->index] ? pass_feedback_textures[binding->index] : black_texture;
+                break;
+        }
+
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, texture ? texture : fallback_texture);
+    }
+
+    glActiveTexture(GL_TEXTURE0);
 }
 
 uint32_t ogl_shader_chain_get_source_texture(void)
@@ -678,29 +776,35 @@ bool ogl_shader_chain_store_pass_history(int index, uint32_t texture, int width,
         return false;
 
     int target = pass_history_write_indices[index];
-    uint32_t target_texture = pass_history_textures[index][target];
 
-    glBindFramebuffer(GL_FRAMEBUFFER, history_copy_fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-    glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-    if (!check_framebuffer_complete(framebuffer_name))
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    if (!copy_texture(texture, pass_history_textures[index][target], pass_history_widths[index], pass_history_heights[index]))
         return false;
-    }
-
-    glBindTexture(GL_TEXTURE_2D, target_texture);
-    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, pass_history_widths[index], pass_history_heights[index]);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     pass_history_write_indices[index] = (pass_history_write_indices[index] + 1) % SHADER_PRESET_MAX_HISTORY_TEXTURES;
     if (pass_history_counts[index] < SHADER_PRESET_MAX_HISTORY_TEXTURES)
         pass_history_counts[index]++;
 
     return true;
+}
+
+void ogl_shader_chain_store_pass_feedbacks(void)
+{
+    if (!initialized || !preset_loaded)
+        return;
+
+    for (int i = 0; i < active_preset.pass_count - 1; i++)
+    {
+        if (!pass_feedback_used[i] || !intermediate_textures[i])
+            continue;
+
+        if (!ensure_history_copy_framebuffer())
+            return;
+
+        if (!resize_pass_feedback_texture(i, intermediate_widths[i], intermediate_heights[i], intermediate_filter_linears[i], intermediate_float_framebuffers[i]))
+            continue;
+
+        copy_texture(intermediate_textures[i], pass_feedback_textures[i], pass_feedback_widths[i], pass_feedback_heights[i]);
+    }
 }
 
 uint32_t ogl_shader_chain_get_pass_history_texture(int pass_index, int history_index)
@@ -760,27 +864,47 @@ static bool load_preset_programs(const ShaderPreset* preset, PresetProgramState*
     return true;
 }
 
-static void bind_preset_uniform_locations(PresetProgramState* state)
+static void bind_preset_uniform_locations(int index)
 {
+    PresetProgramState* state = &preset_programs[index];
     uint32_t program = state->program;
-    state->uniform_source = glGetUniformLocation(program, "Source");
-    state->uniform_original = glGetUniformLocation(program, "Original");
-    state->uniform_feedback = glGetUniformLocation(program, "PassFeedback0");
+    char uniform_name[SHADER_PRESET_MAX_PARAMETER_NAME + 16];
+
+    glUseProgram(program);
+
+    state->texture_count = 0;
+    add_texture_binding(state, "Source", PresetTexture_Source, 0);
+    add_texture_binding(state, "Original", PresetTexture_Original, 0);
+    add_texture_binding(state, "PassFeedback0", PresetTexture_Feedback, 0);
 
     for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
     {
-        char uniform_name[32];
         snprintf(uniform_name, sizeof(uniform_name), "SourceHistory%d", i);
-        state->uniform_source_history[i] = glGetUniformLocation(program, uniform_name);
-        state->uses_source_history[i] = state->uniform_source_history[i] >= 0;
+        add_texture_binding(state, uniform_name, PresetTexture_SourceHistory, i);
     }
 
-    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
+    for (int i = 0; i < SHADER_PRESET_MAX_PASSES; i++)
+        state->uniform_pass_output_size[i] = -1;
+
+    for (int i = 0; i < index; i++)
     {
-        char uniform_name[32];
         snprintf(uniform_name, sizeof(uniform_name), "PassOutput%d", i);
-        state->uniform_pass_output[i] = glGetUniformLocation(program, uniform_name);
-        state->uses_pass_output[i] = state->uniform_pass_output[i] >= 0;
+        add_texture_binding(state, uniform_name, PresetTexture_PassOutput, i);
+
+        if (active_preset.passes[i].alias[0] != '\0')
+            add_texture_binding(state, active_preset.passes[i].alias, PresetTexture_PassOutput, i);
+
+        state->uniform_pass_output_size[i] = get_pass_output_size_location(program, i);
+    }
+
+    for (int i = 0; i < active_preset.pass_count - 1; i++)
+    {
+        if (active_preset.passes[i].alias[0] == '\0')
+            continue;
+
+        snprintf(uniform_name, sizeof(uniform_name), "%sFeedback", active_preset.passes[i].alias);
+        if (add_texture_binding(state, uniform_name, PresetTexture_PassFeedback, i))
+            pass_feedback_used[i] = true;
     }
 
     state->uniform_source_size = glGetUniformLocation(program, "SourceSize");
@@ -789,19 +913,6 @@ static void bind_preset_uniform_locations(PresetProgramState* state)
     state->uniform_final_viewport_size = glGetUniformLocation(program, "FinalViewportSize");
     state->uniform_feedback_size = glGetUniformLocation(program, "PassFeedback0Size");
     state->uniform_source_history_size = glGetUniformLocation(program, "SourceHistorySize");
-
-    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
-    {
-        char uniform_name[32];
-        snprintf(uniform_name, sizeof(uniform_name), "PassOutputSize%d", i);
-        state->uniform_pass_output_size[i] = glGetUniformLocation(program, uniform_name);
-        if (state->uniform_pass_output_size[i] < 0)
-        {
-            snprintf(uniform_name, sizeof(uniform_name), "PassOutput%dSize", i);
-            state->uniform_pass_output_size[i] = glGetUniformLocation(program, uniform_name);
-        }
-    }
-
     state->uniform_source_history_count = glGetUniformLocation(program, "SourceHistoryCount");
     state->uniform_frame_count = glGetUniformLocation(program, "FrameCount");
     state->uniform_frame_direction = glGetUniformLocation(program, "FrameDirection");
@@ -814,30 +925,52 @@ static void bind_preset_uniform_locations(PresetProgramState* state)
     for (int i = 0; i < active_preset.parameter_count; i++)
         state->uniform_parameters[i] = glGetUniformLocation(program, active_preset.parameters[i].name);
 
-    glUseProgram(program);
-
-    if (state->uniform_source >= 0)
-        glUniform1i(state->uniform_source, 0);
-
-    if (state->uniform_original >= 0)
-        glUniform1i(state->uniform_original, 1);
-
-    if (state->uniform_feedback >= 0)
-        glUniform1i(state->uniform_feedback, 2);
-
-    for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
-    {
-        if (state->uniform_source_history[i] >= 0)
-            glUniform1i(state->uniform_source_history[i], 3 + i);
-    }
-
-    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
-    {
-        if (state->uniform_pass_output[i] >= 0)
-            glUniform1i(state->uniform_pass_output[i], 3 + SHADER_PRESET_MAX_HISTORY_TEXTURES + i);
-    }
-
     glUseProgram(0);
+}
+
+static bool add_texture_binding(PresetProgramState* state, const char* name, PresetTextureKind kind, int index)
+{
+    int location = glGetUniformLocation(state->program, name);
+    if (location < 0)
+        return false;
+
+    if (state->texture_count >= OGL_SHADER_CHAIN_MAX_TEXTURE_UNITS)
+    {
+        Log("Shader preset sampler %s exceeds %d textures per pass", name, OGL_SHADER_CHAIN_MAX_TEXTURE_UNITS);
+        return false;
+    }
+
+    glUniform1i(location, state->texture_count);
+    state->textures[state->texture_count].kind = kind;
+    state->textures[state->texture_count].index = index;
+    state->texture_count++;
+    return true;
+}
+
+static int get_pass_output_size_location(uint32_t program, int index)
+{
+    char uniform_name[SHADER_PRESET_MAX_PARAMETER_NAME + 16];
+    int location = -1;
+
+    if (active_preset.passes[index].alias[0] != '\0')
+    {
+        snprintf(uniform_name, sizeof(uniform_name), "%sSize", active_preset.passes[index].alias);
+        location = glGetUniformLocation(program, uniform_name);
+    }
+
+    if (location < 0)
+    {
+        snprintf(uniform_name, sizeof(uniform_name), "PassOutputSize%d", index);
+        location = glGetUniformLocation(program, uniform_name);
+    }
+
+    if (location < 0)
+    {
+        snprintf(uniform_name, sizeof(uniform_name), "PassOutput%dSize", index);
+        location = glGetUniformLocation(program, uniform_name);
+    }
+
+    return location;
 }
 
 static void clear_preset_state(void)
@@ -847,6 +980,7 @@ static void clear_preset_state(void)
     preset_loaded = false;
     preset_frame_count = 0;
     release_intermediate_textures(0);
+    release_pass_feedback_textures();
     clear_all_pass_history_textures();
 }
 
@@ -1006,6 +1140,91 @@ static bool resize_pass_history_textures(int index, int width, int height, bool 
     }
 
     return true;
+}
+
+static void release_pass_feedback_textures(void)
+{
+    for (int i = 0; i < SHADER_PRESET_MAX_PASSES - 1; i++)
+    {
+        if (pass_feedback_textures[i])
+            glDeleteTextures(1, &pass_feedback_textures[i]);
+
+        pass_feedback_textures[i] = 0;
+        pass_feedback_widths[i] = 1;
+        pass_feedback_heights[i] = 1;
+        pass_feedback_filter_linears[i] = false;
+        pass_feedback_float_framebuffers[i] = false;
+        pass_feedback_used[i] = false;
+    }
+}
+
+static bool resize_pass_feedback_texture(int index, int width, int height, bool filter_linear, bool float_framebuffer)
+{
+    if (width < 1)
+        width = 1;
+    if (height < 1)
+        height = 1;
+
+    bool create = !pass_feedback_textures[index];
+
+    if (create)
+        glGenTextures(1, &pass_feedback_textures[index]);
+
+    if (!pass_feedback_textures[index])
+        return false;
+
+    bool same_size = pass_feedback_widths[index] == width && pass_feedback_heights[index] == height;
+
+    if (create || !same_size || pass_feedback_float_framebuffers[index] != float_framebuffer)
+    {
+        int internal_format = float_framebuffer ? GL_RGBA16F : GL_RGBA8;
+        uint32_t type = float_framebuffer ? GL_FLOAT : GL_UNSIGNED_BYTE;
+        resize_texture_2d(pass_feedback_textures[index], width, height, internal_format, GL_RGBA, type, NULL, filter_linear);
+        pass_feedback_widths[index] = width;
+        pass_feedback_heights[index] = height;
+        pass_feedback_filter_linears[index] = filter_linear;
+        pass_feedback_float_framebuffers[index] = float_framebuffer;
+        clear_texture(pass_feedback_textures[index], width, height);
+    }
+    else if (pass_feedback_filter_linears[index] != filter_linear)
+    {
+        glBindTexture(GL_TEXTURE_2D, pass_feedback_textures[index]);
+        configure_texture_2d(filter_linear);
+        pass_feedback_filter_linears[index] = filter_linear;
+    }
+
+    return true;
+}
+
+static bool copy_texture(uint32_t source, uint32_t target, int width, int height)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, history_copy_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, source, 0);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+    if (!check_framebuffer_complete(framebuffer_name))
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        return false;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, target);
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, width, height);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    return true;
+}
+
+static void clear_texture(uint32_t texture, int width, int height)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, history_copy_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+    glViewport(0, 0, width, height);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 static void set_last_error(const char* message)

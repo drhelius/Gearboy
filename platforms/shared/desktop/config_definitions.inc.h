@@ -500,14 +500,14 @@ static void migrate(int file_version)
 
 static void sync_shader_preset_parameter_defaults(void)
 {
-    ShaderPresetInfo presets[SHADER_PRESET_MAX_DISCOVERED];
-    int preset_count = shader_preset_scan_bundled(presets, SHADER_PRESET_MAX_DISCOVERED);
+    static ShaderPreset preset;
+    int preset_count = shader_preset_get_bundled_count();
 
     for (int i = 0; i < preset_count; i++)
     {
-        ShaderPreset preset;
+        const ShaderPresetInfo* info = shader_preset_get_bundled(i);
         char error[512];
-        if (!shader_preset_load(presets[i].path, &preset, error, sizeof(error)))
+        if (!info || !shader_preset_load(info->path, &preset, error, sizeof(error)))
             continue;
 
         char preset_file[SHADER_PRESET_MAX_PATH];
@@ -515,13 +515,29 @@ static void sync_shader_preset_parameter_defaults(void)
             continue;
 
         std::string section = shader_preset_section_name(preset_file);
+        int variant = preset.default_variant;
+
+        if (preset.variant_count > 0)
+        {
+            if (config_ini_data[section].has("Variant"))
+            {
+                int index = shader_preset_find_variant(&preset, config_ini_data[section]["Variant"].c_str());
+                if (index >= 0)
+                    variant = index;
+            }
+            else
+            {
+                write_string(section.c_str(), "Variant", preset.variants[variant].name);
+            }
+        }
+
         for (int j = 0; j < preset.parameter_count; j++)
         {
             ShaderPresetParameter* parameter = &preset.parameters[j];
             if (config_ini_data[section].has(parameter->name))
                 continue;
 
-            write_float(section.c_str(), parameter->name, parameter->default_value);
+            write_shader_float(section.c_str(), parameter->name, shader_preset_get_variant_value(&preset, variant, j));
         }
     }
 }

@@ -48,6 +48,8 @@ EXTERN void config_push_recent_media(const std::string& path);
 EXTERN void config_update_hotkey_string(config_Hotkey* hotkey);
 EXTERN bool config_read_shader_parameter(const char* preset_file, const char* parameter_name, float* value);
 EXTERN void config_write_shader_parameter(const char* preset_file, const char* parameter_name, float value);
+EXTERN bool config_read_shader_variant(const char* preset_file, std::string& variant);
+EXTERN void config_write_shader_variant(const char* preset_file, const char* variant);
 
 #undef CONFIG_IMPORT
 #undef EXTERN

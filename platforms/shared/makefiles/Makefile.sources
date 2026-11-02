@@ -25,6 +25,7 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/gui_filedialogs.cpp \
     $(DESKTOP_SRC_DIR)/gui_menus.cpp \
     $(DESKTOP_SRC_DIR)/gui_popups.cpp \
+    $(DESKTOP_SRC_DIR)/gui_shader.cpp \
     $(DESKTOP_SRC_DIR)/gui_actions.cpp \
     $(DESKTOP_SRC_DIR)/gui_notifications.cpp \
     $(DESKTOP_SRC_DIR)/ogl_renderer.cpp \

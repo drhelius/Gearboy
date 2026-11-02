@@ -28,11 +28,11 @@
 #define SHADER_PRESET_MAX_PATH 1024
 #define SHADER_PRESET_MAX_NAME 128
 #define SHADER_PRESET_MAX_PARAMETER_NAME 64
-#define SHADER_PRESET_MAX_PARAMETERS 32
-#define SHADER_PRESET_MAX_DISCOVERED 32
-#define SHADER_PRESET_MAX_PASSES 8
+#define SHADER_PRESET_MAX_PARAMETERS 256
+#define SHADER_PRESET_MAX_VARIANTS 16
+#define SHADER_PRESET_MAX_DISCOVERED 64
+#define SHADER_PRESET_MAX_PASSES 32
 #define SHADER_PRESET_MAX_HISTORY_TEXTURES 8
-#define SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES 4
 
 enum ShaderPresetScaleType
 {
@@ -52,6 +52,7 @@ struct ShaderPresetParameter
 {
     char name[SHADER_PRESET_MAX_PARAMETER_NAME];
     char label[SHADER_PRESET_MAX_NAME];
+    char group[SHADER_PRESET_MAX_NAME];
     float value;
     float default_value;
     float minimum;
@@ -62,6 +63,7 @@ struct ShaderPresetParameter
 struct ShaderPresetPass
 {
     char shader_path[SHADER_PRESET_MAX_PATH];
+    char alias[SHADER_PRESET_MAX_PARAMETER_NAME];
     bool filter_linear;
     bool feedback;
     bool history;
@@ -74,9 +76,18 @@ struct ShaderPresetPass
     int absolute_height;
 };
 
+struct ShaderPresetVariant
+{
+    char name[SHADER_PRESET_MAX_PARAMETER_NAME];
+    int value_count;
+    int parameter_indices[SHADER_PRESET_MAX_PARAMETERS];
+    float values[SHADER_PRESET_MAX_PARAMETERS];
+};
+
 struct ShaderPreset
 {
     char name[SHADER_PRESET_MAX_NAME];
+    char group[SHADER_PRESET_MAX_NAME];
     char preset_path[SHADER_PRESET_MAX_PATH];
     char preset_dir[SHADER_PRESET_MAX_PATH];
     char shader_path[SHADER_PRESET_MAX_PATH];
@@ -86,12 +97,19 @@ struct ShaderPreset
     ShaderPresetPass passes[SHADER_PRESET_MAX_PASSES];
     int parameter_count;
     ShaderPresetParameter parameters[SHADER_PRESET_MAX_PARAMETERS];
+    int variant_count;
+    int default_variant;
+    int variant;
+    ShaderPresetVariant variants[SHADER_PRESET_MAX_VARIANTS];
 };
 
 struct ShaderPresetInfo
 {
     char name[SHADER_PRESET_MAX_NAME];
+    char group[SHADER_PRESET_MAX_NAME];
     char path[SHADER_PRESET_MAX_PATH];
+    int variant_count;
+    char variants[SHADER_PRESET_MAX_VARIANTS][SHADER_PRESET_MAX_PARAMETER_NAME];
 };
 
 #ifdef SHADER_PRESET_IMPORT
@@ -103,7 +121,11 @@ struct ShaderPresetInfo
 EXTERN bool shader_preset_load(const char* path, ShaderPreset* preset, char* error, size_t error_size);
 EXTERN bool shader_preset_read_text_file(const char* path, std::string& text, char* error, size_t error_size);
 EXTERN bool shader_preset_get_resource_root(char* path, size_t path_size);
-EXTERN int shader_preset_scan_bundled(ShaderPresetInfo* presets, int max_presets);
+EXTERN int shader_preset_get_bundled_count(void);
+EXTERN const ShaderPresetInfo* shader_preset_get_bundled(int index);
+EXTERN void shader_preset_apply_variant(ShaderPreset* preset, int variant);
+EXTERN float shader_preset_get_variant_value(const ShaderPreset* preset, int variant, int parameter);
+EXTERN int shader_preset_find_variant(const ShaderPreset* preset, const char* name);
 EXTERN bool shader_preset_path_exists(const char* path);
 EXTERN bool shader_preset_is_preset_path(const char* path);
 EXTERN bool shader_preset_get_config_path(const char* preset_path, char* config_path, size_t config_path_size);

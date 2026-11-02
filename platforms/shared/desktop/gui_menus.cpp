@@ -25,6 +25,7 @@
 #include "gui_popups.h"
 #include "gui_actions.h"
 #include "gui_notifications.h"
+#include "gui_shader.h"
 #include "gui_colors.h"
 #include "gui_debug_widgets.h"
 #include "config.h"
@@ -66,18 +67,10 @@ static const GuiColor& service_mcp_http_color = green;
 static const GuiColor& service_mcp_stdio_color = amber;
 static const GuiColor& video_recording_color = red;
 static const GuiColor& vgm_recording_color = red;
-static ShaderPresetInfo shader_presets[SHADER_PRESET_MAX_DISCOVERED];
-static int shader_preset_count = 0;
 
 static void menu_gearboy(void);
 static void menu_emulator(void);
 static void menu_video(void);
-static void menu_shader(void);
-static void draw_shader_parameters(void);
-static void draw_shader_parameter_tooltip(void);
-static bool shader_parameter_is_toggle(const ShaderPresetParameter* parameter);
-static bool shader_parameter_is_integer(const ShaderPresetParameter* parameter);
-static int shader_parameter_round_to_int(float value);
 static void menu_input(void);
 static void menu_audio(void);
 static void menu_link_cable(void);
@@ -123,7 +116,6 @@ void gui_init_menus(void)
 {
     gui_shortcut_open_rom = false;
     gui_shortcut_scan_barcode = false;
-    shader_preset_count = shader_preset_scan_bundled(shader_presets, SHADER_PRESET_MAX_DISCOVERED);
 
     for (int p = 0; p < config_max_custom_palettes; p++)
     {
@@ -916,7 +908,7 @@ static void menu_video(void)
             emu_color_correction(config_video.color_correction);
         }
 
-        menu_shader();
+        gui_shader_menu();
 
         ImGui::Separator();
 
@@ -1009,179 +1001,6 @@ static void draw_background_color_menu(const char* label, int theme)
         ImGui::PopID();
         ImGui::EndMenu();
     }
-}
-
-static void menu_shader(void)
-{
-    if (!ImGui::BeginMenu("Shader"))
-        return;
-
-    bool has_preset = ogl_shader_chain_has_preset();
-    int selected_index = 0;
-
-    if (has_preset && config_video.shader_mode == config_ShaderMode_External)
-    {
-        for (int i = 0; i < shader_preset_count; i++)
-        {
-            if (shader_preset_config_path_matches(config_video.shader_preset_path.c_str(), shader_presets[i].path))
-            {
-                selected_index = i + 1;
-                break;
-            }
-        }
-    }
-
-    const char* preview = selected_index == 0 ? "Pixel Perfect" : shader_presets[selected_index - 1].name;
-    ImGui::PushItemWidth(240.0f);
-    if (ImGui::BeginCombo("##ShaderPreset", preview))
-    {
-        bool selected = selected_index == 0;
-        if (ImGui::Selectable("Pixel Perfect", selected))
-        {
-            if (selected_index != 0)
-            {
-                ogl_renderer_unload_shader_preset();
-                gui_notify(gui_NotificationInfo, ICON_MD_TUNE, "Shader preset loaded", "Pixel Perfect", "shader");
-            }
-        }
-        if (selected)
-            ImGui::SetItemDefaultFocus();
-
-        for (int i = 0; i < shader_preset_count; i++)
-        {
-            selected = selected_index == i + 1;
-            if (ImGui::Selectable(shader_presets[i].name, selected))
-            {
-                if (selected_index != i + 1)
-                {
-                    if (ogl_renderer_load_shader_preset(shader_presets[i].path))
-                    {
-                        gui_notify(gui_NotificationInfo, ICON_MD_TUNE, "Shader preset loaded",
-                            ogl_shader_chain_get_preset_name(), "shader");
-                    }
-                    else
-                    {
-                        gui_notify(gui_NotificationError, NULL, "Unable to load shader preset",
-                            ogl_shader_chain_get_last_error(), "shader");
-                    }
-                }
-            }
-            if (selected)
-                ImGui::SetItemDefaultFocus();
-        }
-        ImGui::EndCombo();
-    }
-    ImGui::PopItemWidth();
-
-    has_preset = ogl_shader_chain_has_preset();
-
-    if (has_preset && ogl_shader_chain_get_parameter_count() > 0)
-    {
-        if (ImGui::BeginMenu("Parameters"))
-        {
-            draw_shader_parameters();
-            ImGui::EndMenu();
-        }
-    }
-    else if (ogl_shader_chain_get_last_error()[0] != '\0')
-    {
-        ImGui::Separator();
-        ImGui::TextColored(red, "%s", ogl_shader_chain_get_last_error());
-    }
-
-    ImGui::EndMenu();
-}
-
-static void draw_shader_parameters(void)
-{
-    int count = ogl_shader_chain_get_parameter_count();
-    if (count <= 0)
-        return;
-
-    const float parameter_width = 220.0f;
-
-    if (ImGui::Button("Restore Defaults", ImVec2(parameter_width, 0.0f)))
-    {
-        if (ogl_shader_chain_restore_default_parameters())
-        {
-            ogl_renderer_save_shader_parameter_config();
-            gui_notify(gui_NotificationSuccess, ICON_MD_TUNE, "Shader parameters restored");
-        }
-    }
-
-    ImGui::PushItemWidth(parameter_width);
-
-    for (int i = 0; i < count; i++)
-    {
-        const ShaderPresetParameter* parameter = ogl_shader_chain_get_parameter(i);
-        if (!parameter)
-            continue;
-
-        float value = parameter->value;
-        char label[160];
-        snprintf(label, sizeof(label), "%s##shader_parameter_%d", parameter->label[0] != '\0' ? parameter->label : parameter->name, i);
-
-        if (shader_parameter_is_toggle(parameter))
-        {
-            bool enabled = value >= 0.5f;
-            if (ImGui::Checkbox(label, &enabled))
-            {
-                ogl_shader_chain_set_parameter(i, enabled ? 1.0f : 0.0f);
-                ogl_renderer_save_shader_parameter_config();
-            }
-            continue;
-        }
-
-        if (shader_parameter_is_integer(parameter))
-        {
-            int int_value = shader_parameter_round_to_int(value);
-            int min_value = shader_parameter_round_to_int(parameter->minimum);
-            int max_value = shader_parameter_round_to_int(parameter->maximum);
-            if (ImGui::SliderInt(label, &int_value, min_value, max_value))
-            {
-                ogl_shader_chain_set_parameter(i, (float)int_value);
-                ogl_renderer_save_shader_parameter_config();
-            }
-            draw_shader_parameter_tooltip();
-            continue;
-        }
-
-        if (ImGui::SliderFloat(label, &value, parameter->minimum, parameter->maximum, "%.3f"))
-        {
-            ogl_shader_chain_set_parameter(i, value);
-            ogl_renderer_save_shader_parameter_config();
-        }
-        draw_shader_parameter_tooltip();
-    }
-
-    ImGui::PopItemWidth();
-}
-
-static void draw_shader_parameter_tooltip(void)
-{
-    if (ImGui::IsItemHovered() && !ImGui::IsItemActive())
-    {
-#if defined(__APPLE__)
-        ImGui::SetTooltip("Cmd+Click to enter a value");
-#else
-        ImGui::SetTooltip("Ctrl+Click to enter a value");
-#endif
-    }
-}
-
-static bool shader_parameter_is_toggle(const ShaderPresetParameter* parameter)
-{
-    return parameter && parameter->minimum == 0.0f && parameter->maximum == 1.0f && parameter->step >= 1.0f;
-}
-
-static bool shader_parameter_is_integer(const ShaderPresetParameter* parameter)
-{
-    return parameter && parameter->step >= 1.0f;
-}
-
-static int shader_parameter_round_to_int(float value)
-{
-    return value >= 0.0f ? (int)(value + 0.5f) : (int)(value - 0.5f);
 }
 
 static void menu_input(void)

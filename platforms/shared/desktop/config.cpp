@@ -74,6 +74,7 @@ static void write_float(const char* group, const char* key, float value);
 static bool read_bool(const char* group, const char* key, bool default_value);
 static void write_bool(const char* group, const char* key, bool boolean);
 static void write_string(const char* group, const char* key, const std::string& value);
+static void write_shader_float(const char* group, const char* key, float value);
 static std::string shader_preset_section_name(const char* preset_file);
 
 #include "config_definitions.inc.h"
@@ -606,6 +607,16 @@ static void write_string(const char* group, const char* key, const std::string& 
     Debug("Save string setting: [%s][%s]=%s", group, key, value.c_str());
 }
 
+static void write_shader_float(const char* group, const char* key, float value)
+{
+    std::ostringstream oss;
+    oss.imbue(std::locale::classic());
+    oss << std::setprecision(6) << value;
+    std::string value_str = oss.str();
+    config_ini_data[group][key] = value_str;
+    Debug("Save float setting: [%s][%s]=%s", group, key, value_str.c_str());
+}
+
 static std::string shader_preset_section_name(const char* preset_file)
 {
     return std::string("ShaderPreset.") + get_filename(preset_file);
@@ -633,7 +644,37 @@ void config_write_shader_parameter(const char* preset_file, const char* paramete
         return;
 
     std::string section = shader_preset_section_name(preset_file);
-    write_float(section.c_str(), parameter_name, value);
+    write_shader_float(section.c_str(), parameter_name, value);
+}
+
+bool config_read_shader_variant(const char* preset_file, std::string& variant)
+{
+    variant.clear();
+
+    if (!preset_file || preset_file[0] == '\0')
+        return false;
+
+    std::string section = shader_preset_section_name(preset_file);
+
+    if (!config_ini_data.has(section))
+        return false;
+
+    mINI::INIMap<std::string> parameters = config_ini_data.get(section);
+
+    if (!parameters.has("Variant"))
+        return false;
+
+    variant = parameters.get("Variant");
+    return !variant.empty();
+}
+
+void config_write_shader_variant(const char* preset_file, const char* variant)
+{
+    if (!preset_file || preset_file[0] == '\0' || !variant)
+        return;
+
+    std::string section = shader_preset_section_name(preset_file);
+    write_string(section.c_str(), "Variant", variant);
 }
 
 void config_update_hotkey_string(config_Hotkey* hotkey)

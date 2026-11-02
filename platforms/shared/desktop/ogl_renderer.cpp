@@ -71,7 +71,6 @@ static bool render_internal_shader_chain(void);
 static bool render_external_shader_chain(void);
 static void render_internal_shader_chain_feedback(void);
 static void record_video_frame(bool shader_rendered);
-static void bind_texture_unit(int unit, uint32_t texture, uint32_t fallback_texture);
 static void render_quad(uint32_t program, uint32_t texture, int viewport_width, int viewport_height, float tex_h, float tex_v, float red, float green, float blue, float alpha);
 static void render_quad_preset(int pass_index, uint32_t program, uint32_t texture, int input_width, int input_height, int viewport_width, int viewport_height);
 static void apply_shader_source_palette(void);
@@ -310,6 +309,9 @@ void ogl_renderer_save_shader_parameter_config(void)
 
     int count = ogl_shader_chain_get_parameter_count();
 
+    if (ogl_shader_chain_get_variant_count() > 0)
+        config_write_shader_variant(preset_file, ogl_shader_chain_get_variant_name(ogl_shader_chain_get_variant()));
+
     for (int i = 0; i < count; i++)
     {
         const ShaderPresetParameter* parameter = ogl_shader_chain_get_parameter(i);
@@ -477,6 +479,7 @@ static bool render_external_shader_chain(void)
         input_float_framebuffer = framebuffer_texture.float_framebuffer;
     }
 
+    ogl_shader_chain_store_pass_feedbacks();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -624,28 +627,7 @@ static void render_quad(uint32_t program, uint32_t texture, int viewport_width, 
 
 static void render_quad_preset(int pass_index, uint32_t program, uint32_t texture, int input_width, int input_height, int viewport_width, int viewport_height)
 {
-    uint32_t source_texture = ogl_shader_chain_get_source_texture();
-    uint32_t fallback_texture = source_texture ? source_texture : texture;
-
-    bind_texture_unit(0, texture, fallback_texture);
-    bind_texture_unit(1, source_texture, fallback_texture);
-    bind_texture_unit(2, ogl_shader_chain_get_feedback_texture(), fallback_texture);
-
-    for (int i = 0; i < SHADER_PRESET_MAX_HISTORY_TEXTURES; i++)
-    {
-        if (!ogl_shader_chain_get_preset_pass_uses_history_sampler(pass_index, i))
-            continue;
-
-        bind_texture_unit(3 + i, ogl_shader_chain_get_pass_history_texture(pass_index, i), fallback_texture);
-    }
-
-    for (int i = 0; i < SHADER_PRESET_MAX_PASS_OUTPUT_TEXTURES; i++)
-    {
-        if (!ogl_shader_chain_get_preset_pass_uses_pass_output_sampler(pass_index, i))
-            continue;
-
-        bind_texture_unit(3 + SHADER_PRESET_MAX_HISTORY_TEXTURES + i, (i < pass_index) ? ogl_shader_chain_get_intermediate_texture(i) : 0, fallback_texture);
-    }
+    ogl_shader_chain_bind_preset_textures(pass_index, texture);
 
     glUseProgram(program);
     OglShaderChainUniforms uniforms;
@@ -672,12 +654,6 @@ static void render_quad_preset(int pass_index, uint32_t program, uint32_t textur
     glUseProgram(0);
 
     glActiveTexture(GL_TEXTURE0);
-}
-
-static void bind_texture_unit(int unit, uint32_t texture, uint32_t fallback_texture)
-{
-    glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, texture ? texture : fallback_texture);
 }
 
 static void apply_shader_source_palette(void)
@@ -771,6 +747,14 @@ static void apply_shader_parameter_config(void)
         return;
 
     int parameter_count = ogl_shader_chain_get_parameter_count();
+    std::string variant;
+
+    if (config_read_shader_variant(preset_file, variant))
+    {
+        int index = ogl_shader_chain_find_variant(variant.c_str());
+        if (index >= 0)
+            ogl_shader_chain_set_variant(index);
+    }
 
     for (int i = 0; i < parameter_count; i++)
     {
