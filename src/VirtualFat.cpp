@@ -179,6 +179,7 @@ void VirtualFat::Close()
     m_owners.clear();
     m_fat.clear();
     m_sectors.clear();
+    m_dirty.clear();
 }
 
 bool VirtualFat::Open(const char* root)
@@ -604,9 +605,12 @@ void VirtualFat::WriteSector(u32 lba, const u8* data)
     m_sectors[lba].assign(data, data + 512);
     if (lba >= m_data_start)
     {
-        int dir = DirOf(2 + (lba - m_data_start) / k_cluster_sectors);
+        u32 cluster = 2 + (lba - m_data_start) / k_cluster_sectors;
+        int dir = DirOf(cluster);
         if (dir >= 0)
             Sync(dir);
+        else
+            m_dirty.insert(cluster); // written to the host when its folder entry is
     }
 }
 
@@ -635,6 +639,19 @@ bool VirtualFat::ReadChain(u32 first, u32 size, bool whole_clusters, std::vector
         return false;
     out.resize(size);
     return true;
+}
+
+// true if any of the file's clusters were written since it was last written to the host, forgets them
+bool VirtualFat::TakeDirty(u32 first, u32 size)
+{
+    bool dirty = false;
+    u32 cluster = first;
+    for (u32 left = size; left && !m_dirty.empty() && cluster >= 2 && cluster < m_clusters + 2; cluster = FatEntry(cluster))
+    {
+        dirty |= m_dirty.erase(cluster) != 0;
+        left = left > k_cluster_sectors * 512 ? left - k_cluster_sectors * 512 : 0;
+    }
+    return dirty;
 }
 
 // folder whose chain has cluster, -1 if none
@@ -752,8 +769,8 @@ void VirtualFat::Sync(int index)
             continue;
         }
         Node& node = m_nodes[child];
-        if (first == node.first && size == node.size)
-            continue;
+        if (first == node.first && size == node.size && !TakeDirty(first, size))
+            continue; // same chain and size, and none of it rewritten
         if (!size && node.size)
             continue; // FatFs empties a file before writing it again, wait for the new size
         if (WriteHostFile(node.path, first, size))

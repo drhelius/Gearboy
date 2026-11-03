@@ -79,6 +79,7 @@ private:
     u32 FatEntry(u32 cluster);
     void ReadData(u32 cluster, u32 sector, u8* data);
     bool ReadChain(u32 first, u32 size, bool whole_clusters, std::vector<u8>& out);
+    bool TakeDirty(u32 first, u32 size);
     int DirOf(u32 cluster);
     void Sync(int node);
     bool WriteHostFile(const std::string& path, u32 first, u32 size);
@@ -94,6 +95,7 @@ private:
     std::map<u32, Owner> m_owners; // first cluster of each run
     std::map<u32, u32> m_fat; // FAT entries the Game Boy changed
     std::map<u32, std::vector<u8> > m_sectors; // sectors the Game Boy wrote
+    std::set<u32> m_dirty; // file clusters the Game Boy wrote, not written to the host yet
 };
 
 #endif // VIRTUAL_FAT_H
