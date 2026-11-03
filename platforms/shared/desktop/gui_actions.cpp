@@ -95,6 +95,8 @@ void gui_action_reset(void)
             { emu_frame_buffer[i].red = 0; emu_frame_buffer[i].green = 0; emu_frame_buffer[i].blue = 0; }
         }
     }
+    else if (config_debug.debug)
+        emu_debug_continue(); // the debugger stops on reset, run unless Start Paused is checked
 }
 
 void gui_action_reload_rom(void)

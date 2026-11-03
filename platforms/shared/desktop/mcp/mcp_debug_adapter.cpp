@@ -1579,6 +1579,8 @@ json DebugAdapter::FinishLoadMedia(const std::string& file_path)
         return result;
     }
 
+    emu_debug_state_restored(); // MCP loads stay stopped (even without Start Paused) so tools can set breakpoints first
+
     if (!m_core || !m_core->GetCartridge()->IsLoadedROM())
     {
         result["error"] = "Failed to load media file";
