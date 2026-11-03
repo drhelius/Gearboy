@@ -783,6 +783,8 @@ static bool finish_loading_rom(void)
             emu_frame_buffer[i].blue = 0;
         }
     }
+    else if (config_debug.debug && !emu_is_empty())
+        emu_debug_continue(); // the debugger stops on load, run unless Start Paused is checked
 
     if (!emu_is_empty())
     {
