@@ -2,6 +2,9 @@
 //  PS2Keyboard.h
 //  by Nolan Baker (Q*Bert Reynolds)
 //
+//  On by default (the Input menu toggles it), GEARBOY_PS2=0 starts with it off.
+//  Host keys are sent while Caps Lock is on.
+//
 
 #ifndef PS2_KEYBOARD_H
 #define PS2_KEYBOARD_H

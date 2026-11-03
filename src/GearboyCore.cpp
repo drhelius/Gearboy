@@ -18,6 +18,7 @@
  */
 
 #include <math.h>
+#include <stdlib.h>
 #include "GearboyCore.h"
 #include "Memory.h"
 #include "Processor.h"
@@ -120,7 +121,8 @@ GearboyCore::GearboyCore()
     m_pBarcodeBoy = NULL;
     m_pPS2Keyboard = NULL;
     m_BarcodeBoyMode = GB_BarcodeBoyMode_Auto;
-    m_bPS2KeyboardEnabled = false;
+    const char* ps2_env = getenv("GEARBOY_PS2");
+    m_bPS2KeyboardEnabled = !(ps2_env && ps2_env[0] == '0'); // on by default like the EverDrive SD card, GEARBOY_PS2=0 starts with it off
     memset(&m_LinkCableCallbacks, 0, sizeof(m_LinkCableCallbacks));
 }
 
