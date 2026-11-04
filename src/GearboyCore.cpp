@@ -56,6 +56,8 @@
 #include "VF001MemoryRule.h"
 #include "SintaxMemoryRule.h"
 #include "EverdriveOSMemoryRule.h"
+#include <sstream>
+#include <vector>
 #include "NTOldMemoryRule.h"
 #include "TraceLogger.h"
 #include "Profiler.h"
@@ -301,6 +303,9 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
 #endif
     }
 
+    if (m_pEverdriveOSMemoryRule->LaunchRequested())
+        LaunchEverdriveGame();
+
     return breakpoint_result;
 }
 
@@ -343,6 +348,28 @@ bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG,
     }
     else
         return false;
+}
+
+// EverDrive X OS mode wrote $BD07: the cart resets the Game Boy into the game it loaded into PSRAM, with
+// the save RAM as the game's RAM (the boot ROM runs, so DMG games get DMG mode on a GBC)
+void GearboyCore::LaunchEverdriveGame()
+{
+    std::vector<u8> rom, save;
+    m_pEverdriveOSMemoryRule->TakeLaunch(rom, save);
+    if (!LoadROMFromBuffer(rom.data(), (int)rom.size(), false))
+    {
+        Log("EverdriveOS: the launched game didn't load");
+        return;
+    }
+    MemoryRule* rule = m_pMemory->GetCurrentRule();
+    size_t ram = rule ? rule->GetRamSize() : 0;
+    if (ram && ram <= save.size())
+    {
+        std::string bytes(reinterpret_cast<const char*>(save.data()), ram);
+        std::istringstream stream(bytes);
+        rule->LoadRam(stream, (s32)ram);
+    }
+    Log("EverdriveOS: launched %d KB, %d KB RAM", (int)(rom.size() >> 10), (int)(ram >> 10));
 }
 
 bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType, bool forceGBA)

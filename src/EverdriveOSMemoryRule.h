@@ -8,10 +8,11 @@
 //      $A000-$BFFF shows page $BD08 (4 bits)
 //    - after writing $A5 to $BD0A, $BD00-$BD0F are registers: $BD00/$BD01 SPI (EverdriveX),
 //      $BD02/$BD03 the 512 byte block shown at $BE00-$BFFF, $BD06 bit 1 picks save RAM (set)
-//      or PSRAM (clear) for that window, $BD07 mapper (a game launch, not emulated yet),
+//      or PSRAM (clear) for that window, $BD07 mapper (a game launch: the cart resets the Game Boy
+//      into the game in PSRAM from block 0 with $BD06 = $08, see GearboyCore::LaunchEverdriveGame),
 //      $BD08 page. Locked, they read 0
-//    - GBCOS.BIN has to be 128KB. Whether the image is PSRAM blocks 0-255 (games load at block 0)
-//      or separate memory isn't known yet, it's emulated as PSRAM blocks 0-255
+//    - GBCOS.BIN has to be 128KB. The image is separate from PSRAM (the EverDrive's OS loads games
+//      at PSRAM block 0 while it runs)
 //
 
 #ifndef EVERDRIVEOSMEMORYRULE_H
@@ -19,6 +20,7 @@
 
 #include "MemoryRule.h"
 #include "EverdriveX.h"
+#include <vector>
 
 class EverdriveOSMemoryRule : public MemoryRule
 {
@@ -45,6 +47,8 @@ public:
     virtual void SaveState(std::ostream& stream);
     virtual void LoadState(std::istream& stream, u32 version = GB_SAVESTATE_VERSION);
     void SetEverdriveEnabled(bool enabled);
+    bool LaunchRequested();
+    void TakeLaunch(std::vector<u8>& rom, std::vector<u8>& save);
     void SetEverdriveFolder(const char* folder);
 
 private:
@@ -52,10 +56,13 @@ private:
     u8 RegisterRead(u16 address);
 
 private:
-    u8* m_pPSRAM; // the image is its first 128KB
+    u8* m_pOS; // the 128KB image
+    u8* m_pPSRAM;
+    bool m_bLaunch;
     u8* m_pSave;
     bool m_bUnlocked;
     u8 m_Block[2];
+    u8 m_Masks[2]; // $BD04 ROM, $BD05 save RAM bank masks for a launched game
     u8 m_Config; // $BD06
     u8 m_Mapper; // $BD07
     u8 m_Page; // $BD08
