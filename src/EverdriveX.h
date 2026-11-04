@@ -41,6 +41,7 @@ private:
     void ReceiveCommandByte(u8 mosi);
     void ReceiveWriteByte(u8 mosi);
     void RunCommand();
+    void QueueBlock();
     void Respond(const u8* bytes, int count);
     bool OpenCard();
     void CloseCard();
@@ -65,6 +66,8 @@ private:
     u8 m_response[600];
     int m_response_length;
     int m_response_pos;
+    bool m_multi_read; // READ_MULTIPLE_BLOCK is streaming m_multi_sector on
+    u32 m_multi_sector;
     u8 m_sector[512];
     int m_write_pos;
     u32 m_write_sector;

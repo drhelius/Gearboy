@@ -34,6 +34,7 @@ void EverdriveX::Reset(const char* rom_directory)
     m_app_cmd = false;
     m_cmd_length = 0;
     m_response_length = 0;
+    m_multi_read = false;
     m_response_pos = 0;
     m_write_pos = 0;
     m_write_sector = 0;
@@ -142,6 +143,7 @@ bool EverdriveX::Write(u16 address, u8 value)
                 // deselected, drop anything left over
                 m_cmd_length = 0;
                 m_response_length = 0;
+                m_multi_read = false;
                 m_response_pos = 0;
             }
             m_ctrl = value & 0x7F;
@@ -157,6 +159,8 @@ u8 EverdriveX::Exchange(u8 mosi)
 
     if (!(m_ctrl & k_ctrl_ss))
     {
+        if (m_multi_read && m_response_pos >= m_response_length)
+            QueueBlock();
         if (m_response_pos < m_response_length)
             miso = m_response[m_response_pos++];
 
@@ -191,6 +195,27 @@ void EverdriveX::Respond(const u8* bytes, int count)
     m_response_pos = 0;
 }
 
+// the next block of a READ_MULTIPLE_BLOCK: a gap, the data token, the sector, its CRC
+void EverdriveX::QueueBlock()
+{
+    m_response[0] = 0xFF;
+    m_response[1] = 0xFE;
+    memset(m_response + 2, 0, 512);
+    if (m_fat.IsOpen())
+        m_fat.ReadSector(m_multi_sector, m_response + 2);
+    else
+    {
+        fseek(m_image, (long)m_multi_sector * 512, SEEK_SET);
+        if (fread(m_response + 2, 1, 512, m_image) < 512)
+            clearerr(m_image);
+    }
+    m_response[514] = 0xFF;
+    m_response[515] = 0xFF;
+    m_response_length = 516;
+    m_response_pos = 0;
+    m_multi_sector++;
+}
+
 void EverdriveX::RunCommand()
 {
     u8 index = m_cmd[0] & 0x3F;
@@ -219,7 +244,22 @@ void EverdriveX::RunCommand()
             r[4] = arg & 0xFF;
             Respond(r, 5);
             break;
-        case 12: // STOP_TRANSMISSION
+        case 12: // STOP_TRANSMISSION (a stuff byte, then R1)
+            m_multi_read = false;
+            r[0] = 0x00;
+            Respond(r, 1);
+            break;
+        case 18: // READ_MULTIPLE_BLOCK, blocks follow R1 until STOP_TRANSMISSION
+            if (!OpenCard())
+            {
+                r[0] |= 0x20;
+                Respond(r, 1);
+                break;
+            }
+            m_multi_read = true;
+            m_multi_sector = arg;
+            Respond(r, 1);
+            break;
         case 16: // SET_BLOCKLEN
             Respond(r, 1);
             break;
