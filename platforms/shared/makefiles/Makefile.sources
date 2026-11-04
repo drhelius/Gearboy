@@ -64,6 +64,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/BarcodeBoy.cpp \
     $(SRC_DIR)/PS2Keyboard.cpp \
     $(SRC_DIR)/EverdriveX.cpp \
+    $(SRC_DIR)/EverdriveOSMemoryRule.cpp \
     $(SRC_DIR)/VirtualFat.cpp \
     $(SRC_DIR)/CommonMemoryRule.cpp \
     $(SRC_DIR)/GearboyCore.cpp \

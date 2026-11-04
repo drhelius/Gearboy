@@ -65,6 +65,7 @@ class GGB81MemoryRule;
 class HitekMemoryRule;
 class VF001MemoryRule;
 class SintaxMemoryRule;
+class EverdriveOSMemoryRule;
 class NTOldMemoryRule;
 class MemoryRule;
 class TraceLogger;
@@ -211,6 +212,7 @@ private:
     HitekMemoryRule* m_pHitekMemoryRule;
     VF001MemoryRule* m_pVF001MemoryRule;
     SintaxMemoryRule* m_pSintaxMemoryRule;
+    EverdriveOSMemoryRule* m_pEverdriveOSMemoryRule;
     NTOldMemoryRule* m_pNTOldMemoryRule;
     bool m_bCGB;
     bool m_bGBA;

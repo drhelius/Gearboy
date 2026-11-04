@@ -110,7 +110,7 @@ bool EverdriveX::Read(u16 address, u8* value)
                 Exchange(0xFF);
             return true;
         case k_reg_spi_ctrl:
-            *value = m_ctrl & 0x7F; // transfers finish instantly, never busy
+            *value = m_ctrl & 0x0F; // only bits 0-3 read back (X7), transfers finish instantly, never busy
             return true;
         default:
             return false;

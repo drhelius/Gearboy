@@ -662,11 +662,20 @@ bool Cartridge::GatherMetadata(u32 crc)
         m_Type = CartridgeWisdomTree;
     else if (IsLiChengCartridge())
         m_Type = CartridgeLiCheng;
+    else if (!strcmp(name, "GBXOS") && !memcmp(m_pTheROM + 0x13F, "KRKZ", 4))
+        m_Type = CartridgeEverdriveOS; // /GBCSYS/GBCOS.BIN, runs in the EverDrive X's OS mode
 
-    GetInfoFromDB(crc);
+    if (m_Type != CartridgeEverdriveOS)
+        GetInfoFromDB(crc);
 
     switch (m_Type)
     {
+        case CartridgeEverdriveOS:
+            m_bBattery = true; // the cart's save RAM
+            m_bRTCPresent = false;
+            m_bRumblePresent = false;
+            m_iRAMSize = 0x04;
+            break;
         case CartridgeM161:
         case CartridgeMMM01:
         case CartridgeSachenMMC1:
@@ -886,6 +895,9 @@ bool Cartridge::GatherMetadata(u32 crc)
             break;
         case Cartridge::CartridgeSintax:
             Log("Sintax found");
+            break;
+        case Cartridge::CartridgeEverdriveOS:
+            Log("EverDrive X OS found");
             break;
         case Cartridge::CartridgeNTOld1:
             Log("NT old 1 found");

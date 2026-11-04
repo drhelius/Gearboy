@@ -55,6 +55,7 @@
 #include "HitekMemoryRule.h"
 #include "VF001MemoryRule.h"
 #include "SintaxMemoryRule.h"
+#include "EverdriveOSMemoryRule.h"
 #include "NTOldMemoryRule.h"
 #include "TraceLogger.h"
 #include "Profiler.h"
@@ -99,6 +100,7 @@ GearboyCore::GearboyCore()
     InitPointer(m_pHitekMemoryRule);
     InitPointer(m_pVF001MemoryRule);
     InitPointer(m_pSintaxMemoryRule);
+    InitPointer(m_pEverdriveOSMemoryRule);
     InitPointer(m_pNTOldMemoryRule);
     InitPointer(m_trace_logger);
     InitPointer(m_profiler);
@@ -155,6 +157,7 @@ GearboyCore::~GearboyCore()
     SafeDelete(m_pHitekMemoryRule);
     SafeDelete(m_pVF001MemoryRule);
     SafeDelete(m_pSintaxMemoryRule);
+    SafeDelete(m_pEverdriveOSMemoryRule);
     SafeDelete(m_pNTOldMemoryRule);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pIORegistersMemoryRule);
@@ -485,11 +488,13 @@ bool GearboyCore::IsPS2KeyboardEnabled() const
 void GearboyCore::SetEverdriveEnabled(bool enabled)
 {
     m_pMBC5MemoryRule->SetEverdriveEnabled(enabled);
+    m_pEverdriveOSMemoryRule->SetEverdriveEnabled(enabled);
 }
 
 void GearboyCore::SetEverdriveFolder(const char* folder)
 {
     m_pMBC5MemoryRule->SetEverdriveFolder(folder);
+    m_pEverdriveOSMemoryRule->SetEverdriveFolder(folder);
 }
 
 bool GearboyCore::IsEverdriveEnabled() const
@@ -1927,6 +1932,7 @@ void GearboyCore::InitMemoryRules()
     m_pHitekMemoryRule = new HitekMemoryRule(m_pMemory, m_pCartridge);
     m_pVF001MemoryRule = new VF001MemoryRule(m_pMemory, m_pCartridge);
     m_pSintaxMemoryRule = new SintaxMemoryRule(m_pMemory, m_pCartridge);
+    m_pEverdriveOSMemoryRule = new EverdriveOSMemoryRule(m_pMemory, m_pCartridge);
     m_pNTOldMemoryRule = new NTOldMemoryRule(m_pMemory, m_pCartridge);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
@@ -1960,6 +1966,7 @@ void GearboyCore::InitMemoryRules()
     m_pHitekMemoryRule->SetTraceLogger(m_trace_logger);
     m_pVF001MemoryRule->SetTraceLogger(m_trace_logger);
     m_pSintaxMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pEverdriveOSMemoryRule->SetTraceLogger(m_trace_logger);
     m_pNTOldMemoryRule->SetTraceLogger(m_trace_logger);
 }
 
@@ -2054,6 +2061,9 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
         case Cartridge::CartridgeSintax:
             m_pMemory->SetCurrentRule(m_pSintaxMemoryRule);
             break;
+        case Cartridge::CartridgeEverdriveOS:
+            m_pMemory->SetCurrentRule(m_pEverdriveOSMemoryRule);
+            break;
         case Cartridge::CartridgeNTOld1:
         case Cartridge::CartridgeNTOld2:
             m_pNTOldMemoryRule->SetVariant(type == Cartridge::CartridgeNTOld2);
@@ -2141,6 +2151,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     m_pHitekMemoryRule->Reset(m_bCGB);
     m_pVF001MemoryRule->Reset(m_bCGB);
     m_pSintaxMemoryRule->Reset(m_bCGB);
+    m_pEverdriveOSMemoryRule->Reset(m_bCGB);
     m_pNTOldMemoryRule->Reset(m_bCGB);
     m_pIORegistersMemoryRule->Reset(m_bCGB);
 
