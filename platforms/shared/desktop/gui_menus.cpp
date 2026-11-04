@@ -813,10 +813,14 @@ static void menu_video(void)
         }
 
 #if !defined(__APPLE__)
-        if (ImGui::BeginMenu("Fullscreen Mode"))
+        if (ImGui::BeginMenu("Fullscreen Mode", !is_recording))
         {
             ImGui::PushItemWidth(130.0f);
-            ImGui::Combo("##fullscreen_mode", &config_emulator.fullscreen_mode, "Borderless\0Exclusive\0\0");
+            if (ImGui::Combo("##fullscreen_mode", &config_emulator.fullscreen_mode, "Borderless\0Exclusive\0\0") &&
+                config_emulator.fullscreen)
+            {
+                application_trigger_fullscreen(true);
+            }
             ImGui::PopItemWidth();
             ImGui::EndMenu();
         }
