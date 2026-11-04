@@ -1496,7 +1496,7 @@ json DebugAdapter::GetSGBStatus()
     result["ready_for_write"] = sgb->IsReadyForWrite();
     result["ready_for_stop"] = sgb->IsReadyForStop();
 
-    char cmd_hex[SGB_PACKET_SIZE * 3];
+    char cmd_hex[SGB_PACKET_SIZE * 3 + 1];
     for (int i = 0; i < SGB_PACKET_SIZE; i++)
         snprintf(cmd_hex + i * 3, 4, "%02X ", cmd[i]);
     cmd_hex[SGB_PACKET_SIZE * 3 - 1] = '\0';
