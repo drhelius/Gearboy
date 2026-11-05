@@ -12,6 +12,16 @@ EverdriveOSMemoryRule::EverdriveOSMemoryRule(Memory* pMemory, Cartridge* pCartri
 {
     m_pOS = new u8[0x20000];
     m_pPSRAM = new u8[k_psram_size];
+    memset(m_pPSRAM, 0xFF, k_psram_size);
+    m_bUnlocked = false;
+    m_Block[0] = m_Block[1] = 0;
+    m_Masks[0] = m_Masks[1] = 0;
+    m_Config = 0x04;
+    m_Mapper = 0;
+    m_Page = 0x04;
+    m_bLaunch = false;
+    m_Switch = 0;
+    memset(m_GameMBC, 0, sizeof(m_GameMBC));
     m_pSave = new u8[k_save_size];
     memset(m_pSave, 0xFF, k_save_size);
     Reset(false);
@@ -26,6 +36,10 @@ EverdriveOSMemoryRule::~EverdriveOSMemoryRule()
 
 void EverdriveOSMemoryRule::Reset(bool bCGB)
 {
+    u8* rom = m_pCartridge->GetTheROM();
+    int size = m_pCartridge->GetTotalSize();
+    if (!rom || size < 0x150 || memcmp(rom + 0x134, "GBXOS", 5))
+        return; // a game it launched: the image, PSRAM and save RAM stay for the in-game menu and the next boot
     m_bCGB = bCGB;
     m_bUnlocked = false;
     m_Block[0] = 0;
@@ -34,17 +48,13 @@ void EverdriveOSMemoryRule::Reset(bool bCGB)
     m_Mapper = 0;
     m_Page = 0x04;
     m_bLaunch = false;
+    m_Switch = 0;
     m_Masks[0] = m_Masks[1] = 0;
-    memset(m_pPSRAM, 0xFF, k_psram_size);
-    memset(m_pOS, 0xFF, 0x20000);
-    u8* rom = m_pCartridge->GetTheROM();
-    int size = m_pCartridge->GetTotalSize();
-    if (rom && size > 0)
-    {
-        if (size > 0x20000)
-            Log("EverdriveOS: the X7's bootloader only takes a 128KB GBCOS.BIN (a 256KB one got 16KB), using the first 128KB");
-        memcpy(m_pOS, rom, size < 0x20000 ? size : 0x20000);
-    }
+    memset(m_pOS, 0xFF, 0x20000); // PSRAM keeps what it had, like the cart's across a reset
+    if (size > 0x20000)
+        Log("EverdriveOS: the X7's bootloader only takes a 128KB GBCOS.BIN (a 256KB one got 16KB), using the first 128KB");
+    memcpy(m_pOS, rom, size < 0x20000 ? size : 0x20000);
+    m_File.assign(m_pOS, m_pOS + 0x20000);
     m_Everdrive.Reset(m_pCartridge->GetFileDirectory());
 }
 
@@ -71,6 +81,7 @@ u8 EverdriveOSMemoryRule::RegisterRead(u16 address)
         case 0xBD06: return m_Config;
         case 0xBD07: return m_Mapper;
         case 0xBD08: return m_Page;
+        case 0xBD14: case 0xBD15: case 0xBD16: case 0xBD17: return m_GameMBC[address - 0xBD14]; // the game's mapper state
         default: return 0x00;
     }
 }
@@ -108,6 +119,9 @@ void EverdriveOSMemoryRule::PerformWrite(u16 address, u8 value)
     {
         if (address >= 0xBE00)
         {
+            u8 streamed;
+            if ((m_Config & 0x01) && m_Everdrive.Read(EverdriveX::k_reg_spi_data, &streamed))
+                value = streamed; // streaming ($BD06 bit 0, with auto read): a write stores the card's next byte
             *WindowByte(address) = value;
             return;
         }
@@ -127,7 +141,11 @@ void EverdriveOSMemoryRule::PerformWrite(u16 address, u8 value)
                 case 0xBD03: m_Block[1] = value; break;
                 case 0xBD04: m_Masks[0] = value; break;
                 case 0xBD05: m_Masks[1] = value; break;
-                case 0xBD06: m_Config = value; break;
+                case 0xBD06: // bit 4: reboot into the OS (the EverDrive OS's "Back to menu", in-game)
+                    m_Config = value;
+                    if (value & 0x10)
+                        m_Switch = 2;
+                    break;
                 case 0xBD07:
                     m_Mapper = value;
                     if (value)
@@ -137,6 +155,12 @@ void EverdriveOSMemoryRule::PerformWrite(u16 address, u8 value)
                     }
                     break;
                 case 0xBD08: m_Page = value & 0x0F; break;
+                case 0xBD09: // bit 1: back to the game at the next $0040, bit 2: reboot into the OS
+                    if (value & 0x02)
+                        m_Switch = 1;
+                    else if (value & 0x04)
+                        m_Switch = 2;
+                    break;
                 default: break;
             }
             return;
@@ -250,4 +274,38 @@ void EverdriveOSMemoryRule::TakeLaunch(std::vector<u8>& rom, std::vector<u8>& sa
         size = k_psram_size;
     rom.assign(m_pPSRAM, m_pPSRAM + size);
     save.assign(m_pSave, m_pSave + k_save_size);
+}
+
+// the in-game menu: the cart shows the image again at the game's next VBlank vector fetch, $BD14-$BD17 read
+// back the game's mapper state (RAM enable, mode, RAM bank, ROM bank)
+void EverdriveOSMemoryRule::EnterFromGame(u8 ramg, u8 mode, u8 ramb, u8 romb)
+{
+    m_GameMBC[0] = ramg;
+    m_GameMBC[1] = mode;
+    m_GameMBC[2] = ramb;
+    m_GameMBC[3] = romb;
+    m_Switch = 0;
+    m_bUnlocked = false;
+}
+
+int EverdriveOSMemoryRule::TakeSwitch()
+{
+    int s = m_Switch;
+    m_Switch = 0;
+    return s;
+}
+
+int EverdriveOSMemoryRule::PeekSwitch()
+{
+    return m_Switch;
+}
+
+const std::vector<u8>& EverdriveOSMemoryRule::GetImage()
+{
+    return m_File;
+}
+
+u8* EverdriveOSMemoryRule::GetSaveRAM()
+{
+    return m_pSave;
 }

@@ -96,6 +96,8 @@ public:
         Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported,
         bool forceGBA = false, bool softpatching = false);
     void LaunchEverdriveGame();
+    void CheckEverdriveSwitch();
+    void RebootEverdriveOS();
     bool LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType = Cartridge::CartridgeNotSupported, bool forceGBA = false);
     bool GetRuntimeInfo(GB_RuntimeInfo& runtime_info);
     void KeyPressed(Gameboy_Keys key, int player = 0);
@@ -186,6 +188,9 @@ private:
     Cartridge::CartridgeTypes m_MapperType;
     SGB* m_pSGB;
     CommonMemoryRule* m_pCommonMemoryRule;
+    MemoryRule* m_pEverdriveGameRule; // a game the EverDrive OS launched, for its in-game menu
+    bool m_bEverdriveArmed; // Select+Start: the next VBlank vector fetch enters the OS
+    bool m_bEverdriveWatch;
     IORegistersMemoryRule* m_pIORegistersMemoryRule;
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
     MBC1MemoryRule* m_pMBC1MemoryRule;
@@ -244,6 +249,8 @@ private:
 INLINE bool GearboyCore::RunCycle(u16* frame_buffer, unsigned int& clocks, u8 ticks)
 {
     clocks = m_pProcessor->RunFor(ticks);
+    if (unlikely(m_bEverdriveWatch))
+        CheckEverdriveSwitch();
 
     unsigned int cpu_clocks = clocks;
     m_master_clock_cycles += clocks;

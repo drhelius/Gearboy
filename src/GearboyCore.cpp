@@ -103,6 +103,9 @@ GearboyCore::GearboyCore()
     InitPointer(m_pVF001MemoryRule);
     InitPointer(m_pSintaxMemoryRule);
     InitPointer(m_pEverdriveOSMemoryRule);
+    InitPointer(m_pEverdriveGameRule);
+    m_bEverdriveArmed = false;
+    m_bEverdriveWatch = false;
     InitPointer(m_pNTOldMemoryRule);
     InitPointer(m_trace_logger);
     InitPointer(m_profiler);
@@ -305,6 +308,15 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
 
     if (m_pEverdriveOSMemoryRule->LaunchRequested())
         LaunchEverdriveGame();
+    if (IsValidPointer(m_pEverdriveGameRule))
+    {
+        MemoryRule* rule = m_pMemory->GetCurrentRule();
+        if (rule == m_pEverdriveGameRule && m_pInput->IsKeyPressed(Select_Key) && m_pInput->IsKeyPressed(Start_Key))
+            m_bEverdriveArmed = true; // the cart's system button combo
+        if (rule == m_pEverdriveOSMemoryRule && m_pEverdriveOSMemoryRule->PeekSwitch() == 2)
+            RebootEverdriveOS();
+        m_bEverdriveWatch = IsValidPointer(m_pEverdriveGameRule) && (m_bEverdriveArmed || m_pMemory->GetCurrentRule() == m_pEverdriveOSMemoryRule);
+    }
 
     return breakpoint_result;
 }
@@ -322,6 +334,9 @@ void GearboyCore::EndFrame(s16* sample_buffer, int* sample_count)
 bool GearboyCore::LoadROM(const char* szFilePath, bool forceDMG,
     Cartridge::CartridgeTypes forceType, bool forceGBA, bool softpatching)
 {
+    InitPointer(m_pEverdriveGameRule);
+    m_bEverdriveArmed = false;
+    m_bEverdriveWatch = false;
     if (m_pCartridge->LoadFromFile(szFilePath, softpatching))
     {
         m_pMBC6MemoryRule->InitializePersistentMemory();
@@ -370,6 +385,48 @@ void GearboyCore::LaunchEverdriveGame()
         rule->LoadRam(stream, (s32)ram);
     }
     Log("EverdriveOS: launched %d KB, %d KB RAM", (int)(rom.size() >> 10), (int)(ram >> 10));
+    m_pEverdriveGameRule = rule;
+    m_bEverdriveArmed = false;
+}
+
+// at the VBlank vector ($0040): into the OS image at $0670 when the combo armed it, back to the game after $BD09 bit 1
+void GearboyCore::CheckEverdriveSwitch()
+{
+    if (m_pProcessor->GetState()->PC->GetValue() != 0x0040)
+        return;
+    MemoryRule* rule = m_pMemory->GetCurrentRule();
+    if (m_bEverdriveArmed && rule == m_pEverdriveGameRule)
+    {
+        m_bEverdriveArmed = false;
+        m_pEverdriveOSMemoryRule->EnterFromGame(0x0A, 0, (u8)rule->GetCurrentRamBankIndex(), (u8)rule->GetCurrentRomBank1Index());
+        m_pMemory->SetCurrentRule(m_pEverdriveOSMemoryRule);
+        m_pProcessor->GetState()->PC->SetValue(0x0670);// the FPGA jumps to the OS's $0670 (its in-game handler)
+        Log("EverdriveOS: in-game menu");
+    }
+    else if (rule == m_pEverdriveOSMemoryRule && m_pEverdriveOSMemoryRule->PeekSwitch() == 1)
+    {
+        m_pEverdriveOSMemoryRule->TakeSwitch();
+        m_pMemory->SetCurrentRule(m_pEverdriveGameRule);
+        m_bEverdriveWatch = false;
+        Log("EverdriveOS: back to the game");
+    }
+}
+
+// $BD09 bit 2: the cart reboots into the OS, the game's RAM is the save RAM the OS backs up
+void GearboyCore::RebootEverdriveOS()
+{
+    MemoryRule* game = m_pEverdriveGameRule;
+    m_pEverdriveOSMemoryRule->TakeSwitch();
+    size_t ram = game->GetRamSize();
+    u8* banks = game->GetRamBanks();
+    if (ram && banks)
+        memcpy(m_pEverdriveOSMemoryRule->GetSaveRAM(), banks, ram < EverdriveOSMemoryRule::k_save_size ? ram : EverdriveOSMemoryRule::k_save_size);
+    std::vector<u8> image = m_pEverdriveOSMemoryRule->GetImage();
+    InitPointer(m_pEverdriveGameRule);
+    m_bEverdriveArmed = false;
+    m_bEverdriveWatch = false;
+    LoadROMFromBuffer(image.data(), (int)image.size(), false);
+    Log("EverdriveOS: rebooted into the OS");
 }
 
 bool GearboyCore::LoadROMFromBuffer(const u8* buffer, int size, bool forceDMG, Cartridge::CartridgeTypes forceType, bool forceGBA)

@@ -49,6 +49,11 @@ public:
     void SetEverdriveEnabled(bool enabled);
     bool LaunchRequested();
     void TakeLaunch(std::vector<u8>& rom, std::vector<u8>& save);
+    void EnterFromGame(u8 ramg, u8 mode, u8 ramb, u8 romb);
+    int TakeSwitch(); // 1: back to the game, 2: reboot into the OS
+    int PeekSwitch();
+    const std::vector<u8>& GetImage();
+    u8* GetSaveRAM();
     void SetEverdriveFolder(const char* folder);
 
 private:
@@ -59,6 +64,9 @@ private:
     u8* m_pOS; // the 128KB image
     u8* m_pPSRAM;
     bool m_bLaunch;
+    int m_Switch;
+    u8 m_GameMBC[4];
+    std::vector<u8> m_File; // GBCOS.BIN as loaded, for a reboot into the OS
     u8* m_pSave;
     bool m_bUnlocked;
     u8 m_Block[2];
