@@ -57,6 +57,8 @@ static void sdl_destroy(void);
 static void sdl_events(void);
 static void sdl_events_quit(const SDL_Event* event);
 static void sdl_events_app(const SDL_Event* event);
+static bool is_mouse_captured(void);
+static bool is_captured_mouse_event(const SDL_Event* event);
 static void handle_mouse_cursor(void);
 static void handle_menu(void);
 static void handle_window_resizable(void);
@@ -459,6 +461,23 @@ static void sdl_destroy(void)
     SDL_Quit();
 }
 
+static bool is_mouse_captured(void)
+{
+    return config_emulator.capture_mouse && !ImGui::IsPopupOpen(NULL, ImGuiPopupFlags_AnyPopup);
+}
+
+static bool is_captured_mouse_event(const SDL_Event* event)
+{
+    if (!is_mouse_captured())
+        return false;
+
+    if (event->type != SDL_EVENT_MOUSE_MOTION && event->type != SDL_EVENT_MOUSE_WHEEL &&
+        event->type != SDL_EVENT_MOUSE_BUTTON_DOWN)
+        return false;
+
+    return SDL_GetWindowFromEvent(event) == application_sdl_window;
+}
+
 static void handle_mouse_cursor(void)
 {
     if (!config_debug.debug && gui_main_window_hovered)
@@ -475,7 +494,12 @@ static void handle_mouse_cursor(void)
     else
         ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
 
-    SDL_SetWindowRelativeMouseMode(application_sdl_window, config_emulator.capture_mouse);
+    bool mouse_captured = is_mouse_captured();
+
+    if (mouse_captured && !SDL_GetWindowRelativeMouseMode(application_sdl_window))
+        ImGui::GetIO().AddMousePosEvent(-FLT_MAX, -FLT_MAX);
+
+    SDL_SetWindowRelativeMouseMode(application_sdl_window, mouse_captured);
 }
 
 static void handle_menu(void)
@@ -536,7 +560,7 @@ static void sdl_events(void)
         {
             sdl_events_app(&event);
 
-            if (!file_dialog_active)
+            if (!file_dialog_active && !is_captured_mouse_event(&event))
                 ImGui_ImplSDL3_ProcessEvent(&event);
 
             if (!file_dialog_active && !ImGui::GetIO().WantCaptureKeyboard)
