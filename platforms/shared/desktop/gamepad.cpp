@@ -251,7 +251,6 @@ void gamepad_remove(SDL_JoystickID instance_id)
                 SDL_CloseGamepad(gamepad_controller[i]);
                 gamepad_controller[i] = NULL;
                 Debug("Game controller %d disconnected from slot %d", instance_id, i);
-                break;
             }
         }
     }
@@ -297,7 +296,7 @@ void gamepad_assign(int slot, SDL_JoystickID instance_id)
         }
     }
 
-    if (other != -1)
+    if (other != -1 && !config_input.allow_shared_gamepads)
     {
         if (IsValidPointer(gamepad_controller[slot]))
         {
@@ -329,6 +328,26 @@ void gamepad_assign(int slot, SDL_JoystickID instance_id)
 
     gamepad_controller[slot] = controller;
     Debug("Game controller %d assigned to Player %d", instance_id, slot + 1);
+}
+
+void gamepad_remove_duplicates(void)
+{
+    for (int i = 1; i < GEARBOY_MAX_GAMEPADS; i++)
+    {
+        if (!IsValidPointer(gamepad_controller[i]))
+            continue;
+
+        for (int j = 0; j < i; j++)
+        {
+            if (gamepad_controller[j] == gamepad_controller[i])
+            {
+                SDL_CloseGamepad(gamepad_controller[i]);
+                gamepad_controller[i] = NULL;
+                Debug("Player %d controller set to None, already used by Player %d", i + 1, j + 1);
+                break;
+            }
+        }
+    }
 }
 
 int gamepad_get_detected(Gamepad_Detected_Info* out_list, int max_count)

@@ -171,6 +171,7 @@ struct config_Input
     SDL_Scancode key_select;
 
     bool allow_up_down;
+    bool allow_shared_gamepads;
     bool gamepad;
     int gamepad_directional;
     bool gamepad_invert_x_axis;
