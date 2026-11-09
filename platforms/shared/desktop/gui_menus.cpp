@@ -1193,6 +1193,11 @@ static void menu_input(void)
             ImGui::SetTooltip("%s\nThe Game Boy can read everything in it and write new and changed files.\nReset the game after changing.",
                 config_emulator.everdrive_sd_path.empty() ? "Home folder" : config_emulator.everdrive_sd_path.c_str());
 
+        if (ImGui::MenuItem("EverDrive Cart Button", nullptr, false, emu_can_press_everdrive_button()))
+            emu_press_everdrive_button();
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Press the button on the EverDrive cartridge to open its in-game menu.");
+
         if (ImGui::BeginMenu("Barcode Boy", !emu_is_rom_loading()))
         {
             int mode = config_emulator.barcode_boy_mode;

@@ -1409,6 +1409,17 @@ bool emu_everdrive_is_enabled(void)
     return gearboy && gearboy->IsEverdriveEnabled();
 }
 
+bool emu_can_press_everdrive_button(void)
+{
+    return !emu_is_rom_loading() && gearboy && gearboy->CanPressEverdriveButton();
+}
+
+void emu_press_everdrive_button(void)
+{
+    if (emu_can_press_everdrive_button())
+        gearboy->PressEverdriveButton();
+}
+
 bool emu_queue_ps2_scan_code(u8 scan_code)
 {
     return gearboy && gearboy->QueuePS2KeyboardScanCode(scan_code);

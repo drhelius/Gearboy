@@ -161,6 +161,8 @@ public:
     void SetEverdriveEnabled(bool enabled);
     void SetEverdriveFolder(const char* folder); // SD card's host folder, empty for home, used from the next reset
     bool IsEverdriveEnabled() const;
+    bool CanPressEverdriveButton() const;
+    void PressEverdriveButton();
     bool QueuePS2KeyboardScanCode(u8 scan_code);
 
 private:

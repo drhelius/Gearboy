@@ -586,6 +586,22 @@ bool GearboyCore::IsEverdriveEnabled() const
     return m_pMBC5MemoryRule->IsEverdriveEnabled();
 }
 
+bool GearboyCore::CanPressEverdriveButton() const
+{
+    return IsValidPointer(m_pEverdriveGameRule) && IsEverdriveEnabled() &&
+        m_pMemory->GetCurrentRule() == m_pEverdriveGameRule;
+}
+
+void GearboyCore::PressEverdriveButton()
+{
+    if (!CanPressEverdriveButton())
+        return;
+
+    // The physical cart button takes effect at the game's next VBlank vector.
+    m_bEverdriveArmed = true;
+    m_bEverdriveWatch = true;
+}
+
 bool GearboyCore::QueuePS2KeyboardScanCode(u8 scan_code)
 {
     if (!m_pPS2Keyboard || !m_pCartridge->IsLoadedROM())
