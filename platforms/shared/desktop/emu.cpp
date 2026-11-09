@@ -1625,6 +1625,8 @@ static const char* get_mbc(Cartridge::CartridgeTypes type)
             return "VF001 (SL)";
         case Cartridge::CartridgeSintax:
             return "Sintax";
+        case Cartridge::CartridgeEverdriveOS:
+            return "EverDrive OS";
         case Cartridge::CartridgeNTOld1:
             return "NT old 1";
         case Cartridge::CartridgeNTOld2:

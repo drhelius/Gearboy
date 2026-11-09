@@ -120,6 +120,7 @@ private:
     bool IsSachenMMC2Cartridge() const;
     bool IsWisdomTreeCartridge(int type) const;
     bool IsLiChengCartridge() const;
+    bool IsEverdriveCartridge() const;
 
 private:
     u8* m_pTheROM;

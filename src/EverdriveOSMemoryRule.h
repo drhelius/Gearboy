@@ -11,8 +11,8 @@
 //      or PSRAM (clear) for that window, $BD07 mapper (a game launch: the cart resets the Game Boy
 //      into the game in PSRAM from block 0 with $BD06 = $08, see GearboyCore::LaunchEverdriveGame),
 //      $BD08 page. Locked, they read 0
-//    - GBCOS.BIN has to be 128KB. The image is separate from PSRAM (the EverDrive's OS loads games
-//      at PSRAM block 0 while it runs)
+//    - the backing buffer is 128KB; shorter images (stock v1.06 is 80KB) are padded with $FF.
+//      The image is separate from game PSRAM, which the OS fills from block 0.
 //
 
 #ifndef EVERDRIVEOSMEMORYRULE_H

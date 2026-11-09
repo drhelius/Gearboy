@@ -720,7 +720,7 @@ json DebugAdapter::GetMediaInfo()
         "MBC5", "MBC1 Multi", "HuC1", "HuC3",
         "MMM01", "Camera", "MBC7", "TAMA5",
         "Wisdom Tree", "M161", "Sachen MMC1",
-        "Sachen MMC2", "PKJD", "Bung/EMS", "Poke 2-in-1", "MBC6", "Rocket Games", "BHGOS", "Li Cheng", "NT newer", "GGB81", "Hitek", "VF001", "VF001 (SL)", "Sintax", "NT old 1", "NT old 2", "Not Supported"
+        "Sachen MMC2", "PKJD", "Bung/EMS", "Poke 2-in-1", "MBC6", "Rocket Games", "BHGOS", "Li Cheng", "NT newer", "GGB81", "Hitek", "VF001", "VF001 (SL)", "Sintax", "EverDrive OS", "NT old 1", "NT old 2", "Not Supported"
     };
     int type_idx = (int)type;
     if (type_idx >= 0 && type_idx < (int)(sizeof(type_names) / sizeof(type_names[0])))

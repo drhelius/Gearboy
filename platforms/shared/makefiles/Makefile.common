@@ -106,3 +106,6 @@ header:
 
 codeql: $(CODEQL_OBJECTS)
     @echo CodeQL build completed: $(TARGET_NAME)
+# EverdriveX is embedded in these mapper objects. Rebuild every owner and
+# derived mapper when its layout changes, including GearboyCore's allocations.
+$(addprefix $(SRC_DIR)/,EverdriveX.o EverdriveOSMemoryRule.o MBC5MemoryRule.o MBC5LogoMemoryRule.o NTNewMemoryRule.o LiChengMemoryRule.o GGB81MemoryRule.o HitekMemoryRule.o VF001MemoryRule.o SintaxMemoryRule.o GearboyCore.o): $(SRC_DIR)/EverdriveX.h

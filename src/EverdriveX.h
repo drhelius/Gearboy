@@ -16,6 +16,7 @@
 #include "definitions.h"
 #include "VirtualFat.h"
 #include <cstdio>
+#include <vector>
 
 class EverdriveX
 {
@@ -45,14 +46,28 @@ private:
     void Respond(const u8* bytes, int count);
     bool OpenCard();
     void CloseCard();
+    void WriteI2CControl(u8 value);
+    void WriteI2CData(u8 value);
 
 private:
     enum State
     {
         State_Command,
         State_WriteToken,
-        State_WriteData
+        State_WriteData,
+        State_MultiWriteToken,
+        State_MultiWriteData
     };
+
+    // Byte-level EEPROM transactions used by GBCOS ($BD0C/$BD0D).
+    enum I2CState { I2C_Idle, I2C_Start, I2C_Device, I2C_Address, I2C_Write, I2C_Read };
+    I2CState m_i2c_state;
+    std::vector<u8> m_i2c_memory[2]; // $A0: two-byte address; $A2: one-byte address
+    u16 m_i2c_address;
+    u8 m_i2c_device;
+    u8 m_i2c_address_bytes;
+    u8 m_i2c_data;
+    u8 m_i2c_ack;
 
     bool m_enabled;
     bool m_unlocked;

@@ -10,6 +10,8 @@
 
 EverdriveX::EverdriveX()
 {
+    m_i2c_memory[0].resize(0x10000, 0);
+    m_i2c_memory[1].resize(0x100, 0);
     m_image = NULL;
     m_image_path[0] = 0;
     m_folder[0] = 0;
@@ -27,6 +29,11 @@ EverdriveX::~EverdriveX()
 void EverdriveX::Reset(const char* rom_directory)
 {
     m_unlocked = false;
+    m_i2c_state = I2C_Idle;
+    m_i2c_address = 0;
+    m_i2c_device = 0;
+    m_i2c_address_bytes = 0;
+    m_i2c_data = m_i2c_ack = 0;
     m_ctrl = k_ctrl_ss;
     m_data = 0xFF;
     m_state = State_Command;
@@ -110,6 +117,12 @@ bool EverdriveX::Read(u16 address, u8* value)
             if (m_ctrl & k_ctrl_auto_read)
                 Exchange(0xFF);
             return true;
+        case 0xBD0C:
+            *value = m_i2c_ack; // byte transfers complete immediately, busy bit clear
+            return true;
+        case 0xBD0D:
+            *value = m_i2c_data;
+            return true;
         case k_reg_spi_ctrl:
             *value = m_ctrl & 0x0F; // only bits 0-3 read back (X7), transfers finish instantly, never busy
             return true;
@@ -137,14 +150,23 @@ bool EverdriveX::Write(u16 address, u8 value)
         case k_reg_spi_data:
             Exchange(value);
             return true;
+        case 0xBD0C:
+            WriteI2CControl(value);
+            return true;
+        case 0xBD0D:
+            WriteI2CData(value);
+            return true;
         case k_reg_spi_ctrl:
             if ((value & k_ctrl_ss) && !(m_ctrl & k_ctrl_ss))
             {
-                // deselected, drop anything left over
+                // CS pauses a CMD18 stream; CMD12 ends it. Stock GBCOS toggles
+                // CS after receiving R1, before consuming the data blocks.
                 m_cmd_length = 0;
-                m_response_length = 0;
-                m_multi_read = false;
-                m_response_pos = 0;
+                if (!m_multi_read)
+                {
+                    m_response_length = 0;
+                    m_response_pos = 0;
+                }
             }
             m_ctrl = value & 0x7F;
             return true;
@@ -287,6 +309,7 @@ void EverdriveX::RunCommand()
             break;
         }
         case 24: // WRITE_BLOCK
+        case 25: // WRITE_MULTIPLE_BLOCK (used by stock GBCOS)
             if (!OpenCard())
             {
                 r[0] |= 0x20;
@@ -294,7 +317,7 @@ void EverdriveX::RunCommand()
                 break;
             }
             m_write_sector = arg;
-            m_state = State_WriteToken;
+            m_state = (index == 25) ? State_MultiWriteToken : State_WriteToken;
             Respond(r, 1);
             break;
         case 41: // SD_SEND_OP_COND, ready immediately
@@ -328,11 +351,14 @@ void EverdriveX::RunCommand()
 
 void EverdriveX::ReceiveWriteByte(u8 mosi)
 {
-    if (m_state == State_WriteToken)
+    bool multi_write = (m_state == State_MultiWriteToken || m_state == State_MultiWriteData);
+    if (m_state == State_WriteToken || m_state == State_MultiWriteToken)
     {
-        if (mosi == 0xFE)
+        if (multi_write && mosi == 0xFD) // Stop Tran token
+            m_state = State_Command;
+        else if (mosi == (multi_write ? 0xFC : 0xFE))
         {
-            m_state = State_WriteData;
+            m_state = multi_write ? State_MultiWriteData : State_WriteData;
             m_write_pos = 0;
         }
         return;
@@ -343,7 +369,7 @@ void EverdriveX::ReceiveWriteByte(u8 mosi)
     if (++m_write_pos < 514) // data and 2 CRC bytes
         return;
 
-    m_state = State_Command;
+    m_state = multi_write ? State_MultiWriteToken : State_Command;
     bool ok = true;
     if (m_fat.IsOpen())
         m_fat.WriteSector(m_write_sector, m_sector);
@@ -354,8 +380,66 @@ void EverdriveX::ReceiveWriteByte(u8 mosi)
         fflush(m_image);
     }
 
+    if (ok && multi_write)
+        m_write_sector++;
+
     m_response[0] = ok ? 0x05 : 0x0D; // data accepted / write error
     m_response[1] = 0x00; // busy for a byte
     m_response_length = 2;
     m_response_pos = 0;
+}
+
+// GBCOS starts with C=$20, D=$20, C=$11, then sends the device/address
+// through D. Repeated START selects reading without losing the address cursor.
+// C=$10 enables ACK during reads; C=$11 ends them; C=$30 resets the bus.
+void EverdriveX::WriteI2CControl(u8 value)
+{
+    if (value == 0x20)
+    {
+        m_i2c_state = I2C_Start;
+        m_i2c_ack = 0;
+    }
+    else if (value == 0x30)
+        m_i2c_state = I2C_Idle;
+    else if (value == 0x11)
+        m_i2c_state = (m_i2c_state == I2C_Start) ? I2C_Device : I2C_Idle;
+}
+
+void EverdriveX::WriteI2CData(u8 value)
+{
+    switch (m_i2c_state)
+    {
+        case I2C_Device:
+            m_i2c_ack = ((value & 0xFC) == 0xA0) ? 0 : 1;
+            if (m_i2c_ack)
+            {
+                m_i2c_state = I2C_Idle;
+                break;
+            }
+            m_i2c_device = (value >> 1) & 1;
+            if (value & 1)
+                m_i2c_state = I2C_Read;
+            else
+            {
+                m_i2c_address = 0;
+                m_i2c_address_bytes = m_i2c_device ? 1 : 2;
+                m_i2c_state = I2C_Address;
+            }
+            break;
+        case I2C_Address:
+            m_i2c_address = (m_i2c_address << 8) | value;
+            if (--m_i2c_address_bytes == 0)
+                m_i2c_state = I2C_Write;
+            break;
+        case I2C_Write:
+            m_i2c_memory[m_i2c_device][m_i2c_address % m_i2c_memory[m_i2c_device].size()] = value;
+            m_i2c_address++;
+            break;
+        case I2C_Read:
+            m_i2c_data = m_i2c_memory[m_i2c_device][m_i2c_address % m_i2c_memory[m_i2c_device].size()];
+            m_i2c_address++;
+            break;
+        default:
+            break;
+    }
 }

@@ -8,7 +8,7 @@
 //  and when it writes a folder's entries, new and changed files (and new folders) are written
 //  to the host. Host files are never deleted or truncated to nothing.
 //
-//  Layout: MBR, then one FAT32 partition at sector 2048 with 32KB clusters and one FAT.
+//  Layout: MBR, then one FAT32 partition at sector 2048 with 32KB clusters and two mirrored FATs.
 //  Clusters for host files and folders are given out from cluster 3 up, FSInfo points the
 //  Game Boy's allocations at the middle of the disk so they never meet.
 //

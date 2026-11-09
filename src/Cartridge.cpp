@@ -662,8 +662,8 @@ bool Cartridge::GatherMetadata(u32 crc)
         m_Type = CartridgeWisdomTree;
     else if (IsLiChengCartridge())
         m_Type = CartridgeLiCheng;
-    else if (!strcmp(name, "GBXOS") && !memcmp(m_pTheROM + 0x13F, "KRKZ", 4))
-        m_Type = CartridgeEverdriveOS; // /GBCSYS/GBCOS.BIN, runs in the EverDrive X's OS mode
+    else if (IsEverdriveCartridge())
+        m_Type = CartridgeEverdriveOS;
 
     if (m_Type != CartridgeEverdriveOS)
         GetInfoFromDB(crc);
@@ -1115,4 +1115,17 @@ bool Cartridge::IsLiChengCartridge() const
         checksum += m_pTheROM[i];
 
     return checksum == 4876;
+}
+
+bool Cartridge::IsEverdriveCartridge() const
+{
+    if (m_iTotalSize < 0x150)
+        return false;
+
+    // Stock GBCOS pads the title with $FF, not a NUL terminator.
+    static const u8 title[5] = { 'G', 'B', 'X', 'O', 'S' };
+    static const u8 manufacturer[4] = { 'K', 'R', 'K', 'Z' };
+
+    return (memcmp(m_pTheROM + 0x134, title, sizeof(title)) == 0) &&
+        (memcmp(m_pTheROM + 0x13F, manufacturer, sizeof(manufacturer)) == 0);
 }

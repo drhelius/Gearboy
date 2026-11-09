@@ -104,3 +104,6 @@ platforms/libretro/libs/
 
 #GitHub Agentic Workflows
 .github/agents/agentic-workflows.md
+
+# EverDrive regression test executable
+tests/gearboy-everdrive-tests

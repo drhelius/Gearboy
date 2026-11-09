@@ -19,6 +19,7 @@
 static const u32 k_part_start = 2048;
 static const u32 k_part_sectors = 0x40000000; // 512GB
 static const u32 k_reserved = 32;
+static const u32 k_fat_count = 2; // stock GBCOS computes data start using two FATs
 static const u32 k_cluster_sectors = 64;
 static const u32 k_cluster_bytes = k_cluster_sectors * 512;
 static const u32 k_eoc = 0x0FFFFFFF;
@@ -198,8 +199,8 @@ bool VirtualFat::Open(const char* root)
     }
 
     m_fat_sectors = ((k_part_sectors - k_reserved) / k_cluster_sectors + 2) * 4 / 512 + 1;
-    m_clusters = (k_part_sectors - k_reserved - m_fat_sectors) / k_cluster_sectors;
-    m_data_start = k_part_start + k_reserved + m_fat_sectors;
+    m_clusters = (k_part_sectors - k_reserved - k_fat_count * m_fat_sectors) / k_cluster_sectors;
+    m_data_start = k_part_start + k_reserved + k_fat_count * m_fat_sectors;
     m_gb_clusters = m_clusters / 2;
     m_next_cluster = 2;
 
@@ -532,7 +533,7 @@ void VirtualFat::ReadSector(u32 lba, u8* data)
         Put16(data + 11, 512);
         data[13] = k_cluster_sectors;
         Put16(data + 14, k_reserved);
-        data[16] = 1; // FATs
+        data[16] = k_fat_count;
         data[21] = 0xF8;
         Put16(data + 24, 63);
         Put16(data + 26, 255);
@@ -564,8 +565,9 @@ void VirtualFat::ReadSector(u32 lba, u8* data)
         return;
 
     s -= k_reserved;
-    if (s < m_fat_sectors)
+    if (s < k_fat_count * m_fat_sectors)
     {
+        s %= m_fat_sectors; // both copies describe the same virtual chains
         for (u32 i = 0; i < 128; i++)
         {
             u32 cluster = s * 128 + i;
@@ -575,7 +577,7 @@ void VirtualFat::ReadSector(u32 lba, u8* data)
         return;
     }
 
-    s -= m_fat_sectors;
+    s -= k_fat_count * m_fat_sectors;
     if (s < m_clusters * k_cluster_sectors)
         ReadData(2 + s / k_cluster_sectors, s % k_cluster_sectors, data);
 }
@@ -586,11 +588,11 @@ void VirtualFat::WriteSector(u32 lba, const u8* data)
         return;
 
     u32 fat_start = k_part_start + k_reserved;
-    if (lba >= fat_start && lba < fat_start + m_fat_sectors)
+    if (lba >= fat_start && lba < fat_start + k_fat_count * m_fat_sectors)
     {
         for (u32 i = 0; i < 128; i++)
         {
-            u32 cluster = (lba - fat_start) * 128 + i;
+            u32 cluster = ((lba - fat_start) % m_fat_sectors) * 128 + i;
             if (cluster < 2 || cluster >= m_clusters + 2)
                 continue;
             u32 value = Get32(data + i * 4) & 0x0FFFFFFF;
