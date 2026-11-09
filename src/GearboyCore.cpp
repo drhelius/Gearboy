@@ -389,7 +389,7 @@ void GearboyCore::LaunchEverdriveGame()
     m_bEverdriveArmed = false;
 }
 
-// at the VBlank vector ($0040): into the OS image at $0670 when the combo armed it, back to the game after $BD09 bit 1
+// At the VBlank vector ($0040), expose the OS image or return to the game.
 void GearboyCore::CheckEverdriveSwitch()
 {
     if (m_pProcessor->GetState()->PC->GetValue() != 0x0040)
@@ -400,7 +400,8 @@ void GearboyCore::CheckEverdriveSwitch()
         m_bEverdriveArmed = false;
         m_pEverdriveOSMemoryRule->EnterFromGame(0x0A, 0, (u8)rule->GetCurrentRamBankIndex(), (u8)rule->GetCurrentRomBank1Index());
         m_pMemory->SetCurrentRule(m_pEverdriveOSMemoryRule);
-        m_pProcessor->GetState()->PC->SetValue(0x0670);// the FPGA jumps to the OS's $0670 (its in-game handler)
+        // Fetch the OS's own vector. Stock GBCOS jumps to $0670; replacement
+        // images must provide their vector rather than relying on an injected PC.
         Log("EverdriveOS: in-game menu");
     }
     else if (rule == m_pEverdriveOSMemoryRule && m_pEverdriveOSMemoryRule->PeekSwitch() == 1)

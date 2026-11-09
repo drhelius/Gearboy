@@ -94,7 +94,8 @@ u8 EverdriveOSMemoryRule::PerformRead(u16 address)
     {
         if (address >= 0xBE00)
             return *WindowByte(address);
-        if (address >= 0xBD00 && address < 0xBD10)
+        if ((address >= 0xBD00 && address < 0xBD10) ||
+            (address >= 0xBD14 && address <= 0xBD17))
             return RegisterRead(address);
         return m_pOS[(m_Page << 13) + (address - 0xA000)];
     }
@@ -125,7 +126,8 @@ void EverdriveOSMemoryRule::PerformWrite(u16 address, u8 value)
             *WindowByte(address) = value;
             return;
         }
-        if (address >= 0xBD00 && address < 0xBD10)
+        if ((address >= 0xBD00 && address < 0xBD10) ||
+            (address >= 0xBD14 && address <= 0xBD17))
         {
             if (address == EverdriveX::k_reg_key)
             {
