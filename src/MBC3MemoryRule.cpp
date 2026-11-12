@@ -829,3 +829,12 @@ void MBC3MemoryRule::LoadState(std::istream& stream, u32 version)
         m_CurrentRAMAddress = 0;
     }
 }
+
+// EverDrive exposes raw mapper latches at BD14-BD17 while the game is frozen.
+void MBC3MemoryRule::GetEverdriveRegisters(u8* registers)
+{
+    registers[0] = (m_bRamEnabled || m_bRTCEnabled) ? 0x0A : 0;
+    registers[1] = 0;
+    registers[2] = m_iCurrentRAMBank < 0 ? m_RTCRegister : (u8)m_iCurrentRAMBank;
+    registers[3] = (u8)m_iCurrentROMBank;
+}

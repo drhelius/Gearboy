@@ -16,6 +16,7 @@
 #include "definitions.h"
 #include "VirtualFat.h"
 #include <cstdio>
+#include <ctime>
 #include <vector>
 
 class EverdriveX
@@ -36,6 +37,8 @@ public:
     bool IsEnabled() const;
     bool Read(u16 address, u8* value);
     bool Write(u16 address, u8 value);
+    bool GetClockRegisters(u8* registers);
+    u8 GetCartridgeFeatures() const; // last $BD0F feature mask written by the OS
 
 private:
     u8 Exchange(u8 mosi);
@@ -48,6 +51,8 @@ private:
     void CloseCard();
     void WriteI2CControl(u8 value);
     void WriteI2CData(u8 value);
+    void UpdateClockRegisters();
+    void CommitClockRegisters();
 
 private:
     enum State
@@ -62,12 +67,17 @@ private:
     // Byte-level EEPROM transactions used by GBCOS ($BD0C/$BD0D).
     enum I2CState { I2C_Idle, I2C_Start, I2C_Device, I2C_Address, I2C_Write, I2C_Read };
     I2CState m_i2c_state;
-    std::vector<u8> m_i2c_memory[2]; // $A0: two-byte address; $A2: one-byte address
+    std::vector<u8> m_i2c_memory[3]; // $A0: EEPROM; $A2: settings; $D0: calendar RTC
     u16 m_i2c_address;
     u8 m_i2c_device;
     u8 m_i2c_address_bytes;
     u8 m_i2c_data;
     u8 m_i2c_ack;
+    u8 m_cartridge_features;
+
+    std::time_t m_clock_offset;
+    bool m_clock_dirty;
+    bool m_clock_present;
 
     bool m_enabled;
     bool m_unlocked;

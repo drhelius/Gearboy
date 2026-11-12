@@ -211,6 +211,38 @@ static void TestI2C(const char* root)
     }
 }
 
+static void TestCalendar(const char* root)
+{
+    EverdriveX card;
+    card.SetEnabled(true);
+    card.SetFolder(root);
+    card.Reset(root);
+    card.Write(EverdriveX::k_reg_key, EverdriveX::k_key_unlock);
+    // Write a valid leap day, keeping away from midnight while the test runs.
+    const u8 calendar[] = {0x00,0x34,0x12,0x03,0x29,0x02,0x24,0,0,0,0,0,0,0,0,0};
+    I2CStart(card); I2CByte(card, 0xD0); I2CByte(card, 0);
+    for (unsigned i = 0; i < sizeof(calendar); i++) I2CByte(card, calendar[i]);
+    card.Write(0xBD0C, 0x30);
+    card.Reset(root);
+    card.Write(EverdriveX::k_reg_key, EverdriveX::k_key_unlock);
+    I2CStart(card); I2CByte(card, 0xD0); I2CByte(card, 0);
+    I2CStart(card); I2CByte(card, 0xD1); card.Write(0xBD0C, 0x10);
+    for (unsigned i = 0; i < sizeof(calendar); i++)
+    {
+        I2CByte(card, 0xFF);
+        u8 data; Check(card.Read(0xBD0D, &data), "read calendar byte");
+        if (i == 0) Check(data <= 0x10, "calendar advances after setting");
+        else if (i != 3) Check(data == calendar[i], "calendar preserves BCD date, time and status");
+    }
+    card.Write(0xBD0C, 0x30);
+    setenv("GEARBOY_RTC", "0", 1);
+    EverdriveX absent;
+    unsetenv("GEARBOY_RTC");
+    absent.SetEnabled(true); absent.Write(EverdriveX::k_reg_key, EverdriveX::k_key_unlock);
+    I2CStart(absent); absent.Write(0xBD0D, 0xD0);
+    u8 ack; Check(absent.Read(0xBD0C, &ack) && ack == 1, "clock-less cart NACKs calendar address");
+}
+
 int main()
 {
     char root[] = "/tmp/gearboy-everdrive-tests-XXXXXX";
@@ -225,6 +257,7 @@ int main()
     TestFat(root);
     TestReadStream(root);
     TestI2C(root);
+    TestCalendar(root);
     unlink(path);
     rmdir(root);
     puts("EverDrive tests passed");

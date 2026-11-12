@@ -309,3 +309,12 @@ bool MBC5MemoryRule::IsEverdriveEnabled() const
 {
     return m_Everdrive.IsEnabled();
 }
+
+// EverDrive exposes raw mapper latches at BD14-BD17 while the game is frozen.
+void MBC5MemoryRule::GetEverdriveRegisters(u8* registers)
+{
+    registers[0] = m_bRamEnabled ? 0x0A : 0;
+    registers[1] = m_RomBankHigh << 1;
+    registers[2] = (u8)m_iCurrentRAMBank;
+    registers[3] = m_RomBankLow;
+}

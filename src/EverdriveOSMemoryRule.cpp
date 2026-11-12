@@ -3,6 +3,7 @@
 //  by Nolan Baker (Q*Bert Reynolds)
 //
 
+#include <cstdlib>
 #include "EverdriveOSMemoryRule.h"
 #include "Memory.h"
 #include "Cartridge.h"
@@ -15,6 +16,8 @@ EverdriveOSMemoryRule::EverdriveOSMemoryRule(Memory* pMemory, Cartridge* pCartri
     memset(m_pPSRAM, 0xFF, k_psram_size);
     m_bUnlocked = false;
     m_Block[0] = m_Block[1] = 0;
+    m_bLatchHigh = getenv("GEARBOY_EVERDRIVE_LATCH_BD03") != NULL;
+    m_PendingHigh = 0;
     m_Masks[0] = m_Masks[1] = 0;
     m_Config = 0x04;
     m_Mapper = 0;
@@ -22,6 +25,8 @@ EverdriveOSMemoryRule::EverdriveOSMemoryRule(Memory* pMemory, Cartridge* pCartri
     m_bLaunch = false;
     m_Switch = 0;
     memset(m_GameMBC, 0, sizeof(m_GameMBC));
+    memset(m_GameRTC, 0, sizeof(m_GameRTC));
+    m_RTCIndex = m_RTCLatch = 0;
     m_pSave = new u8[k_save_size];
     memset(m_pSave, 0xFF, k_save_size);
     Reset(false);
@@ -44,6 +49,7 @@ void EverdriveOSMemoryRule::Reset(bool bCGB)
     m_bUnlocked = false;
     m_Block[0] = 0;
     m_Block[1] = 0;
+    m_PendingHigh = 0;
     m_Config = 0x04; // what the bootloader leaves
     m_Mapper = 0;
     m_Page = 0x04;
@@ -77,10 +83,13 @@ u8 EverdriveOSMemoryRule::RegisterRead(u16 address)
     switch (address)
     {
         case 0xBD02: return m_Block[0];
-        case 0xBD03: return m_Block[1];
+        case 0xBD03: return m_bLatchHigh ? m_PendingHigh : m_Block[1];
         case 0xBD06: return m_Config;
         case 0xBD07: return m_Mapper;
         case 0xBD08: return m_Page;
+        case 0xBD10: case 0xBD11:
+            return m_RTCIndex < 5 ? m_GameRTC[address - 0xBD10][m_RTCIndex] : 0;
+        case 0xBD13: return m_RTCIndex;
         case 0xBD14: case 0xBD15: case 0xBD16: case 0xBD17: return m_GameMBC[address - 0xBD14]; // the game's mapper state
         default: return 0x00;
     }
@@ -95,7 +104,7 @@ u8 EverdriveOSMemoryRule::PerformRead(u16 address)
         if (address >= 0xBE00)
             return *WindowByte(address);
         if ((address >= 0xBD00 && address < 0xBD10) ||
-            (address >= 0xBD14 && address <= 0xBD17))
+            (address >= 0xBD10 && address <= 0xBD17))
             return RegisterRead(address);
         return m_pOS[(m_Page << 13) + (address - 0xA000)];
     }
@@ -113,6 +122,14 @@ void EverdriveOSMemoryRule::PerformWrite(u16 address, u8 value)
 {
     if (address < 0x8000)
     {
+        if (!(m_Config & 0x04)) // mapper writes made by the resident resume stub
+        {
+            if (address < 0x2000) m_GameMBC[0] = value;
+            else if (address == 0x2000 || address == 0x2100) m_GameMBC[3] = value;
+            else if (address == 0x3000) m_GameMBC[1] = (m_GameMBC[1] & 1) | ((value & 1) << 1);
+            else if (address == 0x4000) m_GameMBC[2] = value;
+            else if (address == 0x6000) m_GameMBC[1] = value;
+        }
         m_pOS[address] = value; // RAM, writing $2000 doesn't switch banks
         return;
     }
@@ -127,7 +144,7 @@ void EverdriveOSMemoryRule::PerformWrite(u16 address, u8 value)
             return;
         }
         if ((address >= 0xBD00 && address < 0xBD10) ||
-            (address >= 0xBD14 && address <= 0xBD17))
+            (address >= 0xBD10 && address <= 0xBD17))
         {
             if (address == EverdriveX::k_reg_key)
             {
@@ -139,8 +156,8 @@ void EverdriveOSMemoryRule::PerformWrite(u16 address, u8 value)
                 return;
             switch (address)
             {
-                case 0xBD02: m_Block[0] = value; break;
-                case 0xBD03: m_Block[1] = value; break;
+                case 0xBD02: m_Block[0] = value; if (m_bLatchHigh) m_Block[1] = m_PendingHigh; break;
+                case 0xBD03: if (m_bLatchHigh) m_PendingHigh = value; else m_Block[1] = value; break;
                 case 0xBD04: m_Masks[0] = value; break;
                 case 0xBD05: m_Masks[1] = value; break;
                 case 0xBD06: // bit 4: reboot into the OS (the EverDrive OS's "Back to menu", in-game)
@@ -157,11 +174,20 @@ void EverdriveOSMemoryRule::PerformWrite(u16 address, u8 value)
                     }
                     break;
                 case 0xBD08: m_Page = value & 0x0F; break;
-                case 0xBD09: // bit 1: back to the game at the next $0040, bit 2: reboot into the OS
+                case 0xBD13: m_RTCIndex = value; break;
+                case 0xBD12: m_RTCLatch = value; break;
+                case 0xBD10: case 0xBD11:
+                    if (m_RTCIndex < 5)
+                    {
+                        m_GameRTC[address - 0xBD10][m_RTCIndex] = value;
+                        m_pSave[0x1FFF0 + m_RTCIndex * 2 + address - 0xBD10] = value;
+                    }
+                    break;
+                case 0xBD09: // bit 1: resume at $0040, bit 2: select OS without resetting the CPU
                     if (value & 0x02)
                         m_Switch = 1;
                     else if (value & 0x04)
-                        m_Switch = 2;
+                        m_Switch = 3;
                     break;
                 default: break;
             }
@@ -249,6 +275,13 @@ void EverdriveOSMemoryRule::LoadState(std::istream& stream, u32)
     stream.read(reinterpret_cast<char*>(&m_Config), sizeof(m_Config));
     stream.read(reinterpret_cast<char*>(&m_Mapper), sizeof(m_Mapper));
     stream.read(reinterpret_cast<char*>(&m_Page), sizeof(m_Page));
+    // The paired RTC registers already live in the serialized SRAM shadow.
+    for (int i = 0; i < 5; i++)
+    {
+        m_GameRTC[0][i] = m_pSave[0x1FFF0 + i * 2];
+        m_GameRTC[1][i] = m_pSave[0x1FFF1 + i * 2];
+    }
+    m_RTCIndex = m_RTCLatch = 0;
 }
 
 void EverdriveOSMemoryRule::SetEverdriveEnabled(bool enabled)
@@ -266,15 +299,17 @@ bool EverdriveOSMemoryRule::LaunchRequested()
     return m_bLaunch;
 }
 
-// the game in PSRAM (its size from the header) and the save RAM, for the launch
+// The FPGA's ROM mask gates address lines A15-A22. The game header does not
+// configure those lines: a valid header can still launch with incorrect banking.
 void EverdriveOSMemoryRule::TakeLaunch(std::vector<u8>& rom, std::vector<u8>& save)
 {
     m_bLaunch = false;
-    u8 size_code = m_pPSRAM[0x148];
-    u32 size = size_code <= 8 ? (0x8000u << size_code) : 0x8000;
-    if (size > k_psram_size)
-        size = k_psram_size;
-    rom.assign(m_pPSRAM, m_pPSRAM + size);
+    u32 banks = 1;
+    while (banks <= m_Masks[0])
+        banks <<= 1;
+    rom.resize(banks * 0x8000);
+    for (u32 bank = 0; bank < banks; bank++)
+        memcpy(rom.data() + bank * 0x8000, m_pPSRAM + (bank & m_Masks[0]) * 0x8000, 0x8000);
     save.assign(m_pSave, m_pSave + k_save_size);
 }
 
@@ -310,4 +345,43 @@ const std::vector<u8>& EverdriveOSMemoryRule::GetImage()
 u8* EverdriveOSMemoryRule::GetSaveRAM()
 {
     return m_pSave;
+}
+
+u8 EverdriveOSMemoryRule::GetCartridgeFeatures() const
+{
+    return m_Everdrive.GetCartridgeFeatures();
+}
+
+void EverdriveOSMemoryRule::GetGameRTC(u8* registers)
+{
+    memcpy(registers, m_GameRTC[0], 5);
+}
+
+void EverdriveOSMemoryRule::SetGameRTC(const u8* registers)
+{
+    memcpy(m_GameRTC[0], registers, 5);
+    u8 calendar[16];
+    if (m_Everdrive.GetClockRegisters(calendar))
+    {
+        int fields[7];
+        for (int i = 0; i < 7; i++)
+            fields[i] = (calendar[i] & 15) + (calendar[i] >> 4) * 10;
+        static const int month_days[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+        int days = 0;
+        for (int year = 0; year < fields[6]; year++)
+            days += 365 + ((year & 3) == 0);
+        for (int month = 1; month < fields[5] && month <= 12; month++)
+            days += month_days[month - 1] + ((month == 2) && ((fields[6] & 3) == 0));
+        days += fields[4] - 1;
+        m_GameRTC[1][0] = (u8)fields[0];
+        m_GameRTC[1][1] = (u8)fields[1];
+        m_GameRTC[1][2] = (u8)fields[2];
+        m_GameRTC[1][3] = (u8)days;
+        m_GameRTC[1][4] = (u8)((days >> 8) & 1);
+    }
+    for (int i = 0; i < 5; i++)
+    {
+        m_pSave[0x1FFF0 + i * 2] = m_GameRTC[0][i];
+        m_pSave[0x1FFF1 + i * 2] = m_GameRTC[1][i];
+    }
 }

@@ -12,6 +12,14 @@ EverdriveX::EverdriveX()
 {
     m_i2c_memory[0].resize(0x10000, 0);
     m_i2c_memory[1].resize(0x100, 0);
+    m_i2c_memory[2].resize(0x13, 0);
+    // Factory model word at $3F18: high byte $0F identifies an X7.
+    m_i2c_memory[0][0x3F18] = 0x0F;
+    m_clock_offset = 0;
+    m_clock_dirty = false;
+    const char* rtc = getenv("GEARBOY_RTC");
+    m_clock_present = !(rtc && rtc[0] == '0');
+    UpdateClockRegisters();
     m_image = NULL;
     m_image_path[0] = 0;
     m_folder[0] = 0;
@@ -34,6 +42,7 @@ void EverdriveX::Reset(const char* rom_directory)
     m_i2c_device = 0;
     m_i2c_address_bytes = 0;
     m_i2c_data = m_i2c_ack = 0;
+    m_cartridge_features = 0;
     m_ctrl = k_ctrl_ss;
     m_data = 0xFF;
     m_state = State_Command;
@@ -105,6 +114,11 @@ void EverdriveX::CloseCard()
     m_fat.Close();
 }
 
+u8 EverdriveX::GetCartridgeFeatures() const
+{
+    return m_cartridge_features;
+}
+
 bool EverdriveX::Read(u16 address, u8* value)
 {
     if (!m_enabled || !m_unlocked)
@@ -155,6 +169,9 @@ bool EverdriveX::Write(u16 address, u8 value)
             return true;
         case 0xBD0D:
             WriteI2CData(value);
+            return true;
+        case 0xBD0F:
+            m_cartridge_features = value;
             return true;
         case k_reg_spi_ctrl:
             if ((value & k_ctrl_ss) && !(m_ctrl & k_ctrl_ss))
@@ -400,7 +417,10 @@ void EverdriveX::WriteI2CControl(u8 value)
         m_i2c_ack = 0;
     }
     else if (value == 0x30)
+    {
+        CommitClockRegisters();
         m_i2c_state = I2C_Idle;
+    }
     else if (value == 0x11)
         m_i2c_state = (m_i2c_state == I2C_Start) ? I2C_Device : I2C_Idle;
 }
@@ -410,13 +430,16 @@ void EverdriveX::WriteI2CData(u8 value)
     switch (m_i2c_state)
     {
         case I2C_Device:
-            m_i2c_ack = ((value & 0xFC) == 0xA0) ? 0 : 1;
+            m_i2c_ack = ((value & 0xFC) == 0xA0 ||
+                ((value & 0xFE) == 0xD0 && m_clock_present)) ? 0 : 1;
             if (m_i2c_ack)
             {
                 m_i2c_state = I2C_Idle;
                 break;
             }
-            m_i2c_device = (value >> 1) & 1;
+            m_i2c_device = (value & 0xFE) == 0xD0 ? 2 : (value >> 1) & 1;
+            if (m_i2c_device == 2 && !m_clock_dirty)
+                UpdateClockRegisters();
             if (value & 1)
                 m_i2c_state = I2C_Read;
             else
@@ -433,6 +456,8 @@ void EverdriveX::WriteI2CData(u8 value)
             break;
         case I2C_Write:
             m_i2c_memory[m_i2c_device][m_i2c_address % m_i2c_memory[m_i2c_device].size()] = value;
+            if (m_i2c_device == 2 && m_i2c_address < 7)
+                m_clock_dirty = true;
             m_i2c_address++;
             break;
         case I2C_Read:
@@ -442,4 +467,50 @@ void EverdriveX::WriteI2CData(u8 value)
         default:
             break;
     }
+}
+
+// The on-cart calendar has BCD fields and no timezone. Initialize it from the
+// host's local wall clock; software can set it through the same I2C registers.
+void EverdriveX::UpdateClockRegisters()
+{
+    std::time_t now = std::time(NULL) + m_clock_offset;
+    std::tm* calendar = std::localtime(&now);
+    if (!calendar)
+        return;
+    u8* clock = m_i2c_memory[2].data();
+    const int fields[] = { calendar->tm_sec, calendar->tm_min, calendar->tm_hour,
+        calendar->tm_wday + 1, calendar->tm_mday, calendar->tm_mon + 1,
+        (calendar->tm_year + 1900) % 100 };
+    for (int i = 0; i < 7; i++)
+        clock[i] = (u8)((fields[i] / 10) * 16 + fields[i] % 10);
+}
+
+void EverdriveX::CommitClockRegisters()
+{
+    if (!m_clock_dirty)
+        return;
+    m_clock_dirty = false;
+    u8* clock = m_i2c_memory[2].data();
+    std::tm calendar = {};
+    calendar.tm_sec = (clock[0] & 15) + ((clock[0] >> 4) & 7) * 10;
+    calendar.tm_min = (clock[1] & 15) + ((clock[1] >> 4) & 7) * 10;
+    calendar.tm_hour = (clock[2] & 15) + ((clock[2] >> 4) & 3) * 10;
+    if (clock[2] & 0x40)
+        calendar.tm_hour = ((clock[2] & 15) + ((clock[2] >> 4) & 1) * 10) % 12 + ((clock[2] & 0x20) ? 12 : 0);
+    calendar.tm_mday = (clock[4] & 15) + ((clock[4] >> 4) & 3) * 10;
+    calendar.tm_mon = (clock[5] & 15) + ((clock[5] >> 4) & 1) * 10 - 1;
+    calendar.tm_year = (clock[6] & 15) + (clock[6] >> 4) * 10 + 100;
+    calendar.tm_isdst = -1;
+    std::time_t set = std::mktime(&calendar);
+    if (set != (std::time_t)-1)
+        m_clock_offset = set - std::time(NULL);
+}
+
+bool EverdriveX::GetClockRegisters(u8* registers)
+{
+    if (!m_clock_present)
+        return false;
+    UpdateClockRegisters();
+    memcpy(registers, m_i2c_memory[2].data(), 16);
+    return true;
 }

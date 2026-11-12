@@ -229,3 +229,11 @@ void MBC2MemoryRule::LoadState(std::istream& stream, u32)
     m_iCurrentROMBank &= (m_pCartridge->GetROMBankCount() - 1);
     m_CurrentROMAddress = m_iCurrentROMBank * 0x4000;
 }
+
+// EverDrive exposes raw mapper latches at BD14-BD17 while the game is frozen.
+void MBC2MemoryRule::GetEverdriveRegisters(u8* registers)
+{
+    registers[0] = m_bRamEnabled ? 0x0A : 0;
+    registers[1] = registers[2] = 0;
+    registers[3] = (u8)m_iCurrentROMBank;
+}

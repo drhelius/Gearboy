@@ -315,6 +315,13 @@ bool GearboyCore::RunToVBlank(u16* pFrameBuffer, s16* pSampleBuffer, int* pSampl
             m_bEverdriveArmed = true; // the cart's system button combo
         if (rule == m_pEverdriveOSMemoryRule && m_pEverdriveOSMemoryRule->PeekSwitch() == 2)
             RebootEverdriveOS();
+        else if (rule == m_pEverdriveOSMemoryRule && m_pEverdriveOSMemoryRule->PeekSwitch() == 3)
+        {
+            m_pEverdriveOSMemoryRule->TakeSwitch();
+            InitPointer(m_pEverdriveGameRule);
+            m_bEverdriveArmed = false;
+            Log("EverdriveOS: warm return to the OS");
+        }
         m_bEverdriveWatch = IsValidPointer(m_pEverdriveGameRule) && (m_bEverdriveArmed || m_pMemory->GetCurrentRule() == m_pEverdriveOSMemoryRule);
     }
 
@@ -384,6 +391,18 @@ void GearboyCore::LaunchEverdriveGame()
         std::istringstream stream(bytes);
         rule->LoadRam(stream, (s32)ram);
     }
+    if (m_pCartridge->GetType() == Cartridge::CartridgeMBC3 && m_pCartridge->IsRTCPresent())
+    {
+        u8 registers[5];
+        m_pEverdriveOSMemoryRule->GetGameRTC(registers);
+        RTC_Registers* rtc = reinterpret_cast<RTC_Registers*>(rule->GetRTCMemory());
+        rtc->Seconds = rtc->LatchedSeconds = registers[0];
+        rtc->Minutes = rtc->LatchedMinutes = registers[1];
+        rtc->Hours = rtc->LatchedHours = registers[2];
+        rtc->Days = registers[3] | ((registers[4] & 1) << 8);
+        rtc->LatchedDays = registers[3];
+        rtc->Control = rtc->LatchedControl = registers[4];
+    }
     Log("EverdriveOS: launched %d KB, %d KB RAM", (int)(rom.size() >> 10), (int)(ram >> 10));
     m_pEverdriveGameRule = rule;
     m_bEverdriveArmed = false;
@@ -398,7 +417,28 @@ void GearboyCore::CheckEverdriveSwitch()
     if (m_bEverdriveArmed && rule == m_pEverdriveGameRule)
     {
         m_bEverdriveArmed = false;
-        m_pEverdriveOSMemoryRule->EnterFromGame(0x0A, 0, (u8)rule->GetCurrentRamBankIndex(), (u8)rule->GetCurrentRomBank1Index());
+        // Both mappings expose the same cartridge save RAM on hardware.
+        size_t ram = rule->GetRamSize();
+        u8* banks = rule->GetRamBanks();
+        if (ram && banks)
+            memcpy(m_pEverdriveOSMemoryRule->GetSaveRAM(), banks, ram < EverdriveOSMemoryRule::k_save_size ? ram : EverdriveOSMemoryRule::k_save_size);
+        if (m_pCartridge->GetType() == Cartridge::CartridgeMBC3 && m_pCartridge->IsRTCPresent())
+        {
+            RTC_Registers* rtc = reinterpret_cast<RTC_Registers*>(rule->GetRTCMemory());
+            u8 registers[] = { (u8)rtc->Seconds, (u8)rtc->Minutes, (u8)rtc->Hours,
+                (u8)rtc->Days, (u8)((rtc->Control & 0xC0) | ((rtc->Days >> 8) & 1)) };
+            m_pEverdriveOSMemoryRule->SetGameRTC(registers);
+        }
+        u8 mapper[] = { 0x0A, 0, (u8)rule->GetCurrentRamBankIndex(), (u8)rule->GetCurrentRomBank1Index() };
+        switch (m_pCartridge->GetType())
+        {
+            case Cartridge::CartridgeMBC1: static_cast<MBC1MemoryRule*>(rule)->GetEverdriveRegisters(mapper); break;
+            case Cartridge::CartridgeMBC2: static_cast<MBC2MemoryRule*>(rule)->GetEverdriveRegisters(mapper); break;
+            case Cartridge::CartridgeMBC3: static_cast<MBC3MemoryRule*>(rule)->GetEverdriveRegisters(mapper); break;
+            case Cartridge::CartridgeMBC5: static_cast<MBC5MemoryRule*>(rule)->GetEverdriveRegisters(mapper); break;
+            default: break;
+        }
+        m_pEverdriveOSMemoryRule->EnterFromGame(mapper[0], mapper[1], mapper[2], mapper[3]);
         m_pMemory->SetCurrentRule(m_pEverdriveOSMemoryRule);
         // Fetch the OS's own vector. Stock GBCOS jumps to $0670; replacement
         // images must provide their vector rather than relying on an injected PC.
@@ -407,13 +447,25 @@ void GearboyCore::CheckEverdriveSwitch()
     else if (rule == m_pEverdriveOSMemoryRule && m_pEverdriveOSMemoryRule->PeekSwitch() == 1)
     {
         m_pEverdriveOSMemoryRule->TakeSwitch();
+        // The menu may have loaded a snapshot into the shared cartridge RAM.
+        size_t ram = m_pEverdriveGameRule->GetRamSize();
+        u8* banks = m_pEverdriveGameRule->GetRamBanks();
+        if (ram && banks)
+            memcpy(banks, m_pEverdriveOSMemoryRule->GetSaveRAM(), ram < EverdriveOSMemoryRule::k_save_size ? ram : EverdriveOSMemoryRule::k_save_size);
+        m_pEverdriveGameRule->PerformWrite(0x0000, m_pEverdriveOSMemoryRule->PerformRead(0xBD14));
+        u8 mode = m_pEverdriveOSMemoryRule->PerformRead(0xBD15);
+        m_pEverdriveGameRule->PerformWrite(0x6000, mode);
+        m_pEverdriveGameRule->PerformWrite(0x3000, mode >> 1);
+        m_pEverdriveGameRule->PerformWrite(0x4000, m_pEverdriveOSMemoryRule->PerformRead(0xBD16));
+        m_pEverdriveGameRule->PerformWrite(0x2100, m_pEverdriveOSMemoryRule->PerformRead(0xBD17));
+        m_pEverdriveGameRule->PerformWrite(0x2000, m_pEverdriveOSMemoryRule->PerformRead(0xBD17));
         m_pMemory->SetCurrentRule(m_pEverdriveGameRule);
         m_bEverdriveWatch = false;
         Log("EverdriveOS: back to the game");
     }
 }
 
-// $BD09 bit 2: the cart reboots into the OS, the game's RAM is the save RAM the OS backs up
+// $BD06 bit 4 requests a reset into the OS; preserve the game's save RAM.
 void GearboyCore::RebootEverdriveOS()
 {
     MemoryRule* game = m_pEverdriveGameRule;

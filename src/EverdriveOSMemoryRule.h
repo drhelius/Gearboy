@@ -50,10 +50,13 @@ public:
     bool LaunchRequested();
     void TakeLaunch(std::vector<u8>& rom, std::vector<u8>& save);
     void EnterFromGame(u8 ramg, u8 mode, u8 ramb, u8 romb);
-    int TakeSwitch(); // 1: back to the game, 2: reboot into the OS
+    int TakeSwitch(); // 1: resume game, 2: reset into OS, 3: warm return to OS
     int PeekSwitch();
     const std::vector<u8>& GetImage();
     u8* GetSaveRAM();
+    u8 GetCartridgeFeatures() const;
+    void GetGameRTC(u8* registers);
+    void SetGameRTC(const u8* registers);
     void SetEverdriveFolder(const char* folder);
 
 private:
@@ -66,10 +69,17 @@ private:
     bool m_bLaunch;
     int m_Switch;
     u8 m_GameMBC[4];
+    u8 m_GameRTC[2][5]; // current MBC3 registers and reference calendar counter
+    u8 m_RTCIndex;
+    u8 m_RTCLatch;
     std::vector<u8> m_File; // GBCOS.BIN as loaded, for a reboot into the OS
     u8* m_pSave;
     bool m_bUnlocked;
     u8 m_Block[2];
+    // GEARBOY_EVERDRIVE_LATCH_BD03 set: a $BD03 write is held until the next $BD02 write,
+    // which applies both, as the stock OS's high-then-low writes allow (unconfirmed on the X7)
+    bool m_bLatchHigh;
+    u8 m_PendingHigh;
     u8 m_Masks[2]; // $BD04 ROM, $BD05 save RAM bank masks for a launched game
     u8 m_Config; // $BD06
     u8 m_Mapper; // $BD07

@@ -46,6 +46,7 @@ public:
     virtual ~MBC3MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
+    void GetEverdriveRegisters(u8* registers);
     virtual bool MapsROMDirectly();
     virtual void Reset(bool bCGB);
     virtual void SaveRam(std::ostream &file);
