@@ -32,10 +32,17 @@ static int sound_queue_max_queued_bytes;
 static int sound_queue_bytes_per_second;
 static float sound_queue_ratio;
 static int sound_queue_sync_wait_count;
+static int sound_queue_channels;
+static bool sound_queue_splice_dropping;
+static int sound_queue_splice_count;
 
 static const float k_sound_queue_max_ratio_delta = 0.005f;
+static const int k_sound_queue_splice_samples = 256;
+
+static s16 sound_queue_splice_buffer[k_sound_queue_splice_samples];
 
 static void sound_queue_update_ratio(int queued, int bytes, bool rate_control, float base_ratio);
+static int sound_queue_splice_mix(const s16* samples, int count);
 static bool is_running_in_wsl(void);
 
 void sound_queue_init(void)
@@ -44,6 +51,9 @@ void sound_queue_init(void)
     sound_queue_sound_open = false;
     sound_queue_playing = false;
     sound_queue_sync_wait_count = 0;
+    sound_queue_channels = 2;
+    sound_queue_splice_dropping = false;
+    sound_queue_splice_count = 0;
 
     SDL_SetHintWithPriority(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, "512", SDL_HINT_DEFAULT);
 
@@ -124,6 +134,8 @@ bool sound_queue_start(int sample_rate, int channel_count, int buffer_size, int 
     sound_queue_playing = false;
     sound_queue_sound_open = true;
     sound_queue_ratio = 1.0f;
+    sound_queue_channels = channel_count;
+    sound_queue_splice_dropping = false;
 
     return true;
 }
@@ -153,6 +165,7 @@ void sound_queue_flush(void)
     SDL_PauseAudioStreamDevice(sound_queue_stream);
     SDL_ClearAudioStream(sound_queue_stream);
     sound_queue_playing = false;
+    sound_queue_splice_dropping = false;
 
     if ((sound_queue_ratio != 1.0f) && SDL_SetAudioStreamFrequencyRatio(sound_queue_stream, 1.0f))
         sound_queue_ratio = 1.0f;
@@ -176,7 +189,7 @@ int sound_queue_get_sync_wait_count(void)
     return sound_queue_sync_wait_count;
 }
 
-void sound_queue_write(s16* samples, int count, bool sync, bool rate_control, float base_ratio)
+void sound_queue_write(s16* samples, int count, bool sync, bool rate_control, float base_ratio, bool splice)
 {
     if (!sound_queue_sound_open || !sound_queue_stream)
         return;
@@ -184,6 +197,9 @@ void sound_queue_write(s16* samples, int count, bool sync, bool rate_control, fl
     int bytes = count * (int)sizeof(s16);
     int queued = SDL_GetAudioStreamQueued(sound_queue_stream);
     int max_queued = rate_control ? sound_queue_max_queued_bytes + bytes : sound_queue_max_queued_bytes;
+
+    if (!splice)
+        sound_queue_splice_dropping = false;
 
     if (bytes > sound_queue_max_queued_bytes)
     {
@@ -215,14 +231,28 @@ void sound_queue_write(s16* samples, int count, bool sync, bool rate_control, fl
     }
     else if (sound_queue_playing)
     {
-        if (queued >= max_queued)
+        int limit = sound_queue_splice_dropping ? max_queued / 2 : max_queued;
+
+        if (queued >= limit)
         {
-            SOUND_QUEUE_DEBUG("Sound Queue: Async overrun, dropping frame (queued %d >= max %d)", queued, max_queued);
+            SOUND_QUEUE_DEBUG("Sound Queue: Async overrun, dropping frame (queued %d >= max %d)", queued, limit);
+
+            if (splice && !sound_queue_splice_dropping)
+            {
+                sound_queue_splice_count = MIN(count, k_sound_queue_splice_samples);
+                memcpy(sound_queue_splice_buffer, samples, sound_queue_splice_count * sizeof(s16));
+                sound_queue_splice_dropping = true;
+            }
+
             return;
         }
     }
 
-    if (!SDL_PutAudioStreamData(sound_queue_stream, samples, bytes))
+    int head = sound_queue_splice_dropping ? sound_queue_splice_mix(samples, count) : 0;
+    sound_queue_splice_dropping = false;
+
+    if (((head > 0) && !SDL_PutAudioStreamData(sound_queue_stream, sound_queue_splice_buffer, head * (int)sizeof(s16))) ||
+        !SDL_PutAudioStreamData(sound_queue_stream, samples + head, bytes - (head * (int)sizeof(s16))))
     {
         Log("Sound Queue: Unable to queue audio: %s", SDL_GetError());
         return;
@@ -270,6 +300,24 @@ static void sound_queue_update_ratio(int queued, int bytes, bool rate_control, f
 
     if (SDL_SetAudioStreamFrequencyRatio(sound_queue_stream, ratio))
         sound_queue_ratio = ratio;
+}
+
+static int sound_queue_splice_mix(const s16* samples, int count)
+{
+    int frames = MIN(count, sound_queue_splice_count) / sound_queue_channels;
+
+    for (int f = 0; f < frames; f++)
+    {
+        s32 in = ((f + 1) << 15) / (frames + 1);
+
+        for (int c = 0; c < sound_queue_channels; c++)
+        {
+            int i = (f * sound_queue_channels) + c;
+            sound_queue_splice_buffer[i] = (s16)(((sound_queue_splice_buffer[i] * (32768 - in)) + (samples[i] * in)) >> 15);
+        }
+    }
+
+    return frames * sound_queue_channels;
 }
 
 static bool is_running_in_wsl(void)
