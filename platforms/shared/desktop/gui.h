@@ -137,6 +137,7 @@ EXTERN void gui_load_state_after_media(int slot, const char* path);
 EXTERN void gui_set_style(void);
 EXTERN void gui_set_error_message(const char* message);
 EXTERN void gui_center_next_window(void);
+EXTERN bool gui_has_open_window(void);
 Cartridge::CartridgeTypes gui_get_mbc(int index);
 
 #undef GUI_IMPORT
