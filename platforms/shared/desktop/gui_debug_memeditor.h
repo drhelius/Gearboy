@@ -92,6 +92,7 @@ public:
     void BookMarkPopup();
     void WatchPopup();
     void DrawFindBytesWindow();
+    bool ConsumeShowRequest();
     void SaveSettings(std::ostream& stream);
     Options GetOptions() const;
     void SetOptions(const Options& options);
@@ -187,6 +188,7 @@ private:
     int m_find_bytes_last_address;
     int m_find_bytes_pattern_len;
     std::vector<int> m_find_bytes_results;
+    bool m_show_request;
 };
 
 #endif /* GUI_DEBUG_MEMEDITOR_H */
