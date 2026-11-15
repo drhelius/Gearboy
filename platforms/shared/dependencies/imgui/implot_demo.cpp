@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// ImPlot v1.1 WIP
+// ImPlot v1.1
 
 // We define this so that the demo does not accidentally use deprecated API
 #ifndef IMPLOT_DISABLE_OBSOLETE_FUNCTIONS
@@ -30,16 +30,11 @@
 
 #include "implot.h"
 #ifndef IMGUI_DISABLE
+#include "implot_internal.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
-// Clang warnings with -Weverything
-#if defined(__clang__)
-#pragma clang diagnostic ignored "-Wdeprecated-enum-enum-conversion" // warning: bitwise operation between different enumeration types ('XXXFlags_' and 'XXXFlagsPrivate_') is deprecated
-#pragma clang diagnostic ignored "-Wenum-enum-conversion" // warning: bitwise operation between different enumeration types ('XXXFlags_' and 'XXXFlagsPrivate_') is deprecated
-#endif
 
 #ifdef _MSC_VER
 #define sprintf sprintf_s
@@ -196,6 +191,59 @@ struct HugeTimeData {
     double* Ys;
     static const int Size = 60*60*24*366;
 };
+
+//-----------------------------------------------------------------------------
+// [SECTION] Numeric Type Gating
+//-----------------------------------------------------------------------------
+
+// A few demos below hardcode their data as a type other than float/double (e.g. ImS8, int). ImPlot
+// only instantiates PlotXxx<T> for the types in IMPLOT_NUMERIC_TYPES (see implot_internal.h), which
+// can be restricted with IMPLOT_CUSTOM_NUMERIC_TYPES. Calling PlotXxx<T> for an excluded type still
+// compiles but fails to link, so those demos are compiled out for it.
+//
+// A demo that plots data of a type other than float/double must be declared with
+// IMPLOT_DEMO_TYPE_GATED (below).
+
+// Walks IMPLOT_NUMERIC_TYPES, expanding IMPLOT_DEMO_TYPE_MACRO(T) once per listed type.
+#define IMPLOT_DEMO_CAT(x, y) IMPLOT_DEMO_CAT_(x, y)
+#define IMPLOT_DEMO_CAT_(x, y) x ## y
+#define IMPLOT_DEMO_WALK_TYPES(chain) IMPLOT_DEMO_CAT(IMPLOT_DEMO_WALK_TYPES_1 chain, _END)
+#define IMPLOT_DEMO_WALK_TYPES_1(T) IMPLOT_DEMO_TYPE_MACRO(T) IMPLOT_DEMO_WALK_TYPES_2
+#define IMPLOT_DEMO_WALK_TYPES_2(T) IMPLOT_DEMO_TYPE_MACRO(T) IMPLOT_DEMO_WALK_TYPES_1
+#define IMPLOT_DEMO_WALK_TYPES_1_END
+#define IMPLOT_DEMO_WALK_TYPES_2_END
+
+namespace Demo {
+
+// IsTypeEnabled<T>::Value is true iff ImPlot explicitly instantiates PlotXxx<T>.
+template <typename T> struct IsTypeEnabled { enum { Value = 0 }; };
+#define IMPLOT_DEMO_TYPE_MACRO(T) template <> struct IsTypeEnabled<T> { enum { Value = 1 }; };
+IMPLOT_DEMO_WALK_TYPES(IMPLOT_NUMERIC_TYPES)
+#undef IMPLOT_DEMO_TYPE_MACRO
+
+// A tiny local enable_if, so this doesn't need to pull in <type_traits> for its one use below.
+template <bool Condition, typename T = void> struct EnableIf {};
+template <typename T> struct EnableIf<true, T> { typedef T type; };
+
+void ShowTypeDisabledNotice() {
+    ImGui::TextDisabled("(this demo needs a numeric type excluded via IMPLOT_CUSTOM_NUMERIC_TYPES)");
+}
+
+} // namespace Demo
+
+// Declares Name<T>() such that exactly one of two bodies is ever compiled for a given T: the one
+// written immediately after this macro if T is one of IMPLOT_NUMERIC_TYPES, or an automatic
+// fallback that calls ShowTypeDisabledNotice() otherwise. Since the two are separate function
+// template overloads selected via SFINAE, the one that doesn't apply to T is never instantiated,
+// so it can safely reference PlotXxx<T> without ever actually calling it (and without the linker
+// ever looking for a definition of it) when T was excluded via IMPLOT_CUSTOM_NUMERIC_TYPES.
+#define IMPLOT_DEMO_TYPE_GATED(Name)                                                                        \
+    template <typename T>                                                                                   \
+    typename Demo::EnableIf<!Demo::IsTypeEnabled<T>::Value>::type Name() {                                  \
+        Demo::ShowTypeDisabledNotice();                                                                     \
+    }                                                                                                       \
+    template <typename T>                                                                                   \
+    typename Demo::EnableIf<Demo::IsTypeEnabled<T>::Value>::type Name()
 
 //-----------------------------------------------------------------------------
 // [SECTION] Demo Functions
@@ -541,9 +589,8 @@ void Demo_StairstepPlots() {
 
 //-----------------------------------------------------------------------------
 
-void Demo_BarPlots() {
-    IMGUI_DEMO_MARKER("Plots/Bar Plots");
-    static ImS8  data[10] = {1,2,3,4,5,6,7,8,9,10};
+IMPLOT_DEMO_TYPE_GATED(Demo_BarPlots_) {
+    static T data[10] = {1,2,3,4,5,6,7,8,9,10};
     if (ImPlot::BeginPlot("Bar Plot")) {
         ImPlot::PlotBars("Vertical",data,10,0.7,1);
         ImPlot::PlotBars("Horizontal",data,10,0.4,1,{ImPlotProp_Flags, ImPlotBarsFlags_Horizontal});
@@ -551,13 +598,17 @@ void Demo_BarPlots() {
     }
 }
 
+void Demo_BarPlots() {
+    IMGUI_DEMO_MARKER("Plots/Bar Plots");
+    Demo_BarPlots_<ImS8>();
+}
+
 //-----------------------------------------------------------------------------
 
-void Demo_BarGroups() {
-    IMGUI_DEMO_MARKER("Plots/Bar Groups");
-    static ImS8  data[30] = {83, 67, 23, 89, 83, 78, 91, 82, 85, 90,  // midterm
-                             80, 62, 56, 99, 55, 78, 88, 78, 90, 100, // final
-                             80, 69, 52, 92, 72, 78, 75, 76, 89, 95}; // course
+IMPLOT_DEMO_TYPE_GATED(Demo_BarGroups_) {
+    static T data[30] = {83, 67, 23, 89, 83, 78, 91, 82, 85, 90,  // midterm
+                         80, 62, 56, 99, 55, 78, 88, 78, 90, 100, // final
+                         80, 69, 52, 92, 72, 78, 75, 76, 89, 95}; // course
 
     static const char*  ilabels[]   = {"Midterm Exam","Final Exam","Course Grade"};
     static const char*  glabels[]   = {"S1","S2","S3","S4","S5","S6","S7","S8","S9","S10"};
@@ -593,11 +644,14 @@ void Demo_BarGroups() {
     }
 }
 
+void Demo_BarGroups() {
+    IMGUI_DEMO_MARKER("Plots/Bar Groups");
+    Demo_BarGroups_<ImS8>();
+}
+
 //-----------------------------------------------------------------------------
 
-void Demo_BarStacks() {
-    IMGUI_DEMO_MARKER("Plots/Bar Stacks");
-
+IMPLOT_DEMO_TYPE_GATED(Demo_BarStacks_) {
     static ImPlotColormap Liars = -1;
     if (Liars == -1) {
         static const ImU32 Liars_Data[6] = { 4282515870, 4282609140, 4287357182, 4294630301, 4294945280, 4294921472 };
@@ -608,24 +662,24 @@ void Demo_BarStacks() {
     ImGui::Checkbox("Diverging",&diverging);
 
     static const char* politicians[] = {"Trump","Bachman","Cruz","Gingrich","Palin","Santorum","Walker","Perry","Ryan","McCain","Rubio","Romney","Rand Paul","Christie","Biden","Kasich","Sanders","J Bush","H Clinton","Obama"};
-    static int data_reg[] = {18,26,7,14,10,8,6,11,4,4,3,8,6,8,6,5,0,3,1,2,                // Pants on Fire
-                             43,36,30,21,30,27,25,17,11,22,15,16,16,17,12,12,14,6,13,12,  // False
-                             16,13,28,22,15,21,15,18,30,17,24,18,13,10,14,15,17,22,14,12, // Mostly False
-                             17,10,13,25,12,22,19,26,23,17,22,27,20,26,29,17,18,22,21,27, // Half True
-                             5,7,16,10,10,12,23,13,17,20,22,16,23,19,20,26,36,29,27,26,   // Mostly True
-                             1,8,6,8,23,10,12,15,15,20,14,15,22,20,19,25,15,18,24,21};    // True
+    static T data_reg[] = {18,26,7,14,10,8,6,11,4,4,3,8,6,8,6,5,0,3,1,2,                // Pants on Fire
+                           43,36,30,21,30,27,25,17,11,22,15,16,16,17,12,12,14,6,13,12,  // False
+                           16,13,28,22,15,21,15,18,30,17,24,18,13,10,14,15,17,22,14,12, // Mostly False
+                           17,10,13,25,12,22,19,26,23,17,22,27,20,26,29,17,18,22,21,27, // Half True
+                           5,7,16,10,10,12,23,13,17,20,22,16,23,19,20,26,36,29,27,26,   // Mostly True
+                           1,8,6,8,23,10,12,15,15,20,14,15,22,20,19,25,15,18,24,21};    // True
     static const char* labels_reg[] = {"Pants on Fire","False","Mostly False","Half True","Mostly True","True"};
 
 
-    static int data_div[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                         // Pants on Fire (dummy, to order legend logically)
-                             0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                         // False         (dummy, to order legend logically)
-                             0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                         // Mostly False  (dummy, to order legend logically)
-                             -16,-13,-28,-22,-15,-21,-15,-18,-30,-17,-24,-18,-13,-10,-14,-15,-17,-22,-14,-12, // Mostly False
-                             -43,-36,-30,-21,-30,-27,-25,-17,-11,-22,-15,-16,-16,-17,-12,-12,-14,-6,-13,-12,  // False
-                             -18,-26,-7,-14,-10,-8,-6,-11,-4,-4,-3,-8,-6,-8,-6,-5,0,-3,-1,-2,                 // Pants on Fire
-                             17,10,13,25,12,22,19,26,23,17,22,27,20,26,29,17,18,22,21,27,                     // Half True
-                             5,7,16,10,10,12,23,13,17,20,22,16,23,19,20,26,36,29,27,26,                       // Mostly True
-                             1,8,6,8,23,10,12,15,15,20,14,15,22,20,19,25,15,18,24,21};                        // True
+    static T data_div[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                         // Pants on Fire (dummy, to order legend logically)
+                           0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                         // False         (dummy, to order legend logically)
+                           0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                         // Mostly False  (dummy, to order legend logically)
+                           -16,-13,-28,-22,-15,-21,-15,-18,-30,-17,-24,-18,-13,-10,-14,-15,-17,-22,-14,-12, // Mostly False
+                           -43,-36,-30,-21,-30,-27,-25,-17,-11,-22,-15,-16,-16,-17,-12,-12,-14,-6,-13,-12,  // False
+                           -18,-26,-7,-14,-10,-8,-6,-11,-4,-4,-3,-8,-6,-8,-6,-5,0,-3,-1,-2,                 // Pants on Fire
+                           17,10,13,25,12,22,19,26,23,17,22,27,20,26,29,17,18,22,21,27,                     // Half True
+                           5,7,16,10,10,12,23,13,17,20,22,16,23,19,20,26,36,29,27,26,                       // Mostly True
+                           1,8,6,8,23,10,12,15,15,20,14,15,22,20,19,25,15,18,24,21};                        // True
     static const char* labels_div[] = {"Pants on Fire","False","Mostly False","Mostly False","False","Pants on Fire","Half True","Mostly True","True"};
 
     ImPlot::PushColormap(Liars);
@@ -641,6 +695,11 @@ void Demo_BarStacks() {
         ImPlot::EndPlot();
     }
     ImPlot::PopColormap();
+}
+
+void Demo_BarStacks() {
+    IMGUI_DEMO_MARKER("Plots/Bar Stacks");
+    Demo_BarStacks_<int>();
 }
 
 //-----------------------------------------------------------------------------
@@ -703,15 +762,45 @@ void Demo_StemPlots() {
 void Demo_InfiniteLines() {
     IMGUI_DEMO_MARKER("Plots/Infinite Lines");
     static double vals[] = {0.25, 0.5, 0.75};
+    static const char* labels[] = {"x = 0.25", "x = 0.50", "x = 0.75"};
+    ImGui::BulletText("Toggle \"Vertical\" in the legend: its text labels hide with it.");
     if (ImPlot::BeginPlot("##Infinite")) {
         ImPlot::SetupAxes(nullptr,nullptr,ImPlotAxisFlags_NoInitialFit,ImPlotAxisFlags_NoInitialFit);
         ImPlot::PlotInfLines("Vertical",vals,3);
+        // PlotText is not a legend item, so skip it when its lines are hidden
+        if (!ImPlot::IsLastItemHidden()) {
+            for (int i = 0; i < 3; ++i)
+                ImPlot::PlotText(labels[i],vals[i],0.9,ImVec2(36,0),{ImPlotProp_Flags, ImPlotItemFlags_NoFit});
+        }
         ImPlot::PlotInfLines("Horizontal",vals,3,{ImPlotProp_Flags, ImPlotInfLinesFlags_Horizontal});
         ImPlot::EndPlot();
     }
 }
 
 //-----------------------------------------------------------------------------
+
+// Second pie chart's data is an int array (purely to show PlotPieChart() isn't limited to
+// float/double); it needs its own type-gated helper since int (ImS32) may have been excluded via
+// IMPLOT_CUSTOM_NUMERIC_TYPES.
+template <typename T>
+typename Demo::EnableIf<Demo::IsTypeEnabled<T>::Value>::type
+Demo_PieCharts_Pie2(ImPlotPieChartFlags flags) {
+    static const char* labels2[] = {"A","B","C","D","E"};
+    static T data2[]             = {1,1,2,3,5};
+    ImPlot::PushColormap(ImPlotColormap_Pastel);
+    if (ImPlot::BeginPlot("##Pie2", ImVec2(ImGui::GetTextLineHeight()*16,ImGui::GetTextLineHeight()*16), ImPlotFlags_Equal | ImPlotFlags_NoMouseText)) {
+        ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+        ImPlot::SetupAxesLimits(0, 1, 0, 1);
+        ImPlot::PlotPieChart(labels2, data2, 5, 0.5, 0.5, 0.4, "%.0f", 180, {ImPlotProp_Flags, flags});
+        ImPlot::EndPlot();
+    }
+    ImPlot::PopColormap();
+}
+template <typename T>
+typename Demo::EnableIf<!Demo::IsTypeEnabled<T>::Value>::type
+Demo_PieCharts_Pie2(ImPlotPieChartFlags) {
+    Demo::ShowTypeDisabledNotice();
+}
 
 void Demo_PieCharts() {
     IMGUI_DEMO_MARKER("Plots/Pie Charts");
@@ -734,17 +823,7 @@ void Demo_PieCharts() {
 
     ImGui::SameLine();
 
-    static const char* labels2[]   = {"A","B","C","D","E"};
-    static int data2[]             = {1,1,2,3,5};
-
-    ImPlot::PushColormap(ImPlotColormap_Pastel);
-    if (ImPlot::BeginPlot("##Pie2", ImVec2(ImGui::GetTextLineHeight()*16,ImGui::GetTextLineHeight()*16), ImPlotFlags_Equal | ImPlotFlags_NoMouseText)) {
-        ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
-        ImPlot::SetupAxesLimits(0, 1, 0, 1);
-        ImPlot::PlotPieChart(labels2, data2, 5, 0.5, 0.5, 0.4, "%.0f", 180, {ImPlotProp_Flags, flags});
-        ImPlot::EndPlot();
-    }
-    ImPlot::PopColormap();
+    Demo_PieCharts_Pie2<int>(flags);
 }
 
 //-----------------------------------------------------------------------------
@@ -1069,8 +1148,7 @@ void Demo_RealtimePlots() {
 
 //-----------------------------------------------------------------------------
 
-void Demo_MarkersAndText() {
-    IMGUI_DEMO_MARKER("Plots/Markers and Text");
+IMPLOT_DEMO_TYPE_GATED(Demo_MarkersAndText_) {
     static ImPlotSpec spec(ImPlotProp_Marker, ImPlotMarker_Auto);
     ImGui::DragFloat("Marker Size",&spec.MarkerSize,0.1f,2.0f,10.0f,"%.2f px");
     ImGui::DragFloat("Marker Weight", &spec.LineWeight,0.05f,0.5f,3.0f,"%.2f px");
@@ -1080,8 +1158,8 @@ void Demo_MarkersAndText() {
         ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
         ImPlot::SetupAxesLimits(0, 10, -2, 12);
 
-        ImS8 xs[2] = {1,4};
-        ImS8 ys[2] = {10,11};
+        T xs[2] = {1,4};
+        T ys[2] = {10,11};
 
         // filled markers
         for (int m = 0; m < ImPlotMarker_COUNT; ++m) {
@@ -1110,6 +1188,11 @@ void Demo_MarkersAndText() {
 
         ImPlot::EndPlot();
     }
+}
+
+void Demo_MarkersAndText() {
+    IMGUI_DEMO_MARKER("Plots/Markers and Text");
+    Demo_MarkersAndText_<ImS8>();
 }
 
 //-----------------------------------------------------------------------------
@@ -1141,6 +1224,37 @@ void Demo_NaNValues() {
 }
 
 //-----------------------------------------------------------------------------
+
+// The "Colorful Bar Plots" bit of Demo_PerIndexColors() below plots an ImS8 array purely to show
+// that PlotBars() isn't limited to float/double, so it needs its own type-gated helper in case
+// ImS8 was excluded via IMPLOT_CUSTOM_NUMERIC_TYPES.
+IMPLOT_DEMO_TYPE_GATED(Demo_PerIndexColors_ColorfulBars_) {
+    static T data_bars[10] = {1,2,3,4,5,6,7,8,9,10};
+    static ImU32 colors_bars_v[10], colors_bars_h[10];
+    for (int i = 0; i < 10; ++i) {
+        // Rainbow colors for Vertical
+        float hue = i / 9.0f;
+        colors_bars_v[i] = ImColor::HSV(hue, 0.8f, 0.9f);
+
+        // Colormap colors for Horizontal
+        float t = i / 9.0f;
+        ImVec4 color = ImPlot::SampleColormap(t, ImPlotColormap_Viridis);
+        colors_bars_h[i] = ImGui::GetColorU32(color);
+    }
+
+    if (ImPlot::BeginPlot("Colorful Bar Plot")) {
+        ImPlot::PlotBars("Vertical", data_bars, 10, 0.7, 1, {
+            ImPlotProp_FillColors, colors_bars_v,
+            ImPlotProp_LineColors, colors_bars_v
+        });
+        ImPlot::PlotBars("Horizontal", data_bars, 10, 0.4, 1, {
+            ImPlotProp_Flags, ImPlotBarsFlags_Horizontal,
+            ImPlotProp_FillColors, colors_bars_h,
+            ImPlotProp_LineColors, colors_bars_h
+        });
+        ImPlot::EndPlot();
+    }
+}
 
 void Demo_PerIndexColors() {
     // Colorful Lines
@@ -1358,31 +1472,7 @@ void Demo_PerIndexColors() {
     }
 
     // Colorful Bar Plots
-    static ImS8 data_bars[10] = {1,2,3,4,5,6,7,8,9,10};
-    static ImU32 colors_bars_v[10], colors_bars_h[10];
-    for (int i = 0; i < 10; ++i) {
-        // Rainbow colors for Vertical
-        float hue = i / 9.0f;
-        colors_bars_v[i] = ImColor::HSV(hue, 0.8f, 0.9f);
-
-        // Colormap colors for Horizontal
-        float t = i / 9.0f;
-        ImVec4 color = ImPlot::SampleColormap(t, ImPlotColormap_Viridis);
-        colors_bars_h[i] = ImGui::GetColorU32(color);
-    }
-
-    if (ImPlot::BeginPlot("Colorful Bar Plot")) {
-        ImPlot::PlotBars("Vertical", data_bars, 10, 0.7, 1, {
-            ImPlotProp_FillColors, colors_bars_v,
-            ImPlotProp_LineColors, colors_bars_v
-        });
-        ImPlot::PlotBars("Horizontal", data_bars, 10, 0.4, 1, {
-            ImPlotProp_Flags, ImPlotBarsFlags_Horizontal,
-            ImPlotProp_FillColors, colors_bars_h,
-            ImPlotProp_LineColors, colors_bars_h
-        });
-        ImPlot::EndPlot();
-    }
+    Demo_PerIndexColors_ColorfulBars_<ImS8>();
 
     // Colorful Stem Plots
     static double xs_stems[51], ys1_stems[51], ys2_stems[51];
@@ -1638,11 +1728,10 @@ void Demo_MultipleAxes() {
 
 //-----------------------------------------------------------------------------
 
-void Demo_LinkedAxes() {
-    IMGUI_DEMO_MARKER("Axes/Linked Axes");
+IMPLOT_DEMO_TYPE_GATED(Demo_LinkedAxes_) {
     static ImPlotRect lims(0,1,0,1);
     static bool linkx = true, linky = true;
-    int data[2] = {0,1};
+    T data[2] = {0,1};
     ImGui::Checkbox("Link X", &linkx);
     ImGui::SameLine();
     ImGui::Checkbox("Link Y", &linky);
@@ -1664,6 +1753,11 @@ void Demo_LinkedAxes() {
         }
         ImPlot::EndAlignedPlots();
     }
+}
+
+void Demo_LinkedAxes() {
+    IMGUI_DEMO_MARKER("Axes/Linked Axes");
+    Demo_LinkedAxes_<int>();
 }
 
 //-----------------------------------------------------------------------------
@@ -1895,7 +1989,7 @@ void Demo_LegendOptions() {
         ImPlot::PlotLineG("Item 003", MyImPlot::SawWave,  &data5, 1000);         // combined with previous "Item C"
 
         for (int i = 0; i < num_dummy_items; ++i) {
-            char label[16];
+            char label[32];
             snprintf(label, sizeof(label), "Item %03d", i+4);
             ImPlot::PlotDummy(label);
         }
@@ -1911,7 +2005,8 @@ void Demo_DragPoints() {
     static ImPlotDragToolFlags flags = ImPlotDragToolFlags_None;
     ImGui::CheckboxFlags("NoCursors", (unsigned int*)&flags, ImPlotDragToolFlags_NoCursors); ImGui::SameLine();
     ImGui::CheckboxFlags("NoFit", (unsigned int*)&flags, ImPlotDragToolFlags_NoFit); ImGui::SameLine();
-    ImGui::CheckboxFlags("NoInput", (unsigned int*)&flags, ImPlotDragToolFlags_NoInputs);
+    ImGui::CheckboxFlags("NoInput", (unsigned int*)&flags, ImPlotDragToolFlags_NoInputs); ImGui::SameLine();
+    ImGui::CheckboxFlags("NoMove", (unsigned int*)&flags, ImPlotDragToolFlags_NoMove);
     ImPlotAxisFlags ax_flags = ImPlotAxisFlags_NoTickLabels | ImPlotAxisFlags_NoTickMarks;
     bool clicked[4] = {false, false, false, false};
     bool hovered[4] = {false, false, false, false};
@@ -1973,7 +2068,8 @@ void Demo_DragLines() {
     static ImPlotDragToolFlags flags = ImPlotDragToolFlags_None;
     ImGui::CheckboxFlags("NoCursors", (unsigned int*)&flags, ImPlotDragToolFlags_NoCursors); ImGui::SameLine();
     ImGui::CheckboxFlags("NoFit", (unsigned int*)&flags, ImPlotDragToolFlags_NoFit); ImGui::SameLine();
-    ImGui::CheckboxFlags("NoInput", (unsigned int*)&flags, ImPlotDragToolFlags_NoInputs);
+    ImGui::CheckboxFlags("NoInput", (unsigned int*)&flags, ImPlotDragToolFlags_NoInputs); ImGui::SameLine();
+    ImGui::CheckboxFlags("NoMove", (unsigned int*)&flags, ImPlotDragToolFlags_NoMove);
     if (ImPlot::BeginPlot("##lines",ImVec2(-1,0))) {
         ImPlot::SetupAxesLimits(0,1,0,1);
         ImPlot::DragLineX(0,&x1,ImVec4(1,1,1,1),1,flags);
@@ -2019,7 +2115,9 @@ void Demo_DragRects() {
     static ImPlotDragToolFlags flags = ImPlotDragToolFlags_None;
     ImGui::CheckboxFlags("NoCursors", (unsigned int*)&flags, ImPlotDragToolFlags_NoCursors); ImGui::SameLine();
     ImGui::CheckboxFlags("NoFit", (unsigned int*)&flags, ImPlotDragToolFlags_NoFit); ImGui::SameLine();
-    ImGui::CheckboxFlags("NoInput", (unsigned int*)&flags, ImPlotDragToolFlags_NoInputs);
+    ImGui::CheckboxFlags("NoInput", (unsigned int*)&flags, ImPlotDragToolFlags_NoInputs); ImGui::SameLine();
+    ImGui::CheckboxFlags("NoMove", (unsigned int*)&flags, ImPlotDragToolFlags_NoMove); ImGui::SameLine();
+    ImGui::CheckboxFlags("NoResize", (unsigned int*)&flags, ImPlotDragToolFlags_NoResize);
 
     if (ImPlot::BeginPlot("##Main",ImVec2(-1,ImGui::GetTextLineHeight()*10))) {
         ImPlot::SetupAxes(nullptr,nullptr,ImPlotAxisFlags_NoTickLabels,ImPlotAxisFlags_NoTickLabels);
@@ -2430,7 +2528,7 @@ void Demo_ItemStylingAndSpec() {
         spec.Marker = ImPlotMarker_Square;
         spec.MarkerSize = 6;
         spec.Stride = sizeof(ImVec2);
-        spec.Flags = ImPlotItemFlags_NoLegend | ImPlotLineFlags_Shaded;
+        spec.Flags = (ImPlotItemFlags)ImPlotItemFlags_NoLegend | ImPlotLineFlags_Shaded;
         ImPlot::PlotLine("Line 1", &data1[0].x, &data1[0].y, 20, spec);
 
         // 2. Inline using ImPlotProp,value pairs (order does NOT matter):
@@ -2442,7 +2540,7 @@ void Demo_ItemStylingAndSpec() {
             ImPlotProp_Marker, ImPlotMarker_Diamond,
             ImPlotProp_Size, 6,
             ImPlotProp_Stride, sizeof(ImVec2),
-            ImPlotProp_Flags, ImPlotItemFlags_NoLegend | ImPlotLineFlags_Shaded
+            ImPlotProp_Flags, (ImPlotItemFlags)ImPlotItemFlags_NoLegend | ImPlotLineFlags_Shaded
         });
 
         ImPlot::EndPlot();
@@ -2550,6 +2648,11 @@ void Demo_TickLabels()  {
         ImGui::SameLine();
         ImGui::Checkbox("Show Custom Labels", &custom_labels);
     }
+    static bool labels_inside = false;
+    ImGui::Checkbox("Labels Inside", &labels_inside);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(only the innermost axis on each side: X1, Y1 and Y2, not Y3)");
+    const ImPlotAxisFlags inside = labels_inside ? ImPlotAxisFlags_TickLabelsInside : ImPlotAxisFlags_None;
     const double pi = 3.14;
     const char* pi_str[] = {"PI"};
     static double yticks[] = {100,300,700,900};
@@ -2557,9 +2660,10 @@ void Demo_TickLabels()  {
     static double yticks_aux[] = {0.2,0.4,0.6};
     static const char* ylabels_aux[] = {"A","B","C","D","E","F"};
     if (ImPlot::BeginPlot("##Ticks")) {
+        ImPlot::SetupAxes(nullptr, nullptr, inside, inside);
         ImPlot::SetupAxesLimits(2.5,5,0,1000);
-        ImPlot::SetupAxis(ImAxis_Y2, nullptr, ImPlotAxisFlags_AuxDefault);
-        ImPlot::SetupAxis(ImAxis_Y3, nullptr, ImPlotAxisFlags_AuxDefault);
+        ImPlot::SetupAxis(ImAxis_Y2, nullptr, ImPlotAxisFlags_AuxDefault | inside);
+        ImPlot::SetupAxis(ImAxis_Y3, nullptr, ImPlotAxisFlags_AuxDefault | inside);
         if (custom_fmt) {
             ImPlot::SetupAxisFormat(ImAxis_X1, "%g ms");
             ImPlot::SetupAxisFormat(ImAxis_Y1, MetricFormatter, (void*)"Hz");
@@ -2578,6 +2682,19 @@ void Demo_TickLabels()  {
 
 //-----------------------------------------------------------------------------
 
+// This bit of Demo_CustomStyles() below plots an unsigned int array purely to show that PlotXxx()
+// isn't limited to float/double, so it needs its own type-gated helper in case unsigned int
+// (ImU32) was excluded via IMPLOT_CUSTOM_NUMERIC_TYPES.
+IMPLOT_DEMO_TYPE_GATED(Demo_CustomStyles_SeabornPlots_) {
+    T lin[10] = {8,8,9,7,8,8,8,9,7,8};
+    T bar[10] = {1,2,5,3,4,1,2,5,3,4};
+    T dot[10] = {7,6,6,7,8,5,6,5,8,7};
+    ImPlot::PlotBars("Bars", bar, 10, 0.5f);
+    ImPlot::PlotLine("Line", lin, 10);
+    ImPlot::NextColormapColor(); // skip green
+    ImPlot::PlotScatter("Scatter", dot, 10);
+}
+
 void Demo_CustomStyles() {
     IMGUI_DEMO_MARKER("Custom/Custom Styles");
     ImPlot::PushColormap(ImPlotColormap_Deep);
@@ -2587,13 +2704,7 @@ void Demo_CustomStyles() {
     if (ImPlot::BeginPlot("seaborn style")) {
         ImPlot::SetupAxes( "x-axis", "y-axis");
         ImPlot::SetupAxesLimits(-0.5f, 9.5f, 0, 10);
-        unsigned int lin[10] = {8,8,9,7,8,8,8,9,7,8};
-        unsigned int bar[10] = {1,2,5,3,4,1,2,5,3,4};
-        unsigned int dot[10] = {7,6,6,7,8,5,6,5,8,7};
-        ImPlot::PlotBars("Bars", bar, 10, 0.5f);
-        ImPlot::PlotLine("Line", lin, 10);
-        ImPlot::NextColormapColor(); // skip green
-        ImPlot::PlotScatter("Scatter", dot, 10);
+        Demo_CustomStyles_SeabornPlots_<unsigned int>();
         ImPlot::EndPlot();
     }
     ImPlot::GetStyle() = backup;

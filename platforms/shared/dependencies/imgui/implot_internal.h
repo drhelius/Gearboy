@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// ImPlot v1.1 WIP
+// ImPlot v1.1
 
 // You may use this file to debug, understand or extend ImPlot features but we
 // don't provide any guarantee of forward compatibility!
@@ -70,6 +70,32 @@ constexpr int IMPLOT_NUM_Y_AXES = ImAxis_COUNT - IMPLOT_NUM_X_AXES;
 //-----------------------------------------------------------------------------
 // [SECTION] Macros
 //-----------------------------------------------------------------------------
+
+// By default, templates are instantiated for `float`, `double`, and for the following integer types, which are defined in imgui.h:
+//     signed char         ImS8;   // 8-bit signed integer
+//     unsigned char       ImU8;   // 8-bit unsigned integer
+//     signed short        ImS16;  // 16-bit signed integer
+//     unsigned short      ImU16;  // 16-bit unsigned integer
+//     signed int          ImS32;  // 32-bit signed integer == int
+//     unsigned int        ImU32;  // 32-bit unsigned integer
+//     signed   long long  ImS64;  // 64-bit signed integer
+//     unsigned long long  ImU64;  // 64-bit unsigned integer
+// (note: this list does *not* include `long`, `unsigned long` and `long double`)
+//
+// You can customize the supported types by defining IMPLOT_CUSTOM_NUMERIC_TYPES at compile time to define your own type list.
+//    As an example, you could use the compile time define given by the line below in order to support only float and double.
+//        -DIMPLOT_CUSTOM_NUMERIC_TYPES="(float)(double)"
+//    Note that the demo (implot_demo.cpp) plots float and double data, so those two must stay in the list for it to link
+//    (e.g. "(double)" alone fails with an undefined PlotBars<float>). The define must also reach implot_demo.cpp, not only
+//    implot_items.cpp (or go in imconfig.h); otherwise the demo falls back to the default list and may fail to link.
+//    In order to support all known C++ types, use:
+//        -DIMPLOT_CUSTOM_NUMERIC_TYPES="(signed char)(unsigned char)(signed short)(unsigned short)(signed int)(unsigned int)(signed long)(unsigned long)(signed long long)(unsigned long long)(float)(double)(long double)"
+
+#ifdef IMPLOT_CUSTOM_NUMERIC_TYPES
+    #define IMPLOT_NUMERIC_TYPES IMPLOT_CUSTOM_NUMERIC_TYPES
+#else
+    #define IMPLOT_NUMERIC_TYPES (ImS8)(ImU8)(ImS16)(ImU16)(ImS32)(ImU32)(ImS64)(ImU64)(float)(double)
+#endif
 
 // Split ImU32 color into RGB components [0 255]
 #define IM_COL32_SPLIT_RGB(col,r,g,b) \
@@ -123,10 +149,22 @@ template <typename T>
 static inline T ImRemap01(T x, T x0, T x1) { return (x - x0) / (x1 - x0); }
 // Returns always positive modulo (assumes r != 0)
 static inline int ImPosMod(int l, int r) { return (l % r + r) % r; }
+// Returns the IEEE-754 bit pattern of val. NaN and infinity are tested on these bits rather than with isnan() or
+// comparisons, so the tests need no <cmath>, don't depend on whether isnan is a macro or a function, and keep
+// working when -ffast-math (-ffinite-math-only) or /fp:fast lets the compiler assume floats are never NaN or infinite.
+static inline ImU64 ImDoubleBits(double val) {
+    static_assert(sizeof(ImU64) == sizeof(double), "ImDoubleBits expects a 64-bit double");
+    ImU64 bits;
+    memcpy(&bits, &val, sizeof(bits));
+#if defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__ && (defined(__GNUC__) || defined(__clang__))
+    __asm__("" : "+r"(bits)); // hide the bits from the optimizer, which would otherwise fold these tests to false
+#endif
+    return bits;
+}
 // Returns true if val is NAN
-static inline bool ImNan(double val) { return isnan(val); }
+static inline bool ImNan(double val) { return (ImDoubleBits(val) & 0x7FFFFFFFFFFFFFFFull) > 0x7FF0000000000000ull; }
 // Returns true if val is NAN or INFINITY
-static inline bool ImNanOrInf(double val) { return !(val >= -DBL_MAX && val <= DBL_MAX) || ImNan(val); }
+static inline bool ImNanOrInf(double val) { return (ImDoubleBits(val) & 0x7FF0000000000000ull) == 0x7FF0000000000000ull; }
 // Turns NANs to 0s
 static inline double ImConstrainNan(double val) { return ImNan(val) ? 0 : val; }
 // Turns infinity to floating point maximums
@@ -899,24 +937,25 @@ struct ImPlotAxis
         UpdateTransformCache();
     }
 
-    inline bool HasLabel()          const { return LabelOffset != -1 && !ImHasFlag(Flags, ImPlotAxisFlags_NoLabel);                          }
-    inline bool HasGridLines()      const { return !ImHasFlag(Flags, ImPlotAxisFlags_NoGridLines);                                           }
-    inline bool HasTickLabels()     const { return !ImHasFlag(Flags, ImPlotAxisFlags_NoTickLabels);                                          }
-    inline bool HasTickMarks()      const { return !ImHasFlag(Flags, ImPlotAxisFlags_NoTickMarks);                                           }
-    inline bool WillRender()        const { return Enabled && (HasGridLines() || HasTickLabels() || HasTickMarks());                         }
-    inline bool IsOpposite()        const { return ImHasFlag(Flags, ImPlotAxisFlags_Opposite);                                               }
-    inline bool IsInverted()        const { return ImHasFlag(Flags, ImPlotAxisFlags_Invert);                                                 }
-    inline bool IsForeground()      const { return ImHasFlag(Flags, ImPlotAxisFlags_Foreground);                                             }
-    inline bool IsAutoFitting()     const { return ImHasFlag(Flags, ImPlotAxisFlags_AutoFit);                                                }
-    inline bool CanInitFit()        const { return !ImHasFlag(Flags, ImPlotAxisFlags_NoInitialFit) && !HasRange && !LinkedMin && !LinkedMax; }
-    inline bool IsRangeLocked()     const { return HasRange && RangeCond == ImPlotCond_Always;                                               }
-    inline bool IsLockedMin()       const { return !Enabled || IsRangeLocked() || ImHasFlag(Flags, ImPlotAxisFlags_LockMin);                 }
-    inline bool IsLockedMax()       const { return !Enabled || IsRangeLocked() || ImHasFlag(Flags, ImPlotAxisFlags_LockMax);                 }
-    inline bool IsLocked()          const { return IsLockedMin() && IsLockedMax();                                                           }
-    inline bool IsInputLockedMin()  const { return IsLockedMin() || IsAutoFitting();                                                         }
-    inline bool IsInputLockedMax()  const { return IsLockedMax() || IsAutoFitting();                                                         }
-    inline bool IsInputLocked()     const { return IsLocked()    || IsAutoFitting();                                                         }
-    inline bool HasMenus()          const { return !ImHasFlag(Flags, ImPlotAxisFlags_NoMenus);                                               }
+    inline bool HasLabel()            const { return LabelOffset != -1 && !ImHasFlag(Flags, ImPlotAxisFlags_NoLabel);                          }
+    inline bool HasGridLines()        const { return !ImHasFlag(Flags, ImPlotAxisFlags_NoGridLines);                                           }
+    inline bool HasTickLabels()       const { return !ImHasFlag(Flags, ImPlotAxisFlags_NoTickLabels);                                          }
+    inline bool HasTickLabelsInside() const { return ImHasFlag(Flags, ImPlotAxisFlags_TickLabelsInside);                                       }
+    inline bool HasTickMarks()        const { return !ImHasFlag(Flags, ImPlotAxisFlags_NoTickMarks);                                           }
+    inline bool WillRender()          const { return Enabled && (HasGridLines() || HasTickLabels() || HasTickMarks());                         }
+    inline bool IsOpposite()          const { return ImHasFlag(Flags, ImPlotAxisFlags_Opposite);                                               }
+    inline bool IsInverted()          const { return ImHasFlag(Flags, ImPlotAxisFlags_Invert);                                                 }
+    inline bool IsForeground()        const { return ImHasFlag(Flags, ImPlotAxisFlags_Foreground);                                             }
+    inline bool IsAutoFitting()       const { return ImHasFlag(Flags, ImPlotAxisFlags_AutoFit);                                                }
+    inline bool CanInitFit()          const { return !ImHasFlag(Flags, ImPlotAxisFlags_NoInitialFit) && !HasRange && !LinkedMin && !LinkedMax; }
+    inline bool IsRangeLocked()       const { return HasRange && RangeCond == ImPlotCond_Always;                                               }
+    inline bool IsLockedMin()         const { return !Enabled || IsRangeLocked() || ImHasFlag(Flags, ImPlotAxisFlags_LockMin);                 }
+    inline bool IsLockedMax()         const { return !Enabled || IsRangeLocked() || ImHasFlag(Flags, ImPlotAxisFlags_LockMax);                 }
+    inline bool IsLocked()            const { return IsLockedMin() && IsLockedMax();                                                           }
+    inline bool IsInputLockedMin()    const { return IsLockedMin() || IsAutoFitting();                                                         }
+    inline bool IsInputLockedMax()    const { return IsLockedMax() || IsAutoFitting();                                                         }
+    inline bool IsInputLocked()       const { return IsLocked()    || IsAutoFitting();                                                         }
+    inline bool HasMenus()            const { return !ImHasFlag(Flags, ImPlotAxisFlags_NoMenus);                                               }
 
     inline bool IsPanLocked(bool increasing) {
         if (ImHasFlag(Flags, ImPlotAxisFlags_PanStretch)) {
@@ -1255,6 +1294,7 @@ struct ImPlotContext {
     // Temp data for general use
     ImVector<double>   TempDouble1, TempDouble2;
     ImVector<int>      TempInt1;
+    ImVector<ImRect>   TempRect1;
 
     // Misc
     int                DigitalPlotItemCnt;
