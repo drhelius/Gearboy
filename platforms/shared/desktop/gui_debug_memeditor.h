@@ -112,6 +112,7 @@ private:
     void DrawSelectionBackground(int x, int address, ImVec2 cellPos, ImVec2 cellSize);
     void DrawSelectionAsciiBackground(int address, ImVec2 cellPos, ImVec2 cellSize);
     void DrawSelectionFrame(int x, int y, int address, ImVec2 cellPos, ImVec2 cellSize);
+    void DrawFrameRect(ImVec2 minimum, ImVec2 maximum, ImU32 color);
     void HandleSelection(int address, int row);
     void DrawCursors();
     void DrawOptions();

@@ -494,19 +494,24 @@ void MemEditor::DrawSelectionFrame(int x, int y, int address, ImVec2 cell_pos, I
     }
 
     if ((x == 0) || (address == start))
-        m_draw_list->AddLineV(cell_pos.x - 1.0f, cell_pos.y - 1.0f, cell_pos.y + cell_size.y, ImColor(frame_color), 1.0f);
+        DrawFrameRect(cell_pos + ImVec2(-1.0f, -0.5f), cell_pos + ImVec2(0.0f, cell_size.y + 0.5f), ImColor(frame_color));
 
     if ((x == (m_options.bytes_per_row - 1)) || (address == end))
-        m_draw_list->AddLineV(cell_pos.x + cell_size.x, cell_pos.y + (multiline && (address == end) && (x != (m_options.bytes_per_row - 1)) ? 0.0f : -1.0f), cell_pos.y + cell_size.y, ImColor(frame_color), 1.0f);
+        DrawFrameRect(cell_pos + ImVec2(cell_size.x, multiline && (address == end) && (x != (m_options.bytes_per_row - 1)) ? 0.5f : -0.5f), cell_pos + ImVec2(cell_size.x + 1.0f, cell_size.y + 0.5f), ImColor(frame_color));
 
     if ((y == 0) || ((address - m_options.bytes_per_row) < start))
-        m_draw_list->AddLineH(cell_pos.x - 1.0f, cell_pos.x + cell_size.x, cell_pos.y - 1.0f, ImColor(frame_color), 1.0f);
+        DrawFrameRect(cell_pos + ImVec2(-0.5f, -1.0f), cell_pos + ImVec2(cell_size.x + 0.5f, 0.0f), ImColor(frame_color));
 
     if ((address + m_options.bytes_per_row) > end)
-        m_draw_list->AddLineH(cell_pos.x - 1.0f, cell_pos.x + cell_size.x, cell_pos.y + cell_size.y, ImColor(frame_color), 1.0f);
+        DrawFrameRect(cell_pos + ImVec2(-0.5f, cell_size.y), cell_pos + ImVec2(cell_size.x + 0.5f, cell_size.y + 1.0f), ImColor(frame_color));
 
     if ((address == end) && (x != (m_options.bytes_per_row - 1)) && ((lines > 2) || (lines > 1 && (end_x >= start_x))))
-         m_draw_list->AddLineH(cell_pos.x + cell_size.x, cell_pos.x + cell_size.x + cell_size.x, cell_pos.y, ImColor(frame_color), 1.0f);
+         DrawFrameRect(cell_pos + ImVec2(cell_size.x + 0.5f, 0.0f), cell_pos + ImVec2(cell_size.x + cell_size.x + 0.5f, 1.0f), ImColor(frame_color));
+}
+
+void MemEditor::DrawFrameRect(ImVec2 minimum, ImVec2 maximum, ImU32 color)
+{
+    m_draw_list->AddRectFilled(gui_snap_to_physical_pixel(minimum), gui_snap_to_physical_pixel(maximum), color);
 }
 
 void MemEditor::HandleSelection(int address, int row)
