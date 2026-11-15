@@ -138,7 +138,7 @@ void MemEditor::Draw(bool ascii, bool preview, bool options, bool cursors)
     if (options)
         footer_height += ImGui::GetFrameHeightWithSpacing();
     if (preview)
-        footer_height += ((character_size.y + 4) * 3) + 4;
+        footer_height += ((character_size.y + 4) * 3) + 4 + ImGui::GetStyle().SeparatorSize;
     if (cursors)
         footer_height += ImGui::GetFrameHeightWithSpacing();
 
