@@ -309,14 +309,14 @@ void gui_debug_window_sgb_video(void)
             if (show_grid)
             {
                 for (int n = 0; n <= 32; n++)
-                    draw_list->AddLine(ImVec2(p.x + n * tile_size, p.y), ImVec2(p.x + n * tile_size, p.y + height), ImColor(dark_gray), 1.0f);
+                    draw_list->AddLineV(p.x + n * tile_size, p.y, p.y + height, ImColor(dark_gray), 1.0f);
                 for (int n = 0; n <= 28; n++)
-                    draw_list->AddLine(ImVec2(p.x, p.y + n * tile_size), ImVec2(p.x + width, p.y + n * tile_size), ImColor(dark_gray), 1.0f);
+                    draw_list->AddLineH(p.x, p.x + width, p.y + n * tile_size, ImColor(dark_gray), 1.0f);
 
                 draw_list->AddRect(
                     ImVec2(p.x + 6 * tile_size, p.y + 5 * tile_size),
                     ImVec2(p.x + 26 * tile_size, p.y + 23 * tile_size),
-                    ImColor(green), 0.0f, 0, 2.0f);
+                    ImColor(green), 0.0f, 2.0f, ImDrawFlags_StrokeCenterBiased);
             }
 
             float mouse_x = io.MousePos.x - p.x;
@@ -353,7 +353,7 @@ void gui_debug_window_sgb_video(void)
                     draw_list->AddRect(
                         ImVec2(p.x + hovered_tile_x * tile_size, p.y + hovered_tile_y * tile_size),
                         ImVec2(p.x + (hovered_tile_x + 1) * tile_size, p.y + (hovered_tile_y + 1) * tile_size),
-                        ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+                        ImColor(cyan), 2.0f, 2.0f, ImDrawFlags_StrokeCenterBiased);
             }
 
             if (selected_tile_x >= 0 && selected_tile_y >= 0)
@@ -363,7 +363,7 @@ void gui_debug_window_sgb_video(void)
                 draw_list->AddRect(
                     ImVec2(p.x + selected_tile_x * tile_size, p.y + selected_tile_y * tile_size),
                     ImVec2(p.x + (selected_tile_x + 1) * tile_size, p.y + (selected_tile_y + 1) * tile_size),
-                    ImColor(pulse_color), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+                    ImColor(pulse_color), 2.0f, 2.0f, ImDrawFlags_StrokeCenterBiased);
             }
 
             int detail_x = (hovered_tile_x >= 0) ? hovered_tile_x : selected_tile_x;
@@ -518,8 +518,8 @@ void gui_debug_window_sgb_video(void)
             {
                 for (int n = 0; n <= 16; n++)
                 {
-                    bt_dl->AddLine(ImVec2(bt_p.x + n * bt_spacing, bt_p.y), ImVec2(bt_p.x + n * bt_spacing, bt_p.y + bt_height), ImColor(dark_gray), 1.0f);
-                    bt_dl->AddLine(ImVec2(bt_p.x, bt_p.y + n * bt_spacing), ImVec2(bt_p.x + bt_width, bt_p.y + n * bt_spacing), ImColor(dark_gray), 1.0f);
+                    bt_dl->AddLineV(bt_p.x + n * bt_spacing, bt_p.y, bt_p.y + bt_height, ImColor(dark_gray), 1.0f);
+                    bt_dl->AddLineH(bt_p.x, bt_p.x + bt_width, bt_p.y + n * bt_spacing, ImColor(dark_gray), 1.0f);
                 }
             }
 
@@ -554,7 +554,7 @@ void gui_debug_window_sgb_video(void)
                 if (!(hov_bt_x == selected_bt_x && hov_bt_y == selected_bt_y))
                     bt_dl->AddRect(ImVec2(bt_p.x + hov_bt_x * bt_spacing, bt_p.y + hov_bt_y * bt_spacing),
                         ImVec2(bt_p.x + (hov_bt_x + 1) * bt_spacing, bt_p.y + (hov_bt_y + 1) * bt_spacing),
-                        ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+                        ImColor(cyan), 2.0f, 2.0f, ImDrawFlags_StrokeCenterBiased);
             }
 
             if (selected_bt_x >= 0 && selected_bt_y >= 0)
@@ -563,7 +563,7 @@ void gui_debug_window_sgb_video(void)
                 ImVec4 pc = gui_lerp_color(red, white, t);
                 bt_dl->AddRect(ImVec2(bt_p.x + selected_bt_x * bt_spacing, bt_p.y + selected_bt_y * bt_spacing),
                     ImVec2(bt_p.x + (selected_bt_x + 1) * bt_spacing, bt_p.y + (selected_bt_y + 1) * bt_spacing),
-                    ImColor(pc), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+                    ImColor(pc), 2.0f, 2.0f, ImDrawFlags_StrokeCenterBiased);
             }
 
             int dt_x = (hov_bt_x >= 0) ? hov_bt_x : selected_bt_x;

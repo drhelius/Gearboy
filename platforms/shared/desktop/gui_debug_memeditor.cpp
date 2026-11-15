@@ -354,7 +354,7 @@ void MemEditor::Draw(bool ascii, bool preview, bool options, bool cursors)
                         float column_x = ImGui::GetCursorPosX() + (ImGui::GetColumnWidth() / 2.0f);
                         ImDrawList* draw_list = ImGui::GetWindowDrawList();
                         ImVec2 window_pos = ImGui::GetWindowPos();
-                        draw_list->AddLine(ImVec2(window_pos.x + column_x, window_pos.y), ImVec2(window_pos.x + column_x, window_pos.y + 9999), ImGui::GetColorU32(dark_magenta));
+                        draw_list->AddLineV(window_pos.x + column_x, window_pos.y, window_pos.y + 9999, ImGui::GetColorU32(dark_magenta));
 
                         ImGui::TableNextColumn();
 
@@ -477,7 +477,6 @@ void MemEditor::DrawSelectionAsciiBackground(int address, ImVec2 cell_pos, ImVec
 
 void MemEditor::DrawSelectionFrame(int x, int y, int address, ImVec2 cell_pos, ImVec2 cell_size)
 {
-    m_draw_list->Flags = ImDrawListFlags_None;
     ImVec4 frame_color = cyan;
     int start = m_selection_start <= m_selection_end ? m_selection_start : m_selection_end;
     int end = m_selection_end >= m_selection_start ? m_selection_end : m_selection_start;
@@ -495,19 +494,19 @@ void MemEditor::DrawSelectionFrame(int x, int y, int address, ImVec2 cell_pos, I
     }
 
     if ((x == 0) || (address == start))
-        m_draw_list->AddLine(cell_pos + ImVec2(-1.0f, -1.0f), cell_pos + ImVec2(-1.0f, cell_size.y), ImColor(frame_color), 1.0f);
+        m_draw_list->AddLineV(cell_pos.x - 1.0f, cell_pos.y - 1.0f, cell_pos.y + cell_size.y, ImColor(frame_color), 1.0f);
 
     if ((x == (m_options.bytes_per_row - 1)) || (address == end))
-        m_draw_list->AddLine(cell_pos + ImVec2(cell_size.x, multiline && (address == end) && (x != (m_options.bytes_per_row - 1)) ? 0.0f : -1.0f), cell_pos + ImVec2(cell_size.x, cell_size.y), ImColor(frame_color), 1.0f);
+        m_draw_list->AddLineV(cell_pos.x + cell_size.x, cell_pos.y + (multiline && (address == end) && (x != (m_options.bytes_per_row - 1)) ? 0.0f : -1.0f), cell_pos.y + cell_size.y, ImColor(frame_color), 1.0f);
 
     if ((y == 0) || ((address - m_options.bytes_per_row) < start))
-        m_draw_list->AddLine(cell_pos + ImVec2(-1.0f, -1.0f), cell_pos + ImVec2(cell_size.x, -1.0f), ImColor(frame_color), 1.0f);
+        m_draw_list->AddLineH(cell_pos.x - 1.0f, cell_pos.x + cell_size.x, cell_pos.y - 1.0f, ImColor(frame_color), 1.0f);
 
     if ((address + m_options.bytes_per_row) > end)
-        m_draw_list->AddLine(cell_pos + ImVec2(-1.0f, cell_size.y), cell_pos + ImVec2(cell_size.x, cell_size.y), ImColor(frame_color), 1.0f);
+        m_draw_list->AddLineH(cell_pos.x - 1.0f, cell_pos.x + cell_size.x, cell_pos.y + cell_size.y, ImColor(frame_color), 1.0f);
 
     if ((address == end) && (x != (m_options.bytes_per_row - 1)) && ((lines > 2) || (lines > 1 && (end_x >= start_x))))
-         m_draw_list->AddLine(cell_pos + ImVec2(cell_size.x, 0.0f), cell_pos + ImVec2(cell_size.x + cell_size.x, 0.0f), ImColor(frame_color), 1.0f);
+         m_draw_list->AddLineH(cell_pos.x + cell_size.x, cell_pos.x + cell_size.x + cell_size.x, cell_pos.y, ImColor(frame_color), 1.0f);
 }
 
 void MemEditor::HandleSelection(int address, int row)
