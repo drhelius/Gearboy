@@ -460,7 +460,7 @@ void MemEditor::DrawSelectionBackground(int x, int address, ImVec2 cell_pos, ImV
         cell_size.x += m_separator_column_width + 1;
     }
 
-    m_draw_list->AddRectFilled(cell_pos, cell_pos + cell_size + ImVec2(1, 0), ImColor(background_color));
+    m_draw_list->AddRectFilled(gui_snap_to_physical_pixel(cell_pos), gui_snap_to_physical_pixel(cell_pos + cell_size + ImVec2(1, 0)), ImColor(background_color));
 }
 
 void MemEditor::DrawSelectionAsciiBackground(int address, ImVec2 cell_pos, ImVec2 cell_size)
@@ -472,7 +472,7 @@ void MemEditor::DrawSelectionAsciiBackground(int address, ImVec2 cell_pos, ImVec
 
     if (address < start || address > end)
         return;
-    drawList->AddRectFilled(cell_pos, cell_pos + cell_size, ImColor(background_color));
+    drawList->AddRectFilled(gui_snap_to_physical_pixel(cell_pos), gui_snap_to_physical_pixel(cell_pos + cell_size), ImColor(background_color));
 }
 
 void MemEditor::DrawSelectionFrame(int x, int y, int address, ImVec2 cell_pos, ImVec2 cell_size)
