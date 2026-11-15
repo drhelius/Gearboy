@@ -129,6 +129,7 @@ bool emu_init(void)
     emu_debug_irq_breakpoints = false;
     emu_debug_step_frames_pending = 0;
     emu_frame_counter = 0;
+    emu_video_frame_counter = 0;
     emu_debug_background_tile_address = -1;
     emu_debug_background_map_address = -1;
     emu_debug_tile_dmg_palette = 0;
@@ -308,6 +309,7 @@ void emu_update(void)
         {
             if (!rewind_pop())
                 break;
+            emu_video_frame_counter++;
         }
 
         int silence_count = GB_AUDIO_QUEUE_SIZE;
@@ -387,7 +389,10 @@ void emu_update(void)
     if (frame_executed)
     {
         if (frame_completed)
+        {
             emu_frame_counter++;
+            emu_video_frame_counter++;
+        }
         rewind_push();
     }
 

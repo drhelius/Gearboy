@@ -24,6 +24,7 @@
     #include <glad.h>
 #endif
 
+#include <math.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -44,6 +45,11 @@ static uint32_t feedback_texture = 0;
 static uint32_t feedback_fbo = 0;
 static uint32_t history_copy_fbo = 0;
 static uint32_t black_texture = 0;
+static uint32_t line_clock_texture = 0;
+static int line_clock_height = 1;
+static uint32_t index_texture = 0;
+static int index_width = 1;
+static int index_height = 1;
 static uint32_t intermediate_textures[SHADER_PRESET_MAX_PASSES - 1];
 static uint32_t intermediate_fbos[SHADER_PRESET_MAX_PASSES - 1];
 static int intermediate_widths[SHADER_PRESET_MAX_PASSES - 1];
@@ -81,7 +87,9 @@ enum PresetTextureKind
     PresetTexture_Feedback,
     PresetTexture_SourceHistory,
     PresetTexture_PassOutput,
-    PresetTexture_PassFeedback
+    PresetTexture_PassFeedback,
+    PresetTexture_LineClock,
+    PresetTexture_OriginalIndex
 };
 struct PresetTextureBinding
 {
@@ -104,13 +112,31 @@ struct PresetProgramState
     int uniform_frame_count;
     int uniform_frame_direction;
     int uniform_original_aspect;
+    int uniform_framebuffer_scale;
     int uniform_background_color;
+    int uniform_original_fps;
+    int uniform_pixel_clock;
+    int uniform_line_rate;
+    int uniform_source_lines;
+    int uniform_chroma_phase;
+    int uniform_active_region;
+    int uniform_border_color;
+    int uniform_system_type;
+    int uniform_video_mode;
+    int uniform_rotation;
+    int uniform_interlaced;
+    int uniform_field_parity;
+    int uniform_display_enabled;
+    int uniform_core_flags;
     int uniform_parameters[SHADER_PRESET_MAX_PARAMETERS];
 };
 static PresetProgramState preset_programs[SHADER_PRESET_MAX_PASSES];
 static bool preset_loaded = false;
 static char last_error[2048];
 static int preset_frame_count = 0;
+static bool preset_frame_rendered = false;
+static OglShaderChainFrameInfo frame_info;
+static double chroma_frame_phase = 0.0;
 
 static void configure_texture_2d(bool filter_linear);
 static void resize_texture_2d(uint32_t texture, int width, int height, int internal_format, uint32_t format, uint32_t type, const void* pixels, bool filter_linear);
@@ -131,6 +157,10 @@ static void clear_all_pass_history_textures(void);
 static bool resize_pass_history_textures(int index, int width, int height, bool filter_linear, bool float_framebuffer);
 static void release_pass_feedback_textures(void);
 static bool resize_pass_feedback_texture(int index, int width, int height, bool filter_linear, bool float_framebuffer);
+static bool store_pass_history(int index, uint32_t texture, int width, int height, bool filter_linear, bool float_framebuffer);
+static void store_pass_histories(void);
+static void store_pass_feedbacks(void);
+static void store_final_feedback(void);
 static bool copy_texture(uint32_t source, uint32_t target, int width, int height);
 static void clear_texture(uint32_t texture, int width, int height);
 static void set_last_error(const char* message);
@@ -168,6 +198,20 @@ bool ogl_shader_chain_init(const char* name)
     const uint8_t black_pixel[4] = { 0, 0, 0, 0 };
     glGenTextures(1, &black_texture);
     resize_texture_2d(black_texture, 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, black_pixel, false);
+
+    const float zero_clock = 0.0f;
+    glGenTextures(1, &line_clock_texture);
+    resize_texture_2d(line_clock_texture, 1, 1, GL_R32F, GL_RED, GL_FLOAT, &zero_clock, false);
+    line_clock_height = 1;
+
+    const uint8_t zero_index[4] = { 0, 0, 0, 0 };
+    glGenTextures(1, &index_texture);
+    resize_texture_2d(index_texture, 1, 1, GL_R8, GL_RED, GL_UNSIGNED_BYTE, zero_index, false);
+    index_width = 1;
+    index_height = 1;
+
+    ogl_shader_chain_reset_frame_info(&frame_info, 1, 1);
+    chroma_frame_phase = 0.0;
 
     glGenFramebuffers(1, &feedback_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, feedback_fbo);
@@ -253,6 +297,12 @@ void ogl_shader_chain_destroy(void)
     if (black_texture)
         glDeleteTextures(1, &black_texture);
 
+    if (line_clock_texture)
+        glDeleteTextures(1, &line_clock_texture);
+
+    if (index_texture)
+        glDeleteTextures(1, &index_texture);
+
     if (pass_texture)
         glDeleteTextures(1, &pass_texture);
 
@@ -264,6 +314,11 @@ void ogl_shader_chain_destroy(void)
     history_copy_fbo = 0;
     feedback_texture = 0;
     black_texture = 0;
+    line_clock_texture = 0;
+    line_clock_height = 1;
+    index_texture = 0;
+    index_width = 1;
+    index_height = 1;
     pass_texture = 0;
     source_texture = 0;
     source_width = 1;
@@ -345,8 +400,6 @@ bool ogl_shader_chain_resize_pass_texture(const OglShaderChainFramebufferTexture
 
         return true;
     }
-
-    preset_frame_count = 0;
 
     bool pass_complete = resize_framebuffer_texture(pass_texture, pass_fbo, width, height, texture->filter_linear, texture->float_framebuffer, framebuffer_name);
     bool feedback_complete = resize_framebuffer_texture(feedback_texture, feedback_fbo, width, height, texture->filter_linear, texture->float_framebuffer, framebuffer_name);
@@ -431,6 +484,7 @@ bool ogl_shader_chain_load_preset(const char* path)
     memcpy(preset_programs, new_programs, sizeof(preset_programs));
     preset_loaded = true;
     preset_frame_count = 0;
+    preset_frame_rendered = false;
     last_error[0] = '\0';
 
     release_pass_feedback_textures();
@@ -623,6 +677,103 @@ int ogl_shader_chain_find_variant(const char* name)
     return preset_loaded ? shader_preset_find_variant(&active_preset, name) : -1;
 }
 
+void ogl_shader_chain_reset_frame_info(OglShaderChainFrameInfo* info, int source_width, int source_height)
+{
+    if (!info)
+        return;
+
+    memset(info, 0, sizeof(OglShaderChainFrameInfo));
+    info->frame_direction = 1;
+    info->source_lines = (float)source_height;
+    info->active_region[2] = (float)source_width;
+    info->active_region[3] = (float)source_height;
+    info->display_enabled = 1;
+}
+
+void ogl_shader_chain_begin_frame(const OglShaderChainFrameInfo* info, int advanced_frames)
+{
+    if (advanced_frames > 0 && preset_loaded && preset_frame_rendered)
+    {
+        store_pass_histories();
+        store_pass_feedbacks();
+        store_final_feedback();
+        preset_frame_count++;
+    }
+
+    if (info)
+        frame_info = *info;
+
+    if (advanced_frames > 0)
+    {
+        double cycles = (double)frame_info.chroma_frame_cycles * (double)advanced_frames * (double)frame_info.frame_direction;
+        chroma_frame_phase = fmod(chroma_frame_phase + cycles, 1.0);
+        if (chroma_frame_phase < 0.0)
+            chroma_frame_phase += 1.0;
+    }
+
+    preset_frame_rendered = preset_loaded;
+}
+
+bool ogl_shader_chain_update_line_clock_texture(const float* clocks, int count)
+{
+    if (!line_clock_texture)
+        return false;
+
+    const float zero_clock = 0.0f;
+
+    if (!clocks || count < 1)
+    {
+        clocks = &zero_clock;
+        count = 1;
+    }
+
+    if (count != line_clock_height)
+    {
+        resize_texture_2d(line_clock_texture, 1, count, GL_R32F, GL_RED, GL_FLOAT, clocks, false);
+        line_clock_height = count;
+    }
+    else
+    {
+        glBindTexture(GL_TEXTURE_2D, line_clock_texture);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1, count, GL_RED, GL_FLOAT, clocks);
+    }
+
+    return true;
+}
+
+bool ogl_shader_chain_update_index_texture(const uint8_t* indices, int width, int height)
+{
+    if (!index_texture)
+        return false;
+
+    const uint8_t zero_index = 0;
+
+    if (!indices || width < 1 || height < 1)
+    {
+        indices = &zero_index;
+        width = 1;
+        height = 1;
+    }
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    if (width != index_width || height != index_height)
+    {
+        resize_texture_2d(index_texture, width, height, GL_R8, GL_RED, GL_UNSIGNED_BYTE, indices, false);
+        index_width = width;
+        index_height = height;
+    }
+    else
+    {
+        glBindTexture(GL_TEXTURE_2D, index_texture);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RED, GL_UNSIGNED_BYTE, indices);
+    }
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+    return true;
+}
+
 void ogl_shader_chain_apply_preset_uniforms(int index, const OglShaderChainUniforms* uniforms)
 {
     if (!uniforms || !preset_loaded || index < 0 || index >= active_preset.pass_count)
@@ -663,22 +814,74 @@ void ogl_shader_chain_apply_preset_uniforms(int index, const OglShaderChainUnifo
         glUniform1i(state->uniform_frame_count, preset_frame_count);
 
     if (state->uniform_frame_direction >= 0)
-        glUniform1i(state->uniform_frame_direction, 1);
+        glUniform1i(state->uniform_frame_direction, frame_info.frame_direction);
 
     if (state->uniform_original_aspect >= 0)
         glUniform1f(state->uniform_original_aspect, uniforms->original_aspect);
 
+    if (state->uniform_framebuffer_scale >= 0)
+        glUniform1f(state->uniform_framebuffer_scale, uniforms->framebuffer_scale);
+
     if (state->uniform_background_color >= 0)
         glUniform4f(state->uniform_background_color, uniforms->background_color[0], uniforms->background_color[1], uniforms->background_color[2], 1.0f);
+
+    if (state->uniform_original_fps >= 0)
+        glUniform1f(state->uniform_original_fps, frame_info.original_fps);
+
+    if (state->uniform_pixel_clock >= 0)
+        glUniform1f(state->uniform_pixel_clock, frame_info.pixel_clock);
+
+    if (state->uniform_line_rate >= 0)
+        glUniform1f(state->uniform_line_rate, frame_info.line_rate);
+
+    if (state->uniform_source_lines >= 0)
+        glUniform1f(state->uniform_source_lines, frame_info.source_lines);
+
+    if (state->uniform_chroma_phase >= 0)
+    {
+        if (frame_info.chroma_texel_cycles > 0.0f)
+        {
+            double origin = fmod((double)frame_info.chroma_origin + chroma_frame_phase, 1.0);
+            if (origin < 0.0)
+                origin += 1.0;
+            glUniform4f(state->uniform_chroma_phase, (float)origin, frame_info.chroma_texel_cycles, frame_info.chroma_line_cycles, frame_info.chroma_frame_cycles);
+        }
+        else
+            glUniform4f(state->uniform_chroma_phase, 0.0f, 0.0f, 0.0f, 0.0f);
+    }
+
+    if (state->uniform_active_region >= 0)
+        glUniform4f(state->uniform_active_region, frame_info.active_region[0], frame_info.active_region[1], frame_info.active_region[2], frame_info.active_region[3]);
+
+    if (state->uniform_border_color >= 0)
+        glUniform4f(state->uniform_border_color, frame_info.border_color[0], frame_info.border_color[1], frame_info.border_color[2], frame_info.border_color[3]);
+
+    if (state->uniform_system_type >= 0)
+        glUniform1i(state->uniform_system_type, frame_info.system_type);
+
+    if (state->uniform_video_mode >= 0)
+        glUniform1i(state->uniform_video_mode, frame_info.video_mode);
+
+    if (state->uniform_rotation >= 0)
+        glUniform1i(state->uniform_rotation, frame_info.rotation);
+
+    if (state->uniform_interlaced >= 0)
+        glUniform1i(state->uniform_interlaced, frame_info.interlaced);
+
+    if (state->uniform_field_parity >= 0)
+        glUniform1i(state->uniform_field_parity, frame_info.field_parity);
+
+    if (state->uniform_display_enabled >= 0)
+        glUniform1i(state->uniform_display_enabled, frame_info.display_enabled);
+
+    if (state->uniform_core_flags >= 0)
+        glUniform1i(state->uniform_core_flags, frame_info.core_flags);
 
     for (int i = 0; i < active_preset.parameter_count; i++)
     {
         if (state->uniform_parameters[i] >= 0)
             glUniform1f(state->uniform_parameters[i], active_preset.parameters[i].value);
     }
-
-    if (index == active_preset.pass_count - 1)
-        preset_frame_count++;
 }
 
 void ogl_shader_chain_bind_preset_textures(int index, uint32_t input_texture)
@@ -713,6 +916,12 @@ void ogl_shader_chain_bind_preset_textures(int index, uint32_t input_texture)
                 break;
             case PresetTexture_PassFeedback:
                 texture = pass_feedback_textures[binding->index] ? pass_feedback_textures[binding->index] : black_texture;
+                break;
+            case PresetTexture_LineClock:
+                texture = line_clock_texture;
+                break;
+            case PresetTexture_OriginalIndex:
+                texture = index_texture;
                 break;
         }
 
@@ -762,49 +971,6 @@ uint32_t ogl_shader_chain_get_intermediate_framebuffer(int index)
         return 0;
 
     return intermediate_fbos[index];
-}
-
-bool ogl_shader_chain_store_pass_history(int index, uint32_t texture, int width, int height, bool filter_linear, bool float_framebuffer)
-{
-    if (!initialized || !texture || index < 0 || index >= SHADER_PRESET_MAX_PASSES)
-        return false;
-
-    if (!ensure_history_copy_framebuffer())
-        return false;
-
-    if (!resize_pass_history_textures(index, width, height, filter_linear, float_framebuffer))
-        return false;
-
-    int target = pass_history_write_indices[index];
-
-    if (!copy_texture(texture, pass_history_textures[index][target], pass_history_widths[index], pass_history_heights[index]))
-        return false;
-
-    pass_history_write_indices[index] = (pass_history_write_indices[index] + 1) % SHADER_PRESET_MAX_HISTORY_TEXTURES;
-    if (pass_history_counts[index] < SHADER_PRESET_MAX_HISTORY_TEXTURES)
-        pass_history_counts[index]++;
-
-    return true;
-}
-
-void ogl_shader_chain_store_pass_feedbacks(void)
-{
-    if (!initialized || !preset_loaded)
-        return;
-
-    for (int i = 0; i < active_preset.pass_count - 1; i++)
-    {
-        if (!pass_feedback_used[i] || !intermediate_textures[i])
-            continue;
-
-        if (!ensure_history_copy_framebuffer())
-            return;
-
-        if (!resize_pass_feedback_texture(i, intermediate_widths[i], intermediate_heights[i], intermediate_filter_linears[i], intermediate_float_framebuffers[i]))
-            continue;
-
-        copy_texture(intermediate_textures[i], pass_feedback_textures[i], pass_feedback_widths[i], pass_feedback_heights[i]);
-    }
 }
 
 uint32_t ogl_shader_chain_get_pass_history_texture(int pass_index, int history_index)
@@ -907,6 +1073,9 @@ static void bind_preset_uniform_locations(int index)
             pass_feedback_used[i] = true;
     }
 
+    add_texture_binding(state, "LineClock", PresetTexture_LineClock, 0);
+    add_texture_binding(state, "OriginalIndex", PresetTexture_OriginalIndex, 0);
+
     state->uniform_source_size = glGetUniformLocation(program, "SourceSize");
     state->uniform_original_size = glGetUniformLocation(program, "OriginalSize");
     state->uniform_output_size = glGetUniformLocation(program, "OutputSize");
@@ -917,7 +1086,22 @@ static void bind_preset_uniform_locations(int index)
     state->uniform_frame_count = glGetUniformLocation(program, "FrameCount");
     state->uniform_frame_direction = glGetUniformLocation(program, "FrameDirection");
     state->uniform_original_aspect = glGetUniformLocation(program, "OriginalAspect");
+    state->uniform_framebuffer_scale = glGetUniformLocation(program, "FramebufferScale");
     state->uniform_background_color = glGetUniformLocation(program, "BackgroundColor");
+    state->uniform_original_fps = glGetUniformLocation(program, "OriginalFPS");
+    state->uniform_pixel_clock = glGetUniformLocation(program, "PixelClock");
+    state->uniform_line_rate = glGetUniformLocation(program, "LineRate");
+    state->uniform_source_lines = glGetUniformLocation(program, "SourceLines");
+    state->uniform_chroma_phase = glGetUniformLocation(program, "ChromaPhase");
+    state->uniform_active_region = glGetUniformLocation(program, "ActiveRegion");
+    state->uniform_border_color = glGetUniformLocation(program, "BorderColor");
+    state->uniform_system_type = glGetUniformLocation(program, "SystemType");
+    state->uniform_video_mode = glGetUniformLocation(program, "VideoMode");
+    state->uniform_rotation = glGetUniformLocation(program, "Rotation");
+    state->uniform_interlaced = glGetUniformLocation(program, "Interlaced");
+    state->uniform_field_parity = glGetUniformLocation(program, "FieldParity");
+    state->uniform_display_enabled = glGetUniformLocation(program, "DisplayEnabled");
+    state->uniform_core_flags = glGetUniformLocation(program, "CoreFlags");
 
     for (int i = 0; i < SHADER_PRESET_MAX_PARAMETERS; i++)
         state->uniform_parameters[i] = -1;
@@ -979,6 +1163,7 @@ static void clear_preset_state(void)
     memset(preset_programs, 0, sizeof(preset_programs));
     preset_loaded = false;
     preset_frame_count = 0;
+    preset_frame_rendered = false;
     release_intermediate_textures(0);
     release_pass_feedback_textures();
     clear_all_pass_history_textures();
@@ -1194,6 +1379,76 @@ static bool resize_pass_feedback_texture(int index, int width, int height, bool 
     }
 
     return true;
+}
+
+static bool store_pass_history(int index, uint32_t texture, int width, int height, bool filter_linear, bool float_framebuffer)
+{
+    if (!initialized || !texture || index < 0 || index >= SHADER_PRESET_MAX_PASSES)
+        return false;
+
+    if (!ensure_history_copy_framebuffer())
+        return false;
+
+    if (!resize_pass_history_textures(index, width, height, filter_linear, float_framebuffer))
+        return false;
+
+    int target = pass_history_write_indices[index];
+
+    if (!copy_texture(texture, pass_history_textures[index][target], pass_history_widths[index], pass_history_heights[index]))
+        return false;
+
+    pass_history_write_indices[index] = (pass_history_write_indices[index] + 1) % SHADER_PRESET_MAX_HISTORY_TEXTURES;
+    if (pass_history_counts[index] < SHADER_PRESET_MAX_HISTORY_TEXTURES)
+        pass_history_counts[index]++;
+
+    return true;
+}
+
+static void store_pass_histories(void)
+{
+    for (int i = 0; i < active_preset.pass_count; i++)
+    {
+        if (!active_preset.passes[i].history)
+            continue;
+
+        bool filter_linear = active_preset.passes[i].filter_linear;
+
+        if (i == 0)
+            store_pass_history(i, source_texture, source_width, source_height, filter_linear, false);
+        else
+            store_pass_history(i, intermediate_textures[i - 1], intermediate_widths[i - 1], intermediate_heights[i - 1], filter_linear, intermediate_float_framebuffers[i - 1]);
+    }
+}
+
+static void store_pass_feedbacks(void)
+{
+    if (!initialized || !preset_loaded)
+        return;
+
+    for (int i = 0; i < active_preset.pass_count - 1; i++)
+    {
+        if (!pass_feedback_used[i] || !intermediate_textures[i])
+            continue;
+
+        if (!ensure_history_copy_framebuffer())
+            return;
+
+        if (!resize_pass_feedback_texture(i, intermediate_widths[i], intermediate_heights[i], intermediate_filter_linears[i], intermediate_float_framebuffers[i]))
+            continue;
+
+        copy_texture(intermediate_textures[i], pass_feedback_textures[i], pass_feedback_widths[i], pass_feedback_heights[i]);
+    }
+}
+
+static void store_final_feedback(void)
+{
+    if (!initialized || !ogl_shader_chain_preset_uses_feedback())
+        return;
+
+    if (!ensure_history_copy_framebuffer())
+        return;
+
+    copy_texture(pass_texture, feedback_texture, pass_width, pass_height);
 }
 
 static bool copy_texture(uint32_t source, uint32_t target, int width, int height)
