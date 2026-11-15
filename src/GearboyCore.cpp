@@ -527,6 +527,23 @@ bool GearboyCore::GetRuntimeInfo(GB_RuntimeInfo& runtime_info)
     }
 
     runtime_info.fps = (double)GEARBOY_MASTER_CLOCK_RATE / (double)GAMEBOY_CLOCKS_PER_FRAME;
+    runtime_info.system_type = m_bCGB ? (m_bGBA ? 3 : 2) : (m_bSGB ? 1 : 0);
+
+    runtime_info.active_region[0] = 0;
+    runtime_info.active_region[1] = 0;
+    runtime_info.active_region[2] = runtime_info.screen_width;
+    runtime_info.active_region[3] = runtime_info.screen_height;
+
+    if (m_bSGB && m_bSGBBorder)
+    {
+        runtime_info.active_region[0] = (SGB_SCREEN_WIDTH - GAMEBOY_WIDTH) / 2;
+        runtime_info.active_region[1] = (SGB_SCREEN_HEIGHT - GAMEBOY_HEIGHT) / 2;
+        runtime_info.active_region[2] = GAMEBOY_WIDTH;
+        runtime_info.active_region[3] = GAMEBOY_HEIGHT;
+    }
+
+    runtime_info.display_enabled = m_bSGB || m_pVideo->IsFrameDisplayEnabled();
+    runtime_info.color_correction = m_pVideo->IsFrameColorCorrected();
 
     return m_pCartridge->IsLoadedROM();
 }

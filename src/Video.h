@@ -42,6 +42,8 @@ public:
     void SetSGBTransferMode(bool enabled);
     void SetNoSpriteLimit(bool noSpriteLimit);
     INLINE bool IsScreenEnabled() const;
+    INLINE bool IsFrameDisplayEnabled() const;
+    INLINE bool IsFrameColorCorrected() const;
     INLINE const u8* GetFrameBuffer() const;
     INLINE const u16* GetColorFrameBuffer() const;
     void SetColorCorrection(const u16* pColorCorrectionLUT, bool enabled);
@@ -78,6 +80,7 @@ private:
     NO_INLINE void LogSpriteBudget(int line, int spriteHeight);
     INLINE void TraceMissedVBlank();
     NO_INLINE void LogMissedVBlank();
+    INLINE void LatchFrameInfo(bool displayEnabled);
 
 private:
     Memory* m_pMemory;
@@ -113,6 +116,8 @@ private:
     const u16* m_pColorCorrectionLUT;
     bool m_bColorCorrectionEnabled;
     u16 m_CGBWhiteColor;
+    bool m_bFrameDisplayEnabled;
+    bool m_bFrameColorCorrected;
 };
 
 INLINE void Video::TraceEvent(u8 event, u8 value)
@@ -136,6 +141,22 @@ INLINE void Video::TraceMissedVBlank()
 INLINE bool Video::IsScreenEnabled() const
 {
     return m_bScreenEnabled;
+}
+
+INLINE bool Video::IsFrameDisplayEnabled() const
+{
+    return m_bFrameDisplayEnabled;
+}
+
+INLINE bool Video::IsFrameColorCorrected() const
+{
+    return m_bFrameColorCorrected;
+}
+
+INLINE void Video::LatchFrameInfo(bool displayEnabled)
+{
+    m_bFrameDisplayEnabled = displayEnabled;
+    m_bFrameColorCorrected = m_bCGB && m_bColorCorrectionEnabled && IsValidPointer(m_pColorCorrectionLUT);
 }
 
 INLINE const u8* Video::GetFrameBuffer() const

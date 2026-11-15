@@ -188,6 +188,10 @@ struct GB_RuntimeInfo
     int screen_width;
     int screen_height;
     double fps;
+    int system_type;
+    int active_region[4];
+    bool display_enabled;
+    bool color_correction;
 };
 
 enum GB_Disassembler_Syntax

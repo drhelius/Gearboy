@@ -50,6 +50,8 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     InitPointer(m_pColorCorrectionLUT);
     m_bColorCorrectionEnabled = false;
     m_CGBWhiteColor = 0xFFFF;
+    m_bFrameDisplayEnabled = true;
+    m_bFrameColorCorrected = false;
     m_bScanLineTransfered = false;
     m_iHideFrames = 0;
     m_IRQ48Signal = 0;
@@ -204,11 +206,13 @@ void Video::Reset(bool bCGB)
     m_bCGB = bCGB;
     m_iHideFrames = 0;
     m_IRQ48Signal = 0;
+    LatchFrameInfo(true);
 }
 
 void Video::ResetToBootromState()
 {
     m_bScreenEnabled = false;
+    LatchFrameInfo(false);
     m_iStatusMode = 0;
     m_iStatusModeCounter = 0;
     m_iStatusModeCounterAux = 0;
