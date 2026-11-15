@@ -103,7 +103,10 @@ bool gui_init(void)
     for (int i = 0; i < 4; i++)
     {
         font_cfg.SizePixels = (13.0f + (i * 3));
-        gui_default_fonts[i] = io.Fonts->AddFontDefault(&font_cfg);
+        font_cfg.GlyphMinAdvanceX = font_cfg.SizePixels * 7.0f / 13.0f;
+        font_cfg.GlyphMaxAdvanceX = font_cfg.GlyphMinAdvanceX;
+        gui_default_fonts[0][i] = io.Fonts->AddFontDefaultVector(&font_cfg);
+        gui_default_fonts[1][i] = io.Fonts->AddFontDefaultBitmap(&font_cfg);
     }
 
     gui_apply_settings();
@@ -124,7 +127,7 @@ bool gui_init(void)
 
 void gui_apply_settings(void)
 {
-    gui_default_font = gui_default_fonts[config_debug.font_size];
+    gui_default_font = gui_default_fonts[config_debug.font_type][config_debug.font_size];
     set_style();
 
     emu_audio_sync = config_audio.sync;

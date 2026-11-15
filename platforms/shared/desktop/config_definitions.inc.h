@@ -96,6 +96,7 @@ static inline void process(config_Operation operation)
     CONFIG_INT("Debug", "DisLookAheadCount", config_debug.dis_look_ahead_count, 20);
 
     // Interface
+    CONFIG_INT_RANGE("Debug", "FontType", config_debug.font_type, 0, 0, 1);
     CONFIG_INT_RANGE("Debug", "FontSize", config_debug.font_size, 0, 0, 3);
     CONFIG_INT("Debug", "Scale", config_debug.scale, 2);
     CONFIG_BOOL("Debug", "MultiViewport", config_debug.multi_viewport, false);

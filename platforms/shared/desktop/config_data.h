@@ -296,6 +296,7 @@ struct config_Debug
     bool dis_replace_labels;
     int dis_syntax;
     int dis_look_ahead_count;
+    int font_type;
     int font_size;
     int scale;
     bool multi_viewport;
