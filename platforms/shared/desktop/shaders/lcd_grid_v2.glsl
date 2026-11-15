@@ -18,12 +18,19 @@ uniform float gamma;
 uniform float blacklevel;
 uniform float ambient;
 uniform float BGR;
+uniform int Rotation;
 
 const float OUT_GAMMA = 2.2;
 
+bool rotation_swaps_axes()
+{
+    return Rotation == 1 || Rotation == 3;
+}
+
 vec3 fetch_pixel(ivec2 coord)
 {
-    return pow(vec3(gain) * texelFetch(Source, coord, 0).rgb + vec3(blacklevel), vec3(gamma)) + vec3(ambient);
+    ivec2 source_coord = rotation_swaps_axes() ? coord.yx : coord;
+    return pow(vec3(gain) * texelFetch(Source, source_coord, 0).rgb + vec3(blacklevel), vec3(gamma)) + vec3(ambient);
 }
 
 float intsmear_func_x(float z)
@@ -70,16 +77,18 @@ float intsmear_y(float x, float dx, float d)
 
 void main()
 {
-    vec2 texel_size = SourceSize.zw;
-    vec2 range = OutputSize.zw;
+    bool swap_axes = rotation_swaps_axes();
+    vec2 coord = swap_axes ? vTexCoord.yx : vTexCoord;
+    vec2 texel_size = swap_axes ? SourceSize.wz : SourceSize.zw;
+    vec2 range = swap_axes ? OutputSize.wz : OutputSize.zw;
 
     vec3 cred = pow(vec3(RSUBPIX_R, RSUBPIX_G, RSUBPIX_B), vec3(OUT_GAMMA));
     vec3 cgreen = pow(vec3(GSUBPIX_R, GSUBPIX_G, GSUBPIX_B), vec3(OUT_GAMMA));
     vec3 cblue = pow(vec3(BSUBPIX_R, BSUBPIX_G, BSUBPIX_B), vec3(OUT_GAMMA));
 
-    ivec2 tli = ivec2(floor(vTexCoord / texel_size - vec2(0.4999)));
+    ivec2 tli = ivec2(floor(coord / texel_size - vec2(0.4999)));
 
-    float subpix = (vTexCoord.x / texel_size.x - 0.4999 - float(tli.x)) * 3.0;
+    float subpix = (coord.x / texel_size.x - 0.4999 - float(tli.x)) * 3.0;
     float rsubpix = range.x / texel_size.x * 3.0;
 
     vec3 lcol = vec3(intsmear_x(subpix + 1.0, rsubpix, 1.5),
@@ -89,13 +98,13 @@ void main()
         intsmear_x(subpix - 3.0, rsubpix, 1.5),
         intsmear_x(subpix - 4.0, rsubpix, 1.5));
 
-    if (BGR > 0.5)
+    if ((BGR > 0.5) != (Rotation == 1 || Rotation == 2))
     {
         lcol.rgb = lcol.bgr;
         rcol.rgb = rcol.bgr;
     }
 
-    subpix = vTexCoord.y / texel_size.y - 0.4999 - float(tli.y);
+    subpix = coord.y / texel_size.y - 0.4999 - float(tli.y);
     rsubpix = range.y / texel_size.y;
     float tcol = intsmear_y(subpix, rsubpix, 0.63);
     float bcol = intsmear_y(subpix - 1.0, rsubpix, 0.63);

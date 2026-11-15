@@ -3,6 +3,7 @@ out vec4 FragColor;
 
 uniform sampler2D Source;
 uniform vec4 OriginalSize;
+uniform int Rotation;
 uniform float brighten_scanlines;
 uniform float brighten_lcd;
 
@@ -13,6 +14,11 @@ void main()
 {
     vec3 source_color = texture(Source, vTexCoord).rgb;
     vec2 angle = vTexCoord * PI * 2.0 * OriginalSize.xy;
+
+    if (Rotation == 1 || Rotation == 3)
+        angle = angle.yx;
+    if (Rotation == 1 || Rotation == 2)
+        angle.x = -angle.x;
 
     float yfactor = (brighten_scanlines + sin(angle.y)) / (brighten_scanlines + 1.0);
     vec3 xfactors = (brighten_lcd + sin(angle.x + OFFSETS)) / (brighten_lcd + 1.0);
