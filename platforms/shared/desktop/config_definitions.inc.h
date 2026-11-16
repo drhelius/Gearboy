@@ -353,7 +353,7 @@ static inline void process(config_Operation operation)
     CONFIG_HOTKEY("SelectSlot5", config_hotkeys[config_HotkeyIndex_SelectSlot5], SDL_SCANCODE_5, CONFIG_PRIMARY_KMOD);
     CONFIG_HOTKEY("Mute", config_hotkeys[config_HotkeyIndex_Mute], SDL_SCANCODE_U, CONFIG_PRIMARY_KMOD);
     CONFIG_HOTKEY("ScanBarcode", config_hotkeys[config_HotkeyIndex_ScanBarcode], SDL_SCANCODE_B, CONFIG_PRIMARY_KMOD);
-    CONFIG_HOTKEY("VideoRecording", config_hotkeys[config_HotkeyIndex_VideoRecording], SDL_SCANCODE_R, (SDL_Keymod)(CONFIG_PRIMARY_KMOD | SDL_KMOD_SHIFT));
+    CONFIG_HOTKEY("VideoRecording", config_hotkeys[config_HotkeyIndex_VideoRecording], SDL_SCANCODE_V, (SDL_Keymod)(CONFIG_PRIMARY_KMOD | SDL_KMOD_SHIFT));
 }
 
 //**************************************
