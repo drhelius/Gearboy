@@ -687,14 +687,25 @@ void config_update_hotkey_string(config_Hotkey* hotkey)
 
     std::string result = "";
 
+#if defined(__APPLE__)
+    const char* gui_label = "Cmd+";
+    const char* alt_label = "Option+";
+#elif defined(_WIN32)
+    const char* gui_label = "Win+";
+    const char* alt_label = "Alt+";
+#else
+    const char* gui_label = "Super+";
+    const char* alt_label = "Alt+";
+#endif
+
+    if (hotkey->mod & (SDL_KMOD_GUI | SDL_KMOD_LGUI | SDL_KMOD_RGUI))
+        result += gui_label;
     if (hotkey->mod & (SDL_KMOD_CTRL | SDL_KMOD_LCTRL | SDL_KMOD_RCTRL))
         result += "Ctrl+";
     if (hotkey->mod & (SDL_KMOD_SHIFT | SDL_KMOD_LSHIFT | SDL_KMOD_RSHIFT))
         result += "Shift+";
     if (hotkey->mod & (SDL_KMOD_ALT | SDL_KMOD_LALT | SDL_KMOD_RALT))
-        result += "Alt+";
-    if (hotkey->mod & (SDL_KMOD_GUI | SDL_KMOD_LGUI | SDL_KMOD_RGUI))
-        result += "Cmd+";
+        result += alt_label;
 
     const char* key_name = SDL_GetScancodeName(hotkey->key);
     if (key_name && strlen(key_name) > 0)

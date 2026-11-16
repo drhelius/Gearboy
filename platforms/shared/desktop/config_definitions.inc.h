@@ -324,18 +324,18 @@ static inline void process(config_Operation operation)
     CONFIG_INT_ARRAY("InputGamepadShortcuts", "Shortcut%d", config_input_gamepad_shortcuts.gamepad_shortcuts, config_HotkeyIndex_COUNT, SDL_GAMEPAD_BUTTON_INVALID);
 
     // Hotkeys
-    CONFIG_HOTKEY("OpenROM", config_hotkeys[config_HotkeyIndex_OpenROM], SDL_SCANCODE_O, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("ReloadROM", config_hotkeys[config_HotkeyIndex_ReloadROM], SDL_SCANCODE_D, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("Quit", config_hotkeys[config_HotkeyIndex_Quit], SDL_SCANCODE_Q, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("Reset", config_hotkeys[config_HotkeyIndex_Reset], SDL_SCANCODE_R, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("Pause", config_hotkeys[config_HotkeyIndex_Pause], SDL_SCANCODE_P, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("FFWD", config_hotkeys[config_HotkeyIndex_FFWD], SDL_SCANCODE_F, SDL_KMOD_CTRL);
+    CONFIG_HOTKEY("OpenROM", config_hotkeys[config_HotkeyIndex_OpenROM], SDL_SCANCODE_O, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("ReloadROM", config_hotkeys[config_HotkeyIndex_ReloadROM], SDL_SCANCODE_D, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("Quit", config_hotkeys[config_HotkeyIndex_Quit], SDL_SCANCODE_Q, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("Reset", config_hotkeys[config_HotkeyIndex_Reset], SDL_SCANCODE_R, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("Pause", config_hotkeys[config_HotkeyIndex_Pause], SDL_SCANCODE_P, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("FFWD", config_hotkeys[config_HotkeyIndex_FFWD], SDL_SCANCODE_F, CONFIG_PRIMARY_KMOD);
     CONFIG_HOTKEY("Rewind", config_hotkeys[config_HotkeyIndex_Rewind], SDL_SCANCODE_BACKSPACE, SDL_KMOD_NONE);
-    CONFIG_HOTKEY("SaveState", config_hotkeys[config_HotkeyIndex_SaveState], SDL_SCANCODE_S, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("LoadState", config_hotkeys[config_HotkeyIndex_LoadState], SDL_SCANCODE_L, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("Screenshot", config_hotkeys[config_HotkeyIndex_Screenshot], SDL_SCANCODE_X, SDL_KMOD_CTRL);
+    CONFIG_HOTKEY("SaveState", config_hotkeys[config_HotkeyIndex_SaveState], SDL_SCANCODE_S, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("LoadState", config_hotkeys[config_HotkeyIndex_LoadState], SDL_SCANCODE_L, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("Screenshot", config_hotkeys[config_HotkeyIndex_Screenshot], SDL_SCANCODE_X, CONFIG_PRIMARY_KMOD);
     CONFIG_HOTKEY("Fullscreen", config_hotkeys[config_HotkeyIndex_Fullscreen], SDL_SCANCODE_F12, SDL_KMOD_NONE);
-    CONFIG_HOTKEY("ShowMainMenu", config_hotkeys[config_HotkeyIndex_ShowMainMenu], SDL_SCANCODE_M, SDL_KMOD_CTRL);
+    CONFIG_HOTKEY("ShowMainMenu", config_hotkeys[config_HotkeyIndex_ShowMainMenu], SDL_SCANCODE_M, (SDL_Keymod)(CONFIG_PRIMARY_KMOD | SDL_KMOD_SHIFT));
     CONFIG_HOTKEY("CaptureMouse", config_hotkeys[config_HotkeyIndex_CaptureMouse], SDL_SCANCODE_F1, SDL_KMOD_NONE);
     CONFIG_HOTKEY("DebugStepInto", config_hotkeys[config_HotkeyIndex_DebugStepInto], SDL_SCANCODE_F11, SDL_KMOD_NONE);
     CONFIG_HOTKEY("DebugStepOver", config_hotkeys[config_HotkeyIndex_DebugStepOver], SDL_SCANCODE_F10, SDL_KMOD_NONE);
@@ -346,14 +346,14 @@ static inline void process(config_Operation operation)
     CONFIG_HOTKEY("DebugRunToCursor", config_hotkeys[config_HotkeyIndex_DebugRunToCursor], SDL_SCANCODE_F8, SDL_KMOD_NONE);
     CONFIG_HOTKEY("DebugBreakpoint", config_hotkeys[config_HotkeyIndex_DebugBreakpoint], SDL_SCANCODE_F9, SDL_KMOD_NONE);
     CONFIG_HOTKEY("DebugGoBack", config_hotkeys[config_HotkeyIndex_DebugGoBack], SDL_SCANCODE_BACKSPACE, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("SelectSlot1", config_hotkeys[config_HotkeyIndex_SelectSlot1], SDL_SCANCODE_1, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("SelectSlot2", config_hotkeys[config_HotkeyIndex_SelectSlot2], SDL_SCANCODE_2, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("SelectSlot3", config_hotkeys[config_HotkeyIndex_SelectSlot3], SDL_SCANCODE_3, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("SelectSlot4", config_hotkeys[config_HotkeyIndex_SelectSlot4], SDL_SCANCODE_4, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("SelectSlot5", config_hotkeys[config_HotkeyIndex_SelectSlot5], SDL_SCANCODE_5, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("Mute", config_hotkeys[config_HotkeyIndex_Mute], SDL_SCANCODE_U, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("ScanBarcode", config_hotkeys[config_HotkeyIndex_ScanBarcode], SDL_SCANCODE_B, SDL_KMOD_CTRL);
-    CONFIG_HOTKEY("VideoRecording", config_hotkeys[config_HotkeyIndex_VideoRecording], SDL_SCANCODE_R, (SDL_Keymod)(SDL_KMOD_CTRL | SDL_KMOD_SHIFT));
+    CONFIG_HOTKEY("SelectSlot1", config_hotkeys[config_HotkeyIndex_SelectSlot1], SDL_SCANCODE_1, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("SelectSlot2", config_hotkeys[config_HotkeyIndex_SelectSlot2], SDL_SCANCODE_2, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("SelectSlot3", config_hotkeys[config_HotkeyIndex_SelectSlot3], SDL_SCANCODE_3, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("SelectSlot4", config_hotkeys[config_HotkeyIndex_SelectSlot4], SDL_SCANCODE_4, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("SelectSlot5", config_hotkeys[config_HotkeyIndex_SelectSlot5], SDL_SCANCODE_5, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("Mute", config_hotkeys[config_HotkeyIndex_Mute], SDL_SCANCODE_U, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("ScanBarcode", config_hotkeys[config_HotkeyIndex_ScanBarcode], SDL_SCANCODE_B, CONFIG_PRIMARY_KMOD);
+    CONFIG_HOTKEY("VideoRecording", config_hotkeys[config_HotkeyIndex_VideoRecording], SDL_SCANCODE_R, (SDL_Keymod)(CONFIG_PRIMARY_KMOD | SDL_KMOD_SHIFT));
 }
 
 //**************************************
@@ -368,6 +368,7 @@ static void before_defaults(void);
 static void after_defaults(void);
 static void normalize(void);
 static void migrate(int file_version);
+static void migrate_hotkeys(void);
 static void sync_shader_preset_parameter_defaults(void);
 
 static void before_read(int file_version)
@@ -497,6 +498,49 @@ static void migrate(int file_version)
             write_string("FileDialogs", "ROM", stored);
 
         config_ini_data["Emulator"].remove("LastOpenPath");
+    }
+
+    if (file_version < 9)
+        migrate_hotkeys();
+}
+
+static void migrate_hotkeys(void)
+{
+    struct migrate_Hotkey
+    {
+        const char* name;
+        int key;
+        int mod;
+    };
+
+    static const migrate_Hotkey old_defaults[] =
+    {
+        { "OpenROM", SDL_SCANCODE_O, SDL_KMOD_CTRL }, { "ReloadROM", SDL_SCANCODE_D, SDL_KMOD_CTRL },
+        { "Quit", SDL_SCANCODE_Q, SDL_KMOD_CTRL }, { "Reset", SDL_SCANCODE_R, SDL_KMOD_CTRL },
+        { "Pause", SDL_SCANCODE_P, SDL_KMOD_CTRL }, { "FFWD", SDL_SCANCODE_F, SDL_KMOD_CTRL },
+        { "SaveState", SDL_SCANCODE_S, SDL_KMOD_CTRL }, { "LoadState", SDL_SCANCODE_L, SDL_KMOD_CTRL },
+        { "Screenshot", SDL_SCANCODE_X, SDL_KMOD_CTRL }, { "ShowMainMenu", SDL_SCANCODE_M, SDL_KMOD_CTRL },
+        { "SelectSlot1", SDL_SCANCODE_1, SDL_KMOD_CTRL }, { "SelectSlot2", SDL_SCANCODE_2, SDL_KMOD_CTRL },
+        { "SelectSlot3", SDL_SCANCODE_3, SDL_KMOD_CTRL }, { "SelectSlot4", SDL_SCANCODE_4, SDL_KMOD_CTRL },
+        { "SelectSlot5", SDL_SCANCODE_5, SDL_KMOD_CTRL }, { "Mute", SDL_SCANCODE_U, SDL_KMOD_CTRL },
+        { "ScanBarcode", SDL_SCANCODE_B, SDL_KMOD_CTRL },
+        { "VideoRecording", SDL_SCANCODE_R, SDL_KMOD_CTRL | SDL_KMOD_SHIFT }
+    };
+
+    char scancode_key[64];
+    char mod_key[64];
+
+    for (size_t i = 0; i < sizeof(old_defaults) / sizeof(old_defaults[0]); i++)
+    {
+        snprintf(scancode_key, sizeof(scancode_key), "%sScancode", old_defaults[i].name);
+        snprintf(mod_key, sizeof(mod_key), "%sMod", old_defaults[i].name);
+
+        if ((read_int("Hotkeys", scancode_key, old_defaults[i].key) == old_defaults[i].key) &&
+            (read_int("Hotkeys", mod_key, old_defaults[i].mod) == old_defaults[i].mod))
+        {
+            config_ini_data["Hotkeys"].remove(scancode_key);
+            config_ini_data["Hotkeys"].remove(mod_key);
+        }
     }
 }
 

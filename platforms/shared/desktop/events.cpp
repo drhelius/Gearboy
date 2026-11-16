@@ -77,19 +77,19 @@ void events_shortcuts(const SDL_Event* event)
     int key = event->key.scancode;
     SDL_Keymod mods = event->key.mod;
 
-    if (event->key.repeat == 0 && key == SDL_SCANCODE_A && (mods & SDL_KMOD_CTRL))
+    if (event->key.repeat == 0 && key == SDL_SCANCODE_A && (mods & CONFIG_PRIMARY_KMOD))
     {
         gui_shortcut(gui_ShortcutDebugSelectAll);
         return;
     }
 
-    if (event->key.repeat == 0 && key == SDL_SCANCODE_C && (mods & SDL_KMOD_CTRL))
+    if (event->key.repeat == 0 && key == SDL_SCANCODE_C && (mods & CONFIG_PRIMARY_KMOD))
     {
         gui_shortcut(gui_ShortcutDebugCopy);
         return;
     }
 
-    if (event->key.repeat == 0 && key == SDL_SCANCODE_V && (mods & SDL_KMOD_CTRL))
+    if (event->key.repeat == 0 && key == SDL_SCANCODE_V && (mods & CONFIG_PRIMARY_KMOD))
     {
         gui_shortcut(gui_ShortcutDebugPaste);
         return;

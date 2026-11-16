@@ -24,7 +24,15 @@
 #include <string>
 #include "gearboy.h"
 
-static const int config_version = 8;
+#if defined(__APPLE__)
+#define CONFIG_PRIMARY_KMOD SDL_KMOD_GUI
+#define CONFIG_PRIMARY_LABEL "Cmd+"
+#else
+#define CONFIG_PRIMARY_KMOD SDL_KMOD_CTRL
+#define CONFIG_PRIMARY_LABEL "Ctrl+"
+#endif
+
+static const int config_version = 9;
 static const int config_minimum_version = 2;
 static const int config_max_recent_roms = 15;
 static const int config_max_custom_palettes = 5;
