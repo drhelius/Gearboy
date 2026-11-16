@@ -114,6 +114,7 @@ GearboyCore::GearboyCore()
     m_bSGB = false;
     m_bPaused = false;
     m_bForceDMG = false;
+    m_bForceSGB = false;
     m_MapperType = Cartridge::CartridgeNotSupported;
     m_bSGBEnabled = true;
     m_bSGBAllGames = false;
@@ -1941,6 +1942,11 @@ void GearboyCore::SetSGBEnabled(bool enabled)
     m_bSGBEnabled = enabled;
 }
 
+void GearboyCore::SetForceSGB(bool enabled)
+{
+    m_bForceSGB = enabled;
+}
+
 void GearboyCore::SetSGBAllGames(bool enabled)
 {
     m_bSGBAllGames = enabled;
@@ -2241,6 +2247,11 @@ bool GearboyCore::AddMemoryRules(Cartridge::CartridgeTypes forceType)
 
 void GearboyCore::Reset(bool bCGB, bool bGBA)
 {
+    // Select the console before resetting its CPU and PPU. Dual-compatible
+    // cartridges (including EverDrive OS images) otherwise always choose CGB.
+    bool forceSGB = m_bForceSGB && m_bSGBEnabled && !m_bForceDMG;
+    if (forceSGB)
+        bCGB = bGBA = false;
     m_bCGB = bCGB;
     m_bGBA = bGBA;
 
@@ -2257,7 +2268,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
         Log("Reset: Defaulting to Game Boy DMG");
     }
 
-    m_bSGB = !m_bCGB && (m_pCartridge->IsSGB() || (m_bSGBAllGames && m_pSGB->IsBIOSLoaded())) && !m_bForceDMG && m_bSGBEnabled;
+    m_bSGB = !m_bCGB && (forceSGB || m_pCartridge->IsSGB() || (m_bSGBAllGames && m_pSGB->IsBIOSLoaded())) && !m_bForceDMG && m_bSGBEnabled;
     m_pMemory->Reset(m_bCGB, m_bSGB);
     m_pProcessor->Reset(m_bCGB, m_bGBA, m_bSGB);
     m_pVideo->SetSGBTransferMode(m_bSGB);

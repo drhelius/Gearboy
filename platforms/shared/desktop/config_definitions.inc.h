@@ -140,6 +140,7 @@ static inline void process(config_Operation operation)
     CONFIG_BOOL("Emulator", "SoftPatching", config_emulator.softpatching, true);
     CONFIG_BOOL("Emulator", "ForceDMG", config_emulator.force_dmg, false);
     CONFIG_BOOL("Emulator", "ForceGBA", config_emulator.force_gba, false);
+    CONFIG_BOOL("Emulator", "ForceSGB", config_emulator.force_sgb, false);
     CONFIG_BOOL("Emulator", "SGB", config_emulator.sgb, true);
     CONFIG_BOOL("Emulator", "SGBBorder", config_emulator.sgb_border, true);
     CONFIG_BOOL("Emulator", "SGBAllGames", config_emulator.sgb_all_games, false);

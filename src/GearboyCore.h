@@ -132,6 +132,7 @@ public:
     bool IsGBA();
     bool IsSGB();
     void SetSGBEnabled(bool enabled);
+    void SetForceSGB(bool enabled);
     void SetSGBAllGames(bool enabled);
     void SetSGBBorder(bool enabled);
     Memory* GetMemory();
@@ -228,6 +229,7 @@ private:
     bool m_bPaused;
     u16 m_DMGPalette[4];
     bool m_bForceDMG;
+    bool m_bForceSGB;
     bool m_bSGBEnabled;
     bool m_bSGBAllGames;
     bool m_bSGBBorder;

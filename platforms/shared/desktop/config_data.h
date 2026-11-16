@@ -72,6 +72,7 @@ struct config_Emulator
     bool softpatching;
     bool force_dmg;
     bool force_gba;
+    bool force_sgb;
     bool sgb;
     bool sgb_border;
     bool sgb_all_games;

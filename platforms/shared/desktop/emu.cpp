@@ -198,6 +198,7 @@ void emu_destroy(void)
 static void load_rom_thread_func(void)
 {
     gearboy->SetSGBEnabled(config_emulator.sgb);
+    gearboy->SetForceSGB(config_emulator.force_sgb);
     gearboy->SetSGBAllGames(config_emulator.sgb_all_games);
     gearboy->SetEverdriveFolder(config_emulator.everdrive_sd_path.c_str());
     gearboy->SetBarcodeBoyMode((GB_BarcodeBoyMode)config_emulator.barcode_boy_mode);
@@ -532,6 +533,7 @@ void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba, bo
     if (save_persistent_data)
         emu_save_persistent_data();
     gearboy->SetSGBEnabled(config_emulator.sgb);
+    gearboy->SetForceSGB(config_emulator.force_sgb);
     gearboy->SetSGBAllGames(config_emulator.sgb_all_games);
     gearboy->SetEverdriveFolder(config_emulator.everdrive_sd_path.c_str());
     gearboy->ResetROM(force_dmg, mbc, force_gba);
@@ -639,6 +641,7 @@ void emu_load_ram(const char* file_path, bool force_dmg, Cartridge::CartridgeTyp
         gui_debug_trace_logger_reset("media_change");
         save_ram();
         gearboy->SetSGBEnabled(config_emulator.sgb);
+        gearboy->SetForceSGB(config_emulator.force_sgb);
         gearboy->SetSGBAllGames(config_emulator.sgb_all_games);
         gearboy->SetEverdriveFolder(config_emulator.everdrive_sd_path.c_str());
         gearboy->ResetROM(force_dmg, mbc, force_gba);
