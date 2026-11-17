@@ -84,7 +84,7 @@ $(LINK_CABLE_MANAGER_TARGET_NAME): CPPFLAGS += -DLINK_CABLE_SHM_PREFIX=\"gearboy
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(OBJECTS) $(SERIAL_TARGET_NAME) $(LINK_CABLE_WIRE_TARGET_NAME) $(LINK_CABLE_MANAGER_TARGET_NAME) gearboy-everdrive-tests
+	rm -f $(OBJECTS) $(SERIAL_TARGET_NAME) $(LINK_CABLE_WIRE_TARGET_NAME) $(LINK_CABLE_MANAGER_TARGET_NAME) gearboy-everdrive-tests gearboy-igkb-tests
 	rm -rf $(SERIAL_TARGET_NAME).dSYM $(LINK_CABLE_WIRE_TARGET_NAME).dSYM $(LINK_CABLE_MANAGER_TARGET_NAME).dSYM
 
 # Compile these small independent components directly, without reusing the
@@ -95,3 +95,9 @@ everdrive: gearboy-everdrive-tests
 
 gearboy-everdrive-tests: $(SRC_DIR)/EverdriveX.h $(SRC_DIR)/VirtualFat.h $(SRC_DIR)/Cartridge.h everdrive_tests.cpp $(SRC_DIR)/Cartridge.cpp $(SRC_DIR)/EverdriveX.cpp $(SRC_DIR)/VirtualFat.cpp $(DEPS_DIR)/miniz/miniz.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $(filter %.cpp %.o,$^) $(LDFLAGS)
+
+.PHONY: igkb
+igkb: gearboy-igkb-tests
+	./gearboy-igkb-tests
+gearboy-igkb-tests: igkb_tests.cpp $(SRC_DIR)/IGKeyboard.cpp $(SRC_DIR)/IGKeyboard.h
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $(filter %.cpp,$^) $(LDFLAGS)

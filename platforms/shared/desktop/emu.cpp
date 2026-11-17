@@ -1386,6 +1386,11 @@ GB_BarcodeBoyResult emu_scan_barcode(const char* barcode)
     return emu_is_empty() ? GB_BarcodeBoyResult_Unavailable : gearboy->ScanBarcode(barcode);
 }
 
+void emu_set_igkb_mode(int mode) { if (gearboy) { gearboy->SetIGKBMode(mode); rewind_reset(); } }
+int emu_get_igkb_mode(void) { return gearboy ? gearboy->GetIGKBMode() : 0; }
+bool emu_queue_igkb_key(u8 hid, bool shift) { return gearboy && gearboy->QueueIGKBKey(hid, shift); }
+bool emu_queue_igkb_mouse(int dx, int dy, u8 buttons) { return gearboy && gearboy->QueueIGKBMouse(dx, dy, buttons); }
+
 void emu_set_ps2_keyboard_enabled(bool enabled)
 {
     if (!gearboy)

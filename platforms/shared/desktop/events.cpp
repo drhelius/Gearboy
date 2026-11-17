@@ -39,7 +39,7 @@ static void input_apply_state(int controller, Uint16 before, Uint16 now);
 
 static bool events_ps2_keyboard_active(void)
 {
-    return emu_ps2_keyboard_is_enabled() && (SDL_GetModState() & SDL_KMOD_CAPS);
+    return (emu_ps2_keyboard_is_enabled() || emu_get_igkb_mode() == 1) && (SDL_GetModState() & SDL_KMOD_CAPS);
 }
 
 static bool events_queue_ps2_key(const SDL_Event* event)
@@ -53,7 +53,7 @@ static bool events_queue_ps2_key(const SDL_Event* event)
         
     if (event->key.scancode == SDL_SCANCODE_CAPSLOCK)
     {
-        if (!emu_ps2_keyboard_is_enabled())
+        if (!emu_ps2_keyboard_is_enabled() && !emu_get_igkb_mode())
             emu_set_ps2_keyboard_enabled(true);
         return false;
     }
@@ -61,6 +61,12 @@ static bool events_queue_ps2_key(const SDL_Event* event)
     if (!events_ps2_keyboard_active())
         return false;
         
+    if (emu_get_igkb_mode() == 1) {
+        if (event->type == SDL_EVENT_KEY_DOWN)
+            emu_queue_igkb_key((u8)event->key.scancode, (event->key.mod & SDL_KMOD_SHIFT) != 0);
+        return true;
+    }
+
     const bool release = event->type == SDL_EVENT_KEY_UP;
     const u8 scancode = gearboy_ps2_map_sdl_scancode((int)event->key.scancode);
     if (scancode == 0)

@@ -68,6 +68,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/VirtualFat.cpp \
     $(SRC_DIR)/CommonMemoryRule.cpp \
     $(SRC_DIR)/GearboyCore.cpp \
+    $(SRC_DIR)/IGKeyboard.cpp \
     $(SRC_DIR)/Input.cpp \
     $(SRC_DIR)/IORegistersMemoryRule.cpp \
     $(SRC_DIR)/MBC1MemoryRule.cpp \

@@ -1197,6 +1197,9 @@ static void menu_input(void)
 
         if (ImGui::MenuItem("PS/2 Keyboard", nullptr, emu_ps2_keyboard_is_enabled(), !emu_is_rom_loading()))
             emu_set_ps2_keyboard_enabled(!emu_ps2_keyboard_is_enabled());
+        if (ImGui::MenuItem("iGKB USB Keyboard / Mouse", nullptr, emu_get_igkb_mode() == 1, !emu_is_rom_loading()))
+            emu_set_igkb_mode(emu_get_igkb_mode() == 1 ? 0 : 1);
+
 
         if (ImGui::MenuItem("EverDrive X SD Card", nullptr, emu_everdrive_is_enabled(), !emu_is_rom_loading()))
             emu_set_everdrive_enabled(!emu_everdrive_is_enabled());

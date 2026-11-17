@@ -128,6 +128,8 @@ GearboyCore::GearboyCore()
     m_link_cable_cycles = 0;
     m_pBarcodeBoy = NULL;
     m_pPS2Keyboard = NULL;
+    m_pIGKeyboard = NULL;
+    m_IGKBMode = 0;
     m_BarcodeBoyMode = GB_BarcodeBoyMode_Auto;
     const char* ps2_env = getenv("GEARBOY_PS2");
     m_bPS2KeyboardEnabled = !(ps2_env && ps2_env[0] == '0'); // on by default like the EverDrive SD card, GEARBOY_PS2=0 starts with it off
@@ -137,6 +139,7 @@ GearboyCore::GearboyCore()
 GearboyCore::~GearboyCore()
 {
     SafeDelete(m_pPS2Keyboard);
+    SafeDelete(m_pIGKeyboard);
     SafeDelete(m_pBarcodeBoy);
     SafeDelete(m_pMBC6MemoryRule);
     SafeDelete(m_pMBC5MemoryRule);
@@ -591,6 +594,7 @@ void GearboyCore::SetBarcodeBoyMode(GB_BarcodeBoyMode mode)
         mode = GB_BarcodeBoyMode_Auto;
 
     m_BarcodeBoyMode = mode;
+    if (m_pIGKeyboard) m_pIGKeyboard->Reset();
     ApplySerialDevice(m_pProcessor->IsLinkCableConnected());
 }
 
@@ -612,9 +616,27 @@ GB_BarcodeBoyResult GearboyCore::ScanBarcode(const char* barcode)
     return m_pBarcodeBoy->ScanBarcode(barcode);
 }
 
+void GearboyCore::SetIGKBMode(int mode)
+{
+    if (mode < 0 || mode > 2) return;
+    if (mode == 2) mode = 1; // legacy mouse-only callers select the combined adapter
+    if (m_IGKBMode != mode) {
+        m_pProcessor->ResetSerialDevice();
+        SafeDelete(m_pIGKeyboard);
+    }
+    m_IGKBMode = mode;
+    if (mode) m_bPS2KeyboardEnabled = false;
+    ApplySerialDevice(IsLinkCableConnected());
+}
+int GearboyCore::GetIGKBMode() const { return m_pIGKeyboard ? m_IGKBMode : 0; }
+bool GearboyCore::QueueIGKBKey(u8 hid, bool shift) { return m_pIGKeyboard && m_pIGKeyboard->QueueKey(hid, shift); }
+bool GearboyCore::QueueIGKBMouse(int dx, int dy, u8 buttons) { return m_pIGKeyboard && m_pIGKeyboard->QueueMouse(dx, dy, buttons); }
+
 void GearboyCore::SetPS2KeyboardEnabled(bool enabled)
 {
+    if (enabled) SetIGKBMode(0);
     m_bPS2KeyboardEnabled = enabled;
+    if (m_pIGKeyboard) m_pIGKeyboard->Reset();
     ApplySerialDevice(m_pProcessor->IsLinkCableConnected());
 }
 
@@ -667,7 +689,15 @@ bool GearboyCore::QueuePS2KeyboardScanCode(u8 scan_code)
 void GearboyCore::ApplySerialDevice(bool link_connected)
 {
     bool ps2_keyboard_enabled = !link_connected && m_pCartridge->IsLoadedROM() && m_bPS2KeyboardEnabled;
-    bool barcode_enabled = !link_connected && m_pCartridge->IsLoadedROM() &&
+    bool igkb_enabled = !link_connected && m_pCartridge->IsLoadedROM() && m_IGKBMode;
+    if (igkb_enabled && !m_pIGKeyboard) {
+        m_pProcessor->ResetSerialDevice();
+        m_pIGKeyboard = new IGKeyboard();
+    } else if (!igkb_enabled && m_pIGKeyboard) {
+        m_pProcessor->ResetSerialDevice();
+        SafeDelete(m_pIGKeyboard);
+    }
+    bool barcode_enabled = !igkb_enabled && !link_connected && m_pCartridge->IsLoadedROM() &&
         (m_BarcodeBoyMode == GB_BarcodeBoyMode_Enabled ||
         (m_BarcodeBoyMode == GB_BarcodeBoyMode_Auto && m_pCartridge->IsBarcodeBoySupported()));
 
@@ -696,6 +726,11 @@ void GearboyCore::ApplySerialDevice(bool link_connected)
     {
         m_pProcessor->SetLinkCableCallbacks(PS2Keyboard::StateCallback, PS2Keyboard::StartCallback,
             PS2Keyboard::PollCallback, NULL, m_pPS2Keyboard);
+        m_pProcessor->SetSerialConnected(true, false, m_link_cable_cycles);
+    }
+    else if (igkb_enabled)
+    {
+        m_pProcessor->SetLinkCableCallbacks(NULL, IGKeyboard::StartCallback, NULL, NULL, m_pIGKeyboard);
         m_pProcessor->SetSerialConnected(true, false, m_link_cable_cycles);
     }
     else if (barcode_enabled)
@@ -2327,6 +2362,7 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
     if (m_pBarcodeBoy)
         m_pBarcodeBoy->Reset();
 
+    if (m_pIGKeyboard) m_pIGKeyboard->Reset();
     ApplySerialDevice(m_pProcessor->IsLinkCableConnected());
 
     if (m_bSGB)

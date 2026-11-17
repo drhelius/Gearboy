@@ -24,6 +24,7 @@
 #include "Cartridge.h"
 #include "BarcodeBoy.h"
 #include "PS2Keyboard.h"
+#include "IGKeyboard.h"
 #include "link_cable.h"
 #include "Memory.h"
 #include "Processor.h"
@@ -157,6 +158,10 @@ public:
     bool IsBarcodeBoyEnabled() const;
     GB_BarcodeBoyStatus GetBarcodeBoyStatus() const;
     GB_BarcodeBoyResult ScanBarcode(const char* barcode);
+    void SetIGKBMode(int mode); // 0 off, 1 combined keyboard/mouse; 2 is a legacy alias; exclusive with PS/2
+    int GetIGKBMode() const;
+    bool QueueIGKBKey(u8 hid, bool shift);
+    bool QueueIGKBMouse(int dx, int dy, u8 buttons);
     void SetPS2KeyboardEnabled(bool enabled);
     bool IsPS2KeyboardEnabled() const;
     void SetEverdriveEnabled(bool enabled);
@@ -245,6 +250,8 @@ private:
     u64 m_link_cable_cycles;
     BarcodeBoy* m_pBarcodeBoy;
     PS2Keyboard* m_pPS2Keyboard;
+    IGKeyboard* m_pIGKeyboard;
+    int m_IGKBMode;
     GB_BarcodeBoyMode m_BarcodeBoyMode;
     bool m_bPS2KeyboardEnabled;
     GB_LinkCableCallbacks m_LinkCableCallbacks;

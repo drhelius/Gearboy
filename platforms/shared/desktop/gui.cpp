@@ -33,6 +33,7 @@
 
 #define GUI_IMPORT
 #include "gui.h"
+#include "gui_filedialogs.h"
 #include "gui_cheats.h"
 #include "gui_menus.h"
 #include "gui_shader.h"
@@ -651,6 +652,35 @@ static void main_window(void)
     ImVec2 image_max = image_min + image_size;
 
     ImGui::Dummy(image_size);
+
+    // Use the displayed image rectangle, including debugger/docked output. Never
+    // forward motion over menus or other windows; release held buttons on leave.
+    static bool mouse_inside = false;
+    static ImVec2 mouse_last;
+    static unsigned mouse_buttons = 0;
+    static float mouse_fraction_x = 0, mouse_fraction_y = 0;
+    bool inside = window_visible && gui_main_window_hovered &&
+        ImGui::IsMouseHoveringRect(image_min, image_max) && emu_get_igkb_mode() != 0 &&
+        !gui_file_dialog_is_active() && !emu_is_paused();
+    if (inside) {
+        ImVec2 pos = ImGui::GetIO().MousePos;
+        if (mouse_inside) {
+            mouse_fraction_x += (pos.x - mouse_last.x) * (float)base_width / image_size.x;
+            mouse_fraction_y += (pos.y - mouse_last.y) * (float)base_height / image_size.y;
+        }
+        int dx = (int)mouse_fraction_x, dy = (int)mouse_fraction_y;
+        unsigned buttons = (ImGui::IsMouseDown(0) ? 1 : 0) | (ImGui::IsMouseDown(1) ? 2 : 0) | (ImGui::IsMouseDown(2) ? 4 : 0);
+        if ((dx || dy || buttons != mouse_buttons) && emu_queue_igkb_mouse(dx, dy, buttons)) {
+            mouse_fraction_x -= dx; mouse_fraction_y -= dy;
+            mouse_buttons = buttons;
+        }
+        mouse_last = pos;
+    } else {
+        if (emu_get_igkb_mode() == 0 || (mouse_buttons && emu_queue_igkb_mouse(0, 0, 0))) mouse_buttons = 0;
+        mouse_fraction_x = mouse_fraction_y = 0;
+    }
+    mouse_inside = inside;
+
 
     if (window_visible)
     {
