@@ -223,16 +223,21 @@ static void menu_gearboy(void)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Fast Forward", config_hotkeys[config_HotkeyIndex_FFWD].str, &config_emulator.ffwd, media_actions_enabled && !link_cable_active))
+        if (ImGui::BeginMenu("Fast Forward", !link_cable_active))
         {
-            gui_action_ffwd();
-        }
+            if (ImGui::MenuItem("Enabled", config_hotkeys[config_HotkeyIndex_FFWD].str, &config_emulator.ffwd, media_actions_enabled))
+            {
+                gui_action_ffwd();
+            }
 
-        if (ImGui::BeginMenu("Fast Forward Speed", !link_cable_active))
-        {
-            ImGui::PushItemWidth(100.0f);
-            ImGui::Combo("##fwd", &config_emulator.ffwd_speed, "X 1.5\0X 2\0X 2.5\0X 3\0Unlimited\0\0");
-            ImGui::PopItemWidth();
+            if (ImGui::BeginMenu("Speed"))
+            {
+                ImGui::PushItemWidth(100.0f);
+                ImGui::Combo("##fwd", &config_emulator.ffwd_speed, "X 1.5\0X 2\0X 2.5\0X 3\0Unlimited\0\0");
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
             ImGui::EndMenu();
         }
 
@@ -592,6 +597,34 @@ static void menu_emulator(void)
 
         ImGui::Separator();
 
+        if (ImGui::MenuItem("Force Game Boy (DMG)", "", &config_emulator.force_dmg))
+        {
+            if (config_emulator.force_dmg)
+                config_emulator.force_gba = false;
+        }
+
+        if (ImGui::MenuItem("Force Game Boy Advance", "", &config_emulator.force_gba))
+        {
+            if (config_emulator.force_gba)
+                config_emulator.force_dmg = false;
+        }
+
+        ImGui::MenuItem("Super Game Boy", "", &config_emulator.sgb);
+        ImGui::MenuItem("SGB Border", "", &config_emulator.sgb_border);
+        ImGui::MenuItem("SGB for All Games", "", &config_emulator.sgb_all_games);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Run regular Game Boy games in Super Game Boy mode with the BIOS default border and palette.\nRequires an SGB BIOS. Takes effect on the next reset or ROM load.");
+
+        if (ImGui::BeginMenu("Memory Bank Controller"))
+        {
+            ImGui::PushItemWidth(140.0f);
+            ImGui::Combo("##mbc", &config_emulator.mbc, "Auto\0ROM Only\0MBC 1\0MBC 2\0MBC 3\0MBC 5\0MBC 1 Multicart\0HuC 1\0HuC 3\0MMM01\0Camera\0MBC 7\0TAMA5\0Wisdom Tree\0M161\0Sachen MMC1\0Sachen MMC2\0PKJD\0Bung/EMS\0Poke 2-in-1\0MBC 6\0Rocket Games\0BHGOS\0Li Cheng\0NT newer\0GGB81\0Hitek\0VF001\0VF001 (SL)\0Sintax\0NT old 1\0NT old 2\0\0");
+            ImGui::PopItemWidth();
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
         if (ImGui::BeginMenu("DMG Boot ROM"))
         {
             if (ImGui::MenuItem("Enable", "", &config_emulator.dmg_bootrom))
@@ -687,36 +720,22 @@ static void menu_emulator(void)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Force Game Boy (DMG)", "", &config_emulator.force_dmg))
-        {
-            if (config_emulator.force_dmg)
-                config_emulator.force_gba = false;
-        }
-
-        if (ImGui::MenuItem("Force Game Boy Advance", "", &config_emulator.force_gba))
-        {
-            if (config_emulator.force_gba)
-                config_emulator.force_dmg = false;
-        }
-
-        ImGui::MenuItem("Super Game Boy", "", &config_emulator.sgb);
-        ImGui::MenuItem("SGB Border", "", &config_emulator.sgb_border);
-        ImGui::MenuItem("SGB for All Games", "", &config_emulator.sgb_all_games);
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Run regular Game Boy games in Super Game Boy mode with the BIOS default border and palette.\nRequires an SGB BIOS. Takes effect on the next reset or ROM load.");
-
-        if (ImGui::BeginMenu("Memory Bank Controller"))
-        {
-            ImGui::PushItemWidth(140.0f);
-            ImGui::Combo("##mbc", &config_emulator.mbc, "Auto\0ROM Only\0MBC 1\0MBC 2\0MBC 3\0MBC 5\0MBC 1 Multicart\0HuC 1\0HuC 3\0MMM01\0Camera\0MBC 7\0TAMA5\0Wisdom Tree\0M161\0Sachen MMC1\0Sachen MMC2\0PKJD\0Bung/EMS\0Poke 2-in-1\0MBC 6\0Rocket Games\0BHGOS\0Li Cheng\0NT newer\0GGB81\0Hitek\0VF001\0VF001 (SL)\0Sintax\0NT old 1\0NT old 2\0\0");
-            ImGui::PopItemWidth();
-            ImGui::EndMenu();
-        }
+        if (ImGui::MenuItem("Cheats...", "", false, !emu_is_empty()))
+            gui_cheats_show();
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Cheats...", "", false, !emu_is_empty()))
-            gui_cheats_show();
+        ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
+        ImGui::MenuItem("Pause When Inactive", "", &config_emulator.pause_when_inactive);
+        if (ImGui::MenuItem("Allow Screen Saver", "", &config_emulator.allow_screensaver))
+        {
+            if (config_emulator.allow_screensaver)
+                SDL_EnableScreenSaver();
+            else
+                SDL_DisableScreenSaver();
+        }
+
+        ImGui::Separator();
 
         ImGui::MenuItem("Show ROM info", "", &config_emulator.show_info);
 
@@ -732,18 +751,6 @@ static void menu_emulator(void)
             }
 
             ImGui::EndMenu();
-        }
-
-        ImGui::Separator();
-
-        ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
-        ImGui::MenuItem("Pause When Inactive", "", &config_emulator.pause_when_inactive);
-        if (ImGui::MenuItem("Allow Screen Saver", "", &config_emulator.allow_screensaver))
-        {
-            if (config_emulator.allow_screensaver)
-                SDL_EnableScreenSaver();
-            else
-                SDL_DisableScreenSaver();
         }
 
         ImGui::Separator();
@@ -920,11 +927,6 @@ static void menu_video(void)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Color Correction (GBC)", "", &config_video.color_correction))
-        {
-            emu_color_correction(config_video.color_correction);
-        }
-
         gui_shader_menu();
 
         ImGui::Separator();
@@ -968,6 +970,11 @@ static void menu_video(void)
                 }
             }
             ImGui::EndMenu();
+        }
+
+        if (ImGui::MenuItem("Color Correction (GBC)", "", &config_video.color_correction))
+        {
+            emu_color_correction(config_video.color_correction);
         }
 
         ImGui::Separator();
@@ -1532,13 +1539,18 @@ static void menu_debug(void)
 
         ImGui::Separator();
 
-        ImGui::MenuItem("Show Output Screen", "", &config_debug.show_screen, config_debug.debug);
-
-        if (ImGui::BeginMenu("Output Scale", config_debug.debug))
+        if (ImGui::BeginMenu("Debug Output Screen", config_debug.debug))
         {
-            ImGui::PushItemWidth(200.0f);
-            ImGui::SliderInt("##debug_scale", &config_debug.scale, 1, 10);
-            ImGui::PopItemWidth();
+            ImGui::MenuItem("Show Output Screen", "", &config_debug.show_screen, config_debug.debug);
+
+            if (ImGui::BeginMenu("Scale", config_debug.debug))
+            {
+                ImGui::PushItemWidth(200.0f);
+                ImGui::SliderInt("##debug_scale", &config_debug.scale, 1, 10);
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
             ImGui::EndMenu();
         }
 
@@ -1570,15 +1582,13 @@ static void menu_debug(void)
             ImGui::EndMenu();
         }
 
-        ImGui::MenuItem("Show PSG", "", &config_debug.show_psg, config_debug.debug);
-        ImGui::MenuItem("Show IO Map", "", &config_debug.show_io, config_debug.debug);
-
-        if (ImGui::BeginMenu("Link Cable", config_debug.debug))
+        if (ImGui::BeginMenu("Audio", config_debug.debug))
         {
-            ImGui::MenuItem("Show Hardware", "", &config_debug.show_link_cable);
-            ImGui::MenuItem("Show Transport", "", &config_debug.show_link_cable_transport);
+            ImGui::MenuItem("Show PSG", "", &config_debug.show_psg, config_debug.debug);
             ImGui::EndMenu();
         }
+
+        ImGui::MenuItem("Show IO Map", "", &config_debug.show_io, config_debug.debug);
 
         if (ImGui::BeginMenu("Super Game Boy", config_debug.debug && emu_get_core()->IsSGB()))
         {
@@ -1587,6 +1597,15 @@ static void menu_debug(void)
             ImGui::MenuItem("Show SGB Effective Palettes", "", &config_debug.show_sgb_palettes);
             ImGui::MenuItem("Show SGB System Palettes", "", &config_debug.show_sgb_system_palettes);
             ImGui::MenuItem("Show SGB Border Palettes", "", &config_debug.show_sgb_border_palettes);
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::BeginMenu("Link Cable", config_debug.debug))
+        {
+            ImGui::MenuItem("Show Hardware", "", &config_debug.show_link_cable);
+            ImGui::MenuItem("Show Transport", "", &config_debug.show_link_cable_transport);
             ImGui::EndMenu();
         }
 
