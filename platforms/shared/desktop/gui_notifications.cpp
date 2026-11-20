@@ -40,7 +40,9 @@ struct Notification
     Uint64 end;
 };
 
-static const Uint64 k_notification_durations[4] = { 3000, 3000, 4000, 6000 };
+static const Uint64 k_notification_floor = 7000;
+static const Uint64 k_notification_short = 2000;
+static const Uint64 k_notification_blink = 500;
 static const char* const k_notification_icons[4] = { ICON_MD_INFO, ICON_MD_CHECK_CIRCLE, ICON_MD_WARNING, ICON_MD_ERROR };
 static const float k_notification_fade_in = 150.0f;
 static const float k_notification_fade_out = 300.0f;
@@ -58,6 +60,7 @@ static Notification notifications[GUI_NOTIFICATION_COUNT];
 static int notification_count = 0;
 static bool output_rendered = false;
 
+static Uint64 get_duration(gui_NotificationType type, gui_NotificationDuration duration);
 static int find_notification(const char* message, const char* detail, const char* tag);
 static void remove_notification(int index);
 static void copy_text(char* dest, const char* src, size_t dest_size, bool lines);
@@ -65,7 +68,8 @@ static float ease(float t);
 static ImVec4 type_color(gui_NotificationType type);
 static void draw(ImDrawList* draw_list, const ImVec2& min, const ImVec2& max);
 
-void gui_notify(gui_NotificationType type, const char* icon, const char* message, const char* detail, const char* tag, Uint64 milliseconds)
+void gui_notify(gui_NotificationType type, const char* icon, const char* message, const char* detail, const char* tag,
+    gui_NotificationDuration duration)
 {
     if (message == NULL)
         return;
@@ -94,7 +98,7 @@ void gui_notify(gui_NotificationType type, const char* icon, const char* message
 
     Notification* notification = &notifications[index];
     notification->type = type;
-    notification->end = now + ((milliseconds > 0) ? milliseconds : k_notification_durations[type]);
+    notification->end = now + get_duration(type, duration);
     copy_text(notification->icon, (icon != NULL) ? icon : k_notification_icons[type], sizeof(notification->icon), false);
     copy_text(notification->message, message, sizeof(notification->message), false);
     copy_text(notification->detail, (detail != NULL) ? detail : "", sizeof(notification->detail), true);
@@ -125,6 +129,27 @@ void gui_notifications_render(void)
         if (now >= notifications[i].end + k_notification_collapse)
             remove_notification(i);
     }
+}
+
+static Uint64 get_duration(gui_NotificationType type, gui_NotificationDuration duration)
+{
+    switch (duration)
+    {
+    case gui_NotificationDurationShort:
+        return k_notification_short;
+    case gui_NotificationDurationBlink:
+        return k_notification_blink;
+    default:
+        break;
+    }
+
+    Uint64 milliseconds = (Uint64)config_emulator.notification_duration * 1000;
+    bool floored = (duration == gui_NotificationDurationLong) || (type == gui_NotificationWarning) || (type == gui_NotificationError);
+
+    if (floored && (milliseconds < k_notification_floor))
+        milliseconds = k_notification_floor;
+
+    return milliseconds;
 }
 
 static int find_notification(const char* message, const char* detail, const char* tag)

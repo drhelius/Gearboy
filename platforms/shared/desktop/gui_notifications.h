@@ -38,8 +38,16 @@ enum gui_NotificationType
     gui_NotificationError
 };
 
+enum gui_NotificationDuration
+{
+    gui_NotificationDurationNormal = 0,
+    gui_NotificationDurationLong,
+    gui_NotificationDurationShort,
+    gui_NotificationDurationBlink
+};
+
 EXTERN void gui_notify(gui_NotificationType type, const char* icon, const char* message, const char* detail = NULL,
-    const char* tag = NULL, Uint64 milliseconds = 0);
+    const char* tag = NULL, gui_NotificationDuration duration = gui_NotificationDurationNormal);
 EXTERN void gui_notifications_render_output(const ImVec2& min, const ImVec2& max);
 EXTERN void gui_notifications_render(void);
 
