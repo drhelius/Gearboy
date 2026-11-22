@@ -40,12 +40,10 @@ static Uint64 frame_time_start = 0;
 static Uint64 frame_time_end = 0;
 static double monitor_refresh_rate = 60.0;
 static double content_frame_rate = 60.0;
-static double vsync_frame_accumulator = 0.0;
 static bool emu_frame_skipped = false;
 static int last_vsync_state = -1;
 static bool multi_monitor_mixed_refresh = false;
 static bool last_link_cable_connected = false;
-static bool fixed_vsync_fallback_logged = false;
 static bool pending_gl_context_recreate = false;
 static bool swap_divider_unsupported = false;
 static int swap_divider_frames = 0;
@@ -56,10 +54,16 @@ static int catch_up_interval = 0;
 static double catch_up_debt = 0.0;
 static double catch_up_work = 0.0;
 static bool catch_up_ready = false;
+static bool timed_active = false;
+static Uint64 timed_start = 0;
+static Uint64 timed_refreshes = 0;
+static double timed_due = 0.0;
+static int timed_pending = 0;
 
 static bool display_is_vrr_enabled(void);
 static bool display_is_window_focused(void);
-static bool display_fixed_vsync_supported(void);
+static bool display_is_timed_pacing(void);
+static int display_get_timed_frames(void);
 static double display_get_pacing_frame_rate(void);
 static bool display_is_near_content_rate(double frame_rate);
 static int display_get_swap_divider(void);
@@ -69,7 +73,6 @@ static double display_get_presented_frame_rate(void);
 static bool display_can_catch_up(void);
 static void display_update_catch_up(Uint64 swap_start);
 static bool display_update_content_frame_rate(void);
-static void display_reset_vsync_accumulator(void);
 static void display_set_swap_interval(bool enabled);
 
 void display_begin_frame(void)
@@ -131,6 +134,7 @@ void display_frame_throttle(void)
 bool display_should_run_emu_frame(void)
 {
     emu_frame_skipped = false;
+    timed_pending = 0;
 
     if (display_is_vrr_enabled())
         return true;
@@ -144,28 +148,17 @@ bool display_should_run_emu_frame(void)
         && !emu_link_cable_is_cable_connected())
     {
         if (last_vsync_state > 1)
-        {
             display_check_swap_divider();
-            return true;
-        }
-
-        if (!display_fixed_vsync_supported() || content_frame_rate + 0.000001 >= monitor_refresh_rate)
-            return true;
-
-        vsync_frame_accumulator += display_get_pacing_frame_rate();
-
-        if (vsync_frame_accumulator + 0.000001 >= monitor_refresh_rate)
+        else if (!display_is_near_content_rate(monitor_refresh_rate))
         {
-            vsync_frame_accumulator -= monitor_refresh_rate;
-            if (vsync_frame_accumulator < 0.0)
-                vsync_frame_accumulator = 0.0;
-            return true;
+            int frames = display_get_timed_frames();
+            timed_pending = frames - 1;
+            emu_frame_skipped = frames == 0;
+            return frames > 0;
         }
-
-        emu_frame_skipped = true;
-        return false;
     }
 
+    timed_active = false;
     return true;
 }
 
@@ -182,9 +175,6 @@ void display_use_vsync_if_enabled(void)
     bool effective = config_video.sync_mode != config_VideoSync_Disabled &&
         !display_is_vsync_forced_off() &&
         !emu_link_cable_is_cable_connected();
-
-    if (config_video.sync_mode == config_VideoSync_Fixed && !display_fixed_vsync_supported())
-        effective = false;
 
     if (!display_is_window_focused())
         effective = false;
@@ -230,13 +220,10 @@ void display_update_frame_pacing(void)
     if (refresh_rate < monitor_refresh_rate - 0.000001 || refresh_rate > monitor_refresh_rate + 0.000001)
     {
         monitor_refresh_rate = refresh_rate;
-        display_reset_vsync_accumulator();
+        timed_active = false;
     }
 
     display_update_content_frame_rate();
-
-    if (config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state >= 1 && !display_fixed_vsync_supported())
-        display_set_swap_interval(false);
 
     Debug("Monitor refresh rate: %.3f Hz, content frame rate: %.3f FPS%s",
         monitor_refresh_rate, content_frame_rate, display_is_vrr_enabled() ? " (VRR)" : "");
@@ -314,6 +301,12 @@ float display_get_audio_ratio(void)
 
 bool display_should_run_catch_up_frame(void)
 {
+    if (timed_pending > 0)
+    {
+        timed_pending--;
+        return true;
+    }
+
     if (!catch_up_ready || !display_can_catch_up())
         return false;
 
@@ -362,20 +355,42 @@ static bool display_is_window_focused(void)
     return (SDL_GetWindowFlags(application_sdl_window) & SDL_WINDOW_INPUT_FOCUS) != 0;
 }
 
-static bool display_fixed_vsync_supported(void)
+static bool display_is_timed_pacing(void)
 {
-    bool supported = monitor_refresh_rate * (1.0 + k_display_max_rate_skew) >= content_frame_rate;
+    return display_is_vsync_pacing() && (last_vsync_state == 1) && !display_is_near_content_rate(monitor_refresh_rate);
+}
 
-    if (!supported && !fixed_vsync_fallback_logged)
+// Refreshes are counted from the clock, so one missed by a late swap still adds its share of frames
+static int display_get_timed_frames(void)
+{
+    Uint64 now = SDL_GetPerformanceCounter();
+    double rate = display_get_pacing_frame_rate() / monitor_refresh_rate;
+    int limit = (int)rate + 2;
+
+    if (!timed_active)
     {
-        Log("Fixed VSync disabled: %.3f Hz monitor is slower than %.3f FPS content",
-            monitor_refresh_rate, content_frame_rate);
-        fixed_vsync_fallback_logged = true;
+        timed_active = true;
+        timed_start = now;
+        timed_refreshes = 0;
+        timed_due = 1.0;
     }
-    else if (supported)
-        fixed_vsync_fallback_logged = false;
 
-    return supported;
+    double elapsed = (double)(now - timed_start) / (double)SDL_GetPerformanceFrequency();
+    Uint64 refreshes = (Uint64)(elapsed * monitor_refresh_rate + 0.5);
+
+    if (refreshes > timed_refreshes)
+    {
+        timed_due += (double)(refreshes - timed_refreshes) * rate;
+        timed_refreshes = refreshes;
+    }
+
+    int frames = MIN((int)timed_due, limit);
+    timed_due -= frames;
+
+    if (timed_due > limit)
+        timed_due = 0.0;
+
+    return frames;
 }
 
 static double display_get_pacing_frame_rate(void)
@@ -436,7 +451,7 @@ static void display_check_swap_divider(void)
     double expected = (frames * last_vsync_state) / monitor_refresh_rate;
     swap_divider_frames = 0;
 
-    if ((elapsed < expected * 0.75) || ((sync_waits - swap_divider_sync_waits) > (frames / 2)))
+    if ((elapsed < expected * 0.75) || (elapsed > expected * 1.05) || ((sync_waits - swap_divider_sync_waits) > (frames / 2)))
         display_disable_swap_divider(last_vsync_state);
 }
 
@@ -452,7 +467,7 @@ static double display_get_presented_frame_rate(void)
     if (last_vsync_state > 1)
         return monitor_refresh_rate / last_vsync_state;
 
-    if (content_frame_rate + 0.000001 >= monitor_refresh_rate)
+    if (display_is_near_content_rate(monitor_refresh_rate))
         return monitor_refresh_rate;
 
     return display_get_pacing_frame_rate();
@@ -460,8 +475,8 @@ static double display_get_presented_frame_rate(void)
 
 static bool display_can_catch_up(void)
 {
-    return display_is_vsync_pacing() && !emu_is_empty() && !emu_is_paused() && !emu_is_debug_idle() &&
-        emu_is_audio_open() && !rewind_is_active();
+    return display_is_vsync_pacing() && !display_is_timed_pacing() && !emu_is_empty() && !emu_is_paused() &&
+        !emu_is_debug_idle() && emu_is_audio_open() && !rewind_is_active();
 }
 
 static void display_update_catch_up(Uint64 swap_start)
@@ -517,15 +532,7 @@ static bool display_update_content_frame_rate(void)
         return false;
 
     content_frame_rate = frame_rate;
-    display_reset_vsync_accumulator();
     return true;
-}
-
-static void display_reset_vsync_accumulator(void)
-{
-    vsync_frame_accumulator = monitor_refresh_rate - content_frame_rate;
-    if (vsync_frame_accumulator < 0.0)
-        vsync_frame_accumulator = 0.0;
 }
 
 static void display_set_swap_interval(bool enabled)
@@ -563,8 +570,7 @@ static void display_set_swap_interval(bool enabled)
     {
         Debug("Swap interval: %d", effective);
         swap_divider_frames = 0;
-        if (effective == 1)
-            display_reset_vsync_accumulator();
+        timed_active = false;
     }
 
     last_vsync_state = effective;
