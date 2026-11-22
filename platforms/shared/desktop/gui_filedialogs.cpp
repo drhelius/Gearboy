@@ -773,11 +773,18 @@ static void process_dialog_result(FileDialogID id, const char* path)
         {
             int imported = 0;
             int skipped = 0;
+            int oversized = 0;
 
-            if (gui_cheats_import(path, &imported, &skipped))
+            if (gui_cheats_import(path, &imported, &skipped, &oversized))
             {
-                char message[64];
-                snprintf(message, sizeof(message), "%d cheats imported, %d skipped", imported, skipped);
+                char message[128];
+                if (oversized > 0)
+                {
+                    snprintf(message, sizeof(message), "%d cheats imported, %d skipped (%d too long or contain too many codes)",
+                        imported, skipped, oversized);
+                }
+                else
+                    snprintf(message, sizeof(message), "%d cheats imported, %d skipped", imported, skipped);
                 gui_notify(gui_NotificationSuccess, ICON_MD_AUTO_FIX_HIGH, message, path);
             }
             else

@@ -30,7 +30,7 @@
 #include "emu.h"
 #include "utils.h"
 
-#define CHEAT_MAX_PARTS 16
+#define CHEAT_MAX_PARTS 32
 
 struct gui_CheatImport
 {
@@ -117,7 +117,7 @@ bool gui_cheats_is_valid(const char* code)
     return cheat_code_parse(code, normalized_code) > 0;
 }
 
-bool gui_cheats_import(const char* path, int* imported, int* skipped)
+bool gui_cheats_import(const char* path, int* imported, int* skipped, int* oversized)
 {
     std::ifstream file;
     open_ifstream_utf8(file, path, std::ios::in);
@@ -192,13 +192,31 @@ bool gui_cheats_import(const char* path, int* imported, int* skipped)
 
     int imported_count = 0;
     int skipped_count = 0;
+    int oversized_count = 0;
 
     for (size_t i = 0; i < entries.size(); i++)
     {
         if (!entries[i].used)
             continue;
 
-        if (entries[i].code.empty() || (entries[i].code.length() >= sizeof(gui_CheatEntry::code)) ||
+        int parts = 1;
+        char normalized_code[16];
+
+        if (!cheat_code_normalize(entries[i].code.c_str(), normalized_code, sizeof(normalized_code)))
+        {
+            for (size_t j = 0; j < entries[i].code.length(); j++)
+            {
+                if (entries[i].code[j] == '+')
+                    parts++;
+            }
+        }
+
+        if ((entries[i].code.length() >= sizeof(gui_CheatEntry::code)) || (parts > CHEAT_MAX_PARTS))
+        {
+            skipped_count++;
+            oversized_count++;
+        }
+        else if (entries[i].code.empty() ||
             !cheats_add_entry(entries[i].code.c_str(), entries[i].description.c_str(), entries[i].enabled))
         {
             skipped_count++;
@@ -214,6 +232,8 @@ bool gui_cheats_import(const char* path, int* imported, int* skipped)
         *imported = imported_count;
     if (IsValidPointer(skipped))
         *skipped = skipped_count;
+    if (IsValidPointer(oversized))
+        *oversized = oversized_count;
 
     return true;
 }
