@@ -8,6 +8,13 @@
 
 #include "link_cable.h"
 
+enum GB_PS2KeyboardMode
+{
+    GB_PS2KeyboardMode_Auto,
+    GB_PS2KeyboardMode_Disabled,
+    GB_PS2KeyboardMode_Enabled
+};
+
 u8 gearboy_ps2_map_sdl_scancode(int scancode);
 bool gearboy_ps2_is_extended_sdl_scancode(int scancode);
 

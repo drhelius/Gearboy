@@ -137,6 +137,7 @@ void gui_apply_settings(void)
     emu_video_no_sprite_limit(config_video.sprite_limit);
     emu_set_disassembler_syntax(config_debug.dis_syntax);
     emu_set_barcode_boy_mode(config_emulator.barcode_boy_mode);
+    emu_set_ps2_keyboard_mode(config_emulator.ps2_keyboard_mode);
     emu_link_cable_set_normal_barrier_stall_us((u32)config_emulator.link_cable_stall_us);
 
     strncpy_fit(gui_savefiles_path, config_emulator.savefiles_path.c_str(), sizeof(gui_savefiles_path));

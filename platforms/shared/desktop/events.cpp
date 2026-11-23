@@ -54,7 +54,7 @@ static bool events_queue_ps2_key(const SDL_Event* event)
     if (event->key.scancode == SDL_SCANCODE_CAPSLOCK)
     {
         if (!emu_ps2_keyboard_is_enabled())
-            emu_set_ps2_keyboard_enabled(true);
+            emu_set_ps2_keyboard_mode(GB_PS2KeyboardMode_Enabled);
         return false;
     }
 

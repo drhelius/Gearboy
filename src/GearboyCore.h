@@ -152,7 +152,7 @@ public:
     bool IsBarcodeBoyEnabled() const;
     GB_BarcodeBoyStatus GetBarcodeBoyStatus() const;
     GB_BarcodeBoyResult ScanBarcode(const char* barcode);
-    void SetPS2KeyboardEnabled(bool enabled);
+    void SetPS2KeyboardMode(GB_PS2KeyboardMode mode);
     bool IsPS2KeyboardEnabled() const;
     bool QueuePS2KeyboardScanCode(u8 scan_code);
 
@@ -231,7 +231,7 @@ private:
     BarcodeBoy* m_pBarcodeBoy;
     PS2Keyboard* m_pPS2Keyboard;
     GB_BarcodeBoyMode m_BarcodeBoyMode;
-    bool m_bPS2KeyboardEnabled;
+    GB_PS2KeyboardMode m_PS2KeyboardMode;
     GB_LinkCableCallbacks m_LinkCableCallbacks;
 };
 
