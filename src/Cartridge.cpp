@@ -621,6 +621,14 @@ bool Cartridge::IsBarcodeBoySupported() const
     return (m_iFeatures & GB_DB_FEATURE_BARCODE_BOY) != 0;
 }
 
+bool Cartridge::IsPS2KeyboardSupported() const
+{
+    return strcmp(m_szName, "LSDJ") == 0 || 
+           strncmp(m_szName, "LSDj-v", 6) == 0 ||
+           strncmp(m_szName, "TEXT EDITOR", 11) == 0 ||
+           strncmp(m_szName, "BEISBOL", 7) == 0;
+}
+
 bool Cartridge::IsBootLogoSwapDisabled() const
 {
     return (m_iFeatures & GB_DB_FEATURE_NO_BOOT_LOGO_SWAP) != 0;

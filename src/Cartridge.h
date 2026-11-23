@@ -89,6 +89,7 @@ public:
     int GetTotalSize() const;
     u32 GetCRC() const;
     bool IsBarcodeBoySupported() const;
+    bool IsPS2KeyboardSupported() const;
     bool IsBootLogoSwapDisabled() const;
     bool HasRam() const;
     bool HasBattery() const;

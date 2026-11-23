@@ -31,6 +31,7 @@
 
 static bool input_updated = false;
 static Uint16 input_last_state[GEARBOY_MAX_GAMEPADS] = { };
+
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
 static bool events_match_hotkey_scancode(const SDL_Event* event, const config_Hotkey& hotkey);
 static Uint16 input_build_state(int controller);
@@ -44,7 +45,6 @@ static bool events_ps2_keyboard_active(void)
 
 static bool events_queue_ps2_key(const SDL_Event* event)
 {
-    //TODO: return false if focus not on game screen
     if (event->type != SDL_EVENT_KEY_DOWN && event->type != SDL_EVENT_KEY_UP)
         return false;
         

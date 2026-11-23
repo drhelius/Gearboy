@@ -493,9 +493,9 @@ bool GearboyCore::QueuePS2KeyboardScanCode(u8 scan_code)
 
 void GearboyCore::ApplySerialDevice(bool link_connected)
 {
-    // Auto remains inactive until PS/2 keyboard cartridge detection is available.
     bool ps2_keyboard_enabled = !link_connected && m_pCartridge->IsLoadedROM() &&
-        m_PS2KeyboardMode == GB_PS2KeyboardMode_Enabled;
+        (m_PS2KeyboardMode == GB_PS2KeyboardMode_Enabled ||
+        (m_PS2KeyboardMode == GB_PS2KeyboardMode_Auto && m_pCartridge->IsPS2KeyboardSupported()));
     bool barcode_enabled = !link_connected && m_pCartridge->IsLoadedROM() &&
         (m_BarcodeBoyMode == GB_BarcodeBoyMode_Enabled ||
         (m_BarcodeBoyMode == GB_BarcodeBoyMode_Auto && m_pCartridge->IsBarcodeBoySupported()));
@@ -521,16 +521,16 @@ void GearboyCore::ApplySerialDevice(bool link_connected)
             m_pBarcodeBoy = new BarcodeBoy();
     }
 
-    if (ps2_keyboard_enabled)
-    {
-        m_pProcessor->SetLinkCableCallbacks(PS2Keyboard::StateCallback, PS2Keyboard::StartCallback,
-            PS2Keyboard::PollCallback, NULL, m_pPS2Keyboard);
-        m_pProcessor->SetSerialConnected(true, false, m_link_cable_cycles);
-    }
-    else if (barcode_enabled)
+    if (barcode_enabled)
     {
         m_pProcessor->SetLinkCableCallbacks(BarcodeBoy::StateCallback, BarcodeBoy::StartCallback,
             BarcodeBoy::PollCallback, NULL, m_pBarcodeBoy);
+        m_pProcessor->SetSerialConnected(true, false, m_link_cable_cycles);
+    }
+    else if (ps2_keyboard_enabled)
+    {
+        m_pProcessor->SetLinkCableCallbacks(PS2Keyboard::StateCallback, PS2Keyboard::StartCallback,
+            PS2Keyboard::PollCallback, NULL, m_pPS2Keyboard);
         m_pProcessor->SetSerialConnected(true, false, m_link_cable_cycles);
     }
     else

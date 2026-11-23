@@ -229,8 +229,8 @@ private:
     u64 m_master_clock_cycles;
     u64 m_link_cable_cycles;
     BarcodeBoy* m_pBarcodeBoy;
-    PS2Keyboard* m_pPS2Keyboard;
     GB_BarcodeBoyMode m_BarcodeBoyMode;
+    PS2Keyboard* m_pPS2Keyboard;
     GB_PS2KeyboardMode m_PS2KeyboardMode;
     GB_LinkCableCallbacks m_LinkCableCallbacks;
 };
