@@ -34,7 +34,7 @@ Step=0.01
 - `Group`: optional submenu name. Presets with the same group are listed together in that submenu.
 - `Passes`: number of passes, from 1 to 32.
 - `SourcePalette`: optional source palette request. `Default` keeps the configured emulator palette, while `BlackWhite` temporarily uses Gearboy's internal black-and-white DMG palette while the preset is active. It only affects Game Boy (DMG) games; Game Boy Color and Super Game Boy games keep their own colors.
-- `Variants`: optional number of `[VariantN]` sections, up to 16.
+- `Variants`: optional number of `[VariantN]` sections, up to 32.
 - `DefaultVariant`: variant applied when the preset is loaded for the first time. Defaults to `0`.
 
 `[PassN]`
