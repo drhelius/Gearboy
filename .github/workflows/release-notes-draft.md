@@ -16,6 +16,8 @@ permissions:
   pull-requests: read
   copilot-requests: write
 strict: true
+checkout:
+  fetch-depth: 0
 network:
   allowed:
     - defaults
@@ -25,7 +27,6 @@ tools:
   github:
     mode: gh-proxy
     toolsets: [repos, issues, pull_requests, actions]
-  cache-memory: true
 safe-outputs:
   report-failure-as-issue: false
   footer: false
@@ -81,7 +82,7 @@ Detect the newest Gearboy draft release created by the `Build and Release` workf
 1. The target release tag is provided as the `release_tag` input: `${{ github.event.inputs.release_tag }}`. The `Build and Release` workflow sets this when it dispatches this workflow after creating the draft release.
 2. Important: this workflow runs with a read-only token, which cannot see draft releases when listing them. Do not try to list or detect draft releases. Treat the release for tag `${{ github.event.inputs.release_tag }}` as the target.
 3. If `${{ github.event.inputs.release_tag }}` is empty, call `noop` with a short explanation.
-4. If `/tmp/gh-aw/agent/memory/release-notes-draft/processed-drafts.json` shows that tag `${{ github.event.inputs.release_tag }}` was already processed, call `noop`.
+4. Always regenerate the notes for the requested tag, including when retrying a previously processed release.
 
 ### Phase 2: Learn The Style
 
@@ -91,12 +92,15 @@ Detect the newest Gearboy draft release created by the `Build and Release` workf
 ### Phase 3: Collect Changes
 
 1. The target release tag is `${{ github.event.inputs.release_tag }}`. Identify the previous published release tag from the list of published releases (published releases and pre-releases are visible to the read-only token).
-2. List both the merged pull requests and the full commit log between the previous published tag and `${{ github.event.inputs.release_tag }}`. Most feature work in this repository lands as direct commits without a pull request, so the commit log is the primary source of truth for features; read every commit subject in the range. Use pull requests mainly to attribute external contributors and confirm the range.
-3. Do not read the draft release body or call GitHub's generate-notes API; the read-only token cannot access drafts. Reconstruct the changelog from the commit log and merged pull requests instead.
-4. Commit-message prefixes signal the affected area (`[libretro]` for the RetroArch core, `[debugger]` for debugger windows and tooling, `[mcp]` for the MCP server), and many feature commits have no prefix at all. Group related commits into one candidate per feature or subsystem. Never drop a notable feature just because it did not arrive through a pull request.
-5. Note whether `platforms/shared/gamecontrollerdb.txt` changed in the range (commit subjects start with `Update gamecontrollerdb`).
-6. Note the total number of commits in the range; it decides the wording of the catch-all bullet.
-7. Note the GitHub login of each notable pull request's author. Treat authors other than the repository owner (`drhelius`) as external contributors to be credited in Phase 4.
+2. Before reading the commit log, verify that `git rev-parse --is-shallow-repository` returns `false`. If the history is
+   shallow or either release tag cannot be resolved, report the missing data and stop without updating the release.
+3. List both the merged pull requests and the full commit log between the previous published tag and `${{ github.event.inputs.release_tag }}`. Most feature work in this repository lands as direct commits without a pull request, so the commit log is the primary source of truth for features; read every commit subject in the range. Use pull requests mainly to attribute external contributors and confirm the range.
+4. Do not read the draft release body or call GitHub's generate-notes API; the read-only token cannot access drafts. Reconstruct the changelog from the commit log and merged pull requests instead.
+5. Commit-message prefixes signal the affected area (`[libretro]` for the RetroArch core, `[debugger]` for debugger windows and tooling, `[mcp]` for the MCP server), and many feature commits have no prefix at all. Group related commits into one candidate per feature or subsystem. Never drop a notable feature just because it did not arrive through a pull request.
+6. Note whether `platforms/shared/gamecontrollerdb.txt` changed in the range (commit subjects start with `Update gamecontrollerdb`).
+7. Note the total number of commits in the range; it decides the wording of the catch-all bullet.
+8. Note the GitHub login of each notable pull request's author. Treat authors other than the repository owner (`drhelius`) as external contributors to be credited in Phase 4.
+
 
 ### Phase 4: Draft Notes
 
@@ -151,8 +155,6 @@ Before submitting, re-read every bullet and shorten any that breaks the rules ab
 ### Phase 5: Update Release
 
 Call the `update_draft_release` safe-output tool with `body` set to the complete new release notes markdown. A privileged job applies it to the draft release for tag `${{ github.event.inputs.release_tag }}` using `gh release edit`.
-
-After requesting the update, store a compact record under `/tmp/gh-aw/agent/memory/release-notes-draft/processed-drafts.json` with tag `${{ github.event.inputs.release_tag }}` and timestamp.
 
 ## Style
 
