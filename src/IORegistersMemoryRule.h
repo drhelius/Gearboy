@@ -277,7 +277,7 @@ inline u8 IORegistersMemoryRule::PerformRead(u16 address)
         case 0xFF4F:
         {
             // VBK
-            return m_pMemory->Retrieve(0xFF4F) | 0xFE;
+            return (m_bCGB ? (m_pMemory->Retrieve(0xFF4F) | 0xFE) : 0xFF);
         }
         case 0xFF51:
         {
