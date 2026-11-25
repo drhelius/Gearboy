@@ -15,9 +15,6 @@ enum GB_PS2KeyboardMode
     GB_PS2KeyboardMode_Enabled
 };
 
-u8 gearboy_ps2_map_sdl_scancode(int scancode);
-bool gearboy_ps2_is_extended_sdl_scancode(int scancode);
-
 class PS2Keyboard
 {
 public:
