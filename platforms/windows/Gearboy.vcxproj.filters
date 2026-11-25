@@ -160,6 +160,9 @@
     <ClCompile Include="..\..\src\BarcodeBoy.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\PS2Keyboard.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\CommonMemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -517,6 +520,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\BarcodeBoy.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\PS2Keyboard.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game_db.h">
