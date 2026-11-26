@@ -336,6 +336,9 @@
     <ClInclude Include="..\shared\barcode_boy_codes.h">
       <Filter>desktop</Filter>
     </ClInclude>
+    <ClInclude Include="..\shared\ps2_keyboard_scancodes.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
     <ClInclude Include="..\shared\desktop\config.h">
       <Filter>desktop</Filter>
     </ClInclude>

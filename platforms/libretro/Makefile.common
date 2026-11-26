@@ -3,6 +3,7 @@ SOURCES_C   := $(DEPS_DIR)/miniz/miniz.c \
 SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(CORE_DIR)/libretro_link.cpp \
                $(CORE_DIR)/libretro_barcode.cpp \
+               $(CORE_DIR)/libretro_ps2_keyboard.cpp \
                $(SOURCE_DIR)/GearboyCore.cpp \
                $(SOURCE_DIR)/Memory.cpp \
                $(SOURCE_DIR)/Processor.cpp \

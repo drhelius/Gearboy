@@ -1,7 +1,22 @@
-//
-//  PS2Keyboard.cpp
-//  by Nolan Baker (Q*Bert Reynolds)
-//
+/*
+ * Gearboy - Nintendo Game Boy Emulator
+ * Copyright (C) 2012  Ignacio Sanchez
+ * Copyright (C) 2026  Nolan Baker
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
+ */
 
 #include "PS2Keyboard.h"
 #include <cstring>
@@ -46,6 +61,11 @@ void PS2Keyboard::BuildFrame(u8 scan_code, u8 frame[2])
 
 bool PS2Keyboard::QueueScanCode(u8 scan_code)
 {
+    // make sure there's space in the queue for both bytes before writing one
+    const int used = (m_queue_tail + k_queue_size - m_queue_head) % k_queue_size;
+    if (k_queue_size - 1 - used < 2)
+        return false;
+
     u8 frame[2];
     BuildFrame(scan_code, frame);
 

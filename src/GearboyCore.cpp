@@ -496,7 +496,7 @@ void GearboyCore::ApplySerialDevice(bool link_connected)
     bool ps2_keyboard_enabled = !link_connected && m_pCartridge->IsLoadedROM() &&
         (m_PS2KeyboardMode == GB_PS2KeyboardMode_Enabled ||
         (m_PS2KeyboardMode == GB_PS2KeyboardMode_Auto && m_pCartridge->IsPS2KeyboardSupported()));
-    bool barcode_enabled = !link_connected && m_pCartridge->IsLoadedROM() &&
+    bool barcode_enabled = !ps2_keyboard_enabled && !link_connected && m_pCartridge->IsLoadedROM() &&
         (m_BarcodeBoyMode == GB_BarcodeBoyMode_Enabled ||
         (m_BarcodeBoyMode == GB_BarcodeBoyMode_Auto && m_pCartridge->IsBarcodeBoySupported()));
 
@@ -2122,6 +2122,8 @@ void GearboyCore::Reset(bool bCGB, bool bGBA)
 
     if (m_pBarcodeBoy)
         m_pBarcodeBoy->Reset();
+    if (m_pPS2Keyboard)
+        m_pPS2Keyboard->Reset();
 
     ApplySerialDevice(m_pProcessor->IsLinkCableConnected());
 

@@ -1,0 +1,139 @@
+/*
+ * Gearboy - Nintendo Game Boy Emulator
+ * Copyright (C) 2012  Ignacio Sanchez
+ * Copyright (C) 2026  Nolan Baker
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
+ */
+
+#ifndef PS2_KEYBOARD_SCANCODES_H
+#define PS2_KEYBOARD_SCANCODES_H
+
+// PS/2 scan code set 2. Extended keys use the EXTENDED prefix before their code;
+// releases add BREAK after any EXTENDED prefix. Pause uses its own sequence.
+enum PS2_ScanCode
+{
+    PS2_SCANCODE_UNKNOWN = 0x00,
+    PS2_SCANCODE_A = 0x1C,
+    PS2_SCANCODE_B = 0x32,
+    PS2_SCANCODE_C = 0x21,
+    PS2_SCANCODE_D = 0x23,
+    PS2_SCANCODE_E = 0x24,
+    PS2_SCANCODE_F = 0x2B,
+    PS2_SCANCODE_G = 0x34,
+    PS2_SCANCODE_H = 0x33,
+    PS2_SCANCODE_I = 0x43,
+    PS2_SCANCODE_J = 0x3B,
+    PS2_SCANCODE_K = 0x42,
+    PS2_SCANCODE_L = 0x4B,
+    PS2_SCANCODE_M = 0x3A,
+    PS2_SCANCODE_N = 0x31,
+    PS2_SCANCODE_O = 0x44,
+    PS2_SCANCODE_P = 0x4D,
+    PS2_SCANCODE_Q = 0x15,
+    PS2_SCANCODE_R = 0x2D,
+    PS2_SCANCODE_S = 0x1B,
+    PS2_SCANCODE_T = 0x2C,
+    PS2_SCANCODE_U = 0x3C,
+    PS2_SCANCODE_V = 0x2A,
+    PS2_SCANCODE_W = 0x1D,
+    PS2_SCANCODE_X = 0x22,
+    PS2_SCANCODE_Y = 0x35,
+    PS2_SCANCODE_Z = 0x1A,
+    PS2_SCANCODE_1 = 0x16,
+    PS2_SCANCODE_2 = 0x1E,
+    PS2_SCANCODE_3 = 0x26,
+    PS2_SCANCODE_4 = 0x25,
+    PS2_SCANCODE_5 = 0x2E,
+    PS2_SCANCODE_6 = 0x36,
+    PS2_SCANCODE_7 = 0x3D,
+    PS2_SCANCODE_8 = 0x3E,
+    PS2_SCANCODE_9 = 0x46,
+    PS2_SCANCODE_0 = 0x45,
+    PS2_SCANCODE_ESCAPE = 0x76,
+    PS2_SCANCODE_GRAVE = 0x0E,
+    PS2_SCANCODE_MINUS = 0x4E,
+    PS2_SCANCODE_EQUALS = 0x55,
+    PS2_SCANCODE_BACKSPACE = 0x66,
+    PS2_SCANCODE_TAB = 0x0D,
+    PS2_SCANCODE_LEFTBRACKET = 0x54,
+    PS2_SCANCODE_RIGHTBRACKET = 0x5B,
+    PS2_SCANCODE_BACKSLASH = 0x5D,
+    PS2_SCANCODE_SEMICOLON = 0x4C,
+    PS2_SCANCODE_APOSTROPHE = 0x52,
+    PS2_SCANCODE_RETURN = 0x5A,
+    PS2_SCANCODE_LSHIFT = 0x12,
+    PS2_SCANCODE_RSHIFT = 0x59,
+    PS2_SCANCODE_LCTRL = 0x14,
+    PS2_SCANCODE_LALT = 0x11,
+    PS2_SCANCODE_SPACE = 0x29,
+    PS2_SCANCODE_COMMA = 0x41,
+    PS2_SCANCODE_PERIOD = 0x49,
+    PS2_SCANCODE_SLASH = 0x4A,
+    PS2_SCANCODE_F1 = 0x05,
+    PS2_SCANCODE_F2 = 0x06,
+    PS2_SCANCODE_F3 = 0x04,
+    PS2_SCANCODE_F4 = 0x0C,
+    PS2_SCANCODE_F5 = 0x03,
+    PS2_SCANCODE_F6 = 0x0B,
+    PS2_SCANCODE_F7 = 0x83,
+    PS2_SCANCODE_F8 = 0x0A,
+    PS2_SCANCODE_F9 = 0x01,
+    PS2_SCANCODE_F10 = 0x09,
+    PS2_SCANCODE_F11 = 0x78,
+    PS2_SCANCODE_F12 = 0x07,
+    PS2_SCANCODE_CAPSLOCK = 0x58,
+    PS2_SCANCODE_SCROLLLOCK = 0x7E,
+    PS2_SCANCODE_NUMLOCK = 0x77,
+    PS2_SCANCODE_UP = 0x75,
+    PS2_SCANCODE_DOWN = 0x72,
+    PS2_SCANCODE_LEFT = 0x6B,
+    PS2_SCANCODE_RIGHT = 0x74,
+    PS2_SCANCODE_KP_0 = 0x70,
+    PS2_SCANCODE_KP_1 = 0x69,
+    PS2_SCANCODE_KP_2 = 0x72,
+    PS2_SCANCODE_KP_3 = 0x7A,
+    PS2_SCANCODE_KP_4 = 0x6B,
+    PS2_SCANCODE_KP_5 = 0x73,
+    PS2_SCANCODE_KP_6 = 0x74,
+    PS2_SCANCODE_KP_7 = 0x6C,
+    PS2_SCANCODE_KP_8 = 0x75,
+    PS2_SCANCODE_KP_9 = 0x7D,
+    PS2_SCANCODE_KP_PERIOD = 0x71,
+    PS2_SCANCODE_KP_DIVIDE = 0x4A,
+    PS2_SCANCODE_KP_MULTIPLY = 0x7C,
+    PS2_SCANCODE_KP_MINUS = 0x7B,
+    PS2_SCANCODE_KP_PLUS = 0x79,
+    PS2_SCANCODE_KP_ENTER = 0x5A,
+    PS2_SCANCODE_INSERT = 0x70,
+    PS2_SCANCODE_DELETE = 0x71,
+    PS2_SCANCODE_HOME = 0x6C,
+    PS2_SCANCODE_END = 0x69,
+    PS2_SCANCODE_PAGEUP = 0x7D,
+    PS2_SCANCODE_PAGEDOWN = 0x7A,
+    PS2_SCANCODE_RCTRL = 0x14,
+    PS2_SCANCODE_RALT = 0x11,
+    PS2_SCANCODE_LGUI = 0x1F,
+    PS2_SCANCODE_RGUI = 0x27,
+    PS2_SCANCODE_APPLICATION = 0x2F,
+    PS2_SCANCODE_NONUSBACKSLASH = 0x61,
+    PS2_SCANCODE_PRINTSCREEN = 0x7C,
+
+    PS2_SCANCODE_EXTENDED = 0xE0,
+    PS2_SCANCODE_PAUSE_PREFIX = 0xE1,
+    PS2_SCANCODE_BREAK = 0xF0
+};
+
+#endif /* PS2_KEYBOARD_SCANCODES_H */

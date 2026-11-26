@@ -239,6 +239,7 @@
     <ClInclude Include="..\shared\desktop\application_headless.h" />
     <ClInclude Include="..\shared\desktop\backers.h" />
     <ClInclude Include="..\shared\barcode_boy_codes.h" />
+    <ClInclude Include="..\shared\ps2_keyboard_scancodes.h" />
     <ClInclude Include="..\shared\desktop\config.h" />
     <ClInclude Include="..\shared\desktop\config_data.h" />
     <ClInclude Include="..\shared\desktop\config_definitions.inc.h" />
