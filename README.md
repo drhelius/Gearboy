@@ -114,7 +114,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - *Game Genie* and *GameShark* cheat support, with RetroArch `.cht` import.
 - VGM recorder.
 - Supported platforms (standalone): Windows, Linux, BSD and macOS.
-- Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, webOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
+- Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, webOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Nintendo Switch 2, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
 - Full debugger with just-in-time disassembler, CPU breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, automatic labels, memory editor, trace logger, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
 - MCP server for AI-assisted debugging with Claude Code, Codex and similar, exposing tools for execution control, memory inspection, hardware status, rewind and more.
 - Windows, Linux and macOS *Portable Mode*.

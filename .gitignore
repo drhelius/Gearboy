@@ -95,6 +95,8 @@ platforms/ios/Support/ThumbnailKeys.local.xcconfig
 #Switch
 *.a
 *.d
+*.elf
+*.nro
 
 #Android
 platforms/libretro/libs/
