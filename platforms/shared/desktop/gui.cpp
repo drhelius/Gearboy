@@ -772,7 +772,7 @@ static bool finish_loading_rom(void)
 
     gui_debug_auto_load_settings();
 
-    if (config_emulator.start_paused)
+    if (config_emulator.start_paused && !config_debug.debug)
     {
         emu_pause();
 

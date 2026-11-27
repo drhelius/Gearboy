@@ -87,6 +87,10 @@ A save state can be loaded at launch too, with `--load-state 1` for slot 1 or `-
 
 While the MCP server is running, the emulator keeps running when its window loses focus, even with **Pause When Inactive** enabled in the **Emulator** menu. The setting keeps its value and applies again once the server stops.
 
+### Start Paused
+
+`--mcp-stdio` and `--mcp-http` turn the debugger on. Loads and resets then follow **Start Paused** in the **Emulator** menu, as outside the debugger: with it off (the default) the game runs, with it on the debugger stops before the first instruction. `load_media` and `debug_reset` take an optional `stop_at_start` to choose for one call, and their answers say whether emulation is `paused`.
+
 ### Concurrent Clients
 
 The HTTP server accepts repeated valid MCP initialization requests. All connected clients control the same Gearboy instance. Individual HTTP requests are serialized, but multi-request debugging workflows are not atomic. Concurrent agents can interfere with each other through pauses, resets, breakpoints, memory writes, media loads, and save states.
@@ -337,7 +341,7 @@ The server exposes tools organized in the following categories:
 - `debug_step_out` - Step out of current subroutine
 - `debug_step_frame` - Step one or more frames. Optional `frames` is 1-1000 (default 1). Optional `mode` is `async` (default, returns after scheduling) or `sync` (returns after all requested frames complete at VBlank). Use `mode: "sync"` when issuing dependent tool calls.
 - `debug_run_to_cursor` - Continue execution until reaching specified address
-- `debug_reset` - Reset emulation
+- `debug_reset` - Reset emulation. Optional `stop_at_start` stops the debugger before the first instruction (default: the Start Paused setting); the answer has `paused`
 - `debug_get_status` - Get debug status (paused, at_breakpoint, pc address)
 
 ### CPU & Registers
@@ -406,7 +410,7 @@ The server exposes tools organized in the following categories:
 ### Media & State Management
 - `get_media_info` - Get loaded ROM info (file path, name, MBC type, ROM/RAM size, CGB/SGB flags, battery)
 - `list_recent_media` - List the 10 most recent ROM files opened by Gearboy
-- `load_media` - Load ROM file (.gb, .dmg, .gbc, .cgb, .sgb, .zip). Automatically loads .sym symbol file if present
+- `load_media` - Load ROM file (.gb, .dmg, .gbc, .cgb, .sgb, .zip). Automatically loads .sym symbol file if present. Optional `stop_at_start` as in `debug_reset`
 - `load_symbols` - Load debug symbols from file (.sym format with 'BANK:ADDRESS LABEL' entries)
 - `list_save_state_slots` - List all 5 save state slots with information (rom name, timestamp, validity)
 - `select_save_state_slot` - Select active save state slot (1-5) for save/load operations

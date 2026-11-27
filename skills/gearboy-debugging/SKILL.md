@@ -66,7 +66,7 @@ Replace `/path/to/gearboy` with the actual binary path from the install script. 
 load_media → get_media_info → get_cpu_status → get_screenshot
 ```
 
-Start every session by loading the ROM, confirming it loaded correctly (MBC type, ROM/RAM size, CGB/SGB flags), then checking CPU state and taking a screenshot to understand the current game state. If a `.sym` or `.noi` file exists alongside the ROM, symbols are loaded automatically.
+Start every session by loading the ROM, confirming it loaded correctly (MBC type, ROM/RAM size, CGB/SGB flags), then checking CPU state and taking a screenshot to understand the current game state. If a `.sym` or `.noi` file exists alongside the ROM, symbols are loaded automatically. The game runs after a load or reset unless the emulator's Start Paused setting is on; pass `stop_at_start: true` to `load_media` or `debug_reset` to stop before the first instruction, and read `paused` in the answer.
 
 Load additional symbols with `load_symbols` or add individual labels with `add_symbol`. Gearboy supports RGBDS, GBDK-2020, WLA-DX, no$gmb, SDCC/NoICE (.noi), EQU, and generic symbol formats.
 

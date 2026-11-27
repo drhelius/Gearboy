@@ -156,9 +156,29 @@ void DebugAdapter::StepFrame(int frames)
     emu_debug_step_frames(frames);
 }
 
-void DebugAdapter::Reset()
+json DebugAdapter::Reset(const json& stop_at_start)
 {
     emu_reset(config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);
+
+    json result = {{"success", true}};
+    ApplyStopAtStart(stop_at_start, result);
+    return result;
+}
+
+void DebugAdapter::ApplyStopAtStart(const json& stop_at_start, json& result)
+{
+    if (stop_at_start.is_boolean())
+    {
+        bool stop = stop_at_start.get<bool>();
+
+        if (stop)
+            config_debug.debug = true;
+
+        emu_debug_start_paused(stop);
+        emu_resume();
+    }
+
+    result["paused"] = emu_is_debug_idle();
 }
 
 json DebugAdapter::GetDebugStatus()

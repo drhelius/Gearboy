@@ -256,6 +256,7 @@ bool emu_finish_rom_loading(void)
     emu_audio_reset();
     load_ram();
     rewind_reset();
+    emu_debug_start_paused(config_emulator.start_paused);
 
     return true;
 }
@@ -522,7 +523,7 @@ void emu_save_persistent_data(void)
 void emu_reset(bool force_dmg, Cartridge::CartridgeTypes mbc, bool force_gba, bool save_persistent_data)
 {
     gui_debug_trace_logger_reset("reset");
-    emu_debug_command = Debug_Command_None;
+    emu_debug_start_paused(config_emulator.start_paused);
     emu_debug_step_frames_pending = 0;
     emu_debug_pc_changed = true;
     emu_frame_counter = 0;
@@ -894,6 +895,11 @@ void emu_debug_continue(void)
     gearboy->Pause(false);
     emu_debug_step_frames_pending = 0;
     emu_debug_command = Debug_Command_Continue;
+}
+
+void emu_debug_start_paused(bool paused)
+{
+    emu_debug_command = (config_debug.debug && !paused) ? Debug_Command_Continue : Debug_Command_None;
 }
 
 void emu_set_disassembler_syntax(int syntax)

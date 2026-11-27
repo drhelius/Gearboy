@@ -440,7 +440,12 @@ json McpServer::BuildToolList()
         {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
         {"inputSchema", {
             {"type", "object"},
-            {"properties", json::object()},
+            {"properties", {
+                {"stop_at_start", {
+                    {"type", "boolean"},
+                    {"description", "Stop in the debugger before the first instruction; the answer's paused tells. Default: the Start Paused setting."}
+                }}
+            }},
             {"additionalProperties", false}
         }}
     });
@@ -871,6 +876,10 @@ json McpServer::BuildToolList()
                 {"file_path", {
                     {"type", "string"},
                     {"description", "Absolute ROM file path."}
+                }},
+                {"stop_at_start", {
+                    {"type", "boolean"},
+                    {"description", "Stop in the debugger before the first instruction; the answer's paused tells. Default: the Start Paused setting."}
                 }}
             }},
             {"required", json::array({"file_path"})}
@@ -2221,8 +2230,7 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     }
     else if (normalizedTool == "debug_reset")
     {
-        m_debugAdapter.Reset();
-        return {{"success", true}};
+        return m_debugAdapter.Reset(arguments.value("stop_at_start", json()));
     }
     else if (normalizedTool == "debug_get_status")
     {

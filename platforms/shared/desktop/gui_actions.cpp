@@ -86,7 +86,7 @@ void gui_action_reset(void)
     emu_resume();
     emu_reset(config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);
 
-    if (config_emulator.start_paused)
+    if (config_emulator.start_paused && !config_debug.debug)
     {
         emu_pause();
 
