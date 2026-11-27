@@ -130,6 +130,7 @@ public:
         m_pending_media_load = false;
         m_pending_media_load_file_path.clear();
         m_pending_media_load_stop = json();
+        emu_debug_clear_start_override();
         reset_frame_step();
         reset_input_macro();
 
@@ -236,9 +237,7 @@ public:
             resp->requestId = m_pending_media_load_request_id;
             resp->isError = false;
             resp->result = m_debugAdapter->FinishLoadMedia(m_pending_media_load_file_path);
-
-            if (!resp->result.contains("error"))
-                m_debugAdapter->ApplyStopAtStart(m_pending_media_load_stop, resp->result);
+            m_debugAdapter->FinishStart(m_pending_media_load_stop, resp->result);
 
             update_response_error(resp);
 
@@ -296,10 +295,13 @@ public:
                 resp->isError = false;
 
                 std::string file_path = cmd->arguments.value("file_path", "");
+                m_pending_media_load_stop = cmd->arguments.value("stop_at_start", json());
+                m_debugAdapter->OverrideStart(m_pending_media_load_stop);
                 resp->result = m_debugAdapter->StartLoadMedia(file_path);
 
                 if (resp->result.contains("error"))
                 {
+                    m_debugAdapter->FinishStart(m_pending_media_load_stop, resp->result);
                     update_response_error(resp);
                     m_responseQueue.Push(resp);
                 }
@@ -308,7 +310,6 @@ public:
                     m_pending_media_load = true;
                     m_pending_media_load_request_id = resp->requestId;
                     m_pending_media_load_file_path = file_path;
-                    m_pending_media_load_stop = cmd->arguments.value("stop_at_start", json());
                     SafeDelete(resp);
                 }
 

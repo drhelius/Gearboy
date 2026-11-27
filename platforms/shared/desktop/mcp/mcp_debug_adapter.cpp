@@ -158,27 +158,34 @@ void DebugAdapter::StepFrame(int frames)
 
 json DebugAdapter::Reset(const json& stop_at_start)
 {
+    OverrideStart(stop_at_start);
     emu_reset(config_emulator.force_dmg, gui_get_mbc(config_emulator.mbc), config_emulator.force_gba);
 
     json result = {{"success", true}};
-    ApplyStopAtStart(stop_at_start, result);
+    FinishStart(stop_at_start, result);
     return result;
 }
 
-void DebugAdapter::ApplyStopAtStart(const json& stop_at_start, json& result)
+void DebugAdapter::OverrideStart(const json& stop_at_start)
 {
+    if (!stop_at_start.is_boolean())
+        return;
+
+    config_debug.debug = true;
+    emu_debug_override_start(stop_at_start.get<bool>());
+}
+
+void DebugAdapter::FinishStart(const json& stop_at_start, json& result)
+{
+    emu_debug_clear_start_override();
+
+    if (result.contains("error"))
+        return;
+
     if (stop_at_start.is_boolean())
-    {
-        bool stop = stop_at_start.get<bool>();
-
-        if (stop)
-            config_debug.debug = true;
-
-        emu_debug_start_paused(stop);
         emu_resume();
-    }
 
-    result["paused"] = emu_is_debug_idle();
+    result["paused"] = emu_is_debug_idle() || emu_is_paused();
 }
 
 json DebugAdapter::GetDebugStatus()

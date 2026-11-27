@@ -89,7 +89,7 @@ While the MCP server is running, the emulator keeps running when its window lose
 
 ### Start Paused
 
-`--mcp-stdio` and `--mcp-http` turn the debugger on. Loads and resets then follow **Start Paused** in the **Emulator** menu, as outside the debugger: with it off (the default) the game runs, with it on the debugger stops before the first instruction. `load_media` and `debug_reset` take an optional `stop_at_start` to choose for one call, and their answers say whether emulation is `paused`.
+`--mcp-stdio` and `--mcp-http` turn the debugger on. Loads and resets then follow **Start Paused** in the **Emulator** menu, as outside the debugger: with it off (the default) the game runs, with it on the debugger stops before the first instruction. `load_media` and `debug_reset` take an optional `stop_at_start` to choose for one call, which also turns the debugger on, and their answers say whether emulation is `paused`.
 
 ### Concurrent Clients
 

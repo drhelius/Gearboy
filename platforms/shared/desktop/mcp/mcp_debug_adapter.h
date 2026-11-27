@@ -90,7 +90,8 @@ public:
     void StepOut();
     void StepFrame(int frames = 1);
     json Reset(const json& stop_at_start);
-    void ApplyStopAtStart(const json& stop_at_start, json& result);
+    void OverrideStart(const json& stop_at_start);
+    void FinishStart(const json& stop_at_start, json& result);
     json GetDebugStatus();
     json RunToAddress(u16 address);
 
