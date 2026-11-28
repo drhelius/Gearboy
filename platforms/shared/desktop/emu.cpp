@@ -114,6 +114,7 @@ bool emu_init(void)
     gearboy = new GearboyCore();
     gearboy->Init();
     gearboy->SetBarcodeBoyMode((GB_BarcodeBoyMode)config_emulator.barcode_boy_mode);
+    gearboy->SetPS2KeyboardMode((GB_PS2KeyboardMode)config_emulator.ps2_keyboard_mode);
 
     link_cable_manager = new LinkCableManager();
     link_cable_manager->SetNormalBarrierStallUs((u32)config_emulator.link_cable_stall_us);
@@ -205,6 +206,7 @@ static void load_rom_thread_func(void)
     gearboy->SetSGBEnabled(config_emulator.sgb);
     gearboy->SetSGBAllGames(config_emulator.sgb_all_games);
     gearboy->SetBarcodeBoyMode((GB_BarcodeBoyMode)config_emulator.barcode_boy_mode);
+    gearboy->SetPS2KeyboardMode((GB_PS2KeyboardMode)config_emulator.ps2_keyboard_mode);
     loading_result = gearboy->LoadROM(loading_file_path, loading_force_dmg, loading_mbc,
         loading_force_gba, loading_softpatching);
     loading_state.store(Loading_State_Finished);
@@ -1403,6 +1405,30 @@ void emu_set_barcode_boy_mode(int mode)
 GB_BarcodeBoyResult emu_scan_barcode(const char* barcode)
 {
     return emu_is_empty() ? GB_BarcodeBoyResult_Unavailable : gearboy->ScanBarcode(barcode);
+}
+
+void emu_set_ps2_keyboard_mode(int mode)
+{
+    if (!gearboy || loading_state.load() != Loading_State_None)
+        return;
+
+    config_emulator.ps2_keyboard_mode = CLAMP(mode, 0, 2);
+
+    bool keyboard_was_enabled = gearboy->IsPS2KeyboardEnabled();
+    gearboy->SetPS2KeyboardMode((GB_PS2KeyboardMode)config_emulator.ps2_keyboard_mode);
+
+    if (keyboard_was_enabled != gearboy->IsPS2KeyboardEnabled())
+        rewind_reset();
+}
+
+bool emu_ps2_keyboard_is_enabled(void)
+{
+    return gearboy && gearboy->IsPS2KeyboardEnabled();
+}
+
+bool emu_queue_ps2_scan_code(u8 scan_code)
+{
+    return gearboy && gearboy->QueuePS2KeyboardScanCode(scan_code);
 }
 
 bool emu_link_cable_connect(int session)

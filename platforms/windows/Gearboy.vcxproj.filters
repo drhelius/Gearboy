@@ -160,6 +160,9 @@
     <ClCompile Include="..\..\src\BarcodeBoy.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\PS2Keyboard.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\CommonMemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -331,6 +334,9 @@
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\barcode_boy_codes.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\ps2_keyboard_scancodes.h">
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\config.h">
@@ -517,6 +523,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\BarcodeBoy.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\PS2Keyboard.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game_db.h">

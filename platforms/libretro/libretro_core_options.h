@@ -92,6 +92,23 @@ struct retro_core_option_v2_category option_cats_us[] = {
 struct retro_core_option_v2_definition option_defs_us[] = {
 
     {
+        "gearboy_ps2_keyboard",
+        "PS/2 Keyboard Mode (restart)",
+        NULL,
+        "Auto attaches the PS/2 keyboard to games recognized by ROM header. Enabled supports other ROMs. "
+        "In RetroArch, enable Game Focus to send keys to the game without triggering frontend hotkeys.",
+        NULL,
+        "input",
+        {
+            { "Auto",     NULL },
+            { "Disabled", NULL },
+            { "Enabled",  NULL },
+            { NULL, NULL }
+        },
+        "Auto"
+    },
+
+    {
         "gearboy_barcode_boy",
         "Barcode Boy Mode (restart)",
         NULL,

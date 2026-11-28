@@ -28,6 +28,7 @@
     <ClCompile Include="..\..\src\audio\Multi_Buffer.cpp" />
     <ClCompile Include="..\..\src\Cartridge.cpp" />
     <ClCompile Include="..\..\src\BarcodeBoy.cpp" />
+    <ClCompile Include="..\..\src\PS2Keyboard.cpp" />
     <ClCompile Include="..\..\src\CommonMemoryRule.cpp" />
     <ClCompile Include="..\..\src\GearboyCore.cpp" />
     <ClCompile Include="..\..\src\Input.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="..\..\src\audio\Multi_Buffer.h" />
     <ClInclude Include="..\..\src\Cartridge.h" />
     <ClInclude Include="..\..\src\BarcodeBoy.h" />
+    <ClInclude Include="..\..\src\PS2Keyboard.h" />
     <ClInclude Include="..\..\src\game_db.h" />
     <ClInclude Include="..\..\src\common.h" />
     <ClInclude Include="..\..\src\CommonMemoryRule.h" />
@@ -237,6 +239,7 @@
     <ClInclude Include="..\shared\desktop\application_headless.h" />
     <ClInclude Include="..\shared\desktop\backers.h" />
     <ClInclude Include="..\shared\barcode_boy_codes.h" />
+    <ClInclude Include="..\shared\ps2_keyboard_scancodes.h" />
     <ClInclude Include="..\shared\desktop\config.h" />
     <ClInclude Include="..\shared\desktop\config_data.h" />
     <ClInclude Include="..\shared\desktop\config_definitions.inc.h" />

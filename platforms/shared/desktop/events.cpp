@@ -25,6 +25,7 @@
 #include "emu.h"
 #include "application.h"
 #include "gamepad.h"
+#include "../ps2_keyboard_scancodes.h"
 
 #define EVENTS_IMPORT
 #include "events.h"
@@ -38,8 +39,187 @@ static Uint16 input_build_state(int controller);
 static Uint16 input_filter_opposing_directions(int controller, Uint16 state);
 static void input_apply_state(int controller, Uint16 before, Uint16 now);
 
+static u8 gearboy_ps2_map_sdl_scancode(int scancode)
+{
+    switch (scancode)
+    {
+        case SDL_SCANCODE_A: return PS2_SCANCODE_A;
+        case SDL_SCANCODE_B: return PS2_SCANCODE_B;
+        case SDL_SCANCODE_C: return PS2_SCANCODE_C;
+        case SDL_SCANCODE_D: return PS2_SCANCODE_D;
+        case SDL_SCANCODE_E: return PS2_SCANCODE_E;
+        case SDL_SCANCODE_F: return PS2_SCANCODE_F;
+        case SDL_SCANCODE_G: return PS2_SCANCODE_G;
+        case SDL_SCANCODE_H: return PS2_SCANCODE_H;
+        case SDL_SCANCODE_I: return PS2_SCANCODE_I;
+        case SDL_SCANCODE_J: return PS2_SCANCODE_J;
+        case SDL_SCANCODE_K: return PS2_SCANCODE_K;
+        case SDL_SCANCODE_L: return PS2_SCANCODE_L;
+        case SDL_SCANCODE_M: return PS2_SCANCODE_M;
+        case SDL_SCANCODE_N: return PS2_SCANCODE_N;
+        case SDL_SCANCODE_O: return PS2_SCANCODE_O;
+        case SDL_SCANCODE_P: return PS2_SCANCODE_P;
+        case SDL_SCANCODE_Q: return PS2_SCANCODE_Q;
+        case SDL_SCANCODE_R: return PS2_SCANCODE_R;
+        case SDL_SCANCODE_S: return PS2_SCANCODE_S;
+        case SDL_SCANCODE_T: return PS2_SCANCODE_T;
+        case SDL_SCANCODE_U: return PS2_SCANCODE_U;
+        case SDL_SCANCODE_V: return PS2_SCANCODE_V;
+        case SDL_SCANCODE_W: return PS2_SCANCODE_W;
+        case SDL_SCANCODE_X: return PS2_SCANCODE_X;
+        case SDL_SCANCODE_Y: return PS2_SCANCODE_Y;
+        case SDL_SCANCODE_Z: return PS2_SCANCODE_Z;
+        case SDL_SCANCODE_1: return PS2_SCANCODE_1;
+        case SDL_SCANCODE_2: return PS2_SCANCODE_2;
+        case SDL_SCANCODE_3: return PS2_SCANCODE_3;
+        case SDL_SCANCODE_4: return PS2_SCANCODE_4;
+        case SDL_SCANCODE_5: return PS2_SCANCODE_5;
+        case SDL_SCANCODE_6: return PS2_SCANCODE_6;
+        case SDL_SCANCODE_7: return PS2_SCANCODE_7;
+        case SDL_SCANCODE_8: return PS2_SCANCODE_8;
+        case SDL_SCANCODE_9: return PS2_SCANCODE_9;
+        case SDL_SCANCODE_0: return PS2_SCANCODE_0;
+        case SDL_SCANCODE_ESCAPE: return PS2_SCANCODE_ESCAPE;
+        case SDL_SCANCODE_GRAVE: return PS2_SCANCODE_GRAVE;
+        case SDL_SCANCODE_MINUS: return PS2_SCANCODE_MINUS;
+        case SDL_SCANCODE_EQUALS: return PS2_SCANCODE_EQUALS;
+        case SDL_SCANCODE_BACKSPACE: return PS2_SCANCODE_BACKSPACE;
+        case SDL_SCANCODE_TAB: return PS2_SCANCODE_TAB;
+        case SDL_SCANCODE_LEFTBRACKET: return PS2_SCANCODE_LEFTBRACKET;
+        case SDL_SCANCODE_RIGHTBRACKET: return PS2_SCANCODE_RIGHTBRACKET;
+        case SDL_SCANCODE_BACKSLASH: return PS2_SCANCODE_BACKSLASH;
+        case SDL_SCANCODE_SEMICOLON: return PS2_SCANCODE_SEMICOLON;
+        case SDL_SCANCODE_APOSTROPHE: return PS2_SCANCODE_APOSTROPHE;
+        case SDL_SCANCODE_RETURN: return PS2_SCANCODE_RETURN;
+        case SDL_SCANCODE_LSHIFT: return PS2_SCANCODE_LSHIFT;
+        case SDL_SCANCODE_RSHIFT: return PS2_SCANCODE_RSHIFT;
+        case SDL_SCANCODE_LCTRL: return PS2_SCANCODE_LCTRL;
+        case SDL_SCANCODE_LALT: return PS2_SCANCODE_LALT;
+        case SDL_SCANCODE_SPACE: return PS2_SCANCODE_SPACE;
+        case SDL_SCANCODE_COMMA: return PS2_SCANCODE_COMMA;
+        case SDL_SCANCODE_PERIOD: return PS2_SCANCODE_PERIOD;
+        case SDL_SCANCODE_SLASH: return PS2_SCANCODE_SLASH;
+        case SDL_SCANCODE_F1: return PS2_SCANCODE_F1;
+        case SDL_SCANCODE_F2: return PS2_SCANCODE_F2;
+        case SDL_SCANCODE_F3: return PS2_SCANCODE_F3;
+        case SDL_SCANCODE_F4: return PS2_SCANCODE_F4;
+        case SDL_SCANCODE_F5: return PS2_SCANCODE_F5;
+        case SDL_SCANCODE_F6: return PS2_SCANCODE_F6;
+        case SDL_SCANCODE_F7: return PS2_SCANCODE_F7;
+        case SDL_SCANCODE_F8: return PS2_SCANCODE_F8;
+        case SDL_SCANCODE_F9: return PS2_SCANCODE_F9;
+        case SDL_SCANCODE_F10: return PS2_SCANCODE_F10;
+        case SDL_SCANCODE_F11: return PS2_SCANCODE_F11;
+        case SDL_SCANCODE_F12: return PS2_SCANCODE_F12;
+        case SDL_SCANCODE_CAPSLOCK: return PS2_SCANCODE_CAPSLOCK;
+        case SDL_SCANCODE_SCROLLLOCK: return PS2_SCANCODE_SCROLLLOCK;
+        case SDL_SCANCODE_NUMLOCKCLEAR: return PS2_SCANCODE_NUMLOCK;
+        case SDL_SCANCODE_UP: return PS2_SCANCODE_UP;
+        case SDL_SCANCODE_DOWN: return PS2_SCANCODE_DOWN;
+        case SDL_SCANCODE_LEFT: return PS2_SCANCODE_LEFT;
+        case SDL_SCANCODE_RIGHT: return PS2_SCANCODE_RIGHT;
+        case SDL_SCANCODE_KP_0: return PS2_SCANCODE_KP_0;
+        case SDL_SCANCODE_KP_1: return PS2_SCANCODE_KP_1;
+        case SDL_SCANCODE_KP_2: return PS2_SCANCODE_KP_2;
+        case SDL_SCANCODE_KP_3: return PS2_SCANCODE_KP_3;
+        case SDL_SCANCODE_KP_4: return PS2_SCANCODE_KP_4;
+        case SDL_SCANCODE_KP_5: return PS2_SCANCODE_KP_5;
+        case SDL_SCANCODE_KP_6: return PS2_SCANCODE_KP_6;
+        case SDL_SCANCODE_KP_7: return PS2_SCANCODE_KP_7;
+        case SDL_SCANCODE_KP_8: return PS2_SCANCODE_KP_8;
+        case SDL_SCANCODE_KP_9: return PS2_SCANCODE_KP_9;
+        case SDL_SCANCODE_KP_PERIOD: return PS2_SCANCODE_KP_PERIOD;
+        case SDL_SCANCODE_KP_DIVIDE: return PS2_SCANCODE_KP_DIVIDE;
+        case SDL_SCANCODE_KP_MULTIPLY: return PS2_SCANCODE_KP_MULTIPLY;
+        case SDL_SCANCODE_KP_MINUS: return PS2_SCANCODE_KP_MINUS;
+        case SDL_SCANCODE_KP_PLUS: return PS2_SCANCODE_KP_PLUS;
+        case SDL_SCANCODE_KP_ENTER: return PS2_SCANCODE_KP_ENTER;
+        case SDL_SCANCODE_INSERT: return PS2_SCANCODE_INSERT;
+        case SDL_SCANCODE_DELETE: return PS2_SCANCODE_DELETE;
+        case SDL_SCANCODE_HOME: return PS2_SCANCODE_HOME;
+        case SDL_SCANCODE_END: return PS2_SCANCODE_END;
+        case SDL_SCANCODE_PAGEUP: return PS2_SCANCODE_PAGEUP;
+        case SDL_SCANCODE_PAGEDOWN: return PS2_SCANCODE_PAGEDOWN;
+        case SDL_SCANCODE_RCTRL: return PS2_SCANCODE_RCTRL;
+        case SDL_SCANCODE_RALT: return PS2_SCANCODE_RALT;
+        case SDL_SCANCODE_LGUI: return PS2_SCANCODE_LGUI;
+        case SDL_SCANCODE_RGUI: return PS2_SCANCODE_RGUI;
+        case SDL_SCANCODE_APPLICATION: return PS2_SCANCODE_APPLICATION;
+        default: return PS2_SCANCODE_UNKNOWN;
+    }
+}
+
+static bool gearboy_ps2_is_extended_sdl_scancode(int scancode)
+{
+    switch (scancode)
+    {
+        case SDL_SCANCODE_UP:
+        case SDL_SCANCODE_DOWN:
+        case SDL_SCANCODE_LEFT:
+        case SDL_SCANCODE_RIGHT:
+        case SDL_SCANCODE_KP_DIVIDE:
+        case SDL_SCANCODE_KP_ENTER:
+        case SDL_SCANCODE_INSERT:
+        case SDL_SCANCODE_DELETE:
+        case SDL_SCANCODE_HOME:
+        case SDL_SCANCODE_END:
+        case SDL_SCANCODE_PAGEUP:
+        case SDL_SCANCODE_PAGEDOWN:
+        case SDL_SCANCODE_RCTRL:
+        case SDL_SCANCODE_RALT:
+        case SDL_SCANCODE_LGUI:
+        case SDL_SCANCODE_RGUI:
+        case SDL_SCANCODE_APPLICATION:
+            return true;
+        default:
+            return false;
+    }
+}
+
+static bool events_ps2_keyboard_active(void)
+{
+    return emu_ps2_keyboard_is_enabled() && (SDL_GetModState() & SDL_KMOD_CAPS);
+}
+
+static bool events_queue_ps2_key(const SDL_Event* event)
+{
+    if (event->type != SDL_EVENT_KEY_DOWN && event->type != SDL_EVENT_KEY_UP)
+        return false;
+        
+    if (event->key.repeat != 0)
+        return false;
+        
+    if (event->key.scancode == SDL_SCANCODE_CAPSLOCK)
+    {
+        if (!emu_ps2_keyboard_is_enabled())
+            emu_set_ps2_keyboard_mode(GB_PS2KeyboardMode_Enabled);
+        return false;
+    }
+
+    if (!events_ps2_keyboard_active())
+        return false;
+        
+    const bool release = event->type == SDL_EVENT_KEY_UP;
+    const u8 scancode = gearboy_ps2_map_sdl_scancode((int)event->key.scancode);
+    if (scancode == 0)
+        return false;
+
+    const bool extended = gearboy_ps2_is_extended_sdl_scancode((int)event->key.scancode);
+
+    if (extended && !emu_queue_ps2_scan_code(PS2_SCANCODE_EXTENDED))
+        return false;
+
+    if (release && !emu_queue_ps2_scan_code(PS2_SCANCODE_BREAK))
+        return false;
+
+    return emu_queue_ps2_scan_code(scancode);
+}
+
 void events_shortcuts(const SDL_Event* event)
 {
+    if (events_queue_ps2_key(event)) 
+        return;
+
     if (event->type == SDL_EVENT_KEY_UP)
     {
         if (events_match_hotkey_scancode(event, config_hotkeys[config_HotkeyIndex_Rewind]))
@@ -263,7 +443,7 @@ static Uint16 input_build_state(int controller)
     const bool* keyboard_state = SDL_GetKeyboardState(NULL);
     Uint16 ret = 0;
 
-    if (controller == 0)
+    if (controller == 0 && !events_ps2_keyboard_active())
     {
         if (keyboard_state[config_input.key_left])
             ret |= Left_Key;

@@ -102,6 +102,7 @@ struct config_Emulator
     int mcp_tcp_port;
     std::string mcp_http_address;
     int barcode_boy_mode;
+    int ps2_keyboard_mode;
     int link_cable_session;
     int link_cable_stall_us;
     int tilt_source;
